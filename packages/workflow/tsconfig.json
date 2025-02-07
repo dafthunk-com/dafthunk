@@ -1,0 +1,15 @@
+{
+  "extends": "tsconfig/base.json",
+  "include": ["../circuit/src"],
+  "exclude": ["../circuit/node_modules", "../circuit/dist"],
+  "compilerOptions": {
+    "outDir": "../circuit/dist",
+    "rootDir": "../circuit/src",
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": false,
+    "noUncheckedIndexedAccess": true
+  }
+} 
