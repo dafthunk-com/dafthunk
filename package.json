@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "circuit",
   "private": true,
   "scripts": {
     "build": "turbo build",
