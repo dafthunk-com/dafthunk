@@ -13,6 +13,7 @@ import ReactFlow, {
   Connection,
   BackgroundVariant,
   ConnectionMode,
+  ConnectionLineType,
 } from 'reactflow';
 import { WorkflowNode } from '@repo/ui/workflow-node';
 import 'reactflow/dist/style.css';
@@ -79,7 +80,13 @@ export default function FlowPage() {
         defaultEdgeOptions={{
           type: 'smoothstep',
           style: { stroke: '#999', strokeWidth: 1 },
+          animated: false
         }}
+        connectionLineStyle={{
+          strokeWidth: 1,
+          stroke: '#999'
+        }}
+        connectionLineType={ConnectionLineType.SmoothStep}
         fitView
         className="bg-gray-50"
       >
