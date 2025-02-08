@@ -26,6 +26,7 @@ The user asks questions about the following technologies:
 
 ### Follow these rules when writing code:
 
+- Do not install additional dependencies.
 - Use early returns whenever possible to improve readability.
 - Always use Tailwind classes for styling HTML elements; avoid external CSS files.
 - Use conditional classes with clsx or similar utilities instead of ternary operators in className.
