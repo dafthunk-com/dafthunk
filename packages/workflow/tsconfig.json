@@ -1,0 +1,9 @@
+{
+  "extends": "@circuit/typescript-config/base.json",
+  "include": ["src"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "lib": ["ES2015", "DOM"],
+    "target": "ES2015"
+  }
+} 
