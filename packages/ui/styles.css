@@ -1,0 +1,13 @@
+/* Base styles for UI components */
+@import './src/workflow-node.module.css';
+
+/* Add any global styles here */
+:root {
+  --ui-border-color: #e5e7eb;
+  --ui-background: white;
+  --ui-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --ui-text-color: #4b5563;
+  --ui-error-background: #fef2f2;
+  --ui-error-border: #fecaca;
+  --ui-error-text: #dc2626;
+} 

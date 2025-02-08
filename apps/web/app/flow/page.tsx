@@ -12,32 +12,49 @@ import ReactFlow, {
   Edge,
   Connection,
   BackgroundVariant,
+  ConnectionMode,
 } from 'reactflow';
+import { WorkflowNode } from '@repo/ui/workflow-node';
 import 'reactflow/dist/style.css';
+
+const nodeTypes = {
+  workflowNode: WorkflowNode,
+};
 
 const initialNodes: Node[] = [
   {
     id: '1',
-    type: 'input',
-    data: { label: 'Input Node' },
+    type: 'workflowNode',
+    data: { 
+      name: 'Addition',
+      inputs: [
+        { name: 'A', type: 'number' },
+        { name: 'B', type: 'number' },
+      ],
+      outputs: [
+        { name: 'Output', type: 'number' },
+      ]
+    },
     position: { x: 250, y: 25 },
   },
   {
     id: '2',
-    data: { label: 'Default Node' },
-    position: { x: 100, y: 125 },
-  },
-  {
-    id: '3',
-    type: 'output',
-    data: { label: 'Output Node' },
-    position: { x: 250, y: 250 },
+    type: 'workflowNode',
+    data: { 
+      name: 'Transform',
+      inputs: [
+        { name: 'data', type: 'number' },
+      ],
+      outputs: [
+        { name: 'result', type: 'string' },
+      ]
+    },
+    position: { x: 250, y: 200 },
   },
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2' },
-  { id: 'e2-3', source: '2', target: '3' },
+  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'Output', targetHandle: 'data', type: 'smoothstep' },
 ];
 
 export default function FlowPage() {
@@ -45,24 +62,34 @@ export default function FlowPage() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep' }, eds)),
     [setEdges]
   );
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0 }}>
+    <div className="w-screen h-screen fixed top-0 left-0">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        connectionMode={ConnectionMode.Strict}
+        defaultEdgeOptions={{
+          type: 'smoothstep',
+          style: { stroke: '#999', strokeWidth: 1 },
+        }}
         fitView
         className="bg-gray-50"
       >
-        <Controls />
-        <MiniMap />
-        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+        <Controls showInteractive={false} />
+        <Background 
+          variant={BackgroundVariant.Dots} 
+          gap={12} 
+          size={1} 
+          color="#e5e5e5"
+        />
       </ReactFlow>
     </div>
   );
