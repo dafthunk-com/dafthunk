@@ -1,10 +1,10 @@
 import { detectCycles, validateTypeCompatibility, validateWorkflow } from './validation';
-import { Workflow } from './types';
+import { Graph } from './types';
 
 describe('Workflow Validation', () => {
   describe('detectCycles', () => {
     test('returns null when no cycle exists', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
@@ -17,7 +17,7 @@ describe('Workflow Validation', () => {
     });
 
     test('detects a cycle in the graph', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: 'A', name: 'A', type: 'Input', inputs: [{ name: 'in', type: 'number' }], outputs: [{ name: 'out', type: 'number' }] },
           { id: 'B', name: 'B', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [{ name: 'out', type: 'number' }] }
@@ -35,7 +35,7 @@ describe('Workflow Validation', () => {
 
   describe('validateTypeCompatibility', () => {
     test('returns null for matching types', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
@@ -48,7 +48,7 @@ describe('Workflow Validation', () => {
     });
 
     test('returns TYPE_MISMATCH error for incompatible types', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'string' }], outputs: [] }
@@ -63,7 +63,7 @@ describe('Workflow Validation', () => {
     });
 
     test('returns INVALID_CONNECTION error for missing node', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] }
         ],
@@ -77,7 +77,7 @@ describe('Workflow Validation', () => {
     });
 
     test('returns INVALID_CONNECTION error for missing parameter', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
@@ -94,7 +94,7 @@ describe('Workflow Validation', () => {
 
   describe('validateWorkflow', () => {
     test('returns an empty array when there are no errors', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
@@ -108,7 +108,7 @@ describe('Workflow Validation', () => {
     });
 
     test('returns DUPLICATE_CONNECTION error when duplicate connections exist', () => {
-      const graph: Workflow = {
+      const graph: Graph = {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }

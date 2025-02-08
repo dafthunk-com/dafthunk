@@ -1,9 +1,9 @@
-import { Workflow, Node, Connection, ValidationError } from './types';
+import { Graph, Node, Edge, ValidationError } from './types';
 
 /**
  * Checks if there are any cycles in the graph using DFS
  */
-export function detectCycles(graph: Workflow): ValidationError | null {
+export function detectCycles(graph: Graph): ValidationError | null {
   const visited = new Set<string>();
   const recursionStack = new Set<string>();
 
@@ -44,7 +44,7 @@ export function detectCycles(graph: Workflow): ValidationError | null {
 /**
  * Validates type compatibility between connected parameters
  */
-export function validateTypeCompatibility(graph: Workflow): ValidationError | null {
+export function validateTypeCompatibility(graph: Graph): ValidationError | null {
   for (const connection of graph.connections) {
     const sourceNode = graph.nodes.find(n => n.id === connection.source);
     const targetNode = graph.nodes.find(n => n.id === connection.target);
@@ -92,7 +92,7 @@ export function validateTypeCompatibility(graph: Workflow): ValidationError | nu
 /**
  * Validates the entire workflow graph
  */
-export function validateWorkflow(graph: Workflow): ValidationError[] {
+export function validateWorkflow(graph: Graph): ValidationError[] {
   const errors: ValidationError[] = [];
 
   // Check for cycles

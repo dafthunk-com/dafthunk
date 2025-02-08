@@ -26,7 +26,7 @@ export interface Node {
 /**
  * Represents a connection between two tasks in the workflow
  */
-export interface Connection {
+export interface Edge {
   source: string;      // Source task ID
   target: string;      // Target task ID
   sourceOutput: string; // Source output parameter name
@@ -36,9 +36,9 @@ export interface Connection {
 /**
  * Represents the entire workflow graph
  */
-export interface Workflow {
+export interface Graph {
   nodes: Node[];
-  connections: Connection[];
+  connections: Edge[];
 }
 
 /**
