@@ -1,5 +1,5 @@
 {
-  "extends": "@circuit/typescript-config/base.json",
+  "extends": "@repo/typescript-config/base.json",
   "include": ["src"],
   "exclude": ["node_modules"],
   "compilerOptions": {

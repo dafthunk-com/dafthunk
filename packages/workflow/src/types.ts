@@ -36,7 +36,7 @@ export interface Connection {
 /**
  * Represents the entire workflow graph
  */
-export interface Graph {
+export interface Workflow {
   nodes: Node[];
   connections: Connection[];
 }
