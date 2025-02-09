@@ -116,7 +116,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
             ...edge,
             style: {
               stroke: '#999',
-              strokeWidth: edge.id === selectedEdge ? 3 : 1,
+              strokeWidth: edge.id === selectedEdge ? 1 : 1,
             },
           }))}
           onNodesChange={onNodesChange}

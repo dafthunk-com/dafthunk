@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { BaseEdge, EdgeProps, getSmoothStepPath } from 'reactflow';
-import styles from './workflow-edge.module.css';
+import { clsx } from 'clsx';
 
 interface WorkflowEdgeData {
   isValid?: boolean;
@@ -32,34 +32,34 @@ export const WorkflowEdge = memo(({
   const isActive = data?.isActive ?? false;
 
   return (
-    <>
-      <BaseEdge
-        path={edgePath}
+    <g>
+      <path
+        d={edgePath}
+        className={clsx(
+          'stroke-[2] fill-none transition-colors duration-300',
+          {
+            'stroke-gray-200': !selected && isValid,
+            'stroke-blue-500': selected && isValid,
+            'stroke-red-400': !isValid,
+            'animate-pulse': isActive
+          }
+        )}
         markerEnd={markerEnd}
-        style={{
-          stroke: !isValid ? '#ef4444' : selected ? '#666' : '#999',
-          strokeWidth: selected ? 3 : 2,
-          transition: 'all 0.3s ease',
-          cursor: 'pointer',
-        }}
       />
       {isActive && (
         <circle
-          className={`${styles.activeIndicator} animate-pulse`}
-          style={{ offsetPath: `path("${edgePath}")` }}
-          filter="url(#glow)"
+          r="4"
+          className={clsx(
+            'fill-blue-500 animate-[moveAlongPath_2s_linear_infinite]',
+            'filter drop-shadow-md'
+          )}
+          style={{ 
+            offsetPath: `path("${edgePath}")`,
+            offsetRotate: '0deg'
+          }}
         />
       )}
-      <defs>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-          <feMerge>
-            <feMergeNode in="coloredBlur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
-    </>
+    </g>
   );
 });
 
