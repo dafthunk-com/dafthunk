@@ -32,9 +32,9 @@ const TypeBadge = ({ type, position, id }: { type: string; position: Position; i
   );
 };
 
-export const WorkflowNode = memo(({ data }: { data: WorkflowNodeData }) => {
+export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; selected?: boolean }) => {
   return (
-    <div className={styles.node}>
+    <div className={`${styles.node} ${selected ? styles.selected : ''}`}>
       {/* Header */}
       <div className={styles.header}>
         <h3 className={styles.title}>{data.name}</h3>
