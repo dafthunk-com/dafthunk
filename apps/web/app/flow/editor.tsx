@@ -15,7 +15,7 @@ import ReactFlow, {
   ConnectionMode,
   ConnectionLineType,
 } from 'reactflow';
-import { WorkflowNode } from '@repo/ui/workflow-node';
+import { WorkflowNode } from './workflow-node';
 import { Node, Edge, NodeType, Graph } from '@repo/workflow';
 import { Sidebar } from './sidebar';
 import 'reactflow/dist/style.css';
@@ -71,6 +71,7 @@ export function Editor({ initialWorkflowGraph, onWorkflowChange }: EditorProps) 
   const [nodes, setNodes, onNodesChange] = useNodesState(convertToReactFlowNodes(workflowGraph.nodes));
   const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.connections));
   const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -97,8 +98,13 @@ export function Editor({ initialWorkflowGraph, onWorkflowChange }: EditorProps) 
     setSelectedNode(node);
   }, []);
 
+  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: ReactFlowEdge) => {
+    setSelectedEdge(edge.id);
+  }, []);
+
   const handlePaneClick = useCallback(() => {
     setSelectedNode(null);
+    setSelectedEdge(null);
   }, []);
 
   return (
@@ -106,11 +112,18 @@ export function Editor({ initialWorkflowGraph, onWorkflowChange }: EditorProps) 
       <div className={`h-full rounded-xl border border-white overflow-hidden ${selectedNode ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
         <ReactFlow
           nodes={nodes}
-          edges={edges}
+          edges={edges.map(edge => ({
+            ...edge,
+            style: {
+              stroke: '#999',
+              strokeWidth: edge.id === selectedEdge ? 3 : 1,
+            },
+          }))}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
           onPaneClick={handlePaneClick}
           nodeTypes={nodeTypes}
           connectionMode={ConnectionMode.Strict}

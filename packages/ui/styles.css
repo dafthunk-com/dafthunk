@@ -1,6 +1,3 @@
-/* Base styles for UI components */
-@import './src/workflow-node.module.css';
-
 /* Add any global styles here */
 :root {
   --ui-border-color: #e5e7eb;

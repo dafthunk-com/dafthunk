@@ -71,4 +71,4 @@ export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; 
       )}
     </div>
   );
-});
+}); 
