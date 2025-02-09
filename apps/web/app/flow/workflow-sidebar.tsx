@@ -1,42 +1,77 @@
-import { Node as ReactFlowNode } from 'reactflow';
+import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow';
 
 interface WorkflowSidebarProps {
   node: ReactFlowNode | null;
+  edge: ReactFlowEdge | null;
 }
 
-export const WorkflowSidebar = ({ node }: WorkflowSidebarProps) => {
-  if (!node) return null;
+export const WorkflowSidebar = ({ node, edge }: WorkflowSidebarProps) => {
+  if (!node && !edge) return null;
 
   return (
     <div className="h-full bg-white">
       <div className="p-6">
-        <h2 className="text-xl font-semibold mb-4">{node.data.name}</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Inputs</h3>
-            <div className="space-y-2">
-              {node.data.inputs.map((input: { name: string; type: string }, index: number) => (
-                <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span className="text-sm">{input.name}</span>
-                  <span className="text-xs text-gray-500">{input.type}</span>
+        {node && (
+          <>
+            <h2 className="text-xl font-semibold mb-4">{node.data.name}</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Inputs</h3>
+                <div className="space-y-2">
+                  {node.data.inputs.map((input: { name: string; type: string }, index: number) => (
+                    <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                      <span className="text-sm">{input.name}</span>
+                      <span className="text-xs text-gray-500">{input.type}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Outputs</h3>
-            <div className="space-y-2">
-              {node.data.outputs.map((output: { name: string; type: string }, index: number) => (
-                <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                  <span className="text-sm">{output.name}</span>
-                  <span className="text-xs text-gray-500">{output.type}</span>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Outputs</h3>
+                <div className="space-y-2">
+                  {node.data.outputs.map((output: { name: string; type: string }, index: number) => (
+                    <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                      <span className="text-sm">{output.name}</span>
+                      <span className="text-xs text-gray-500">{output.type}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
+
+        {edge && (
+          <>
+            <h2 className="text-xl font-semibold mb-4">Connection</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Details</h3>
+                <div className="space-y-2">
+                  <div className="bg-gray-50 p-3 rounded space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Source</span>
+                      <span className="text-sm">{edge.source}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Source Handle</span>
+                      <span className="text-sm">{edge.sourceHandle}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Target</span>
+                      <span className="text-sm">{edge.target}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Target Handle</span>
+                      <span className="text-sm">{edge.targetHandle}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

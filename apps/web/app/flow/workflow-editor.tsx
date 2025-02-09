@@ -76,7 +76,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [nodes, setNodes, onNodesChange] = useNodesState(convertToReactFlowNodes(workflowGraph.nodes));
   const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.connections));
   const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -105,7 +105,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   }, []);
 
   const handleEdgeClick = useCallback((event: React.MouseEvent, edge: ReactFlowEdge) => {
-    setSelectedEdge(edge.id);
+    setSelectedEdge(edge);
     setSelectedNode(null);
   }, []);
 
@@ -116,7 +116,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
 
   return (
     <div className="w-full h-full flex">
-      <div className={`h-full rounded-xl border border-white overflow-hidden ${selectedNode ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+      <div className={`h-full rounded-xl border border-white overflow-hidden ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -150,8 +150,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           />
         </ReactFlow>
       </div>
-      <div className={`w-80 ${!selectedNode && 'hidden'}`}>
-        <WorkflowSidebar node={selectedNode} />
+      <div className={`w-80 ${!selectedNode && !selectedEdge && 'hidden'}`}>
+        <WorkflowSidebar node={selectedNode} edge={selectedEdge} />
       </div>
     </div>
   );
