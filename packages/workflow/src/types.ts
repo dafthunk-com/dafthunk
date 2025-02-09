@@ -21,6 +21,10 @@ export interface Node {
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string | null;
+  position: {
+    x: number;
+    y: number;
+  };
 }
 
 /**
