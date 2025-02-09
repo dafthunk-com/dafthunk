@@ -102,38 +102,40 @@ export function Editor({ initialWorkflowGraph, onWorkflowChange }: EditorProps) 
   }, []);
 
   return (
-    <div className={`w-full h-full rounded-xl border border-white overflow-hidden`}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={handleNodeClick}
-        onPaneClick={handlePaneClick}
-        nodeTypes={nodeTypes}
-        connectionMode={ConnectionMode.Strict}
-        defaultEdgeOptions={{
-          type: 'smoothstep',
-          style: { stroke: '#999', strokeWidth: 1 },
-          animated: false
-        }}
-        connectionLineStyle={{
-          strokeWidth: 1,
-          stroke: '#999'
-        }}
-        connectionLineType={ConnectionLineType.SmoothStep}
-        fitView
-        className="bg-gray-100"
-      >
-        <Controls showInteractive={false} />
-        <Background 
-          variant={BackgroundVariant.Dots} 
-          gap={12} 
-          size={1} 
-          color="#d4d4d4"
-        />
-      </ReactFlow>
+    <div className={`w-full h-full flex`}>
+      <div className={`h-full rounded-xl border border-white overflow-hidden ${selectedNode ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
+          nodeTypes={nodeTypes}
+          connectionMode={ConnectionMode.Strict}
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            style: { stroke: '#999', strokeWidth: 1 },
+            animated: false
+          }}
+          connectionLineStyle={{
+            strokeWidth: 1,
+            stroke: '#999'
+          }}
+          connectionLineType={ConnectionLineType.SmoothStep}
+          fitView
+          className="bg-gray-100"
+        >
+          <Controls showInteractive={false} />
+          <Background 
+            variant={BackgroundVariant.Dots} 
+            gap={12} 
+            size={1} 
+            color="#d4d4d4"
+          />
+        </ReactFlow>
+      </div>
       <Sidebar node={selectedNode} />
     </div>
   );
