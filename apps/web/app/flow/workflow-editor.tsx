@@ -117,8 +117,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           edges={edges.map(edge => ({
             ...edge,
             style: {
-              stroke: '#999',
-              strokeWidth: edge.id === selectedEdge ? 1 : 1,
+              stroke: edge.id === selectedEdge ? '#3b82f6' : '#9ca3af',
+              strokeWidth: 1,
             },
           }))}
           onNodesChange={onNodesChange}
@@ -131,12 +131,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           connectionMode={ConnectionMode.Strict}
           defaultEdgeOptions={{
             type: 'smoothstep',
-            style: { stroke: '#999', strokeWidth: 1 },
+            style: { stroke: '#9ca3af', strokeWidth: 1 },
             animated: false
           }}
           connectionLineStyle={{
             strokeWidth: 1,
-            stroke: '#999'
+            stroke: '#9ca3af'
           }}
           connectionLineType={ConnectionLineType.SmoothStep}
           fitView
