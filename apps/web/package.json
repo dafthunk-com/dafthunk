@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
-    "@repo/workflow": "workspace:*",
+    "@circuit/workflow": "workspace:*",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
