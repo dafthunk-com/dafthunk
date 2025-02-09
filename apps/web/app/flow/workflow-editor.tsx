@@ -48,11 +48,11 @@ const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
 const convertToReactFlowEdges = (edges: Edge[]): ReactFlowEdge[] => {
   return edges.map((edge, index) => ({
     id: `e${index}`,
+    type: 'workflowEdge',
     source: edge.source,
     target: edge.target,
     sourceHandle: edge.sourceOutput,
     targetHandle: edge.targetInput,
-    type: 'workflowEdge',
   }));
 };
 
