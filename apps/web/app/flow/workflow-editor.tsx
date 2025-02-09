@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -13,6 +13,8 @@ import ReactFlow, {
   BackgroundVariant,
   ConnectionMode,
   ConnectionLineType,
+  useReactFlow,
+  ReactFlowInstance,
 } from 'reactflow';
 import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
 import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
@@ -76,6 +78,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.connections));
   const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -113,9 +116,43 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     setSelectedEdge(null);
   }, []);
 
+  const handleAddNode = useCallback(() => {
+    console.log('handleAddNode');
+    if (!reactFlowInstance) return;
+
+    const position = reactFlowInstance.project({
+      x: Math.random() * 500,
+      y: Math.random() * 500,
+    });
+
+    const newNode: Node = {
+      id: `node-${nodes.length + 1}`,
+      type: 'Processor',
+      name: `Node ${nodes.length + 1}`,
+      position,
+      inputs: [
+        { name: 'input1', type: 'string' },
+      ],
+      outputs: [
+        { name: 'output1', type: 'string' },
+      ],
+    };
+
+    setWorkflowGraph((prevGraph: Graph) => {
+      const newGraph = {
+        ...prevGraph,
+        nodes: [...prevGraph.nodes, newNode],
+      };
+      onWorkflowChange?.(newGraph);
+      return newGraph;
+    });
+
+    setNodes((nds) => [...nds, ...convertToReactFlowNodes([newNode])]);
+  }, [nodes.length, reactFlowInstance, setNodes, onWorkflowChange]);
+
   return (
     <div className="w-full h-full flex">
-      <div className={`h-full rounded-xl border border-white overflow-hidden ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+      <div className={`h-full rounded-xl border border-white overflow-hidden relative ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -129,6 +166,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           edgeTypes={edgeTypes}
           connectionMode={ConnectionMode.Strict}
           connectionLineType={ConnectionLineType.SmoothStep}
+          onInit={setReactFlowInstance}
           fitView
           className="bg-gray-100"
         >
@@ -139,6 +177,33 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
             size={1} 
             color="#d4d4d4"
           />
+          <div className="absolute bottom-8 right-8 z-50">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddNode();
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
+              title="Add Node"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+            </button>
+          </div>
         </ReactFlow>
       </div>
       <div className={`w-80 ${!selectedNode && !selectedEdge && 'hidden'}`}>
