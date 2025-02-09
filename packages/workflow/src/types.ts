@@ -7,17 +7,12 @@ export interface Parameter {
 }
 
 /**
- * Represents the type of node in the workflow
- */
-export type NodeType = 'Input' | 'Processor' | 'Output';
-
-/**
  * Represents a task node in the workflow graph
  */
 export interface Node {
   id: string;
   name: string;
-  type: NodeType;
+  type: string;
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string | null;
