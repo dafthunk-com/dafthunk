@@ -26,7 +26,7 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-  default: WorkflowEdge,
+  workflowEdge: WorkflowEdge,
 };
 
 // Convert workflow nodes to ReactFlow nodes
@@ -52,7 +52,7 @@ const convertToReactFlowEdges = (edges: Edge[]): ReactFlowEdge[] => {
     target: edge.target,
     sourceHandle: edge.sourceOutput,
     targetHandle: edge.targetInput,
-    type: 'smoothstep',
+    type: 'workflowEdge',
   }));
 };
 
