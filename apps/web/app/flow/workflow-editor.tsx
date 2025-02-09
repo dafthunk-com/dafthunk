@@ -16,12 +16,17 @@ import ReactFlow, {
   ConnectionLineType,
 } from 'reactflow';
 import { WorkflowNode } from './workflow-node';
+import { WorkflowEdge } from './workflow-edge';
 import { Node, Edge, NodeType, Graph } from '@repo/workflow';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
+};
+
+const edgeTypes = {
+  default: WorkflowEdge,
 };
 
 // Convert workflow nodes to ReactFlow nodes
@@ -114,13 +119,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       <div className={`h-full rounded-xl border border-white overflow-hidden ${selectedNode ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
         <ReactFlow
           nodes={nodes}
-          edges={edges.map(edge => ({
-            ...edge,
-            style: {
-              stroke: edge.id === selectedEdge ? '#3b82f6' : '#9ca3af',
-              strokeWidth: 1,
-            },
-          }))}
+          edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -128,14 +127,14 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           onEdgeClick={handleEdgeClick}
           onPaneClick={handlePaneClick}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           connectionMode={ConnectionMode.Strict}
           defaultEdgeOptions={{
-            type: 'smoothstep',
-            style: { stroke: '#9ca3af', strokeWidth: 1 },
+            type: 'default',
             animated: false
           }}
           connectionLineStyle={{
-            strokeWidth: 1,
+            strokeWidth: 2,
             stroke: '#9ca3af'
           }}
           connectionLineType={ConnectionLineType.SmoothStep}

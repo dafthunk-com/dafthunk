@@ -38,8 +38,8 @@ export const WorkflowEdge = memo(({
         className={clsx(
           'stroke-[2] fill-none transition-colors duration-300',
           {
-            'stroke-gray-200': !selected && isValid,
-            'stroke-blue-500': selected && isValid,
+            'stroke-gray-300': !selected && isValid,
+            'stroke-blue-500 stroke-[3]': selected && isValid,
             'stroke-red-400': !isValid,
             'animate-pulse': isActive
           }
