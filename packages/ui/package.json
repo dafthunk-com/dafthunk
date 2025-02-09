@@ -6,6 +6,9 @@
     "./button": "./src/button.tsx",
     "./card": "./src/card.tsx",
     "./code": "./src/code.tsx",
+    "./dialog": "./src/dialog.tsx",
+    "./input": "./src/input.tsx",
+    "./scroll-area": "./src/scroll-area.tsx",
     "./workflow-node": "./src/workflow-node.tsx",
     "./styles.css": "./styles.css",
     "./tailwind.config": "./tailwind.config.ts"
@@ -34,6 +37,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-scroll-area": "^1.2.3",
     "@radix-ui/react-slot": "^1.0.2",
     "lucide-react": "^0.358.0",
     "react": "^19.0.0",

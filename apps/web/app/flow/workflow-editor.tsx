@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -13,7 +13,6 @@ import ReactFlow, {
   BackgroundVariant,
   ConnectionMode,
   ConnectionLineType,
-  useReactFlow,
   ReactFlowInstance,
 } from 'reactflow';
 import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
@@ -21,6 +20,8 @@ import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
 import { Node, Edge, Graph } from '@repo/workflow';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
+import { NodeSelector } from './node-selector';
+import { NodeTemplate } from './workflow-templates';
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
@@ -79,6 +80,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -117,7 +119,10 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   }, []);
 
   const handleAddNode = useCallback(() => {
-    console.log('handleAddNode');
+    setIsNodeSelectorOpen(true);
+  }, []);
+
+  const handleNodeSelect = useCallback((template: NodeTemplate) => {
     if (!reactFlowInstance) return;
 
     const position = reactFlowInstance.project({
@@ -125,18 +130,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       y: Math.random() * 500,
     });
 
-    const newNode: Node = {
-      id: `node-${nodes.length + 1}`,
-      type: 'Processor',
-      name: `Node ${nodes.length + 1}`,
-      position,
-      inputs: [
-        { name: 'input1', type: 'string' },
-      ],
-      outputs: [
-        { name: 'output1', type: 'string' },
-      ],
-    };
+    const newNode = template.createNode(position);
 
     setWorkflowGraph((prevGraph: Graph) => {
       const newGraph = {
@@ -148,7 +142,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     });
 
     setNodes((nds) => [...nds, ...convertToReactFlowNodes([newNode])]);
-  }, [nodes.length, reactFlowInstance, setNodes, onWorkflowChange]);
+    setIsNodeSelectorOpen(false);
+  }, [reactFlowInstance, setNodes, onWorkflowChange]);
 
   return (
     <div className="w-full h-full flex">
@@ -209,6 +204,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       <div className={`w-80 ${!selectedNode && !selectedEdge && 'hidden'}`}>
         <WorkflowSidebar node={selectedNode} edge={selectedEdge} />
       </div>
+
+      <NodeSelector
+        open={isNodeSelectorOpen}
+        onClose={() => setIsNodeSelectorOpen(false)}
+        onSelect={handleNodeSelect}
+      />
     </div>
   );
 } 
