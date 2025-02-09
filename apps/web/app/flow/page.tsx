@@ -1,6 +1,6 @@
 'use client';
 
-import { Graph } from '@circuit/workflow';
+import { Graph } from '@repo/workflow';
 import { Editor } from './editor';
 
 const graph: Graph = {

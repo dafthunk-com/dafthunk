@@ -16,7 +16,7 @@ import ReactFlow, {
   ConnectionLineType,
 } from 'reactflow';
 import { WorkflowNode } from '@repo/ui/workflow-node';
-import { Node, Edge, NodeType, Graph } from '@circuit/workflow';
+import { Node, Edge, NodeType, Graph } from '@repo/workflow';
 import { Sidebar } from './sidebar';
 import 'reactflow/dist/style.css';
 

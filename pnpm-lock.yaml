@@ -60,6 +60,9 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@repo/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
       next:
         specifier: ^15.1.6
         version: 15.1.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -150,6 +153,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
+      reactflow:
+        specifier: ^11.11.4
+        version: 11.11.4(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -175,15 +181,6 @@ importers:
       eslint:
         specifier: ^9.0.0
         version: 9.19.0(jiti@1.21.7)
-      postcss:
-        specifier: ^8.4.31
-        version: 8.4.31
-      reactflow:
-        specifier: ^11.11.4
-        version: 11.11.4(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      tailwindcss:
-        specifier: ^3.3.0
-        version: 3.3.0(postcss@8.4.31)(ts-node@10.9.2(@types/node@22.13.0)(typescript@5.7.3))
       typescript:
         specifier: ^5.3.3
         version: 5.7.3
