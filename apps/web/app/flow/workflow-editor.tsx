@@ -96,10 +96,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
     setSelectedNode(node);
+    setSelectedEdge(null);
   }, []);
 
   const handleEdgeClick = useCallback((event: React.MouseEvent, edge: ReactFlowEdge) => {
     setSelectedEdge(edge.id);
+    setSelectedNode(null);
   }, []);
 
   const handlePaneClick = useCallback(() => {
