@@ -17,7 +17,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { WorkflowNode } from './workflow-node';
 import { Node, Edge, NodeType, Graph } from '@repo/workflow';
-import { Sidebar } from './sidebar';
+import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 
 const nodeTypes = {
@@ -61,12 +61,12 @@ const convertToWorkflowEdge = (connection: Connection): Edge => {
   };
 };
 
-interface EditorProps {
+interface WorkflowEditorProps {
   initialWorkflowGraph: Graph;
   onWorkflowChange?: (graph: Graph) => void;
 }
 
-export function Editor({ initialWorkflowGraph, onWorkflowChange }: EditorProps) {
+export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: WorkflowEditorProps) {
   const [workflowGraph, setWorkflowGraph] = useState<Graph>(initialWorkflowGraph);
   const [nodes, setNodes, onNodesChange] = useNodesState(convertToReactFlowNodes(workflowGraph.nodes));
   const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.connections));
@@ -149,7 +149,7 @@ export function Editor({ initialWorkflowGraph, onWorkflowChange }: EditorProps) 
           />
         </ReactFlow>
       </div>
-      <Sidebar node={selectedNode} />
+      <WorkflowSidebar node={selectedNode} />
     </div>
   );
 } 

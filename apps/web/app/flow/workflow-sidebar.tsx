@@ -1,10 +1,10 @@
 import { Node as ReactFlowNode } from 'reactflow';
 
-interface SidebarProps {
+interface WorkflowSidebarProps {
   node: ReactFlowNode | null;
 }
 
-export const Sidebar = ({ node }: SidebarProps) => {
+export const WorkflowSidebar = ({ node }: WorkflowSidebarProps) => {
   if (!node) return null;
 
   return (

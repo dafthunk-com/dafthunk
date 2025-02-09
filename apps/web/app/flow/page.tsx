@@ -1,7 +1,7 @@
 'use client';
 
 import { Graph } from '@repo/workflow';
-import { Editor } from './editor';
+import { WorkflowEditor } from './workflow-editor';
 
 const graph: Graph = {
   nodes: [
@@ -46,7 +46,7 @@ const graph: Graph = {
 export default function FlowPage() {
   return (
     <div className="w-screen h-screen fixed top-0 left-0 p-2">
-      <Editor initialWorkflowGraph={graph} />
+      <WorkflowEditor initialWorkflowGraph={graph} />
     </div>
   );
 } 
