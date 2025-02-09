@@ -1,0 +1,46 @@
+:root {
+  --edge-stroke-default: #999;
+  --edge-stroke-selected: #666;
+  --edge-stroke-invalid: #ef4444;
+  --edge-stroke-width-default: 2;
+  --edge-stroke-width-selected: 3;
+  --edge-transition: all 0.3s ease;
+}
+
+.edge {
+  stroke: #999;
+  stroke-width: 2;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.edge.selected {
+  stroke: #666;
+  stroke-width: 3;
+}
+
+.edge.invalid {
+  stroke: #ef4444;
+}
+
+.activeIndicator {
+  fill: #3b82f6;
+  r: 4;
+  offset-distance: 50%;
+}
+
+.glow {
+  position: absolute;
+}
+
+.path {
+  composes: edge;
+}
+
+.path.selected {
+  composes: selected;
+}
+
+.path.invalid {
+  composes: invalid;
+} 
