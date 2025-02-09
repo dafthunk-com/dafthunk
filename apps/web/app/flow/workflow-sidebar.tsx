@@ -8,7 +8,7 @@ export const WorkflowSidebar = ({ node }: WorkflowSidebarProps) => {
   if (!node) return null;
 
   return (
-    <div className={`fixed right-0 top-0 h-screen w-80 bg-white transform ${node ? 'translate-x-0' : 'translate-x-full'}`}>
+    <div className="h-full bg-white">
       <div className="p-6">
         <h2 className="text-xl font-semibold mb-4">{node.data.name}</h2>
         

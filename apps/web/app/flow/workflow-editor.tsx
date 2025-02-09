@@ -115,7 +115,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   }, []);
 
   return (
-    <div className={`w-full h-full flex`}>
+    <div className="w-full h-full flex">
       <div className={`h-full rounded-xl border border-white overflow-hidden ${selectedNode ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
         <ReactFlow
           nodes={nodes}
@@ -150,7 +150,9 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           />
         </ReactFlow>
       </div>
-      <WorkflowSidebar node={selectedNode} />
+      <div className={`w-80 ${!selectedNode && 'hidden'}`}>
+        <WorkflowSidebar node={selectedNode} />
+      </div>
     </div>
   );
 } 
