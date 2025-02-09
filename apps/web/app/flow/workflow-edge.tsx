@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { BaseEdge, EdgeProps, getSmoothStepPath } from 'reactflow';
+import { EdgeProps, getSmoothStepPath } from 'reactflow';
 import { clsx } from 'clsx';
 
 interface WorkflowEdgeData {

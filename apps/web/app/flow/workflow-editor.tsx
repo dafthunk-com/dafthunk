@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from 'react';
 import ReactFlow, {
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -15,18 +14,18 @@ import ReactFlow, {
   ConnectionMode,
   ConnectionLineType,
 } from 'reactflow';
-import { WorkflowNode } from './workflow-node';
-import { WorkflowEdge } from './workflow-edge';
-import { Node, Edge, NodeType, Graph } from '@repo/workflow';
+import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
+import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
+import { Node as WorkflowNode, Edge as WorkflowEdge, Graph } from '@repo/workflow';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 
 const nodeTypes = {
-  workflowNode: WorkflowNode,
+  workflowNode: WorkflowNodeComponent,
 };
 
 const edgeTypes = {
-  workflowEdge: WorkflowEdge,
+  workflowEdge: WorkflowEdgeComponent,
 };
 
 // Convert workflow nodes to ReactFlow nodes
