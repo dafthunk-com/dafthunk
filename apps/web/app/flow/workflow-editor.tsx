@@ -16,7 +16,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
 import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
-import { Node as WorkflowNode, Edge as WorkflowEdge, Graph } from '@repo/workflow';
+import { Node, Edge, Graph } from '@repo/workflow';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 
