@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import React from 'react';
-import styles from './workflow-node.module.css';
 
 export interface Parameter {
   name: string;
@@ -18,14 +17,14 @@ export interface WorkflowNodeData {
 const TypeBadge = ({ type, position, id }: { type: string; position: Position; id: string }) => {
   const label = type.charAt(0).toUpperCase();
   return (
-    <div className={styles.typeBadgeContainer}>
+    <div className="relative inline-flex items-center justify-center">
       <Handle
         type={position === Position.Left ? "target" : "source"}
         position={position}
         id={id}
-        className={styles.handle}
+        className="opacity-0 !w-full !h-full !bg-transparent !border-none !absolute !left-0 !top-0 !transform-none !m-0 !z-[1000]"
       />
-      <span className={styles.typeBadge}>
+      <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-600 text-xs font-medium relative z-[1] cursor-pointer transition-colors hover:bg-gray-200">
         {label}
       </span>
     </div>
@@ -34,18 +33,18 @@ const TypeBadge = ({ type, position, id }: { type: string; position: Position; i
 
 export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; selected?: boolean }) => {
   return (
-    <div className={`${styles.node} ${selected ? styles.selected : ''}`}>
+    <div className={`bg-white shadow-sm w-[200px] rounded-lg border ${selected ? 'border-blue-500' : 'border-gray-200'}`}>
       {/* Header */}
-      <div className={styles.header}>
-        <h3 className={styles.title}>{data.name}</h3>
+      <div className="p-1 text-center">
+        <h3 className="m-0 text-xs font-medium">{data.name}</h3>
       </div>
 
       {/* Parameters */}
-      <div className={styles.parameters}>
+      <div className="px-1 pb-1 flex justify-between gap-4">
         {/* Input Parameters */}
-        <div className={styles.parameterList}>
+        <div className="flex flex-col gap-1 flex-1">
           {data.inputs.map((input, index) => (
-            <div key={`input-${input.name}-${index}`} className={styles.parameter}>
+            <div key={`input-${input.name}-${index}`} className="flex items-center gap-1 text-xs relative">
               <TypeBadge type={input.type} position={Position.Left} id={input.name} />
               {input.name}
             </div>
@@ -53,9 +52,9 @@ export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; 
         </div>
 
         {/* Output Parameters */}
-        <div className={`${styles.parameterList} ${styles.parameterListRight}`}>
+        <div className="flex flex-col gap-1 flex-1 items-end">
           {data.outputs.map((output, index) => (
-            <div key={`output-${output.name}-${index}`} className={styles.parameter}>
+            <div key={`output-${output.name}-${index}`} className="flex items-center gap-1 text-xs relative">
               {output.name}
               <TypeBadge type={output.type} position={Position.Right} id={output.name} />
             </div>
@@ -65,8 +64,8 @@ export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; 
 
       {/* Error Display */}
       {data.error && (
-        <div className={styles.error}>
-          <p>{data.error}</p>
+        <div className="p-2 bg-red-50 text-red-600 text-xs">
+          <p className="m-0">{data.error}</p>
         </div>
       )}
     </div>
