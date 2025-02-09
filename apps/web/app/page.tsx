@@ -10,7 +10,7 @@ export default function Home() {
         <p className="text-lg text-gray-600">
           A modern workflow engine for building and managing complex processes.
         </p>
-        <Button>
+        <Button variant="default" size="lg" className="mt-8">
           Try it out
         </Button>
       </div>
