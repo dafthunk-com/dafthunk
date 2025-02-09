@@ -8,18 +8,19 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   addEdge,
-  Node,
-  Edge,
+  Node as ReactFlowNode,
+  Edge as ReactFlowEdge,
   Connection,
   BackgroundVariant,
   ConnectionMode,
   ConnectionLineType,
 } from 'reactflow';
 import { WorkflowNode } from '@repo/ui/workflow-node';
+import { Node, Edge, NodeType, Graph } from '@repo/workflow';
 import 'reactflow/dist/style.css';
 
 interface SidebarProps {
-  node: Node | null;
+  node: ReactFlowNode | null;
 }
 
 const Sidebar = ({ node }: SidebarProps) => {
@@ -64,53 +65,107 @@ const nodeTypes = {
   workflowNode: WorkflowNode,
 };
 
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'workflowNode',
-    data: { 
+const initialWorkflowGraph: Graph = {
+  nodes: [
+    {
+      id: '1',
       name: 'Addition',
+      type: 'Processor',
+      position: { x: 250, y: 25 },
       inputs: [
         { name: 'A', type: 'number' },
         { name: 'B', type: 'number' },
       ],
       outputs: [
         { name: 'Output', type: 'number' },
-      ]
+      ],
+      error: null,
     },
-    position: { x: 250, y: 25 },
-  },
-  {
-    id: '2',
-    type: 'workflowNode',
-    data: { 
+    {
+      id: '2',
       name: 'Transform',
+      type: 'Processor',
+      position: { x: 250, y: 200 },
       inputs: [
         { name: 'data', type: 'number' },
       ],
       outputs: [
         { name: 'result', type: 'string' },
-      ]
+      ],
+      error: null,
     },
-    position: { x: 250, y: 200 },
-  },
-];
+  ],
+  connections: [
+    { 
+      source: '1',
+      target: '2',
+      sourceOutput: 'Output',
+      targetInput: 'data'
+    },
+  ],
+};
 
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', sourceHandle: 'Output', targetHandle: 'data', type: 'smoothstep' },
-];
+// Convert workflow nodes to ReactFlow nodes
+const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
+  return nodes.map(node => ({
+    id: node.id,
+    type: 'workflowNode',
+    position: node.position,
+    data: {
+      name: node.name,
+      inputs: node.inputs,
+      outputs: node.outputs,
+      error: node.error,
+    },
+  }));
+};
+
+// Convert workflow edges to ReactFlow edges
+const convertToReactFlowEdges = (edges: Edge[]): ReactFlowEdge[] => {
+  return edges.map((edge, index) => ({
+    id: `e${index}`,
+    source: edge.source,
+    target: edge.target,
+    sourceHandle: edge.sourceOutput,
+    targetHandle: edge.targetInput,
+    type: 'smoothstep',
+  }));
+};
+
+// Convert ReactFlow connection to workflow edge
+const convertToWorkflowEdge = (connection: Connection): Edge => {
+  return {
+    source: connection.source || '',
+    target: connection.target || '',
+    sourceOutput: connection.sourceHandle || '',
+    targetInput: connection.targetHandle || '',
+  };
+};
 
 export default function FlowPage() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [workflowGraph, setWorkflowGraph] = useState<Graph>(initialWorkflowGraph);
+  const [nodes, setNodes, onNodesChange] = useNodesState(convertToReactFlowNodes(workflowGraph.nodes));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.connections));
+  const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep' }, eds)),
+    (params: Connection) => {
+      const edge = {
+        ...params,
+        type: 'smoothstep',
+      };
+      setEdges((eds) => addEdge(edge, eds));
+      
+      // Update workflow graph with new connection
+      setWorkflowGraph((prevGraph: Graph) => ({
+        ...prevGraph,
+        connections: [...prevGraph.connections, convertToWorkflowEdge(params)],
+      }));
+    },
     [setEdges]
   );
 
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const handleNodeClick = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
     setSelectedNode(node);
   }, []);
 
