@@ -36,12 +36,14 @@ export const WorkflowEdge = memo(({
       <path
         d={edgePath}
         className={clsx(
-          'stroke-[1.5] fill-none',
+          'stroke-[1] fill-none',
           {
             'stroke-gray-300': !selected && isValid,
             'stroke-blue-500': selected && isValid,
             'stroke-red-400': !isValid,
-            'animate-pulse': isActive
+            'animate-pulse': isActive,
+            'z-0': !selected,
+            'z-10': selected,
           }
         )}
         markerEnd={markerEnd}

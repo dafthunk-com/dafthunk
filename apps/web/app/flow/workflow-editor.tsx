@@ -82,7 +82,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     (params: Connection) => {
       const edge = {
         ...params,
-        type: 'smoothstep',
+        type: 'workflowEdge',
       };
       setEdges((eds) => addEdge(edge, eds));
       
@@ -129,14 +129,6 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           connectionMode={ConnectionMode.Strict}
-          defaultEdgeOptions={{
-            type: 'default',
-            animated: false
-          }}
-          connectionLineStyle={{
-            strokeWidth: 2,
-            stroke: '#9ca3af'
-          }}
           connectionLineType={ConnectionLineType.SmoothStep}
           fitView
           className="bg-gray-100"
