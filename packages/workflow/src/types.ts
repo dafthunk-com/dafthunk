@@ -64,4 +64,62 @@ export interface ValidationError {
     connectionSource?: string;
     connectionTarget?: string;
   };
-} 
+}
+
+/**
+ * Execution event types
+ */
+export type ExecutionEventType = 
+  | 'node-start'
+  | 'node-complete'
+  | 'node-error'
+  | 'execution-complete';
+
+/**
+ * Base interface for all execution events
+ */
+export interface BaseExecutionEvent {
+  type: ExecutionEventType;
+  timestamp: string;
+}
+
+/**
+ * Node start event
+ */
+export interface NodeStartEvent extends BaseExecutionEvent {
+  type: 'node-start';
+  nodeId: string;
+}
+
+/**
+ * Node complete event
+ */
+export interface NodeCompleteEvent extends BaseExecutionEvent {
+  type: 'node-complete';
+  nodeId: string;
+}
+
+/**
+ * Node error event
+ */
+export interface NodeErrorEvent extends BaseExecutionEvent {
+  type: 'node-error';
+  nodeId: string;
+  error: string;
+}
+
+/**
+ * Execution complete event
+ */
+export interface ExecutionCompleteEvent extends BaseExecutionEvent {
+  type: 'execution-complete';
+}
+
+/**
+ * Union type of all execution events
+ */
+export type ExecutionEvent = 
+  | NodeStartEvent 
+  | NodeCompleteEvent 
+  | NodeErrorEvent 
+  | ExecutionCompleteEvent; 

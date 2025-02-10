@@ -289,3 +289,76 @@ Deletes a specific graph.
 #### Response
 
 Returns `204 No Content` on successful deletion.
+
+### Execute Graph
+
+```http
+POST /api/graphs/:id/execute
+```
+
+Executes a specific graph and streams the execution progress using Server-Sent Events (SSE).
+
+#### Parameters
+
+| Parameter | Type   | Description       |
+|-----------|--------|-------------------|
+| id        | string | The ID of the graph |
+
+#### SSE Stream Events
+
+The server emits the following event types:
+
+1. `node-start`: Emitted when a node starts execution
+```typescript
+{
+    "type": "node-start",
+    "nodeId": string,
+    "timestamp": string
+}
+```
+
+2. `node-complete`: Emitted when a node completes execution
+```typescript
+{
+    "type": "node-complete",
+    "nodeId": string,
+    "timestamp": string
+}
+```
+
+3. `node-error`: Emitted when a node encounters an error
+```typescript
+{
+    "type": "node-error",
+    "nodeId": string,
+    "error": string,
+    "timestamp": string
+}
+```
+
+4. `execution-complete`: Emitted when the entire graph execution is complete
+```typescript
+{
+    "type": "execution-complete",
+    "timestamp": string
+}
+```
+
+Example SSE Stream:
+```
+event: node-start
+data: {"type":"node-start","nodeId":"1","timestamp":"2024-02-10T10:00:00Z"}
+
+event: node-complete
+data: {"type":"node-complete","nodeId":"1","timestamp":"2024-02-10T10:00:01Z"}
+
+event: execution-complete
+data: {"type":"execution-complete","timestamp":"2024-02-10T10:00:01Z"}
+```
+
+#### Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 404         | Graph not found |
+| 500         | Execution error |
