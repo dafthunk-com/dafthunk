@@ -83,6 +83,44 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
 
+  // Add custom nodes change handler
+  const handleNodesChange = useCallback((changes: any[]) => {
+    // First apply the changes to ReactFlow's state
+    onNodesChange(changes);
+
+    // Then update our workflow graph for position changes
+    const positionChanges = changes.filter(
+      (change) => change.type === 'position' && change.position
+    );
+
+    if (positionChanges.length > 0) {
+      setWorkflowGraph((prevGraph: Graph) => {
+        const updatedNodes = prevGraph.nodes.map((node) => {
+          const change = positionChanges.find((c) => c.id === node.id);
+          if (change) {
+            return {
+              ...node,
+              position: change.position,
+            };
+          }
+          return node;
+        });
+        
+        const newGraph = {
+          ...prevGraph,
+          nodes: updatedNodes,
+        };
+        
+        // Schedule the onWorkflowChange call for the next tick
+        setTimeout(() => {
+          onWorkflowChange?.(newGraph);
+        }, 0);
+
+        return newGraph;
+      });
+    }
+  }, [onNodesChange, onWorkflowChange]);
+
   // Update state when initialWorkflowGraph changes
   useEffect(() => {
     setWorkflowGraph(initialWorkflowGraph);
@@ -149,16 +187,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
         ...prevGraph,
         nodes: [...prevGraph.nodes, newNode],
       };
+      onWorkflowChange?.(newGraph);
       return newGraph;
     });
     
     setIsNodeSelectorOpen(false);
-  }, [reactFlowInstance, setNodes]);
-
-  // Effect to handle workflow graph changes
-  useEffect(() => {
-    onWorkflowChange?.(workflowGraph);
-  }, [workflowGraph, onWorkflowChange]);
+  }, [reactFlowInstance, setNodes, onWorkflowChange]);
 
   return (
     <div className="w-full h-full flex">
@@ -166,7 +200,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={handleNodeClick}
