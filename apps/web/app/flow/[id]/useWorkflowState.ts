@@ -109,7 +109,37 @@ export function useWorkflowState({
     // First apply the changes to ReactFlow's state
     onNodesChange(changes);
 
-    // Then update our workflow graph for position changes
+    // Handle node removals
+    const nodeRemovals = changes.filter(
+      (change): change is NodeChange & { type: 'remove'; id: string } =>
+        change.type === 'remove'
+    );
+
+    if (nodeRemovals.length > 0) {
+      setWorkflowGraph((prevGraph: Graph) => {
+        // Get the IDs of nodes being removed
+        const removedNodeIds = new Set(nodeRemovals.map(change => change.id));
+        
+        // Filter out the removed nodes from the workflow graph
+        const remainingNodes = prevGraph.nodes.filter(node => !removedNodeIds.has(node.id));
+        
+        // Filter out edges connected to removed nodes
+        const remainingEdges = prevGraph.edges.filter(
+          edge => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target)
+        );
+        
+        const newGraph = {
+          ...prevGraph,
+          nodes: remainingNodes,
+          edges: remainingEdges,
+        };
+        
+        setPendingGraphUpdate(newGraph);
+        return newGraph;
+      });
+    }
+
+    // Handle position changes
     const positionChanges = changes.filter(
       (change): change is NodeChange & { type: 'position'; position: XYPosition } =>
         change.type === 'position' && 'position' in change
