@@ -147,8 +147,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
 
   return (
     <div className="w-full h-full flex">
-      <div className={`h-full rounded-xl border border-white overflow-hidden relative flex-grow ${selectedNode || selectedEdge ? 'mr-80' : ''}`}>
-        <ReactFlow
+      <div className={`h-full rounded-xl border border-white overflow-hidden relative ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+      <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
