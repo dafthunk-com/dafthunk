@@ -12,7 +12,7 @@ import {
   XYPosition,
 } from 'reactflow';
 import { Node, Edge, Graph } from '@repo/workflow';
-import { NodeTemplate } from './workflow-templates';
+import { WorkflowNodeType } from './workflow-templates';
 
 // Convert workflow nodes to ReactFlow nodes
 const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
@@ -71,7 +71,7 @@ interface UseWorkflowStateReturn {
   handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
   handlePaneClick: () => void;
   handleAddNode: () => void;
-  handleNodeSelect: (template: NodeTemplate) => void;
+  handleNodeSelect: (template: WorkflowNodeType) => void;
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
 }
 
@@ -210,7 +210,7 @@ export function useWorkflowState({
     setIsNodeSelectorOpen(true);
   }, []);
 
-  const handleNodeSelect = useCallback((template: NodeTemplate) => {
+  const handleNodeSelect = useCallback((template: WorkflowNodeType) => {
     if (!reactFlowInstance) return;
 
     const position = reactFlowInstance.project({

@@ -38,8 +38,12 @@ const loadGraph = async (id: string): Promise<Graph> => {
     : [];
 
   const graph = {
+    id: data.id || id,
+    name: data.name || 'Untitled Workflow',
     nodes: validNodes,
     edges: validConnections,
+    createdAt: data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt || new Date().toISOString(),
   };
   console.log('Processed Graph:', graph);
   return graph;

@@ -3,22 +3,27 @@
 import { Dialog, DialogContent, DialogTitle } from "@repo/ui/dialog";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Input } from "@repo/ui/input";
-import { useState } from "react";
-import { NodeTemplate, nodeTemplates } from "./workflow-templates";
+import { useState, useEffect } from "react";
+import { WorkflowNodeType, fetchNodeTypes } from "./workflow-templates";
 
 interface NodeSelectorProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (template: NodeTemplate) => void;
+  onSelect: (template: WorkflowNodeType) => void;
 }
 
 export function NodeSelector({ open, onClose, onSelect }: NodeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [nodeTypes, setNodeTypes] = useState<WorkflowNodeType[]>([]);
 
-  const categories = Array.from(new Set(nodeTemplates.map(t => t.category)));
+  useEffect(() => {
+    fetchNodeTypes().then(setNodeTypes);
+  }, []);
 
-  const filteredTemplates = nodeTemplates.filter(template => {
+  const categories = Array.from(new Set(nodeTypes.map((t: WorkflowNodeType) => t.category))) as string[];
+
+  const filteredTemplates = nodeTypes.filter((template: WorkflowNodeType) => {
     const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || template.category === selectedCategory;
