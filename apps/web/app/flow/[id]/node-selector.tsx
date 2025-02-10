@@ -11,17 +11,6 @@ interface Parameter {
   type: string;
 }
 
-interface WorkflowNodeType {
-  id: string;
-  name: string;
-  type: string;
-  inputs: Parameter[];
-  outputs: Parameter[];
-  description: string;
-  category: string;
-  icon: string;
-}
-
 interface NodeSelectorProps {
   open: boolean;
   onClose: () => void;
