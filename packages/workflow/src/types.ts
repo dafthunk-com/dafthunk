@@ -36,8 +36,12 @@ export interface Edge {
  * Represents the entire workflow graph
  */
 export interface Graph {
+  id: string;
+  name: string;
   nodes: Node[];
   edges: Edge[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

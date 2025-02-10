@@ -1,15 +1,8 @@
 import { Graph } from '@repo/workflow';
 
-interface StoredGraph extends Graph {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 // In-memory storage for demonstration
 // In a real app, this would be replaced with a database
-export const graphs: StoredGraph[] = [
+export const graphs: Graph[] = [
   {
     id: "1",
     name: "Simple Approval Flow",
