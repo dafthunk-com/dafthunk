@@ -82,6 +82,15 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
+  const [pendingGraphUpdate, setPendingGraphUpdate] = useState<Graph | null>(null);
+
+  // Effect to handle workflow changes after state updates are complete
+  useEffect(() => {
+    if (pendingGraphUpdate) {
+      onWorkflowChange?.(pendingGraphUpdate);
+      setPendingGraphUpdate(null);
+    }
+  }, [pendingGraphUpdate, onWorkflowChange]);
 
   // Add custom edges change handler
   const handleEdgesChange = useCallback((changes: any[]) => {
@@ -107,12 +116,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           edges: remainingEdges,
         };
         
-        // Notify parent of the change
-        onWorkflowChange?.(newGraph);
+        // Queue the update for the effect to handle
+        setPendingGraphUpdate(newGraph);
         return newGraph;
       });
     }
-  }, [onEdgesChange, onWorkflowChange]);
+  }, [onEdgesChange]);
 
   // Add custom nodes change handler
   const handleNodesChange = useCallback((changes: any[]) => {
@@ -142,15 +151,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           nodes: updatedNodes,
         };
         
-        // Schedule the onWorkflowChange call for the next tick
-        setTimeout(() => {
-          onWorkflowChange?.(newGraph);
-        }, 0);
-
+        // Queue the update for the effect to handle
+        setPendingGraphUpdate(newGraph);
         return newGraph;
       });
     }
-  }, [onNodesChange, onWorkflowChange]);
+  }, [onNodesChange]);
 
   // Update state when initialWorkflowGraph changes
   useEffect(() => {
@@ -173,11 +179,12 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           ...prevGraph,
           edges: [...prevGraph.edges, convertToWorkflowEdge(params)],
         };
-        onWorkflowChange?.(newGraph);
+        // Queue the update for the effect to handle
+        setPendingGraphUpdate(newGraph);
         return newGraph;
       });
     },
-    [setEdges, onWorkflowChange]
+    [setEdges]
   );
 
   const handleNodeClick = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
