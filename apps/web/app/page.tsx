@@ -1,7 +1,19 @@
+'use client';
+
 import { Button } from "@repo/ui/button";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
-import { StoredGraph } from "./api/graphs/store";
+import { Graph } from "@repo/workflow";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@repo/ui/dialog";
+import { Input } from "@repo/ui/input";
+import { Label } from "@repo/ui/label";
+import { useState, useEffect } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -20,21 +32,63 @@ async function getGraphs() {
     }
 
     const data = await res.json();
-    return data.graphs as StoredGraph[];
+    return data.graphs as Graph[];
   } catch (error) {
     console.error('Error fetching graphs:', error);
     return [];
   }
 }
 
-export default async function Home() {
-  const graphs = await getGraphs();
+export default function Home() {
+  const [graphs, setGraphs] = useState<Graph[]>([]);
+  const [open, setOpen] = useState(false);
+  const [newGraphName, setNewGraphName] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGraphs = async () => {
+      setIsLoading(true);
+      const fetchedGraphs = await getGraphs();
+      setGraphs(fetchedGraphs);
+      setIsLoading(false);
+    };
+
+    fetchGraphs();
+  }, []);
+
+  const handleCreateGraph = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/graphs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newGraphName }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to create graph: ${res.statusText}`);
+      }
+
+      const newGraph = await res.json();
+      setGraphs([...graphs, newGraph]);
+      setNewGraphName("");
+      setOpen(false);
+    } catch (error) {
+      console.error('Error creating graph:', error);
+    }
+  };
 
   return (
     <main className="h-screen p-2">
       <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100">
         <div className="relative h-full p-6">
-          {graphs.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <p className="text-gray-500">Loading graphs...</p>
+            </div>
+          ) : graphs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-2xl font-bold">Graph Editor</h1>
               <p className="text-gray-500 text-lg mt-2">No graphs yet. Create your first one!</p>
@@ -51,11 +105,35 @@ export default async function Home() {
             </div>
           )}
           
-          <Link href="/flow/new" className="absolute bottom-4 right-4">
-            <Button size="icon" className="rounded-full shadow-lg">
-              <PlusIcon className="w-6 h-6" />
-            </Button>
-          </Link>
+          <div className="absolute bottom-4 right-4">
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="icon" className="rounded-full shadow-lg">
+                  <PlusIcon className="w-6 h-6" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Graph</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateGraph} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Graph Name</Label>
+                    <Input
+                      id="name"
+                      value={newGraphName}
+                      onChange={(e) => setNewGraphName(e.target.value)}
+                      placeholder="Enter graph name"
+                      className="mt-2"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Create Graph
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
     </main>
