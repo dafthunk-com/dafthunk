@@ -11,6 +11,36 @@ const emptyGraph: Graph = {
   edges: [],
 };
 
+// API client function to load a graph
+const loadGraph = async (id: string): Promise<Graph> => {
+  const response = await fetch(`/api/graphs/${id}`);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to load graph: ${response.status} ${response.statusText}`
+    );
+  }
+  const data = await response.json();
+  console.log('API Response:', data);
+  
+  // Validate and filter nodes and connections
+  const validNodes = Array.isArray(data.nodes) 
+    ? data.nodes.filter(isValidNode)
+    : [];
+  
+  // Check both connections and edges fields since the API might use either
+  const connections = data.connections || data.edges || [];
+  const validConnections = Array.isArray(connections)
+    ? connections.filter(isValidEdge)
+    : [];
+
+  const graph = {
+    nodes: validNodes,
+    edges: validConnections,
+  };
+  console.log('Processed Graph:', graph);
+  return graph;
+};
+
 // Validate node structure
 const isValidNode = (node: any): node is Node => {
   return (
@@ -46,26 +76,11 @@ export default function FlowPage() {
   useEffect(() => {
     const fetchGraph = async () => {
       try {
-        const response = await fetch(`/api/graphs/${id}`);
-        if (!response.ok) {
-          throw new Error('Failed to load graph');
-        }
-        const data = await response.json();
-        
-        // Validate and filter nodes and connections
-        const validNodes = Array.isArray(data.nodes) 
-          ? data.nodes.filter(isValidNode)
-          : [];
-        
-        const validConnections = Array.isArray(data.connections)
-          ? data.connections.filter(isValidEdge)
-          : [];
-
-        setGraph({
-          nodes: validNodes,
-          edges: validConnections,
-        });
+        const graphData = await loadGraph(id as string);
+        console.log('Setting graph state:', graphData);
+        setGraph(graphData);
       } catch (err) {
+        console.error('Error loading graph:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
         setGraph(emptyGraph);
       } finally {
@@ -73,7 +88,13 @@ export default function FlowPage() {
       }
     };
 
-    fetchGraph();
+    if (id) {
+      console.log('Fetching graph with ID:', id);
+      fetchGraph();
+    } else {
+      setError('No graph ID provided');
+      setIsLoading(false);
+    }
   }, [id]);
 
   return (

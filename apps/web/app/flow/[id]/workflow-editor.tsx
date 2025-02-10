@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -82,6 +82,13 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
+
+  // Update state when initialWorkflowGraph changes
+  useEffect(() => {
+    setWorkflowGraph(initialWorkflowGraph);
+    setNodes(convertToReactFlowNodes(initialWorkflowGraph.nodes));
+    setEdges(convertToReactFlowEdges(initialWorkflowGraph.edges));
+  }, [initialWorkflowGraph, setNodes, setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => {
