@@ -12,7 +12,7 @@ import {
   XYPosition,
 } from 'reactflow';
 import { Node, Edge, Graph } from '@repo/workflow';
-import { NodeTemplate } from '../workflow-templates';
+import { NodeTemplate } from './workflow-templates';
 
 // Convert workflow nodes to ReactFlow nodes
 const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {

@@ -14,7 +14,7 @@ import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 import { NodeSelector } from './node-selector';
 import { Button } from "@repo/ui/button";
-import { useWorkflowState } from './hooks/useWorkflowState';
+import { useWorkflowState } from './useWorkflowState';
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
