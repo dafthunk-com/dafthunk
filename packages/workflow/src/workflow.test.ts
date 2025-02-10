@@ -9,7 +9,7 @@ describe('Workflow Validation', () => {
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ]
       };
@@ -22,7 +22,7 @@ describe('Workflow Validation', () => {
           { id: 'A', name: 'A', type: 'Input', inputs: [{ name: 'in', type: 'number' }], outputs: [{ name: 'out', type: 'number' }] },
           { id: 'B', name: 'B', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [{ name: 'out', type: 'number' }] }
         ],
-        connections: [
+        edges: [
           { source: 'A', target: 'B', sourceOutput: 'out', targetInput: 'in' },
           { source: 'B', target: 'A', sourceOutput: 'out', targetInput: 'in' }
         ]
@@ -40,7 +40,7 @@ describe('Workflow Validation', () => {
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ]
       };
@@ -53,7 +53,7 @@ describe('Workflow Validation', () => {
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'string' }], outputs: [] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ]
       };
@@ -67,7 +67,7 @@ describe('Workflow Validation', () => {
         nodes: [
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ]
       };
@@ -82,7 +82,7 @@ describe('Workflow Validation', () => {
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'nonExistent', targetInput: 'in' }
         ]
       };
@@ -99,7 +99,7 @@ describe('Workflow Validation', () => {
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ]
       };
@@ -113,7 +113,7 @@ describe('Workflow Validation', () => {
           { id: '1', name: 'Node 1', type: 'Input', inputs: [], outputs: [{ name: 'out', type: 'number' }] },
           { id: '2', name: 'Node 2', type: 'Processor', inputs: [{ name: 'in', type: 'number' }], outputs: [] }
         ],
-        connections: [
+        edges: [
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' },
           { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ]

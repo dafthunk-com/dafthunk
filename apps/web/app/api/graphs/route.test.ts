@@ -27,7 +27,7 @@ describe('Graphs API', () => {
         id: '1',
         name: 'Test Graph',
         nodes: [],
-        connections: [],
+        edges: [],
         createdAt: '2024-02-10T10:00:00Z',
         updatedAt: '2024-02-10T10:00:00Z',
       });

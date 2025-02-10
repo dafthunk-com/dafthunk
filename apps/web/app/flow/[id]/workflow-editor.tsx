@@ -77,7 +77,7 @@ interface WorkflowEditorProps {
 export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: WorkflowEditorProps) {
   const [workflowGraph, setWorkflowGraph] = useState<Graph>(initialWorkflowGraph);
   const [nodes, setNodes, onNodesChange] = useNodesState(convertToReactFlowNodes(workflowGraph.nodes));
-  const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.connections));
+  const [edges, setEdges, onEdgesChange] = useEdgesState(convertToReactFlowEdges(workflowGraph.edges));
   const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -95,7 +95,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       setWorkflowGraph((prevGraph: Graph) => {
         const newGraph = {
           ...prevGraph,
-          connections: [...prevGraph.connections, convertToWorkflowEdge(params)],
+          connections: [...prevGraph.edges, convertToWorkflowEdge(params)],
         };
         onWorkflowChange?.(newGraph);
         return newGraph;

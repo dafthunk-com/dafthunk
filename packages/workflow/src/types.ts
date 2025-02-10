@@ -37,7 +37,7 @@ export interface Edge {
  */
 export interface Graph {
   nodes: Node[];
-  connections: Edge[];
+  edges: Edge[];
 }
 
 /**

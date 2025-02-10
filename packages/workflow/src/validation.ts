@@ -11,7 +11,7 @@ export function detectCycles(graph: Graph): ValidationError | null {
     visited.add(nodeId);
     recursionStack.add(nodeId);
 
-    const outgoingConnections = graph.connections.filter(conn => conn.source === nodeId);
+    const outgoingConnections = graph.edges.filter(conn => conn.source === nodeId);
     for (const connection of outgoingConnections) {
       if (!visited.has(connection.target)) {
         if (dfs(connection.target)) {
@@ -45,7 +45,7 @@ export function detectCycles(graph: Graph): ValidationError | null {
  * Validates type compatibility between connected parameters
  */
 export function validateTypeCompatibility(graph: Graph): ValidationError | null {
-  for (const connection of graph.connections) {
+  for (const connection of graph.edges) {
     const sourceNode = graph.nodes.find(n => n.id === connection.source);
     const targetNode = graph.nodes.find(n => n.id === connection.target);
 
@@ -109,7 +109,7 @@ export function validateWorkflow(graph: Graph): ValidationError[] {
 
   // Check for duplicate connections
   const connections = new Set<string>();
-  for (const connection of graph.connections) {
+  for (const connection of graph.edges) {
     const connectionKey = `${connection.source}:${connection.sourceOutput}->${connection.target}:${connection.targetInput}`;
     if (connections.has(connectionKey)) {
       errors.push({
