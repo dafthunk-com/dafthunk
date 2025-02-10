@@ -28,7 +28,7 @@ export const graphs: StoredGraph[] = [
         id: "2",
         name: "Review Document",
         type: "task",
-        position: { x: 300, y: 100 },
+        position: { x: 450, y: 100 },
         inputs: [
           { name: "input", type: "trigger" }
         ],
@@ -41,7 +41,7 @@ export const graphs: StoredGraph[] = [
         id: "3",
         name: "End",
         type: "end",
-        position: { x: 500, y: 100 },
+        position: { x: 800, y: 100 },
         inputs: [
           { name: "input", type: "trigger" }
         ],
@@ -83,7 +83,7 @@ export const graphs: StoredGraph[] = [
         id: "2",
         name: "Upload Document",
         type: "task",
-        position: { x: 300, y: 100 },
+        position: { x: 450, y: 100 },
         inputs: [
           { name: "input", type: "trigger" }
         ],
@@ -95,7 +95,7 @@ export const graphs: StoredGraph[] = [
         id: "3",
         name: "Process Document",
         type: "task",
-        position: { x: 500, y: 100 },
+        position: { x: 800, y: 100 },
         inputs: [
           { name: "input", type: "trigger" }
         ],
@@ -107,7 +107,7 @@ export const graphs: StoredGraph[] = [
         id: "4",
         name: "End",
         type: "end",
-        position: { x: 700, y: 100 },
+        position: { x: 1150, y: 100 },
         inputs: [
           { name: "input", type: "trigger" }
         ],
