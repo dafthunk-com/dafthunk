@@ -107,9 +107,11 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
         </ReactFlow>
       </div>
 
-      <div className={`w-80 ${!selectedNode && !selectedEdge && 'hidden'}`}>
-        <WorkflowSidebar node={selectedNode} edge={selectedEdge} />
-      </div>
+      {(selectedNode || selectedEdge) && (
+        <div className="w-80">
+          <WorkflowSidebar node={selectedNode} edge={selectedEdge} />
+        </div>
+      )}
 
       <NodeSelector
         open={isNodeSelectorOpen}
