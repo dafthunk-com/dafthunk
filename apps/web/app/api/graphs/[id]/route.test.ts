@@ -17,7 +17,7 @@ describe('Graph API', () => {
         position: { x: 100, y: 100 },
       },
     ],
-    connections: [],
+    edges: [],
     createdAt: '2024-02-10T10:00:00Z',
     updatedAt: '2024-02-10T10:00:00Z',
   };
