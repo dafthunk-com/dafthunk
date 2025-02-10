@@ -102,7 +102,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       setWorkflowGraph((prevGraph: Graph) => {
         const newGraph = {
           ...prevGraph,
-          connections: [...prevGraph.edges, convertToWorkflowEdge(params)],
+          edges: [...prevGraph.edges, convertToWorkflowEdge(params)],
         };
         onWorkflowChange?.(newGraph);
         return newGraph;
