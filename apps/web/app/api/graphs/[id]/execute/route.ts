@@ -14,7 +14,20 @@ async function executeNode(node: Node): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 1000));
 }
 
-export async function POST(
+// Update OPTIONS handler to allow GET
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
+// Change POST to GET handler
+export async function GET(
   _request: NextRequest,
   context: { params: Promise<{ id: string }> | { id: string } }
 ) {
@@ -26,7 +39,10 @@ export async function POST(
       JSON.stringify({ error: 'Graph not found' }),
       { 
         status: 404,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
       }
     );
   }
@@ -77,12 +93,12 @@ export async function POST(
     }
   });
 
-  // Return the stream as a Server-Sent Events response
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive'
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
     }
   });
 } 
