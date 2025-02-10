@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent } from "@repo/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@repo/ui/dialog";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Input } from "@repo/ui/input";
 import { useState } from "react";
@@ -28,9 +28,9 @@ export function NodeSelector({ open, onClose, onSelect }: NodeSelectorProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
+        <DialogTitle className="font-semibold text-lg">Add Node</DialogTitle>
         <div className="space-y-4 py-2 pb-4">
           <div className="space-y-2">
-            <h2 className="font-semibold text-lg">Add Node</h2>
             <p className="text-sm text-muted-foreground">
               Select a node template to add to your workflow
             </p>
