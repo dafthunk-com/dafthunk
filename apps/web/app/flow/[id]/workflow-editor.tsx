@@ -49,12 +49,18 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     handleAddNode,
     handleNodeSelect,
     setReactFlowInstance,
+    updateNodeExecutionState,
   } = useWorkflowState({
     initialWorkflowGraph,
     onWorkflowChange,
   });
 
   const handleExecute = () => {
+    // Reset all nodes to idle state
+    nodes.forEach(node => {
+      updateNodeExecutionState(node.id, 'idle');
+    });
+
     const eventSource = new EventSource(`/api/graphs/${params.id}/execute`);
 
     eventSource.onopen = () => {
@@ -69,16 +75,25 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     eventSource.addEventListener('node-start', (event) => {
       const data = JSON.parse(event.data) as ExecutionEvent;
       console.log('Node execution started:', data);
+      if (data.type === 'node-start') {
+        updateNodeExecutionState(data.nodeId, 'executing');
+      }
     });
 
     eventSource.addEventListener('node-complete', (event) => {
       const data = JSON.parse(event.data) as ExecutionEvent;
       console.log('Node execution completed:', data);
+      if (data.type === 'node-complete') {
+        updateNodeExecutionState(data.nodeId, 'completed');
+      }
     });
 
     eventSource.addEventListener('node-error', (event) => {
       const data = JSON.parse(event.data) as ExecutionEvent;
       console.error('Node execution error:', data);
+      if (data.type === 'node-error') {
+        updateNodeExecutionState(data.nodeId, 'error');
+      }
     });
 
     eventSource.addEventListener('execution-complete', (event) => {

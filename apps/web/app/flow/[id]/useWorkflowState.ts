@@ -14,6 +14,8 @@ import {
 import { Node, Edge, Graph } from '@repo/workflow';
 import { WorkflowNodeType } from './workflow-templates';
 
+type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
+
 // Convert workflow nodes to ReactFlow nodes
 const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
   return nodes.map(node => ({
@@ -25,6 +27,7 @@ const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
       inputs: node.inputs,
       outputs: node.outputs,
       error: node.error,
+      executionState: 'idle' as NodeExecutionState,
     },
   }));
 };
@@ -73,6 +76,7 @@ interface UseWorkflowStateReturn {
   handleAddNode: () => void;
   handleNodeSelect: (template: WorkflowNodeType) => void;
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
+  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
 }
 
 export function useWorkflowState({
@@ -264,6 +268,24 @@ export function useWorkflowState({
     setIsNodeSelectorOpen(false);
   }, [reactFlowInstance, setNodes]);
 
+  const updateNodeExecutionState = useCallback((nodeId: string, state: NodeExecutionState) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              executionState: state,
+              error: state === 'error' ? node.data.error : null,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
+
   return {
     nodes,
     edges,
@@ -281,5 +303,6 @@ export function useWorkflowState({
     handleAddNode,
     handleNodeSelect,
     setReactFlowInstance,
+    updateNodeExecutionState,
   };
 } 

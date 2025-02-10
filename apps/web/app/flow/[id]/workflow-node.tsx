@@ -1,17 +1,21 @@
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import React from 'react';
+import { clsx } from 'clsx';
 
 export interface Parameter {
   name: string;
   type: string;
 }
 
+type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
+
 export interface WorkflowNodeData {
   name: string;
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string | null;
+  executionState: NodeExecutionState;
 }
 
 const TypeBadge = ({ type, position, id }: { type: string; position: Position; id: string }) => {
@@ -33,7 +37,16 @@ const TypeBadge = ({ type, position, id }: { type: string; position: Position; i
 
 export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; selected?: boolean }) => {
   return (
-    <div className={`bg-white shadow-sm w-[200px] rounded-lg border-[1px] ${selected ? 'border-blue-500' : 'border-gray-300'}`}>
+    <div className={clsx(
+      'bg-white shadow-sm w-[200px] rounded-lg border-[1px] transition-colors',
+      {
+        'border-blue-500': selected,
+        'border-gray-300': !selected && data.executionState === 'idle',
+        'border-yellow-400 animate-pulse': data.executionState === 'executing',
+        'border-green-500': data.executionState === 'completed',
+        'border-red-500': data.executionState === 'error',
+      }
+    )}>
       {/* Header */}
       <div className="p-1 text-center">
         <h3 className="m-0 text-xs font-medium">{data.name}</h3>
