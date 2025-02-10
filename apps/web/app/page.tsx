@@ -35,49 +35,27 @@ export default async function Home() {
       <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100">
         <div className="relative h-full p-6">
           {graphs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full space-y-4">
+            <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-2xl font-bold">Graph Editor</h1>
-              <p className="text-gray-500 text-lg">No graphs yet. Create your first one!</p>
+              <p className="text-gray-500 text-lg mt-2">No graphs yet. Create your first one!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {graphs.map((graph) => (
                 <Link key={graph.id} href={`/flow/${graph.id}`}>
-                  <div className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer">
-                    <h3 className="font-medium text-lg mb-2">{graph.name || 'Untitled Graph'}</h3>
-                    <p className="text-sm text-gray-500">
-                      Created: {new Date(graph.createdAt).toLocaleDateString()}
-                    </p>
+                  <div className="p-4 rounded-lg border-2 bg-white hover:border-blue-500 transition-colors cursor-pointer">
+                    <h3 className="font-medium text-lg truncate">{graph.name || 'Untitled Graph'}</h3>
                   </div>
                 </Link>
               ))}
             </div>
           )}
           
-          <div className="absolute bottom-4 right-4">
-            <Link href="/flow/new">
-            <Button
-            size="icon"
-            className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg absolute"
-            title="Add Node"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-          </Button>
-            </Link>
-          </div>
+          <Link href="/flow/new" className="absolute bottom-4 right-4">
+            <Button size="icon" className="rounded-full shadow-lg">
+              <PlusIcon className="w-6 h-6" />
+            </Button>
+          </Link>
         </div>
       </div>
     </main>
