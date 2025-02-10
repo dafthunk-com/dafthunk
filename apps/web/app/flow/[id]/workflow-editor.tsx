@@ -54,7 +54,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
 
   return (
     <div className="w-full h-full flex">
-      <div className={`h-full rounded-xl border-[2px] border-gray-200 overflow-hidden relative ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+      <div className={`h-full rounded-xl overflow-hidden relative ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -86,7 +86,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
               handleAddNode();
             }}
             size="icon"
-            className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg absolute"
+            className="absolute bottom-4 right-4 z-50 rounded-full shadow-lg"
             title="Add Node"
           >
             <svg
