@@ -83,6 +83,37 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
 
+  // Add custom edges change handler
+  const handleEdgesChange = useCallback((changes: any[]) => {
+    // First apply the changes to ReactFlow's state
+    onEdgesChange(changes);
+
+    // Then update our workflow graph for edge removals
+    const edgeRemovals = changes.filter(
+      (change) => change.type === 'remove'
+    );
+
+    if (edgeRemovals.length > 0) {
+      setWorkflowGraph((prevGraph: Graph) => {
+        // Get the IDs of edges being removed
+        const removedEdgeIds = new Set(edgeRemovals.map(change => change.id));
+        
+        // Filter out the removed edges from the workflow graph
+        // We need to reconstruct the edge ID to match ReactFlow's format (e${index})
+        const remainingEdges = prevGraph.edges.filter((_, index) => !removedEdgeIds.has(`e${index}`));
+        
+        const newGraph = {
+          ...prevGraph,
+          edges: remainingEdges,
+        };
+        
+        // Notify parent of the change
+        onWorkflowChange?.(newGraph);
+        return newGraph;
+      });
+    }
+  }, [onEdgesChange, onWorkflowChange]);
+
   // Add custom nodes change handler
   const handleNodesChange = useCallback((changes: any[]) => {
     // First apply the changes to ReactFlow's state
@@ -201,7 +232,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           nodes={nodes}
           edges={edges}
           onNodesChange={handleNodesChange}
-          onEdgesChange={onEdgesChange}
+          onEdgesChange={handleEdgesChange}
           onConnect={onConnect}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
