@@ -7,9 +7,13 @@ import { WorkflowEditor } from './workflow-editor';
 
 // Default empty graph structure
 const emptyGraph: Graph = {
-  nodes: [],
-  edges: [],
-};
+    id: '',
+    name: 'New Workflow',
+    nodes: [],
+    edges: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 
 // API client function to load a graph
 const loadGraph = async (id: string): Promise<Graph> => {
