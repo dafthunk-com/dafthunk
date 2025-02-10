@@ -139,19 +139,26 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     });
 
     const newNode = template.createNode(position);
-
+    
+    // First update the nodes state
+    setNodes((nds) => [...nds, ...convertToReactFlowNodes([newNode])]);
+    
+    // Then trigger the workflow graph update
     setWorkflowGraph((prevGraph: Graph) => {
       const newGraph = {
         ...prevGraph,
         nodes: [...prevGraph.nodes, newNode],
       };
-      onWorkflowChange?.(newGraph);
       return newGraph;
     });
-
-    setNodes((nds) => [...nds, ...convertToReactFlowNodes([newNode])]);
+    
     setIsNodeSelectorOpen(false);
-  }, [reactFlowInstance, setNodes, onWorkflowChange]);
+  }, [reactFlowInstance, setNodes]);
+
+  // Effect to handle workflow graph changes
+  useEffect(() => {
+    onWorkflowChange?.(workflowGraph);
+  }, [workflowGraph, onWorkflowChange]);
 
   return (
     <div className="w-full h-full flex">
