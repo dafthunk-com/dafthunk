@@ -14,11 +14,11 @@ async function getGraphs() {
       },
       cache: 'no-store'
     });
-    
+
     if (!res.ok) {
       throw new Error(`Failed to fetch graphs: ${res.statusText}`);
     }
-    
+
     const data = await res.json();
     return data.graphs as StoredGraph[];
   } catch (error) {
@@ -31,47 +31,42 @@ export default async function Home() {
   const graphs = await getGraphs();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">Circuit</h1>
-            <p className="text-lg text-gray-600 mt-2">
-              A modern workflow engine for building and managing complex processes.
-            </p>
-          </div>
-          <Link href="/flow/new">
-            <Button size="lg">
-              <PlusIcon className="mr-2 h-4 w-4" />
-              New Graph
-            </Button>
-          </Link>
-        </div>
-
-        {graphs.length === 0 ? (
-          <div className="text-center py-12 border rounded-lg bg-white">
-            <p className="text-gray-600 mb-4">No graphs created yet</p>
+    <main className="h-screen p-2">
+      <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100">
+        <div className="relative h-full p-6">
+          {graphs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full space-y-4">
+              <p className="text-gray-500 text-lg">No graphs yet. Create your first one!</p>
+              <Link href="/flow/new">
+                <Button>
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Create New Graph
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {graphs.map((graph) => (
+                <Link key={graph.id} href={`/flow/${graph.id}`}>
+                  <div className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 className="font-medium text-lg mb-2">{graph.name || 'Untitled Graph'}</h3>
+                    <p className="text-sm text-gray-500">
+                      Created: {new Date(graph.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+          
+          <div className="absolute bottom-4 right-4">
             <Link href="/flow/new">
-              <Button variant="secondary">Create your first graph</Button>
+              <Button variant="default" size="icon">
+                <PlusIcon className="w-4 h-4" />
+              </Button>
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {graphs.map((graph) => (
-              <Link key={graph.id} href={`/flow/${graph.id}`}>
-                <div className="p-6 border rounded-lg bg-white hover:shadow-lg transition-shadow">
-                  <h2 className="text-xl font-semibold">{graph.name}</h2>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Created {new Date(graph.createdAt).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Last updated {new Date(graph.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        </div>
       </div>
     </main>
   );
