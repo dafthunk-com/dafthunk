@@ -22,6 +22,7 @@ import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 import { NodeSelector } from './node-selector';
 import { NodeTemplate } from './workflow-templates';
+import { Button } from "@repo/ui/button";
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
@@ -172,33 +173,31 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
             size={1} 
             color="#d4d4d4"
           />
-          <div className="absolute bottom-8 right-8 z-50">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAddNode();
-              }}
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-colors"
-              title="Add Node"
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAddNode();
+            }}
+            size="icon"
+            className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg absolute"
+            title="Add Node"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4.5v15m7.5-7.5h-15"
-                />
-              </svg>
-            </button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+          </Button>
         </ReactFlow>
       </div>
       <div className={`w-80 ${!selectedNode && !selectedEdge && 'hidden'}`}>

@@ -36,13 +36,8 @@ export default async function Home() {
         <div className="relative h-full p-6">
           {graphs.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
+              <h1 className="text-2xl font-bold">Graph Editor</h1>
               <p className="text-gray-500 text-lg">No graphs yet. Create your first one!</p>
-              <Link href="/flow/new">
-                <Button>
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Create New Graph
-                </Button>
-              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -61,9 +56,26 @@ export default async function Home() {
           
           <div className="absolute bottom-4 right-4">
             <Link href="/flow/new">
-              <Button variant="default" size="icon">
-                <PlusIcon className="w-4 h-4" />
-              </Button>
+            <Button
+            size="icon"
+            className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg absolute"
+            title="Add Node"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+          </Button>
             </Link>
           </div>
         </div>
