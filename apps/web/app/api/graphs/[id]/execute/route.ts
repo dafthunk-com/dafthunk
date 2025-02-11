@@ -75,9 +75,6 @@ export async function GET(
   const { id } = await context.params;
   const graph = graphs.find((g) => g.id === id);
 
-  // debug graph on server
-  console.log(graphs);
-
   if (!graph) {
     return new Response(
       JSON.stringify({ error: 'Graph not found' }),
