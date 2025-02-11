@@ -14,18 +14,6 @@ async function executeNode(node: Node): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 1000));
 }
 
-// Update OPTIONS handler to allow GET
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-}
-
 // Change POST to GET handler
 export async function GET(
   _request: NextRequest,
