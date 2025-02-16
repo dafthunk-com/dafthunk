@@ -227,6 +227,7 @@ export function useWorkflowState({
   }, []);
 
   const onConnectStart: OnConnectStart = useCallback((event, params: OnConnectStartParams) => {
+    console.log('Connect start:', params);
     setConnectingNodeId(params.nodeId);
     setConnectingHandleId(params.handleId);
     setConnectingHandleType(params.handleType);
@@ -234,6 +235,7 @@ export function useWorkflowState({
   }, []);
 
   const onConnectEnd: OnConnectEnd = useCallback((event) => {
+    console.log('Connect end');
     setConnectingNodeId(null);
     setConnectingHandleId(null);
     setConnectingHandleType(null);
@@ -249,44 +251,57 @@ export function useWorkflowState({
     const handleMouseMove = (event: MouseEvent) => {
       if (!reactFlowInstance) return;
 
-      // Get the node under the mouse
+      // Convert mouse position to flow coordinates
       const viewport = reactFlowInstance.getViewport();
-      const x = (event.clientX - viewport.x) / reactFlowInstance.getZoom();
-      const y = (event.clientY - viewport.y) / reactFlowInstance.getZoom();
-      
+      const position = reactFlowInstance.project({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // Find if we're hovering over any node
       const targetNode = nodes.find(node => {
         const nodeX = node.position.x;
         const nodeY = node.position.y;
-        // Rough hit detection - you might want to adjust these values
-        return x >= nodeX && x <= nodeX + 200 && y >= nodeY && y <= nodeY + 100;
+        const nodeWidth = 200; // Approximate node width
+        const nodeHeight = 100; // Approximate node height
+        
+        return (
+          position.x >= nodeX &&
+          position.x <= nodeX + nodeWidth &&
+          position.y >= nodeY &&
+          position.y <= nodeY + nodeHeight
+        );
       });
 
-      if (!targetNode) {
+      if (!targetNode || targetNode.id === connectingNodeId) {
+        console.log('No target node or same node, setting default');
         setConnectionValidationState('default');
         return;
       }
 
       const sourceNode = nodes.find(node => node.id === connectingNodeId);
-      if (!sourceNode) return;
+      if (!sourceNode) {
+        console.log('No source node, setting default');
+        setConnectionValidationState('default');
+        return;
+      }
 
-      let isValid = false;
+      // Check if we can connect to any handle of the target node
+      let canConnect = false;
       if (connectingHandleType === 'source') {
-        isValid = validateConnection(
-          sourceNode,
-          targetNode,
-          connectingHandleId,
-          targetNode.data.inputs[0]?.name || ''
+        // We're dragging from an output, so check target's inputs
+        canConnect = targetNode.data.inputs.some((input: Parameter) =>
+          validateConnection(sourceNode, targetNode, connectingHandleId, input.name)
         );
       } else {
-        isValid = validateConnection(
-          targetNode,
-          sourceNode,
-          targetNode.data.outputs[0]?.name || '',
-          connectingHandleId
+        // We're dragging from an input, so check target's outputs
+        canConnect = targetNode.data.outputs.some((output: Parameter) =>
+          validateConnection(targetNode, sourceNode, output.name, connectingHandleId)
         );
       }
 
-      setConnectionValidationState(isValid ? 'valid' : 'invalid');
+      console.log('Connection validation:', canConnect ? 'valid' : 'invalid');
+      setConnectionValidationState(canConnect ? 'valid' : 'invalid');
     };
 
     document.addEventListener('mousemove', handleMouseMove);

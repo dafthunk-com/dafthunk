@@ -130,8 +130,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           fitView
           className="bg-gray-100"
           connectionLineStyle={{
-            stroke: connectionValidationState === 'default' ? '#94a3b8' : 
-                   connectionValidationState === 'valid' ? '#3b82f6' : '#ef4444',
+            stroke: connectionValidationState === 'default' ? '#d1d5db' : 
+                   connectionValidationState === 'valid' ? '#16a34a' : '#dc2626',
             strokeWidth: 1,
           }}
         >
