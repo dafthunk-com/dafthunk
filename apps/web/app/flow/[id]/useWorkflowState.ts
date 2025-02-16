@@ -295,45 +295,62 @@ export function useWorkflowState({
     };
   }, [connectingNodeId, connectingHandleId, connectingHandleType, nodes, reactFlowInstance, validateConnection]);
 
-  // Handle new connections
-  const onConnect = useCallback(
-    (params: Connection) => {
-      const sourceNode = nodes.find(node => node.id === params.source);
-      const targetNode = nodes.find(node => node.id === params.target);
+  // Handle new connections, replacing existing ones if necessary
+  const onConnect = useCallback((connection: Connection) => {
+    if (!connection.target || !connection.targetHandle || !connection.source || !connection.sourceHandle) return;
 
-      if (!sourceNode || !targetNode) {
-        console.error('Invalid connection: source or target node not found');
-        setConnectionValidationState('invalid');
-        return;
-      }
+    const sourceNode = nodes.find(node => node.id === connection.source);
+    const targetNode = nodes.find(node => node.id === connection.target);
 
-      const isValid = validateConnection(sourceNode, targetNode, params.sourceHandle || '', params.targetHandle || '');
-      setConnectionValidationState(isValid ? 'valid' : 'invalid');
+    if (!sourceNode || !targetNode) {
+      console.error('Invalid connection: source or target node not found');
+      setConnectionValidationState('invalid');
+      return;
+    }
 
-      if (!isValid) {
-        console.error(`Type mismatch: Cannot connect incompatible types`);
-        return;
-      }
+    const isValid = validateConnection(sourceNode, targetNode, connection.sourceHandle, connection.targetHandle);
+    setConnectionValidationState(isValid ? 'valid' : 'invalid');
 
-      // If types match, create the connection
+    if (!isValid) {
+      console.error(`Type mismatch: Cannot connect incompatible types`);
+      return;
+    }
+
+    setWorkflowGraph((prevGraph: Graph) => {
+      // Remove any existing edges connected to the target input
+      const remainingEdges = prevGraph.edges.filter(
+        edge => !(edge.target === connection.target && edge.targetInput === connection.targetHandle)
+      );
+
+      // Add the new edge
+      const newEdge = convertToWorkflowEdge(connection);
+      const newEdges = [...remainingEdges, newEdge];
+
+      const newGraph = {
+        ...prevGraph,
+        edges: newEdges,
+      };
+
+      setPendingGraphUpdate(newGraph);
+      return newGraph;
+    });
+
+    // Update ReactFlow edges state
+    setEdges(edges => {
+      // Remove existing edges connected to the target input
+      const remainingEdges = edges.filter(
+        edge => !(edge.target === connection.target && edge.targetHandle === connection.targetHandle)
+      );
+
+      // Add the new edge with type validation
       const edge = {
-        ...params,
+        ...connection,
         type: 'workflowEdge',
         data: { isValid: true },
       };
-      setEdges((eds) => addEdge(edge, eds));
-      
-      setWorkflowGraph((prevGraph: Graph) => {
-        const newGraph = {
-          ...prevGraph,
-          edges: [...prevGraph.edges, convertToWorkflowEdge(params)],
-        };
-        setPendingGraphUpdate(newGraph);
-        return newGraph;
-      });
-    },
-    [nodes, setEdges, validateConnection]
-  );
+      return addEdge(edge, remainingEdges);
+    });
+  }, [nodes, validateConnection]);
 
   // Event handlers
   const handleNodeClick = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
