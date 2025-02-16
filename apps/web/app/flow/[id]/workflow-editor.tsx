@@ -133,6 +133,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
             stroke: connectionValidationState === 'default' ? '#d1d5db' : 
                    connectionValidationState === 'valid' ? '#16a34a' : '#dc2626',
             strokeWidth: 1,
+            strokeDasharray: '5 5',
           }}
         >
           <Controls showInteractive={false} />
