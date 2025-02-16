@@ -10,7 +10,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
 import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
-import { Graph, ExecutionEvent } from '@repo/workflow';
+import { Graph, ExecutionEvent, Parameter } from '@repo/workflow';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 import { NodeSelector } from './node-selector';
@@ -45,6 +45,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     onNodesChange,
     onEdgesChange,
     onConnect,
+    onConnectStart,
+    onConnectEnd,
     handleNodeClick,
     handleEdgeClick,
     handlePaneClick,
@@ -52,6 +54,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     handleNodeSelect,
     updateNodeExecutionState,
     setReactFlowInstance,
+    connectionValidationState,
   } = useWorkflowState({
     initialWorkflowGraph,
     onWorkflowChange,
@@ -114,6 +117,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
           onPaneClick={handlePaneClick}
@@ -124,6 +129,11 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           onInit={setReactFlowInstance}
           fitView
           className="bg-gray-100"
+          connectionLineStyle={{
+            stroke: connectionValidationState === 'default' ? '#94a3b8' : 
+                   connectionValidationState === 'valid' ? '#3b82f6' : '#ef4444',
+            strokeWidth: 1,
+          }}
         >
           <Controls showInteractive={false} />
           <Background 

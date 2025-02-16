@@ -10,11 +10,15 @@ import {
   EdgeChange,
   ReactFlowInstance,
   XYPosition,
+  OnConnectStartParams,
+  OnConnectStart,
+  OnConnectEnd,
 } from 'reactflow';
-import { Node, Edge, Graph } from '@repo/workflow';
+import { Node, Edge, Graph, Parameter } from '@repo/workflow';
 import { WorkflowNodeType } from './workflow-templates';
 
 type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
+type ConnectionValidationState = 'default' | 'valid' | 'invalid';
 
 // Convert workflow nodes to ReactFlow nodes
 const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
@@ -70,6 +74,9 @@ interface UseWorkflowStateReturn {
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
+  onConnectStart: OnConnectStart;
+  onConnectEnd: OnConnectEnd;
+  connectionValidationState: ConnectionValidationState;
   handleNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
   handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
   handlePaneClick: () => void;
@@ -92,6 +99,10 @@ export function useWorkflowState({
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [pendingGraphUpdate, setPendingGraphUpdate] = useState<Graph | null>(null);
+  const [connectionValidationState, setConnectionValidationState] = useState<ConnectionValidationState>('default');
+  const [connectingNodeId, setConnectingNodeId] = useState<string | null>(null);
+  const [connectingHandleId, setConnectingHandleId] = useState<string | null>(null);
+  const [connectingHandleType, setConnectingHandleType] = useState<'source' | 'target' | null>(null);
 
   // Effect to handle workflow changes after state updates are complete
   useEffect(() => {
@@ -203,12 +214,112 @@ export function useWorkflowState({
     }
   }, [onEdgesChange]);
 
+  // Validate connection types
+  const validateConnection = useCallback((sourceNode: ReactFlowNode, targetNode: ReactFlowNode, sourceHandle: string, targetHandle: string) => {
+    const sourceParam = sourceNode.data.outputs.find((o: Parameter) => o.name === sourceHandle);
+    const targetParam = targetNode.data.inputs.find((i: Parameter) => i.name === targetHandle);
+
+    if (!sourceParam || !targetParam) {
+      return false;
+    }
+
+    return sourceParam.type === targetParam.type;
+  }, []);
+
+  const onConnectStart: OnConnectStart = useCallback((event, params: OnConnectStartParams) => {
+    setConnectingNodeId(params.nodeId);
+    setConnectingHandleId(params.handleId);
+    setConnectingHandleType(params.handleType);
+    setConnectionValidationState('default');
+  }, []);
+
+  const onConnectEnd: OnConnectEnd = useCallback((event) => {
+    setConnectingNodeId(null);
+    setConnectingHandleId(null);
+    setConnectingHandleType(null);
+    setConnectionValidationState('default');
+  }, []);
+
+  // Check connection validity during mouse move
+  useEffect(() => {
+    if (!connectingNodeId || !connectingHandleId || !connectingHandleType) {
+      return;
+    }
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!reactFlowInstance) return;
+
+      // Get the node under the mouse
+      const viewport = reactFlowInstance.getViewport();
+      const x = (event.clientX - viewport.x) / reactFlowInstance.getZoom();
+      const y = (event.clientY - viewport.y) / reactFlowInstance.getZoom();
+      
+      const targetNode = nodes.find(node => {
+        const nodeX = node.position.x;
+        const nodeY = node.position.y;
+        // Rough hit detection - you might want to adjust these values
+        return x >= nodeX && x <= nodeX + 200 && y >= nodeY && y <= nodeY + 100;
+      });
+
+      if (!targetNode) {
+        setConnectionValidationState('default');
+        return;
+      }
+
+      const sourceNode = nodes.find(node => node.id === connectingNodeId);
+      if (!sourceNode) return;
+
+      let isValid = false;
+      if (connectingHandleType === 'source') {
+        isValid = validateConnection(
+          sourceNode,
+          targetNode,
+          connectingHandleId,
+          targetNode.data.inputs[0]?.name || ''
+        );
+      } else {
+        isValid = validateConnection(
+          targetNode,
+          sourceNode,
+          targetNode.data.outputs[0]?.name || '',
+          connectingHandleId
+        );
+      }
+
+      setConnectionValidationState(isValid ? 'valid' : 'invalid');
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [connectingNodeId, connectingHandleId, connectingHandleType, nodes, reactFlowInstance, validateConnection]);
+
   // Handle new connections
   const onConnect = useCallback(
     (params: Connection) => {
+      const sourceNode = nodes.find(node => node.id === params.source);
+      const targetNode = nodes.find(node => node.id === params.target);
+
+      if (!sourceNode || !targetNode) {
+        console.error('Invalid connection: source or target node not found');
+        setConnectionValidationState('invalid');
+        return;
+      }
+
+      const isValid = validateConnection(sourceNode, targetNode, params.sourceHandle || '', params.targetHandle || '');
+      setConnectionValidationState(isValid ? 'valid' : 'invalid');
+
+      if (!isValid) {
+        console.error(`Type mismatch: Cannot connect incompatible types`);
+        return;
+      }
+
+      // If types match, create the connection
       const edge = {
         ...params,
         type: 'workflowEdge',
+        data: { isValid: true },
       };
       setEdges((eds) => addEdge(edge, eds));
       
@@ -221,7 +332,7 @@ export function useWorkflowState({
         return newGraph;
       });
     },
-    [setEdges]
+    [nodes, setEdges, validateConnection]
   );
 
   // Event handlers
@@ -297,6 +408,9 @@ export function useWorkflowState({
     onNodesChange: handleNodesChange,
     onEdgesChange: handleEdgesChange,
     onConnect,
+    onConnectStart,
+    onConnectEnd,
+    connectionValidationState,
     handleNodeClick,
     handleEdgeClick,
     handlePaneClick,

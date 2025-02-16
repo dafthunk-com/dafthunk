@@ -53,7 +53,10 @@ export const WorkflowEdge = memo(({
           r="4"
           className={clsx(
             'fill-blue-500 animate-[moveAlongPath_2s_linear_infinite]',
-            'filter drop-shadow-md'
+            'filter drop-shadow-md',
+            {
+              'fill-red-400': !isValid,
+            }
           )}
           style={{ 
             offsetPath: `path("${edgePath}")`,
