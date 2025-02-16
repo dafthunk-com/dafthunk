@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { graphs } from '../store';
 import { Graph } from '@repo/workflow';
 
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
+
 export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  request: NextRequest,
+  context: RouteContext
 ) {
-  // Await the params before using them
   const { id } = await context.params;
   const graph = graphs.find((g) => g.id === id);
 
@@ -22,7 +25,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  context: RouteContext
 ) {
   const { id } = await context.params;
   const body = await request.json() as Partial<Graph>;
@@ -36,6 +39,14 @@ export async function PUT(
   }
 
   const existingGraph = graphs[index];
+  
+  if (!existingGraph) {
+    return NextResponse.json(
+      { error: 'Graph not found' },
+      { status: 404 }
+    );
+  }
+
   const updatedGraph: Graph = {
     ...existingGraph,
     ...body,
@@ -52,8 +63,8 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  request: NextRequest,
+  context: RouteContext
 ) {
   const { id } = await context.params;
   const index = graphs.findIndex((g) => g.id === id);

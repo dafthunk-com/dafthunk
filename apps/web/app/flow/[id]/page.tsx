@@ -50,24 +50,34 @@ const loadGraph = async (id: string): Promise<Graph> => {
 };
 
 // Validate node structure
-const isValidNode = (node: any): node is Node => {
+const isValidNode = (node: unknown): node is Node => {
   return (
+    node !== null &&
     typeof node === 'object' &&
-    typeof node.id === 'string' &&
-    typeof node.name === 'string' &&
-    typeof node.type === 'string' &&
-    Array.isArray(node.inputs) &&
-    Array.isArray(node.outputs) &&
+    'id' in node &&
+    'name' in node &&
+    'type' in node &&
+    'inputs' in node &&
+    'outputs' in node &&
+    'position' in node &&
+    node.position !== null &&
     typeof node.position === 'object' &&
+    'x' in node.position &&
+    'y' in node.position &&
     typeof node.position.x === 'number' &&
     typeof node.position.y === 'number'
   );
 };
 
 // Validate edge structure
-const isValidEdge = (edge: any): edge is Edge => {
+const isValidEdge = (edge: unknown): edge is Edge => {
   return (
+    edge !== null &&
     typeof edge === 'object' &&
+    'source' in edge &&
+    'target' in edge &&
+    'sourceOutput' in edge &&
+    'targetInput' in edge &&
     typeof edge.source === 'string' &&
     typeof edge.target === 'string' &&
     typeof edge.sourceOutput === 'string' &&
@@ -94,7 +104,7 @@ const saveGraph = async (id: string, graph: Graph): Promise<void> => {
 };
 
 // Debounce utility function
-const debounce = <T extends (...args: any[]) => any>(
+const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -104,6 +114,13 @@ const debounce = <T extends (...args: any[]) => any>(
     timeout = setTimeout(() => func(...args), wait);
   };
 };
+
+// Replace any types with proper interfaces
+interface NodeData {
+  // Add appropriate types based on your node structure
+  type: string;
+  data: Record<string, unknown>;
+}
 
 export default function FlowPage() {
   const { id } = useParams();

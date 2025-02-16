@@ -6,6 +6,7 @@ import ReactFlow, {
   BackgroundVariant,
   ConnectionMode,
   ConnectionLineType,
+  ReactFlowInstance,
 } from 'reactflow';
 import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
 import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
@@ -16,6 +17,7 @@ import { NodeSelector } from './node-selector';
 import { Button } from "@repo/ui/button";
 import { useWorkflowState } from './useWorkflowState';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
@@ -48,8 +50,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     handlePaneClick,
     handleAddNode,
     handleNodeSelect,
-    setReactFlowInstance,
     updateNodeExecutionState,
+    setReactFlowInstance,
   } = useWorkflowState({
     initialWorkflowGraph,
     onWorkflowChange,

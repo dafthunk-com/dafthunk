@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "skipLibCheck": true,
+    "isolatedModules": true
+  }
+} 

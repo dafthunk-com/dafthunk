@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
 import { graphs } from '../../store';
 import { Graph, Node, ExecutionEvent } from '@repo/workflow';
+import { NextRequest } from 'next/server';
 
 // Helper function to create an execution event
 function createEvent(event: ExecutionEvent): string {
@@ -68,39 +68,60 @@ async function executeGraph(
   }
 }
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> | { id: string } }
-) {
-  const { id } = await context.params;
-  const graph = graphs.find((g) => g.id === id);
+type RouteContext = {
+  params: Promise<{ id: string }>
+};
 
-  if (!graph) {
+export async function GET(
+  request: NextRequest,
+  context: RouteContext
+) {
+  try {
+    const params = await context.params;
+    const { id } = params;
+    const graph = graphs.find((g) => g.id === id);
+
+    if (!graph) {
+      return new Response(
+        JSON.stringify({ error: 'Graph not found' }),
+        { 
+          status: 404,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          }
+        }
+      );
+    }
+
+    // Create a ReadableStream for SSE
+    const stream = new ReadableStream({
+      async start(controller) {
+        await executeGraph(graph, controller);
+      }
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
+  } catch (error: unknown) {
+    console.error('Execution error:', error);
     return new Response(
-      JSON.stringify({ error: 'Graph not found' }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Failed to execute graph' 
+      }), 
       { 
-        status: 404,
-        headers: { 
+        status: 500,
+        headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
         }
       }
     );
   }
-
-  // Create a ReadableStream for SSE
-  const stream = new ReadableStream({
-    async start(controller) {
-      await executeGraph(graph, controller);
-    }
-  });
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-    }
-  });
 } 

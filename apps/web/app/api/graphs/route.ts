@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { graphs } from './store';
+import { Graph } from '@repo/workflow';
 
 export async function GET() {
   return NextResponse.json({
@@ -15,11 +16,11 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const body = await request.json();
   
-  const newGraph = {
+  const newGraph: Graph = {
     id: crypto.randomUUID(),
     name: body.name,
-    nodes: body.nodes,
-    connections: body.connections,
+    nodes: body.nodes || [],
+    edges: body.edges || [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
