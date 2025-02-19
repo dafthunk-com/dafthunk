@@ -1,31 +1,12 @@
 'use client';
 
-import ReactFlow, {
-  Controls,
-  Background,
-  BackgroundVariant,
-  ConnectionMode,
-  ConnectionLineType,
-  ReactFlowInstance,
-} from 'reactflow';
-import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
-import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
-import { Graph, ExecutionEvent, Parameter } from '@repo/workflow';
+import { Graph } from '@repo/workflow';
 import { WorkflowSidebar } from './workflow-sidebar';
-import 'reactflow/dist/style.css';
 import { NodeSelector } from './node-selector';
-import { Button } from "@repo/ui/button";
 import { useWorkflowState } from './useWorkflowState';
+import { useWorkflowExecution } from './useWorkflowExecution';
+import { WorkflowCanvas } from './workflow-canvas';
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
-
-const nodeTypes = {
-  workflowNode: WorkflowNodeComponent,
-};
-
-const edgeTypes = {
-  workflowEdge: WorkflowEdgeComponent,
-};
 
 interface WorkflowEditorProps {
   initialWorkflowGraph: Graph;
@@ -39,7 +20,6 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     edges,
     selectedNode,
     selectedEdge,
-    reactFlowInstance,
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
     onNodesChange,
@@ -60,60 +40,18 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     onWorkflowChange,
   });
 
-  const handleExecute = () => {
-    // Reset all nodes to idle state
-    nodes.forEach(node => {
-      updateNodeExecutionState(node.id, 'idle');
-    });
-
-    const eventSource = new EventSource(`/api/graphs/${params.id}/execute`);
-
-    eventSource.onopen = () => {
-      console.log('Execution started');
-    };
-
-    eventSource.onerror = (error) => {
-      console.error('Execution error:', error);
-      eventSource.close();
-    };
-
-    eventSource.addEventListener('node-start', (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.log('Node execution started:', data);
-      if (data.type === 'node-start') {
-        updateNodeExecutionState(data.nodeId, 'executing');
-      }
-    });
-
-    eventSource.addEventListener('node-complete', (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.log('Node execution completed:', data);
-      if (data.type === 'node-complete') {
-        updateNodeExecutionState(data.nodeId, 'completed');
-      }
-    });
-
-    eventSource.addEventListener('node-error', (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.error('Node execution error:', data);
-      if (data.type === 'node-error') {
-        updateNodeExecutionState(data.nodeId, 'error');
-      }
-    });
-
-    eventSource.addEventListener('execution-complete', (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.log('Workflow execution completed:', data);
-      eventSource.close();
-    });
-  };
+  const { handleExecute } = useWorkflowExecution({
+    nodes,
+    updateNodeExecutionState,
+    workflowId: params.id as string,
+  });
 
   return (
     <div className="w-full h-full flex">
       <div className={`h-full rounded-xl overflow-hidden relative ${
         (selectedNode || selectedEdge) ? 'w-[calc(100%-20rem)]' : 'w-full'
       }`}>
-        <ReactFlow
+        <WorkflowCanvas
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -124,74 +62,11 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           onNodeClick={handleNodeClick}
           onEdgeClick={handleEdgeClick}
           onPaneClick={handlePaneClick}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          connectionMode={ConnectionMode.Strict}
-          connectionLineType={ConnectionLineType.SmoothStep}
           onInit={setReactFlowInstance}
-          fitView
-          className="bg-gray-100"
-          connectionLineStyle={{
-            stroke: connectionValidationState === 'default' ? '#d1d5db' : 
-                   connectionValidationState === 'valid' ? '#16a34a' : '#dc2626',
-            strokeWidth: 1,
-            strokeDasharray: '5 5',
-          }}
-        >
-          <Controls showInteractive={false} />
-          <Background 
-            variant={BackgroundVariant.Dots} 
-            gap={12} 
-            size={1} 
-            color="#d4d4d4"
-          />
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleAddNode();
-            }}
-            size="icon"
-            className="absolute bottom-4 right-4 z-50 rounded-full shadow-lg"
-            title="Add Node"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-          </Button>
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleExecute();
-            }}
-            size="icon"
-            className="absolute top-4 right-4 z-50 rounded-full shadow-lg"
-            title="Execute Workflow"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
-            </svg>
-          </Button>
-        </ReactFlow>
+          connectionValidationState={connectionValidationState}
+          onAddNode={handleAddNode}
+          onExecute={handleExecute}
+        />
       </div>
 
       {(selectedNode || selectedEdge) && (
