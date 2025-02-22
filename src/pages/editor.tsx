@@ -4,6 +4,7 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 import { Graph } from '@/lib/types';
 import { WorkflowEditor } from '@/components/editor/workflow-editor';
 import { graphService } from '@/lib/services/graph';
+import { ReactFlowProvider } from 'reactflow';
 
 // Default empty graph structure
 const emptyGraph: Graph = {
@@ -79,10 +80,12 @@ export function EditorPage() {
           </div>
         )}
       </div>
-      <WorkflowEditor 
-        initialWorkflowGraph={initialGraph} 
-        onWorkflowChange={handleGraphChange}
-      />
+      <ReactFlowProvider>
+        <WorkflowEditor 
+          initialWorkflowGraph={initialGraph} 
+          onWorkflowChange={handleGraphChange}
+        />
+      </ReactFlowProvider>
     </div>
   );
 } 

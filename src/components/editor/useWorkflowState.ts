@@ -1,18 +1,18 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
-  OnConnectStart,
-  OnConnectEnd,
-  OnConnectStartParams,
-  Connection,
   useNodesState,
   useEdgesState,
+  Node as ReactFlowNode,
+  Edge as ReactFlowEdge,
+  Connection,
+  addEdge,
   NodeChange,
   EdgeChange,
   ReactFlowInstance,
   XYPosition,
-  addEdge,
+  OnConnectStartParams,
+  OnConnectStart,
+  OnConnectEnd,
 } from 'reactflow';
 import { Node, Edge, Graph, Parameter } from '@/lib/types';
 import { WorkflowNodeType } from './workflow-templates';
@@ -20,22 +20,21 @@ import { WorkflowNodeType } from './workflow-templates';
 type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
 type ConnectionValidationState = 'default' | 'valid' | 'invalid';
 
-interface ExtendedNode extends Node {
-  error?: string;
-}
-
 // Convert workflow nodes to ReactFlow nodes
-function convertToReactFlowNodes(nodes: ExtendedNode[]): ReactFlowNode[] {
-  return nodes.map((node) => ({
+const convertToReactFlowNodes = (nodes: Node[]): ReactFlowNode[] => {
+  return nodes.map(node => ({
     id: node.id,
-    type: node.type,
+    type: 'workflowNode',
     position: node.position,
     data: {
-      ...node.data,
+      name: node.name,
+      inputs: node.inputs,
+      outputs: node.outputs,
       error: node.error,
+      executionState: 'idle' as NodeExecutionState,
     },
   }));
-}
+};
 
 // Convert workflow edges to ReactFlow edges
 const convertToReactFlowEdges = (edges: Edge[]): ReactFlowEdge[] => {
@@ -52,7 +51,6 @@ const convertToReactFlowEdges = (edges: Edge[]): ReactFlowEdge[] => {
 // Convert ReactFlow connection to workflow edge
 const convertToWorkflowEdge = (connection: Connection): Edge => {
   return {
-    id: `e${connection.source}-${connection.target}`,
     source: connection.source || '',
     target: connection.target || '',
     sourceOutput: connection.sourceHandle || '',
@@ -228,7 +226,7 @@ export function useWorkflowState({
     return sourceParam.type === targetParam.type;
   }, []);
 
-  const onConnectStart = useCallback((_: any, params: OnConnectStartParams) => {
+  const onConnectStart: OnConnectStart = useCallback((_, params: OnConnectStartParams) => {
     console.log('Connect start:', params);
     setConnectingNodeId(params.nodeId);
     setConnectingHandleId(params.handleId);
@@ -236,7 +234,7 @@ export function useWorkflowState({
     setConnectionValidationState('default');
   }, []);
 
-  const onConnectEnd = useCallback(() => {
+  const onConnectEnd: OnConnectEnd = useCallback((_) => {
     console.log('Connect end');
     setConnectingNodeId(null);
     setConnectingHandleId(null);
@@ -253,6 +251,12 @@ export function useWorkflowState({
     const handleMouseMove = (event: MouseEvent) => {
       if (!reactFlowInstance) return;
 
+      // Convert mouse position to flow coordinates
+      const position = reactFlowInstance.project({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
       // Find if we're hovering over any node
       const targetNode = nodes.find(node => {
         const nodeX = node.position.x;
@@ -261,10 +265,10 @@ export function useWorkflowState({
         const nodeHeight = 100; // Approximate node height
         
         return (
-          event.clientX >= nodeX &&
-          event.clientX <= nodeX + nodeWidth &&
-          event.clientY >= nodeY &&
-          event.clientY <= nodeY + nodeHeight
+          position.x >= nodeX &&
+          position.x <= nodeX + nodeWidth &&
+          position.y >= nodeY &&
+          position.y <= nodeY + nodeHeight
         );
       });
 
@@ -336,10 +340,9 @@ export function useWorkflowState({
       const newEdge = convertToWorkflowEdge(connection);
       const newEdges = [...remainingEdges, newEdge];
 
-      const newGraph: Graph = {
+      const newGraph = {
         ...prevGraph,
         edges: newEdges,
-        updatedAt: new Date().toISOString()
       };
 
       setPendingGraphUpdate(newGraph);
@@ -405,7 +408,7 @@ export function useWorkflowState({
     });
     
     setIsNodeSelectorOpen(false);
-  }, [reactFlowInstance, setNodes]);
+  }, [reactFlowInstance, setNodes, setWorkflowGraph]);
 
   const updateNodeExecutionState = useCallback((nodeId: string, state: NodeExecutionState) => {
     setNodes((nds) =>

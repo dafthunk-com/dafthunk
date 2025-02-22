@@ -4,7 +4,6 @@
 export interface Parameter {
   name: string;
   type: string;
-  value?: any;
 }
 
 /**
@@ -12,15 +11,14 @@ export interface Parameter {
  */
 export interface Node {
   id: string;
+  name: string;
   type: string;
-  position: { x: number; y: number };
-  data: {
-    name: string;
-    type: string;
-    inputs: Parameter[];
-    outputs: Parameter[];
-    error?: string;
-    executionState?: 'idle' | 'executing' | 'completed' | 'error';
+  inputs: Parameter[];
+  outputs: Parameter[];
+  error?: string | null;
+  position: {
+    x: number;
+    y: number;
   };
 }
 
@@ -28,7 +26,6 @@ export interface Node {
  * Represents a connection between two tasks in the workflow
  */
 export interface Edge {
-  id: string;
   source: string;      // Source task ID
   target: string;      // Target task ID
   sourceOutput: string; // Source output parameter name

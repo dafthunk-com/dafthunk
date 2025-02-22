@@ -1,4 +1,4 @@
-import { Node } from '@/lib/types';
+import { Node } from '@/lib/types.ts';
 
 export interface NodeType {
   id: string;
@@ -54,64 +54,53 @@ export const getIconStyles = (iconName: string): { className: string; strokeWidt
 const nodeCreators: Record<string, (position: { x: number; y: number }) => Node> = {
   'text-processor': (position) => ({
     id: `node-${Date.now()}`,
-    type: 'workflowNode',
+    type: 'Processor',
+    name: 'Text Processor',
     position,
-    data: {
-      name: 'Text Processor',
-      type: 'Processor',
-      inputs: [
-        { name: 'text', type: 'string' },
-      ],
-      outputs: [
-        { name: 'processed', type: 'string' },
-      ],
-    }
+    inputs: [
+      { name: 'text', type: 'string' },
+    ],
+    outputs: [
+      { name: 'processed', type: 'string' },
+    ],
   }),
   'llm-model': (position) => ({
     id: `node-${Date.now()}`,
-    type: 'workflowNode',
+    type: 'AIModel',
+    name: 'LLM Model',
     position,
-    data: {
-      name: 'LLM Model',
-      type: 'AIModel',
-      inputs: [
-        { name: 'prompt', type: 'string' },
-        { name: 'temperature', type: 'number' },
-      ],
-      outputs: [
-        { name: 'completion', type: 'string' },
-      ],
-    }
+    inputs: [
+      { name: 'prompt', type: 'string' },
+      { name: 'temperature', type: 'number' },
+    ],
+    outputs: [
+      { name: 'completion', type: 'string' },
+    ],
   }),
   's3-storage': (position) => ({
     id: `node-${Date.now()}`,
-    type: 'workflowNode',
+    type: 'Storage',
+    name: 'S3 Storage',
     position,
-    data: {
-      name: 'S3 Storage',
-      type: 'Storage',
-      inputs: [
-        { name: 'data', type: 'any' },
-        { name: 'path', type: 'string' },
-      ],
-      outputs: [
-        { name: 'url', type: 'string' },
-      ],
-    }
+    inputs: [
+      { name: 'data', type: 'any' },
+      { name: 'path', type: 'string' },
+    ],
+    outputs: [
+      { name: 'url', type: 'string' },
+    ],
   }),
   'file-input': (position) => ({
     id: `node-${Date.now()}`,
-    type: 'workflowNode',
+    type: 'Input',
+    name: 'File Input',
     position,
-    data: {
-      name: 'File Input',
-      type: 'Input',
-      inputs: [],
-      outputs: [
-        { name: 'content', type: 'string' },
-      ],
-    }
-  })
+    inputs: [],
+    outputs: [
+      { name: 'content', type: 'string' },
+      { name: 'metadata', type: 'object' },
+    ],
+  }),
 };
 
 export async function fetchNodeTypes(): Promise<WorkflowNodeType[]> {
@@ -138,60 +127,4 @@ export async function fetchNodeTypes(): Promise<WorkflowNodeType[]> {
     console.error('Error fetching node types:', error);
     return [];
   }
-}
-
-export function createInputNode(id: string, position: { x: number; y: number }): Node {
-  return {
-    id,
-    type: 'workflowNode',
-    position,
-    data: {
-      name: 'Input',
-      type: 'input',
-      inputs: [],
-      outputs: [{ name: 'output', type: 'any' }]
-    }
-  };
-}
-
-export function createProcessorNode(id: string, position: { x: number; y: number }): Node {
-  return {
-    id,
-    type: 'workflowNode',
-    position,
-    data: {
-      name: 'Processor',
-      type: 'processor',
-      inputs: [{ name: 'input', type: 'any' }],
-      outputs: [{ name: 'output', type: 'any' }]
-    }
-  };
-}
-
-export function createOutputNode(id: string, position: { x: number; y: number }): Node {
-  return {
-    id,
-    type: 'workflowNode',
-    position,
-    data: {
-      name: 'Output',
-      type: 'output',
-      inputs: [{ name: 'input', type: 'any' }],
-      outputs: []
-    }
-  };
-}
-
-export function createCustomNode(id: string, position: { x: number; y: number }): Node {
-  return {
-    id,
-    type: 'workflowNode',
-    position,
-    data: {
-      name: 'Custom',
-      type: 'custom',
-      inputs: [],
-      outputs: [{ name: 'output', type: 'any' }]
-    }
-  };
 } 

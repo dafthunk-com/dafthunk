@@ -1,3 +1,5 @@
+'use client';
+
 import ReactFlow, {
   Controls,
   Background,
@@ -14,9 +16,6 @@ import { NodeSelector } from './node-selector';
 import { Button } from "@/components/ui/button";
 import { useWorkflowState } from './useWorkflowState';
 import { useParams } from 'react-router-dom';
-import { useCallback } from 'react';
-import { PlusIcon, MinusIcon } from 'lucide-react';
-import { useReactFlow } from 'reactflow';
 
 const nodeTypes = {
   workflowNode: WorkflowNodeComponent,
@@ -32,7 +31,7 @@ interface WorkflowEditorProps {
 }
 
 export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: WorkflowEditorProps) {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
   const {
     nodes,
     edges,
@@ -58,23 +57,13 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
     onWorkflowChange,
   });
 
-  const reactFlow = useReactFlow();
-  
-  const handleZoomIn = useCallback(() => {
-    reactFlow.zoomIn();
-  }, [reactFlow]);
-
-  const handleZoomOut = useCallback(() => {
-    reactFlow.zoomOut();
-  }, [reactFlow]);
-
   const handleExecute = () => {
     // Reset all nodes to idle state
     nodes.forEach(node => {
       updateNodeExecutionState(node.id, 'idle');
     });
 
-    const eventSource = new EventSource(`${process.env.REACT_APP_API_URL}/graphs/${id}/execute`);
+    const eventSource = new EventSource(`/graphs/${params.id}/execute`);
 
     eventSource.onopen = () => {
       console.log('Execution started');
@@ -193,20 +182,6 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
             </svg>
-          </Button>
-          <Button
-            onClick={handleZoomIn}
-            className="absolute bottom-24 right-4 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-            title="Zoom In"
-          >
-            <PlusIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            onClick={handleZoomOut}
-            className="absolute bottom-36 right-4 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-            title="Zoom Out"
-          >
-            <MinusIcon className="h-4 w-4" />
           </Button>
         </ReactFlow>
       </div>
