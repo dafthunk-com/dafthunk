@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { graphs } from './store';
-import { Graph } from '@repo/workflow';
+import { Graph } from '../src/lib/types';
 
 export const onRequest: PagesFunction = async (context) => {
   if (context.request.method === 'GET') {
@@ -20,13 +20,18 @@ export const onRequest: PagesFunction = async (context) => {
   }
 
   if (context.request.method === 'POST') {
-    const body = await context.request.json();
+    const body = await context.request.json() as unknown;
     
+    if (typeof body !== 'object' || body === null) {
+      return new Response('Invalid request body', { status: 400 });
+    }
+
+    const data = body as any;
     const newGraph: Graph = {
       id: crypto.randomUUID(),
-      name: body.name,
-      nodes: body.nodes || [],
-      edges: body.edges || [],
+      name: data.name || 'Untitled Graph',
+      nodes: Array.isArray(data.nodes) ? data.nodes : [],
+      edges: Array.isArray(data.edges) ? data.edges : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

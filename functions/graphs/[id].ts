@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { findGraphById, updateGraph, deleteGraph } from '../store';
-import { Graph } from '@repo/workflow';
+import { Graph } from '../../src/lib/types';
 
 export const onRequest: PagesFunction = async (context) => {
   const url = new URL(context.request.url);
@@ -26,8 +26,13 @@ export const onRequest: PagesFunction = async (context) => {
   }
 
   if (context.request.method === 'PUT') {
-    const body = await context.request.json();
-    const updatedGraph = updateGraph(id, body);
+    const body = await context.request.json() as unknown;
+    
+    if (typeof body !== 'object' || body === null) {
+      return new Response('Invalid request body', { status: 400 });
+    }
+
+    const updatedGraph = updateGraph(id, body as Partial<Graph>);
 
     if (!updatedGraph) {
       return new Response('Graph not found', { status: 404 });
