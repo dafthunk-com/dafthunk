@@ -52,6 +52,7 @@ const convertToReactFlowEdges = (edges: Edge[]): ReactFlowEdge[] => {
 // Convert ReactFlow connection to workflow edge
 const convertToWorkflowEdge = (connection: Connection): Edge => {
   return {
+    id: `e${connection.source}-${connection.target}`,
     source: connection.source || '',
     target: connection.target || '',
     sourceOutput: connection.sourceHandle || '',

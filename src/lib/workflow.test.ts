@@ -31,7 +31,7 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'e1-2', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -66,8 +66,8 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: 'A', target: 'B', sourceOutput: 'out', targetInput: 'in' },
-          { source: 'B', target: 'A', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'eA-B', source: 'A', target: 'B', sourceOutput: 'out', targetInput: 'in' },
+          { id: 'eB-A', source: 'B', target: 'A', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -106,7 +106,7 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'e1-2', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -141,7 +141,7 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'e1-2', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -168,7 +168,7 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'e1-2', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -205,7 +205,7 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'nonExistent', targetInput: 'in' }
+          { id: 'e1-2', source: '1', target: '2', sourceOutput: 'nonExistent', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -244,7 +244,7 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'e1-2', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -280,8 +280,8 @@ describe('Workflow Validation', () => {
           }
         ],
         edges: [
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' },
-          { source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
+          { id: 'e1-2a', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' },
+          { id: 'e1-2b', source: '1', target: '2', sourceOutput: 'out', targetInput: 'in' }
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

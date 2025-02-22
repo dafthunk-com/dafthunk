@@ -24,12 +24,16 @@ export interface Node {
 /**
  * Represents a connection between two tasks in the workflow
  */
-export interface Edge {
+export type Edge = {
+  id: string;
   source: string;      // Source task ID
   target: string;      // Target task ID
   sourceOutput: string; // Source output parameter name
   targetInput: string;  // Target input parameter name
-}
+  type?: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+};
 
 /**
  * Represents the entire workflow graph
