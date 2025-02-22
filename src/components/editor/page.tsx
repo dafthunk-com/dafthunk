@@ -1,7 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import { Graph, Node, Edge } from '@/lib/types';
+import { useCallback, useState } from 'react';
+import { useLoaderData, useParams } from 'react-router-dom';
+import type { LoaderFunctionArgs } from 'react-router-dom';
+import { Graph } from '@/lib/types';
 import { WorkflowEditor } from './workflow-editor';
+import { graphService } from '@/lib/services/graph';
 
 // Default empty graph structure
 const emptyGraph: Graph = {
@@ -12,6 +14,21 @@ const emptyGraph: Graph = {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
+// Loader function for React Router
+export async function editorLoader({ params }: LoaderFunctionArgs) {
+  const { id } = params;
+  if (!id) {
+    return { graph: emptyGraph };
+  }
+
+  try {
+    const graph = await graphService.load(id);
+    return { graph };
+  } catch (error) {
+    throw new Error(`Failed to load workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
 
 // API client function to load a graph
 const loadGraph = async (id: string): Promise<Graph> => {
@@ -115,34 +132,8 @@ const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
-  const [graph, setGraph] = useState<Graph>(emptyGraph);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { graph: initialGraph } = useLoaderData() as { graph: Graph };
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    const fetchGraph = async () => {
-      try {
-        const graphData = await loadGraph(id as string);
-        console.log('Setting graph state:', graphData);
-        setGraph(graphData);
-      } catch (err) {
-        console.error('Error loading graph:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        setGraph(emptyGraph);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      console.log('Fetching graph with ID:', id);
-      fetchGraph();
-    } else {
-      setError('No graph ID provided');
-      setIsLoading(false);
-    }
-  }, [id]);
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -151,11 +142,12 @@ export function EditorPage() {
       
       try {
         setIsSaving(true);
-        await saveGraph(id as string, graphToSave);
+        await graphService.save(id, graphToSave);
         console.log('Graph saved successfully');
       } catch (err) {
         console.error('Error saving graph:', err);
-        setError(err instanceof Error ? err.message : 'Failed to save graph');
+        // We could use React Router's useNavigate here to redirect to an error page
+        // or implement a toast notification system for error feedback
       } finally {
         setIsSaving(false);
       }
@@ -165,37 +157,22 @@ export function EditorPage() {
 
   // Handle graph changes
   const handleGraphChange = useCallback((updatedGraph: Graph) => {
-    setGraph(updatedGraph);
     debouncedSave(updatedGraph);
   }, [debouncedSave]);
 
   return (
     <div className="w-screen h-screen fixed top-0 left-0 p-2">
-      {isLoading && (
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
-        </div>
-      )}
-      {error && (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-red-500">{error}</div>
-        </div>
-      )}
-      {!isLoading && !error && (
-        <>
-          <div className="absolute top-4 right-4 z-50">
-            {isSaving && (
-              <div className="text-sm text-gray-500">
-                Saving...
-              </div>
-            )}
+      <div className="absolute top-4 right-4 z-50">
+        {isSaving && (
+          <div className="text-sm text-gray-500">
+            Saving...
           </div>
-          <WorkflowEditor 
-            initialWorkflowGraph={graph} 
-            onWorkflowChange={handleGraphChange}
-          />
-        </>
-      )}
+        )}
+      </div>
+      <WorkflowEditor 
+        initialWorkflowGraph={initialGraph} 
+        onWorkflowChange={handleGraphChange}
+      />
     </div>
   );
 } 
