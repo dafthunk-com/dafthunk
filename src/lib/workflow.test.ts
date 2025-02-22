@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { detectCycles, validateTypeCompatibility, validateWorkflow } from './validation';
-import { Graph } from './types';
+import { Graph, Parameter } from './types';
 
 describe('Workflow Validation', () => {
   describe('detectCycles', () => {
@@ -15,8 +15,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           },
           { 
@@ -25,8 +26,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'Node 2',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],
@@ -50,8 +52,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'A',
-              inputs: [{ name: 'in', type: 'number' }],
-              outputs: [{ name: 'out', type: 'number' }]
+              type: 'task',
+              inputs: [{ name: 'in', type: 'number' }] as Parameter[],
+              outputs: [{ name: 'out', type: 'number' }] as Parameter[]
             }
           },
           { 
@@ -60,8 +63,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'B',
-              inputs: [{ name: 'in', type: 'number' }],
-              outputs: [{ name: 'out', type: 'number' }]
+              type: 'task',
+              inputs: [{ name: 'in', type: 'number' }] as Parameter[],
+              outputs: [{ name: 'out', type: 'number' }] as Parameter[]
             }
           }
         ],
@@ -90,8 +94,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           },
           { 
@@ -100,8 +105,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'Node 2',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],
@@ -125,8 +131,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           },
           { 
@@ -135,8 +142,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'Node 2',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],
@@ -162,8 +170,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],
@@ -189,8 +198,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           },
           { 
@@ -199,8 +209,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'Node 2',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],
@@ -228,8 +239,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           },
           { 
@@ -238,8 +250,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'Node 2',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],
@@ -264,8 +277,9 @@ describe('Workflow Validation', () => {
             position: { x: 0, y: 0 },
             data: {
               name: 'Node 1',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           },
           { 
@@ -274,8 +288,9 @@ describe('Workflow Validation', () => {
             position: { x: 100, y: 0 },
             data: {
               name: 'Node 2',
-              inputs: {},
-              outputs: {}
+              type: 'task',
+              inputs: [] as Parameter[],
+              outputs: [] as Parameter[]
             }
           }
         ],

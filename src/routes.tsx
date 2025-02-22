@@ -1,16 +1,15 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { EditorPage, editorLoader } from './components/editor/page';
+import { HomePage } from './pages/home';
+import { EditorPage, editorLoader } from './pages/editor';
 import { EditorError } from './components/editor/editor-error';
 
 export const router = createBrowserRouter([
   {
-    path: '/editor/:id',
-    element: <EditorPage />,
-    loader: editorLoader,
-    errorElement: <EditorError />,
+    path: '/',
+    element: <HomePage />,
   },
   {
-    path: '/editor',
+    path: '/flow/:id',
     element: <EditorPage />,
     loader: editorLoader,
     errorElement: <EditorError />,

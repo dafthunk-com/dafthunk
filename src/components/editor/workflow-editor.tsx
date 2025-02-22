@@ -74,7 +74,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
       updateNodeExecutionState(node.id, 'idle');
     });
 
-    const eventSource = new EventSource(`${process.env.REACT_APP_API_URL}/api/graphs/${id}/execute`);
+    const eventSource = new EventSource(`${process.env.REACT_APP_API_URL}/graphs/${id}/execute`);
 
     eventSource.onopen = () => {
       console.log('Execution started');

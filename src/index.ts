@@ -44,9 +44,9 @@ export default {
     
     try {
       // Route handling
-      if (url.pathname === '/api/types') {
+      if (url.pathname === '/types') {
         return handleTypes(request);
-      } else if (url.pathname.startsWith('/api/graphs')) {
+      } else if (url.pathname.startsWith('/graphs')) {
         return handleGraphs(request);
       }
 

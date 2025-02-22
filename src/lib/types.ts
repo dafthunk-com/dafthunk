@@ -4,6 +4,7 @@
 export interface Parameter {
   name: string;
   type: string;
+  value?: any;
 }
 
 /**
@@ -14,26 +15,25 @@ export interface Node {
   type: string;
   position: { x: number; y: number };
   data: {
-    name?: string;
-    inputs?: Record<string, any>;
-    outputs?: Record<string, any>;
-    [key: string]: any;
+    name: string;
+    type: string;
+    inputs: Parameter[];
+    outputs: Parameter[];
+    error?: string;
+    executionState?: 'idle' | 'executing' | 'completed' | 'error';
   };
 }
 
 /**
  * Represents a connection between two tasks in the workflow
  */
-export type Edge = {
+export interface Edge {
   id: string;
   source: string;      // Source task ID
   target: string;      // Target task ID
   sourceOutput: string; // Source output parameter name
   targetInput: string;  // Target input parameter name
-  type?: string;
-  sourceHandle?: string | null;
-  targetHandle?: string | null;
-};
+}
 
 /**
  * Represents the entire workflow graph

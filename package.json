@@ -8,11 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest",
-	"preview": "pnpm run build && wrangler pages dev ./dist",
-	"deploy": "pnpm run build && wrangler pages deploy ./dist"
+    "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
+    "deploy": "pnpm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-scroll-area": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.2",
     "class-variance-authority": "^0.7.1",
@@ -25,6 +26,7 @@
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
     "@eslint/js": "^9.19.0",
     "@tailwindcss/postcss": "^4.0.8",
     "@types/node": "^22.13.5",
@@ -43,7 +45,6 @@
     "typescript-eslint": "^8.22.0",
     "vite": "^6.1.0",
     "vitest": "^3.0.6",
-	"@cloudflare/workers-types": "^4.20250214.0",
-	"wrangler": "^3.109.2"
+    "wrangler": "^3.109.2"
   }
 }

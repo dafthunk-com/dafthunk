@@ -48,8 +48,8 @@ export function validateTypeCompatibility(graph: Graph): ValidationError | null 
       };
     }
 
-    const sourceOutput = sourceNode.data.outputs?.[edge.sourceOutput];
-    const targetInput = targetNode.data.inputs?.[edge.targetInput];
+    const sourceOutput = sourceNode.data.outputs.find(p => p.name === edge.sourceOutput);
+    const targetInput = targetNode.data.inputs.find(p => p.name === edge.targetInput);
 
     if (!sourceOutput || !targetInput) {
       return {
