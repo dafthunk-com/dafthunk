@@ -11,19 +11,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           },
           { 
             id: '2', 
-            name: 'Node 2', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'Node 2',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [
@@ -42,19 +46,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: 'A', 
-            name: 'A', 
-            type: 'Input', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'A',
+              inputs: [{ name: 'in', type: 'number' }],
+              outputs: [{ name: 'out', type: 'number' }]
+            }
           },
           { 
             id: 'B', 
-            name: 'B', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'B',
+              inputs: [{ name: 'in', type: 'number' }],
+              outputs: [{ name: 'out', type: 'number' }]
+            }
           }
         ],
         edges: [
@@ -78,19 +86,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           },
           { 
             id: '2', 
-            name: 'Node 2', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'Node 2',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [
@@ -109,19 +121,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           },
           { 
             id: '2', 
-            name: 'Node 2', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'string' }], 
-            outputs: [],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'Node 2',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [
@@ -142,11 +158,13 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [
@@ -167,19 +185,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           },
           { 
             id: '2', 
-            name: 'Node 2', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'Node 2',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [
@@ -202,19 +224,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           },
           { 
             id: '2', 
-            name: 'Node 2', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'Node 2',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [
@@ -234,19 +260,23 @@ describe('Workflow Validation', () => {
         nodes: [
           { 
             id: '1', 
-            name: 'Node 1', 
-            type: 'Input', 
-            inputs: [], 
-            outputs: [{ name: 'out', type: 'number' }],
-            position: { x: 0, y: 0 }
+            type: 'workflowNode',
+            position: { x: 0, y: 0 },
+            data: {
+              name: 'Node 1',
+              inputs: {},
+              outputs: {}
+            }
           },
           { 
             id: '2', 
-            name: 'Node 2', 
-            type: 'Processor', 
-            inputs: [{ name: 'in', type: 'number' }], 
-            outputs: [],
-            position: { x: 100, y: 0 }
+            type: 'workflowNode',
+            position: { x: 100, y: 0 },
+            data: {
+              name: 'Node 2',
+              inputs: {},
+              outputs: {}
+            }
           }
         ],
         edges: [

@@ -11,13 +11,13 @@ export interface Parameter {
  */
 export interface Node {
   id: string;
-  name: string;
   type: string;
-  inputs: Parameter[];
-  outputs: Parameter[];
-  position: {
-    x: number;
-    y: number;
+  position: { x: number; y: number };
+  data: {
+    name?: string;
+    inputs?: Record<string, any>;
+    outputs?: Record<string, any>;
+    [key: string]: any;
   };
 }
 
