@@ -14,7 +14,7 @@ import {
   OnConnectStart,
   OnConnectEnd,
 } from 'reactflow';
-import { Node, Edge, Graph, Parameter } from '@/lib/types';
+import { Node, Edge, Graph, Parameter } from '@lib/types';
 import { WorkflowNodeType } from './workflow-templates';
 
 type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';

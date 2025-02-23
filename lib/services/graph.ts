@@ -1,4 +1,4 @@
-import { Graph, Node, Edge } from '@/lib/types';
+import { Graph, Node, Edge } from '@lib/types';
 
 // Validate node structure
 export const isValidNode = (node: unknown): node is Node => {

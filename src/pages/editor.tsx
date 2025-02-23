@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useLoaderData, useParams } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
-import { Graph } from '@/lib/types';
+import { Graph } from '@lib/types';
 import { WorkflowEditor } from '@/components/editor/workflow-editor';
-import { graphService } from '@/lib/services/graph';
+import { graphService } from '@lib/services/graph';
 import { ReactFlowProvider } from 'reactflow';
 
 // Default empty graph structure

@@ -1,4 +1,4 @@
-import { Node, NodeType as ServerNodeType } from '@/lib/types';
+import { Node, NodeType as ServerNodeType } from '@lib/types';
 
 export interface NodeType extends Omit<ServerNodeType, 'inputs' | 'outputs'> {
   id: string;
