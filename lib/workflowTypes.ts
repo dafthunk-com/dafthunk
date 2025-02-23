@@ -62,4 +62,11 @@ export interface ExecutionEvent {
   nodeId: string;
   timestamp: number;
   error?: string;
+}
+
+export interface ExecutionResult {
+  nodeId: string;
+  success: boolean;
+  error?: string;
+  outputs?: Record<string, any>;
 } 
