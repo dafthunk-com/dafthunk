@@ -4,8 +4,14 @@ compatibility_date = "2024-02-23"
 # Pages configuration
 pages_build_output_dir = "dist"
 
-[[d1_databases]]
+# Environment variables for production
+[env.production]
+VITE_WORKFLOW_API_URL = "https://workflow-e9h.pages.dev"
+
+# D1 Database binding for production
+[[env.production.d1_databases]]
 binding = "DB"
 database_name = "workflow"
 database_id = "b9801bcc-01e8-48bd-934b-eed9f1152f30"
+preview_database_id = "b9801bcc-01e8-48bd-934b-eed9f1152f30"
 migrations_dir = "./functions/db/migrations"
