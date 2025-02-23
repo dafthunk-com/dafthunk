@@ -1,22 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
+import { type NodeType } from '../src/lib/types';
 
-interface Parameter {
-  name: string;
-  type: string;
-}
-
-interface NodeType {
-  id: string;
-  name: string;
-  type: string;
-  inputs: Parameter[];
-  outputs: Parameter[];
-  description: string;
-  category: string;
-  icon: string;
-}
-
-const nodeTypes: NodeType[] = [
+/**
+ * Available node types in the system
+ */
+export const nodeTypes: NodeType[] = [
   {
     id: 'text-processor',
     name: 'Text Processor',

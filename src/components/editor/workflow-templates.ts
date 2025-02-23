@@ -1,8 +1,9 @@
-import { Node } from '@/lib/types.ts';
+import { Node, NodeType as ServerNodeType } from '@/lib/types';
 
-export interface NodeType {
+export interface NodeType extends Omit<ServerNodeType, 'inputs' | 'outputs'> {
   id: string;
   name: string;
+  type: string;
   description: string;
   category: string;
   icon: string;
@@ -105,26 +106,32 @@ const nodeCreators: Record<string, (position: { x: number; y: number }) => Node>
 
 export async function fetchNodeTypes(): Promise<WorkflowNodeType[]> {
   try {
-    const response = await fetch('/api/types');
+    const response = await fetch('/types');
     if (!response.ok) {
-      throw new Error('Failed to fetch node types');
+      throw new Error(`Failed to fetch node types: ${response.statusText}`);
     }
-    const nodeTypes: NodeType[] = await response.json();
+    const serverNodeTypes: ServerNodeType[] = await response.json();
     
     // Map API node types to workflow node types by adding createNode function
-    return nodeTypes.map(nodeType => ({
-      ...nodeType,
+    return serverNodeTypes.map(nodeType => ({
+      id: nodeType.id,
+      name: nodeType.name,
+      type: nodeType.type,
+      description: nodeType.description,
+      category: nodeType.category,
+      icon: nodeType.icon,
       createNode: nodeCreators[nodeType.id] || ((position) => ({
         id: `node-${Date.now()}`,
-        type: 'Unknown',
+        type: nodeType.type,
         name: nodeType.name,
         position,
-        inputs: [],
-        outputs: [],
+        inputs: nodeType.inputs,
+        outputs: nodeType.outputs,
       })),
     }));
   } catch (error) {
     console.error('Error fetching node types:', error);
-    return [];
+    // Return empty array but also notify the user through the UI
+    throw new Error(`Failed to load node types: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 } 

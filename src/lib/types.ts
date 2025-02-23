@@ -7,6 +7,20 @@ export interface Parameter {
 }
 
 /**
+ * Represents a node type definition
+ */
+export interface NodeType {
+  id: string;
+  name: string;
+  type: string;
+  inputs: Parameter[];
+  outputs: Parameter[];
+  description: string;
+  category: string;
+  icon: string;
+}
+
+/**
  * Represents a task node in the workflow graph
  */
 export interface Node {
