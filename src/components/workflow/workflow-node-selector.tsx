@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { NodeType, fetchNodeTypes } from "@/services/workflowNodeService";
+import { NodeType } from "@lib/workflowTypes";
+import { fetchNodeTypes } from "@/services/workflowNodeService";
 
 interface WorkflowNodeSelectorProps {
   open: boolean;

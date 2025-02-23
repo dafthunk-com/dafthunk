@@ -1,27 +1,7 @@
-export interface NodeType {
-  id: string;
-  type: string;
-  name: string;
-  description: string;
-  category: string;
-  inputs: { name: string; type: string }[];
-  outputs: { name: string; type: string }[];
-}
-
-export interface Node {
-  id: string;
-  type: string;
-  name: string;
-  position: { x: number; y: number };
-  inputs: { name: string; type: string }[];
-  outputs: { name: string; type: string }[];
-  error?: string;
-}
-
 import { Node as ReactFlowNode, XYPosition } from 'reactflow';
 import { API_BASE_URL } from '../config/api';
+import { Node, NodeType, NodeExecutionState } from '../../lib/workflowTypes';
 
-export type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
 
 export const workflowNodeService = {
   convertToReactFlowNodes(nodes: Node[]): ReactFlowNode[] {

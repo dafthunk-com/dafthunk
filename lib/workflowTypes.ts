@@ -33,6 +33,8 @@ export interface Node {
   error?: string;
 }
 
+export type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
+
 export interface Edge {
   source: string;
   target: string;
