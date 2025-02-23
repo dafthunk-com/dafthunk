@@ -1,5 +1,3 @@
-'use client';
-
 import ReactFlow, {
   Controls,
   Background,
@@ -12,7 +10,7 @@ import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
 import { Graph, ExecutionEvent } from '@lib/workflowTypes';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
-import { NodeSelector } from './node-selector';
+import { WorkflowNodeSelector } from './workflow-node-selector';
 import { Button } from "@/components/ui/button";
 import { useWorkflowState } from './useWorkflowState';
 import { useParams } from 'react-router-dom';
@@ -192,7 +190,7 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
         </div>
       )}
 
-      <NodeSelector
+      <WorkflowNodeSelector
         open={isNodeSelectorOpen}
         onSelect={handleNodeSelect}
         onClose={() => setIsNodeSelectorOpen(false)}

@@ -1,10 +1,10 @@
 import { Node as ReactFlowNode } from 'reactflow';
 
-interface NodeInspectorProps {
+interface WorkflowNodeInspectorProps {
   node: ReactFlowNode;
 }
 
-export function NodeInspector({ node }: NodeInspectorProps) {
+export function WorkflowNodeInspector({ node }: WorkflowNodeInspectorProps) {
   return (
     <div className="p-6">
       <h2 className="text-xl font-semibold mb-4">{node.data.name}</h2>

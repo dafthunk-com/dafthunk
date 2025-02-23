@@ -1,5 +1,3 @@
-'use client';
-
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -7,13 +5,13 @@ import { useState, useEffect } from "react";
 import { WorkflowNodeType, fetchNodeTypes } from "@/services/workflowNodeService";
 import { getIconPath, getIconStyles } from "./workflow-templates";
 
-interface NodeSelectorProps {
+interface WorkflowNodeSelectorProps {
   open: boolean;
   onClose: () => void;
   onSelect: (template: WorkflowNodeType) => void;
 }
 
-export function NodeSelector({ open, onClose, onSelect }: NodeSelectorProps) {
+export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [nodeTypes, setNodeTypes] = useState<WorkflowNodeType[]>([]);

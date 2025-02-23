@@ -1,10 +1,10 @@
 import { Edge as ReactFlowEdge } from 'reactflow';
 
-interface EdgeInspectorProps {
+interface WorkflowEdgeInspectorProps {
   edge: ReactFlowEdge;
 }
 
-export function EdgeInspector({ edge }: EdgeInspectorProps) {
+export function WorkflowEdgeInspector({ edge }: WorkflowEdgeInspectorProps) {
   return (
     <div className="p-6">
       <h2 className="text-xl font-semibold mb-4">Edge</h2>
