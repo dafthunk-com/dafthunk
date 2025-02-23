@@ -39,6 +39,8 @@ The project uses the following technologies:
 - Use early returns whenever possible to improve readability.
 - Always use Tailwind classes for styling HTML elements; avoid external CSS files.
 - Use the `cn` utility function from `@/lib/utils` to merge Tailwind classes and handle conditional classes instead of ternary operators in `className`.
+- Use kebab-case for component files to align with shadcn/ui conventions.
+- Use camelCase for hooks (prefixed with 'use') and utility files.
 - Use descriptive variable and function names.
 - Prefix event handlers with "handle", e.g., `handleClick` for `onClick` and `handleKeyDown` for `onKeyDown`.
 - Use TypeScript for strict typing with proper type or interface definitions.
