@@ -28,6 +28,14 @@ interface WorkflowEditorProps {
   onWorkflowChange?: (graph: Graph) => void;
 }
 
+const connectionLineOptions = {
+  type: ConnectionLineType.SmoothStep,
+  style: {
+    strokeWidth: 1,
+    stroke: '#d1d5db',
+  },
+};
+
 export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: WorkflowEditorProps) {
   const params = useParams();
   const {
@@ -121,6 +129,8 @@ export function WorkflowEditor({ initialWorkflowGraph, onWorkflowChange }: Workf
           edgeTypes={edgeTypes}
           connectionMode={ConnectionMode.Strict}
           connectionLineType={ConnectionLineType.SmoothStep}
+          connectionRadius={8}
+          defaultEdgeOptions={connectionLineOptions}
           onInit={setReactFlowInstance}
           fitView
           className="bg-gray-100"

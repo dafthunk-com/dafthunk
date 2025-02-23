@@ -25,7 +25,7 @@ export const WorkflowEdge = memo(({
     targetY,
     sourcePosition,
     targetPosition,
-    borderRadius: 16,
+    borderRadius: 8,
   });
 
   const isValid = data?.isValid ?? true;
