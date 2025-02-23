@@ -1,18 +1,21 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { graphs } from './store';
-import { Graph } from '../src/lib/types';
+import { createDatabase, type Env } from '../db';
+import { eq } from 'drizzle-orm';
+import { graphs, type NewGraph } from '../db/schema';
 
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest: PagesFunction<Env> = async (context) => {
+  const db = createDatabase(context.env.DB);
+
   if (context.request.method === 'GET') {
-    return new Response(JSON.stringify({
-      graphs: graphs.map(({ id, name, createdAt, updatedAt }) => ({
-        id,
-        name,
-        createdAt,
-        updatedAt,
-      })),
-    }), {
+    const allGraphs = await db.select({
+      id: graphs.id,
+      name: graphs.name,
+      createdAt: graphs.createdAt,
+      updatedAt: graphs.updatedAt,
+    }).from(graphs);
+
+    return new Response(JSON.stringify({ graphs: allGraphs }), {
       headers: {
         'content-type': 'application/json',
       },
@@ -27,18 +30,30 @@ export const onRequest: PagesFunction = async (context) => {
     }
 
     const data = body as any;
-    const newGraph: Graph = {
+    const now = new Date();
+    
+    const newGraphData: NewGraph = {
       id: crypto.randomUUID(),
       name: data.name || 'Untitled Graph',
-      nodes: Array.isArray(data.nodes) ? data.nodes : [],
-      edges: Array.isArray(data.edges) ? data.edges : [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      data: JSON.stringify({
+        nodes: Array.isArray(data.nodes) ? data.nodes : [],
+        edges: Array.isArray(data.edges) ? data.edges : [],
+      }),
+      createdAt: now,
+      updatedAt: now,
     };
 
-    graphs.push(newGraph);
+    const [newGraph] = await db.insert(graphs).values(newGraphData).returning();
+    const graphData = JSON.parse(newGraph.data as string);
 
-    return new Response(JSON.stringify(newGraph), {
+    return new Response(JSON.stringify({
+      id: newGraph.id,
+      name: newGraph.name,
+      createdAt: newGraph.createdAt,
+      updatedAt: newGraph.updatedAt,
+      nodes: graphData.nodes,
+      edges: graphData.edges,
+    }), {
       status: 201,
       headers: {
         'content-type': 'application/json',

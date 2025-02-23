@@ -32,6 +32,14 @@ export const nodeTypes = sqliteTable('node_types', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const graphs = sqliteTable('graphs', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  data: text('data', { mode: 'json' }).notNull(), // This will store nodes and edges
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
@@ -39,4 +47,7 @@ export type Workflow = typeof workflows.$inferSelect;
 export type NewWorkflow = typeof workflows.$inferInsert;
 
 export type NodeType = typeof nodeTypes.$inferSelect;
-export type NewNodeType = typeof nodeTypes.$inferInsert; 
+export type NewNodeType = typeof nodeTypes.$inferInsert;
+
+export type Graph = typeof graphs.$inferSelect;
+export type NewGraph = typeof graphs.$inferInsert; 
