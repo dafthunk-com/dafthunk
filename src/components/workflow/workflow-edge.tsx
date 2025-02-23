@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { EdgeProps, getSmoothStepPath } from 'reactflow';
-import { cn } from '@lib/utils';
+import { cn } from '@/lib/utils';
 
 interface WorkflowEdgeData {
   isValid?: boolean;

@@ -1,4 +1,4 @@
-import { Graph } from '@lib/workflowTypes';
+import { Graph } from '@/lib/workflowTypes';
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow';
 
 export const workflowValidationService = {

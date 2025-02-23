@@ -1,4 +1,4 @@
-import { Graph } from '@lib/workflowTypes';
+import { Graph } from '@/lib/workflowTypes';
 import { API_BASE_URL } from '../config/api';
 
 export const graphService = {

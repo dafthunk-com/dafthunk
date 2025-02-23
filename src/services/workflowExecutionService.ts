@@ -1,4 +1,4 @@
-import { Node, Graph, ExecutionResult, NodeExecutionState } from '@lib/workflowTypes';
+import { Node, Graph, ExecutionResult, NodeExecutionState } from '@/lib/workflowTypes';
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {

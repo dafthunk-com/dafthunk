@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { findGraphById } from '../../store';
-import { Graph, Node, ExecutionEvent } from '@lib/workflowTypes';
+import { Graph, Node, ExecutionEvent } from '../../../src/lib/workflowTypes';
 
 // Helper function to create an SSE event
 function createEvent(event: ExecutionEvent): Uint8Array {

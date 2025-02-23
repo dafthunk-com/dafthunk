@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import { cn } from '@lib/utils';
+import { cn } from '@/lib/utils';
 
 export interface Parameter {
   name: string;

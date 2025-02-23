@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useLoaderData, useParams } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
-import { Graph } from '@lib/workflowTypes';
+import { Graph } from '@/lib/workflowTypes';
 import { WorkflowEditor } from '@/components/workflow/workflow-editor';
 import { graphService } from '@/services/workflowGraphService';
 import { ReactFlowProvider } from 'reactflow';
