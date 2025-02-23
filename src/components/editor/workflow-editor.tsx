@@ -9,7 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { WorkflowNode as WorkflowNodeComponent } from './workflow-node';
 import { WorkflowEdge as WorkflowEdgeComponent } from './workflow-edge';
-import { Graph, ExecutionEvent } from '@lib/types';
+import { Graph, ExecutionEvent } from '@lib/workflowTypes';
 import { WorkflowSidebar } from './workflow-sidebar';
 import 'reactflow/dist/style.css';
 import { NodeSelector } from './node-selector';

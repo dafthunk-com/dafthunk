@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useLoaderData, useParams } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
-import { Graph } from '@lib/types';
+import { Graph } from '@lib/workflowTypes';
 import { WorkflowEditor } from '@/components/editor/workflow-editor';
-import { graphService } from '@lib/services/graph';
+import { graphService } from '@/services/graphService';
 import { ReactFlowProvider } from 'reactflow';
 
 // Default empty graph structure
@@ -12,8 +12,6 @@ const emptyGraph: Graph = {
   name: 'New Workflow',
   nodes: [],
   edges: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
 };
 
 // Loader function for React Router

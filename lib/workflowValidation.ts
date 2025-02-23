@@ -1,4 +1,4 @@
-import { Graph, ValidationError } from './types.ts';
+import { Graph, ValidationError } from './workflowTypes';
 
 /**
  * Checks if there are any cycles in the graph using DFS

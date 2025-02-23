@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Graph } from "@lib/types";
+import { Graph } from "@lib/workflowTypes";
 import {
   Dialog,
   DialogContent,
