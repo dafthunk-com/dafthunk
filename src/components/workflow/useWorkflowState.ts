@@ -13,10 +13,10 @@ import {
   OnConnectStartParams,
   OnConnectStart,
   OnConnectEnd,
+  OnConnect,
 } from 'reactflow';
 import { Graph, Parameter } from '@lib/workflowTypes';
-import { WorkflowNodeType } from '@/services/workflowNodeService';
-import { workflowNodeService, NodeExecutionState } from '@/services/workflowNodeService';
+import { Node, NodeType, NodeExecutionState, workflowNodeService } from '@/services/workflowNodeService';
 import { workflowEdgeService, ConnectionValidationState } from '@/services/workflowEdgeService';
 
 interface UseWorkflowStateProps {
@@ -34,7 +34,7 @@ interface UseWorkflowStateReturn {
   setIsNodeSelectorOpen: (open: boolean) => void;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
-  onConnect: (connection: Connection) => void;
+  onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
   connectionValidationState: ConnectionValidationState;
@@ -42,9 +42,10 @@ interface UseWorkflowStateReturn {
   handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
   handlePaneClick: () => void;
   handleAddNode: () => void;
-  handleNodeSelect: (template: WorkflowNodeType) => void;
+  handleNodeSelect: (template: NodeType) => void;
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
   updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
+  onAddNode: (nodeType: NodeType, position: { x: number; y: number }) => void;
 }
 
 export function useWorkflowState({
@@ -223,7 +224,7 @@ export function useWorkflowState({
   }, [connectingNodeId, connectingHandleId, connectingHandleType, nodes, reactFlowInstance, validateConnection]);
 
   // Handle new connections
-  const onConnect = useCallback((connection: Connection) => {
+  const onConnect: OnConnect = useCallback((connection: Connection) => {
     if (!connection.target || !connection.targetHandle || !connection.source || !connection.sourceHandle) return;
 
     const sourceNode = nodes.find(node => node.id === connection.source);
@@ -286,7 +287,7 @@ export function useWorkflowState({
     setIsNodeSelectorOpen(true);
   }, []);
 
-  const handleNodeSelect = useCallback((template: WorkflowNodeType) => {
+  const handleNodeSelect = useCallback((template: NodeType) => {
     if (!reactFlowInstance) return;
 
     const position = reactFlowInstance.project({
@@ -314,6 +315,40 @@ export function useWorkflowState({
     setNodes(nds => workflowNodeService.updateNodeExecutionState(nds, nodeId, state));
   }, [setNodes]);
 
+  const onAddNode = useCallback((nodeType: NodeType, position: { x: number; y: number }) => {
+    const newNode: Node = {
+      id: `node-${Date.now()}`,
+      type: nodeType.type,
+      name: nodeType.name,
+      position,
+      inputs: nodeType.inputs,
+      outputs: nodeType.outputs,
+    };
+
+    setNodes(nds => [
+      ...nds,
+      {
+        id: newNode.id,
+        type: 'workflowNode',
+        position: newNode.position,
+        data: {
+          name: newNode.name,
+          inputs: newNode.inputs,
+          outputs: newNode.outputs,
+        },
+      },
+    ]);
+
+    setWorkflowGraph((prevGraph: Graph) => {
+      const newGraph = {
+        ...prevGraph,
+        nodes: [...prevGraph.nodes, newNode],
+      };
+      setPendingGraphUpdate(newGraph);
+      return newGraph;
+    });
+  }, [setNodes]);
+
   return {
     nodes,
     edges,
@@ -335,5 +370,6 @@ export function useWorkflowState({
     handleNodeSelect,
     setReactFlowInstance,
     updateNodeExecutionState,
+    onAddNode,
   };
 } 

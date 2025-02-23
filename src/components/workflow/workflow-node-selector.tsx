@@ -2,27 +2,26 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { WorkflowNodeType, fetchNodeTypes } from "@/services/workflowNodeService";
-import { getIconPath, getIconStyles } from "./workflow-templates";
+import { NodeType, fetchNodeTypes } from "@/services/workflowNodeService";
 
 interface WorkflowNodeSelectorProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (template: WorkflowNodeType) => void;
+  onSelect: (template: NodeType) => void;
 }
 
 export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [nodeTypes, setNodeTypes] = useState<WorkflowNodeType[]>([]);
+  const [nodeTypes, setNodeTypes] = useState<NodeType[]>([]);
 
   useEffect(() => {
     fetchNodeTypes().then(setNodeTypes);
   }, []);
 
-  const categories = Array.from(new Set(nodeTypes.map((t: WorkflowNodeType) => t.category))) as string[];
+  const categories = Array.from(new Set(nodeTypes.map((t: NodeType) => t.category))) as string[];
 
-  const filteredTemplates = nodeTypes.filter((template: WorkflowNodeType) => {
+  const filteredTemplates = nodeTypes.filter((template: NodeType) => {
     const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || template.category === selectedCategory;
@@ -82,22 +81,6 @@ export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSe
                   className="w-full text-left p-3 rounded-lg border bg-card hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-primary/10">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        {...getIconStyles(template.icon)}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d={getIconPath(template.icon)}
-                        />
-                      </svg>
-                    </div>
                     <div>
                       <h3 className="font-medium">{template.name}</h3>
                       <p className="text-sm text-muted-foreground">{template.description}</p>
