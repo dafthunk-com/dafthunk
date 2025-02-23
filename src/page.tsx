@@ -17,7 +17,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 async function getGraphs() {
   try {
-    const res = await fetch(`${API_BASE_URL}/graphs`, {
+    const res = await fetch(`${API_BASE_URL}/workflows`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ export default function Home() {
   const handleCreateGraph = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE_URL}/graphs`, {
+      const res = await fetch(`${API_BASE_URL}/workflows`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

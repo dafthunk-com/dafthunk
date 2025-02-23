@@ -2,18 +2,18 @@
 
 import { createDatabase, type Env } from '../db';
 import { eq } from 'drizzle-orm';
-import { graphs, type NewGraph } from '../db/schema';
+import { workflows, type NewGraph } from '../db/schema';
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const db = createDatabase(context.env.DB);
 
   if (context.request.method === 'GET') {
     const allGraphs = await db.select({
-      id: graphs.id,
-      name: graphs.name,
-      createdAt: graphs.createdAt,
-      updatedAt: graphs.updatedAt,
-    }).from(graphs);
+      id: workflows.id,
+      name: workflows.name,
+      createdAt: workflows.createdAt,
+      updatedAt: workflows.updatedAt,
+    }).from(workflows);
 
     return new Response(JSON.stringify({ graphs: allGraphs }), {
       headers: {
@@ -43,7 +43,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       updatedAt: now,
     };
 
-    const [newGraph] = await db.insert(graphs).values(newGraphData).returning();
+    const [newGraph] = await db.insert(workflows).values(newGraphData).returning();
     const graphData = JSON.parse(newGraph.data as string);
 
     return new Response(JSON.stringify({

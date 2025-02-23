@@ -2,7 +2,7 @@
 
 import { createDatabase, type Env } from '../../../db';
 import { eq } from 'drizzle-orm';
-import { graphs } from '../../../db/schema';
+import { workflows } from '../../../db/schema';
 import { Graph, Node, Edge, ExecutionEvent } from '../../../src/lib/workflowTypes';
 
 // Helper function to create an SSE event
@@ -94,7 +94,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     const db = createDatabase(context.env.DB);
-    const [graph] = await db.select().from(graphs).where(eq(graphs.id, id));
+    const [graph] = await db.select().from(workflows).where(eq(workflows.id, id));
 
     if (!graph) {
       return new Response(

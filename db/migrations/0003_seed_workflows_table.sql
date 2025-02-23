@@ -1,5 +1,5 @@
 -- Seed initial graphs
-INSERT INTO graphs (id, name, data, created_at, updated_at) 
+INSERT INTO workflows (id, name, data, created_at, updated_at) 
 VALUES 
 (
     '1',

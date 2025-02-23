@@ -1,24 +1,6 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
-export const users = sqliteTable('users', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  name: text('name').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
-export const workflows = sqliteTable('workflows', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  description: text('description'),
-  userId: text('user_id').notNull().references(() => users.id),
-  data: text('data', { mode: 'json' }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-});
-
 export const nodeTypes = sqliteTable('node_types', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -32,7 +14,7 @@ export const nodeTypes = sqliteTable('node_types', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const graphs = sqliteTable('graphs', {
+export const workflows = sqliteTable('workflows', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   data: text('data', { mode: 'json' }).notNull(), // This will store nodes and edges
@@ -40,14 +22,8 @@ export const graphs = sqliteTable('graphs', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
-
-export type Workflow = typeof workflows.$inferSelect;
-export type NewWorkflow = typeof workflows.$inferInsert;
-
 export type NodeType = typeof nodeTypes.$inferSelect;
 export type NewNodeType = typeof nodeTypes.$inferInsert;
 
-export type Graph = typeof graphs.$inferSelect;
-export type NewGraph = typeof graphs.$inferInsert; 
+export type Graph = typeof workflows.$inferSelect;
+export type NewGraph = typeof workflows.$inferInsert; 

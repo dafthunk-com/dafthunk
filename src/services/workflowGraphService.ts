@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config/api';
 export const graphService = {
   // Get all graphs
   async getAll(): Promise<Graph[]> {
-    const response = await fetch(`${API_BASE_URL}/graphs`, {
+    const response = await fetch(`${API_BASE_URL}/workflows`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ export const graphService = {
 
   // Create a new graph
   async create(name: string): Promise<Graph> {
-    const response = await fetch(`${API_BASE_URL}/graphs`, {
+    const response = await fetch(`${API_BASE_URL}/workflows`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export const graphService = {
 
   // Load a graph by ID
   async load(id: string): Promise<Graph> {
-    const response = await fetch(`${API_BASE_URL}/graphs/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export const graphService = {
 
   // Save a graph
   async save(id: string, graph: Graph): Promise<Graph> {
-    const response = await fetch(`${API_BASE_URL}/graphs/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

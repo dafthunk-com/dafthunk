@@ -11,7 +11,7 @@ export function useWorkflowExecution({
   updateNodeExecutionState 
 }: UseWorkflowExecutionProps) {
   const handleExecute = useCallback(() => {
-    const eventSource = new EventSource(`/graphs/${workflowId}/execute`);
+    const eventSource = new EventSource(`/workflows/${workflowId}/execute`);
 
     eventSource.onopen = () => {
       console.log('Execution started');

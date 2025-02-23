@@ -2,7 +2,7 @@
 
 import { createDatabase, type Env } from '../../db';
 import { eq } from 'drizzle-orm';
-import { graphs } from '../../db/schema';
+import { workflows } from '../../db/schema';
 import { Graph, Node, Edge } from '../../src/lib/workflowTypes';
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -15,7 +15,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   if (context.request.method === 'GET') {
-    const [graph] = await db.select().from(graphs).where(eq(graphs.id, id));
+    const [graph] = await db.select().from(workflows).where(eq(workflows.id, id));
     
     if (!graph) {
       return new Response('Graph not found', { status: 404 });
@@ -48,7 +48,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const now = new Date();
 
     const [updatedGraph] = await db
-      .update(graphs)
+      .update(workflows)
       .set({
         name: data.name,
         data: {
@@ -57,7 +57,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         },
         updatedAt: now,
       })
-      .where(eq(graphs.id, id))
+      .where(eq(workflows.id, id))
       .returning();
 
     if (!updatedGraph) {
@@ -82,8 +82,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   if (context.request.method === 'DELETE') {
     const [deletedGraph] = await db
-      .delete(graphs)
-      .where(eq(graphs.id, id))
+      .delete(workflows)
+      .where(eq(workflows.id, id))
       .returning();
 
     if (!deletedGraph) {
