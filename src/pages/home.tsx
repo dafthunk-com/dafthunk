@@ -64,7 +64,7 @@ export function HomePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {graphs.map((graph) => (
-                <Link key={graph.id} to={`/flow/${graph.id}`}>
+                <Link key={graph.id} to={`/workflow/${graph.id}`}>
                   <div className="p-4 rounded-lg border-2 bg-white hover:border-blue-500 transition-colors cursor-pointer">
                     <h3 className="font-medium text-lg truncate">{graph.name || 'Untitled Graph'}</h3>
                   </div>

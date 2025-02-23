@@ -9,7 +9,7 @@ export const router = createBrowserRouter([
     element: <HomePage />,
   },
   {
-    path: '/flow/:id',
+    path: '/workflow/:id',
     element: <EditorPage />,
     loader: editorLoader,
     errorElement: <EditorError />,
