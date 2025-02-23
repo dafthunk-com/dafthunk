@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 import { drizzle } from 'drizzle-orm/d1';
-import { nodeTypes as nodeTypesTable } from './db/schema';
+import { nodeTypes as nodeTypesTable } from '../db/schema';
 
 export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
   try {
