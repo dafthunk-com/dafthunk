@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { findGraphById, updateGraph, deleteGraph } from '../store';
-import { Graph } from '../../src/lib/types';
+import { Graph } from '../../lib/workflowTypes';
 
 export const onRequest: PagesFunction = async (context) => {
   const url = new URL(context.request.url);
