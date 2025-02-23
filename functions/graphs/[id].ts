@@ -1,9 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { findGraphById, updateGraph, deleteGraph } from '../store';
-import { Graph } from '../../src/lib/workflowTypes';
+import { createDatabase, type Env } from '../../db';
+import { eq } from 'drizzle-orm';
+import { graphs } from '../../db/schema';
+import { Graph, Node, Edge } from '../../src/lib/workflowTypes';
 
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest: PagesFunction<Env> = async (context) => {
+  const db = createDatabase(context.env.DB);
   const url = new URL(context.request.url);
   const id = url.pathname.split('/').pop();
 
@@ -12,13 +15,22 @@ export const onRequest: PagesFunction = async (context) => {
   }
 
   if (context.request.method === 'GET') {
-    const graph = findGraphById(id);
+    const [graph] = await db.select().from(graphs).where(eq(graphs.id, id));
     
     if (!graph) {
       return new Response('Graph not found', { status: 404 });
     }
 
-    return new Response(JSON.stringify(graph), {
+    const graphData = graph.data as { nodes: Node[]; edges: Edge[] };
+
+    return new Response(JSON.stringify({
+      id: graph.id,
+      name: graph.name,
+      createdAt: graph.createdAt,
+      updatedAt: graph.updatedAt,
+      nodes: graphData.nodes || [],
+      edges: graphData.edges || [],
+    }), {
       headers: {
         'content-type': 'application/json',
       },
@@ -32,13 +44,36 @@ export const onRequest: PagesFunction = async (context) => {
       return new Response('Invalid request body', { status: 400 });
     }
 
-    const updatedGraph = updateGraph(id, body as Partial<Graph>);
+    const data = body as any;
+    const now = new Date();
+
+    const [updatedGraph] = await db
+      .update(graphs)
+      .set({
+        name: data.name,
+        data: {
+          nodes: Array.isArray(data.nodes) ? data.nodes : [],
+          edges: Array.isArray(data.edges) ? data.edges : [],
+        },
+        updatedAt: now,
+      })
+      .where(eq(graphs.id, id))
+      .returning();
 
     if (!updatedGraph) {
       return new Response('Graph not found', { status: 404 });
     }
 
-    return new Response(JSON.stringify(updatedGraph), {
+    const graphData = updatedGraph.data as { nodes: Node[]; edges: Edge[] };
+
+    return new Response(JSON.stringify({
+      id: updatedGraph.id,
+      name: updatedGraph.name,
+      createdAt: updatedGraph.createdAt,
+      updatedAt: updatedGraph.updatedAt,
+      nodes: graphData.nodes || [],
+      edges: graphData.edges || [],
+    }), {
       headers: {
         'content-type': 'application/json',
       },
@@ -46,9 +81,12 @@ export const onRequest: PagesFunction = async (context) => {
   }
 
   if (context.request.method === 'DELETE') {
-    const deleted = deleteGraph(id);
+    const [deletedGraph] = await db
+      .delete(graphs)
+      .where(eq(graphs.id, id))
+      .returning();
 
-    if (!deleted) {
+    if (!deletedGraph) {
       return new Response('Graph not found', { status: 404 });
     }
 

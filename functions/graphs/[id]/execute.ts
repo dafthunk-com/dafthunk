@@ -1,10 +1,17 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { findGraphById } from '../../store';
-import { Graph, Node, ExecutionEvent } from '../../../src/lib/workflowTypes';
+import { createDatabase, type Env } from '../../../db';
+import { eq } from 'drizzle-orm';
+import { graphs } from '../../../db/schema';
+import { Graph, Node, Edge, ExecutionEvent } from '../../../src/lib/workflowTypes';
 
 // Helper function to create an SSE event
-function createEvent(event: ExecutionEvent): Uint8Array {
+function createEvent(event: {
+  type: 'node-start' | 'node-complete' | 'node-error' | 'execution-complete' | 'execution-error';
+  nodeId?: string;
+  error?: string;
+  timestamp: number;
+}): Uint8Array {
   const encoder = new TextEncoder();
   return encoder.encode(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
 }
@@ -25,7 +32,7 @@ async function handleNodeExecution(
   await writer.write(createEvent({
     type: 'node-start',
     nodeId: node.id,
-    timestamp: new Date().toISOString()
+    timestamp: Date.now()
   }));
 
   try {
@@ -34,7 +41,7 @@ async function handleNodeExecution(
     await writer.write(createEvent({
       type: 'node-complete',
       nodeId: node.id,
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     }));
   } catch (error) {
     // Emit node error event
@@ -42,7 +49,7 @@ async function handleNodeExecution(
       type: 'node-error',
       nodeId: node.id,
       error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     }));
   }
 }
@@ -61,7 +68,7 @@ async function executeGraph(
     // Emit execution complete event
     await writer.write(createEvent({
       type: 'execution-complete',
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     }));
   } catch (error) {
     console.error('Graph execution error:', error);
@@ -71,7 +78,7 @@ async function executeGraph(
   }
 }
 
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest: PagesFunction<Env> = async (context) => {
   // Only allow GET requests
   if (context.request.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 });
@@ -86,7 +93,8 @@ export const onRequest: PagesFunction = async (context) => {
       return new Response('Graph ID is required', { status: 400 });
     }
 
-    const graph = findGraphById(id);
+    const db = createDatabase(context.env.DB);
+    const [graph] = await db.select().from(graphs).where(eq(graphs.id, id));
 
     if (!graph) {
       return new Response(
@@ -101,18 +109,27 @@ export const onRequest: PagesFunction = async (context) => {
       );
     }
 
+    // The data field is already parsed by Drizzle ORM
+    const graphData = graph.data as { nodes: Node[]; edges: Edge[] };
+    const workflowGraph: Graph = {
+      id: graph.id,
+      name: graph.name,
+      nodes: graphData.nodes || [],
+      edges: graphData.edges || []
+    };
+
     // Create a TransformStream for SSE with Uint8Array chunks
     const { readable, writable } = new TransformStream<Uint8Array>();
     const writer = writable.getWriter();
 
     // Execute the graph in the background
-    executeGraph(graph, writer).catch(async (error) => {
+    executeGraph(workflowGraph, writer).catch(async (error) => {
       console.error('Execution error:', error);
       await writer.write(createEvent({
         type: 'execution-error',
         nodeId: 'system',
         error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        timestamp: Date.now()
       }));
       await writer.close();
     });
