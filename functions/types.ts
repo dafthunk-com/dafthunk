@@ -13,15 +13,7 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
       // Try using drizzle first
       const db = drizzle(context.env.DB);
       const types = await db.select().from(nodeTypesTable);
-      console.log('Drizzle query successful:', types);
-      
-      const parsedTypes = types.map(type => ({
-        ...type,
-        inputs: JSON.parse(type.inputs as string),
-        outputs: JSON.parse(type.outputs as string)
-      }));
-      
-      return new Response(JSON.stringify(parsedTypes), {
+      return new Response(JSON.stringify(types), {
         headers: {
           'content-type': 'application/json',
           'Access-Control-Allow-Origin': '*',
@@ -37,11 +29,19 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
       
       console.log('Raw D1 query successful:', results);
       
-      const parsedTypes = results.map((type: any) => ({
-        ...type,
-        inputs: JSON.parse(type.inputs as string),
-        outputs: JSON.parse(type.outputs as string)
-      }));
+      // For raw queries, we need to parse the JSON fields manually
+      const parsedTypes = results.map((type: any) => {
+        try {
+          return {
+            ...type,
+            inputs: typeof type.inputs === 'string' ? JSON.parse(type.inputs) : type.inputs,
+            outputs: typeof type.outputs === 'string' ? JSON.parse(type.outputs) : type.outputs,
+          };
+        } catch (parseError) {
+          console.error('Error parsing JSON fields:', parseError);
+          return type;
+        }
+      });
       
       return new Response(JSON.stringify(parsedTypes), {
         headers: {

@@ -4,10 +4,17 @@ compatibility_date = "2024-02-23"
 # Pages configuration
 pages_build_output_dir = "dist"
 
+# D1 Database binding for local development
+[[d1_databases]]
+binding = "DB"
+database_name = "workflow-development"
+database_id = "a89e76fb-ac20-49fc-a797-6a0f08a1dfd7"
+migrations_dir = "./functions/db/migrations"
+
 # D1 Database binding for production
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "workflow"
-database_id = "b9801bcc-01e8-48bd-934b-eed9f1152f30"
-preview_database_id = "b9801bcc-01e8-48bd-934b-eed9f1152f30"
+database_name = "workflow-production"
+database_id = "9c1418f1-4099-4e42-9143-6d4ee2069f60"
+preview_database_id = "9c1418f1-4099-4e42-9143-6d4ee2069f60"
 migrations_dir = "./functions/db/migrations"
