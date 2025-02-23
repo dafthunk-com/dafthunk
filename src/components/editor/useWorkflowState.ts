@@ -15,7 +15,7 @@ import {
   OnConnectEnd,
 } from 'reactflow';
 import { Graph, Parameter } from '@lib/workflowTypes';
-import { WorkflowNodeType } from './workflow-templates';
+import { WorkflowNodeType } from '@/services/workflowNodeService';
 import { workflowNodeService, NodeExecutionState } from '@/services/workflowNodeService';
 import { workflowEdgeService, ConnectionValidationState } from '@/services/workflowEdgeService';
 
