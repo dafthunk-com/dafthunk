@@ -12,29 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
-async function getGraphs() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/graphs`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch graphs: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data.graphs as Graph[];
-  } catch (error) {
-    console.error('Error fetching graphs:', error);
-    return [];
-  }
-}
+import { graphService } from "@/services/workflowGraphService";
 
 export function HomePage() {
   const [graphs, setGraphs] = useState<Graph[]>([]);
@@ -45,9 +23,14 @@ export function HomePage() {
   useEffect(() => {
     const fetchGraphs = async () => {
       setIsLoading(true);
-      const fetchedGraphs = await getGraphs();
-      setGraphs(fetchedGraphs);
-      setIsLoading(false);
+      try {
+        const fetchedGraphs = await graphService.getAll();
+        setGraphs(fetchedGraphs);
+      } catch (error) {
+        console.error('Error fetching graphs:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchGraphs();
@@ -56,19 +39,7 @@ export function HomePage() {
   const handleCreateGraph = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE_URL}/graphs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newGraphName }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to create graph: ${res.statusText}`);
-      }
-
-      const newGraph = await res.json();
+      const newGraph = await graphService.create(newGraphName);
       setGraphs([...graphs, newGraph]);
       setNewGraphName("");
       setOpen(false);

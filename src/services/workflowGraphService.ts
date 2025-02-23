@@ -3,6 +3,40 @@ import { Graph } from '../../lib/workflowTypes';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 export const graphService = {
+  // Get all graphs
+  async getAll(): Promise<Graph[]> {
+    const response = await fetch(`${API_BASE_URL}/graphs`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch graphs: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.graphs;
+  },
+
+  // Create a new graph
+  async create(name: string): Promise<Graph> {
+    const response = await fetch(`${API_BASE_URL}/graphs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create graph: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
   // Load a graph by ID
   async load(id: string): Promise<Graph> {
     const response = await fetch(`${API_BASE_URL}/graphs/${id}`, {
