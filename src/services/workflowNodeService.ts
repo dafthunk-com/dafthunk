@@ -1,5 +1,6 @@
 import { Node, NodeType } from '@lib/workflowTypes';
 import { Node as ReactFlowNode, XYPosition } from 'reactflow';
+import { API_BASE_URL } from '../config/api';
 
 export type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
 
@@ -152,7 +153,12 @@ const nodeCreators: Record<string, WorkflowNodeType> = {
 
 export async function fetchNodeTypes(): Promise<WorkflowNodeType[]> {
   try {
-    const response = await fetch('/types');
+    const response = await fetch(`${API_BASE_URL}/types`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch node types: ${response.statusText}`);
     }
