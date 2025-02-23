@@ -1,4 +1,4 @@
-CREATE TABLE `graphs` (
+CREATE TABLE `workflows` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`data` text NOT NULL,
