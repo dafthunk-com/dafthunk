@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
-import { clsx } from 'clsx';
+import { cn } from '@lib/utils';
 
 export interface Parameter {
   name: string;
@@ -36,7 +36,7 @@ const TypeBadge = ({ type, position, id }: { type: string; position: Position; i
 
 export const WorkflowNode = memo(({ data, selected }: { data: WorkflowNodeData; selected?: boolean }) => {
   return (
-    <div className={clsx(
+    <div className={cn(
       'bg-white shadow-sm w-[200px] rounded-lg border-[1px] transition-colors',
       {
         'border-blue-500': selected,

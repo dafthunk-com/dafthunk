@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { EdgeProps, getSmoothStepPath } from 'reactflow';
-import { clsx } from 'clsx';
+import { cn } from '../../../lib/utils';
 
 interface WorkflowEdgeData {
   isValid?: boolean;
@@ -35,7 +35,7 @@ export const WorkflowEdge = memo(({
     <g>
       <path
         d={edgePath}
-        className={clsx(
+        className={cn(
           'stroke-[1] fill-none',
           {
             'stroke-gray-300': !selected && isValid,
@@ -51,7 +51,7 @@ export const WorkflowEdge = memo(({
       {isActive && (
         <circle
           r="4"
-          className={clsx(
+          className={cn(
             'fill-blue-500 animate-[moveAlongPath_2s_linear_infinite]',
             'filter drop-shadow-md',
             {
