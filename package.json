@@ -7,7 +7,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest",
-    "dev": "pnpm run build && wrangler pages dev ./dist --port 3000",
+    "dev": "vite",
+    "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
     "deploy": "pnpm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
