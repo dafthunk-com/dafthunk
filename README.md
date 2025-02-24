@@ -48,3 +48,22 @@ export default tseslint.config({
   },
 })
 ```
+
+## Database
+
+The project uses D1 as the database. The database is automatically created when the project is deployed.
+The migrations are automatically applied when the project is deployed. But in some cases, you may need to apply them manually.
+
+In production, they can be applied manually by running the following commands in the root of the project:
+
+```bash
+npx wrangler d1 migrations apply DB --remote --env production
+npx wrangler d1 execute DB --env production --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
+```
+
+In development, they can be applied manually by running the following commands in the root of the project:
+
+```bash
+npx wrangler d1 migrations apply DB --remote --env development
+npx wrangler d1 execute DB --env development --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
+```
