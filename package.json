@@ -12,6 +12,7 @@
     "deploy": "pnpm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
+    "@cloudflare/ai": "^1.2.2",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-scroll-area": "^1.2.3",
