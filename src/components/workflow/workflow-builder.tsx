@@ -7,11 +7,11 @@ import { useParams } from 'react-router-dom';
 import { WorkflowCanvas } from './workflow-canvas';
 
 interface WorkflowBuilderProps {
-  initialWorkflowGraph: Workflow;
-  onWorkflowChange?: (graph: Workflow) => void;
+  initialWorkflow: Workflow;
+  onWorkflowChange?: (workflow: Workflow) => void;
 }
 
-export function WorkflowBuilder({ initialWorkflowGraph, onWorkflowChange }: WorkflowBuilderProps) {
+export function WorkflowBuilder({ initialWorkflow: initialWorkflow, onWorkflowChange }: WorkflowBuilderProps) {
   const params = useParams();
   const {
     nodes,
@@ -34,7 +34,7 @@ export function WorkflowBuilder({ initialWorkflowGraph, onWorkflowChange }: Work
     setReactFlowInstance,
     connectionValidationState,
   } = useWorkflowState({
-    initialWorkflowGraph,
+    initialWorkflow: initialWorkflow,
     onWorkflowChange,
   });
 

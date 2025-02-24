@@ -6,7 +6,7 @@ import { WorkflowBuilder } from '@/components/workflow/workflow-builder';
 import { workflowService } from '@/services/workflowService';
 import { ReactFlowProvider } from 'reactflow';
 
-// Default empty graph structure
+// Default empty workflow structure
 const emptyWorkflow: Workflow = {
   id: '',
   name: 'New Workflow',
@@ -18,12 +18,12 @@ const emptyWorkflow: Workflow = {
 export async function editorLoader({ params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) {
-    return { graph: emptyWorkflow };
+    return { workflow: emptyWorkflow };
   }
 
   try {
-    const graph = await workflowService.load(id);
-    return { graph };
+    const workflow = await workflowService.load(id);
+    return { workflow: workflow };
   } catch (error) {
     throw new Error(`Failed to load workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -43,20 +43,20 @@ const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
-  const { graph: initialGraph } = useLoaderData() as { graph: Workflow };
+  const { workflow: initialWorkflow } = useLoaderData() as { workflow: Workflow };
   const [isSaving, setIsSaving] = useState(false);
 
   // Debounced save function
   const debouncedSave = useCallback(
-    debounce(async (graphToSave: Workflow) => {
+    debounce(async (workflowToSave: Workflow) => {
       if (!id) return;
       
       try {
         setIsSaving(true);
-        await workflowService.save(id, graphToSave);
-        console.log('Graph saved successfully');
+        await workflowService.save(id, workflowToSave);
+        console.log('Workflow saved successfully');
       } catch (err) {
-        console.error('Error saving graph:', err);
+        console.error('Error saving workflow:', err);
       } finally {
         setIsSaving(false);
       }
@@ -64,9 +64,9 @@ export function EditorPage() {
     [id]
   );
 
-  // Handle graph changes
-  const handleGraphChange = useCallback((updatedGraph: Workflow) => {
-    debouncedSave(updatedGraph);
+  // Handle workflow changes
+  const handleWorkflowChange = useCallback((updatedWorkflow: Workflow) => {
+    debouncedSave(updatedWorkflow);
   }, [debouncedSave]);
 
   return (
@@ -80,8 +80,8 @@ export function EditorPage() {
       </div>
       <ReactFlowProvider>
         <WorkflowBuilder
-          initialWorkflowGraph={initialGraph}
-          onWorkflowChange={handleGraphChange}
+          initialWorkflow={initialWorkflow}
+          onWorkflowChange={handleWorkflowChange}
         />
       </ReactFlowProvider>
     </div>

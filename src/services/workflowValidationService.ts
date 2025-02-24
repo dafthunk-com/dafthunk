@@ -2,20 +2,20 @@ import { Workflow } from '@/lib/workflowTypes';
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow';
 
 export const workflowValidationService = {
-  validateWorkflow(graph: Workflow): { isValid: boolean; errors: string[] } {
+  validateWorkflow(workflow: Workflow): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Validate nodes
-    graph.nodes.forEach(node => {
+    workflow.nodes.forEach(node => {
       if (!node.id || !node.name) {
         errors.push(`Node ${node.id || 'unknown'} is missing required properties`);
       }
     });
 
     // Validate edges
-    graph.edges.forEach(edge => {
-      const sourceNode = graph.nodes.find(n => n.id === edge.source);
-      const targetNode = graph.nodes.find(n => n.id === edge.target);
+    workflow.edges.forEach(edge => {
+      const sourceNode = workflow.nodes.find(n => n.id === edge.source);
+      const targetNode = workflow.nodes.find(n => n.id === edge.target);
 
       if (!sourceNode) {
         errors.push(`Edge source node ${edge.source} not found`);
@@ -26,7 +26,7 @@ export const workflowValidationService = {
     });
 
     // Validate for cycles
-    if (this.hasCycles(graph)) {
+    if (this.hasCycles(workflow)) {
       errors.push('Workflow contains cycles');
     }
 
@@ -36,7 +36,7 @@ export const workflowValidationService = {
     };
   },
 
-  hasCycles(graph: Workflow): boolean {
+  hasCycles(workflow: Workflow): boolean {
     const visited = new Set<string>();
     const recursionStack = new Set<string>();
 
@@ -44,7 +44,7 @@ export const workflowValidationService = {
       visited.add(nodeId);
       recursionStack.add(nodeId);
 
-      const outgoingEdges = graph.edges.filter(edge => edge.source === nodeId);
+      const outgoingEdges = workflow.edges.filter(edge => edge.source === nodeId);
       for (const edge of outgoingEdges) {
         if (!visited.has(edge.target)) {
           if (hasCyclesDFS(edge.target)) {
@@ -59,7 +59,7 @@ export const workflowValidationService = {
       return false;
     };
 
-    for (const node of graph.nodes) {
+    for (const node of workflow.nodes) {
       if (!visited.has(node.id)) {
         if (hasCyclesDFS(node.id)) {
           return true;

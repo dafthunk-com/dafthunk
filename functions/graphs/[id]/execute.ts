@@ -54,14 +54,14 @@ async function handleNodeExecution(
   }
 }
 
-// Function to execute the entire graph
-async function executeGraph(
-  graph: Workflow,
+// Function to execute the entire workflow
+async function executeWorkflow(
+  workflow: Workflow,
   writer: WritableStreamDefaultWriter<Uint8Array>
 ): Promise<void> {
   try {
     // Execute each node in sequence
-    for (const node of graph.nodes) {
+    for (const node of workflow.nodes) {
       await handleNodeExecution(node, writer);
     }
 
@@ -71,7 +71,7 @@ async function executeGraph(
       timestamp: Date.now()
     }));
   } catch (error) {
-    console.error('Graph execution error:', error);
+    console.error('Workflow execution error:', error);
     throw error;
   } finally {
     await writer.close();
@@ -90,15 +90,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const id = pathParts[pathParts.length - 2];
 
     if (!id) {
-      return new Response('Graph ID is required', { status: 400 });
+      return new Response('Workflow ID is required', { status: 400 });
     }
 
     const db = createDatabase(context.env.DB);
-    const [graph] = await db.select().from(workflows).where(eq(workflows.id, id));
+    const [workflow] = await db.select().from(workflows).where(eq(workflows.id, id));
 
-    if (!graph) {
+    if (!workflow) {
       return new Response(
-        JSON.stringify({ error: 'Graph not found' }),
+        JSON.stringify({ error: 'Workflow not found' }),
         { 
           status: 404,
           headers: { 
@@ -110,20 +110,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     // The data field is already parsed by Drizzle ORM
-    const graphData = graph.data as { nodes: Node[]; edges: Edge[] };
+    const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
     const workflowGraph: Workflow = {
-      id: graph.id,
-      name: graph.name,
-      nodes: graphData.nodes || [],
-      edges: graphData.edges || []
+      id: workflow.id,
+      name: workflow.name,
+      nodes: workflowData.nodes || [],
+      edges: workflowData.edges || []
     };
 
     // Create a TransformStream for SSE with Uint8Array chunks
     const { readable, writable } = new TransformStream<Uint8Array>();
     const writer = writable.getWriter();
 
-    // Execute the graph in the background
-    executeGraph(workflowGraph, writer).catch(async (error) => {
+    // Execute the workflow in the background
+    executeWorkflow(workflowGraph, writer).catch(async (error) => {
       console.error('Execution error:', error);
       await writer.write(createEvent({
         type: 'execution-error',
@@ -146,7 +146,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     console.error('Request error:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to execute graph' 
+        error: error instanceof Error ? error.message : 'Failed to execute workflow' 
       }), 
       { 
         status: 500,

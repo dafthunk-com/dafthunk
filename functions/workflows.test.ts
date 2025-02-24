@@ -29,7 +29,7 @@ describe('workflows function', () => {
       values: vi.fn().mockReturnThis(),
       returning: vi.fn().mockResolvedValue([{
         id: 'test-id',
-        name: 'Test Graph', // Match the name from the test
+        name: 'Test Workflow', // Match the name from the test
         data: JSON.stringify({ 
           nodes: [{ id: 'node1', type: 'start' }],
           edges: [{ id: 'edge1', source: 'node1', target: 'node2' }]
@@ -150,7 +150,7 @@ describe('workflows function', () => {
       // Update the mock to return the default name
       mockDb.returning.mockResolvedValueOnce([{
         id: '123e4567-e89b-12d3-a456-426614174000',
-        name: 'Untitled Graph',
+        name: 'Untitled Workflow',
         data: JSON.stringify({ nodes: [], edges: [] }),
         createdAt: mockDate,
         updatedAt: mockDate,
@@ -164,7 +164,7 @@ describe('workflows function', () => {
       const response = await onRequest(mockContext as any);
       const responseData = await response.json() as { name: string };
 
-      expect(responseData.name).toBe('Untitled Graph');
+      expect(responseData.name).toBe('Untitled Workflow');
     });
   });
 

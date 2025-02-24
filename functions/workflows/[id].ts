@@ -3,7 +3,7 @@
 import { createDatabase, type Env } from '../../db';
 import { eq } from 'drizzle-orm';
 import { workflows } from '../../db/schema';
-import { Graph, Node, Edge } from '../../src/lib/workflowTypes';
+import { Workflow, Node, Edge } from '../../src/lib/workflowTypes';
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const db = createDatabase(context.env.DB);
@@ -11,25 +11,25 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const id = url.pathname.split('/').pop();
 
   if (!id) {
-    return new Response('Graph ID is required', { status: 400 });
+    return new Response('Workflow ID is required', { status: 400 });
   }
 
   if (context.request.method === 'GET') {
-    const [graph] = await db.select().from(workflows).where(eq(workflows.id, id));
+    const [workflow] = await db.select().from(workflows).where(eq(workflows.id, id));
     
-    if (!graph) {
-      return new Response('Graph not found', { status: 404 });
+    if (!workflow) {
+      return new Response('Workflow not found', { status: 404 });
     }
 
-    const graphData = graph.data as { nodes: Node[]; edges: Edge[] };
+    const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
 
     return new Response(JSON.stringify({
-      id: graph.id,
-      name: graph.name,
-      createdAt: graph.createdAt,
-      updatedAt: graph.updatedAt,
-      nodes: graphData.nodes || [],
-      edges: graphData.edges || [],
+      id: workflow.id,
+      name: workflow.name,
+      createdAt: workflow.createdAt,
+      updatedAt: workflow.updatedAt,
+      nodes: workflowData.nodes || [],
+      edges: workflowData.edges || [],
     }), {
       headers: {
         'content-type': 'application/json',
@@ -47,7 +47,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const data = body as any;
     const now = new Date();
 
-    const [updatedGraph] = await db
+    const [updatedWorkflow] = await db
       .update(workflows)
       .set({
         name: data.name,
@@ -60,19 +60,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       .where(eq(workflows.id, id))
       .returning();
 
-    if (!updatedGraph) {
-      return new Response('Graph not found', { status: 404 });
+    if (!updatedWorkflow) {
+      return new Response('Workflow not found', { status: 404 });
     }
 
-    const graphData = updatedGraph.data as { nodes: Node[]; edges: Edge[] };
+    const workflowData = updatedWorkflow.data as { nodes: Node[]; edges: Edge[] };
 
     return new Response(JSON.stringify({
-      id: updatedGraph.id,
-      name: updatedGraph.name,
-      createdAt: updatedGraph.createdAt,
-      updatedAt: updatedGraph.updatedAt,
-      nodes: graphData.nodes || [],
-      edges: graphData.edges || [],
+      id: updatedWorkflow.id,
+      name: updatedWorkflow.name,
+      createdAt: updatedWorkflow.createdAt,
+      updatedAt: updatedWorkflow.updatedAt,
+      nodes: workflowData.nodes || [],
+      edges: workflowData.edges || [],
     }), {
       headers: {
         'content-type': 'application/json',
@@ -81,13 +81,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   if (context.request.method === 'DELETE') {
-    const [deletedGraph] = await db
+    const [deletedWorkflow] = await db
       .delete(workflows)
       .where(eq(workflows.id, id))
       .returning();
 
-    if (!deletedGraph) {
-      return new Response('Graph not found', { status: 404 });
+    if (!deletedWorkflow) {
+      return new Response('Workflow not found', { status: 404 });
     }
 
     return new Response(null, { status: 204 });

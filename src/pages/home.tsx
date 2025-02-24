@@ -15,36 +15,36 @@ import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
 
 export function HomePage() {
-  const [graphs, setGraphs] = useState<Workflow[]>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [open, setOpen] = useState(false);
-  const [newGraphName, setNewGraphName] = useState("");
+  const [newWorkflowName, setNewWorkflowName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchGraphs = async () => {
+    const fetchWorkflows = async () => {
       setIsLoading(true);
       try {
-        const fetchedGraphs = await workflowService.getAll();
-        setGraphs(fetchedGraphs);
+        const fetchedWorkflows = await workflowService.getAll();
+        setWorkflows(fetchedWorkflows);
       } catch (error) {
-        console.error('Error fetching graphs:', error);
+        console.error('Error fetching workflows:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchGraphs();
+    fetchWorkflows();
   }, []);
 
-  const handleCreateGraph = async (e: React.FormEvent) => {
+  const handleCreateWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newGraph = await workflowService.create(newGraphName);
-      setGraphs([...graphs, newGraph]);
-      setNewGraphName("");
+      const newWorkflow = await workflowService.create(newWorkflowName);
+      setWorkflows([...workflows, newWorkflow]);
+      setNewWorkflowName("");
       setOpen(false);
     } catch (error) {
-      console.error('Error creating graph:', error);
+      console.error('Error creating workflow:', error);
     }
   };
 
@@ -54,19 +54,19 @@ export function HomePage() {
         <div className="relative h-full p-6">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full">
-              <p className="text-gray-500">Loading graphs...</p>
+              <p className="text-gray-500">Loading workflows...</p>
             </div>
-          ) : graphs.length === 0 ? (
+          ) : workflows.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
-              <h1 className="text-2xl font-bold">Graph Editor</h1>
-              <p className="text-gray-500 text-lg mt-2">No graphs yet. Create your first one!</p>
+              <h1 className="text-2xl font-bold">Workflow Editor</h1>
+              <p className="text-gray-500 text-lg mt-2">No workflows yet. Create your first one!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {graphs.map((graph) => (
-                <Link key={graph.id} to={`/workflow/${graph.id}`}>
+              {workflows.map((workflow) => (
+                <Link key={workflow.id} to={`/workflow/${workflow.id}`}>
                   <div className="p-4 rounded-lg border-2 bg-white hover:border-blue-500 transition-colors cursor-pointer">
-                    <h3 className="font-medium text-lg truncate">{graph.name || 'Untitled Graph'}</h3>
+                    <h3 className="font-medium text-lg truncate">{workflow.name || 'Untitled Workflow'}</h3>
                   </div>
                 </Link>
               ))}
@@ -82,21 +82,21 @@ export function HomePage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Graph</DialogTitle>
+                  <DialogTitle>Create New Workflow</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleCreateGraph} className="space-y-4">
+                <form onSubmit={handleCreateWorkflow} className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Graph Name</Label>
+                    <Label htmlFor="name">Workflow Name</Label>
                     <Input
                       id="name"
-                      value={newGraphName}
-                      onChange={(e) => setNewGraphName(e.target.value)}
-                      placeholder="Enter graph name"
+                      value={newWorkflowName}
+                      onChange={(e) => setNewWorkflowName(e.target.value)}
+                      placeholder="Enter workflow name"
                       className="mt-2"
                     />
                   </div>
                   <Button type="submit" className="w-full">
-                    Create Graph
+                    Create Workflow
                   </Button>
                 </form>
               </DialogContent>

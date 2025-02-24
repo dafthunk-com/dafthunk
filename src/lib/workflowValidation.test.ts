@@ -27,10 +27,10 @@ describe('workflowValidation', () => {
   });
 
   describe('detectCycles', () => {
-    it('should return null for a graph with no cycles', () => {
-      const graph: Workflow = {
+    it('should return null for a workflow with no cycles', () => {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           createNode('1'),
           createNode('2'),
@@ -42,14 +42,14 @@ describe('workflowValidation', () => {
         ]
       };
 
-      const result = detectCycles(graph);
+      const result = detectCycles(workflow);
       expect(result).toBeNull();
     });
 
     it('should detect a simple cycle', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           createNode('1'),
           createNode('2'),
@@ -62,10 +62,10 @@ describe('workflowValidation', () => {
         ]
       };
 
-      const result = detectCycles(graph);
+      const result = detectCycles(workflow);
       expect(result).toEqual({
         type: 'CYCLE_DETECTED',
-        message: 'Cycle detected in workflow graph',
+        message: 'Cycle detected in workflow',
         details: { nodeId: '1' }
       });
     });
@@ -73,9 +73,9 @@ describe('workflowValidation', () => {
 
   describe('validateTypeCompatibility', () => {
     it('should return null for compatible types', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           {
             ...createNode('1'),
@@ -91,14 +91,14 @@ describe('workflowValidation', () => {
         ]
       };
 
-      const result = validateTypeCompatibility(graph);
+      const result = validateTypeCompatibility(workflow);
       expect(result).toBeNull();
     });
 
     it('should detect type mismatches', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           {
             ...createNode('1'),
@@ -114,7 +114,7 @@ describe('workflowValidation', () => {
         ]
       };
 
-      const result = validateTypeCompatibility(graph);
+      const result = validateTypeCompatibility(workflow);
       expect(result).toEqual({
         type: 'TYPE_MISMATCH',
         message: 'Type mismatch: string -> number',
@@ -126,14 +126,14 @@ describe('workflowValidation', () => {
     });
 
     it('should detect invalid node references', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [createNode('1')],
         edges: [createEdge('1', '2', 'out1', 'in1')]
       };
 
-      const result = validateTypeCompatibility(graph);
+      const result = validateTypeCompatibility(workflow);
       expect(result).toEqual({
         type: 'INVALID_CONNECTION',
         message: 'Invalid node reference in connection',
@@ -145,9 +145,9 @@ describe('workflowValidation', () => {
     });
 
     it('should detect invalid parameter references', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           createNode('1'),
           createNode('2')
@@ -155,7 +155,7 @@ describe('workflowValidation', () => {
         edges: [createEdge('1', '2', 'nonexistent', 'in1')]
       };
 
-      const result = validateTypeCompatibility(graph);
+      const result = validateTypeCompatibility(workflow);
       expect(result).toEqual({
         type: 'INVALID_CONNECTION',
         message: 'Invalid parameter reference in connection',
@@ -169,9 +169,9 @@ describe('workflowValidation', () => {
 
   describe('validateWorkflow', () => {
     it('should return empty array for valid workflow', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           {
             ...createNode('1'),
@@ -187,14 +187,14 @@ describe('workflowValidation', () => {
         ]
       };
 
-      const result = validateWorkflow(graph);
+      const result = validateWorkflow(workflow);
       expect(result).toEqual([]);
     });
 
     it('should detect multiple errors', () => {
-      const graph: Workflow = {
+      const workflow: Workflow = {
         id: 'test',
-        name: 'Test Graph',
+        name: 'Test Workflow',
         nodes: [
           {
             ...createNode('1'),
@@ -211,7 +211,7 @@ describe('workflowValidation', () => {
         ]
       };
 
-      const result = validateWorkflow(graph);
+      const result = validateWorkflow(workflow);
       expect(result).toHaveLength(2);
       expect(result).toContainEqual({
         type: 'TYPE_MISMATCH',

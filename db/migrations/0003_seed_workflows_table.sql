@@ -1,4 +1,4 @@
--- Seed initial graphs
+-- Seed initial workflows
 INSERT INTO workflows (id, name, data, created_at, updated_at) 
 VALUES 
 (

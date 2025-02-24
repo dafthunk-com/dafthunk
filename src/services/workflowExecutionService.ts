@@ -22,12 +22,12 @@ export const workflowExecutionService = {
     }
   },
 
-  async executeWorkflow(graph: Workflow): Promise<ExecutionResult[]> {
+  async executeWorkflow(workflow: Workflow): Promise<ExecutionResult[]> {
     const results: ExecutionResult[] = [];
-    const executionOrder = this.getExecutionOrder(graph);
+    const executionOrder = this.getExecutionOrder(workflow);
 
     for (const nodeId of executionOrder) {
-      const node = graph.nodes.find(n => n.id === nodeId);
+      const node = workflow.nodes.find(n => n.id === nodeId);
       if (node) {
         const result = await this.executeNode(node);
         results.push(result);
@@ -41,7 +41,7 @@ export const workflowExecutionService = {
     return results;
   },
 
-  getExecutionOrder(graph: Workflow): string[] {
+  getExecutionOrder(workflow: Workflow): string[] {
     const visited = new Set<string>();
     const order: string[] = [];
 
@@ -50,7 +50,7 @@ export const workflowExecutionService = {
       visited.add(nodeId);
 
       // Get all incoming edges for this node
-      const incomingEdges = graph.edges.filter(edge => edge.target === nodeId);
+      const incomingEdges = workflow.edges.filter(edge => edge.target === nodeId);
       
       // Visit all dependencies first
       for (const edge of incomingEdges) {
@@ -61,8 +61,8 @@ export const workflowExecutionService = {
     };
 
     // Start with nodes that have no incoming edges (root nodes)
-    const rootNodes = graph.nodes.filter(node => 
-      !graph.edges.some(edge => edge.target === node.id)
+    const rootNodes = workflow.nodes.filter(node => 
+      !workflow.edges.some(edge => edge.target === node.id)
     );
 
     for (const node of rootNodes) {
@@ -79,9 +79,9 @@ export const workflowExecutionService = {
     return result.success ? 'completed' : 'executing';
   },
 
-  validateNodeInputs(node: Node, graph: Workflow): boolean {
+  validateNodeInputs(node: Node, workflow: Workflow): boolean {
     // Check if all inputs are connected (all inputs are considered required)
-    const incomingEdges = graph.edges.filter(edge => edge.target === node.id);
+    const incomingEdges = workflow.edges.filter(edge => edge.target === node.id);
     const connectedInputs = new Set(incomingEdges.map(edge => edge.targetInput));
     
     return node.inputs.every(input => connectedInputs.has(input.name));
