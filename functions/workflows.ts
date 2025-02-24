@@ -2,20 +2,20 @@
 
 import { createDatabase, type Env } from '../db';
 import { eq } from 'drizzle-orm';
-import { workflows, type NewGraph } from '../db/schema';
+import { workflows, type NewWorkflow } from '../db/schema';
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const db = createDatabase(context.env.DB);
 
   if (context.request.method === 'GET') {
-    const allGraphs = await db.select({
+    const allWorkflows = await db.select({
       id: workflows.id,
       name: workflows.name,
       createdAt: workflows.createdAt,
       updatedAt: workflows.updatedAt,
     }).from(workflows);
 
-    return new Response(JSON.stringify({ graphs: allGraphs }), {
+    return new Response(JSON.stringify({ workflows: allWorkflows }), {
       headers: {
         'content-type': 'application/json',
       },
@@ -23,7 +23,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   if (context.request.method === 'POST') {
-    const body = await context.request.json() as unknown;
+    let body: unknown;
+    try {
+      body = await context.request.json();
+    } catch (error) {
+      return new Response('Invalid request body', { status: 400 });
+    }
     
     if (typeof body !== 'object' || body === null) {
       return new Response('Invalid request body', { status: 400 });
@@ -32,9 +37,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const data = body as any;
     const now = new Date();
     
-    const newGraphData: NewGraph = {
+    const newWorkflowData: NewWorkflow = {
       id: crypto.randomUUID(),
-      name: data.name || 'Untitled Graph',
+      name: data.name || 'Untitled Workflow',
       data: JSON.stringify({
         nodes: Array.isArray(data.nodes) ? data.nodes : [],
         edges: Array.isArray(data.edges) ? data.edges : [],
@@ -43,16 +48,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       updatedAt: now,
     };
 
-    const [newGraph] = await db.insert(workflows).values(newGraphData).returning();
-    const graphData = JSON.parse(newGraph.data as string);
+    const [newWorkflow] = await db.insert(workflows).values(newWorkflowData).returning();
+    const workflowData = JSON.parse(newWorkflow.data as string);
 
     return new Response(JSON.stringify({
-      id: newGraph.id,
-      name: newGraph.name,
-      createdAt: newGraph.createdAt,
-      updatedAt: newGraph.updatedAt,
-      nodes: graphData.nodes,
-      edges: graphData.edges,
+      id: newWorkflow.id,
+      name: newWorkflow.name,
+      createdAt: newWorkflow.createdAt,
+      updatedAt: newWorkflow.updatedAt,
+      nodes: workflowData.nodes,
+      edges: workflowData.edges,
     }), {
       status: 201,
       headers: {

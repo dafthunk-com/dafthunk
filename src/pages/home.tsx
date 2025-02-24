@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Graph } from "@/lib/workflowTypes";
+import { Workflow } from "@/lib/workflowTypes";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { graphService } from "@/services/workflowGraphService";
+import { workflowService } from "@/services/workflowService";
 
 export function HomePage() {
-  const [graphs, setGraphs] = useState<Graph[]>([]);
+  const [graphs, setGraphs] = useState<Workflow[]>([]);
   const [open, setOpen] = useState(false);
   const [newGraphName, setNewGraphName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +24,7 @@ export function HomePage() {
     const fetchGraphs = async () => {
       setIsLoading(true);
       try {
-        const fetchedGraphs = await graphService.getAll();
+        const fetchedGraphs = await workflowService.getAll();
         setGraphs(fetchedGraphs);
       } catch (error) {
         console.error('Error fetching graphs:', error);
@@ -39,7 +39,7 @@ export function HomePage() {
   const handleCreateGraph = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newGraph = await graphService.create(newGraphName);
+      const newGraph = await workflowService.create(newGraphName);
       setGraphs([...graphs, newGraph]);
       setNewGraphName("");
       setOpen(false);

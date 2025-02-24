@@ -1,8 +1,8 @@
-import { Graph } from '@/lib/workflowTypes';
+import { Workflow } from '@/lib/workflowTypes';
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow';
 
 export const workflowValidationService = {
-  validateWorkflow(graph: Graph): { isValid: boolean; errors: string[] } {
+  validateWorkflow(graph: Workflow): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Validate nodes
@@ -36,7 +36,7 @@ export const workflowValidationService = {
     };
   },
 
-  hasCycles(graph: Graph): boolean {
+  hasCycles(graph: Workflow): boolean {
     const visited = new Set<string>();
     const recursionStack = new Set<string>();
 

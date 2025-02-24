@@ -1,4 +1,4 @@
-// Types for workflow nodes and graphs
+// Types for workflows
 
 export interface Position {
   x: number;
@@ -42,7 +42,7 @@ export interface Edge {
   targetInput: string;
 }
 
-export interface Graph {
+export interface Workflow {
   id: string;
   name: string;
   nodes: Node[];

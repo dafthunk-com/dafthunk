@@ -15,14 +15,14 @@ import {
   OnConnectEnd,
   OnConnect,
 } from 'reactflow';
-import { Graph, Parameter } from '@/lib/workflowTypes';
+import { Workflow, Parameter } from '@/lib/workflowTypes';
 import { Node, NodeType, NodeExecutionState } from '@/lib/workflowTypes';
 import { workflowNodeService } from '@/services/workflowNodeService';
 import { workflowEdgeService, ConnectionValidationState } from '@/services/workflowEdgeService';
 
 interface UseWorkflowStateProps {
-  initialWorkflowGraph: Graph;
-  onWorkflowChange?: (graph: Graph) => void;
+  initialWorkflowGraph: Workflow;
+  onWorkflowChange?: (graph: Workflow) => void;
 }
 
 interface UseWorkflowStateReturn {
@@ -54,14 +54,14 @@ export function useWorkflowState({
   onWorkflowChange,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
-  const [workflowGraph, setWorkflowGraph] = useState<Graph>(initialWorkflowGraph);
+  const [workflowGraph, setWorkflowGraph] = useState<Workflow>(initialWorkflowGraph);
   const [nodes, setNodes, onNodesChange] = useNodesState(workflowNodeService.convertToReactFlowNodes(workflowGraph.nodes));
   const [edges, setEdges, onEdgesChange] = useEdgesState(workflowEdgeService.convertToReactFlowEdges(workflowGraph.edges));
   const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
-  const [pendingGraphUpdate, setPendingGraphUpdate] = useState<Graph | null>(null);
+  const [pendingGraphUpdate, setPendingGraphUpdate] = useState<Workflow | null>(null);
   const [connectionValidationState, setConnectionValidationState] = useState<ConnectionValidationState>('default');
   const [connectingNodeId, setConnectingNodeId] = useState<string | null>(null);
   const [connectingHandleId, setConnectingHandleId] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export function useWorkflowState({
     );
 
     if (nodeRemovals.length > 0) {
-      setWorkflowGraph((prevGraph: Graph) => {
+      setWorkflowGraph((prevGraph: Workflow) => {
         const removedNodeIds = new Set(nodeRemovals.map(change => change.id));
         const remainingNodes = prevGraph.nodes.filter(node => !removedNodeIds.has(node.id));
         const remainingEdges = prevGraph.edges.filter(
@@ -113,7 +113,7 @@ export function useWorkflowState({
     );
 
     if (positionChanges.length > 0) {
-      setWorkflowGraph((prevGraph: Graph) => {
+      setWorkflowGraph((prevGraph: Workflow) => {
         const updatedNodes = prevGraph.nodes.map(node => {
           const change = positionChanges.find(c => c.id === node.id);
           return change ? { ...node, position: change.position } : node;
@@ -136,7 +136,7 @@ export function useWorkflowState({
     );
 
     if (edgeRemovals.length > 0) {
-      setWorkflowGraph((prevGraph: Graph) => {
+      setWorkflowGraph((prevGraph: Workflow) => {
         const removedEdgeIds = new Set(edgeRemovals.map(change => change.id));
         const remainingEdges = prevGraph.edges.filter((_, index) => !removedEdgeIds.has(`e${index}`));
         
@@ -241,7 +241,7 @@ export function useWorkflowState({
 
     if (!isValid) return;
 
-    setWorkflowGraph((prevGraph: Graph) => {
+    setWorkflowGraph((prevGraph: Workflow) => {
       const remainingEdges = prevGraph.edges.filter(
         edge => !(edge.target === connection.target && edge.targetInput === connection.targetHandle)
       );
@@ -300,7 +300,7 @@ export function useWorkflowState({
     
     setNodes(nds => [...nds, ...workflowNodeService.convertToReactFlowNodes([newNode])]);
     
-    setWorkflowGraph((prevGraph: Graph) => {
+    setWorkflowGraph((prevGraph: Workflow) => {
       const newGraph = {
         ...prevGraph,
         nodes: [...prevGraph.nodes, newNode],
@@ -340,7 +340,7 @@ export function useWorkflowState({
       },
     ]);
 
-    setWorkflowGraph((prevGraph: Graph) => {
+    setWorkflowGraph((prevGraph: Workflow) => {
       const newGraph = {
         ...prevGraph,
         nodes: [...prevGraph.nodes, newNode],

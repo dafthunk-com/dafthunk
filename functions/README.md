@@ -27,20 +27,20 @@ Returns a list of node types available in the system. These node types can be us
 ]
 ```
 
-## Graphs
+## Workflows
 
-### List All Graphs
+### List All Workflows
 ```http
-GET /api/graphs
+GET /api/workflows
 ```
 
-Retrieves a list of all available graphs in the system.
+Retrieves a list of all available workflows in the system.
 
 #### Response
 
 ```typescript
 {
-    "graphs": [
+    "workflows": [
         {
             "id": string,
             "name": string,
@@ -54,10 +54,10 @@ Retrieves a list of all available graphs in the system.
 Example Response:
 ```json
 {
-    "graphs": [
+    "workflows": [
         {
             "id": "1",
-            "name": "My First Graph",
+            "name": "My First Workflow",
             "createdAt": "2024-02-10T10:00:00Z",
             "updatedAt": "2024-02-10T10:00:00Z"
         }
@@ -65,18 +65,18 @@ Example Response:
 }
 ```
 
-### Get Graph by ID
+### Get Workflow by ID
 ```http
-GET /api/graphs/:id
+GET /api/workflows/:id
 ```
 
-Retrieves detailed information about a specific graph by its ID.
+Retrieves detailed information about a specific workflow by its ID.
 
 #### Parameters
 
 | Parameter | Type   | Description       |
 |-----------|--------|-------------------|
-| id        | string | The ID of the graph |
+| id        | string | The ID of the workflow |
 
 #### Response
 
@@ -126,7 +126,7 @@ Example Response:
 ```json
 {  
     "id": "1",
-    "name": "My First Graph",
+    "name": "My First Workflow",
     "createdAt": "2024-02-10T10:00:00Z",
     "updatedAt": "2024-02-10T10:00:00Z",
     "nodes": [
@@ -165,12 +165,12 @@ Example Response:
 }
 ```
 
-### Create Graph
+### Create Workflow
 ```http
-POST /api/graphs
+POST /api/workflows
 ```
 
-Creates a new graph with the specified configuration.
+Creates a new workflow with the specified configuration.
 
 #### Request Body
 
@@ -214,7 +214,7 @@ Creates a new graph with the specified configuration.
 Example Request:
 ```json
 {  
-    "name": "My First Graph",
+    "name": "My First Workflow",
     "nodes": [
         {
             "id": "1",
@@ -251,58 +251,58 @@ Example Request:
 
 #### Response
 
-Returns `201 Created` on success with the created graph object.
+Returns `201 Created` on success with the created workflow object.
 
-### Update Graph
+### Update Workflow
 ```http
-PUT /api/graphs/:id
+PUT /api/workflows/:id
 ```
 
-Updates an existing graph with new configuration.
+Updates an existing workflow with new configuration.
 
 #### Parameters
 
 | Parameter | Type   | Description       |
 |-----------|--------|-------------------|
-| id        | string | The ID of the graph |
+| id        | string | The ID of the workflow |
 
 #### Request Body
-Same as Create Graph endpoint.
+Same as Create Workflow endpoint.
 
 #### Response
 
-Returns `200 OK` on success with the updated graph object.
+Returns `200 OK` on success with the updated workflow object.
 
-### Delete Graph
+### Delete Workflow
 ```http
-DELETE /api/graphs/:id
+DELETE /api/workflows/:id
 ```
 
-Deletes a specific graph.
+Deletes a specific workflow.
 
 #### Parameters
 
 | Parameter | Type   | Description       |
 |-----------|--------|-------------------|
-| id        | string | The ID of the graph |
+| id        | string | The ID of the workflow |
 
 #### Response
 
 Returns `204 No Content` on successful deletion.
 
-### Execute Graph
+### Execute Workflow
 
 ```http
-POST /api/graphs/:id/execute
+POST /api/workflows/:id/execute
 ```
 
-Executes a specific graph and streams the execution progress using Server-Sent Events (SSE).
+Executes a specific workflow and streams the execution progress using Server-Sent Events (SSE).
 
 #### Parameters
 
 | Parameter | Type   | Description       |
 |-----------|--------|-------------------|
-| id        | string | The ID of the graph |
+| id        | string | The ID of the workflow |
 
 #### SSE Stream Events
 
@@ -336,7 +336,7 @@ The server emits the following event types:
 }
 ```
 
-4. `execution-complete`: Emitted when the entire graph execution is complete
+4. `execution-complete`: Emitted when the entire workflow execution is complete
 ```typescript
 {
     "type": "execution-complete",
@@ -360,5 +360,5 @@ data: {"type":"execution-complete","timestamp":"2024-02-10T10:00:01Z"}
 
 | Status Code | Description |
 |-------------|-------------|
-| 404         | Graph not found |
+| 404         | Workflow not found |
 | 500         | Execution error |

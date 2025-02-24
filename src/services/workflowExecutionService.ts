@@ -1,4 +1,4 @@
-import { Node, Graph, ExecutionResult, NodeExecutionState } from '@/lib/workflowTypes';
+import { Node, Workflow, ExecutionResult, NodeExecutionState } from '@/lib/workflowTypes';
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {
@@ -22,7 +22,7 @@ export const workflowExecutionService = {
     }
   },
 
-  async executeWorkflow(graph: Graph): Promise<ExecutionResult[]> {
+  async executeWorkflow(graph: Workflow): Promise<ExecutionResult[]> {
     const results: ExecutionResult[] = [];
     const executionOrder = this.getExecutionOrder(graph);
 
@@ -41,7 +41,7 @@ export const workflowExecutionService = {
     return results;
   },
 
-  getExecutionOrder(graph: Graph): string[] {
+  getExecutionOrder(graph: Workflow): string[] {
     const visited = new Set<string>();
     const order: string[] = [];
 
@@ -79,7 +79,7 @@ export const workflowExecutionService = {
     return result.success ? 'completed' : 'executing';
   },
 
-  validateNodeInputs(node: Node, graph: Graph): boolean {
+  validateNodeInputs(node: Node, graph: Workflow): boolean {
     // Check if all inputs are connected (all inputs are considered required)
     const incomingEdges = graph.edges.filter(edge => edge.target === node.id);
     const connectedInputs = new Set(incomingEdges.map(edge => edge.targetInput));

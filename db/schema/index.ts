@@ -25,5 +25,5 @@ export const workflows = sqliteTable('workflows', {
 export type NodeType = typeof nodeTypes.$inferSelect;
 export type NewNodeType = typeof nodeTypes.$inferInsert;
 
-export type Graph = typeof workflows.$inferSelect;
-export type NewGraph = typeof workflows.$inferInsert; 
+export type Workflow = typeof workflows.$inferSelect;
+export type NewWorkflow = typeof workflows.$inferInsert; 

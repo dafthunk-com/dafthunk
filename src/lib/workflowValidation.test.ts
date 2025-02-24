@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { detectCycles, validateTypeCompatibility, validateWorkflow } from './workflowValidation';
-import type { Graph, Node, Edge } from './workflowTypes';
+import type { Workflow, Node, Edge } from './workflowTypes';
 
 describe('workflowValidation', () => {
   // Helper function to create a basic node
@@ -28,7 +28,7 @@ describe('workflowValidation', () => {
 
   describe('detectCycles', () => {
     it('should return null for a graph with no cycles', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [
@@ -47,7 +47,7 @@ describe('workflowValidation', () => {
     });
 
     it('should detect a simple cycle', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [
@@ -73,7 +73,7 @@ describe('workflowValidation', () => {
 
   describe('validateTypeCompatibility', () => {
     it('should return null for compatible types', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [
@@ -96,7 +96,7 @@ describe('workflowValidation', () => {
     });
 
     it('should detect type mismatches', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [
@@ -126,7 +126,7 @@ describe('workflowValidation', () => {
     });
 
     it('should detect invalid node references', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [createNode('1')],
@@ -145,7 +145,7 @@ describe('workflowValidation', () => {
     });
 
     it('should detect invalid parameter references', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [
@@ -169,7 +169,7 @@ describe('workflowValidation', () => {
 
   describe('validateWorkflow', () => {
     it('should return empty array for valid workflow', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [
@@ -192,7 +192,7 @@ describe('workflowValidation', () => {
     });
 
     it('should detect multiple errors', () => {
-      const graph: Graph = {
+      const graph: Workflow = {
         id: 'test',
         name: 'Test Graph',
         nodes: [

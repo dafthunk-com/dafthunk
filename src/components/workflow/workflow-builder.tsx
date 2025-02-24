@@ -1,4 +1,4 @@
-import { Graph } from '@/lib/workflowTypes';
+import { Workflow } from '@/lib/workflowTypes';
 import { WorkflowSidebar } from './workflow-sidebar';
 import { WorkflowNodeSelector } from './workflow-node-selector';
 import { useWorkflowState } from './useWorkflowState';
@@ -7,8 +7,8 @@ import { useParams } from 'react-router-dom';
 import { WorkflowCanvas } from './workflow-canvas';
 
 interface WorkflowBuilderProps {
-  initialWorkflowGraph: Graph;
-  onWorkflowChange?: (graph: Graph) => void;
+  initialWorkflowGraph: Workflow;
+  onWorkflowChange?: (graph: Workflow) => void;
 }
 
 export function WorkflowBuilder({ initialWorkflowGraph, onWorkflowChange }: WorkflowBuilderProps) {
