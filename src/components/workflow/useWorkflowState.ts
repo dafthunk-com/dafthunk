@@ -16,7 +16,7 @@ import {
   OnConnect,
 } from 'reactflow';
 import { Workflow, Parameter } from '@/lib/workflowTypes';
-import { Node, NodeType, NodeExecutionState } from '@/lib/workflowTypes';
+import { Node, NodeType, ExecutionState } from '@/lib/workflowTypes';
 import { workflowNodeService } from '@/services/workflowNodeService';
 import { workflowEdgeService, ConnectionValidationState } from '@/services/workflowEdgeService';
 
@@ -45,7 +45,7 @@ interface UseWorkflowStateReturn {
   handleAddNode: () => void;
   handleNodeSelect: (template: NodeType) => void;
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
-  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
+  updateNodeExecutionState: (nodeId: string, state: ExecutionState) => void;
   onAddNode: (nodeType: NodeType, position: { x: number; y: number }) => void;
 }
 
@@ -312,7 +312,7 @@ export function useWorkflowState({
     setIsNodeSelectorOpen(false);
   }, [reactFlowInstance, setNodes]);
 
-  const updateNodeExecutionState = useCallback((nodeId: string, state: NodeExecutionState) => {
+  const updateNodeExecutionState = useCallback((nodeId: string, state: ExecutionState) => {
     setNodes(nds => workflowNodeService.updateNodeExecutionState(nds, nodeId, state));
   }, [setNodes]);
 
