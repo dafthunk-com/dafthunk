@@ -7,14 +7,13 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest",
-    "dev": "concurrently \"vite build --watch\" \"wrangler pages dev ./dist --live-reload --port 3000\"",
+    "dev": "concurrently \"vite build --watch\" \"wrangler pages dev ./dist --live-reload --ai --port 3000\"",
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
     "deploy": "pnpm run build && wrangler pages deploy ./dist",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@cloudflare/ai": "^1.2.2",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-scroll-area": "^1.2.3",
