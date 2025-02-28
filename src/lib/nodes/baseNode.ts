@@ -2,7 +2,8 @@ import {
   Node, 
   ExecutableNode, 
   NodeContext, 
-  ExecutionResult
+  ExecutionResult,
+  Parameter
 } from '../workflowTypes';
 
 /**
@@ -14,8 +15,8 @@ export abstract class BaseExecutableNode implements ExecutableNode {
   type: string;
   description?: string;
   position: { x: number; y: number };
-  inputs: { name: string; type: string; description?: string; value?: any }[];
-  outputs: { name: string; type: string; description?: string; value?: any }[];
+  inputs: Parameter[];
+  outputs: Parameter[];
   error?: string;
 
   constructor(node: Node) {
