@@ -50,76 +50,20 @@ export abstract class BaseExecutableNode implements ExecutableNode {
 }
 
 /**
- * Start node implementation
+ * Addition node implementation
  */
-export class StartNode extends BaseExecutableNode {
-  async execute(_context: NodeContext): Promise<ExecutionResult> {
+export class AdditionNode extends BaseExecutableNode {
+  async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      // Start node just passes its input values as outputs
-      const outputs: Record<string, any> = {};
-      
-      for (const output of this.outputs) {
-        outputs[output.name] = output.value || null;
+      const a = Number(context.inputs.a);
+      const b = Number(context.inputs.b);
+
+      if (isNaN(a) || isNaN(b)) {
+        return this.createErrorResult('Both inputs must be numbers');
       }
-      
-      return this.createSuccessResult(outputs);
-    } catch (error) {
-      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
-    }
-  }
-}
 
-/**
- * End node implementation
- */
-export class EndNode extends BaseExecutableNode {
-  async execute(context: NodeContext): Promise<ExecutionResult> {
-    try {
-      // End node just collects inputs
-      return this.createSuccessResult(context.inputs);
-    } catch (error) {
-      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
-    }
-  }
-}
-
-/**
- * Function node implementation
- */
-export class FunctionNode extends BaseExecutableNode {
-  async execute(context: NodeContext): Promise<ExecutionResult> {
-    try {
-      // In a real implementation, this would execute a JavaScript function
-      // For now, we'll just pass through the inputs
-      return this.createSuccessResult(context.inputs);
-    } catch (error) {
-      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
-    }
-  }
-}
-
-/**
- * HTTP Request node implementation
- */
-export class HttpRequestNode extends BaseExecutableNode {
-  async execute(context: NodeContext): Promise<ExecutionResult> {
-    try {
-      const url = context.inputs.url as string;
-      // We're not using method yet, but we'll keep it for future implementation
-      // const method = context.inputs.method as string || 'GET';
-      
-      if (!url) {
-        return this.createErrorResult('URL is required');
-      }
-      
-      // In a real implementation, this would make an actual HTTP request
-      // For now, we'll simulate a response
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       return this.createSuccessResult({
-        status: 200,
-        body: { message: `Simulated response from ${url}` },
-        headers: { 'content-type': 'application/json' }
+        result: a + b
       });
     } catch (error) {
       return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
@@ -128,33 +72,20 @@ export class HttpRequestNode extends BaseExecutableNode {
 }
 
 /**
- * Conditional node implementation
+ * Subtraction node implementation
  */
-export class ConditionalNode extends BaseExecutableNode {
+export class SubtractionNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const condition = context.inputs.condition;
-      
-      // Evaluate the condition
-      let result: boolean;
-      if (typeof condition === 'boolean') {
-        result = condition;
-      } else if (typeof condition === 'string') {
-        // Try to evaluate the condition as a JavaScript expression
-        try {
-          // This is just for demonstration - in a real implementation,
-          // you would want to use a safer evaluation method
-          result = Boolean(eval(condition));
-        } catch (e) {
-          return this.createErrorResult(`Failed to evaluate condition: ${e}`);
-        }
-      } else {
-        result = Boolean(condition);
+      const a = Number(context.inputs.a);
+      const b = Number(context.inputs.b);
+
+      if (isNaN(a) || isNaN(b)) {
+        return this.createErrorResult('Both inputs must be numbers');
       }
-      
+
       return this.createSuccessResult({
-        result,
-        value: context.inputs.value
+        result: a - b
       });
     } catch (error) {
       return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
@@ -163,33 +94,76 @@ export class ConditionalNode extends BaseExecutableNode {
 }
 
 /**
- * Register the base node implementations
+ * Multiplication node implementation
+ */
+export class MultiplicationNode extends BaseExecutableNode {
+  async execute(context: NodeContext): Promise<ExecutionResult> {
+    try {
+      const a = Number(context.inputs.a);
+      const b = Number(context.inputs.b);
+
+      if (isNaN(a) || isNaN(b)) {
+        return this.createErrorResult('Both inputs must be numbers');
+      }
+
+      return this.createSuccessResult({
+        result: a * b
+      });
+    } catch (error) {
+      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+}
+
+/**
+ * Division node implementation
+ */
+export class DivisionNode extends BaseExecutableNode {
+  async execute(context: NodeContext): Promise<ExecutionResult> {
+    try {
+      const a = Number(context.inputs.a);
+      const b = Number(context.inputs.b);
+
+      if (isNaN(a) || isNaN(b)) {
+        return this.createErrorResult('Both inputs must be numbers');
+      }
+
+      if (b === 0) {
+        return this.createErrorResult('Division by zero is not allowed');
+      }
+
+      return this.createSuccessResult({
+        result: a / b
+      });
+    } catch (error) {
+      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+}
+
+/**
+ * Register the mathematical operation nodes
  */
 export function registerBaseNodes(): void {
   const registry = NodeRegistry.getInstance();
   
   registry.registerImplementation({
-    type: 'start',
-    createExecutableNode: (node: Node) => new StartNode(node)
+    type: 'addition',
+    createExecutableNode: (node: Node) => new AdditionNode(node)
   });
   
   registry.registerImplementation({
-    type: 'end',
-    createExecutableNode: (node: Node) => new EndNode(node)
+    type: 'subtraction',
+    createExecutableNode: (node: Node) => new SubtractionNode(node)
   });
   
   registry.registerImplementation({
-    type: 'function',
-    createExecutableNode: (node: Node) => new FunctionNode(node)
+    type: 'multiplication',
+    createExecutableNode: (node: Node) => new MultiplicationNode(node)
   });
   
   registry.registerImplementation({
-    type: 'http-request',
-    createExecutableNode: (node: Node) => new HttpRequestNode(node)
-  });
-  
-  registry.registerImplementation({
-    type: 'conditional',
-    createExecutableNode: (node: Node) => new ConditionalNode(node)
+    type: 'division',
+    createExecutableNode: (node: Node) => new DivisionNode(node)
   });
 } 

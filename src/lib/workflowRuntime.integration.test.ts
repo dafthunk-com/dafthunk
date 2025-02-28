@@ -12,356 +12,107 @@ beforeAll(() => {
 });
 
 describe('WorkflowRuntime Integration Tests', () => {
-  it('should execute a simple workflow with start and end nodes', async () => {
-    // Create a simple workflow with start and end nodes
+  it('should execute a simple addition workflow', async () => {
     const workflow: Workflow = {
-      id: 'test-workflow',
-      name: 'Test Workflow',
+      id: 'addition-workflow',
+      name: 'Addition Workflow',
       nodes: [
         {
-          id: 'start-node',
-          name: 'Start',
-          type: 'start',
+          id: 'input-node-1',
+          name: 'First Number',
+          type: 'addition',
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [
-            { name: 'message', type: 'string', value: 'Hello, World!' }
-          ]
-        },
-        {
-          id: 'end-node',
-          name: 'End',
-          type: 'end',
-          position: { x: 300, y: 100 },
           inputs: [
-            { name: 'result', type: 'string' }
+            { name: 'a', type: 'number', value: 5 },
+            { name: 'b', type: 'number', value: 3 }
           ],
-          outputs: []
+          outputs: [
+            { name: 'result', type: 'number' }
+          ]
         }
       ],
-      edges: [
-        {
-          source: 'start-node',
-          target: 'end-node',
-          sourceOutput: 'message',
-          targetInput: 'result'
-        }
-      ]
+      edges: []
     };
 
-    // Create execution options with tracking
     const executedNodes: string[] = [];
     const nodeOutputs: Record<string, any> = {};
     
     const options: WorkflowExecutionOptions = {
-      onNodeStart: (_nodeId) => {
-        // Track node execution start
-      },
       onNodeComplete: (nodeId, outputs) => {
         executedNodes.push(nodeId);
         nodeOutputs[nodeId] = outputs;
-      },
-      onNodeError: (_nodeId, _error) => {
-        // Track node errors
-      },
-      onExecutionComplete: () => {
-        // Track execution completion
       }
     };
 
-    // Execute the workflow
     const runtime = new WorkflowRuntime(workflow, options);
     await runtime.execute();
 
-    // Verify execution
-    expect(executedNodes).toHaveLength(2);
-    expect(executedNodes).toContain('start-node');
-    expect(executedNodes).toContain('end-node');
-    
-    // Verify data passing
-    expect(nodeOutputs['start-node']).toHaveProperty('message', 'Hello, World!');
-    expect(nodeOutputs['end-node']).toHaveProperty('result', 'Hello, World!');
+    expect(executedNodes).toHaveLength(1);
+    expect(executedNodes[0]).toBe('input-node-1');
+    expect(nodeOutputs['input-node-1']).toHaveProperty('result', 8);
   });
 
-  it('should execute a workflow with conditional logic', async () => {
-    // Create a workflow with a conditional node
+  it('should execute a workflow with multiple mathematical operations', async () => {
     const workflow: Workflow = {
-      id: 'conditional-workflow',
-      name: 'Conditional Workflow',
+      id: 'math-workflow',
+      name: 'Math Operations Workflow',
       nodes: [
         {
-          id: 'start-node',
-          name: 'Start',
-          type: 'start',
+          id: 'addition-node',
+          name: 'Addition',
+          type: 'addition',
           position: { x: 100, y: 100 },
-          inputs: [],
+          inputs: [
+            { name: 'a', type: 'number', value: 10 },
+            { name: 'b', type: 'number', value: 5 }
+          ],
           outputs: [
-            { name: 'value', type: 'number', value: 42 }
+            { name: 'result', type: 'number' }
           ]
         },
         {
-          id: 'conditional-node',
-          name: 'Conditional',
-          type: 'conditional',
+          id: 'multiplication-node',
+          name: 'Multiplication',
+          type: 'multiplication',
           position: { x: 300, y: 100 },
           inputs: [
-            { name: 'condition', type: 'boolean', value: true },
-            { name: 'value', type: 'number' }
+            { name: 'a', type: 'number' },
+            { name: 'b', type: 'number', value: 2 }
           ],
           outputs: [
-            { name: 'result', type: 'boolean' },
-            { name: 'value', type: 'number' }
+            { name: 'result', type: 'number' }
           ]
         },
         {
-          id: 'end-node',
-          name: 'End',
-          type: 'end',
+          id: 'subtraction-node',
+          name: 'Subtraction',
+          type: 'subtraction',
           position: { x: 500, y: 100 },
           inputs: [
-            { name: 'result', type: 'boolean' },
-            { name: 'value', type: 'number' }
+            { name: 'a', type: 'number' },
+            { name: 'b', type: 'number', value: 5 }
           ],
-          outputs: []
+          outputs: [
+            { name: 'result', type: 'number' }
+          ]
         }
       ],
       edges: [
         {
-          source: 'start-node',
-          target: 'conditional-node',
-          sourceOutput: 'value',
-          targetInput: 'value'
-        },
-        {
-          source: 'conditional-node',
-          target: 'end-node',
+          source: 'addition-node',
+          target: 'multiplication-node',
           sourceOutput: 'result',
-          targetInput: 'result'
+          targetInput: 'a'
         },
         {
-          source: 'conditional-node',
-          target: 'end-node',
-          sourceOutput: 'value',
-          targetInput: 'value'
-        }
-      ]
-    };
-
-    // Create execution options with tracking
-    const executedNodes: string[] = [];
-    const nodeOutputs: Record<string, any> = {};
-    
-    const options: WorkflowExecutionOptions = {
-      onNodeComplete: (nodeId, outputs) => {
-        executedNodes.push(nodeId);
-        nodeOutputs[nodeId] = outputs;
-      }
-    };
-
-    // Execute the workflow
-    const runtime = new WorkflowRuntime(workflow, options);
-    await runtime.execute();
-
-    // Verify execution
-    expect(executedNodes).toHaveLength(3);
-    expect(executedNodes[0]).toBe('start-node');
-    expect(executedNodes[1]).toBe('conditional-node');
-    expect(executedNodes[2]).toBe('end-node');
-    
-    // Verify data passing
-    expect(nodeOutputs['start-node']).toHaveProperty('value', 42);
-    expect(nodeOutputs['conditional-node']).toHaveProperty('result', true);
-    expect(nodeOutputs['conditional-node']).toHaveProperty('value', 42);
-    expect(nodeOutputs['end-node']).toHaveProperty('result', true);
-    expect(nodeOutputs['end-node']).toHaveProperty('value', 42);
-  });
-
-  it('should execute a workflow with an HTTP request node', async () => {
-    // Create a workflow with an HTTP request node
-    const workflow: Workflow = {
-      id: 'http-workflow',
-      name: 'HTTP Workflow',
-      nodes: [
-        {
-          id: 'start-node',
-          name: 'Start',
-          type: 'start',
-          position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [
-            { name: 'url', type: 'string', value: 'https://api.example.com' }
-          ]
-        },
-        {
-          id: 'http-node',
-          name: 'HTTP Request',
-          type: 'http-request',
-          position: { x: 300, y: 100 },
-          inputs: [
-            { name: 'url', type: 'string' },
-            { name: 'method', type: 'string', value: 'GET' }
-          ],
-          outputs: [
-            { name: 'status', type: 'number' },
-            { name: 'body', type: 'object' },
-            { name: 'headers', type: 'object' }
-          ]
-        },
-        {
-          id: 'end-node',
-          name: 'End',
-          type: 'end',
-          position: { x: 500, y: 100 },
-          inputs: [
-            { name: 'status', type: 'number' },
-            { name: 'body', type: 'object' }
-          ],
-          outputs: []
-        }
-      ],
-      edges: [
-        {
-          source: 'start-node',
-          target: 'http-node',
-          sourceOutput: 'url',
-          targetInput: 'url'
-        },
-        {
-          source: 'http-node',
-          target: 'end-node',
-          sourceOutput: 'status',
-          targetInput: 'status'
-        },
-        {
-          source: 'http-node',
-          target: 'end-node',
-          sourceOutput: 'body',
-          targetInput: 'body'
-        }
-      ]
-    };
-
-    // Create execution options with tracking
-    const executedNodes: string[] = [];
-    const nodeOutputs: Record<string, any> = {};
-    
-    const options: WorkflowExecutionOptions = {
-      onNodeComplete: (nodeId, outputs) => {
-        executedNodes.push(nodeId);
-        nodeOutputs[nodeId] = outputs;
-      }
-    };
-
-    // Execute the workflow
-    const runtime = new WorkflowRuntime(workflow, options);
-    await runtime.execute();
-
-    // Verify execution
-    expect(executedNodes).toHaveLength(3);
-    expect(executedNodes[0]).toBe('start-node');
-    expect(executedNodes[1]).toBe('http-node');
-    expect(executedNodes[2]).toBe('end-node');
-    
-    // Verify data passing
-    expect(nodeOutputs['start-node']).toHaveProperty('url', 'https://api.example.com');
-    expect(nodeOutputs['http-node']).toHaveProperty('status', 200);
-    expect(nodeOutputs['http-node'].body).toHaveProperty('message');
-    expect(nodeOutputs['end-node']).toHaveProperty('status', 200);
-    expect(nodeOutputs['end-node'].body).toHaveProperty('message');
-  });
-
-  it('should handle a complex workflow with multiple paths', async () => {
-    // Create a more complex workflow with multiple paths
-    const workflow: Workflow = {
-      id: 'complex-workflow',
-      name: 'Complex Workflow',
-      nodes: [
-        {
-          id: 'start-node',
-          name: 'Start',
-          type: 'start',
-          position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [
-            { name: 'value', type: 'number', value: 42 }
-          ]
-        },
-        {
-          id: 'function-node',
-          name: 'Function',
-          type: 'function',
-          position: { x: 300, y: 100 },
-          inputs: [
-            { name: 'input', type: 'number' }
-          ],
-          outputs: [
-            { name: 'output', type: 'number' }
-          ]
-        },
-        {
-          id: 'conditional-node',
-          name: 'Conditional',
-          type: 'conditional',
-          position: { x: 500, y: 100 },
-          inputs: [
-            { name: 'condition', type: 'boolean', value: true },
-            { name: 'value', type: 'number' }
-          ],
-          outputs: [
-            { name: 'result', type: 'boolean' },
-            { name: 'value', type: 'number' }
-          ]
-        },
-        {
-          id: 'end-node-1',
-          name: 'End 1',
-          type: 'end',
-          position: { x: 700, y: 50 },
-          inputs: [
-            { name: 'result', type: 'boolean' }
-          ],
-          outputs: []
-        },
-        {
-          id: 'end-node-2',
-          name: 'End 2',
-          type: 'end',
-          position: { x: 700, y: 150 },
-          inputs: [
-            { name: 'value', type: 'number' }
-          ],
-          outputs: []
-        }
-      ],
-      edges: [
-        {
-          source: 'start-node',
-          target: 'function-node',
-          sourceOutput: 'value',
-          targetInput: 'input'
-        },
-        {
-          source: 'function-node',
-          target: 'conditional-node',
-          sourceOutput: 'output',
-          targetInput: 'value'
-        },
-        {
-          source: 'conditional-node',
-          target: 'end-node-1',
+          source: 'multiplication-node',
+          target: 'subtraction-node',
           sourceOutput: 'result',
-          targetInput: 'result'
-        },
-        {
-          source: 'conditional-node',
-          target: 'end-node-2',
-          sourceOutput: 'value',
-          targetInput: 'value'
+          targetInput: 'a'
         }
       ]
     };
 
-    // Create execution options with tracking
     const executedNodes: string[] = [];
     const nodeOutputs: Record<string, any> = {};
     
@@ -372,24 +123,105 @@ describe('WorkflowRuntime Integration Tests', () => {
       }
     };
 
-    // Execute the workflow
     const runtime = new WorkflowRuntime(workflow, options);
     await runtime.execute();
 
-    // Verify execution
-    expect(executedNodes).toHaveLength(5);
-    expect(executedNodes[0]).toBe('start-node');
-    expect(executedNodes[1]).toBe('function-node');
-    expect(executedNodes[2]).toBe('conditional-node');
-    // End nodes can be executed in any order
-    expect(executedNodes.slice(3)).toContain('end-node-1');
-    expect(executedNodes.slice(3)).toContain('end-node-2');
+    // Verify execution order
+    expect(executedNodes).toHaveLength(3);
+    expect(executedNodes[0]).toBe('addition-node');
+    expect(executedNodes[1]).toBe('multiplication-node');
+    expect(executedNodes[2]).toBe('subtraction-node');
     
-    // Verify data passing
-    expect(nodeOutputs['start-node']).toHaveProperty('value', 42);
-    expect(nodeOutputs['function-node']).toBeDefined();
-    expect(nodeOutputs['conditional-node']).toHaveProperty('result', true);
-    expect(nodeOutputs['end-node-1']).toHaveProperty('result', true);
-    expect(nodeOutputs['end-node-2']).toBeDefined();
+    // Verify calculations
+    // Addition: 10 + 5 = 15
+    expect(nodeOutputs['addition-node']).toHaveProperty('result', 15);
+    // Multiplication: 15 * 2 = 30
+    expect(nodeOutputs['multiplication-node']).toHaveProperty('result', 30);
+    // Subtraction: 30 - 5 = 25
+    expect(nodeOutputs['subtraction-node']).toHaveProperty('result', 25);
+  });
+
+  it('should handle division by zero error', async () => {
+    const workflow: Workflow = {
+      id: 'division-error-workflow',
+      name: 'Division Error Workflow',
+      nodes: [
+        {
+          id: 'division-node',
+          name: 'Division',
+          type: 'division',
+          position: { x: 100, y: 100 },
+          inputs: [
+            { name: 'a', type: 'number', value: 10 },
+            { name: 'b', type: 'number', value: 0 }
+          ],
+          outputs: [
+            { name: 'result', type: 'number' }
+          ]
+        }
+      ],
+      edges: []
+    };
+
+    const nodeErrors: Record<string, string> = {};
+    
+    const options: WorkflowExecutionOptions = {
+      onNodeError: (nodeId, error) => {
+        nodeErrors[nodeId] = error;
+      }
+    };
+
+    const runtime = new WorkflowRuntime(workflow, options);
+    const result = await runtime.execute();
+    
+    // Check that the error was properly handled
+    expect(nodeErrors['division-node']).toBe('Division by zero is not allowed');
+    // The runtime should still return a Map of outputs
+    expect(result).toBeInstanceOf(Map);
+    // But the node should be marked as having an error in the execution state
+    const state = runtime.getExecutionState();
+    expect(state.errorNodes.get('division-node')).toBe('Division by zero is not allowed');
+  });
+
+  it('should handle invalid number inputs', async () => {
+    const workflow: Workflow = {
+      id: 'invalid-input-workflow',
+      name: 'Invalid Input Workflow',
+      nodes: [
+        {
+          id: 'addition-node',
+          name: 'Addition',
+          type: 'addition',
+          position: { x: 100, y: 100 },
+          inputs: [
+            { name: 'a', type: 'number', value: 'not a number' },
+            { name: 'b', type: 'number', value: 5 }
+          ],
+          outputs: [
+            { name: 'result', type: 'number' }
+          ]
+        }
+      ],
+      edges: []
+    };
+
+    const nodeErrors: Record<string, string> = {};
+    
+    const options: WorkflowExecutionOptions = {
+      onNodeError: (nodeId, error) => {
+        nodeErrors[nodeId] = error;
+      }
+    };
+
+    const runtime = new WorkflowRuntime(workflow, options);
+    const result = await runtime.execute();
+    
+    // Check that the error was properly handled
+    expect(nodeErrors['addition-node']).toBe('Both inputs must be numbers');
+    // The runtime should still return a Map of outputs
+    expect(result).toBeInstanceOf(Map);
+    // But the node should be marked as having an error in the execution state
+    const state = runtime.getExecutionState();
+    expect(state.errorNodes.get('addition-node')).toBe('Both inputs must be numbers');
   });
 }); 
