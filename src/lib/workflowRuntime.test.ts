@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest';
 import { WorkflowRuntime } from './workflowRuntime';
 import { 
   Workflow, 
@@ -80,6 +80,21 @@ class FailingMockExecutableNode extends MockExecutableNode {
     });
   }
 }
+
+// Add these hooks at the top level, before the first describe block
+let originalConsoleError: typeof console.error;
+
+beforeAll(() => {
+  // Store the original console.error
+  originalConsoleError = console.error;
+  // Replace console.error with a no-op function
+  console.error = () => {};
+});
+
+afterAll(() => {
+  // Restore the original console.error
+  console.error = originalConsoleError;
+});
 
 describe('WorkflowRuntime', () => {
   let mockWorkflow: Workflow;
