@@ -5,7 +5,7 @@ import {
   WorkflowExecutionOptions
 } from './workflowTypes';
 import { validateWorkflow } from './workflowValidation';
-import { registerBaseNodes } from './nodes/baseNodes';
+import { registerNodes } from './nodes/nodeRegistry';
 
 // Mock the validateWorkflow function
 vi.mock('./workflowValidation', () => ({
@@ -13,8 +13,8 @@ vi.mock('./workflowValidation', () => ({
 }));
 
 // Mock the base nodes registration
-vi.mock('./nodes/baseNodes', () => ({
-  registerBaseNodes: vi.fn()
+vi.mock('./nodes/nodeRegistry', () => ({
+  registerNodes: vi.fn()
 }));
 
 // Mock the NodeRegistry for the unregistered node type test
@@ -42,7 +42,7 @@ vi.mock('./workflowTypes', async () => {
 
 // Ensure base nodes are registered
 beforeAll(() => {
-  registerBaseNodes();
+  registerNodes();
 });
 
 describe('WorkflowRuntime Validation Tests', () => {
