@@ -4,11 +4,11 @@ import {
   Workflow, 
   WorkflowExecutionOptions
 } from './workflowTypes';
-import { registerBaseNodes } from './nodes/baseNodes';
+import { registerNodes } from './nodes/nodeRegistry';
 
 // Ensure base nodes are registered
 beforeAll(() => {
-  registerBaseNodes();
+  registerNodes();
 });
 
 describe('WorkflowRuntime Integration Tests', () => {

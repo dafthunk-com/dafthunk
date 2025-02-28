@@ -7,10 +7,10 @@ import {
   WorkflowExecutionOptions
 } from './workflowTypes';
 import { validateWorkflow } from './workflowValidation';
-import { registerBaseNodes } from './nodes/baseNodes';
+import { registerNodes } from './nodes/nodeRegistry';
 
-// Initialize the node registry with base nodes
-registerBaseNodes();
+// Initialize the node registry
+registerNodes();
 
 /**
  * WorkflowRuntime class that handles the execution of a workflow
