@@ -64,7 +64,7 @@ export const WorkflowNode = memo(
         </div>
 
         {/* Parameters */}
-        <div className="px-1 pb-1 flex justify-between gap-4">
+        <div className="px-1 pb-1 grid grid-cols-2 justify-between gap-2.5">
           {/* Input Parameters */}
           <div className="flex flex-col gap-1 flex-1">
             {data.inputs.map((input, index) => (
@@ -77,7 +77,7 @@ export const WorkflowNode = memo(
                   position={Position.Left}
                   id={input.name}
                 />
-                {input.name}
+                <p className="overflow-hidden text-ellipsis">{input.name}</p>
               </div>
             ))}
           </div>
@@ -89,7 +89,7 @@ export const WorkflowNode = memo(
                 key={`output-${output.name}-${index}`}
                 className="flex items-center gap-1 text-xs relative"
               >
-                {output.name}
+                <p className="overflow-hidden text-ellipsis">{output.name}</p>
                 <TypeBadge
                   type={output.type}
                   position={Position.Right}
