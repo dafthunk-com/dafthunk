@@ -9,6 +9,7 @@ import {
   SquareRootNode,
   AbsoluteValueNode,
   SliderNode
+  LLMNode,
 } from "./index";
 
 /**
@@ -60,5 +61,10 @@ export function registerNodes(): void {
   registry.registerImplementation({
     type: "slider",
     createExecutableNode: (node) => new SliderNode(node),
+  });
+
+  registry.registerImplementation({
+    type: "llm",
+    createExecutableNode: (node) => new LLMNode(node),
   });
 }

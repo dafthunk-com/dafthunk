@@ -18,3 +18,6 @@ database_name = "workflow-production"
 database_id = "9c1418f1-4099-4e42-9143-6d4ee2069f60"
 preview_database_id = "9c1418f1-4099-4e42-9143-6d4ee2069f60"
 migrations_dir = "./db/migrations"
+
+[ai]
+binding = "AI"
