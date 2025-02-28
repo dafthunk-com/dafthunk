@@ -1,21 +1,23 @@
-import { Workflow } from '@/lib/workflowTypes';
-import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow';
+import { Workflow } from "@/lib/workflowTypes";
+import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
 
 export const workflowValidationService = {
   validateWorkflow(workflow: Workflow): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Validate nodes
-    workflow.nodes.forEach(node => {
+    workflow.nodes.forEach((node) => {
       if (!node.id || !node.name) {
-        errors.push(`Node ${node.id || 'unknown'} is missing required properties`);
+        errors.push(
+          `Node ${node.id || "unknown"} is missing required properties`
+        );
       }
     });
 
     // Validate edges
-    workflow.edges.forEach(edge => {
-      const sourceNode = workflow.nodes.find(n => n.id === edge.source);
-      const targetNode = workflow.nodes.find(n => n.id === edge.target);
+    workflow.edges.forEach((edge) => {
+      const sourceNode = workflow.nodes.find((n) => n.id === edge.source);
+      const targetNode = workflow.nodes.find((n) => n.id === edge.target);
 
       if (!sourceNode) {
         errors.push(`Edge source node ${edge.source} not found`);
@@ -27,7 +29,7 @@ export const workflowValidationService = {
 
     // Validate for cycles
     if (this.hasCycles(workflow)) {
-      errors.push('Workflow contains cycles');
+      errors.push("Workflow contains cycles");
     }
 
     return {
@@ -44,7 +46,9 @@ export const workflowValidationService = {
       visited.add(nodeId);
       recursionStack.add(nodeId);
 
-      const outgoingEdges = workflow.edges.filter(edge => edge.source === nodeId);
+      const outgoingEdges = workflow.edges.filter(
+        (edge) => edge.source === nodeId
+      );
       for (const edge of outgoingEdges) {
         if (!visited.has(edge.target)) {
           if (hasCyclesDFS(edge.target)) {
@@ -71,10 +75,10 @@ export const workflowValidationService = {
   },
 
   validateNodeTypes(nodes: ReactFlowNode[]): boolean {
-    return nodes.every(node => node.type === 'workflowNode');
+    return nodes.every((node) => node.type === "workflowNode");
   },
 
   validateEdgeTypes(edges: ReactFlowEdge[]): boolean {
-    return edges.every(edge => edge.type === 'workflowEdge');
-  }
-}; 
+    return edges.every((edge) => edge.type === "workflowEdge");
+  },
+};

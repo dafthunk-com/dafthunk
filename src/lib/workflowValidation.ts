@@ -1,4 +1,4 @@
-import { Workflow, ValidationError } from './workflowTypes';
+import { Workflow, ValidationError } from "./workflowTypes";
 
 /**
  * Checks if there are any cycles in the workflow using DFS
@@ -11,7 +11,9 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
     visited.add(nodeId);
     recursionStack.add(nodeId);
 
-    const outgoingConnections = workflow.edges.filter(conn => conn.source === nodeId);
+    const outgoingConnections = workflow.edges.filter(
+      (conn) => conn.source === nodeId
+    );
     for (const connection of outgoingConnections) {
       if (!visited.has(connection.target)) {
         if (dfs(connection.target)) {
@@ -30,9 +32,9 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
     if (!visited.has(node.id)) {
       if (dfs(node.id)) {
         return {
-          type: 'CYCLE_DETECTED',
-          message: 'Cycle detected in workflow',
-          details: { nodeId: node.id }
+          type: "CYCLE_DETECTED",
+          message: "Cycle detected in workflow",
+          details: { nodeId: node.id },
         };
       }
     }
@@ -44,44 +46,50 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
 /**
  * Validates type compatibility between connected parameters
  */
-export function validateTypeCompatibility(workflow: Workflow): ValidationError | null {
+export function validateTypeCompatibility(
+  workflow: Workflow
+): ValidationError | null {
   for (const connection of workflow.edges) {
-    const sourceNode = workflow.nodes.find(n => n.id === connection.source);
-    const targetNode = workflow.nodes.find(n => n.id === connection.target);
+    const sourceNode = workflow.nodes.find((n) => n.id === connection.source);
+    const targetNode = workflow.nodes.find((n) => n.id === connection.target);
 
     if (!sourceNode || !targetNode) {
       return {
-        type: 'INVALID_CONNECTION',
-        message: 'Invalid node reference in connection',
+        type: "INVALID_CONNECTION",
+        message: "Invalid node reference in connection",
         details: {
           connectionSource: connection.source,
-          connectionTarget: connection.target
-        }
+          connectionTarget: connection.target,
+        },
       };
     }
 
-    const sourceParam = sourceNode.outputs.find(o => o.name === connection.sourceOutput);
-    const targetParam = targetNode.inputs.find(i => i.name === connection.targetInput);
+    const sourceParam = sourceNode.outputs.find(
+      (o) => o.name === connection.sourceOutput
+    );
+    const targetParam = targetNode.inputs.find(
+      (i) => i.name === connection.targetInput
+    );
 
     if (!sourceParam || !targetParam) {
       return {
-        type: 'INVALID_CONNECTION',
-        message: 'Invalid parameter reference in connection',
+        type: "INVALID_CONNECTION",
+        message: "Invalid parameter reference in connection",
         details: {
           connectionSource: connection.source,
-          connectionTarget: connection.target
-        }
+          connectionTarget: connection.target,
+        },
       };
     }
 
     if (sourceParam.type !== targetParam.type) {
       return {
-        type: 'TYPE_MISMATCH',
+        type: "TYPE_MISMATCH",
         message: `Type mismatch: ${sourceParam.type} -> ${targetParam.type}`,
         details: {
           connectionSource: connection.source,
-          connectionTarget: connection.target
-        }
+          connectionTarget: connection.target,
+        },
       };
     }
   }
@@ -113,16 +121,16 @@ export function validateWorkflow(workflow: Workflow): ValidationError[] {
     const connectionKey = `${connection.source}:${connection.sourceOutput}->${connection.target}:${connection.targetInput}`;
     if (connections.has(connectionKey)) {
       errors.push({
-        type: 'DUPLICATE_CONNECTION',
-        message: 'Duplicate connection detected',
+        type: "DUPLICATE_CONNECTION",
+        message: "Duplicate connection detected",
         details: {
           connectionSource: connection.source,
-          connectionTarget: connection.target
-        }
+          connectionTarget: connection.target,
+        },
       });
     }
     connections.add(connectionKey);
   }
 
   return errors;
-} 
+}

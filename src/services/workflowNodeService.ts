@@ -1,20 +1,19 @@
-import { Node as ReactFlowNode, XYPosition } from 'reactflow';
-import { API_BASE_URL } from '../config/api';
-import { Node, NodeType, ExecutionState } from '../lib/workflowTypes';
-
+import { Node as ReactFlowNode, XYPosition } from "reactflow";
+import { API_BASE_URL } from "../config/api";
+import { Node, NodeType, ExecutionState } from "../lib/workflowTypes";
 
 export const workflowNodeService = {
   convertToReactFlowNodes(nodes: Node[]): ReactFlowNode[] {
-    return nodes.map(node => ({
+    return nodes.map((node) => ({
       id: node.id,
-      type: 'workflowNode',
+      type: "workflowNode",
       position: node.position,
       data: {
         name: node.name,
         inputs: node.inputs,
         outputs: node.outputs,
         error: node.error,
-        executionState: 'idle' as ExecutionState,
+        executionState: "idle" as ExecutionState,
       },
     }));
   },
@@ -30,8 +29,12 @@ export const workflowNodeService = {
     };
   },
 
-  updateNodeExecutionState(nodes: ReactFlowNode[], nodeId: string, state: ExecutionState): ReactFlowNode[] {
-    return nodes.map(node => {
+  updateNodeExecutionState(
+    nodes: ReactFlowNode[],
+    nodeId: string,
+    state: ExecutionState
+  ): ReactFlowNode[] {
+    return nodes.map((node) => {
       if (node.id === nodeId) {
         return {
           ...node,
@@ -43,26 +46,28 @@ export const workflowNodeService = {
       }
       return node;
     });
-  }
+  },
 };
 
 export async function fetchNodeTypes(): Promise<NodeType[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/types`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch node types: ${response.statusText}`);
     }
-    
+
     const nodeTypes: NodeType[] = await response.json();
     return nodeTypes;
   } catch (error) {
-    console.error('Error fetching node types:', error);
-    throw new Error(`Failed to load node types: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Error fetching node types:", error);
+    throw new Error(
+      `Failed to load node types: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
   }
-} 
+}

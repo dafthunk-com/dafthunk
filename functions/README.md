@@ -10,26 +10,27 @@ Returns a list of node types available in the system. These node types can be us
 
 ```json
 [
-    {
-        "id": "text-processor",
-        "name": "Text Processor",
-        "description": "Process and transform text data",
-        "category": "Processing",
-        "icon": "TextProcessorIcon"
-    },
-    {
-        "id": "llm-model",
-        "name": "LLM Model",
-        "description": "Large Language Model for text generation",
-        "category": "AI Models",
-        "icon": "LLMModelIcon"
-    }
+  {
+    "id": "text-processor",
+    "name": "Text Processor",
+    "description": "Process and transform text data",
+    "category": "Processing",
+    "icon": "TextProcessorIcon"
+  },
+  {
+    "id": "llm-model",
+    "name": "LLM Model",
+    "description": "Large Language Model for text generation",
+    "category": "AI Models",
+    "icon": "LLMModelIcon"
+  }
 ]
 ```
 
 ## Workflows
 
 ### List All Workflows
+
 ```http
 GET /api/workflows
 ```
@@ -52,20 +53,22 @@ Retrieves a list of all available workflows in the system.
 ```
 
 Example Response:
+
 ```json
 {
-    "workflows": [
-        {
-            "id": "1",
-            "name": "My First Workflow",
-            "createdAt": "2024-02-10T10:00:00Z",
-            "updatedAt": "2024-02-10T10:00:00Z"
-        }
-    ]
+  "workflows": [
+    {
+      "id": "1",
+      "name": "My First Workflow",
+      "createdAt": "2024-02-10T10:00:00Z",
+      "updatedAt": "2024-02-10T10:00:00Z"
+    }
+  ]
 }
 ```
 
 ### Get Workflow by ID
+
 ```http
 GET /api/workflows/:id
 ```
@@ -74,8 +77,8 @@ Retrieves detailed information about a specific workflow by its ID.
 
 #### Parameters
 
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
 | id        | string | The ID of the workflow |
 
 #### Response
@@ -123,49 +126,51 @@ Retrieves detailed information about a specific workflow by its ID.
 ```
 
 Example Response:
+
 ```json
-{  
-    "id": "1",
-    "name": "My First Workflow",
-    "createdAt": "2024-02-10T10:00:00Z",
-    "updatedAt": "2024-02-10T10:00:00Z",
-    "nodes": [
+{
+  "id": "1",
+  "name": "My First Workflow",
+  "createdAt": "2024-02-10T10:00:00Z",
+  "updatedAt": "2024-02-10T10:00:00Z",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Text Processor",
+      "type": "text-processor",
+      "inputs": [
         {
-            "id": "1",
-            "name": "Text Processor",
-            "type": "text-processor",
-            "inputs": [
-                {
-                    "name": "text",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "processedText",
-                    "type": "string"
-                }
-            ],
-            "position": {
-                "x": 100,
-                "y": 100
-            },
-            "error": null
+          "name": "text",
+          "type": "string"
         }
-    ],
-    "connections": [
+      ],
+      "outputs": [
         {
-            "id": "conn1",
-            "source": "1",
-            "target": "2",
-            "sourceOutput": "processedText",
-            "targetInput": "prompt"
+          "name": "processedText",
+          "type": "string"
         }
-    ]
+      ],
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "error": null
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn1",
+      "source": "1",
+      "target": "2",
+      "sourceOutput": "processedText",
+      "targetInput": "prompt"
+    }
+  ]
 }
 ```
 
 ### Create Workflow
+
 ```http
 POST /api/workflows
 ```
@@ -212,40 +217,41 @@ Creates a new workflow with the specified configuration.
 ```
 
 Example Request:
+
 ```json
-{  
-    "name": "My First Workflow",
-    "nodes": [
+{
+  "name": "My First Workflow",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Text Processor",
+      "type": "text-processor",
+      "inputs": [
         {
-            "id": "1",
-            "name": "Text Processor",
-            "type": "text-processor",
-            "inputs": [
-                {
-                    "name": "text",
-                    "type": "string"
-                }
-            ],
-            "outputs": [
-                {
-                    "name": "processedText",
-                    "type": "string"
-                }
-            ],
-            "position": {
-                "x": 100,
-                "y": 100
-            }
+          "name": "text",
+          "type": "string"
         }
-    ],
-    "connections": [
+      ],
+      "outputs": [
         {
-            "source": "1",
-            "target": "2",
-            "sourceOutput": "processedText",
-            "targetInput": "prompt"
+          "name": "processedText",
+          "type": "string"
         }
-    ]
+      ],
+      "position": {
+        "x": 100,
+        "y": 100
+      }
+    }
+  ],
+  "connections": [
+    {
+      "source": "1",
+      "target": "2",
+      "sourceOutput": "processedText",
+      "targetInput": "prompt"
+    }
+  ]
 }
 ```
 
@@ -254,6 +260,7 @@ Example Request:
 Returns `201 Created` on success with the created workflow object.
 
 ### Update Workflow
+
 ```http
 PUT /api/workflows/:id
 ```
@@ -262,11 +269,12 @@ Updates an existing workflow with new configuration.
 
 #### Parameters
 
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
 | id        | string | The ID of the workflow |
 
 #### Request Body
+
 Same as Create Workflow endpoint.
 
 #### Response
@@ -274,6 +282,7 @@ Same as Create Workflow endpoint.
 Returns `200 OK` on success with the updated workflow object.
 
 ### Delete Workflow
+
 ```http
 DELETE /api/workflows/:id
 ```
@@ -282,8 +291,8 @@ Deletes a specific workflow.
 
 #### Parameters
 
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
 | id        | string | The ID of the workflow |
 
 #### Response
@@ -300,8 +309,8 @@ Executes a specific workflow and streams the execution progress using Server-Sen
 
 #### Parameters
 
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
+| Parameter | Type   | Description            |
+| --------- | ------ | ---------------------- |
 | id        | string | The ID of the workflow |
 
 #### SSE Stream Events
@@ -309,6 +318,7 @@ Executes a specific workflow and streams the execution progress using Server-Sen
 The server emits the following event types:
 
 1. `node-start`: Emitted when a node starts execution
+
 ```typescript
 {
     "type": "node-start",
@@ -318,6 +328,7 @@ The server emits the following event types:
 ```
 
 2. `node-complete`: Emitted when a node completes execution
+
 ```typescript
 {
     "type": "node-complete",
@@ -327,6 +338,7 @@ The server emits the following event types:
 ```
 
 3. `node-error`: Emitted when a node encounters an error
+
 ```typescript
 {
     "type": "node-error",
@@ -337,6 +349,7 @@ The server emits the following event types:
 ```
 
 4. `execution-complete`: Emitted when the entire workflow execution is complete
+
 ```typescript
 {
     "type": "execution-complete",
@@ -345,6 +358,7 @@ The server emits the following event types:
 ```
 
 Example SSE Stream:
+
 ```
 event: node-start
 data: {"type":"node-start","nodeId":"1","timestamp":"2024-02-10T10:00:00Z"}
@@ -358,7 +372,7 @@ data: {"type":"execution-complete","timestamp":"2024-02-10T10:00:01Z"}
 
 #### Error Responses
 
-| Status Code | Description |
-|-------------|-------------|
+| Status Code | Description        |
+| ----------- | ------------------ |
 | 404         | Workflow not found |
-| 500         | Execution error |
+| 500         | Execution error    |

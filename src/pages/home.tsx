@@ -27,7 +27,7 @@ export function HomePage() {
         const fetchedWorkflows = await workflowService.getAll();
         setWorkflows(fetchedWorkflows);
       } catch (error) {
-        console.error('Error fetching workflows:', error);
+        console.error("Error fetching workflows:", error);
       } finally {
         setIsLoading(false);
       }
@@ -44,7 +44,7 @@ export function HomePage() {
       setNewWorkflowName("");
       setOpen(false);
     } catch (error) {
-      console.error('Error creating workflow:', error);
+      console.error("Error creating workflow:", error);
     }
   };
 
@@ -59,20 +59,24 @@ export function HomePage() {
           ) : workflows.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-2xl font-bold">Workflow Editor</h1>
-              <p className="text-gray-500 text-lg mt-2">No workflows yet. Create your first one!</p>
+              <p className="text-gray-500 text-lg mt-2">
+                No workflows yet. Create your first one!
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {workflows.map((workflow) => (
                 <Link key={workflow.id} to={`/workflow/${workflow.id}`}>
                   <div className="p-4 rounded-lg border-2 bg-white hover:border-blue-500 transition-colors cursor-pointer">
-                    <h3 className="font-medium text-lg truncate">{workflow.name || 'Untitled Workflow'}</h3>
+                    <h3 className="font-medium text-lg truncate">
+                      {workflow.name || "Untitled Workflow"}
+                    </h3>
                   </div>
                 </Link>
               ))}
             </div>
           )}
-          
+
           <div className="absolute bottom-4 right-4">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
@@ -106,4 +110,4 @@ export function HomePage() {
       </div>
     </main>
   );
-} 
+}

@@ -1,17 +1,20 @@
-import { Workflow } from '@/lib/workflowTypes';
-import { WorkflowSidebar } from './workflow-sidebar';
-import { WorkflowNodeSelector } from './workflow-node-selector';
-import { useWorkflowState } from './useWorkflowState';
-import { useWorkflowExecution } from './useWorkflowExecution';
-import { useParams } from 'react-router-dom';
-import { WorkflowCanvas } from './workflow-canvas';
+import { Workflow } from "@/lib/workflowTypes";
+import { WorkflowSidebar } from "./workflow-sidebar";
+import { WorkflowNodeSelector } from "./workflow-node-selector";
+import { useWorkflowState } from "./useWorkflowState";
+import { useWorkflowExecution } from "./useWorkflowExecution";
+import { useParams } from "react-router-dom";
+import { WorkflowCanvas } from "./workflow-canvas";
 
 interface WorkflowBuilderProps {
   initialWorkflow: Workflow;
   onWorkflowChange?: (workflow: Workflow) => void;
 }
 
-export function WorkflowBuilder({ initialWorkflow: initialWorkflow, onWorkflowChange }: WorkflowBuilderProps) {
+export function WorkflowBuilder({
+  initialWorkflow: initialWorkflow,
+  onWorkflowChange,
+}: WorkflowBuilderProps) {
   const params = useParams();
   const {
     nodes,
@@ -47,15 +50,17 @@ export function WorkflowBuilder({ initialWorkflow: initialWorkflow, onWorkflowCh
     e.preventDefault();
     e.stopPropagation();
     // Reset all nodes to idle state before execution
-    nodes.forEach(node => {
-      updateNodeExecutionState(node.id, 'idle');
+    nodes.forEach((node) => {
+      updateNodeExecutionState(node.id, "idle");
     });
     handleExecute();
   };
 
   return (
     <div className="w-full h-full flex">
-      <div className={`h-full rounded-xl overflow-hidden relative ${(selectedNode || selectedEdge) ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+      <div
+        className={`h-full rounded-xl overflow-hidden relative ${selectedNode || selectedEdge ? "w-[calc(100%-320px)]" : "w-full"}`}
+      >
         <WorkflowCanvas
           nodes={nodes}
           edges={edges}
@@ -87,4 +92,4 @@ export function WorkflowBuilder({ initialWorkflow: initialWorkflow, onWorkflowCh
       />
     </div>
   );
-} 
+}

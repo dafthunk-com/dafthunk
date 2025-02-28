@@ -1,4 +1,9 @@
-import { Node, Workflow, ExecutionResult, ExecutionState } from '@/lib/workflowTypes';
+import {
+  Node,
+  Workflow,
+  ExecutionResult,
+  ExecutionState,
+} from "@/lib/workflowTypes";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {
@@ -17,7 +22,8 @@ export const workflowExecutionService = {
       return {
         nodeId: node.id,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   },
@@ -27,7 +33,7 @@ export const workflowExecutionService = {
     const executionOrder = this.getExecutionOrder(workflow);
 
     for (const nodeId of executionOrder) {
-      const node = workflow.nodes.find(n => n.id === nodeId);
+      const node = workflow.nodes.find((n) => n.id === nodeId);
       if (node) {
         const result = await this.executeNode(node);
         results.push(result);
@@ -50,8 +56,10 @@ export const workflowExecutionService = {
       visited.add(nodeId);
 
       // Get all incoming edges for this node
-      const incomingEdges = workflow.edges.filter(edge => edge.target === nodeId);
-      
+      const incomingEdges = workflow.edges.filter(
+        (edge) => edge.target === nodeId
+      );
+
       // Visit all dependencies first
       for (const edge of incomingEdges) {
         visit(edge.source);
@@ -61,8 +69,8 @@ export const workflowExecutionService = {
     };
 
     // Start with nodes that have no incoming edges (root nodes)
-    const rootNodes = workflow.nodes.filter(node => 
-      !workflow.edges.some(edge => edge.target === node.id)
+    const rootNodes = workflow.nodes.filter(
+      (node) => !workflow.edges.some((edge) => edge.target === node.id)
     );
 
     for (const node of rootNodes) {
@@ -72,18 +80,25 @@ export const workflowExecutionService = {
     return order;
   },
 
-  getNodeState(node: Node, executionResults: ExecutionResult[]): ExecutionState {
-    const result = executionResults.find(r => r.nodeId === node.id);
-    if (!result) return 'idle';
-    if (result.error) return 'error';
-    return result.success ? 'completed' : 'executing';
+  getNodeState(
+    node: Node,
+    executionResults: ExecutionResult[]
+  ): ExecutionState {
+    const result = executionResults.find((r) => r.nodeId === node.id);
+    if (!result) return "idle";
+    if (result.error) return "error";
+    return result.success ? "completed" : "executing";
   },
 
   validateNodeInputs(node: Node, workflow: Workflow): boolean {
     // Check if all inputs are connected (all inputs are considered required)
-    const incomingEdges = workflow.edges.filter(edge => edge.target === node.id);
-    const connectedInputs = new Set(incomingEdges.map(edge => edge.targetInput));
-    
-    return node.inputs.every(input => connectedInputs.has(input.name));
-  }
-}; 
+    const incomingEdges = workflow.edges.filter(
+      (edge) => edge.target === node.id
+    );
+    const connectedInputs = new Set(
+      incomingEdges.map((edge) => edge.targetInput)
+    );
+
+    return node.inputs.every((input) => connectedInputs.has(input.name));
+  },
+};

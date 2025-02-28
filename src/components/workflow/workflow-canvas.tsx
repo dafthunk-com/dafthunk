@@ -12,11 +12,11 @@ import ReactFlow, {
   OnConnectEnd,
   OnConnect,
   ReactFlowInstance,
-} from 'reactflow';
+} from "reactflow";
 import { Button } from "@/components/ui/button";
-import { WorkflowNode } from './workflow-node';
-import { WorkflowEdge } from './workflow-edge';
-import 'reactflow/dist/style.css';
+import { WorkflowNode } from "./workflow-node";
+import { WorkflowEdge } from "./workflow-edge";
+import "reactflow/dist/style.css";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
@@ -30,14 +30,14 @@ const connectionLineOptions = {
   type: ConnectionLineType.SmoothStep,
   style: {
     strokeWidth: 1,
-    stroke: '#d1d5db',
+    stroke: "#d1d5db",
   },
 };
 
 interface WorkflowCanvasProps {
   nodes: ReactFlowNode[];
   edges: ReactFlowEdge[];
-  connectionValidationState: 'default' | 'valid' | 'invalid';
+  connectionValidationState: "default" | "valid" | "invalid";
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: OnConnect;
@@ -89,16 +89,20 @@ export function WorkflowCanvas({
       fitView
       className="bg-gray-100"
       connectionLineStyle={{
-        stroke: connectionValidationState === 'default' ? '#d1d5db' : 
-               connectionValidationState === 'valid' ? '#16a34a' : '#dc2626',
+        stroke:
+          connectionValidationState === "default"
+            ? "#d1d5db"
+            : connectionValidationState === "valid"
+              ? "#16a34a"
+              : "#dc2626",
         strokeWidth: 1,
       }}
     >
       <Controls showInteractive={false} />
-      <Background 
-        variant={BackgroundVariant.Dots} 
-        gap={12} 
-        size={1} 
+      <Background
+        variant={BackgroundVariant.Dots}
+        gap={12}
+        size={1}
         color="#d4d4d4"
       />
       <Button
@@ -138,9 +142,13 @@ export function WorkflowCanvas({
           stroke="currentColor"
           className="w-6 h-6"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"
+          />
         </svg>
       </Button>
     </ReactFlow>
   );
-} 
+}

@@ -1,5 +1,5 @@
-import { BaseExecutableNode } from '../baseNode';
-import { NodeContext, ExecutionResult } from '../../workflowTypes';
+import { BaseExecutableNode } from "../baseNode";
+import { NodeContext, ExecutionResult } from "../../workflowTypes";
 
 /**
  * Division node implementation
@@ -11,18 +11,20 @@ export class DivisionNode extends BaseExecutableNode {
       const b = Number(context.inputs.b);
 
       if (isNaN(a) || isNaN(b)) {
-        return this.createErrorResult('Both inputs must be numbers');
+        return this.createErrorResult("Both inputs must be numbers");
       }
 
       if (b === 0) {
-        return this.createErrorResult('Division by zero is not allowed');
+        return this.createErrorResult("Division by zero is not allowed");
       }
 
       return this.createSuccessResult({
-        result: a / b
+        result: a / b,
       });
     } catch (error) {
-      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   }
-} 
+}
