@@ -9,7 +9,9 @@
     "test": "vitest",
     "dev": "vite",
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
-    "deploy": "pnpm run build && wrangler pages deploy ./dist"
+    "deploy": "pnpm run build && wrangler pages deploy ./dist",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@cloudflare/ai": "^1.2.2",
