@@ -9,7 +9,9 @@
     "test": "vitest",
     "dev": "vite",
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
-    "deploy": "pnpm run build && wrangler pages deploy ./dist"
+    "deploy": "pnpm run build && wrangler pages deploy ./dist",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@cloudflare/ai": "^1.2.2",
@@ -37,10 +39,13 @@
     "clsx": "^2.1.1",
     "drizzle-kit": "^0.30.4",
     "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.18",
     "globals": "^15.14.0",
     "postcss": "8.4.35",
+    "prettier": "^3.5.2",
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "^1.0.7",
@@ -49,5 +54,6 @@
     "vite": "^6.1.0",
     "vitest": "^3.0.6",
     "wrangler": "^3.109.2"
-  }
+  },
+  "packageManager": "pnpm@10.3.0+sha512.ee592eda8815a8a293c206bb0917c4bb0ff274c50def7cbc17be05ec641fc2d1b02490ce660061356bd0d126a4d7eb2ec8830e6959fb8a447571c631d5a2442d"
 }
