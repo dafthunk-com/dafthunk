@@ -1,10 +1,10 @@
-import { 
-  Node, 
-  ExecutableNode, 
-  NodeContext, 
+import {
+  Node,
+  ExecutableNode,
+  NodeContext,
   ExecutionResult,
-  Parameter
-} from '../workflowTypes';
+  Parameter,
+} from "../workflowTypes";
 
 /**
  * Base class for all executable nodes
@@ -36,7 +36,7 @@ export abstract class BaseExecutableNode implements ExecutableNode {
     return {
       nodeId: this.id,
       success: true,
-      outputs
+      outputs,
     };
   }
 
@@ -44,7 +44,7 @@ export abstract class BaseExecutableNode implements ExecutableNode {
     return {
       nodeId: this.id,
       success: false,
-      error
+      error,
     };
   }
-} 
+}

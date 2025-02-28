@@ -1,4 +1,4 @@
-import { Edge as ReactFlowEdge } from 'reactflow';
+import { Edge as ReactFlowEdge } from "reactflow";
 
 interface WorkflowEdgeInspectorProps {
   edge: ReactFlowEdge;
@@ -38,4 +38,4 @@ export function WorkflowEdgeInspector({ edge }: WorkflowEdgeInspectorProps) {
       </div>
     </div>
   );
-} 
+}

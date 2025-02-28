@@ -1,6 +1,6 @@
-import { Node as ReactFlowNode, Edge as ReactFlowEdge } from 'reactflow';
-import { WorkflowNodeInspector } from './workflow-node-inspector';
-import { WorkflowEdgeInspector } from './workflow-edge-inspector';
+import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
+import { WorkflowNodeInspector } from "./workflow-node-inspector";
+import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
 
 interface WorkflowSidebarProps {
   node: ReactFlowNode | null;
@@ -16,4 +16,4 @@ export function WorkflowSidebar({ node, edge }: WorkflowSidebarProps) {
       {edge && <WorkflowEdgeInspector edge={edge} />}
     </div>
   );
-} 
+}

@@ -1,15 +1,15 @@
-import { useCallback, useState } from 'react';
-import { useLoaderData, useParams } from 'react-router-dom';
-import type { LoaderFunctionArgs } from 'react-router-dom';
-import { Workflow } from '@/lib/workflowTypes';
-import { WorkflowBuilder } from '@/components/workflow/workflow-builder';
-import { workflowService } from '@/services/workflowService';
-import { ReactFlowProvider } from 'reactflow';
+import { useCallback, useState } from "react";
+import { useLoaderData, useParams } from "react-router-dom";
+import type { LoaderFunctionArgs } from "react-router-dom";
+import { Workflow } from "@/lib/workflowTypes";
+import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
+import { workflowService } from "@/services/workflowService";
+import { ReactFlowProvider } from "reactflow";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
-  id: '',
-  name: 'New Workflow',
+  id: "",
+  name: "New Workflow",
   nodes: [],
   edges: [],
 };
@@ -25,7 +25,9 @@ export async function editorLoader({ params }: LoaderFunctionArgs) {
     const workflow = await workflowService.load(id);
     return { workflow: workflow };
   } catch (error) {
-    throw new Error(`Failed to load workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to load workflow: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
   }
 }
 
@@ -43,20 +45,22 @@ const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
-  const { workflow: initialWorkflow } = useLoaderData() as { workflow: Workflow };
+  const { workflow: initialWorkflow } = useLoaderData() as {
+    workflow: Workflow;
+  };
   const [isSaving, setIsSaving] = useState(false);
 
   // Debounced save function
   const debouncedSave = useCallback(
     debounce(async (workflowToSave: Workflow) => {
       if (!id) return;
-      
+
       try {
         setIsSaving(true);
         await workflowService.save(id, workflowToSave);
-        console.log('Workflow saved successfully');
+        console.log("Workflow saved successfully");
       } catch (err) {
-        console.error('Error saving workflow:', err);
+        console.error("Error saving workflow:", err);
       } finally {
         setIsSaving(false);
       }
@@ -65,18 +69,17 @@ export function EditorPage() {
   );
 
   // Handle workflow changes
-  const handleWorkflowChange = useCallback((updatedWorkflow: Workflow) => {
-    debouncedSave(updatedWorkflow);
-  }, [debouncedSave]);
+  const handleWorkflowChange = useCallback(
+    (updatedWorkflow: Workflow) => {
+      debouncedSave(updatedWorkflow);
+    },
+    [debouncedSave]
+  );
 
   return (
     <div className="w-screen h-screen fixed top-0 left-0 p-2">
       <div className="absolute top-4 right-4 z-50">
-        {isSaving && (
-          <div className="text-sm text-gray-500">
-            Saving...
-          </div>
-        )}
+        {isSaving && <div className="text-sm text-gray-500">Saving...</div>}
       </div>
       <ReactFlowProvider>
         <WorkflowBuilder
@@ -86,4 +89,4 @@ export function EditorPage() {
       </ReactFlowProvider>
     </div>
   );
-} 
+}

@@ -1,5 +1,5 @@
-import { BaseExecutableNode } from '../baseNode';
-import { NodeContext, ExecutionResult } from '../../workflowTypes';
+import { BaseExecutableNode } from "../baseNode";
+import { NodeContext, ExecutionResult } from "../../workflowTypes";
 
 /**
  * Multiplication node implementation
@@ -11,14 +11,19 @@ export class MultiplicationNode extends BaseExecutableNode {
       const b = Number(context.inputs.b);
 
       if (isNaN(a) || isNaN(b)) {
-        return this.createErrorResult('Both inputs must be numbers');
+        return this.createErrorResult("Both inputs must be numbers");
       }
 
+      console.log("a", a);
+      console.log("b", b);
+      console.log("a * b", a * b);
       return this.createSuccessResult({
-        result: a * b
+        result: a * b,
       });
     } catch (error) {
-      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   }
-} 
+}

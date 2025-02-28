@@ -1,13 +1,13 @@
-import { Workflow } from '@/lib/workflowTypes';
-import { API_BASE_URL } from '../config/api';
+import { Workflow } from "@/lib/workflowTypes";
+import { API_BASE_URL } from "../config/api";
 
 export const workflowService = {
   // Get all workflows
   async getAll(): Promise<Workflow[]> {
     const response = await fetch(`${API_BASE_URL}/workflows`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -22,9 +22,9 @@ export const workflowService = {
   // Create a new workflow
   async create(name: string): Promise<Workflow> {
     const response = await fetch(`${API_BASE_URL}/workflows`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ name }),
     });
@@ -39,9 +39,9 @@ export const workflowService = {
   // Load a workflow by ID
   async load(id: string): Promise<Workflow> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -55,9 +55,9 @@ export const workflowService = {
   // Save a workflow
   async save(id: string, workflow: Workflow): Promise<Workflow> {
     const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(workflow),
     });
@@ -67,5 +67,5 @@ export const workflowService = {
     }
 
     return response.json();
-  }
-}; 
+  },
+};

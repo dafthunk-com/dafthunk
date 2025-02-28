@@ -48,9 +48,12 @@ export interface Workflow {
   edges: Edge[];
 }
 
-
 export interface ValidationError {
-  type: 'CYCLE_DETECTED' | 'TYPE_MISMATCH' | 'INVALID_CONNECTION' | 'DUPLICATE_CONNECTION';
+  type:
+    | "CYCLE_DETECTED"
+    | "TYPE_MISMATCH"
+    | "INVALID_CONNECTION"
+    | "DUPLICATE_CONNECTION";
   message: string;
   details: {
     nodeId?: string;
@@ -59,10 +62,10 @@ export interface ValidationError {
   };
 }
 
-export type ExecutionState = 'idle' | 'executing' | 'completed' | 'error';
+export type ExecutionState = "idle" | "executing" | "completed" | "error";
 
 export interface ExecutionEvent {
-  type: 'node-start' | 'node-complete' | 'node-error';
+  type: "node-start" | "node-complete" | "node-error";
   nodeId: string;
   timestamp: number;
   error?: string;

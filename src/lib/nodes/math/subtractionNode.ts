@@ -1,5 +1,5 @@
-import { BaseExecutableNode } from '../baseNode';
-import { NodeContext, ExecutionResult } from '../../workflowTypes';
+import { BaseExecutableNode } from "../baseNode";
+import { NodeContext, ExecutionResult } from "../../workflowTypes";
 
 /**
  * Subtraction node implementation
@@ -11,14 +11,16 @@ export class SubtractionNode extends BaseExecutableNode {
       const b = Number(context.inputs.b);
 
       if (isNaN(a) || isNaN(b)) {
-        return this.createErrorResult('Both inputs must be numbers');
+        return this.createErrorResult("Both inputs must be numbers");
       }
 
       return this.createSuccessResult({
-        result: a - b
+        result: a - b,
       });
     } catch (error) {
-      return this.createErrorResult(error instanceof Error ? error.message : 'Unknown error');
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
+      );
     }
   }
-} 
+}

@@ -11,7 +11,11 @@ interface WorkflowNodeSelectorProps {
   onSelect: (template: NodeType) => void;
 }
 
-export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSelectorProps) {
+export function WorkflowNodeSelector({
+  open,
+  onClose,
+  onSelect,
+}: WorkflowNodeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [nodeTypes, setNodeTypes] = useState<NodeType[]>([]);
@@ -20,12 +24,16 @@ export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSe
     fetchNodeTypes().then(setNodeTypes);
   }, []);
 
-  const categories = Array.from(new Set(nodeTypes.map((t: NodeType) => t.category))) as string[];
+  const categories = Array.from(
+    new Set(nodeTypes.map((t: NodeType) => t.category))
+  ) as string[];
 
   const filteredTemplates = nodeTypes.filter((template: NodeType) => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || template.category === selectedCategory;
+    const matchesSearch =
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      !selectedCategory || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -52,8 +60,8 @@ export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSe
               onClick={() => setSelectedCategory(null)}
               className={`px-3 py-1 text-sm rounded-full transition-colors ${
                 !selectedCategory
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary hover:bg-secondary/80'
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary hover:bg-secondary/80"
               }`}
             >
               All
@@ -64,8 +72,8 @@ export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSe
                 onClick={() => setSelectedCategory(category)}
                 className={`px-3 py-1 text-sm rounded-full transition-colors ${
                   selectedCategory === category
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary hover:bg-secondary/80'
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary hover:bg-secondary/80"
                 }`}
               >
                 {category}
@@ -84,7 +92,9 @@ export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSe
                   <div className="flex items-center gap-3">
                     <div>
                       <h3 className="font-medium">{template.name}</h3>
-                      <p className="text-sm text-muted-foreground">{template.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {template.description}
+                      </p>
                     </div>
                   </div>
                 </button>
@@ -95,4 +105,4 @@ export function WorkflowNodeSelector({ open, onClose, onSelect }: WorkflowNodeSe
       </DialogContent>
     </Dialog>
   );
-} 
+}
