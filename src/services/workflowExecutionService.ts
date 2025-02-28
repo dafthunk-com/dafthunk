@@ -1,4 +1,4 @@
-import { Node, Workflow, ExecutionResult, NodeExecutionState } from '@/lib/workflowTypes';
+import { Node, Workflow, ExecutionResult, ExecutionState } from '@/lib/workflowTypes';
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {
@@ -72,7 +72,7 @@ export const workflowExecutionService = {
     return order;
   },
 
-  getNodeState(node: Node, executionResults: ExecutionResult[]): NodeExecutionState {
+  getNodeState(node: Node, executionResults: ExecutionResult[]): ExecutionState {
     const result = executionResults.find(r => r.nodeId === node.id);
     if (!result) return 'idle';
     if (result.error) return 'error';

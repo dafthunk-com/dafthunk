@@ -34,8 +34,6 @@ export interface Node {
   error?: string;
 }
 
-export type NodeExecutionState = 'idle' | 'executing' | 'completed' | 'error';
-
 export interface Edge {
   source: string;
   target: string;
@@ -50,6 +48,7 @@ export interface Workflow {
   edges: Edge[];
 }
 
+
 export interface ValidationError {
   type: 'CYCLE_DETECTED' | 'TYPE_MISMATCH' | 'INVALID_CONNECTION' | 'DUPLICATE_CONNECTION';
   message: string;
@@ -59,6 +58,8 @@ export interface ValidationError {
     connectionTarget?: string;
   };
 }
+
+export type ExecutionState = 'idle' | 'executing' | 'completed' | 'error';
 
 export interface ExecutionEvent {
   type: 'node-start' | 'node-complete' | 'node-error';
@@ -72,4 +73,58 @@ export interface ExecutionResult {
   success: boolean;
   error?: string;
   outputs?: Record<string, any>;
-} 
+}
+
+export interface NodeContext {
+  nodeId: string;
+  workflowId: string;
+  inputs: Record<string, any>;
+  onProgress?: (progress: number) => void;
+}
+
+export interface ExecutableNode extends Node {
+  execute(context: NodeContext): Promise<ExecutionResult>;
+}
+
+export interface NodeImplementation {
+  type: string;
+  createExecutableNode(node: Node): ExecutableNode;
+}
+
+export class NodeRegistry {
+  private static instance: NodeRegistry;
+  private implementations: Map<string, NodeImplementation> = new Map();
+
+  private constructor() {}
+
+  public static getInstance(): NodeRegistry {
+    if (!NodeRegistry.instance) {
+      NodeRegistry.instance = new NodeRegistry();
+    }
+    return NodeRegistry.instance;
+  }
+
+  public registerImplementation(implementation: NodeImplementation): void {
+    this.implementations.set(implementation.type, implementation);
+  }
+
+  public getImplementation(type: string): NodeImplementation | undefined {
+    return this.implementations.get(type);
+  }
+
+  public createExecutableNode(node: Node): ExecutableNode | undefined {
+    const implementation = this.getImplementation(node.type);
+    if (!implementation) {
+      return undefined;
+    }
+    return implementation.createExecutableNode(node);
+  }
+}
+
+export interface WorkflowExecutionOptions {
+  onNodeStart?: (nodeId: string) => void;
+  onNodeComplete?: (nodeId: string, outputs: Record<string, any>) => void;
+  onNodeError?: (nodeId: string, error: string) => void;
+  onExecutionComplete?: () => void;
+  onExecutionError?: (error: string) => void;
+}

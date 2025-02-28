@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import { ExecutionEvent, NodeExecutionState } from '@/lib/workflowTypes';
+import { ExecutionEvent, ExecutionState } from '@/lib/workflowTypes';
 
 interface UseWorkflowExecutionProps {
   workflowId: string;
-  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
+  updateNodeExecutionState: (nodeId: string, state: ExecutionState) => void;
 }
 
 export function useWorkflowExecution({ 
