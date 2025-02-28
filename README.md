@@ -67,3 +67,6 @@ In development, they can be applied manually by running the following commands i
 npx wrangler d1 migrations apply DB --remote --env development
 npx wrangler d1 execute DB --env development --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
 ```
+
+> [!NOTE]
+> For using d1 locally, use the `--local` flag instead of `--remote`
