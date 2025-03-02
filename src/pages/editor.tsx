@@ -72,7 +72,6 @@ export function EditorPage() {
           label: type.name, // Map name to label
           description: type.description,
           category: type.category,
-          icon: type.icon,
           inputs: type.inputs.map(input => ({
             id: input.name,
             type: input.type,

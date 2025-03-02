@@ -17,7 +17,6 @@ export interface NodeTemplate {
   label: string;
   description: string;
   category: string;
-  icon?: string;
   inputs: Array<{
     id: string;
     type: string;
@@ -112,9 +111,6 @@ export function WorkflowNodeSelector({
                 }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {template.icon && (
-                    <span className="text-muted-foreground">{template.icon}</span>
-                  )}
                   <h3 className="font-medium">{template.label}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
