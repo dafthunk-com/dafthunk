@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface NodeTemplate {
   id: string;
@@ -62,13 +63,13 @@ export function WorkflowNodeSelector({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+      <DialogContent className="sm:max-w-[500px] max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Add Node</DialogTitle>
         </DialogHeader>
 
         <div className="relative mb-4">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search nodes..."
             className="pl-8"
@@ -77,32 +78,34 @@ export function WorkflowNodeSelector({
           />
         </div>
 
-        <div className="flex gap-2 mb-4 flex-wrap">
-          <Button
-            variant={selectedCategory === null ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(null)}
-          >
-            All
-          </Button>
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
+        <ScrollArea className="flex-grow pr-4">
+          {categories.length > 0 && (
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <Button
+                variant={selectedCategory === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+              >
+                All
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          )}
 
-        <ScrollArea className="flex-1 pr-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="space-y-2">
             {filteredTemplates.map((template) => (
               <div
                 key={template.id}
-                className="border rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="border rounded-md p-3 cursor-pointer hover:bg-accent transition-colors"
                 onClick={() => {
                   onSelect(template);
                   onClose();
@@ -110,27 +113,29 @@ export function WorkflowNodeSelector({
               >
                 <div className="flex items-center gap-2 mb-1">
                   {template.icon && (
-                    <span className="text-gray-500">{template.icon}</span>
+                    <span className="text-muted-foreground">{template.icon}</span>
                   )}
-                  <h3 className="font-medium text-sm">{template.label}</h3>
+                  <h3 className="font-medium">{template.label}</h3>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   {template.description}
                 </p>
-                <div className="flex justify-between text-xs">
-                  <span>
-                    {template.inputs.length} input
-                    {template.inputs.length !== 1 ? "s" : ""}
-                  </span>
-                  <span>
-                    {template.outputs.length} output
-                    {template.outputs.length !== 1 ? "s" : ""}
-                  </span>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className={cn("flex items-center", template.inputs.length === 0 && "opacity-50")}>
+                    <span>
+                      {template.inputs.length} input{template.inputs.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className={cn("flex items-center", template.outputs.length === 0 && "opacity-50")}>
+                    <span>
+                      {template.outputs.length} output{template.outputs.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
             {filteredTemplates.length === 0 && (
-              <div className="col-span-2 text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 No nodes found matching your search
               </div>
             )}
