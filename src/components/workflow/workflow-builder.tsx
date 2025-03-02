@@ -1,4 +1,4 @@
-import { Workflow } from "@/lib/workflowTypes";
+import { Workflow, NodeType } from "@/lib/workflowTypes";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
@@ -8,11 +8,13 @@ import { WorkflowCanvas } from "./workflow-canvas";
 
 interface WorkflowBuilderProps {
   initialWorkflow: Workflow;
+  nodeTemplates: NodeType[];
   onWorkflowChange?: (workflow: Workflow) => void;
 }
 
 export function WorkflowBuilder({
   initialWorkflow: initialWorkflow,
+  nodeTemplates,
   onWorkflowChange,
 }: WorkflowBuilderProps) {
   const params = useParams();
@@ -89,6 +91,7 @@ export function WorkflowBuilder({
         open={isNodeSelectorOpen}
         onSelect={handleNodeSelect}
         onClose={() => setIsNodeSelectorOpen(false)}
+        nodeTemplates={nodeTemplates}
       />
     </div>
   );

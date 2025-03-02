@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow } from "@/lib/workflowTypes";
+import { Workflow, NodeType } from "@/lib/workflowTypes";
 import { WorkflowBuilder } from "@/components/workflow2/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { NodeTemplate } from "@/components/workflow2/workflow-node-selector";
@@ -9,6 +9,7 @@ import { ExecutionEvent } from "@/components/workflow2/useWorkflowExecution";
 import { Node, Edge, Connection } from "reactflow";
 import { WorkflowNodeData } from "@/components/workflow2/workflow-node";
 import { WorkflowEdgeData } from "@/components/workflow2/workflow-edge";
+import { fetchNodeTypes } from "@/services/workflowNodeService";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
@@ -112,12 +113,50 @@ export function EditorPage() {
   const [nodes, setNodes] = useState<Node<WorkflowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeData>[]>([]);
   const [lastLogMessage, setLastLogMessage] = useState<string>("");
+  const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
+  const [templatesError, setTemplatesError] = useState<string | null>(null);
 
   // Add a log entry
   const addLog = useCallback((message: string) => {
     setLastLogMessage(message);
     console.log(message); // Log to console for debugging
   }, []);
+
+  // Fetch node templates
+  useEffect(() => {
+    const loadNodeTemplates = async () => {
+      try {
+        const types = await fetchNodeTypes();
+        // Convert NodeType to NodeTemplate
+        const templates: NodeTemplate[] = types.map(type => ({
+          id: type.id,
+          type: type.type,
+          label: type.name, // Map name to label
+          description: type.description,
+          category: type.category,
+          icon: type.icon,
+          inputs: type.inputs.map(input => ({
+            id: input.name,
+            type: input.type,
+            label: input.name,
+          })),
+          outputs: type.outputs.map(output => ({
+            id: output.name,
+            type: output.type,
+            label: output.name,
+          })),
+        }));
+        setNodeTemplates(templates);
+        setTemplatesError(null);
+      } catch (err) {
+        console.error("Failed to load node templates:", err);
+        setTemplatesError("Failed to load node templates. Please try again later.");
+        addLog(`Error loading node templates: ${err instanceof Error ? err.message : "Unknown error"}`);
+      }
+    };
+
+    loadNodeTemplates();
+  }, [addLog]);
 
   // Convert the initial workflow to ReactFlow nodes and edges
   useEffect(() => {
@@ -448,16 +487,18 @@ export function EditorPage() {
       </div>
       
       {isLoading ? (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="text-xl">Loading workflow...</div>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading workflow...</p>
+          </div>
         </div>
       ) : nodes.length === 0 ? (
-        <div className="w-full h-full flex flex-col items-center justify-center">
-          <div className="text-xl mb-4">No nodes in workflow</div>
-          <button 
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
+        <div className="flex flex-col items-center justify-center h-full">
+          <p className="text-muted-foreground mb-4">No nodes in this workflow yet</p>
+          <button
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
             onClick={() => {
-              // Add a sample node to get started
               const newNode = {
                 id: `input-${Date.now()}`,
                 type: 'workflowNode',
@@ -480,6 +521,16 @@ export function EditorPage() {
             }}
           >
             Add a starter node
+          </button>
+        </div>
+      ) : templatesError ? (
+        <div className="flex flex-col items-center justify-center h-full">
+          <p className="text-red-500 mb-4">{templatesError}</p>
+          <button 
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+            onClick={() => window.location.reload()}
+          >
+            Retry
           </button>
         </div>
       ) : (
