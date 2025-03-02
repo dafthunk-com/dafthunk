@@ -2,9 +2,11 @@ import { memo } from "react";
 import { EdgeProps, getSmoothStepPath } from "reactflow";
 import { cn } from "@/lib/utils";
 
-interface WorkflowEdgeData {
+export interface WorkflowEdgeData {
   isValid?: boolean;
   isActive?: boolean;
+  sourceType?: string;
+  targetType?: string;
 }
 
 export const WorkflowEdge = memo(
@@ -67,4 +69,4 @@ export const WorkflowEdge = memo(
   }
 );
 
-WorkflowEdge.displayName = "WorkflowEdge";
+WorkflowEdge.displayName = "WorkflowEdge"; 
