@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow, NodeType } from "@/lib/workflowTypes";
+import { Workflow } from "@/lib/workflowTypes";
 import { WorkflowBuilder } from "@/components/workflow2/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { NodeTemplate } from "@/components/workflow2/workflow-node-selector";
@@ -48,61 +48,6 @@ const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
   };
 };
 
-// Node templates for the workflow editor
-const nodeTemplates: NodeTemplate[] = [
-  {
-    id: "input",
-    type: "input",
-    label: "Input",
-    description: "Input node for the workflow",
-    category: "Basic",
-    inputs: [],
-    outputs: [
-      {
-        id: "output",
-        type: "any",
-        label: "Output",
-      },
-    ],
-  },
-  {
-    id: "process",
-    type: "process",
-    label: "Process",
-    description: "Process node for the workflow",
-    category: "Basic",
-    inputs: [
-      {
-        id: "input",
-        type: "any",
-        label: "Input",
-      },
-    ],
-    outputs: [
-      {
-        id: "output",
-        type: "any",
-        label: "Output",
-      },
-    ],
-  },
-  {
-    id: "output",
-    type: "output",
-    label: "Output",
-    description: "Output node for the workflow",
-    category: "Basic",
-    inputs: [
-      {
-        id: "input",
-        type: "any",
-        label: "Input",
-      },
-    ],
-    outputs: [],
-  },
-];
-
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const { workflow: initialWorkflow } = useLoaderData() as {
@@ -112,15 +57,8 @@ export function EditorPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [nodes, setNodes] = useState<Node<WorkflowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeData>[]>([]);
-  const [lastLogMessage, setLastLogMessage] = useState<string>("");
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
-
-  // Add a log entry
-  const addLog = useCallback((message: string) => {
-    setLastLogMessage(message);
-    console.log(message); // Log to console for debugging
-  }, []);
 
   // Fetch node templates
   useEffect(() => {
@@ -149,25 +87,19 @@ export function EditorPage() {
         setNodeTemplates(templates);
         setTemplatesError(null);
       } catch (err) {
-        console.error("Failed to load node templates:", err);
         setTemplatesError("Failed to load node templates. Please try again later.");
-        addLog(`Error loading node templates: ${err instanceof Error ? err.message : "Unknown error"}`);
       }
     };
 
     loadNodeTemplates();
-  }, [addLog]);
+  }, []);
 
   // Convert the initial workflow to ReactFlow nodes and edges
   useEffect(() => {
     if (!initialWorkflow) {
-      addLog("No workflow data available");
       setIsLoading(false);
       return;
     }
-
-    addLog(`Loading workflow: ${initialWorkflow.name}`);
-    console.log("Initial workflow:", initialWorkflow);
     
     try {
       // Convert nodes
@@ -205,28 +137,16 @@ export function EditorPage() {
           targetType: edge.targetInput,
         },
       }));
-
-      console.log("Converted nodes:", reactFlowNodes);
-      console.log("Converted edges:", reactFlowEdges);
       
       // Set the state with the converted data
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
-      
-      if (reactFlowNodes.length > 0) {
-        addLog(`Loaded workflow with ${reactFlowNodes.length} nodes and ${reactFlowEdges.length} edges`);
-      } else if (initialWorkflow.nodes.length > 0) {
-        addLog("Warning: Workflow has nodes but conversion resulted in empty nodes array");
-      } else {
-        addLog("Workflow has no nodes");
-      }
     } catch (error) {
-      console.error("Error converting workflow:", error);
-      addLog(`Error loading workflow: ${error instanceof Error ? error.message : String(error)}`);
+      // Error handling without logging
     } finally {
       setIsLoading(false);
     }
-  }, [initialWorkflow, addLog]);
+  }, [initialWorkflow]);
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -235,7 +155,6 @@ export function EditorPage() {
 
       try {
         setIsSaving(true);
-        addLog("Saving workflow...");
         
         // Convert ReactFlow nodes back to workflow nodes
         const workflowNodes = nodes.map(node => ({
@@ -271,49 +190,38 @@ export function EditorPage() {
           nodes: workflowNodes,
           edges: workflowEdges,
         };
-
-        // Log the workflow being saved for debugging
-        console.log("Saving workflow:", workflowToSave);
         
         // Verify we have nodes and edges before saving
         if (workflowNodes.length === 0 && initialWorkflow.nodes.length > 0) {
-          console.error("Warning: Converting to empty nodes array when initial workflow had nodes");
-          addLog("Error: Node conversion failed");
           return;
         }
 
         await workflowService.save(id, workflowToSave);
-        addLog("Workflow saved successfully");
       } catch (err) {
-        console.error("Error saving workflow:", err);
-        addLog(`Error saving workflow: ${err instanceof Error ? err.message : String(err)}`);
+        // Error handling without logging
       } finally {
         setIsSaving(false);
       }
     }, 1000),
-    [id, initialWorkflow, addLog]
+    [id, initialWorkflow]
   );
 
   // Handle node changes
   const handleNodesChange = useCallback(
     (updatedNodes: Node<WorkflowNodeData>[]) => {
-      console.log("Nodes changed:", updatedNodes);
       setNodes(updatedNodes);
       
       // Only save if we have nodes to save
       if (updatedNodes.length > 0) {
         debouncedSave(updatedNodes, edges);
-      } else if (initialWorkflow.nodes.length > 0) {
-        console.warn("Node change resulted in empty nodes array");
       }
     },
-    [edges, debouncedSave, initialWorkflow.nodes.length]
+    [edges, debouncedSave]
   );
 
   // Handle edge changes
   const handleEdgesChange = useCallback(
     (updatedEdges: Edge<WorkflowEdgeData>[]) => {
-      console.log("Edges changed:", updatedEdges);
       setEdges(updatedEdges);
       
       // Only trigger save if we have nodes
@@ -358,10 +266,9 @@ export function EditorPage() {
         onError: (error: string) => void;
       }
     ) => {
-      addLog(`Starting execution of workflow ${workflowId}`);
-      
       // This is a simulation of the server-side execution
-      // In a real implementation, this would be an API call
+      // In a real implementation, this would be an API call to execute the workflow with the given ID
+      console.log(`Executing workflow with ID: ${workflowId}`);
       
       // Get all nodes with no incoming edges (start nodes)
       const startNodes = nodes.filter((node) => {
@@ -370,7 +277,6 @@ export function EditorPage() {
       
       if (startNodes.length === 0) {
         callbacks.onError("No start nodes found in the workflow");
-        addLog("Error: No start nodes found in the workflow");
         return;
       }
       
@@ -391,7 +297,6 @@ export function EditorPage() {
           type: "node-start",
           nodeId: nodeId,
         });
-        addLog(`Node ${node.data.label} (${nodeId}) started execution`);
         
         // Simulate processing time
         setTimeout(() => {
@@ -408,7 +313,6 @@ export function EditorPage() {
               nodeId: nodeId,
               outputs: outputs,
             });
-            addLog(`Node ${node.data.label} (${nodeId}) completed execution`);
             
             // Find all outgoing edges from this node
             const outgoingEdges = edges.filter((edge) => edge.source === nodeId);
@@ -439,7 +343,6 @@ export function EditorPage() {
               
               if (remainingNodes.length === 0) {
                 callbacks.onComplete();
-                addLog("Workflow execution completed");
               }
             }
           } catch (error) {
@@ -449,38 +352,23 @@ export function EditorPage() {
               nodeId: nodeId,
               error: error instanceof Error ? error.message : String(error),
             });
-            addLog(`Node ${node.data.label} (${nodeId}) failed: ${error}`);
           }
         }, 1000);
       }
       
       // Return a cleanup function
       return () => {
-        addLog("Execution cleanup");
+        // Cleanup without logging
       };
     },
-    [nodes, edges, addLog]
+    [nodes, edges]
   );
-
-  // Log nodes and edges whenever they change
-  useEffect(() => {
-    console.log("Current nodes state:", nodes);
-  }, [nodes]);
-
-  useEffect(() => {
-    console.log("Current edges state:", edges);
-  }, [edges]);
 
   return (
     <div className="w-screen h-screen fixed top-0 left-0 p-2">
       <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
         {isLoading && <div className="text-sm bg-blue-100 p-2 rounded-md">Loading workflow...</div>}
         {isSaving && <div className="text-sm bg-yellow-100 p-2 rounded-md">Saving...</div>}
-        {lastLogMessage && (
-          <div className="text-sm bg-gray-100 p-2 rounded-md max-w-md truncate">
-            {lastLogMessage}
-          </div>
-        )}
         <div className="text-xs bg-gray-100 p-2 rounded-md">
           Nodes: {nodes.length}, Edges: {edges.length}
         </div>
@@ -517,7 +405,6 @@ export function EditorPage() {
                 },
               };
               setNodes([newNode]);
-              addLog("Added a starter node");
             }}
           >
             Add a starter node
@@ -545,7 +432,6 @@ export function EditorPage() {
           validateConnection={validateConnection}
           executeWorkflow={executeWorkflow}
           onExecutionStart={() => {
-            addLog("Execution started");
             // Reset all nodes to idle state before execution
             const resetNodes = nodes.map(node => ({
               ...node,
@@ -556,20 +442,11 @@ export function EditorPage() {
             }));
             setNodes(resetNodes);
           }}
-          onExecutionComplete={() => addLog("Execution completed")}
-          onExecutionError={(error) => addLog(`Execution error: ${error}`)}
-          onNodeStart={(nodeId) => {
-            const node = nodes.find((n) => n.id === nodeId);
-            addLog(`Node ${node?.data.label || nodeId} started`);
-          }}
-          onNodeComplete={(nodeId) => {
-            const node = nodes.find((n) => n.id === nodeId);
-            addLog(`Node ${node?.data.label || nodeId} completed`);
-          }}
-          onNodeError={(nodeId, error) => {
-            const node = nodes.find((n) => n.id === nodeId);
-            addLog(`Node ${node?.data.label || nodeId} error: ${error}`);
-          }}
+          onExecutionComplete={() => {}}
+          onExecutionError={() => {}}
+          onNodeStart={() => {}}
+          onNodeComplete={() => {}}
+          onNodeError={() => {}}
         />
       )}
     </div>
