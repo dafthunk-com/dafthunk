@@ -256,7 +256,7 @@ export default function WorkflowExample() {
   ) => {
     // Clear logs
     setExecutionLogs([]);
-    addLog("Starting workflow execution...");
+    addLog(`Starting workflow execution for workflow: ${workflowId}...`);
 
     // Get all nodes with no inputs (starting nodes)
     const startNodes = nodes.filter((node) => node.data.inputs.length === 0);
