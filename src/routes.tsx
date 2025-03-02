@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "./pages/home";
 import { EditorPage, editorLoader } from "./pages/editor";
 import { EditorError } from "./components/workflow/workflow-error";
+import WorkflowExample from "./pages/examples/workflow-example";
 
 export const router = createBrowserRouter([
   {
@@ -13,5 +14,9 @@ export const router = createBrowserRouter([
     element: <EditorPage />,
     loader: editorLoader,
     errorElement: <EditorError />,
+  },
+  {
+    path: "/examples/workflow",
+    element: <WorkflowExample />,
   },
 ]);
