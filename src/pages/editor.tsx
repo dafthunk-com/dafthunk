@@ -369,9 +369,6 @@ export function EditorPage() {
       <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
         {isLoading && <div className="text-sm bg-blue-100 p-2 rounded-md">Loading workflow...</div>}
         {isSaving && <div className="text-sm bg-yellow-100 p-2 rounded-md">Saving...</div>}
-        <div className="text-xs bg-gray-100 p-2 rounded-md">
-          Nodes: {nodes.length}, Edges: {edges.length}
-        </div>
       </div>
       
       {isLoading ? (
