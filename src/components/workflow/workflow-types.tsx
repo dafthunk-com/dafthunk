@@ -3,18 +3,18 @@ import { Node as ReactFlowNode, Edge as ReactFlowEdge, Connection, NodeChange, E
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 
+// Parameter Types
+export interface WorkflowParameter {
+  id: string;
+  type: string;
+  label: string;
+  value?: any;
+}
+
 export interface WorkflowNodeData {
   label: string;
-  inputs: Array<{
-    id: string;
-    type: string;
-    label: string;
-  }>;
-  outputs: Array<{
-    id: string;
-    type: string;
-    label: string;
-  }>;
+  inputs: WorkflowParameter[];
+  outputs: WorkflowParameter[];
   error?: string | null;
   executionState: NodeExecutionState;
 }
@@ -34,16 +34,8 @@ export interface NodeTemplate {
   label: string;
   description: string;
   category: string;
-  inputs: Array<{
-    id: string;
-    type: string;
-    label: string;
-  }>;
-  outputs: Array<{
-    id: string;
-    type: string;
-    label: string;
-  }>;
+  inputs: WorkflowParameter[];
+  outputs: WorkflowParameter[];
 }
 
 // Canvas Types
