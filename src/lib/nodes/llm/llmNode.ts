@@ -7,13 +7,22 @@ import { NodeContext, ExecutionResult } from "../../workflowTypes";
 export class LLMNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const prompt = Number(context.inputs.prompt);
-      // TODO: Check if the temperature is within the valid range
+      const prompt = context.inputs.prompt;
+      
+      if (!prompt || typeof prompt !== 'string') {
+        return this.createErrorResult("Prompt is required and must be a string");
+      }
+      
+      if (!context.env?.AI) {
+        return this.createErrorResult("AI service is not available");
+      }
+
+      const result = await context.env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+        prompt,
+      });
 
       return this.createSuccessResult({
-        result: context.env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
-          prompt,
-        }),
+        result,
       });
     } catch (error) {
       return this.createErrorResult(
