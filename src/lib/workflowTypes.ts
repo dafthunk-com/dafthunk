@@ -83,6 +83,12 @@ export interface NodeContext {
   workflowId: string;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
+  env?: {
+    AI?: {
+      run: (model: string, options: any) => any;
+    };
+    [key: string]: any;
+  };
 }
 
 export interface ExecutableNode extends Node {

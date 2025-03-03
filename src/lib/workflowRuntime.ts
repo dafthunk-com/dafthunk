@@ -22,10 +22,12 @@ export class WorkflowRuntime {
   private nodeErrors: Map<string, string> = new Map();
   private executableNodes: Map<string, ExecutableNode> = new Map();
   private options: WorkflowExecutionOptions;
+  private env?: any;
 
-  constructor(workflow: Workflow, options: WorkflowExecutionOptions = {}) {
+  constructor(workflow: Workflow, options: WorkflowExecutionOptions = {}, env?: any) {
     this.workflow = workflow;
     this.options = options;
+    this.env = env;
     this.initializeExecutableNodes();
   }
 
@@ -151,6 +153,7 @@ export class WorkflowRuntime {
         onProgress: (_progress) => {
           // Handle progress updates if needed
         },
+        env: this.env,
       };
 
       // Execute the node

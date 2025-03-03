@@ -131,7 +131,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     };
 
     // Create and execute the workflow runtime
-    const runtime = new WorkflowRuntime(workflowGraph, executionOptions);
+    const runtime = new WorkflowRuntime(workflowGraph, executionOptions, context.env);
 
     // Execute the workflow in the background
     runtime.execute().catch(async (error) => {
