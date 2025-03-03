@@ -71,8 +71,7 @@ npx wrangler d1 execute DB --env development --command "SELECT name FROM sqlite_
 To reset the database, run the following commands:
 
 ```bash
-npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS d1_migrations;"
-npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
+npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS d1_migrations;DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
 npx wrangler d1 migrations apply workflow-development --local
 ```
 

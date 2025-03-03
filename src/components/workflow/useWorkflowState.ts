@@ -126,6 +126,7 @@ export function useWorkflowState({
           inputs: template.inputs,
           outputs: template.outputs,
           executionState: "idle" as NodeExecutionState,
+          nodeType: template.type,
         },
       };
 

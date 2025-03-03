@@ -15,6 +15,32 @@ export function WorkflowNodeInspector({
     }
   };
 
+  const handleInputValueChange = (inputId: string, value: string) => {
+    if (!onNodeUpdate) return;
+
+    // Create a new inputs array with the updated value
+    const updatedInputs = node.data.inputs.map((input) => {
+      if (input.id === inputId) {
+        return { ...input, value: convertValueByType(value, input.type) };
+      }
+      return input;
+    });
+
+    onNodeUpdate(node.id, { inputs: updatedInputs });
+  };
+
+  // Convert string values to the appropriate type
+  const convertValueByType = (value: string, type: string) => {
+    if (type === 'number') {
+      const num = parseFloat(value);
+      return isNaN(num) ? undefined : num;
+    }
+    if (type === 'boolean') {
+      return value.toLowerCase() === 'true';
+    }
+    return value; // Default to string
+  };
+
   return (
     <Card className="border-none shadow-none">
       <CardHeader className="pb-2">
@@ -33,19 +59,27 @@ export function WorkflowNodeInspector({
 
           <div className="space-y-2">
             <Label>Type</Label>
-            <div className="text-sm">{node.type}</div>
+            <div className="text-sm">{node.data.nodeType || node.type}</div>
           </div>
 
           <div className="space-y-2">
             <Label>Inputs</Label>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {node.data.inputs.map((input) => (
                 <div
                   key={input.id}
-                  className="text-sm flex items-center justify-between"
+                  className="text-sm space-y-1"
                 >
-                  <span>{input.label}</span>
-                  <span className="text-xs text-gray-500">{input.type}</span>
+                  <div className="flex items-center justify-between">
+                    <span>{input.label}</span>
+                    <span className="text-xs text-gray-500">{input.type}</span>
+                  </div>
+                  <Input
+                    placeholder={`Enter ${input.type} value`}
+                    value={input.value !== undefined ? String(input.value) : ''}
+                    onChange={(e) => handleInputValueChange(input.id, e.target.value)}
+                    className="text-sm h-8"
+                  />
                 </div>
               ))}
               {node.data.inputs.length === 0 && (
