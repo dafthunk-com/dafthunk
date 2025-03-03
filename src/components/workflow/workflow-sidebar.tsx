@@ -9,7 +9,7 @@ export function WorkflowSidebar({
   onEdgeUpdate,
 }: WorkflowSidebarProps) {
   return (
-    <div className="h-full border-l border-gray-200 p-4 overflow-y-auto">
+    <div className="h-full p-4 overflow-y-auto">
       {node && (
         <WorkflowNodeInspector node={node} onNodeUpdate={onNodeUpdate} />
       )}
