@@ -4,18 +4,11 @@ import ReactFlow, {
   BackgroundVariant,
   ConnectionMode,
   ConnectionLineType,
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
-  NodeChange,
-  EdgeChange,
-  OnConnectStart,
-  OnConnectEnd,
-  OnConnect,
-  ReactFlowInstance,
 } from "reactflow";
 import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge } from "./workflow-edge";
+import { WorkflowCanvasProps } from "./workflow-types";
 import "reactflow/dist/style.css";
 
 const nodeTypes = {
@@ -33,26 +26,6 @@ const connectionLineOptions = {
     stroke: "#d1d5db",
   },
 };
-
-export type ConnectionValidationState = "default" | "valid" | "invalid";
-
-interface WorkflowCanvasProps {
-  nodes: ReactFlowNode[];
-  edges: ReactFlowEdge[];
-  connectionValidationState: ConnectionValidationState;
-  onNodesChange: (changes: NodeChange[]) => void;
-  onEdgesChange: (changes: EdgeChange[]) => void;
-  onConnect: OnConnect;
-  onConnectStart: OnConnectStart;
-  onConnectEnd: OnConnectEnd;
-  onNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
-  onEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
-  onPaneClick: () => void;
-  onInit: (instance: ReactFlowInstance) => void;
-  onAddNode?: () => void;
-  onExecute?: (e: React.MouseEvent) => void;
-  showControls?: boolean;
-}
 
 export function WorkflowCanvas({
   nodes,

@@ -1,15 +1,6 @@
-import { Node, Edge } from "reactflow";
 import { WorkflowNodeInspector } from "./workflow-node-inspector";
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
-import { WorkflowNodeData } from "./workflow-node";
-import { WorkflowEdgeData } from "./workflow-edge";
-
-interface WorkflowSidebarProps {
-  node: Node<WorkflowNodeData> | null;
-  edge: Edge<WorkflowEdgeData> | null;
-  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
-}
+import { WorkflowSidebarProps } from "./workflow-types";
 
 export function WorkflowSidebar({
   node,

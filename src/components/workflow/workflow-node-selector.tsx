@@ -10,31 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-export interface NodeTemplate {
-  id: string;
-  type: string;
-  label: string;
-  description: string;
-  category: string;
-  inputs: Array<{
-    id: string;
-    type: string;
-    label: string;
-  }>;
-  outputs: Array<{
-    id: string;
-    type: string;
-    label: string;
-  }>;
-}
-
-interface WorkflowNodeSelectorProps {
-  open: boolean;
-  onClose: () => void;
-  onSelect: (template: NodeTemplate) => void;
-  templates?: NodeTemplate[];
-}
+import { WorkflowNodeSelectorProps } from "./workflow-types";
 
 export function WorkflowNodeSelector({
   open,

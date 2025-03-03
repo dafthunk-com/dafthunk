@@ -1,35 +1,8 @@
 import { useCallback } from "react";
-import { NodeExecutionState } from "./workflow-node";
-
-export type ExecutionEventType = 
-  | "node-start" 
-  | "node-complete" 
-  | "node-error" 
-  | "execution-complete" 
-  | "execution-error";
-
-export interface ExecutionEvent {
-  type: ExecutionEventType;
-  nodeId?: string;
-  error?: string;
-  outputs?: Record<string, any>;
-}
-
-export interface UseWorkflowExecutionProps {
-  workflowId: string;
-  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
-  onExecutionStart?: () => void;
-  onExecutionComplete?: () => void;
-  onExecutionError?: (error: string) => void;
-  onNodeStart?: (nodeId: string) => void;
-  onNodeComplete?: (nodeId: string, outputs?: Record<string, any>) => void;
-  onNodeError?: (nodeId: string, error: string) => void;
-  executeWorkflow?: (workflowId: string, callbacks: {
-    onEvent: (event: ExecutionEvent) => void;
-    onComplete: () => void;
-    onError: (error: string) => void;
-  }) => void | (() => void);
-}
+import { 
+  ExecutionEvent, 
+  UseWorkflowExecutionProps 
+} from "./workflow-types";
 
 export function useWorkflowExecution({
   workflowId,

@@ -1,13 +1,7 @@
-import { Node } from "reactflow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { WorkflowNodeData } from "./workflow-node";
-
-interface WorkflowNodeInspectorProps {
-  node: Node<WorkflowNodeData> | null;
-  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-}
+import { WorkflowNodeInspectorProps } from "./workflow-types";
 
 export function WorkflowNodeInspector({
   node,

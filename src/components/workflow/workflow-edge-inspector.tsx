@@ -1,13 +1,7 @@
-import { Edge } from "reactflow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { WorkflowEdgeData } from "./workflow-edge";
-
-interface WorkflowEdgeInspectorProps {
-  edge: Edge<WorkflowEdgeData> | null;
-  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
-}
+import { WorkflowEdgeInspectorProps } from "./workflow-types";
 
 export function WorkflowEdgeInspector({
   edge,

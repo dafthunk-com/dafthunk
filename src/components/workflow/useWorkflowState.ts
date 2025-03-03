@@ -2,62 +2,19 @@ import { useState, useCallback, useEffect } from "react";
 import {
   useNodesState,
   useEdgesState,
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
-  Connection,
   addEdge,
-  NodeChange,
-  EdgeChange,
-  ReactFlowInstance,
-  OnConnectStart,
-  OnConnectEnd,
-  OnConnect,
   getConnectedEdges,
+  Node as ReactFlowNode,
 } from "reactflow";
-import { NodeExecutionState, WorkflowNodeData } from "./workflow-node";
-import { WorkflowEdgeData } from "./workflow-edge";
-import { NodeTemplate } from "./workflow-node-selector";
-import { ConnectionValidationState } from "./workflow-canvas";
-
-export interface WorkflowData {
-  id: string;
-  name: string;
-  nodes: ReactFlowNode<WorkflowNodeData>[];
-  edges: ReactFlowEdge<WorkflowEdgeData>[];
-}
-
-interface UseWorkflowStateProps {
-  initialNodes?: ReactFlowNode<WorkflowNodeData>[];
-  initialEdges?: ReactFlowEdge<WorkflowEdgeData>[];
-  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeData>[]) => void;
-  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeData>[]) => void;
-  validateConnection?: (connection: Connection) => boolean;
-}
-
-interface UseWorkflowStateReturn {
-  nodes: ReactFlowNode<WorkflowNodeData>[];
-  edges: ReactFlowEdge<WorkflowEdgeData>[];
-  selectedNode: ReactFlowNode<WorkflowNodeData> | null;
-  selectedEdge: ReactFlowEdge<WorkflowEdgeData> | null;
-  reactFlowInstance: ReactFlowInstance | null;
-  isNodeSelectorOpen: boolean;
-  setIsNodeSelectorOpen: (open: boolean) => void;
-  onNodesChange: (changes: NodeChange[]) => void;
-  onEdgesChange: (changes: EdgeChange[]) => void;
-  onConnect: OnConnect;
-  onConnectStart: OnConnectStart;
-  onConnectEnd: OnConnectEnd;
-  connectionValidationState: ConnectionValidationState;
-  handleNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
-  handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
-  handlePaneClick: () => void;
-  handleAddNode: () => void;
-  handleNodeSelect: (template: NodeTemplate) => void;
-  setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
-  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-  updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
-}
+import { 
+  WorkflowNodeData, 
+  WorkflowEdgeData, 
+  NodeTemplate, 
+  ConnectionValidationState,
+  UseWorkflowStateProps,
+  UseWorkflowStateReturn,
+  NodeExecutionState
+} from "./workflow-types";
 
 export function useWorkflowState({
   initialNodes = [],
@@ -69,9 +26,9 @@ export function useWorkflowState({
   // State management
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowNodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<WorkflowEdgeData>(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<ReactFlowNode<WorkflowNodeData> | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge<WorkflowEdgeData> | null>(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const [selectedNode, setSelectedNode] = useState<any | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<any | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [connectionValidationState, setConnectionValidationState] = 
     useState<ConnectionValidationState>("default");
@@ -87,9 +44,9 @@ export function useWorkflowState({
 
   // Handle node selection
   const handleNodeClick = useCallback(
-    (event: React.MouseEvent, node: ReactFlowNode) => {
+    (event: React.MouseEvent, node: any) => {
       event.stopPropagation();
-      setSelectedNode(node as ReactFlowNode<WorkflowNodeData>);
+      setSelectedNode(node);
       setSelectedEdge(null);
     },
     []
@@ -97,9 +54,9 @@ export function useWorkflowState({
 
   // Handle edge selection
   const handleEdgeClick = useCallback(
-    (event: React.MouseEvent, edge: ReactFlowEdge) => {
+    (event: React.MouseEvent, edge: any) => {
       event.stopPropagation();
-      setSelectedEdge(edge as ReactFlowEdge<WorkflowEdgeData>);
+      setSelectedEdge(edge);
       setSelectedNode(null);
     },
     []
@@ -112,20 +69,20 @@ export function useWorkflowState({
   }, []);
 
   // Handle connection start
-  const onConnectStart: OnConnectStart = useCallback((_event, params) => {
+  const onConnectStart = useCallback((_event: any, params: any) => {
     if (params) {
       setConnectionValidationState("default");
     }
   }, []);
 
   // Handle connection end
-  const onConnectEnd: OnConnectEnd = useCallback(() => {
+  const onConnectEnd = useCallback(() => {
     setConnectionValidationState("default");
   }, []);
 
   // Handle connection
-  const onConnect: OnConnect = useCallback(
-    (connection) => {
+  const onConnect = useCallback(
+    (connection: any) => {
       if (!connection.source || !connection.target) return;
 
       const isValid = validateConnection(connection);
@@ -172,7 +129,7 @@ export function useWorkflowState({
           label: template.label,
           inputs: template.inputs,
           outputs: template.outputs,
-          executionState: 'idle',
+          executionState: 'idle' as NodeExecutionState,
         },
       };
 
@@ -202,7 +159,7 @@ export function useWorkflowState({
 
       // Update edge active state based on execution
       if (state === 'executing') {
-        const nodeEdges = getConnectedEdges([{ id: nodeId } as ReactFlowNode], edges);
+        const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
         setEdges((eds) =>
           eds.map((edge) => {
             const isConnectedToExecutingNode = nodeEdges.some((e) => e.id === edge.id);

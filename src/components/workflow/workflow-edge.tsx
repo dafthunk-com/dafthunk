@@ -1,13 +1,7 @@
 import { memo } from "react";
 import { EdgeProps, getSmoothStepPath } from "reactflow";
 import { cn } from "@/lib/utils";
-
-export interface WorkflowEdgeData {
-  isValid?: boolean;
-  isActive?: boolean;
-  sourceType?: string;
-  targetType?: string;
-}
+import { WorkflowEdgeData } from "./workflow-types";
 
 export const WorkflowEdge = memo(
   ({

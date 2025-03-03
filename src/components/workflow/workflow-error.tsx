@@ -1,10 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-
-interface WorkflowErrorProps {
-  message: string;
-  details?: string;
-}
+import { WorkflowErrorProps } from "./workflow-types";
 
 export function WorkflowError({ message, details }: WorkflowErrorProps) {
   return (

@@ -4,11 +4,13 @@ import type { LoaderFunctionArgs } from "react-router-dom";
 import { Workflow } from "@/lib/workflowTypes";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
-import { NodeTemplate } from "@/components/workflow/workflow-node-selector";
-import { ExecutionEvent } from "@/components/workflow/useWorkflowExecution";
 import { Node, Edge, Connection } from "reactflow";
-import { WorkflowNodeData } from "@/components/workflow/workflow-node";
-import { WorkflowEdgeData } from "@/components/workflow/workflow-edge";
+import { 
+  NodeTemplate, 
+  ExecutionEvent, 
+  WorkflowNodeData, 
+  WorkflowEdgeData 
+} from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 
 // Default empty workflow structure
