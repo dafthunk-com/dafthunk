@@ -27,7 +27,7 @@ INSERT INTO workflows (id, name, data) VALUES (
     'nodes', json_array(
       json_object(
         'id', 'add1',
-        'name', 'Add 2 and 3',
+        'name', 'Addition',
         'type', 'addition',
         'position', json_object('x', 100, 'y', 100),
         'inputs', json_array(
@@ -40,7 +40,7 @@ INSERT INTO workflows (id, name, data) VALUES (
       ),
       json_object(
         'id', 'multiply1',
-        'name', 'Multiply by 4',
+        'name', 'Multiplication',
         'type', 'multiplication',
         'position', json_object('x', 400, 'y', 100),
         'inputs', json_array(
