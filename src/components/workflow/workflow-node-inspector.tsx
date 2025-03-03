@@ -31,12 +31,12 @@ export function WorkflowNodeInspector({
 
   // Convert string values to the appropriate type
   const convertValueByType = (value: string, type: string) => {
-    if (type === 'number') {
+    if (type === "number") {
       const num = parseFloat(value);
       return isNaN(num) ? undefined : num;
     }
-    if (type === 'boolean') {
-      return value.toLowerCase() === 'true';
+    if (type === "boolean") {
+      return value.toLowerCase() === "true";
     }
     return value; // Default to string
   };
@@ -66,18 +66,17 @@ export function WorkflowNodeInspector({
             <Label>Inputs</Label>
             <div className="space-y-2">
               {node.data.inputs.map((input) => (
-                <div
-                  key={input.id}
-                  className="text-sm space-y-1"
-                >
+                <div key={input.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
                     <span>{input.label}</span>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
                   <Input
                     placeholder={`Enter ${input.type} value`}
-                    value={input.value !== undefined ? String(input.value) : ''}
-                    onChange={(e) => handleInputValueChange(input.id, e.target.value)}
+                    value={input.value !== undefined ? String(input.value) : ""}
+                    onChange={(e) =>
+                      handleInputValueChange(input.id, e.target.value)
+                    }
                     className="text-sm h-8"
                   />
                 </div>

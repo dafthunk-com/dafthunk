@@ -2,9 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { WorkflowEdgeInspectorProps } from "./workflow-types";
 
-export function WorkflowEdgeInspector({
-  edge,
-}: WorkflowEdgeInspectorProps) {
+export function WorkflowEdgeInspector({ edge }: WorkflowEdgeInspectorProps) {
   if (!edge) return null;
 
   return (

@@ -286,11 +286,13 @@ export function EditorPage() {
       }
     ) => {
       // Connect to the server-side SSE endpoint for workflow execution
-      console.log(`Connecting to workflow execution endpoint for ID: ${workflowId}`);
-      
+      console.log(
+        `Connecting to workflow execution endpoint for ID: ${workflowId}`
+      );
+
       // Create EventSource for SSE connection
       const eventSource = new EventSource(`/workflows/${workflowId}/execute`);
-      
+
       // Set up event listeners for different event types
       eventSource.addEventListener("node-start", (event) => {
         try {
@@ -303,7 +305,7 @@ export function EditorPage() {
           console.error("Error parsing node-start event:", error);
         }
       });
-      
+
       eventSource.addEventListener("node-complete", (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -316,7 +318,7 @@ export function EditorPage() {
           console.error("Error parsing node-complete event:", error);
         }
       });
-      
+
       eventSource.addEventListener("node-error", (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -329,12 +331,12 @@ export function EditorPage() {
           console.error("Error parsing node-error event:", error);
         }
       });
-      
+
       eventSource.addEventListener("execution-complete", () => {
         callbacks.onComplete();
         eventSource.close();
       });
-      
+
       eventSource.addEventListener("execution-error", (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -345,7 +347,7 @@ export function EditorPage() {
           eventSource.close();
         }
       });
-      
+
       eventSource.addEventListener("validation-error", (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -356,14 +358,14 @@ export function EditorPage() {
           eventSource.close();
         }
       });
-      
+
       // Handle connection errors
       eventSource.onerror = (error) => {
         console.error("SSE connection error:", error);
         callbacks.onError("Connection to execution service failed");
         eventSource.close();
       };
-      
+
       // Return cleanup function to close the connection
       return () => {
         console.log("Closing SSE connection");

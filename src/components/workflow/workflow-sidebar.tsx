@@ -12,9 +12,7 @@ export function WorkflowSidebar({
       {node && (
         <WorkflowNodeInspector node={node} onNodeUpdate={onNodeUpdate} />
       )}
-      {edge && (
-        <WorkflowEdgeInspector edge={edge} />
-      )}
+      {edge && <WorkflowEdgeInspector edge={edge} />}
     </div>
   );
 }
