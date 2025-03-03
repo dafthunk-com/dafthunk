@@ -53,4 +53,4 @@ export function WorkflowEdgeInspector({
       </CardContent>
     </Card>
   );
-} 
+}

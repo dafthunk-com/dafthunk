@@ -66,7 +66,9 @@ export function WorkflowNodeSelector({
               {categories.map((category) => (
                 <Button
                   key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
+                  variant={
+                    selectedCategory === category ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
                 >
@@ -93,14 +95,26 @@ export function WorkflowNodeSelector({
                   {template.description}
                 </p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <div className={cn("flex items-center", template.inputs.length === 0 && "opacity-50")}>
+                  <div
+                    className={cn(
+                      "flex items-center",
+                      template.inputs.length === 0 && "opacity-50"
+                    )}
+                  >
                     <span>
-                      {template.inputs.length} input{template.inputs.length !== 1 ? "s" : ""}
+                      {template.inputs.length} input
+                      {template.inputs.length !== 1 ? "s" : ""}
                     </span>
                   </div>
-                  <div className={cn("flex items-center", template.outputs.length === 0 && "opacity-50")}>
+                  <div
+                    className={cn(
+                      "flex items-center",
+                      template.outputs.length === 0 && "opacity-50"
+                    )}
+                  >
                     <span>
-                      {template.outputs.length} output{template.outputs.length !== 1 ? "s" : ""}
+                      {template.outputs.length} output
+                      {template.outputs.length !== 1 ? "s" : ""}
                     </span>
                   </div>
                 </div>
@@ -116,4 +130,4 @@ export function WorkflowNodeSelector({
       </DialogContent>
     </Dialog>
   );
-} 
+}

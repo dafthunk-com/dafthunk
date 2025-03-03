@@ -1,8 +1,5 @@
 import { useCallback } from "react";
-import { 
-  ExecutionEvent, 
-  UseWorkflowExecutionProps 
-} from "./workflow-types";
+import { ExecutionEvent, UseWorkflowExecutionProps } from "./workflow-types";
 
 export function useWorkflowExecution({
   workflowId,
@@ -21,7 +18,9 @@ export function useWorkflowExecution({
 
     // If no custom execution function is provided, we just simulate the execution
     if (!executeWorkflow) {
-      console.warn("No executeWorkflow function provided, simulating execution");
+      console.warn(
+        "No executeWorkflow function provided, simulating execution"
+      );
       return;
     }
 
@@ -85,4 +84,4 @@ export function useWorkflowExecution({
   return {
     handleExecute,
   };
-} 
+}

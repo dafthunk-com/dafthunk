@@ -5,11 +5,11 @@ import { Workflow } from "@/lib/workflowTypes";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
-import { 
-  NodeTemplate, 
-  ExecutionEvent, 
-  WorkflowNodeData, 
-  WorkflowEdgeData 
+import {
+  NodeTemplate,
+  ExecutionEvent,
+  WorkflowNodeData,
+  WorkflowEdgeData,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 
@@ -68,18 +68,18 @@ export function EditorPage() {
       try {
         const types = await fetchNodeTypes();
         // Convert NodeType to NodeTemplate
-        const templates: NodeTemplate[] = types.map(type => ({
+        const templates: NodeTemplate[] = types.map((type) => ({
           id: type.id,
           type: type.type,
           label: type.name, // Map name to label
           description: type.description,
           category: type.category,
-          inputs: type.inputs.map(input => ({
+          inputs: type.inputs.map((input) => ({
             id: input.name,
             type: input.type,
             label: input.name,
           })),
-          outputs: type.outputs.map(output => ({
+          outputs: type.outputs.map((output) => ({
             id: output.name,
             type: output.type,
             label: output.name,
@@ -88,7 +88,9 @@ export function EditorPage() {
         setNodeTemplates(templates);
         setTemplatesError(null);
       } catch (err) {
-        setTemplatesError("Failed to load node templates. Please try again later.");
+        setTemplatesError(
+          "Failed to load node templates. Please try again later."
+        );
       }
     };
 
@@ -101,26 +103,26 @@ export function EditorPage() {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Convert nodes
       const reactFlowNodes = initialWorkflow.nodes.map((node) => ({
         id: node.id,
-        type: 'workflowNode',
+        type: "workflowNode",
         position: node.position,
         data: {
           label: node.name,
-          inputs: node.inputs.map(input => ({
+          inputs: node.inputs.map((input) => ({
             id: input.name,
             type: input.type,
             label: input.description || input.name,
           })),
-          outputs: node.outputs.map(output => ({
+          outputs: node.outputs.map((output) => ({
             id: output.name,
             type: output.type,
             label: output.description || output.name,
           })),
-          executionState: 'idle' as const,
+          executionState: "idle" as const,
         },
       }));
 
@@ -131,14 +133,14 @@ export function EditorPage() {
         target: edge.target,
         sourceHandle: edge.sourceOutput,
         targetHandle: edge.targetInput,
-        type: 'workflowEdge',
+        type: "workflowEdge",
         data: {
           isValid: true,
           sourceType: edge.sourceOutput,
           targetType: edge.targetInput,
         },
       }));
-      
+
       // Set the state with the converted data
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
@@ -151,59 +153,66 @@ export function EditorPage() {
 
   // Debounced save function
   const debouncedSave = useCallback(
-    debounce(async (nodes: Node<WorkflowNodeData>[], edges: Edge<WorkflowEdgeData>[]) => {
-      if (!id) return;
+    debounce(
+      async (
+        nodes: Node<WorkflowNodeData>[],
+        edges: Edge<WorkflowEdgeData>[]
+      ) => {
+        if (!id) return;
 
-      try {
-        setIsSaving(true);
-        
-        // Convert ReactFlow nodes back to workflow nodes
-        const workflowNodes = nodes.map(node => ({
-          id: node.id,
-          name: node.data.label,
-          type: node.type === 'workflowNode' ? 'default' : node.type || 'default',
-          position: node.position,
-          inputs: node.data.inputs.map(input => ({
-            name: input.id,
-            type: input.type,
-            description: input.label,
-          })),
-          outputs: node.data.outputs.map(output => ({
-            name: output.id,
-            type: output.type,
-            description: output.label,
-          })),
-        }));
+        try {
+          setIsSaving(true);
 
-        // Convert ReactFlow edges back to workflow edges
-        const workflowEdges = edges.map(edge => ({
-          source: edge.source,
-          target: edge.target,
-          sourceOutput: edge.sourceHandle || '',
-          targetInput: edge.targetHandle || '',
-        }));
+          // Convert ReactFlow nodes back to workflow nodes
+          const workflowNodes = nodes.map((node) => ({
+            id: node.id,
+            name: node.data.label,
+            type:
+              node.type === "workflowNode" ? "default" : node.type || "default",
+            position: node.position,
+            inputs: node.data.inputs.map((input) => ({
+              name: input.id,
+              type: input.type,
+              description: input.label,
+            })),
+            outputs: node.data.outputs.map((output) => ({
+              name: output.id,
+              type: output.type,
+              description: output.label,
+            })),
+          }));
 
-        // Create the workflow object
-        const workflowToSave: Workflow = {
-          ...initialWorkflow, // Keep other properties from the initial workflow
-          id: id,
-          name: initialWorkflow.name,
-          nodes: workflowNodes,
-          edges: workflowEdges,
-        };
-        
-        // Verify we have nodes and edges before saving
-        if (workflowNodes.length === 0 && initialWorkflow.nodes.length > 0) {
-          return;
+          // Convert ReactFlow edges back to workflow edges
+          const workflowEdges = edges.map((edge) => ({
+            source: edge.source,
+            target: edge.target,
+            sourceOutput: edge.sourceHandle || "",
+            targetInput: edge.targetHandle || "",
+          }));
+
+          // Create the workflow object
+          const workflowToSave: Workflow = {
+            ...initialWorkflow, // Keep other properties from the initial workflow
+            id: id,
+            name: initialWorkflow.name,
+            nodes: workflowNodes,
+            edges: workflowEdges,
+          };
+
+          // Verify we have nodes and edges before saving
+          if (workflowNodes.length === 0 && initialWorkflow.nodes.length > 0) {
+            return;
+          }
+
+          await workflowService.save(id, workflowToSave);
+        } catch (err) {
+          // Error handling without logging
+        } finally {
+          setIsSaving(false);
         }
-
-        await workflowService.save(id, workflowToSave);
-      } catch (err) {
-        // Error handling without logging
-      } finally {
-        setIsSaving(false);
-      }
-    }, 1000),
+      },
+      1000
+    ),
     [id, initialWorkflow]
   );
 
@@ -211,7 +220,7 @@ export function EditorPage() {
   const handleNodesChange = useCallback(
     (updatedNodes: Node<WorkflowNodeData>[]) => {
       setNodes(updatedNodes);
-      
+
       // Only save if we have nodes to save
       if (updatedNodes.length > 0) {
         debouncedSave(updatedNodes, edges);
@@ -224,7 +233,7 @@ export function EditorPage() {
   const handleEdgesChange = useCallback(
     (updatedEdges: Edge<WorkflowEdgeData>[]) => {
       setEdges(updatedEdges);
-      
+
       // Only trigger save if we have nodes
       if (nodes.length > 0) {
         debouncedSave(nodes, updatedEdges);
@@ -234,28 +243,33 @@ export function EditorPage() {
   );
 
   // Validate connections based on type compatibility
-  const validateConnection = useCallback((connection: Connection) => {
-    // Find source and target nodes
-    const sourceNode = nodes.find((node) => node.id === connection.source);
-    const targetNode = nodes.find((node) => node.id === connection.target);
+  const validateConnection = useCallback(
+    (connection: Connection) => {
+      // Find source and target nodes
+      const sourceNode = nodes.find((node) => node.id === connection.source);
+      const targetNode = nodes.find((node) => node.id === connection.target);
 
-    if (!sourceNode || !targetNode) return false;
+      if (!sourceNode || !targetNode) return false;
 
-    // Find source and target parameters
-    const sourceOutput = sourceNode.data.outputs.find(
-      (output) => output.id === connection.sourceHandle
-    );
-    const targetInput = targetNode.data.inputs.find(
-      (input) => input.id === connection.targetHandle
-    );
+      // Find source and target parameters
+      const sourceOutput = sourceNode.data.outputs.find(
+        (output) => output.id === connection.sourceHandle
+      );
+      const targetInput = targetNode.data.inputs.find(
+        (input) => input.id === connection.targetHandle
+      );
 
-    if (!sourceOutput || !targetInput) return false;
+      if (!sourceOutput || !targetInput) return false;
 
-    // Check if types are compatible (allow 'any' to connect to anything)
-    return sourceOutput.type === targetInput.type || 
-           sourceOutput.type === 'any' || 
-           targetInput.type === 'any';
-  }, [nodes]);
+      // Check if types are compatible (allow 'any' to connect to anything)
+      return (
+        sourceOutput.type === targetInput.type ||
+        sourceOutput.type === "any" ||
+        targetInput.type === "any"
+      );
+    },
+    [nodes]
+  );
 
   // Simulate workflow execution
   const executeWorkflow = useCallback(
@@ -270,35 +284,35 @@ export function EditorPage() {
       // This is a simulation of the server-side execution
       // In a real implementation, this would be an API call to execute the workflow with the given ID
       console.log(`Executing workflow with ID: ${workflowId}`);
-      
+
       // Get all nodes with no incoming edges (start nodes)
       const startNodes = nodes.filter((node) => {
         return !edges.some((edge) => edge.target === node.id);
       });
-      
+
       if (startNodes.length === 0) {
         callbacks.onError("No start nodes found in the workflow");
         return;
       }
-      
+
       // Process each start node
       startNodes.forEach((startNode) => {
         setTimeout(() => {
           processNode(startNode.id);
         }, 500);
       });
-      
+
       // Process a node by ID
       function processNode(nodeId: string) {
         const node = nodes.find((n) => n.id === nodeId);
         if (!node) return;
-        
+
         // Notify that node execution started
         callbacks.onEvent({
           type: "node-start",
           nodeId: nodeId,
         });
-        
+
         // Simulate processing time
         setTimeout(() => {
           try {
@@ -307,17 +321,19 @@ export function EditorPage() {
             node.data.outputs.forEach((output) => {
               outputs[output.id] = `Output from ${node.data.label}`;
             });
-            
+
             // Notify that node execution completed
             callbacks.onEvent({
               type: "node-complete",
               nodeId: nodeId,
               outputs: outputs,
             });
-            
+
             // Find all outgoing edges from this node
-            const outgoingEdges = edges.filter((edge) => edge.source === nodeId);
-            
+            const outgoingEdges = edges.filter(
+              (edge) => edge.source === nodeId
+            );
+
             // Process all target nodes
             outgoingEdges.forEach((edge) => {
               const targetNode = nodes.find((n) => n.id === edge.target);
@@ -327,21 +343,23 @@ export function EditorPage() {
                 if (edge.sourceHandle && edge.targetHandle) {
                   targetInputs[edge.targetHandle] = outputs[edge.sourceHandle];
                 }
-                
+
                 // Process the target node after a delay
                 setTimeout(() => {
                   processNode(targetNode.id);
                 }, 500);
               }
             });
-            
+
             // Check if this is an end node (no outgoing edges)
             if (outgoingEdges.length === 0) {
               // Check if all nodes have been processed
               const remainingNodes = nodes.filter(
-                (n) => n.data.executionState !== "completed" && n.data.executionState !== "error"
+                (n) =>
+                  n.data.executionState !== "completed" &&
+                  n.data.executionState !== "error"
               );
-              
+
               if (remainingNodes.length === 0) {
                 callbacks.onComplete();
               }
@@ -356,7 +374,7 @@ export function EditorPage() {
           }
         }, 1000);
       }
-      
+
       // Return a cleanup function
       return () => {
         // Cleanup without logging
@@ -368,10 +386,16 @@ export function EditorPage() {
   return (
     <div className="w-screen h-screen fixed top-0 left-0 p-2">
       <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
-        {isLoading && <div className="text-sm bg-blue-100 p-2 rounded-md">Loading workflow...</div>}
-        {isSaving && <div className="text-sm bg-yellow-100 p-2 rounded-md">Saving...</div>}
+        {isLoading && (
+          <div className="text-sm bg-blue-100 p-2 rounded-md">
+            Loading workflow...
+          </div>
+        )}
+        {isSaving && (
+          <div className="text-sm bg-yellow-100 p-2 rounded-md">Saving...</div>
+        )}
       </div>
-      
+
       {isLoading ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
@@ -381,25 +405,30 @@ export function EditorPage() {
         </div>
       ) : nodes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full">
-          <p className="text-muted-foreground mb-4">No nodes in this workflow yet</p>
+          <p className="text-muted-foreground mb-4">
+            No nodes in this workflow yet
+          </p>
           <button
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
             onClick={() => {
               const newNode = {
                 id: `input-${Date.now()}`,
-                type: 'workflowNode',
-                position: { x: window.innerWidth / 2 - 75, y: window.innerHeight / 2 - 75 },
+                type: "workflowNode",
+                position: {
+                  x: window.innerWidth / 2 - 75,
+                  y: window.innerHeight / 2 - 75,
+                },
                 data: {
-                  label: 'Input',
+                  label: "Input",
                   inputs: [],
                   outputs: [
                     {
-                      id: 'output',
-                      type: 'any',
-                      label: 'Output',
+                      id: "output",
+                      type: "any",
+                      label: "Output",
                     },
                   ],
-                  executionState: 'idle' as const,
+                  executionState: "idle" as const,
                 },
               };
               setNodes([newNode]);
@@ -411,7 +440,7 @@ export function EditorPage() {
       ) : templatesError ? (
         <div className="flex flex-col items-center justify-center h-full">
           <p className="text-red-500 mb-4">{templatesError}</p>
-          <button 
+          <button
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
             onClick={() => window.location.reload()}
           >
@@ -431,12 +460,12 @@ export function EditorPage() {
           executeWorkflow={executeWorkflow}
           onExecutionStart={() => {
             // Reset all nodes to idle state before execution
-            const resetNodes = nodes.map(node => ({
+            const resetNodes = nodes.map((node) => ({
               ...node,
               data: {
                 ...node.data,
-                executionState: 'idle' as const
-              }
+                executionState: "idle" as const,
+              },
             }));
             setNodes(resetNodes);
           }}

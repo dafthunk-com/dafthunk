@@ -132,4 +132,4 @@ export function WorkflowCanvas({
       )}
     </ReactFlow>
   );
-} 
+}

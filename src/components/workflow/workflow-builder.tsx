@@ -120,4 +120,4 @@ export function WorkflowBuilder({
       </div>
     </ReactFlowProvider>
   );
-} 
+}

@@ -15,4 +15,4 @@ export function WorkflowError({ message, details }: WorkflowErrorProps) {
       </AlertDescription>
     </Alert>
   );
-} 
+}

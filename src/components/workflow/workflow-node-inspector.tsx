@@ -75,4 +75,4 @@ export function WorkflowNodeInspector({
       </CardContent>
     </Card>
   );
-} 
+}

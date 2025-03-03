@@ -10,8 +10,12 @@ export function WorkflowSidebar({
 }: WorkflowSidebarProps) {
   return (
     <div className="h-full border-l border-gray-200 p-4 overflow-y-auto">
-      {node && <WorkflowNodeInspector node={node} onNodeUpdate={onNodeUpdate} />}
-      {edge && <WorkflowEdgeInspector edge={edge} onEdgeUpdate={onEdgeUpdate} />}
+      {node && (
+        <WorkflowNodeInspector node={node} onNodeUpdate={onNodeUpdate} />
+      )}
+      {edge && (
+        <WorkflowEdgeInspector edge={edge} onEdgeUpdate={onEdgeUpdate} />
+      )}
     </div>
   );
-} 
+}

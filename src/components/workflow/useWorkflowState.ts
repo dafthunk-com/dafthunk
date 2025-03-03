@@ -6,14 +6,14 @@ import {
   getConnectedEdges,
   Node as ReactFlowNode,
 } from "reactflow";
-import { 
-  WorkflowNodeData, 
-  WorkflowEdgeData, 
-  NodeTemplate, 
+import {
+  WorkflowNodeData,
+  WorkflowEdgeData,
+  NodeTemplate,
   ConnectionValidationState,
   UseWorkflowStateProps,
   UseWorkflowStateReturn,
-  NodeExecutionState
+  NodeExecutionState,
 } from "./workflow-types";
 
 export function useWorkflowState({
@@ -24,13 +24,15 @@ export function useWorkflowState({
   validateConnection = () => true,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
-  const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowNodeData>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<WorkflowEdgeData>(initialEdges);
+  const [nodes, setNodes, onNodesChange] =
+    useNodesState<WorkflowNodeData>(initialNodes);
+  const [edges, setEdges, onEdgesChange] =
+    useEdgesState<WorkflowEdgeData>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
-  const [connectionValidationState, setConnectionValidationState] = 
+  const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
 
   // Effect to notify parent of changes
@@ -43,24 +45,18 @@ export function useWorkflowState({
   }, [edges, onEdgesChangeCallback]);
 
   // Handle node selection
-  const handleNodeClick = useCallback(
-    (event: React.MouseEvent, node: any) => {
-      event.stopPropagation();
-      setSelectedNode(node);
-      setSelectedEdge(null);
-    },
-    []
-  );
+  const handleNodeClick = useCallback((event: React.MouseEvent, node: any) => {
+    event.stopPropagation();
+    setSelectedNode(node);
+    setSelectedEdge(null);
+  }, []);
 
   // Handle edge selection
-  const handleEdgeClick = useCallback(
-    (event: React.MouseEvent, edge: any) => {
-      event.stopPropagation();
-      setSelectedEdge(edge);
-      setSelectedNode(null);
-    },
-    []
-  );
+  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
+    event.stopPropagation();
+    setSelectedEdge(edge);
+    setSelectedNode(null);
+  }, []);
 
   // Handle pane click (deselect)
   const handlePaneClick = useCallback(() => {
@@ -86,12 +82,12 @@ export function useWorkflowState({
       if (!connection.source || !connection.target) return;
 
       const isValid = validateConnection(connection);
-      
+
       if (isValid) {
         const newEdge = {
           ...connection,
           id: `${connection.source}-${connection.sourceHandle}-${connection.target}-${connection.targetHandle}`,
-          type: 'workflowEdge',
+          type: "workflowEdge",
           data: {
             isValid: true,
             isActive: false,
@@ -99,7 +95,7 @@ export function useWorkflowState({
             targetType: connection.targetHandle,
           },
         };
-        
+
         setEdges((eds) => addEdge(newEdge, eds));
       }
     },
@@ -123,13 +119,13 @@ export function useWorkflowState({
 
       const newNode: ReactFlowNode<WorkflowNodeData> = {
         id: `${template.type}-${Date.now()}`,
-        type: 'workflowNode',
+        type: "workflowNode",
         position,
         data: {
           label: template.label,
           inputs: template.inputs,
           outputs: template.outputs,
-          executionState: 'idle' as NodeExecutionState,
+          executionState: "idle" as NodeExecutionState,
         },
       };
 
@@ -149,7 +145,7 @@ export function useWorkflowState({
               data: {
                 ...node.data,
                 executionState: state,
-                error: state === 'error' ? node.data.error : null,
+                error: state === "error" ? node.data.error : null,
               },
             };
           }
@@ -158,11 +154,13 @@ export function useWorkflowState({
       );
 
       // Update edge active state based on execution
-      if (state === 'executing') {
+      if (state === "executing") {
         const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
         setEdges((eds) =>
           eds.map((edge) => {
-            const isConnectedToExecutingNode = nodeEdges.some((e) => e.id === edge.id);
+            const isConnectedToExecutingNode = nodeEdges.some(
+              (e) => e.id === edge.id
+            );
             return {
               ...edge,
               data: {
@@ -172,7 +170,7 @@ export function useWorkflowState({
             };
           })
         );
-      } else if (state === 'completed' || state === 'error') {
+      } else if (state === "completed" || state === "error") {
         setEdges((eds) =>
           eds.map((edge) => ({
             ...edge,
@@ -253,4 +251,4 @@ export function useWorkflowState({
     updateNodeData,
     updateEdgeData,
   };
-} 
+}
