@@ -116,6 +116,7 @@ export function EditorPage() {
             id: input.name,
             type: input.type,
             label: input.description || input.name,
+            value: input.value,
           })),
           outputs: node.outputs.map((output) => ({
             id: output.name,
@@ -123,6 +124,7 @@ export function EditorPage() {
             label: output.description || output.name,
           })),
           executionState: "idle" as const,
+          nodeType: node.type, // Store the original node type
         },
       }));
 
@@ -164,23 +166,25 @@ export function EditorPage() {
           setIsSaving(true);
 
           // Convert ReactFlow nodes back to workflow nodes
-          const workflowNodes = nodes.map((node) => ({
-            id: node.id,
-            name: node.data.label,
-            type:
-              node.type === "workflowNode" ? "default" : node.type || "default",
-            position: node.position,
-            inputs: node.data.inputs.map((input) => ({
-              name: input.id,
-              type: input.type,
-              description: input.label,
-            })),
-            outputs: node.data.outputs.map((output) => ({
-              name: output.id,
-              type: output.type,
-              description: output.label,
-            })),
-          }));
+          const workflowNodes = nodes.map((node) => {
+            return {
+              id: node.id,
+              name: node.data.label,
+              type: node.data.nodeType || "default",
+              position: node.position,
+              inputs: node.data.inputs.map((input) => ({
+                name: input.id,
+                type: input.type,
+                description: input.label,
+                value: input.value,
+              })),
+              outputs: node.data.outputs.map((output) => ({
+                name: output.id,
+                type: output.type,
+                description: output.label,
+              })),
+            };
+          });
 
           // Convert ReactFlow edges back to workflow edges
           const workflowEdges = edges.map((edge) => ({
@@ -281,106 +285,94 @@ export function EditorPage() {
         onError: (error: string) => void;
       }
     ) => {
-      // This is a simulation of the server-side execution
-      // In a real implementation, this would be an API call to execute the workflow with the given ID
-      console.log(`Executing workflow with ID: ${workflowId}`);
+      // Connect to the server-side SSE endpoint for workflow execution
+      console.log(
+        `Connecting to workflow execution endpoint for ID: ${workflowId}`
+      );
 
-      // Get all nodes with no incoming edges (start nodes)
-      const startNodes = nodes.filter((node) => {
-        return !edges.some((edge) => edge.target === node.id);
+      // Create EventSource for SSE connection
+      const eventSource = new EventSource(`/workflows/${workflowId}/execute`);
+
+      // Set up event listeners for different event types
+      eventSource.addEventListener("node-start", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          callbacks.onEvent({
+            type: "node-start",
+            nodeId: data.nodeId,
+          });
+        } catch (error) {
+          console.error("Error parsing node-start event:", error);
+        }
       });
 
-      if (startNodes.length === 0) {
-        callbacks.onError("No start nodes found in the workflow");
-        return;
-      }
-
-      // Process each start node
-      startNodes.forEach((startNode) => {
-        setTimeout(() => {
-          processNode(startNode.id);
-        }, 500);
+      eventSource.addEventListener("node-complete", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          callbacks.onEvent({
+            type: "node-complete",
+            nodeId: data.nodeId,
+            outputs: data.data?.outputs || {},
+          });
+        } catch (error) {
+          console.error("Error parsing node-complete event:", error);
+        }
       });
 
-      // Process a node by ID
-      function processNode(nodeId: string) {
-        const node = nodes.find((n) => n.id === nodeId);
-        if (!node) return;
+      eventSource.addEventListener("node-error", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          callbacks.onEvent({
+            type: "node-error",
+            nodeId: data.nodeId,
+            error: data.error,
+          });
+        } catch (error) {
+          console.error("Error parsing node-error event:", error);
+        }
+      });
 
-        // Notify that node execution started
-        callbacks.onEvent({
-          type: "node-start",
-          nodeId: nodeId,
-        });
+      eventSource.addEventListener("execution-complete", () => {
+        callbacks.onComplete();
+        eventSource.close();
+      });
 
-        // Simulate processing time
-        setTimeout(() => {
-          try {
-            // Generate outputs based on node type
-            const outputs: Record<string, any> = {};
-            node.data.outputs.forEach((output) => {
-              outputs[output.id] = `Output from ${node.data.label}`;
-            });
+      eventSource.addEventListener("execution-error", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          callbacks.onError(data.error || "Unknown execution error");
+        } catch (error) {
+          callbacks.onError("Failed to parse execution error");
+        } finally {
+          eventSource.close();
+        }
+      });
 
-            // Notify that node execution completed
-            callbacks.onEvent({
-              type: "node-complete",
-              nodeId: nodeId,
-              outputs: outputs,
-            });
+      eventSource.addEventListener("validation-error", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          callbacks.onError(data.error || "Workflow validation error");
+        } catch (error) {
+          callbacks.onError("Failed to parse validation error");
+        } finally {
+          eventSource.close();
+        }
+      });
 
-            // Find all outgoing edges from this node
-            const outgoingEdges = edges.filter(
-              (edge) => edge.source === nodeId
-            );
+      // Handle connection errors
+      eventSource.onerror = (error) => {
+        console.error("SSE connection error:", error);
+        callbacks.onError("Connection to execution service failed");
+        eventSource.close();
+      };
 
-            // Process all target nodes
-            outgoingEdges.forEach((edge) => {
-              const targetNode = nodes.find((n) => n.id === edge.target);
-              if (targetNode) {
-                // Prepare inputs for the target node
-                const targetInputs: Record<string, any> = {};
-                if (edge.sourceHandle && edge.targetHandle) {
-                  targetInputs[edge.targetHandle] = outputs[edge.sourceHandle];
-                }
-
-                // Process the target node after a delay
-                setTimeout(() => {
-                  processNode(targetNode.id);
-                }, 500);
-              }
-            });
-
-            // Check if this is an end node (no outgoing edges)
-            if (outgoingEdges.length === 0) {
-              // Check if all nodes have been processed
-              const remainingNodes = nodes.filter(
-                (n) =>
-                  n.data.executionState !== "completed" &&
-                  n.data.executionState !== "error"
-              );
-
-              if (remainingNodes.length === 0) {
-                callbacks.onComplete();
-              }
-            }
-          } catch (error) {
-            // Notify that node execution failed
-            callbacks.onEvent({
-              type: "node-error",
-              nodeId: nodeId,
-              error: error instanceof Error ? error.message : String(error),
-            });
-          }
-        }, 1000);
-      }
-
-      // Return a cleanup function
+      // Return cleanup function to close the connection
       return () => {
-        // Cleanup without logging
+        console.log("Closing SSE connection");
+        eventSource.close();
       };
     },
-    [nodes, edges]
+    []
   );
 
   return (

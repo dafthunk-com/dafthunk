@@ -27,6 +27,7 @@ export interface WorkflowNodeData {
   outputs: WorkflowParameter[];
   error?: string | null;
   executionState: NodeExecutionState;
+  nodeType?: string;
 }
 
 // Edge Types

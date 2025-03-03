@@ -3,14 +3,16 @@ import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
 
 export interface Parameter {
-  name: string;
+  id: string;
   type: string;
+  label: string;
+  value?: any;
 }
 
 type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 
 export interface WorkflowNodeData {
-  name: string;
+  label: string;
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string | null;
@@ -60,7 +62,7 @@ export const WorkflowNode = memo(
       >
         {/* Header */}
         <div className="p-1 text-center">
-          <h3 className="m-0 text-xs font-medium">{data.name}</h3>
+          <h3 className="m-0 text-xs font-medium">{data.label}</h3>
         </div>
 
         {/* Parameters */}
@@ -69,15 +71,15 @@ export const WorkflowNode = memo(
           <div className="flex flex-col gap-1 flex-1">
             {data.inputs.map((input, index) => (
               <div
-                key={`input-${input.name}-${index}`}
+                key={`input-${input.id}-${index}`}
                 className="flex items-center gap-1 text-xs relative"
               >
                 <TypeBadge
                   type={input.type}
                   position={Position.Left}
-                  id={input.name}
+                  id={input.id}
                 />
-                <p className="overflow-hidden text-ellipsis">{input.name}</p>
+                <p className="overflow-hidden text-ellipsis">{input.label}</p>
               </div>
             ))}
           </div>
@@ -86,14 +88,14 @@ export const WorkflowNode = memo(
           <div className="flex flex-col gap-1 flex-1 items-end">
             {data.outputs.map((output, index) => (
               <div
-                key={`output-${output.name}-${index}`}
+                key={`output-${output.id}-${index}`}
                 className="flex items-center gap-1 text-xs relative"
               >
-                <p className="overflow-hidden text-ellipsis">{output.name}</p>
+                <p className="overflow-hidden text-ellipsis">{output.label}</p>
                 <TypeBadge
                   type={output.type}
                   position={Position.Right}
-                  id={output.name}
+                  id={output.id}
                 />
               </div>
             ))}
