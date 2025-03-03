@@ -1,21 +1,27 @@
-import { Workflow } from "@/lib/workflowTypes";
+import { ReactFlowProvider } from "reactflow";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
 import { useWorkflowExecution } from "./useWorkflowExecution";
-import { useParams } from "react-router-dom";
 import { WorkflowCanvas } from "./workflow-canvas";
-
-interface WorkflowBuilderProps {
-  initialWorkflow: Workflow;
-  onWorkflowChange?: (workflow: Workflow) => void;
-}
+import { WorkflowBuilderProps } from "./workflow-types";
 
 export function WorkflowBuilder({
-  initialWorkflow: initialWorkflow,
-  onWorkflowChange,
+  workflowId,
+  initialNodes = [],
+  initialEdges = [],
+  nodeTemplates = [],
+  onNodesChange,
+  onEdgesChange,
+  validateConnection,
+  executeWorkflow,
+  onExecutionStart,
+  onExecutionComplete,
+  onExecutionError,
+  onNodeStart,
+  onNodeComplete,
+  onNodeError,
 }: WorkflowBuilderProps) {
-  const params = useParams();
   const {
     nodes,
     edges,
@@ -23,8 +29,8 @@ export function WorkflowBuilder({
     selectedEdge,
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
-    onNodesChange,
-    onEdgesChange,
+    onNodesChange: handleNodesChange,
+    onEdgesChange: handleEdgesChange,
     onConnect,
     onConnectStart,
     onConnectEnd,
@@ -36,14 +42,26 @@ export function WorkflowBuilder({
     updateNodeExecutionState,
     setReactFlowInstance,
     connectionValidationState,
+    updateNodeData,
+    updateEdgeData,
   } = useWorkflowState({
-    initialWorkflow: initialWorkflow,
-    onWorkflowChange,
+    initialNodes,
+    initialEdges,
+    onNodesChange,
+    onEdgesChange,
+    validateConnection,
   });
 
   const { handleExecute } = useWorkflowExecution({
-    workflowId: params.id!,
+    workflowId,
     updateNodeExecutionState,
+    onExecutionStart,
+    onExecutionComplete,
+    onExecutionError,
+    onNodeStart,
+    onNodeComplete,
+    onNodeError,
+    executeWorkflow,
   });
 
   const handleExecuteClick = (e: React.MouseEvent) => {
@@ -57,39 +75,49 @@ export function WorkflowBuilder({
   };
 
   return (
-    <div className="w-full h-full flex">
-      <div
-        className={`h-full rounded-xl overflow-hidden relative ${selectedNode || selectedEdge ? "w-[calc(100%-320px)]" : "w-full"}`}
-      >
-        <WorkflowCanvas
-          nodes={nodes}
-          edges={edges}
-          connectionValidationState={connectionValidationState}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onConnectStart={onConnectStart}
-          onConnectEnd={onConnectEnd}
-          onNodeClick={handleNodeClick}
-          onEdgeClick={handleEdgeClick}
-          onPaneClick={handlePaneClick}
-          onInit={setReactFlowInstance}
-          onAddNode={handleAddNode}
-          onExecute={handleExecuteClick}
+    <ReactFlowProvider>
+      <div className="w-full h-full flex">
+        <div
+          className={`h-full rounded-xl overflow-hidden relative ${
+            selectedNode || selectedEdge ? "w-[calc(100%-320px)]" : "w-full"
+          }`}
+        >
+          <WorkflowCanvas
+            nodes={nodes}
+            edges={edges}
+            connectionValidationState={connectionValidationState}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
+            onConnect={onConnect}
+            onConnectStart={onConnectStart}
+            onConnectEnd={onConnectEnd}
+            onNodeClick={handleNodeClick}
+            onEdgeClick={handleEdgeClick}
+            onPaneClick={handlePaneClick}
+            onInit={setReactFlowInstance}
+            onAddNode={handleAddNode}
+            onExecute={handleExecuteClick}
+          />
+        </div>
+
+        {(selectedNode || selectedEdge) && (
+          <div className="w-80">
+            <WorkflowSidebar
+              node={selectedNode}
+              edge={selectedEdge}
+              onNodeUpdate={updateNodeData}
+              onEdgeUpdate={updateEdgeData}
+            />
+          </div>
+        )}
+
+        <WorkflowNodeSelector
+          open={isNodeSelectorOpen}
+          onSelect={handleNodeSelect}
+          onClose={() => setIsNodeSelectorOpen(false)}
+          templates={nodeTemplates}
         />
       </div>
-
-      {(selectedNode || selectedEdge) && (
-        <div className="w-80">
-          <WorkflowSidebar node={selectedNode} edge={selectedEdge} />
-        </div>
-      )}
-
-      <WorkflowNodeSelector
-        open={isNodeSelectorOpen}
-        onSelect={handleNodeSelect}
-        onClose={() => setIsNodeSelectorOpen(false)}
-      />
-    </div>
+    </ReactFlowProvider>
   );
 }

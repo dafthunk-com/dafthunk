@@ -1,61 +1,85 @@
 import { useCallback } from "react";
-import { ExecutionEvent, ExecutionState } from "@/lib/workflowTypes";
-
-interface UseWorkflowExecutionProps {
-  workflowId: string;
-  updateNodeExecutionState: (nodeId: string, state: ExecutionState) => void;
-}
+import { ExecutionEvent, UseWorkflowExecutionProps } from "./workflow-types";
 
 export function useWorkflowExecution({
   workflowId,
   updateNodeExecutionState,
+  onExecutionStart,
+  onExecutionComplete,
+  onExecutionError,
+  onNodeStart,
+  onNodeComplete,
+  onNodeError,
+  executeWorkflow,
 }: UseWorkflowExecutionProps) {
   const handleExecute = useCallback(() => {
-    const eventSource = new EventSource(`/workflows/${workflowId}/execute`);
+    // Call the execution start callback
+    onExecutionStart?.();
 
-    eventSource.onopen = () => {
-      console.log("Execution started");
+    // If no custom execution function is provided, we just simulate the execution
+    if (!executeWorkflow) {
+      console.warn(
+        "No executeWorkflow function provided, simulating execution"
+      );
+      return;
+    }
+
+    // Handle events from the execution
+    const handleEvent = (event: ExecutionEvent) => {
+      switch (event.type) {
+        case "node-start":
+          if (event.nodeId) {
+            updateNodeExecutionState(event.nodeId, "executing");
+            onNodeStart?.(event.nodeId);
+          }
+          break;
+        case "node-complete":
+          if (event.nodeId) {
+            updateNodeExecutionState(event.nodeId, "completed");
+            onNodeComplete?.(event.nodeId, event.outputs);
+          }
+          break;
+        case "node-error":
+          if (event.nodeId && event.error) {
+            updateNodeExecutionState(event.nodeId, "error");
+            onNodeError?.(event.nodeId, event.error);
+          }
+          break;
+        case "execution-complete":
+          onExecutionComplete?.();
+          break;
+        case "execution-error":
+          if (event.error) {
+            onExecutionError?.(event.error);
+          }
+          break;
+      }
     };
 
-    eventSource.onerror = (error) => {
-      console.error("Execution error:", error);
-      eventSource.close();
-    };
-
-    eventSource.addEventListener("node-start", (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.log("Node execution started:", data);
-      if (data.type === "node-start") {
-        updateNodeExecutionState(data.nodeId, "executing");
-      }
+    // Execute the workflow
+    const cleanup = executeWorkflow(workflowId, {
+      onEvent: handleEvent,
+      onComplete: () => {
+        onExecutionComplete?.();
+      },
+      onError: (error) => {
+        onExecutionError?.(error);
+      },
     });
 
-    eventSource.addEventListener("node-complete", (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.log("Node execution completed:", data);
-      if (data.type === "node-complete") {
-        updateNodeExecutionState(data.nodeId, "completed");
-      }
-    });
-
-    eventSource.addEventListener("node-error", (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.error("Node execution error:", data);
-      if (data.type === "node-error") {
-        updateNodeExecutionState(data.nodeId, "error");
-      }
-    });
-
-    eventSource.addEventListener("execution-complete", (event) => {
-      const data = JSON.parse(event.data) as ExecutionEvent;
-      console.log("Workflow execution completed:", data);
-      eventSource.close();
-    });
-
-    return () => {
-      eventSource.close();
-    };
-  }, [workflowId, updateNodeExecutionState]);
+    // Return cleanup function if provided
+    return cleanup;
+  }, [
+    workflowId,
+    updateNodeExecutionState,
+    onExecutionStart,
+    onExecutionComplete,
+    onExecutionError,
+    onNodeStart,
+    onNodeComplete,
+    onNodeError,
+    executeWorkflow,
+  ]);
 
   return {
     handleExecute,

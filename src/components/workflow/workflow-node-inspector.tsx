@@ -1,57 +1,78 @@
-import { Node as ReactFlowNode } from "reactflow";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { WorkflowNodeInspectorProps } from "./workflow-types";
 
-interface WorkflowNodeInspectorProps {
-  node: ReactFlowNode;
-}
+export function WorkflowNodeInspector({
+  node,
+  onNodeUpdate,
+}: WorkflowNodeInspectorProps) {
+  if (!node) return null;
 
-export function WorkflowNodeInspector({ node }: WorkflowNodeInspectorProps) {
+  const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onNodeUpdate) {
+      onNodeUpdate(node.id, { label: e.target.value });
+    }
+  };
+
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold mb-4">{node.data.name}</h2>
-      {node.data.error && (
-        <div className="mb-4 p-2 bg-red-50 text-red-600 text-sm rounded">
-          {node.data.error}
-        </div>
-      )}
-      <div className="space-y-4">
-        {node.data.inputs?.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Inputs</h3>
-            <div className="space-y-2">
-              {node.data.inputs.map(
-                (input: { name: string; type: string }, index: number) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center bg-gray-50 p-2 rounded"
-                  >
-                    <span className="text-sm">{input.name}</span>
-                    <span className="text-xs text-gray-500">{input.type}</span>
-                  </div>
-                )
-              )}
-            </div>
+    <Card className="border-none shadow-none">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">Node Properties</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="node-name">Name</Label>
+            <Input
+              id="node-name"
+              value={node.data.label}
+              onChange={handleLabelChange}
+            />
           </div>
-        )}
 
-        {node.data.outputs?.length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Outputs</h3>
-            <div className="space-y-2">
-              {node.data.outputs.map(
-                (output: { name: string; type: string }, index: number) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center bg-gray-50 p-2 rounded"
-                  >
-                    <span className="text-sm">{output.name}</span>
-                    <span className="text-xs text-gray-500">{output.type}</span>
-                  </div>
-                )
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <div className="text-sm">{node.type}</div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Inputs</Label>
+            <div className="space-y-1">
+              {node.data.inputs.map((input) => (
+                <div
+                  key={input.id}
+                  className="text-sm flex items-center justify-between"
+                >
+                  <span>{input.label}</span>
+                  <span className="text-xs text-gray-500">{input.type}</span>
+                </div>
+              ))}
+              {node.data.inputs.length === 0 && (
+                <div className="text-sm text-gray-500">No inputs</div>
               )}
             </div>
           </div>
-        )}
-      </div>
-    </div>
+
+          <div className="space-y-2">
+            <Label>Outputs</Label>
+            <div className="space-y-1">
+              {node.data.outputs.map((output) => (
+                <div
+                  key={output.id}
+                  className="text-sm flex items-center justify-between"
+                >
+                  <span>{output.label}</span>
+                  <span className="text-xs text-gray-500">{output.type}</span>
+                </div>
+              ))}
+              {node.data.outputs.length === 0 && (
+                <div className="text-sm text-gray-500">No outputs</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -2,471 +2,229 @@ import { useState, useCallback, useEffect } from "react";
 import {
   useNodesState,
   useEdgesState,
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
-  Connection,
   addEdge,
-  NodeChange,
-  EdgeChange,
-  ReactFlowInstance,
-  XYPosition,
-  OnConnectStartParams,
-  OnConnectStart,
-  OnConnectEnd,
-  OnConnect,
+  getConnectedEdges,
+  Node as ReactFlowNode,
 } from "reactflow";
-import { Workflow, Parameter } from "@/lib/workflowTypes";
-import { Node, NodeType, ExecutionState } from "@/lib/workflowTypes";
-import { workflowNodeService } from "@/services/workflowNodeService";
 import {
-  workflowEdgeService,
+  WorkflowNodeData,
+  WorkflowEdgeData,
+  NodeTemplate,
   ConnectionValidationState,
-} from "@/services/workflowEdgeService";
-
-interface UseWorkflowStateProps {
-  initialWorkflow: Workflow;
-  onWorkflowChange?: (workflow: Workflow) => void;
-}
-
-interface UseWorkflowStateReturn {
-  nodes: ReactFlowNode[];
-  edges: ReactFlowEdge[];
-  selectedNode: ReactFlowNode | null;
-  selectedEdge: ReactFlowEdge | null;
-  reactFlowInstance: ReactFlowInstance | null;
-  isNodeSelectorOpen: boolean;
-  setIsNodeSelectorOpen: (open: boolean) => void;
-  onNodesChange: (changes: NodeChange[]) => void;
-  onEdgesChange: (changes: EdgeChange[]) => void;
-  onConnect: OnConnect;
-  onConnectStart: OnConnectStart;
-  onConnectEnd: OnConnectEnd;
-  connectionValidationState: ConnectionValidationState;
-  handleNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
-  handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
-  handlePaneClick: () => void;
-  handleAddNode: () => void;
-  handleNodeSelect: (template: NodeType) => void;
-  setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
-  updateNodeExecutionState: (nodeId: string, state: ExecutionState) => void;
-  onAddNode: (nodeType: NodeType, position: { x: number; y: number }) => void;
-}
+  UseWorkflowStateProps,
+  UseWorkflowStateReturn,
+  NodeExecutionState,
+} from "./workflow-types";
 
 export function useWorkflowState({
-  initialWorkflow: initialWorkflow,
-  onWorkflowChange,
+  initialNodes = [],
+  initialEdges = [],
+  onNodesChange: onNodesChangeCallback,
+  onEdgesChange: onEdgesChangeCallback,
+  validateConnection = () => true,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
-  const [workflow, setWorkflow] = useState<Workflow>(initialWorkflow);
-  const [nodes, setNodes, onNodesChange] = useNodesState(
-    workflowNodeService.convertToReactFlowNodes(workflow.nodes)
-  );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(
-    workflowEdgeService.convertToReactFlowEdges(workflow.edges)
-  );
-  const [selectedNode, setSelectedNode] = useState<ReactFlowNode | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<ReactFlowEdge | null>(null);
-  const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance | null>(null);
+  const [nodes, setNodes, onNodesChange] =
+    useNodesState<WorkflowNodeData>(initialNodes);
+  const [edges, setEdges, onEdgesChange] =
+    useEdgesState<WorkflowEdgeData>(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<any | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<any | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
-  const [pendingWorkflowUpdate, setPendingWorkflowUpdate] =
-    useState<Workflow | null>(null);
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
-  const [connectingNodeId, setConnectingNodeId] = useState<string | null>(null);
-  const [connectingHandleId, setConnectingHandleId] = useState<string | null>(
-    null
-  );
-  const [connectingHandleType, setConnectingHandleType] = useState<
-    "source" | "target" | null
-  >(null);
 
-  // Effect to handle workflow changes after state updates are complete
+  // Effect to notify parent of changes
   useEffect(() => {
-    if (pendingWorkflowUpdate) {
-      onWorkflowChange?.(pendingWorkflowUpdate);
-      setPendingWorkflowUpdate(null);
-    }
-  }, [pendingWorkflowUpdate, onWorkflowChange]);
+    onNodesChangeCallback?.(nodes);
+  }, [nodes, onNodesChangeCallback]);
 
-  // Effect to update state when initialWorkflow changes
   useEffect(() => {
-    setWorkflow(initialWorkflow);
-    setNodes(
-      workflowNodeService.convertToReactFlowNodes(initialWorkflow.nodes)
-    );
-    setEdges(
-      workflowEdgeService.convertToReactFlowEdges(initialWorkflow.edges)
-    );
-  }, [initialWorkflow, setNodes, setEdges]);
+    onEdgesChangeCallback?.(edges);
+  }, [edges, onEdgesChangeCallback]);
 
-  // Custom nodes change handler
-  const handleNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      onNodesChange(changes);
-
-      // Handle node removals
-      const nodeRemovals = changes.filter(
-        (change): change is NodeChange & { type: "remove"; id: string } =>
-          change.type === "remove"
-      );
-
-      if (nodeRemovals.length > 0) {
-        setWorkflow((prevWorkflow: Workflow) => {
-          const removedNodeIds = new Set(
-            nodeRemovals.map((change) => change.id)
-          );
-          const remainingNodes = prevWorkflow.nodes.filter(
-            (node) => !removedNodeIds.has(node.id)
-          );
-          const remainingEdges = prevWorkflow.edges.filter(
-            (edge) =>
-              !removedNodeIds.has(edge.source) &&
-              !removedNodeIds.has(edge.target)
-          );
-
-          const newWorkflow = {
-            ...prevWorkflow,
-            nodes: remainingNodes,
-            edges: remainingEdges,
-          };
-          setPendingWorkflowUpdate(newWorkflow);
-          return newWorkflow;
-        });
-      }
-
-      // Handle position changes
-      const positionChanges = changes.filter(
-        (
-          change
-        ): change is NodeChange & { type: "position"; position: XYPosition } =>
-          change.type === "position" && "position" in change
-      );
-
-      if (positionChanges.length > 0) {
-        setWorkflow((prevWorkflow: Workflow) => {
-          const updatedNodes = prevWorkflow.nodes.map((node) => {
-            const change = positionChanges.find((c) => c.id === node.id);
-            return change ? { ...node, position: change.position } : node;
-          });
-
-          const newWorkflow = { ...prevWorkflow, nodes: updatedNodes };
-          setPendingWorkflowUpdate(newWorkflow);
-          return newWorkflow;
-        });
-      }
-    },
-    [onNodesChange]
-  );
-
-  // Custom edges change handler
-  const handleEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
-      onEdgesChange(changes);
-
-      const edgeRemovals = changes.filter(
-        (change): change is EdgeChange & { type: "remove"; id: string } =>
-          change.type === "remove"
-      );
-
-      if (edgeRemovals.length > 0) {
-        setWorkflow((prevWorkflow: Workflow) => {
-          const removedEdgeIds = new Set(
-            edgeRemovals.map((change) => change.id)
-          );
-          const remainingEdges = prevWorkflow.edges.filter(
-            (_, index) => !removedEdgeIds.has(`e${index}`)
-          );
-
-          const newWorkflow = { ...prevWorkflow, edges: remainingEdges };
-          setPendingWorkflowUpdate(newWorkflow);
-          return newWorkflow;
-        });
-      }
-    },
-    [onEdgesChange]
-  );
-
-  // Validate connection types
-  const validateConnection = useCallback(
-    (
-      sourceNode: ReactFlowNode,
-      targetNode: ReactFlowNode,
-      sourceHandle: string,
-      targetHandle: string
-    ) => {
-      const sourceParam = sourceNode.data.outputs.find(
-        (o: Parameter) => o.name === sourceHandle
-      );
-      const targetParam = targetNode.data.inputs.find(
-        (i: Parameter) => i.name === targetHandle
-      );
-
-      if (!sourceParam || !targetParam) {
-        return false;
-      }
-
-      return sourceParam.type === targetParam.type;
-    },
-    []
-  );
-
-  const onConnectStart: OnConnectStart = useCallback(
-    (_, params: OnConnectStartParams) => {
-      setConnectingNodeId(params.nodeId);
-      setConnectingHandleId(params.handleId);
-      setConnectingHandleType(params.handleType);
-      setConnectionValidationState("default");
-    },
-    []
-  );
-
-  const onConnectEnd: OnConnectEnd = useCallback(() => {
-    setConnectingNodeId(null);
-    setConnectingHandleId(null);
-    setConnectingHandleType(null);
-    setConnectionValidationState("default");
+  // Handle node selection
+  const handleNodeClick = useCallback((event: React.MouseEvent, node: any) => {
+    event.stopPropagation();
+    setSelectedNode(node);
+    setSelectedEdge(null);
   }, []);
 
-  // Check connection validity during mouse move
-  useEffect(() => {
-    if (
-      !connectingNodeId ||
-      !connectingHandleId ||
-      !connectingHandleType ||
-      !reactFlowInstance
-    ) {
-      return;
-    }
+  // Handle edge selection
+  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
+    event.stopPropagation();
+    setSelectedEdge(edge);
+    setSelectedNode(null);
+  }, []);
 
-    const handleMouseMove = (event: MouseEvent) => {
-      const position = reactFlowInstance.project({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const targetNode = nodes.find((node) => {
-        const { x, y } = node.position;
-        return (
-          position.x >= x &&
-          position.x <= x + 200 && // Approximate node width
-          position.y >= y &&
-          position.y <= y + 100 // Approximate node height
-        );
-      });
-
-      if (!targetNode || targetNode.id === connectingNodeId) {
-        setConnectionValidationState("default");
-        return;
-      }
-
-      const sourceNode = nodes.find((node) => node.id === connectingNodeId);
-      if (!sourceNode) {
-        setConnectionValidationState("default");
-        return;
-      }
-
-      let canConnect = false;
-      if (connectingHandleType === "source") {
-        canConnect = targetNode.data.inputs.some((input: Parameter) =>
-          validateConnection(
-            sourceNode,
-            targetNode,
-            connectingHandleId,
-            input.name
-          )
-        );
-      } else {
-        canConnect = targetNode.data.outputs.some((output: Parameter) =>
-          validateConnection(
-            targetNode,
-            sourceNode,
-            output.name,
-            connectingHandleId
-          )
-        );
-      }
-
-      setConnectionValidationState(canConnect ? "valid" : "invalid");
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    return () => document.removeEventListener("mousemove", handleMouseMove);
-  }, [
-    connectingNodeId,
-    connectingHandleId,
-    connectingHandleType,
-    nodes,
-    reactFlowInstance,
-    validateConnection,
-  ]);
-
-  // Handle new connections
-  const onConnect: OnConnect = useCallback(
-    (connection: Connection) => {
-      if (
-        !connection.target ||
-        !connection.targetHandle ||
-        !connection.source ||
-        !connection.sourceHandle
-      )
-        return;
-
-      const sourceNode = nodes.find((node) => node.id === connection.source);
-      const targetNode = nodes.find((node) => node.id === connection.target);
-
-      if (!sourceNode || !targetNode) {
-        setConnectionValidationState("invalid");
-        return;
-      }
-
-      const isValid = validateConnection(
-        sourceNode,
-        targetNode,
-        connection.sourceHandle,
-        connection.targetHandle
-      );
-      setConnectionValidationState(isValid ? "valid" : "invalid");
-
-      if (!isValid) return;
-
-      setWorkflow((prevWorkflow: Workflow) => {
-        const remainingEdges = prevWorkflow.edges.filter(
-          (edge) =>
-            !(
-              edge.target === connection.target &&
-              edge.targetInput === connection.targetHandle
-            )
-        );
-
-        const newEdge = workflowEdgeService.convertToWorkflowEdge(connection);
-        const newEdges = [...remainingEdges, newEdge];
-        const newWorkflow = { ...prevWorkflow, edges: newEdges };
-
-        setPendingWorkflowUpdate(newWorkflow);
-        return newWorkflow;
-      });
-
-      setEdges((edges) => {
-        const remainingEdges = edges.filter(
-          (edge) =>
-            !(
-              edge.target === connection.target &&
-              edge.targetHandle === connection.targetHandle
-            )
-        );
-
-        const edge = {
-          ...connection,
-          type: "workflowEdge",
-          data: { isValid: true },
-        };
-        return addEdge(edge, remainingEdges);
-      });
-    },
-    [nodes, validateConnection]
-  );
-
-  // Event handlers
-  const handleNodeClick = useCallback(
-    (_: React.MouseEvent, node: ReactFlowNode) => {
-      setSelectedNode(node);
-      setSelectedEdge(null);
-    },
-    []
-  );
-
-  const handleEdgeClick = useCallback(
-    (_: React.MouseEvent, edge: ReactFlowEdge) => {
-      setSelectedEdge(edge);
-      setSelectedNode(null);
-    },
-    []
-  );
-
+  // Handle pane click (deselect)
   const handlePaneClick = useCallback(() => {
     setSelectedNode(null);
     setSelectedEdge(null);
   }, []);
 
+  // Handle connection start
+  const onConnectStart = useCallback((_event: any, params: any) => {
+    if (params) {
+      setConnectionValidationState("default");
+    }
+  }, []);
+
+  // Handle connection end
+  const onConnectEnd = useCallback(() => {
+    setConnectionValidationState("default");
+  }, []);
+
+  // Handle connection
+  const onConnect = useCallback(
+    (connection: any) => {
+      if (!connection.source || !connection.target) return;
+
+      const isValid = validateConnection(connection);
+
+      if (isValid) {
+        const newEdge = {
+          ...connection,
+          id: `${connection.source}-${connection.sourceHandle}-${connection.target}-${connection.targetHandle}`,
+          type: "workflowEdge",
+          data: {
+            isValid: true,
+            isActive: false,
+            sourceType: connection.sourceHandle,
+            targetType: connection.targetHandle,
+          },
+        };
+
+        setEdges((eds) => addEdge(newEdge, eds));
+      }
+    },
+    [setEdges, validateConnection]
+  );
+
+  // Handle adding a new node
   const handleAddNode = useCallback(() => {
     setIsNodeSelectorOpen(true);
   }, []);
 
+  // Handle node template selection
   const handleNodeSelect = useCallback(
-    (template: NodeType) => {
+    (template: NodeTemplate) => {
       if (!reactFlowInstance) return;
 
       const position = reactFlowInstance.project({
-        x: Math.random() * 500,
-        y: Math.random() * 500,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
       });
 
-      const newNode = workflowNodeService.createNode(template, position);
+      const newNode: ReactFlowNode<WorkflowNodeData> = {
+        id: `${template.type}-${Date.now()}`,
+        type: "workflowNode",
+        position,
+        data: {
+          label: template.label,
+          inputs: template.inputs,
+          outputs: template.outputs,
+          executionState: "idle" as NodeExecutionState,
+        },
+      };
 
-      setNodes((nds) => [
-        ...nds,
-        ...workflowNodeService.convertToReactFlowNodes([newNode]),
-      ]);
-
-      setWorkflow((prevWorkflow: Workflow) => {
-        const newWorkflow = {
-          ...prevWorkflow,
-          nodes: [...prevWorkflow.nodes, newNode],
-        };
-        setPendingWorkflowUpdate(newWorkflow);
-        return newWorkflow;
-      });
-
-      setIsNodeSelectorOpen(false);
+      setNodes((nds) => nds.concat(newNode));
     },
     [reactFlowInstance, setNodes]
   );
 
+  // Update node execution state
   const updateNodeExecutionState = useCallback(
-    (nodeId: string, state: ExecutionState) => {
+    (nodeId: string, state: NodeExecutionState) => {
       setNodes((nds) =>
-        workflowNodeService.updateNodeExecutionState(nds, nodeId, state)
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                executionState: state,
+                error: state === "error" ? node.data.error : null,
+              },
+            };
+          }
+          return node;
+        })
+      );
+
+      // Update edge active state based on execution
+      if (state === "executing") {
+        const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
+        setEdges((eds) =>
+          eds.map((edge) => {
+            const isConnectedToExecutingNode = nodeEdges.some(
+              (e) => e.id === edge.id
+            );
+            return {
+              ...edge,
+              data: {
+                ...edge.data,
+                isActive: isConnectedToExecutingNode,
+              },
+            };
+          })
+        );
+      } else if (state === "completed" || state === "error") {
+        setEdges((eds) =>
+          eds.map((edge) => ({
+            ...edge,
+            data: {
+              ...edge.data,
+              isActive: false,
+            },
+          }))
+        );
+      }
+    },
+    [edges, setEdges, setNodes]
+  );
+
+  // Update node data
+  const updateNodeData = useCallback(
+    (nodeId: string, data: Partial<WorkflowNodeData>) => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                ...data,
+              },
+            };
+          }
+          return node;
+        })
       );
     },
     [setNodes]
   );
 
-  const onAddNode = useCallback(
-    (nodeType: NodeType, position: { x: number; y: number }) => {
-      const newNode: Node = {
-        id: `node-${Date.now()}`,
-        type: nodeType.type,
-        name: nodeType.name,
-        position,
-        inputs: nodeType.inputs,
-        outputs: nodeType.outputs,
-      };
-
-      setNodes((nds) => [
-        ...nds,
-        {
-          id: newNode.id,
-          type: "workflowNode",
-          position: newNode.position,
-          data: {
-            name: newNode.name,
-            inputs: newNode.inputs,
-            outputs: newNode.outputs,
-          },
-        },
-      ]);
-
-      setWorkflow((prevWorkflow: Workflow) => {
-        const newWorkflow = {
-          ...prevWorkflow,
-          nodes: [...prevWorkflow.nodes, newNode],
-        };
-        setPendingWorkflowUpdate(newWorkflow);
-        return newWorkflow;
-      });
+  // Update edge data
+  const updateEdgeData = useCallback(
+    (edgeId: string, data: Partial<WorkflowEdgeData>) => {
+      setEdges((eds) =>
+        eds.map((edge) => {
+          if (edge.id === edgeId) {
+            return {
+              ...edge,
+              data: {
+                ...edge.data,
+                ...data,
+              },
+            };
+          }
+          return edge;
+        })
+      );
     },
-    [setNodes]
+    [setEdges]
   );
 
   return {
@@ -477,8 +235,8 @@ export function useWorkflowState({
     reactFlowInstance,
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
-    onNodesChange: handleNodesChange,
-    onEdgesChange: handleEdgesChange,
+    onNodesChange,
+    onEdgesChange,
     onConnect,
     onConnectStart,
     onConnectEnd,
@@ -490,6 +248,7 @@ export function useWorkflowState({
     handleNodeSelect,
     setReactFlowInstance,
     updateNodeExecutionState,
-    onAddNode,
+    updateNodeData,
+    updateEdgeData,
   };
 }
