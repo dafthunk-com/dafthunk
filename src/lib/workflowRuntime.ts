@@ -24,7 +24,11 @@ export class WorkflowRuntime {
   private options: WorkflowExecutionOptions;
   private env?: any;
 
-  constructor(workflow: Workflow, options: WorkflowExecutionOptions = {}, env?: any) {
+  constructor(
+    workflow: Workflow,
+    options: WorkflowExecutionOptions = {},
+    env?: any
+  ) {
     this.workflow = workflow;
     this.options = options;
     this.env = env;
