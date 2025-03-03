@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { WorkflowNodeInspectorProps } from "./workflow-types";
+import { useState, useEffect } from "react";
 
 export function WorkflowNodeInspector({
   node,
@@ -9,9 +10,24 @@ export function WorkflowNodeInspector({
 }: WorkflowNodeInspectorProps) {
   if (!node) return null;
 
+  // Create local state to immediately reflect changes in the UI
+  const [localLabel, setLocalLabel] = useState(node.data.label);
+  const [localInputs, setLocalInputs] = useState(node.data.inputs);
+
+  // Update local state when node changes
+  useEffect(() => {
+    setLocalLabel(node.data.label);
+    setLocalInputs(node.data.inputs);
+  }, [node.id, node.data.label, node.data.inputs]);
+
   const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newLabel = e.target.value;
+    // Update local state immediately
+    setLocalLabel(newLabel);
+    
+    // Propagate change to parent component
     if (onNodeUpdate) {
-      onNodeUpdate(node.id, { label: e.target.value });
+      onNodeUpdate(node.id, { label: newLabel });
     }
   };
 
@@ -19,13 +35,17 @@ export function WorkflowNodeInspector({
     if (!onNodeUpdate) return;
 
     // Create a new inputs array with the updated value
-    const updatedInputs = node.data.inputs.map((input) => {
+    const updatedInputs = localInputs.map((input) => {
       if (input.id === inputId) {
         return { ...input, value: convertValueByType(value, input.type) };
       }
       return input;
     });
 
+    // Update local state immediately
+    setLocalInputs(updatedInputs);
+    
+    // Propagate change to parent component
     onNodeUpdate(node.id, { inputs: updatedInputs });
   };
 
@@ -52,7 +72,7 @@ export function WorkflowNodeInspector({
             <Label htmlFor="node-name">Name</Label>
             <Input
               id="node-name"
-              value={node.data.label}
+              value={localLabel}
               onChange={handleLabelChange}
             />
           </div>
@@ -65,7 +85,7 @@ export function WorkflowNodeInspector({
           <div className="space-y-2">
             <Label>Inputs</Label>
             <div className="space-y-2">
-              {node.data.inputs.map((input) => (
+              {localInputs.map((input) => (
                 <div key={input.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
                     <span>{input.label}</span>
@@ -81,7 +101,7 @@ export function WorkflowNodeInspector({
                   />
                 </div>
               ))}
-              {node.data.inputs.length === 0 && (
+              {localInputs.length === 0 && (
                 <div className="text-sm text-gray-500">No inputs</div>
               )}
             </div>
