@@ -39,7 +39,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         )
       ),
       json_object(
-        'id', 'multiply-1',
+        'id', 'multiplication-1',
         'name', 'Multiplication',
         'type', 'multiplication',
         'position', json_object('x', 400, 'y', 100),
@@ -54,8 +54,8 @@ INSERT INTO workflows (id, name, data) VALUES (
     ),
     'edges', json_array(
       json_object(
-        'source', 'add1',
-        'target', 'multiply1',
+        'source', 'addition-1',
+        'target', 'multiplication-1',
         'sourceOutput', 'result',
         'targetInput', 'a'
       )
