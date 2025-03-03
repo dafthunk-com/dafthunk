@@ -23,10 +23,12 @@ const TypeBadge = ({
   type,
   position,
   id,
+  hasValue = false,
 }: {
   type: string;
   position: Position;
   id: string;
+  hasValue?: boolean;
 }) => {
   const label = type.charAt(0).toUpperCase();
   return (
@@ -37,7 +39,14 @@ const TypeBadge = ({
         id={id}
         className="opacity-0 !w-full !h-full !bg-transparent !border-none !absolute !left-0 !top-0 !transform-none !m-0 !z-[1000]"
       />
-      <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-600 text-xs font-medium relative z-[1] cursor-pointer transition-colors hover:bg-gray-200">
+      <span
+        className={cn(
+          "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
+          hasValue
+            ? "bg-green-100 text-green-700 hover:bg-green-200"
+            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+        )}
+      >
         {label}
       </span>
     </div>
@@ -78,6 +87,7 @@ export const WorkflowNode = memo(
                   type={input.type}
                   position={Position.Left}
                   id={input.id}
+                  hasValue={input.value !== undefined}
                 />
                 <p className="overflow-hidden text-ellipsis">{input.label}</p>
               </div>
@@ -91,11 +101,19 @@ export const WorkflowNode = memo(
                 key={`output-${output.id}-${index}`}
                 className="flex items-center gap-1 text-xs relative"
               >
-                <p className="overflow-hidden text-ellipsis">{output.label}</p>
+                <p
+                  className={cn(
+                    "overflow-hidden text-ellipsis",
+                    output.value !== undefined && "font-medium text-green-700"
+                  )}
+                >
+                  {output.label}
+                </p>
                 <TypeBadge
                   type={output.type}
                   position={Position.Right}
                   id={output.id}
+                  hasValue={output.value !== undefined}
                 />
               </div>
             ))}

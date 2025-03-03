@@ -182,6 +182,7 @@ export function EditorPage() {
                 name: output.id,
                 type: output.type,
                 description: output.label,
+                value: output.value,
               })),
             };
           });
@@ -441,7 +442,6 @@ export function EditorPage() {
         </div>
       ) : (
         <WorkflowBuilder
-          key={`workflow-${nodes.length}-${edges.length}`}
           workflowId={id || ""}
           initialNodes={nodes}
           initialEdges={edges}
@@ -452,19 +452,76 @@ export function EditorPage() {
           executeWorkflow={executeWorkflow}
           onExecutionStart={() => {
             // Reset all nodes to idle state before execution
-            const resetNodes = nodes.map((node) => ({
-              ...node,
-              data: {
-                ...node.data,
-                executionState: "idle" as const,
-              },
-            }));
-            setNodes(resetNodes);
+            setNodes((currentNodes) =>
+              currentNodes.map((node) => ({
+                ...node,
+                data: {
+                  ...node.data,
+                  executionState: "idle" as const,
+                  // Reset output values
+                  outputs: node.data.outputs.map((output) => ({
+                    ...output,
+                    value: undefined,
+                  })),
+                },
+              }))
+            );
           }}
           onExecutionComplete={() => {}}
           onExecutionError={() => {}}
           onNodeStart={() => {}}
-          onNodeComplete={() => {}}
+          onNodeComplete={(nodeId, outputs) => {
+            // Update the node's output parameter values with the values from the execution
+            if (outputs) {
+              console.log(`Node ${nodeId} completed with outputs:`, outputs);
+
+              // Use functional update to ensure we're working with the latest state
+              setNodes((currentNodes) => {
+                // Find the node to update
+                const nodeToUpdate = currentNodes.find(
+                  (node) => node.id === nodeId
+                );
+                if (!nodeToUpdate) {
+                  console.error(`Node ${nodeId} not found`);
+                  return currentNodes;
+                }
+
+                // Map the output values to the node's output parameters
+                const updatedOutputs = nodeToUpdate.data.outputs.map(
+                  (output) => {
+                    // Check if this output parameter has a value in the execution outputs
+                    if (outputs[output.id] !== undefined) {
+                      console.log(
+                        `Mapping output ${output.id} with value:`,
+                        outputs[output.id]
+                      );
+                      return {
+                        ...output,
+                        value: outputs[output.id],
+                      };
+                    }
+                    return output;
+                  }
+                );
+
+                const updatedNodes = currentNodes.map((node) => {
+                  // Check if the node is the one we want to update
+                  if (node.id === nodeId) {
+                    return {
+                      ...node,
+                      data: {
+                        ...node.data,
+                        outputs: updatedOutputs,
+                      },
+                    };
+                  }
+                  return node;
+                });
+
+                return updatedNodes;
+              });
+            }
+          }}
           onNodeError={() => {}}
         />
       )}

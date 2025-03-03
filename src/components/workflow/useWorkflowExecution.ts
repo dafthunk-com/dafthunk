@@ -36,6 +36,15 @@ export function useWorkflowExecution({
         case "node-complete":
           if (event.nodeId) {
             updateNodeExecutionState(event.nodeId, "completed");
+
+            // If we have outputs, update the node's output values
+            if (event.outputs && Object.keys(event.outputs).length > 0) {
+              console.log(
+                `Updating node ${event.nodeId} outputs:`,
+                event.outputs
+              );
+            }
+
             onNodeComplete?.(event.nodeId, event.outputs);
           }
           break;

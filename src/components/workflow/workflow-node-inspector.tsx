@@ -13,18 +13,21 @@ export function WorkflowNodeInspector({
   // Create local state to immediately reflect changes in the UI
   const [localLabel, setLocalLabel] = useState(node.data.label);
   const [localInputs, setLocalInputs] = useState(node.data.inputs);
+  const [localOutputs, setLocalOutputs] = useState(node.data.outputs);
 
   // Update local state when node changes
   useEffect(() => {
+    console.log(`Node inspector updating for node ${node.id}:`, node.data);
     setLocalLabel(node.data.label);
     setLocalInputs(node.data.inputs);
-  }, [node.id, node.data.label, node.data.inputs]);
+    setLocalOutputs(node.data.outputs);
+  }, [node.id, node.data.label, node.data.inputs, node.data.outputs]);
 
   const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newLabel = e.target.value;
     // Update local state immediately
     setLocalLabel(newLabel);
-    
+
     // Propagate change to parent component
     if (onNodeUpdate) {
       onNodeUpdate(node.id, { label: newLabel });
@@ -44,7 +47,7 @@ export function WorkflowNodeInspector({
 
     // Update local state immediately
     setLocalInputs(updatedInputs);
-    
+
     // Propagate change to parent component
     onNodeUpdate(node.id, { inputs: updatedInputs });
   };
@@ -59,6 +62,19 @@ export function WorkflowNodeInspector({
       return value.toLowerCase() === "true";
     }
     return value; // Default to string
+  };
+
+  // Format output value for display
+  const formatOutputValue = (value: any, type: string): string => {
+    if (value === undefined || value === null) return "";
+    if (type === "object" || type === "array") {
+      try {
+        return JSON.stringify(value);
+      } catch (e) {
+        return String(value);
+      }
+    }
+    return String(value);
   };
 
   return (
@@ -109,17 +125,34 @@ export function WorkflowNodeInspector({
 
           <div className="space-y-2">
             <Label>Outputs</Label>
-            <div className="space-y-1">
-              {node.data.outputs.map((output) => (
-                <div
-                  key={output.id}
-                  className="text-sm flex items-center justify-between"
-                >
-                  <span>{output.label}</span>
-                  <span className="text-xs text-gray-500">{output.type}</span>
+            <div className="space-y-2">
+              {localOutputs.map((output) => (
+                <div key={output.id} className="text-sm space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span>{output.label}</span>
+                    <div className="flex items-center gap-1">
+                      {output.value !== undefined && (
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
+                          {formatOutputValue(output.value, output.type)}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-500">
+                        {output.type}
+                      </span>
+                    </div>
+                  </div>
+                  <Input
+                    value={formatOutputValue(output.value, output.type)}
+                    readOnly
+                    className={`text-sm h-8 cursor-not-allowed ${
+                      output.value !== undefined
+                        ? "bg-green-50 border-green-200 text-green-900"
+                        : "bg-muted"
+                    }`}
+                  />
                 </div>
               ))}
-              {node.data.outputs.length === 0 && (
+              {localOutputs.length === 0 && (
                 <div className="text-sm text-gray-500">No outputs</div>
               )}
             </div>

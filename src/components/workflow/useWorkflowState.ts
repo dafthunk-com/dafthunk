@@ -189,16 +189,20 @@ export function useWorkflowState({
   // Update node data
   const updateNodeData = useCallback(
     (nodeId: string, data: Partial<WorkflowNodeData>) => {
+      console.log(`Updating node ${nodeId} with data:`, data);
+
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
-            return {
+            const updatedNode = {
               ...node,
               data: {
                 ...node.data,
                 ...data,
               },
             };
+            console.log(`Node ${nodeId} updated:`, updatedNode);
+            return updatedNode;
           }
           return node;
         })
