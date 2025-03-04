@@ -379,7 +379,7 @@ export function EditorPage() {
 
   return (
     <ReactFlowProvider>
-      <div className="h-screen w-full flex flex-col relative">
+      <div className="h-screen w-full flex flex-col relative p-2">
         <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
           <div className="h-full flex flex-col">
             {isLoading && (
