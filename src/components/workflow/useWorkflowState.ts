@@ -51,6 +51,16 @@ export function useWorkflowState({
     setSelectedEdge(null);
   }, []);
 
+  // Effect to keep selectedNode in sync with nodes state
+  useEffect(() => {
+    if (selectedNode) {
+      const updatedNode = nodes.find(node => node.id === selectedNode.id);
+      if (updatedNode && JSON.stringify(updatedNode) !== JSON.stringify(selectedNode)) {
+        setSelectedNode(updatedNode);
+      }
+    }
+  }, [nodes, selectedNode]);
+
   // Handle edge selection
   const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
     event.stopPropagation();

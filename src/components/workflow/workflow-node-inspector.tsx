@@ -21,7 +21,7 @@ export function WorkflowNodeInspector({
     setLocalLabel(node.data.label);
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
-  }, [node.id, node.data.label, node.data.inputs, node.data.outputs]);
+  }, [node.id, node.data]);
 
   const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newLabel = e.target.value;
@@ -67,14 +67,20 @@ export function WorkflowNodeInspector({
   // Format output value for display
   const formatOutputValue = (value: any, type: string): string => {
     if (value === undefined || value === null) return "";
-    if (type === "object" || type === "array") {
-      try {
-        return JSON.stringify(value);
-      } catch (e) {
-        return String(value);
+    
+    try {
+      if (type === "object" || type === "array") {
+        return JSON.stringify(value, null, 2);
+      } else if (type === "boolean") {
+        return value ? "true" : "false";
+      } else if (type === "number") {
+        return value.toString();
       }
+      return String(value);
+    } catch (e) {
+      console.warn("Error formatting output value:", e);
+      return String(value);
     }
-    return String(value);
   };
 
   return (
