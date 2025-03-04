@@ -1,4 +1,3 @@
-import { ReactFlowProvider } from "reactflow";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
@@ -75,49 +74,47 @@ export function WorkflowBuilder({
   };
 
   return (
-    <ReactFlowProvider>
-      <div className="w-full h-full flex">
-        <div
-          className={`h-full rounded-xl overflow-hidden relative ${
-            selectedNode || selectedEdge ? "w-[calc(100%-320px)]" : "w-full"
-          }`}
-        >
-          <WorkflowCanvas
-            nodes={nodes}
-            edges={edges}
-            connectionValidationState={connectionValidationState}
-            onNodesChange={handleNodesChange}
-            onEdgesChange={handleEdgesChange}
-            onConnect={onConnect}
-            onConnectStart={onConnectStart}
-            onConnectEnd={onConnectEnd}
-            onNodeClick={handleNodeClick}
-            onEdgeClick={handleEdgeClick}
-            onPaneClick={handlePaneClick}
-            onInit={setReactFlowInstance}
-            onAddNode={handleAddNode}
-            onExecute={handleExecuteClick}
-          />
-        </div>
-
-        {(selectedNode || selectedEdge) && (
-          <div className="w-80">
-            <WorkflowSidebar
-              node={selectedNode}
-              edge={selectedEdge}
-              onNodeUpdate={updateNodeData}
-              onEdgeUpdate={updateEdgeData}
-            />
-          </div>
-        )}
-
-        <WorkflowNodeSelector
-          open={isNodeSelectorOpen}
-          onSelect={handleNodeSelect}
-          onClose={() => setIsNodeSelectorOpen(false)}
-          templates={nodeTemplates}
+    <div className="w-full h-full flex">
+      <div
+        className={`h-full rounded-xl overflow-hidden relative ${
+          selectedNode || selectedEdge ? "w-[calc(100%-320px)]" : "w-full"
+        }`}
+      >
+        <WorkflowCanvas
+          nodes={nodes}
+          edges={edges}
+          connectionValidationState={connectionValidationState}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
+          onNodeClick={handleNodeClick}
+          onEdgeClick={handleEdgeClick}
+          onPaneClick={handlePaneClick}
+          onInit={setReactFlowInstance}
+          onAddNode={handleAddNode}
+          onExecute={handleExecuteClick}
         />
       </div>
-    </ReactFlowProvider>
+
+      {(selectedNode || selectedEdge) && (
+        <div className="w-80">
+          <WorkflowSidebar
+            node={selectedNode}
+            edge={selectedEdge}
+            onNodeUpdate={updateNodeData}
+            onEdgeUpdate={updateEdgeData}
+          />
+        </div>
+      )}
+
+      <WorkflowNodeSelector
+        open={isNodeSelectorOpen}
+        onSelect={handleNodeSelect}
+        onClose={() => setIsNodeSelectorOpen(false)}
+        templates={nodeTemplates}
+      />
+    </div>
   );
 }

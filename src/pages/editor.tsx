@@ -5,6 +5,7 @@ import { Workflow } from "@/lib/workflowTypes";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
+import { ReactFlowProvider } from "reactflow";
 import {
   NodeTemplate,
   ExecutionEvent,
@@ -377,154 +378,158 @@ export function EditorPage() {
   );
 
   return (
-    <div className="w-screen h-screen fixed top-0 left-0 p-2">
-      <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
-        {isLoading && (
-          <div className="text-sm bg-blue-100 p-2 rounded-md">
-            Loading workflow...
-          </div>
-        )}
-        {isSaving && (
-          <div className="text-sm bg-yellow-100 p-2 rounded-md">Saving...</div>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading workflow...</p>
-          </div>
+    <ReactFlowProvider>
+      <div className="h-full flex flex-col">
+        <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+          {isLoading && (
+            <div className="text-sm bg-blue-100 p-2 rounded-md">
+              Loading workflow...
+            </div>
+          )}
+          {isSaving && (
+            <div className="text-sm bg-yellow-100 p-2 rounded-md">
+              Saving...
+            </div>
+          )}
         </div>
-      ) : nodes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <p className="text-muted-foreground mb-4">
-            No nodes in this workflow yet
-          </p>
-          <button
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-            onClick={() => {
-              const newNode = {
-                id: `input-${Date.now()}`,
-                type: "workflowNode",
-                position: {
-                  x: window.innerWidth / 2 - 75,
-                  y: window.innerHeight / 2 - 75,
-                },
-                data: {
-                  label: "Input",
-                  inputs: [],
-                  outputs: [
-                    {
-                      id: "output",
-                      type: "any",
-                      label: "Output",
-                    },
-                  ],
-                  executionState: "idle" as const,
-                },
-              };
-              setNodes([newNode]);
+
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading workflow...</p>
+            </div>
+          </div>
+        ) : nodes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="text-muted-foreground mb-4">
+              No nodes in this workflow yet
+            </p>
+            <button
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+              onClick={() => {
+                const newNode = {
+                  id: `input-${Date.now()}`,
+                  type: "workflowNode",
+                  position: {
+                    x: window.innerWidth / 2 - 75,
+                    y: window.innerHeight / 2 - 75,
+                  },
+                  data: {
+                    label: "Input",
+                    inputs: [],
+                    outputs: [
+                      {
+                        id: "output",
+                        type: "any",
+                        label: "Output",
+                      },
+                    ],
+                    executionState: "idle" as const,
+                  },
+                };
+                setNodes([newNode]);
+              }}
+            >
+              Add a starter node
+            </button>
+          </div>
+        ) : templatesError ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="text-red-500 mb-4">{templatesError}</p>
+            <button
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <WorkflowBuilder
+            workflowId={id || ""}
+            initialNodes={nodes}
+            initialEdges={edges}
+            nodeTemplates={nodeTemplates}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
+            validateConnection={validateConnection}
+            executeWorkflow={executeWorkflow}
+            onExecutionStart={() => {
+              // Reset all nodes to idle state before execution
+              setNodes((currentNodes) =>
+                currentNodes.map((node) => ({
+                  ...node,
+                  data: {
+                    ...node.data,
+                    executionState: "idle" as const,
+                    // Reset output values
+                    outputs: node.data.outputs.map((output) => ({
+                      ...output,
+                      value: undefined,
+                    })),
+                  },
+                }))
+              );
             }}
-          >
-            Add a starter node
-          </button>
-        </div>
-      ) : templatesError ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <p className="text-red-500 mb-4">{templatesError}</p>
-          <button
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
-      ) : (
-        <WorkflowBuilder
-          workflowId={id || ""}
-          initialNodes={nodes}
-          initialEdges={edges}
-          nodeTemplates={nodeTemplates}
-          onNodesChange={handleNodesChange}
-          onEdgesChange={handleEdgesChange}
-          validateConnection={validateConnection}
-          executeWorkflow={executeWorkflow}
-          onExecutionStart={() => {
-            // Reset all nodes to idle state before execution
-            setNodes((currentNodes) =>
-              currentNodes.map((node) => ({
-                ...node,
-                data: {
-                  ...node.data,
-                  executionState: "idle" as const,
-                  // Reset output values
-                  outputs: node.data.outputs.map((output) => ({
-                    ...output,
-                    value: undefined,
-                  })),
-                },
-              }))
-            );
-          }}
-          onExecutionComplete={() => {}}
-          onExecutionError={() => {}}
-          onNodeStart={() => {}}
-          onNodeComplete={(nodeId, outputs) => {
-            // Update the node's output parameter values with the values from the execution
-            if (outputs) {
-              console.log(`Node ${nodeId} completed with outputs:`, outputs);
+            onExecutionComplete={() => {}}
+            onExecutionError={() => {}}
+            onNodeStart={() => {}}
+            onNodeComplete={(nodeId, outputs) => {
+              // Update the node's output parameter values with the values from the execution
+              if (outputs) {
+                console.log(`Node ${nodeId} completed with outputs:`, outputs);
 
-              // Use functional update to ensure we're working with the latest state
-              setNodes((currentNodes) => {
-                // Find the node to update
-                const nodeToUpdate = currentNodes.find(
-                  (node) => node.id === nodeId
-                );
-                if (!nodeToUpdate) {
-                  console.error(`Node ${nodeId} not found`);
-                  return currentNodes;
-                }
+                // Use functional update to ensure we're working with the latest state
+                setNodes((currentNodes) => {
+                  // Find the node to update
+                  const nodeToUpdate = currentNodes.find(
+                    (node) => node.id === nodeId
+                  );
+                  if (!nodeToUpdate) {
+                    console.error(`Node ${nodeId} not found`);
+                    return currentNodes;
+                  }
 
-                // Map the output values to the node's output parameters
-                const updatedOutputs = nodeToUpdate.data.outputs.map(
-                  (output) => {
-                    // Check if this output parameter has a value in the execution outputs
-                    if (outputs[output.id] !== undefined) {
-                      console.log(
-                        `Mapping output ${output.id} with value:`,
-                        outputs[output.id]
-                      );
+                  // Map the output values to the node's output parameters
+                  const updatedOutputs = nodeToUpdate.data.outputs.map(
+                    (output) => {
+                      // Check if this output parameter has a value in the execution outputs
+                      if (outputs[output.id] !== undefined) {
+                        console.log(
+                          `Mapping output ${output.id} with value:`,
+                          outputs[output.id]
+                        );
+                        return {
+                          ...output,
+                          value: outputs[output.id],
+                        };
+                      }
+                      return output;
+                    }
+                  );
+
+                  const updatedNodes = currentNodes.map((node) => {
+                    // Check if the node is the one we want to update
+                    if (node.id === nodeId) {
                       return {
-                        ...output,
-                        value: outputs[output.id],
+                        ...node,
+                        data: {
+                          ...node.data,
+                          outputs: updatedOutputs,
+                        },
                       };
                     }
-                    return output;
-                  }
-                );
+                    return node;
+                  });
 
-                const updatedNodes = currentNodes.map((node) => {
-                  // Check if the node is the one we want to update
-                  if (node.id === nodeId) {
-                    return {
-                      ...node,
-                      data: {
-                        ...node.data,
-                        outputs: updatedOutputs,
-                      },
-                    };
-                  }
-                  return node;
+                  return updatedNodes;
                 });
-
-                return updatedNodes;
-              });
-            }
-          }}
-          onNodeError={() => {}}
-        />
-      )}
-    </div>
+              }
+            }}
+            onNodeError={() => {}}
+          />
+        )}
+      </div>
+    </ReactFlowProvider>
   );
 }
