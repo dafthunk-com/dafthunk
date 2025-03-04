@@ -139,11 +139,7 @@ export function WorkflowNodeInspector({
                   <Input
                     value={formatOutputValue(output.value, output.type)}
                     readOnly
-                    className={`text-sm h-8 cursor-not-allowed ${
-                      output.value !== undefined
-                        ? "bg-green-50 border-green-200 text-green-900"
-                        : "bg-muted"
-                    }`}
+                    className="text-sm h-8 cursor-not-allowed bg-muted bg-gray-100"
                   />
                 </div>
               ))}
