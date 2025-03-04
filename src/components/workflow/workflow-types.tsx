@@ -67,6 +67,7 @@ export interface WorkflowCanvasProps {
   onInit: (instance: ReactFlowInstance) => void;
   onAddNode?: () => void;
   onExecute?: (e: React.MouseEvent) => void;
+  onClean?: (e: React.MouseEvent) => void;
   showControls?: boolean;
 }
 

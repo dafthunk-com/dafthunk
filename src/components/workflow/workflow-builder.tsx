@@ -76,6 +76,29 @@ export function WorkflowBuilder({
     handleExecute();
   };
 
+  const handleCleanClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Reset all nodes to idle state
+    nodes.forEach((node) => {
+      // Reset execution state to idle
+      updateNodeExecutionState(node.id, "idle");
+      
+      // Clear all output values by setting them to undefined
+      const resetOutputs = node.data.outputs.reduce((acc, output) => {
+        acc[output.id] = undefined;
+        return acc;
+      }, {} as Record<string, undefined>);
+      
+      // Update node outputs with cleared values
+      updateNodeOutputs(node.id, resetOutputs);
+      
+      // Clear any error messages
+      updateNodeData(node.id, { error: null });
+    });
+  };
+
   return (
     <div className="w-full h-full flex">
       <div
@@ -98,6 +121,7 @@ export function WorkflowBuilder({
           onInit={setReactFlowInstance}
           onAddNode={handleAddNode}
           onExecute={handleExecuteClick}
+          onClean={handleCleanClick}
         />
       </div>
 

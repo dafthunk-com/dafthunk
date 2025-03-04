@@ -42,6 +42,7 @@ export function WorkflowCanvas({
   onInit,
   onAddNode,
   onExecute,
+  onClean,
   showControls = true,
 }: WorkflowCanvasProps) {
   return (
@@ -126,6 +127,28 @@ export function WorkflowCanvas({
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"
+            />
+          </svg>
+        </Button>
+      )}
+      {onClean && (
+        <Button
+          onClick={onClean}
+          className="absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0"
+          title="Clean Workflow"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
             />
           </svg>
         </Button>
