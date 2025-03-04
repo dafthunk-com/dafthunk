@@ -6,3 +6,4 @@ export * from "./math/moduloNode";
 export * from "./math/exponentiationNode";
 export * from "./math/squareRootNode";
 export * from "./math/absoluteValueNode";
+export * from "./widgets/sliderNode";

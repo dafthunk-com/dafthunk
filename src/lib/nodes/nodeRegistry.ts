@@ -7,7 +7,8 @@ import {
   ModuloNode,
   ExponentiationNode,
   SquareRootNode,
-  AbsoluteValueNode
+  AbsoluteValueNode,
+  SliderNode
 } from "./index";
 
 /**
@@ -54,5 +55,10 @@ export function registerNodes(): void {
   registry.registerImplementation({
     type: "absolute-value",
     createExecutableNode: (node) => new AbsoluteValueNode(node),
+  });
+
+  registry.registerImplementation({
+    type: "slider",
+    createExecutableNode: (node) => new SliderNode(node),
   });
 }

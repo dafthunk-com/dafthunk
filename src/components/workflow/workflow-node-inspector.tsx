@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
 
@@ -52,6 +53,26 @@ export function WorkflowNodeInspector({
     onNodeUpdate(node.id, { inputs: updatedInputs });
   };
 
+  const handleSliderChange = (inputId: string, values: number[]) => {
+    if (!onNodeUpdate || !values.length) return;
+    
+    const value = values[0];
+    
+    // Create a new inputs array with the updated value
+    const updatedInputs = localInputs.map((input) => {
+      if (input.id === inputId) {
+        return { ...input, value };
+      }
+      return input;
+    });
+
+    // Update local state immediately
+    setLocalInputs(updatedInputs);
+
+    // Propagate change to parent component
+    onNodeUpdate(node.id, { inputs: updatedInputs });
+  };
+
   // Convert string values to the appropriate type
   const convertValueByType = (value: string, type: string) => {
     if (type === "number") {
@@ -81,6 +102,24 @@ export function WorkflowNodeInspector({
       console.warn("Error formatting output value:", e);
       return String(value);
     }
+  };
+
+  // Check if the node is a slider node
+  const isSliderNode = node.data.nodeType === "slider" || node.type === "slider";
+
+  // Find min, max, step, and value for slider nodes
+  const getSliderConfig = (input: any) => {
+    // Find min, max, and step values from node inputs
+    const min = localInputs.find(i => i.id === "min")?.value || 0;
+    const max = localInputs.find(i => i.id === "max")?.value || 100;
+    const step = localInputs.find(i => i.id === "step")?.value || 1;
+    
+    return {
+      min: typeof min === 'number' ? min : 0,
+      max: typeof max === 'number' ? max : 100,
+      step: typeof step === 'number' ? step : 1,
+      value: typeof input.value === 'number' ? input.value : min
+    };
   };
 
   return (
@@ -113,14 +152,35 @@ export function WorkflowNodeInspector({
                     <span>{input.label}</span>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
-                  <Input
-                    placeholder={`Enter ${input.type} value`}
-                    value={input.value !== undefined ? String(input.value) : ""}
-                    onChange={(e) =>
-                      handleInputValueChange(input.id, e.target.value)
-                    }
-                    className="text-sm h-8"
-                  />
+                  
+                  {isSliderNode && input.id === "defaultValue" ? (
+                    // Render slider for defaultValue input in slider nodes
+                    <div className="space-y-2">
+                      <Slider
+                        min={getSliderConfig(input).min}
+                        max={getSliderConfig(input).max}
+                        step={getSliderConfig(input).step}
+                        value={[getSliderConfig(input).value]}
+                        onValueChange={(values) => handleSliderChange(input.id, values)}
+                        className="py-4"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{getSliderConfig(input).min}</span>
+                        <span>Value: {getSliderConfig(input).value}</span>
+                        <span>{getSliderConfig(input).max}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    // Regular input for other inputs
+                    <Input
+                      placeholder={`Enter ${input.type} value`}
+                      value={input.value !== undefined ? String(input.value) : ""}
+                      onChange={(e) =>
+                        handleInputValueChange(input.id, e.target.value)
+                      }
+                      className="text-sm h-8"
+                    />
+                  )}
                 </div>
               ))}
               {localInputs.length === 0 && (
