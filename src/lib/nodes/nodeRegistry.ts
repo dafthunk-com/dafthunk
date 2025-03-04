@@ -4,6 +4,10 @@ import {
   SubtractionNode,
   MultiplicationNode,
   DivisionNode,
+  ModuloNode,
+  ExponentiationNode,
+  SquareRootNode,
+  AbsoluteValueNode
 } from "./index";
 
 /**
@@ -30,5 +34,25 @@ export function registerNodes(): void {
   registry.registerImplementation({
     type: "division",
     createExecutableNode: (node) => new DivisionNode(node),
+  });
+  
+  registry.registerImplementation({
+    type: "modulo",
+    createExecutableNode: (node) => new ModuloNode(node),
+  });
+  
+  registry.registerImplementation({
+    type: "exponentiation",
+    createExecutableNode: (node) => new ExponentiationNode(node),
+  });
+  
+  registry.registerImplementation({
+    type: "square-root",
+    createExecutableNode: (node) => new SquareRootNode(node),
+  });
+  
+  registry.registerImplementation({
+    type: "absolute-value",
+    createExecutableNode: (node) => new AbsoluteValueNode(node),
   });
 }
