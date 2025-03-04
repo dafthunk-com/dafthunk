@@ -4,6 +4,8 @@ import { ExecutionEvent, UseWorkflowExecutionProps } from "./workflow-types";
 export function useWorkflowExecution({
   workflowId,
   updateNodeExecutionState,
+  updateNodeData,
+  updateNodeOutputs,
   onExecutionStart,
   onExecutionComplete,
   onExecutionError,
@@ -43,6 +45,9 @@ export function useWorkflowExecution({
                 `Updating node ${event.nodeId} outputs:`,
                 event.outputs
               );
+              
+              // Use updateNodeOutputs to update the output values
+              updateNodeOutputs(event.nodeId, event.outputs);
             }
 
             onNodeComplete?.(event.nodeId, event.outputs);
@@ -81,6 +86,8 @@ export function useWorkflowExecution({
   }, [
     workflowId,
     updateNodeExecutionState,
+    updateNodeData,
+    updateNodeOutputs,
     onExecutionStart,
     onExecutionComplete,
     onExecutionError,

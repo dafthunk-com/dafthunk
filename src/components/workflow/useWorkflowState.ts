@@ -211,6 +211,38 @@ export function useWorkflowState({
     [setNodes]
   );
 
+  // Update node outputs specifically
+  const updateNodeOutputs = useCallback(
+    (nodeId: string, outputs: Record<string, any>) => {
+      console.log(`Updating node ${nodeId} outputs:`, outputs);
+      
+      setNodes((nds) => 
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            // Map through existing outputs and update values when they exist in the outputs object
+            const updatedOutputs = node.data.outputs.map((output) => ({
+              ...output,
+              value: outputs[output.id] !== undefined ? outputs[output.id] : output.value
+            }));
+            
+            const updatedNode = {
+              ...node,
+              data: {
+                ...node.data,
+                outputs: updatedOutputs
+              }
+            };
+            
+            console.log(`Node ${nodeId} outputs updated:`, updatedNode);
+            return updatedNode;
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes]
+  );
+
   // Update edge data
   const updateEdgeData = useCallback(
     (edgeId: string, data: Partial<WorkflowEdgeData>) => {
@@ -254,6 +286,7 @@ export function useWorkflowState({
     setReactFlowInstance,
     updateNodeExecutionState,
     updateNodeData,
+    updateNodeOutputs,
     updateEdgeData,
   };
 }

@@ -108,6 +108,7 @@ export interface UseWorkflowStateReturn {
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
   updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
+  updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
 }
 
@@ -129,6 +130,8 @@ export interface ExecutionEvent {
 export interface UseWorkflowExecutionProps {
   workflowId: string;
   updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
+  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
+  updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
   onExecutionStart?: () => void;
   onExecutionComplete?: () => void;
   onExecutionError?: (error: string) => void;

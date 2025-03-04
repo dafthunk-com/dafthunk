@@ -42,6 +42,7 @@ export function WorkflowBuilder({
     setReactFlowInstance,
     connectionValidationState,
     updateNodeData,
+    updateNodeOutputs,
     updateEdgeData,
   } = useWorkflowState({
     initialNodes,
@@ -54,6 +55,8 @@ export function WorkflowBuilder({
   const { handleExecute } = useWorkflowExecution({
     workflowId,
     updateNodeExecutionState,
+    updateNodeData,
+    updateNodeOutputs,
     onExecutionStart,
     onExecutionComplete,
     onExecutionError,
