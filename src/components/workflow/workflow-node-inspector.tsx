@@ -131,11 +131,6 @@ export function WorkflowNodeInspector({
                   <div className="flex items-center justify-between">
                     <span>{output.label}</span>
                     <div className="flex items-center gap-1">
-                      {output.value !== undefined && (
-                        <span className="px-1.5 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
-                          {formatOutputValue(output.value, output.type)}
-                        </span>
-                      )}
                       <span className="text-xs text-gray-500">
                         {output.type}
                       </span>
