@@ -8,7 +8,7 @@ on:
 jobs:
   reset-database:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -33,4 +33,4 @@ jobs:
           CI: true
         run: |
           npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations;DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
-          npx wrangler d1 migrations apply DB --remote --env production 
+          npx wrangler d1 migrations apply DB --remote --env production

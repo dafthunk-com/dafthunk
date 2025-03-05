@@ -22,7 +22,7 @@ export class SentimentNode extends BaseExecutableNode {
       const result = await context.env.AI.run(
         "@cf/huggingface/distilbert-sst-2-int8",
         {
-          text
+          text,
         }
       );
 
@@ -39,4 +39,4 @@ export class SentimentNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

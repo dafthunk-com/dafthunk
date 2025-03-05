@@ -42,22 +42,6 @@ export const WorkflowEdge = memo(
           })}
           markerEnd={markerEnd}
         />
-        {isActive && (
-          <circle
-            r="4"
-            className={cn(
-              "fill-blue-500 animate-[moveAlongPath_2s_linear_infinite]",
-              "filter drop-shadow-md",
-              {
-                "fill-red-400": !isValid,
-              }
-            )}
-            style={{
-              offsetPath: `path("${edgePath}")`,
-              offsetRotate: "0deg",
-            }}
-          />
-        )}
       </g>
     );
   }
