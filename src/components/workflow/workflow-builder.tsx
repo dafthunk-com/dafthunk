@@ -4,8 +4,6 @@ import { useWorkflowState } from "./useWorkflowState";
 import { useWorkflowExecution } from "./useWorkflowExecution";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
-import { workflowService } from "@/services/workflowService";
-import { useEffect } from "react";
 
 export function WorkflowBuilder({
   workflowId,
@@ -68,77 +66,6 @@ export function WorkflowBuilder({
     executeWorkflow,
   });
 
-  // Function to save the workflow state
-  const saveWorkflow = () => {
-    if (!workflowId) return;
-    
-    try {
-      // Create a workflow object from the current state
-      const workflow = {
-        id: workflowId,
-        name: "Workflow", // Default name if no other name is available
-        nodes: nodes.map(node => ({
-          id: node.id,
-          name: node.data.label,
-          type: node.type || "",
-          description: "",
-          position: { x: node.position.x, y: node.position.y },
-          // Convert WorkflowParameter to Parameter
-          inputs: node.data.inputs.map(input => ({
-            name: input.label,
-            type: input.type,
-            description: input.label,
-            value: input.value
-          })),
-          outputs: node.data.outputs.map(output => ({
-            name: output.label,
-            type: output.type,
-            description: output.label,
-            value: output.value
-          }))
-        })),
-        edges: edges.map(edge => ({
-          source: edge.source,
-          target: edge.target,
-          sourceOutput: edge.sourceHandle || "",
-          targetInput: edge.targetHandle || "",
-        })),
-      };
-      
-      // Save the workflow to the backend
-      return workflowService.save(workflowId, workflow)
-        .then(() => console.log('Workflow saved successfully'))
-        .catch(error => console.error('Error saving workflow:', error));
-    } catch (error) {
-      console.error('Error preparing workflow for save:', error);
-    }
-  };
-
-  // Add event listener for saving the workflow when slider values change
-  useEffect(() => {
-    const handleWorkflowSave = (event: Event) => {
-      // Type assertion to access the custom event detail
-      const customEvent = event as CustomEvent<{
-        nodeId: string;
-        type: string;
-        value: any;
-      }>;
-      
-      if (customEvent.detail.type === 'slider-value-change') {
-        console.log(`Saving workflow state for slider change on node ${customEvent.detail.nodeId}`);
-        saveWorkflow();
-      }
-    };
-    
-    // Register the event listener
-    document.addEventListener('workflow:save', handleWorkflowSave);
-    
-    // Clean up the event listener when the component unmounts
-    return () => {
-      document.removeEventListener('workflow:save', handleWorkflowSave);
-    };
-  }, [workflowId, nodes, edges]);
-
   const handleExecuteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -167,8 +94,14 @@ export function WorkflowBuilder({
       // Update node outputs with cleared values
       updateNodeOutputs(node.id, resetOutputs);
       
-      // Clear any error messages
-      updateNodeData(node.id, { error: null });
+      // Update node data to clear output values and error
+      updateNodeData(node.id, {
+        outputs: node.data.outputs.map(output => ({
+          ...output,
+          value: undefined
+        })),
+        error: null
+      });
     });
   };
 
