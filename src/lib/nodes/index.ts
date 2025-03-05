@@ -7,4 +7,4 @@ export * from "./math/exponentiationNode";
 export * from "./math/squareRootNode";
 export * from "./math/absoluteValueNode";
 export * from "./widgets/sliderNode";
-export * from "./llm/llmNode";
+export * from "./ai/llmNode";
