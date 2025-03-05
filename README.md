@@ -61,6 +61,13 @@ npx wrangler d1 migrations apply DB --remote --env production
 npx wrangler d1 execute DB --env production --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
 ```
 
+To reset the production database, run the following commands:
+
+```bash
+npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations;DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
+npx wrangler d1 migrations apply DB --remote --env production
+```
+
 In development, they can be applied manually by running the following commands in the root of the project:
 
 ```bash
@@ -68,7 +75,7 @@ npx wrangler d1 migrations apply DB --remote --env development
 npx wrangler d1 execute DB --env development --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
 ```
 
-To reset the database, run the following commands:
+To reset the development database, run the following commands:
 
 ```bash
 npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS d1_migrations;DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
