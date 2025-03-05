@@ -85,15 +85,6 @@ export function WorkflowBuilder({
       // Reset execution state to idle
       updateNodeExecutionState(node.id, "idle");
       
-      // Clear all output values by setting them to undefined
-      const resetOutputs = node.data.outputs.reduce((acc, output) => {
-        acc[output.id] = undefined;
-        return acc;
-      }, {} as Record<string, undefined>);
-      
-      // Update node outputs with cleared values
-      updateNodeOutputs(node.id, resetOutputs);
-      
       // Update node data to clear output values and error
       updateNodeData(node.id, {
         outputs: node.data.outputs.map(output => ({
