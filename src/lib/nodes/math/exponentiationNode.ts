@@ -23,4 +23,4 @@ export class ExponentiationNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

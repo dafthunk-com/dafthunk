@@ -15,7 +15,7 @@ export class LLMNode extends BaseExecutableNode {
       const maxTokens = context.inputs.maxTokens;
       const presencePenalty = context.inputs.presencePenalty;
       const repetitionPenalty = context.inputs.repetitionPenalty;
-      
+
       if (!prompt || typeof prompt !== "string") {
         return this.createErrorResult(
           "Prompt is required and must be a string"

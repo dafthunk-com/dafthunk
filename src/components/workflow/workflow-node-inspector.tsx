@@ -55,9 +55,9 @@ export function WorkflowNodeInspector({
 
   const handleSliderChange = (inputId: string, values: number[]) => {
     if (!onNodeUpdate || !values.length) return;
-    
+
     const value = values[0];
-    
+
     // Create a new inputs array with the updated value
     const updatedInputs = localInputs.map((input) => {
       if (input.id === inputId) {
@@ -71,17 +71,17 @@ export function WorkflowNodeInspector({
 
     // Propagate change to parent component
     onNodeUpdate(node.id, { inputs: updatedInputs });
-    
+
     // Special handling for slider node: trigger an immediate save
     // This ensures the value persists across page loads
     try {
       // This will trigger an API/DB save in the component that manages the workflow
-      const workflowEvent = new CustomEvent('workflow:save', {
-        detail: { nodeId: node.id, type: 'slider-value-change', value }
+      const workflowEvent = new CustomEvent("workflow:save", {
+        detail: { nodeId: node.id, type: "slider-value-change", value },
       });
       document.dispatchEvent(workflowEvent);
     } catch (e) {
-      console.error('Error dispatching workflow save event:', e);
+      console.error("Error dispatching workflow save event:", e);
     }
   };
 
@@ -100,7 +100,7 @@ export function WorkflowNodeInspector({
   // Format output value for display
   const formatOutputValue = (value: any, type: string): string => {
     if (value === undefined || value === null) return "";
-    
+
     try {
       if (type === "object" || type === "array") {
         return JSON.stringify(value, null, 2);
@@ -117,21 +117,22 @@ export function WorkflowNodeInspector({
   };
 
   // Check if the node is a slider node
-  const isSliderNode = node.data.nodeType === "slider" || node.type === "slider";
+  const isSliderNode =
+    node.data.nodeType === "slider" || node.type === "slider";
 
   // Find min, max, step, and value for slider nodes
   const getSliderConfig = () => {
     // Find min, max, step values from node inputs
-    const min = localInputs.find(i => i.id === "min")?.value || 0;
-    const max = localInputs.find(i => i.id === "max")?.value || 100;
-    const step = localInputs.find(i => i.id === "step")?.value || 1;
-    const value = localInputs.find(i => i.id === "value")?.value;
-    
+    const min = localInputs.find((i) => i.id === "min")?.value || 0;
+    const max = localInputs.find((i) => i.id === "max")?.value || 100;
+    const step = localInputs.find((i) => i.id === "step")?.value || 1;
+    const value = localInputs.find((i) => i.id === "value")?.value;
+
     return {
-      min: typeof min === 'number' ? min : 0,
-      max: typeof max === 'number' ? max : 100,
-      step: typeof step === 'number' ? step : 1,
-      value: typeof value === 'number' ? value : min
+      min: typeof min === "number" ? min : 0,
+      max: typeof max === "number" ? max : 100,
+      step: typeof step === "number" ? step : 1,
+      value: typeof value === "number" ? value : min,
     };
   };
 
@@ -165,7 +166,7 @@ export function WorkflowNodeInspector({
                     <span>{input.label}</span>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
-                  
+
                   {isSliderNode && input.id === "value" ? (
                     // Render slider for value input in slider nodes
                     <div className="space-y-2">
@@ -174,7 +175,9 @@ export function WorkflowNodeInspector({
                         max={getSliderConfig().max}
                         step={getSliderConfig().step}
                         value={[getSliderConfig().value]}
-                        onValueChange={(values) => handleSliderChange(input.id, values)}
+                        onValueChange={(values) =>
+                          handleSliderChange(input.id, values)
+                        }
                         className="py-4"
                       />
                       <div className="flex justify-between text-xs text-gray-500">
@@ -187,7 +190,9 @@ export function WorkflowNodeInspector({
                     // Regular input for other inputs
                     <Input
                       placeholder={`Enter ${input.type} value`}
-                      value={input.value !== undefined ? String(input.value) : ""}
+                      value={
+                        input.value !== undefined ? String(input.value) : ""
+                      }
                       onChange={(e) =>
                         handleInputValueChange(input.id, e.target.value)
                       }

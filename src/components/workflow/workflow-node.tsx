@@ -96,9 +96,7 @@ export const WorkflowNode = memo(
                 key={`output-${output.id}-${index}`}
                 className="flex items-center gap-1 text-xs relative"
               >
-                <p className="overflow-hidden text-ellipsis">
-                  {output.label}
-                </p>
+                <p className="overflow-hidden text-ellipsis">{output.label}</p>
                 <TypeBadge
                   type={output.type}
                   position={Position.Right}
