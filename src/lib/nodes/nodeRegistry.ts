@@ -1,5 +1,6 @@
 import { NodeRegistry } from "../workflowTypes";
 import { SummarizationNode } from "./ai/summarizationNode";
+import { SentimentNode } from "./ai/sentimentNode";
 import {
   AdditionNode,
   SubtractionNode,
@@ -72,5 +73,10 @@ export function registerNodes(): void {
   registry.registerImplementation({
     type: "summarization",
     createExecutableNode: (node) => new SummarizationNode(node),
+  });
+
+  registry.registerImplementation({
+    type: "sentiment",
+    createExecutableNode: (node) => new SentimentNode(node),
   });
 }
