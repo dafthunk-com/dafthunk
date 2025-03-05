@@ -1,4 +1,5 @@
 import { NodeRegistry } from "../workflowTypes";
+import { SummarizationNode } from "./ai/summarizationNode";
 import {
   AdditionNode,
   SubtractionNode,
@@ -67,4 +68,10 @@ export function registerNodes(): void {
     type: "llm",
     createExecutableNode: (node) => new LLMNode(node),
   });
+
+  registry.registerImplementation({
+    type: "summarization",
+    createExecutableNode: (node) => new SummarizationNode(node),
+  });
+
 }
