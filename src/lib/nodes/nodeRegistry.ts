@@ -8,7 +8,7 @@ import {
   ExponentiationNode,
   SquareRootNode,
   AbsoluteValueNode,
-  SliderNode
+  SliderNode,
   LLMNode,
 } from "./index";
 
