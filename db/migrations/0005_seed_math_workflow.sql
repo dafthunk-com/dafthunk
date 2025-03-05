@@ -81,7 +81,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'addition-1',
         'name', 'Addition',
         'type', 'addition',
-        'position', json_object('x', 100, 'y', 100),
+        'position', json_object('x', 200, 'y', 100),
         'inputs', json_array(
           json_object('name', 'a', 'type', 'number', 'value', 2),
           json_object('name', 'b', 'type', 'number', 'value', 3)
@@ -94,7 +94,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'multiplication-1',
         'name', 'Multiplication',
         'type', 'multiplication',
-        'position', json_object('x', 400, 'y', 100),
+        'position', json_object('x', 600, 'y', 100),
         'inputs', json_array(
           json_object('name', 'a', 'type', 'number'),
           json_object('name', 'b', 'type', 'number', 'value', 4)
@@ -125,7 +125,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'subtraction-1',
         'name', 'Subtraction',
         'type', 'subtraction',
-        'position', json_object('x', 100, 'y', 100),
+        'position', json_object('x', 200, 'y', 100),
         'inputs', json_array(
           json_object('name', 'a', 'type', 'number', 'value', 10),
           json_object('name', 'b', 'type', 'number', 'value', 25)
@@ -138,7 +138,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'abs-1',
         'name', 'Absolute Value',
         'type', 'absolute-value',
-        'position', json_object('x', 300, 'y', 100),
+        'position', json_object('x', 600, 'y', 100),
         'inputs', json_array(
           json_object('name', 'value', 'type', 'number')
         ),
@@ -150,7 +150,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'exponentiation-1',
         'name', 'Exponentiation',
         'type', 'exponentiation',
-        'position', json_object('x', 500, 'y', 100),
+        'position', json_object('x', 1000, 'y', 100),
         'inputs', json_array(
           json_object('name', 'base', 'type', 'number'),
           json_object('name', 'exponent', 'type', 'number', 'value', 2)
@@ -163,7 +163,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'modulo-1',
         'name', 'Modulo',
         'type', 'modulo',
-        'position', json_object('x', 700, 'y', 100),
+        'position', json_object('x', 1400, 'y', 100),
         'inputs', json_array(
           json_object('name', 'a', 'type', 'number'),
           json_object('name', 'b', 'type', 'number', 'value', 7)
@@ -176,7 +176,7 @@ INSERT INTO workflows (id, name, data) VALUES (
         'id', 'sqrt-1',
         'name', 'Square Root',
         'type', 'square-root',
-        'position', json_object('x', 900, 'y', 100),
+        'position', json_object('x', 1800, 'y', 100),
         'inputs', json_array(
           json_object('name', 'value', 'type', 'number')
         ),
