@@ -143,17 +143,17 @@ export function WorkflowNodeInspector({
       <CardContent>
         <div className="space-y-4">
           <div className="space-y-2">
+            <Label>Type</Label>
+            <div className="text-sm">{node.data.nodeType || node.type}</div>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="node-name">Name</Label>
             <Input
               id="node-name"
               value={localLabel}
               onChange={handleLabelChange}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Type</Label>
-            <div className="text-sm">{node.data.nodeType || node.type}</div>
           </div>
 
           <div className="space-y-2">
