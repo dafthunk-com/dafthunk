@@ -45,17 +45,45 @@ INSERT INTO workflows (id, name, data) VALUES (
         )
       ),
       json_object(
-        'id', 'translate-1',
-        'name', 'Translation',
+        'id', 'translate-fr',
+        'name', 'French Translation',
         'type', 'translation',
-        'position', json_object('x', 1000, 'y', 200),
+        'position', json_object('x', 1000, 'y', 100),
         'inputs', json_array(
           json_object('name', 'text', 'type', 'string'),
-          json_object('name', 'source_lang', 'type', 'string', 'value', 'en'),
-          json_object('name', 'target_lang', 'type', 'string', 'value', 'fr')
+          json_object('name', 'sourceLang', 'type', 'string', 'value', 'en'),
+          json_object('name', 'targetLang', 'type', 'string', 'value', 'fr')
         ),
         'outputs', json_array(
-          json_object('name', 'translated_text', 'type', 'string')
+          json_object('name', 'translatedText', 'type', 'string')
+        )
+      ),
+      json_object(
+        'id', 'translate-de',
+        'name', 'German Translation',
+        'type', 'translation',
+        'position', json_object('x', 1000, 'y', 300),
+        'inputs', json_array(
+          json_object('name', 'text', 'type', 'string'),
+          json_object('name', 'sourceLang', 'type', 'string', 'value', 'en'),
+          json_object('name', 'targetLang', 'type', 'string', 'value', 'de')
+        ),
+        'outputs', json_array(
+          json_object('name', 'translatedText', 'type', 'string')
+        )
+      ),
+      json_object(
+        'id', 'translate-it',
+        'name', 'Italian Translation',
+        'type', 'translation',
+        'position', json_object('x', 1000, 'y', 500),
+        'inputs', json_array(
+          json_object('name', 'text', 'type', 'string'),
+          json_object('name', 'sourceLang', 'type', 'string', 'value', 'en'),
+          json_object('name', 'targetLang', 'type', 'string', 'value', 'it')
+        ),
+        'outputs', json_array(
+          json_object('name', 'translatedText', 'type', 'string')
         )
       )
     ),
@@ -74,7 +102,19 @@ INSERT INTO workflows (id, name, data) VALUES (
       ),
       json_object(
         'source', 'summarize-1',
-        'target', 'translate-1',
+        'target', 'translate-fr',
+        'sourceOutput', 'summary',
+        'targetInput', 'text'
+      ),
+      json_object(
+        'source', 'summarize-1',
+        'target', 'translate-de',
+        'sourceOutput', 'summary',
+        'targetInput', 'text'
+      ),
+      json_object(
+        'source', 'summarize-1',
+        'target', 'translate-it',
         'sourceOutput', 'summary',
         'targetInput', 'text'
       )
