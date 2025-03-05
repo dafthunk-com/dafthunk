@@ -14,9 +14,6 @@ export class MultiplicationNode extends BaseExecutableNode {
         return this.createErrorResult("Both inputs must be numbers");
       }
 
-      console.log("a", a);
-      console.log("b", b);
-      console.log("a * b", a * b);
       return this.createSuccessResult({
         result: a * b,
       });
