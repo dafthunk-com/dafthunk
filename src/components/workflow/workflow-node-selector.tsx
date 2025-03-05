@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { WorkflowNodeSelectorProps } from "./workflow-types";
 
 export function WorkflowNodeSelector({
@@ -38,13 +37,13 @@ export function WorkflowNodeSelector({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-[500px] max-h-[80vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col p-0">
+        <DialogHeader className="px-4 pt-4">
           <DialogTitle>Add Node</DialogTitle>
         </DialogHeader>
 
-        <div className="relative mb-4">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative px-4 mb-4">
+          <Search className="absolute left-6 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search nodes..."
             className="pl-8"
@@ -53,9 +52,9 @@ export function WorkflowNodeSelector({
           />
         </div>
 
-        <ScrollArea className="flex-grow pr-4">
-          {categories.length > 0 && (
-            <div className="flex gap-2 mb-4 flex-wrap">
+        {categories.length > 0 && (
+          <div className="px-4 mb-4">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 variant={selectedCategory === null ? "default" : "outline"}
                 size="sm"
@@ -76,8 +75,10 @@ export function WorkflowNodeSelector({
                 </Button>
               ))}
             </div>
-          )}
+          </div>
+        )}
 
+        <ScrollArea className="flex-1 px-4 pb-4">
           <div className="space-y-2">
             {filteredTemplates.map((template) => (
               <div
@@ -94,30 +95,6 @@ export function WorkflowNodeSelector({
                 <p className="text-sm text-muted-foreground mb-2">
                   {template.description}
                 </p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <div
-                    className={cn(
-                      "flex items-center",
-                      template.inputs.length === 0 && "opacity-50"
-                    )}
-                  >
-                    <span>
-                      {template.inputs.length} input
-                      {template.inputs.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div
-                    className={cn(
-                      "flex items-center",
-                      template.outputs.length === 0 && "opacity-50"
-                    )}
-                  >
-                    <span>
-                      {template.outputs.length} output
-                      {template.outputs.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </div>
               </div>
             ))}
             {filteredTemplates.length === 0 && (
