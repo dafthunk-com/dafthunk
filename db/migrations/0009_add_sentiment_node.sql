@@ -5,7 +5,7 @@ INSERT INTO node_types (id, name, type, description, category, icon, inputs, out
     json_object('name', 'text', 'type', 'string', 'description', 'The text to analyze for sentiment')
   ),
   json_array(
-    json_object('name', 'label', 'type', 'string', 'description', 'The sentiment classification (POSITIVE or NEGATIVE)'),
-    json_object('name', 'score', 'type', 'number', 'description', 'Confidence score for the sentiment classification')
+    json_object('name', 'positive', 'type', 'number', 'description', 'Confidence score for positive sentiment'),
+    json_object('name', 'negative', 'type', 'number', 'description', 'Confidence score for negative sentiment')
   )
-); 
+);

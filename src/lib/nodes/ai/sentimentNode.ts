@@ -26,12 +26,12 @@ export class SentimentNode extends BaseExecutableNode {
         }
       );
 
-      // The model returns an array of classifications, we take the first one
-      const classification = result[0];
-
+      // The model returns an array of classifications (positive and negative)
+      const negative = result[0];
+      const positive = result[1];
       return this.createSuccessResult({
-        label: classification.label,
-        score: classification.score
+        positive: positive.score,
+        negative: negative.score,
       });
     } catch (error) {
       return this.createErrorResult(
