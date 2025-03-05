@@ -11,13 +11,18 @@ export function WorkflowSidebar({
 }: WorkflowSidebarProps) {
   // Memoize the selected node to ensure we get a clean render when it changes
   const selectedNode = useMemo(() => node, [node]);
-  
+
   return (
     <div className="h-full overflow-y-auto">
       {selectedNode && (
-        <WorkflowNodeInspector node={selectedNode} onNodeUpdate={onNodeUpdate} />
+        <WorkflowNodeInspector
+          node={selectedNode}
+          onNodeUpdate={onNodeUpdate}
+        />
       )}
-      {edge && <WorkflowEdgeInspector edge={edge} onEdgeUpdate={onEdgeUpdate} />}
+      {edge && (
+        <WorkflowEdgeInspector edge={edge} onEdgeUpdate={onEdgeUpdate} />
+      )}
     </div>
   );
 }

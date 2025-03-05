@@ -54,8 +54,11 @@ export function useWorkflowState({
   // Effect to keep selectedNode in sync with nodes state
   useEffect(() => {
     if (selectedNode) {
-      const updatedNode = nodes.find(node => node.id === selectedNode.id);
-      if (updatedNode && JSON.stringify(updatedNode) !== JSON.stringify(selectedNode)) {
+      const updatedNode = nodes.find((node) => node.id === selectedNode.id);
+      if (
+        updatedNode &&
+        JSON.stringify(updatedNode) !== JSON.stringify(selectedNode)
+      ) {
         setSelectedNode(updatedNode);
       }
     }
@@ -225,24 +228,27 @@ export function useWorkflowState({
   const updateNodeOutputs = useCallback(
     (nodeId: string, outputs: Record<string, any>) => {
       console.log(`Updating node ${nodeId} outputs:`, outputs);
-      
-      setNodes((nds) => 
+
+      setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
             // Map through existing outputs and update values when they exist in the outputs object
             const updatedOutputs = node.data.outputs.map((output) => ({
               ...output,
-              value: outputs[output.id] !== undefined ? outputs[output.id] : output.value
+              value:
+                outputs[output.id] !== undefined
+                  ? outputs[output.id]
+                  : output.value,
             }));
-            
+
             const updatedNode = {
               ...node,
               data: {
                 ...node.data,
-                outputs: updatedOutputs
-              }
+                outputs: updatedOutputs,
+              },
             };
-            
+
             console.log(`Node ${nodeId} outputs updated:`, updatedNode);
             return updatedNode;
           }

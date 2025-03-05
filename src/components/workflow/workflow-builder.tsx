@@ -79,19 +79,19 @@ export function WorkflowBuilder({
   const handleCleanClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Reset all nodes to idle state
     nodes.forEach((node) => {
       // Reset execution state to idle
       updateNodeExecutionState(node.id, "idle");
-      
+
       // Update node data to clear output values and error
       updateNodeData(node.id, {
-        outputs: node.data.outputs.map(output => ({
+        outputs: node.data.outputs.map((output) => ({
           ...output,
-          value: undefined
+          value: undefined,
         })),
-        error: null
+        error: null,
       });
     });
   };

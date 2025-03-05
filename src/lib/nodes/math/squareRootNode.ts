@@ -14,7 +14,9 @@ export class SquareRootNode extends BaseExecutableNode {
       }
 
       if (value < 0) {
-        return this.createErrorResult("Cannot calculate square root of a negative number");
+        return this.createErrorResult(
+          "Cannot calculate square root of a negative number"
+        );
       }
 
       return this.createSuccessResult({
@@ -26,4 +28,4 @@ export class SquareRootNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

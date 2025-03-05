@@ -45,7 +45,7 @@ export function useWorkflowExecution({
                 `Updating node ${event.nodeId} outputs:`,
                 event.outputs
               );
-              
+
               // Use updateNodeOutputs to update the output values
               updateNodeOutputs(event.nodeId, event.outputs);
             }

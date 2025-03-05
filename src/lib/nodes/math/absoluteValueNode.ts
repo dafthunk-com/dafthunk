@@ -22,4 +22,4 @@ export class AbsoluteValueNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

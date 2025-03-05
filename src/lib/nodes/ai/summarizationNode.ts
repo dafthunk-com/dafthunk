@@ -20,13 +20,10 @@ export class SummarizationNode extends BaseExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const result = await context.env.AI.run(
-        "@cf/facebook/bart-large-cnn",
-        {
-          input_text: inputText,
-          max_length: maxLength,
-        }
-      );
+      const result = await context.env.AI.run("@cf/facebook/bart-large-cnn", {
+        input_text: inputText,
+        max_length: maxLength,
+      });
 
       return this.createSuccessResult({
         summary: result.summary,
@@ -37,4 +34,4 @@ export class SummarizationNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

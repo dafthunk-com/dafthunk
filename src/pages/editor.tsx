@@ -480,7 +480,10 @@ export function EditorPage() {
               onNodeComplete={(nodeId, outputs) => {
                 // Update the node's output parameter values with the values from the execution
                 if (outputs) {
-                  console.log(`Node ${nodeId} completed with outputs:`, outputs);
+                  console.log(
+                    `Node ${nodeId} completed with outputs:`,
+                    outputs
+                  );
 
                   // Use functional update to ensure we're working with the latest state
                   setNodes((currentNodes) => {
