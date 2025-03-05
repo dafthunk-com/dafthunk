@@ -5,6 +5,9 @@ import { NodeContext, ExecutionResult } from "../../workflowTypes";
  * Slider node implementation
  * This node provides a slider widget that outputs a selected value
  * constrained by min, max, and step values.
+ * 
+ * The slider's current value is stored as an input parameter named "value"
+ * and passed directly to the output.
  */
 export class SliderNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -12,8 +15,8 @@ export class SliderNode extends BaseExecutableNode {
       const min = Number(context.inputs.min);
       const max = Number(context.inputs.max);
       const step = Number(context.inputs.step);
-      const defaultValue = Number(context.inputs.defaultValue);
-
+      const value = Number(context.inputs.value);
+      
       // Validate inputs
       if (isNaN(min)) {
         return this.createErrorResult("Min value must be a number");
@@ -35,14 +38,14 @@ export class SliderNode extends BaseExecutableNode {
         return this.createErrorResult("Min value must be less than max value");
       }
 
-      // If default value is provided, use it as the output
-      // Otherwise, use the min value
-      const value = !isNaN(defaultValue) 
-        ? Math.min(Math.max(defaultValue, min), max) 
+      // Use the input value as the output, constrained by min/max
+      // If no value is provided, use min as default
+      const outputValue = !isNaN(value)
+        ? Math.min(Math.max(value, min), max)
         : min;
 
       return this.createSuccessResult({
-        value
+        value: outputValue
       });
     } catch (error) {
       return this.createErrorResult(

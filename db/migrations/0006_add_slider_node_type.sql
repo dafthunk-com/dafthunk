@@ -5,7 +5,7 @@ INSERT INTO node_types (id, name, type, description, category, icon, inputs, out
     json_object('name', 'min', 'type', 'number', 'description', 'Minimum value of the slider'),
     json_object('name', 'max', 'type', 'number', 'description', 'Maximum value of the slider'),
     json_object('name', 'step', 'type', 'number', 'description', 'Step size for the slider'),
-    json_object('name', 'defaultValue', 'type', 'number', 'description', 'Default value for the slider')
+    json_object('name', 'value', 'type', 'number', 'description', 'Current value of the slider')
   ),
   json_array(
     json_object('name', 'value', 'type', 'number', 'description', 'The selected value from the slider')

@@ -71,6 +71,18 @@ export function WorkflowNodeInspector({
 
     // Propagate change to parent component
     onNodeUpdate(node.id, { inputs: updatedInputs });
+    
+    // Special handling for slider node: trigger an immediate save
+    // This ensures the value persists across page loads
+    try {
+      // This will trigger an API/DB save in the component that manages the workflow
+      const workflowEvent = new CustomEvent('workflow:save', {
+        detail: { nodeId: node.id, type: 'slider-value-change', value }
+      });
+      document.dispatchEvent(workflowEvent);
+    } catch (e) {
+      console.error('Error dispatching workflow save event:', e);
+    }
   };
 
   // Convert string values to the appropriate type
@@ -108,17 +120,18 @@ export function WorkflowNodeInspector({
   const isSliderNode = node.data.nodeType === "slider" || node.type === "slider";
 
   // Find min, max, step, and value for slider nodes
-  const getSliderConfig = (input: any) => {
-    // Find min, max, and step values from node inputs
+  const getSliderConfig = () => {
+    // Find min, max, step values from node inputs
     const min = localInputs.find(i => i.id === "min")?.value || 0;
     const max = localInputs.find(i => i.id === "max")?.value || 100;
     const step = localInputs.find(i => i.id === "step")?.value || 1;
+    const value = localInputs.find(i => i.id === "value")?.value;
     
     return {
       min: typeof min === 'number' ? min : 0,
       max: typeof max === 'number' ? max : 100,
       step: typeof step === 'number' ? step : 1,
-      value: typeof input.value === 'number' ? input.value : min
+      value: typeof value === 'number' ? value : min
     };
   };
 
@@ -153,21 +166,21 @@ export function WorkflowNodeInspector({
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
                   
-                  {isSliderNode && input.id === "defaultValue" ? (
-                    // Render slider for defaultValue input in slider nodes
+                  {isSliderNode && input.id === "value" ? (
+                    // Render slider for value input in slider nodes
                     <div className="space-y-2">
                       <Slider
-                        min={getSliderConfig(input).min}
-                        max={getSliderConfig(input).max}
-                        step={getSliderConfig(input).step}
-                        value={[getSliderConfig(input).value]}
+                        min={getSliderConfig().min}
+                        max={getSliderConfig().max}
+                        step={getSliderConfig().step}
+                        value={[getSliderConfig().value]}
                         onValueChange={(values) => handleSliderChange(input.id, values)}
                         className="py-4"
                       />
                       <div className="flex justify-between text-xs text-gray-500">
-                        <span>{getSliderConfig(input).min}</span>
-                        <span>Value: {getSliderConfig(input).value}</span>
-                        <span>{getSliderConfig(input).max}</span>
+                        <span>{getSliderConfig().min}</span>
+                        <span>Value: {getSliderConfig().value}</span>
+                        <span>{getSliderConfig().max}</span>
                       </div>
                     </div>
                   ) : (
