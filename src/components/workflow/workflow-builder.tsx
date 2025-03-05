@@ -100,7 +100,7 @@ export function WorkflowBuilder({
     <div className="w-full h-full flex">
       <div
         className={`h-full rounded-xl overflow-hidden relative ${
-          selectedNode || selectedEdge ? "w-[calc(100%-320px)]" : "w-full"
+          selectedNode || selectedEdge ? "w-[calc(100%-384px)]" : "w-full"
         }`}
       >
         <WorkflowCanvas
@@ -123,7 +123,7 @@ export function WorkflowBuilder({
       </div>
 
       {(selectedNode || selectedEdge) && (
-        <div className="w-80">
+        <div className="w-96">
           <WorkflowSidebar
             node={selectedNode}
             edge={selectedEdge}
