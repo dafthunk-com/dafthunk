@@ -5,8 +5,8 @@ export class TranslationNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const text = context.inputs.text;
-      const sourceLang = context.inputs.source_lang || "en";
-      const targetLang = context.inputs.target_lang;
+      const sourceLang = context.inputs.sourceLang || "en";
+      const targetLang = context.inputs.targetLang;
 
       if (!text || typeof text !== "string") {
         return this.createErrorResult(
@@ -34,7 +34,7 @@ export class TranslationNode extends BaseExecutableNode {
       );
 
       return this.createSuccessResult({
-        translated_text: result.translated_text,
+        translatedText: result.translated_text,
       });
     } catch (error) {
       return this.createErrorResult(
