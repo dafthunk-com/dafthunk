@@ -9,6 +9,7 @@ export const workflowService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -26,6 +27,7 @@ export const workflowService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ name }),
     });
 
@@ -43,6 +45,7 @@ export const workflowService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -59,6 +62,7 @@ export const workflowService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(workflow),
     });
 

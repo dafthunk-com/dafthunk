@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { createDatabase, type Env } from "../../../db";
+import { createDatabase } from "../../../db";
 import { eq } from "drizzle-orm";
 import { workflows } from "../../../db/schema";
 import {
@@ -11,6 +11,8 @@ import {
   WorkflowExecutionOptions,
 } from "../../../src/lib/workflowTypes";
 import { WorkflowRuntime } from "../../../src/lib/workflowRuntime";
+import { withAuth } from "../../auth/middleware";
+import { JWTPayload, Env } from "../../auth/jwt";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -32,14 +34,15 @@ function createEvent(event: {
   );
 }
 
-export const onRequest: PagesFunction<Env> = async (context) => {
+// The main handler function that will be wrapped with authentication
+async function executeWorkflow(request: Request, env: Env, user: JWTPayload): Promise<Response> {
   // Only allow GET requests
-  if (context.request.method !== "GET") {
+  if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
   }
 
   try {
-    const url = new URL(context.request.url);
+    const url = new URL(request.url);
     const pathParts = url.pathname.split("/");
     const id = pathParts[pathParts.length - 2];
 
@@ -47,7 +50,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       return new Response("Workflow ID is required", { status: 400 });
     }
 
-    const db = createDatabase(context.env.DB);
+    const db = createDatabase(env.DB);
     const [workflow] = await db
       .select()
       .from(workflows)
@@ -134,7 +137,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const runtime = new WorkflowRuntime(
       workflowGraph,
       executionOptions,
-      context.env
+      env
     );
 
     // Execute the workflow in the background
@@ -167,4 +170,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     );
   }
-};
+}
+
+// Export the protected endpoint using the withAuth middleware
+export const onRequest: PagesFunction<Env> = withAuth(executeWorkflow);
