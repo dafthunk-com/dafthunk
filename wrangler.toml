@@ -4,6 +4,21 @@ compatibility_date = "2024-02-23"
 # Pages configuration
 pages_build_output_dir = "dist"
 
+# Environment variable bindings
+[vars]
+# These will be overridden by the values in .dev.vars for local development
+# and by the values set in the Cloudflare Dashboard for production
+JWT_SECRET = ""
+GITHUB_CLIENT_ID = ""
+GITHUB_CLIENT_SECRET = ""
+
+# Production environment variables
+# These will be overridden by the values set in the Cloudflare Dashboard
+[env.production.vars]
+JWT_SECRET = ""
+GITHUB_CLIENT_ID = ""
+GITHUB_CLIENT_SECRET = ""
+
 # D1 Database binding for local development
 [[d1_databases]]
 binding = "DB"
@@ -18,7 +33,6 @@ database_name = "workflow-production"
 database_id = "9c1418f1-4099-4e42-9143-6d4ee2069f60"
 preview_database_id = "9c1418f1-4099-4e42-9143-6d4ee2069f60"
 migrations_dir = "./db/migrations"
-
 
 # AI binding for development
 [ai]
