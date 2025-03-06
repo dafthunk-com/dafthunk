@@ -2,6 +2,8 @@ import { NodeRegistry } from "../workflowTypes";
 import { SummarizationNode } from "./ai/summarizationNode";
 import { SentimentNode } from "./ai/sentimentNode";
 import { TranslationNode } from "./ai/translationNode";
+import { ImageClassificationNode } from "./ai/imageClassificationNode";
+import { ImageUrlLoaderNode } from "./utility/imageUrlLoaderNode";
 import {
   AdditionNode,
   SubtractionNode,
@@ -84,5 +86,15 @@ export function registerNodes(): void {
   registry.registerImplementation({
     type: "sentiment",
     createExecutableNode: (node) => new SentimentNode(node),
+  });
+
+  registry.registerImplementation({
+    type: "image-classification",
+    createExecutableNode: (node) => new ImageClassificationNode(node),
+  });
+
+  registry.registerImplementation({
+    type: "image-url-loader",
+    createExecutableNode: (node) => new ImageUrlLoaderNode(node),
   });
 }
