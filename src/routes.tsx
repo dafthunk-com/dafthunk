@@ -1,15 +1,23 @@
 import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "./pages/home";
 import { EditorPage, editorLoader } from "./pages/editor";
+import { ProtectedRoute } from "./lib/auth/protected-route";
+import { Layout } from "./components/layout";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <Layout><HomePage /></Layout>,
   },
   {
     path: "/workflow/:id",
-    element: <EditorPage />,
+    element: (
+      <Layout>
+        <ProtectedRoute>
+          <EditorPage />
+        </ProtectedRoute>
+      </Layout>
+    ),
     loader: editorLoader,
   },
 ]);
