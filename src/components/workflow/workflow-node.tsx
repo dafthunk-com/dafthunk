@@ -113,43 +113,44 @@ export const WorkflowNode = memo(
           </div>
         </div>
 
-        {/* Output Values Section - Only show if there are output values */}
-        {hasOutputValues && (
-          <>
-            <div
-              className="px-2 py-1 border-t border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-              onClick={() => setShowOutputs(!showOutputs)}
-            >
-              <span className="text-xs font-medium text-gray-600">Outputs</span>
-              {showOutputs ? (
-                <ChevronUp className="h-3 w-3 text-gray-500" />
-              ) : (
-                <ChevronDown className="h-3 w-3 text-gray-500" />
-              )}
-            </div>
+        {/* Output Values Section - Always visible but disabled when no outputs */}
+        <div
+          className={cn(
+            "px-2 py-1 border-t border-gray-200 flex items-center justify-between",
+            {
+              "cursor-pointer hover:bg-gray-50": hasOutputValues,
+              "cursor-not-allowed opacity-60": !hasOutputValues,
+            }
+          )}
+          onClick={() => hasOutputValues && setShowOutputs(!showOutputs)}
+        >
+          <span className="text-xs font-medium text-gray-600">Outputs</span>
+          {hasOutputValues ? (
+            showOutputs ? (
+              <ChevronUp className="h-3 w-3 text-gray-500" />
+            ) : (
+              <ChevronDown className="h-3 w-3 text-gray-500" />
+            )
+          ) : (
+            <ChevronDown className="h-3 w-3 text-gray-300" />
+          )}
+        </div>
 
-            {showOutputs && (
-              <div className="px-2 py-1 border-t border-gray-200 space-y-2">
-                {data.outputs.map(
-                  (output, index) =>
-                    output.value !== undefined && (
-                      <div
-                        key={`output-value-${output.id}-${index}`}
-                        className="space-y-1"
-                      >
-                        <div className="text-xs font-medium">
-                          {output.label}
-                        </div>
-                        <WorkflowOutputRenderer
-                          output={output}
-                          compact={true}
-                        />
-                      </div>
-                    )
-                )}
-              </div>
+        {hasOutputValues && showOutputs && (
+          <div className="px-2 py-1 border-t border-gray-200 space-y-2">
+            {data.outputs.map(
+              (output, index) =>
+                output.value !== undefined && (
+                  <div
+                    key={`output-value-${output.id}-${index}`}
+                    className="space-y-1"
+                  >
+                    <div className="text-xs font-medium">{output.label}</div>
+                    <WorkflowOutputRenderer output={output} compact={true} />
+                  </div>
+                )
             )}
-          </>
+          </div>
         )}
 
         {/* Error Display */}
