@@ -2,13 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import {
-  WorkflowNodeInspectorProps,
-  WorkflowParameter,
-} from "./workflow-types";
+import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { createDataUrl } from "@/lib/nodes/utility/binaryUtils";
+import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 
 export function WorkflowNodeInspector({
   node,
@@ -102,27 +98,6 @@ export function WorkflowNodeInspector({
     return value; // Default to string
   };
 
-  // Format output value for display
-  const formatOutputValue = (value: any, type: string): string => {
-    if (value === undefined || value === null) return "";
-
-    try {
-      if (type === "binary") {
-        return ""; // Don't display binary data as text
-      } else if (type === "object" || type === "array") {
-        return JSON.stringify(value, null, 2);
-      } else if (type === "boolean") {
-        return value ? "true" : "false";
-      } else if (type === "number") {
-        return value.toString();
-      }
-      return String(value);
-    } catch (e) {
-      console.warn("Error formatting output value:", e);
-      return String(value);
-    }
-  };
-
   // Check if the node is a slider node
   const isSliderNode =
     node.data.nodeType === "slider" || node.type === "slider";
@@ -141,64 +116,6 @@ export function WorkflowNodeInspector({
       step: typeof step === "number" ? step : 1,
       value: typeof value === "number" ? value : min,
     };
-  };
-
-  // Render output based on type
-  const renderOutput = (output: WorkflowParameter) => {
-    console.log("output", output);
-    if (output.type === "binary" && output.value) {
-      if (output.value.data && output.value.mimeType.startsWith("image/")) {
-        try {
-          const dataUrl = createDataUrl(output.value.data, "image/png");
-
-          return (
-            <div className="mt-2 relative">
-              <img
-                src={dataUrl}
-                alt={`${output.label} output`}
-                className="w-full rounded-md border border-gray-200"
-                onError={(e) => {
-                  console.error("Error loading image:", e);
-                  e.currentTarget.style.display = "none";
-                  e.currentTarget.nextElementSibling?.classList.remove(
-                    "hidden"
-                  );
-                }}
-              />
-              <div className="hidden text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
-                Error displaying image. The data may be corrupted.
-              </div>
-            </div>
-          );
-        } catch (error) {
-          console.error("Error processing image data:", error);
-          return (
-            <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md">
-              Error processing image data:{" "}
-              {error instanceof Error ? error.message : String(error)}
-            </div>
-          );
-        }
-      }
-      return (
-        <div className="relative w-full h-32 flex items-center justify-center rounded-lg border border-border bg-muted">
-          <p className="text-sm text-muted-foreground">
-            Binary data (mimeType: {output.value.mimeType})
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <Input
-        value={formatOutputValue(output.value, output.type)}
-        readOnly
-        className={cn(
-          "text-sm h-8 cursor-not-allowed bg-muted",
-          output.value === undefined ? "bg-gray-100" : "bg-white"
-        )}
-      />
-    );
   };
 
   return (
@@ -285,7 +202,7 @@ export function WorkflowNodeInspector({
                       </span>
                     </div>
                   </div>
-                  {renderOutput(output)}
+                  <WorkflowOutputRenderer output={output} />
                 </div>
               ))}
               {localOutputs.length === 0 && (
