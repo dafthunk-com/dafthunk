@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (provider: 'github') => {
+  const login = async (provider: "github") => {
     try {
       setIsLoading(true);
       await authService.loginWithProvider(provider);

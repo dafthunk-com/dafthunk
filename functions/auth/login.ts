@@ -81,19 +81,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
     }
 
     console.log(`Redirecting to OAuth provider (${provider}):`, authUrl);
-    
+
     // Instead of redirecting directly, return the authorization URL to the client
     // This allows the browser to set the cookie before the client-side redirection
     return new Response(
       JSON.stringify({
-        authorizationUrl: authUrl
+        authorizationUrl: authUrl,
       }),
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'Set-Cookie': `oauth_state=${state}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=600`
-        }
+          "Content-Type": "application/json",
+          "Set-Cookie": `oauth_state=${state}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=600`,
+        },
       }
     );
   } catch (error) {
