@@ -4,6 +4,7 @@ import { SentimentNode } from "./ai/sentimentNode";
 import { TranslationNode } from "./ai/translationNode";
 import { ImageClassificationNode } from "./ai/imageClassificationNode";
 import { ImageUrlLoaderNode } from "./utility/imageUrlLoaderNode";
+import { ImageGenerationNode } from "./ai/imageGenerationNode";
 import {
   AdditionNode,
   SubtractionNode,
@@ -96,5 +97,10 @@ export function registerNodes(): void {
   registry.registerImplementation({
     type: "image-url-loader",
     createExecutableNode: (node) => new ImageUrlLoaderNode(node),
+  });
+
+  registry.registerImplementation({
+    type: "image-generation",
+    createExecutableNode: (node) => new ImageGenerationNode(node),
   });
 }

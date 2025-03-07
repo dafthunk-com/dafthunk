@@ -8,3 +8,5 @@ export * from "./math/squareRootNode";
 export * from "./math/absoluteValueNode";
 export * from "./widgets/sliderNode";
 export * from "./ai/llmNode";
+export * from "./ai/imageGenerationNode";
+export * from "./utility";
