@@ -25,12 +25,10 @@ const TypeBadge = ({
   type,
   position,
   id,
-  hasValue = false,
 }: {
   type: string;
   position: Position;
   id: string;
-  hasValue?: boolean;
 }) => {
   const label = type.charAt(0).toUpperCase();
   return (
@@ -44,9 +42,7 @@ const TypeBadge = ({
       <span
         className={cn(
           "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
-          hasValue
-            ? "bg-green-100 text-green-700 hover:bg-green-200"
-            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          "bg-gray-100 text-gray-600 hover:bg-gray-200"
         )}
       >
         {label}
@@ -111,7 +107,6 @@ export const WorkflowNode = memo(
                   type={output.type}
                   position={Position.Right}
                   id={output.id}
-                  hasValue={output.value !== undefined}
                 />
               </div>
             ))}
