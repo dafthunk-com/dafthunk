@@ -1,9 +1,11 @@
 # Stateless Authentication with JWT and OAuth2 Authorization Code Flow
 
 ## Overview
+
 This implementation provides a stateless authentication system using OAuth2 providers (GitHub) with the Authorization Code flow. The system leverages JSON Web Tokens (JWT) to maintain a stateless session on the server side.
 
 ## Features
+
 - **OAuth2 Integration:** Authentication through OAuth2 providers.
 - **Stateless Authentication:** Uses JWTs to avoid server-side session storage.
 - **Enhanced Security:** Implements strong security measures including secure cookies and CSRF mitigation.
@@ -11,6 +13,7 @@ This implementation provides a stateless authentication system using OAuth2 prov
 ## Implementation Details
 
 ### Directory Structure
+
 ```
 functions/auth/
 ├── jwt.ts             # JWT utilities for creating and verifying tokens
@@ -24,19 +27,23 @@ functions/auth/
 ```
 
 ### Authentication Flow
+
 1. **User Login**
+
    - User clicks the 'Login with OAuth Provider' button.
    - The frontend navigates to `/auth/login?provider=[provider]`.
    - The backend generates a state parameter and redirects directly to the OAuth provider's authorization endpoint.
    - The provider parameter is included in the callback URL to ensure it's available during the callback.
 
 2. **Authorization Code Exchange**
+
    - User authenticates with the OAuth provider.
    - The provider redirects to your app with an authorization code.
    - The backend exchanges the code for an access token.
    - The backend fetches user information from the provider's API.
 
 3. **JWT Creation and Storage**
+
    - The backend generates a JWT containing user information.
    - The JWT is signed with a secret key.
    - The signed JWT is sent to the frontend via a secure, HTTP-only cookie.
@@ -48,6 +55,7 @@ functions/auth/
 ### API Endpoints
 
 #### 1. `/auth/login`
+
 - **Method:** `GET`
 - **Description:** Initiates the OAuth2 flow by redirecting the user to the provider's authorization URL.
 - **Query Parameters:**
@@ -57,6 +65,7 @@ functions/auth/
   - Sets a secure cookie with the state parameter for CSRF protection.
 
 #### 2. `/auth/callback`
+
 - **Method:** `GET`
 - **Description:** Handles the OAuth2 callback with the authorization code.
 - **Query Parameters:**
@@ -67,6 +76,7 @@ functions/auth/
   - Redirects to the frontend with a secure cookie containing the JWT.
 
 #### 3. `/auth/logout`
+
 - **Method:** `POST`
 - **Description:** Clears the JWT cookie.
 - **Response:**
@@ -74,16 +84,18 @@ functions/auth/
   - Clears the JWT cookie.
 
 #### 4. `/auth/protected`
+
 - **Method:** `GET`
 - **Description:** Example of a protected API route.
 - **Authorization:** Requires a valid JWT in the `Authorization` header or cookie.
 - **Response:** Returns data only if the JWT is valid.
 
 #### 5. `/auth/user`
+
 - **Method:** `GET`
 - **Description:** Returns the authenticated user's information.
 - **Authorization:** Requires a valid JWT in the `Authorization` header or cookie.
-- **Response:** 
+- **Response:**
   - Returns a JSON object with the user's information:
     ```json
     {
@@ -99,29 +111,34 @@ functions/auth/
 ## Security Considerations
 
 ### JWT Best Practices
+
 - Uses short-lived JWTs (15 minutes) to minimize the risk of compromised tokens.
 - Implements secure, HTTP-only cookies with SameSite=Strict for storing JWTs.
 
 ### CSRF Mitigation
+
 - Uses a state parameter for CSRF protection during the OAuth2 flow.
 - Utilizes `SameSite=Strict` cookies when storing the JWT.
 
 ## Environment Variables
+
 The following environment variables are required:
+
 - `JWT_SECRET`: Secret key for signing JWTs.
 - `GITHUB_CLIENT_ID`: GitHub OAuth2 client ID.
 - `GITHUB_CLIENT_SECRET`: GitHub OAuth2 client secret.
 
-
 ## Usage
+
 1. Set up the required environment variables in your Cloudflare Pages project.
 2. Deploy the functions to Cloudflare Pages.
 3. Implement the frontend to initiate the OAuth2 flow and handle the authenticated state.
 
 ## Example Frontend Integration
+
 ```typescript
 // Example of initiating the OAuth2 flow
-function loginWithProvider(provider: 'github') {
+function loginWithProvider(provider: "github") {
   // Direct navigation to the login endpoint, which will redirect to the provider
   window.location.href = `/auth/login?provider=${provider}`;
 }
@@ -129,39 +146,38 @@ function loginWithProvider(provider: 'github') {
 // Example of checking authentication status
 async function checkAuth() {
   try {
-    const response = await fetch('/auth/protected');
+    const response = await fetch("/auth/protected");
     if (response.ok) {
       const data = await response.json();
-      console.log('Authenticated user:', data.user);
+      console.log("Authenticated user:", data.user);
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Authentication check failed:', error);
+    console.error("Authentication check failed:", error);
     return false;
   }
 }
 
 // Example of logging out
 async function logout() {
-  await fetch('/auth/logout', { method: 'POST' });
-  window.location.href = '/';
+  await fetch("/auth/logout", { method: "POST" });
+  window.location.href = "/";
 }
 
 // Example of getting the user information
 async function getUserInfo() {
   try {
-    const response = await fetch('/auth/user');
+    const response = await fetch("/auth/user");
     if (response.ok) {
       const data = await response.json();
-      console.log('User info:', data.user);
+      console.log("User info:", data.user);
       return data.user;
     }
     return null;
   } catch (error) {
-    console.error('Failed to get user info:', error);
+    console.error("Failed to get user info:", error);
     return null;
   }
 }
 ```
-

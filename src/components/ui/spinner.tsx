@@ -23,4 +23,4 @@ export function Spinner({ className, ...props }: SpinnerProps) {
       </svg>
     </div>
   );
-} 
+}

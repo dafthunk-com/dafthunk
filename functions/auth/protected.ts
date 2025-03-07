@@ -1,36 +1,40 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, JWTPayload } from './jwt';
-import { withAuth } from './middleware';
-import { isMockAuthEnabled, MOCK_USER, createMockResponse } from './mock';
+import { Env, JWTPayload } from "./jwt";
+import { withAuth } from "./middleware";
+import { isMockAuthEnabled, MOCK_USER, createMockResponse } from "./mock";
 
 // Handler for the protected endpoint
-async function protectedHandler(request: Request, env: Env, user: JWTPayload): Promise<Response> {
+async function protectedHandler(
+  request: Request,
+  env: Env,
+  user: JWTPayload
+): Promise<Response> {
   // If mock auth is enabled, return mock user data
   if (isMockAuthEnabled(env)) {
     return createMockResponse({
-      message: 'You have access to this protected resource (MOCK)',
+      message: "You have access to this protected resource (MOCK)",
       user: {
         id: MOCK_USER.id,
         name: MOCK_USER.name,
         email: MOCK_USER.email,
-        provider: 'mock'
-      }
+        provider: "mock",
+      },
     });
   }
 
   return new Response(
     JSON.stringify({
-      message: 'You have access to this protected resource',
+      message: "You have access to this protected resource",
       user: {
         id: user.sub,
         name: user.name,
         email: user.email,
-        provider: user.provider
-      }
+        provider: user.provider,
+      },
     }),
     {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     }
   );
 }
@@ -43,10 +47,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       sub: MOCK_USER.id,
       name: MOCK_USER.name,
       email: MOCK_USER.email,
-      provider: 'mock',
+      provider: "mock",
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600
+      exp: Math.floor(Date.now() / 1000) + 3600,
     });
   }
   return withAuth<Env>(protectedHandler)(context);
-}; 
+};

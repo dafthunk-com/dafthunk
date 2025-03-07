@@ -21,11 +21,7 @@ The `AuthProvider` is a context provider that manages authentication state throu
 import { AuthProvider } from "./lib/auth/authContext";
 
 function App() {
-  return (
-    <AuthProvider>
-      {/* Your app components */}
-    </AuthProvider>
-  );
+  return <AuthProvider>{/* Your app components */}</AuthProvider>;
 }
 ```
 
@@ -56,15 +52,15 @@ The `useAuth` hook provides access to authentication state and methods.
 import { useAuth } from "./lib/auth/authContext";
 
 function YourComponent() {
-  const { 
-    user,             // The current user object or null
-    isAuthenticated,  // Boolean indicating if user is authenticated
-    isLoading,        // Boolean indicating if auth state is loading
-    login,            // Function to initiate login
-    logout,           // Function to logout
-    refreshUser       // Function to refresh user data
+  const {
+    user, // The current user object or null
+    isAuthenticated, // Boolean indicating if user is authenticated
+    isLoading, // Boolean indicating if auth state is loading
+    login, // Function to initiate login
+    logout, // Function to logout
+    refreshUser, // Function to refresh user data
   } = useAuth();
-  
+
   // Your component logic
 }
 ```
@@ -102,4 +98,4 @@ VITE_WORKFLOW_API_URL=your_api_url
 - JWT tokens are stored in HTTP-only cookies for security
 - CSRF protection is implemented
 - Secure, SameSite cookies are used
-- Short-lived tokens minimize risk 
+- Short-lived tokens minimize risk

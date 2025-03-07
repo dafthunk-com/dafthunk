@@ -35,7 +35,11 @@ function createEvent(event: {
 }
 
 // The main handler function that will be wrapped with authentication
-async function executeWorkflow(request: Request, env: Env, user: JWTPayload): Promise<Response> {
+async function executeWorkflow(
+  request: Request,
+  env: Env,
+  user: JWTPayload
+): Promise<Response> {
   // Only allow GET requests
   if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405 });
@@ -134,11 +138,7 @@ async function executeWorkflow(request: Request, env: Env, user: JWTPayload): Pr
     };
 
     // Create and execute the workflow runtime
-    const runtime = new WorkflowRuntime(
-      workflowGraph,
-      executionOptions,
-      env
-    );
+    const runtime = new WorkflowRuntime(workflowGraph, executionOptions, env);
 
     // Execute the workflow in the background
     runtime.execute().catch(async (error) => {

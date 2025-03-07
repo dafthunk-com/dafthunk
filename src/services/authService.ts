@@ -29,7 +29,7 @@ export const authService = {
         method: "GET",
         credentials: "include", // Important for cookies
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         return data.user;
@@ -42,7 +42,7 @@ export const authService = {
   },
 
   // Login with a provider
-  loginWithProvider(provider: 'github'): void {
+  loginWithProvider(provider: "github"): void {
     // Direct navigation to the login endpoint
     window.location.href = `${API_BASE_URL}/auth/login?provider=${provider}`;
   },
@@ -59,5 +59,5 @@ export const authService = {
     } catch (error) {
       console.error("Logout failed:", error);
     }
-  }
-}; 
+  },
+};

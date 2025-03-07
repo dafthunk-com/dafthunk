@@ -31,4 +31,4 @@ export class ImageClassificationNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

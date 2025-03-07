@@ -1,9 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, JWTPayload } from './jwt';
-import { withAuth } from './middleware';
+import { Env, JWTPayload } from "./jwt";
+import { withAuth } from "./middleware";
 
 // Handler for the user endpoint
-async function userHandler(request: Request, env: Env, user: JWTPayload): Promise<Response> {
+async function userHandler(
+  request: Request,
+  env: Env,
+  user: JWTPayload
+): Promise<Response> {
   // Return the user information from the JWT
   return new Response(
     JSON.stringify({
@@ -11,17 +15,18 @@ async function userHandler(request: Request, env: Env, user: JWTPayload): Promis
         id: user.sub,
         name: user.name,
         email: user.email,
-        provider: user.provider
-      }
+        provider: user.provider,
+      },
     }),
     {
       status: 200,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
     }
   );
 }
@@ -29,4 +34,4 @@ async function userHandler(request: Request, env: Env, user: JWTPayload): Promis
 // Export the user endpoint with authentication middleware
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   return withAuth<Env>(userHandler)(context);
-}; 
+};
