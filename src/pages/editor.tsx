@@ -396,45 +396,11 @@ export function EditorPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading workflow...</p>
             </div>
-          </div>
-        ) : nodes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <p className="text-muted-foreground mb-4">
-              No nodes in this workflow yet
-            </p>
-            <button
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-              onClick={() => {
-                const newNode = {
-                  id: `input-${Date.now()}`,
-                  type: "workflowNode",
-                  position: {
-                    x: window.innerWidth / 2 - 75,
-                    y: window.innerHeight / 2 - 75,
-                  },
-                  data: {
-                    label: "Input",
-                    inputs: [],
-                    outputs: [
-                      {
-                        id: "output",
-                        type: "any",
-                        label: "Output",
-                      },
-                    ],
-                    executionState: "idle" as const,
-                  },
-                };
-                setNodes([newNode]);
-              }}
-            >
-              Add a starter node
-            </button>
           </div>
         ) : templatesError ? (
           <div className="flex flex-col items-center justify-center h-full">
