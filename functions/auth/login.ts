@@ -1,9 +1,16 @@
 /// <reference types="@cloudflare/workers-types" />
 import { Env } from './jwt';
 import { generateAuthorizationUrl, generateState, getProviderConfig } from './providers';
+import { isMockAuthEnabled, createMockAuthResponse } from './mock';
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   try {
+    // Check if mock auth is enabled
+    if (isMockAuthEnabled(env)) {
+      console.log('Using mock authentication');
+      return createMockAuthResponse();
+    }
+
     // Get the provider from the query parameters
     const url = new URL(request.url);
     const provider = url.searchParams.get('provider');

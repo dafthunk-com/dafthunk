@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 import { Env, extractJWTFromHeader, verifyJWT, JWTPayload } from './jwt';
+import { isMockAuthEnabled, MOCK_USER } from './mock';
 
 // Parse cookies from the request
 export function parseCookies(request: Request): Record<string, string> {
@@ -25,6 +26,21 @@ export interface AuthResult {
 
 // Middleware to verify authentication
 export async function verifyAuth(request: Request, env: Env): Promise<AuthResult> {
+  // Check if mock auth is enabled
+  if (isMockAuthEnabled(env)) {
+    return {
+      isAuthenticated: true,
+      user: {
+        sub: MOCK_USER.id,
+        name: MOCK_USER.name,
+        email: MOCK_USER.email,
+        provider: 'mock',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600
+      }
+    };
+  }
+
   // Try to get the JWT from the Authorization header
   const authHeader = request.headers.get('Authorization');
   let token = extractJWTFromHeader(authHeader);
