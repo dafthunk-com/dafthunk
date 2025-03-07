@@ -30,7 +30,7 @@ export function HomePage() {
         setIsLoading(false);
         return;
       }
-      
+
       setIsLoading(true);
       try {
         const fetchedWorkflows = await workflowService.getAll();
@@ -49,12 +49,12 @@ export function HomePage() {
 
   const handleCreateWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    
+
     try {
       const newWorkflow = await workflowService.create(newWorkflowName);
       setWorkflows([...workflows, newWorkflow]);

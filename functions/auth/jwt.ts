@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT, jwtVerify } from "jose";
 
 // Define the environment variables interface
 export interface Env {
@@ -8,32 +8,32 @@ export interface Env {
 
 // Define the JWT payload structure
 export interface JWTPayload {
-  sub: string;        // Subject (user ID)
-  name: string;       // User's name
-  email?: string;     // User's email (optional)
-  provider: string;   // OAuth provider (e.g., 'github')
-  iat: number;        // Issued at timestamp
-  exp: number;        // Expiration timestamp
+  sub: string; // Subject (user ID)
+  name: string; // User's name
+  email?: string; // User's email (optional)
+  provider: string; // OAuth provider (e.g., 'github')
+  iat: number; // Issued at timestamp
+  exp: number; // Expiration timestamp
 }
 
 // Create and sign a JWT
 export async function createJWT(
-  payload: Omit<JWTPayload, 'iat' | 'exp'>,
+  payload: Omit<JWTPayload, "iat" | "exp">,
   env: Env
 ): Promise<string> {
   // Get the JWT secret from environment variables
   const secret = new TextEncoder().encode(env.JWT_SECRET);
-  
+
   // Set token expiration (15 minutes from now)
   const expirationTime = Math.floor(Date.now() / 1000) + 15 * 60;
-  
+
   // Create and sign the JWT
   const token = await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: 'HS256' })
+    .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expirationTime)
     .sign(secret);
-  
+
   return token;
 }
 
@@ -45,41 +45,43 @@ export async function verifyJWT(
   try {
     const secret = new TextEncoder().encode(env.JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
-    
+
     // Validate that the payload has the required fields
     if (
-      typeof payload.sub !== 'string' ||
-      typeof payload.name !== 'string' ||
-      typeof payload.provider !== 'string' ||
-      typeof payload.iat !== 'number' ||
-      typeof payload.exp !== 'number'
+      typeof payload.sub !== "string" ||
+      typeof payload.name !== "string" ||
+      typeof payload.provider !== "string" ||
+      typeof payload.iat !== "number" ||
+      typeof payload.exp !== "number"
     ) {
       return null;
     }
-    
+
     return {
       sub: payload.sub,
       name: payload.name,
       email: payload.email as string | undefined,
       provider: payload.provider as string,
       iat: payload.iat,
-      exp: payload.exp
+      exp: payload.exp,
     };
   } catch (error) {
-    console.error('JWT verification failed:', error);
+    console.error("JWT verification failed:", error);
     return null;
   }
 }
 
 // Extract JWT from Authorization header
 export function extractJWTFromHeader(authHeader: string | null): string | null {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
   }
   return authHeader.substring(7); // Remove 'Bearer ' prefix
 }
 
 // Create secure cookie options
-export function getSecureCookieOptions(expiresInSeconds: number = 15 * 60): string {
+export function getSecureCookieOptions(
+  expiresInSeconds: number = 15 * 60
+): string {
   return `HttpOnly; Secure; SameSite=Strict; Max-Age=${expiresInSeconds}; Path=/`;
-} 
+}

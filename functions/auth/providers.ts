@@ -1,4 +1,4 @@
-import { Env } from './jwt';
+import { Env } from "./jwt";
 
 // Define the OAuth2 provider configuration interface
 export interface OAuthProviderConfig {
@@ -16,24 +16,27 @@ export interface OAuthProviderConfig {
 }
 
 // Get the OAuth2 provider configuration based on the provider name
-export function getProviderConfig(provider: string, env: Env): OAuthProviderConfig | null {
+export function getProviderConfig(
+  provider: string,
+  env: Env
+): OAuthProviderConfig | null {
   switch (provider.toLowerCase()) {
-    case 'github':
+    case "github":
       return {
-        authorizationUrl: 'https://github.com/login/oauth/authorize',
-        tokenUrl: 'https://github.com/login/oauth/access_token',
-        userInfoUrl: 'https://api.github.com/user',
+        authorizationUrl: "https://github.com/login/oauth/authorize",
+        tokenUrl: "https://github.com/login/oauth/access_token",
+        userInfoUrl: "https://api.github.com/user",
         clientId: env.GITHUB_CLIENT_ID,
         clientSecret: env.GITHUB_CLIENT_SECRET,
-        scope: 'read:user user:email',
-        userIdField: 'id',
-        userNameField: 'login',
-        userEmailField: 'email',
+        scope: "read:user user:email",
+        userIdField: "id",
+        userNameField: "login",
+        userEmailField: "email",
         // GitHub API requires a User-Agent header
         headers: {
-          'User-Agent': 'OAuth-Client',
-          'Accept': 'application/json'
-        }
+          "User-Agent": "OAuth-Client",
+          Accept: "application/json",
+        },
       };
     default:
       return null;
@@ -55,9 +58,9 @@ export function generateAuthorizationUrl(
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: redirectUri,
-    response_type: 'code',
+    response_type: "code",
     scope: config.scope,
-    state
+    state,
   });
 
   return `${config.authorizationUrl}?${params.toString()}`;
@@ -67,5 +70,7 @@ export function generateAuthorizationUrl(
 export function generateState(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-} 
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+    ""
+  );
+}

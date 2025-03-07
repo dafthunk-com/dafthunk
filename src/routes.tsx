@@ -7,7 +7,11 @@ import { Layout } from "./components/layout";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout><HomePage /></Layout>,
+    element: (
+      <Layout>
+        <HomePage />
+      </Layout>
+    ),
   },
   {
     path: "/workflow/:id",

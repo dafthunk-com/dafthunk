@@ -8,10 +8,12 @@ interface NavBarProps {
 
 export function NavBar({ className }: NavBarProps) {
   return (
-    <nav className={cn(
-      "w-full h-14 flex items-center justify-between px-6 shrink-0",
-      className
-    )}>
+    <nav
+      className={cn(
+        "w-full h-14 flex items-center justify-between px-6 shrink-0",
+        className
+      )}
+    >
       <div className="flex items-center">
         <Link to="/" className="text-xl font-semibold">
           Workflow
@@ -22,4 +24,4 @@ export function NavBar({ className }: NavBarProps) {
       </div>
     </nav>
   );
-} 
+}
