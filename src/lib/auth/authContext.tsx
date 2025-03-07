@@ -59,8 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = (provider: "github") => {
-    authService.loginWithProvider(provider);
+  const login = async (provider: "github") => {
+    try {
+      setIsLoading(true);
+      await authService.loginWithProvider(provider);
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {

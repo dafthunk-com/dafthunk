@@ -65,8 +65,8 @@ export function HomePage() {
     }
   };
 
-  const handleLoginClick = () => {
-    login("github");
+  const handleLoginClick = async () => {
+    await login("github");
   };
 
   const renderContent = () => {
