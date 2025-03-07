@@ -10,20 +10,26 @@ export function WorkflowNodeInspector({
   node,
   onNodeUpdate,
 }: WorkflowNodeInspectorProps) {
-  if (!node) return null;
-
   // Create local state to immediately reflect changes in the UI
-  const [localLabel, setLocalLabel] = useState(node.data.label);
-  const [localInputs, setLocalInputs] = useState(node.data.inputs);
-  const [localOutputs, setLocalOutputs] = useState(node.data.outputs);
+  const [localLabel, setLocalLabel] = useState<string>(node?.data.label || "");
+  const [localInputs, setLocalInputs] = useState<Record<string, any>>(
+    node?.data.inputs || {}
+  );
+  const [localOutputs, setLocalOutputs] = useState<Record<string, any>>(
+    node?.data.outputs || {}
+  );
 
   // Update local state when node changes
   useEffect(() => {
+    if (!node) return;
+
     console.log(`Node inspector updating for node ${node.id}:`, node.data);
     setLocalLabel(node.data.label);
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
-  }, [node.id, node.data]);
+  }, [node]);
+
+  if (!node) return null;
 
   const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newLabel = e.target.value;
