@@ -16,7 +16,7 @@ export class ImageClassificationNode extends BaseExecutableNode {
 
       // Run the DETR-ResNet-50 model for object detection
       const result = await context.env.AI.run("@cf/facebook/detr-resnet-50", {
-        image: image,
+        image: [...image],
       });
 
       // The result should be an array of detected objects
