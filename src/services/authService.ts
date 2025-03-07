@@ -42,17 +42,14 @@ export const authService = {
   },
 
   // Login with a provider
-  async loginWithProvider(provider: "github"): Promise<void> {
+  async loginWithProvider(provider: 'github'): Promise<void> {
     try {
       // Fetch the authorization URL from the server
-      const response = await fetch(
-        `${API_BASE_URL}/auth/login?provider=${provider}`,
-        {
-          method: "GET",
-          credentials: "include", // Important for cookies
-        }
-      );
-
+      const response = await fetch(`${API_BASE_URL}/auth/login?provider=${provider}`, {
+        method: "GET",
+        credentials: "include", // Important for cookies
+      });
+      
       if (response.ok) {
         const data = await response.json();
         // Redirect to the authorization URL returned by the server
@@ -62,10 +59,7 @@ export const authService = {
           console.error("No authorization URL returned from server");
         }
       } else {
-        console.error(
-          "Failed to get authorization URL:",
-          await response.text()
-        );
+        console.error("Failed to get authorization URL:", await response.text());
       }
     } catch (error) {
       console.error("Login initialization failed:", error);

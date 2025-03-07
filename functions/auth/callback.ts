@@ -5,15 +5,22 @@ import { getProviderConfig } from "./providers";
 // Parse cookies from the request
 function parseCookies(request: Request): Record<string, string> {
   const cookies: Record<string, string> = {};
-  const cookieHeader = request.headers.get("Cookie");
-
+  const cookieHeader = request.headers.get('Cookie');
+  
   if (cookieHeader) {
-    cookieHeader.split(";").forEach((cookie) => {
-      const [name, value] = cookie.trim().split("=");
-      cookies[name] = value;
+    cookieHeader.split(';').forEach(cookie => {
+      const parts = cookie.trim().split('=');
+      if (parts.length >= 2) {
+        const name = parts[0].trim();
+        // Join with = in case the value itself contains = characters
+        const value = parts.slice(1).join('=').trim();
+        if (name) {
+          cookies[name] = value;
+        }
+      }
     });
   }
-
+  
   return cookies;
 }
 
@@ -176,16 +183,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     // Verify the state parameter to prevent CSRF attacks
     const cookies = parseCookies(request);
-    const storedState = cookies["oauth_state"];
-
+    const storedState = cookies['oauth_state'];
+    
     if (!storedState || storedState !== state) {
-      return new Response(
-        JSON.stringify({ error: "Invalid state parameter" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: 'Invalid state parameter' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     // Get the redirect URI - must match exactly what was used in the authorization request

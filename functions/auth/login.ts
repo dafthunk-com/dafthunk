@@ -81,9 +81,12 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
     }
 
     console.log(`Redirecting to OAuth provider (${provider}):`, authUrl);
-
-    // Instead of redirecting directly, return the authorization URL to the client
-    // This allows the browser to set the cookie before the client-side redirection
+    
+    // Two-step redirection approach:
+    // 1. Return the authorization URL to the client instead of immediately redirecting
+    // 2. Let the client handle the redirection after the cookie is set
+    // This approach ensures the cookie is properly set before navigating away,
+    // which prevents the "Invalid state parameter" error during the OAuth flow
     return new Response(
       JSON.stringify({
         authorizationUrl: authUrl,
@@ -92,7 +95,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
         status: 200,
         headers: {
           "Content-Type": "application/json",
-          "Set-Cookie": `oauth_state=${state}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=600`,
+          "Set-Cookie": `oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`,
         },
       }
     );
