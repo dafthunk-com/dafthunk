@@ -1,0 +1,22 @@
+---
+description: Development environment guidelines and technologies used in this project
+globs: 
+alwaysApply: false
+---
+# Development Environment
+
+The project uses the following technologies:
+
+- pnpm (Package Manager)
+- Vite (Build Tool)
+- TypeScript
+- ReactJS
+- React Router
+- React Flow
+- TailwindCSS
+- Shadcn UI
+- Vitest (Testing Framework)
+- Drizzle
+- Cloudflare Pages (Deployment) 
+- Cloudflare D1
+- Wrangler

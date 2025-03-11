@@ -1,0 +1,19 @@
+---
+description: Architectural guidelines for high level decisions regarding the project's structure and its code
+globs: 
+alwaysApply: false
+---
+# Architectural Guidelines
+
+- Follow the principle of least complexity - always choose the simplest solution that satisfies requirements.
+- Write clear, readable, and self-documenting code that is easy to understand and maintain.
+- Organize code into logical, cohesive modules with clear responsibilities.
+- Follow a clear directory structure.
+- Keep components focused and single-purpose.
+- Maintain clear separation of concerns between UI, business logic, and data management.
+- Use proper state management patterns - prefer local state when possible, use context or state management libraries only when necessary.
+- Follow consistent naming conventions across the codebase.
+- Implement proper error boundaries and fallback UI components.
+- Design for extensibility while avoiding premature abstraction.
+- Design a software module that is deep—offering powerful functionality while maintaining a simple interface. 
+- Focus on minimizing interface complexity while maximizing the module’s internal capabilities. 

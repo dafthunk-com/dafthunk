@@ -1,0 +1,21 @@
+---
+description: General coding guidelines
+globs: 
+alwaysApply: false
+---
+# General Coding Guidelines
+
+- Follow the user's requirements carefully and to the letter.
+- Before coding, develop a detailed plan outlining component structures, data flow, and interactions.
+- Write correct, best-practice, DRY principle (Don't Repeat Yourself), bug-free, fully functional, and working code.
+- Compose code in a way that is easy to understand and maintain.
+- Use components to build the UI.
+- Use React Router for routing.
+- Use React Flow for the workflow editor.
+- Use TailwindCSS for layout and styling.
+- Use Shadcn UI for components.
+- Focus on easy and readable code over being overly performant.
+- Fully implement all requested functionality.
+- Leave NO todos, placeholders, or missing pieces.
+- Ensure code is complete! Verify thoroughly before finalizing.
+- Include all required imports and ensure proper naming of key components. 

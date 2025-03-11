@@ -1,0 +1,27 @@
+---
+description: Implementation guidelines for typescript, html, css, react, tests, logging, build tools, dependencies, etc.
+globs: 
+alwaysApply: false
+---
+# Code Implementation
+
+- Use pnpm for package management and workspace organization.
+- Leverage Vite's features for fast development and optimized builds.
+- Write and maintain comprehensive tests using Vitest.
+- Use early returns whenever possible to improve readability.
+- Always use Tailwind classes for styling HTML elements; avoid external CSS files.
+- Use the `cn` utility function from `@/lib/utils` to merge Tailwind classes and handle conditional classes instead of ternary operators in `className`.
+- Use kebab-case for component files to align with shadcn/ui conventions.
+- Use camelCase for hooks (prefixed with 'use') and utility files.
+- Use descriptive variable and function names.
+- Prefix event handlers with "handle", e.g., `handleClick` for `onClick` and `handleKeyDown` for `onKeyDown`.
+- Use TypeScript for strict typing with proper type or interface definitions.
+- Prefer functional components and hooks over class components.
+- Use React Flow efficiently by leveraging node types, edges, and custom hooks where applicable.
+- Adhere to consistent coding standards, such as Airbnb's JavaScript Style Guide.
+- Write unit and integration tests to verify code functionality and prevent regressions.
+- Document components, functions, and complex logic to aid future maintenance.
+- Create reusable components and utilities to adhere to the DRY principle.
+- Conduct regular code reviews to maintain code quality and consistency.
+- Implement error handling strategies, including user feedback mechanisms and logging.
+- Optimize for Cloudflare Pages deployment, considering edge functions and caching strategies. 
