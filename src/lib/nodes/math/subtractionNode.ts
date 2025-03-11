@@ -1,5 +1,6 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { ExecutionResult } from "../../workflowTypes";
+import { NodeContext } from "@lib/workflowRuntime.ts";
 
 /**
  * Subtraction node implementation

@@ -1,5 +1,6 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext } from "../../workflowTypes";
+import { ExecutionResult } from "../../workflowTypes";
+import { NodeContext } from "@lib/workflowRuntime.ts";
 
 export class ImageUrlLoaderNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {

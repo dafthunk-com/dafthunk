@@ -1,10 +1,9 @@
 import {
   Node,
-  ExecutableNode,
-  NodeContext,
   ExecutionResult,
   Parameter,
 } from "../workflowTypes";
+import { ExecutableNode, NodeContext } from "@lib/workflowRuntime.ts";
 
 /**
  * Base class for all executable nodes

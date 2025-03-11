@@ -1,4 +1,3 @@
-import { NodeRegistry } from "../workflowTypes";
 import { SummarizationNode } from "./ai/summarizationNode";
 import { SentimentNode } from "./ai/sentimentNode";
 import { TranslationNode } from "./ai/translationNode";
@@ -17,6 +16,7 @@ import {
   SliderNode,
   LLMNode,
 } from "./index";
+import { NodeRegistry } from "@lib/workflowRuntime.ts";
 
 /**
  * Register the mathematical operation nodes
