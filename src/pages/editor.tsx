@@ -7,7 +7,7 @@ import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
 import { ReactFlowProvider } from "reactflow";
 import {
-  NodeTemplate,
+  WorkflowNodeType,
   ExecutionEvent,
   WorkflowNodeData,
   WorkflowEdgeData,
@@ -60,7 +60,7 @@ export function EditorPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [nodes, setNodes] = useState<Node<WorkflowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeData>[]>([]);
-  const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
+  const [nodeTemplates, setNodeTemplates] = useState<WorkflowNodeType[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
 
   // Fetch node templates
@@ -69,7 +69,7 @@ export function EditorPage() {
       try {
         const types = await fetchNodeTypes();
         // Convert NodeType to NodeTemplate
-        const templates: NodeTemplate[] = types.map((type) => ({
+        const templates: WorkflowNodeType[] = types.map((type) => ({
           id: type.id,
           type: type.type,
           name: type.name,
@@ -78,12 +78,14 @@ export function EditorPage() {
           inputs: type.inputs.map((input) => ({
             id: input.name,
             type: input.type,
-            name: input.description || input.name,
+            name: input.name,
+            description: input.description,
           })),
           outputs: type.outputs.map((output) => ({
             id: output.name,
             type: output.type,
-            name: output.description || output.name,
+            name: output.name,
+            description: output.description,
           })),
         }));
         setNodeTemplates(templates);
@@ -116,13 +118,15 @@ export function EditorPage() {
           inputs: node.inputs.map((input) => ({
             id: input.name,
             type: input.type,
-            name: input.description || input.name,
+            name: input.name,
+            description: input.description,
             value: input.value,
           })),
           outputs: node.outputs.map((output) => ({
             id: output.name,
             type: output.type,
-            name: output.description || output.name,
+            name: output.name,
+            description: output.description,
           })),
           executionState: "idle" as const,
           type: node.type,
@@ -178,13 +182,13 @@ export function EditorPage() {
               inputs: node.data.inputs.map((input) => ({
                 name: input.id,
                 type: input.type,
-                description: input.name,
+                description: input.description,
                 value: input.value,
               })),
               outputs: node.data.outputs.map((output) => ({
                 name: output.id,
                 type: output.type,
-                description: output.name,
+                description: output.description,
                 value: output.value,
               })),
             };

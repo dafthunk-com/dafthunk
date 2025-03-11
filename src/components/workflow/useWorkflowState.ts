@@ -9,7 +9,7 @@ import {
 import {
   WorkflowNodeData,
   WorkflowEdgeData,
-  NodeTemplate,
+  WorkflowNodeType,
   ConnectionValidationState,
   UseWorkflowStateProps,
   UseWorkflowStateReturn,
@@ -122,7 +122,7 @@ export function useWorkflowState({
 
   // Handle node template selection
   const handleNodeSelect = useCallback(
-    (template: NodeTemplate) => {
+    (template: WorkflowNodeType) => {
       if (!reactFlowInstance) return;
 
       const position = reactFlowInstance.project({

@@ -42,8 +42,8 @@ export interface WorkflowEdgeData {
   targetType?: string;
 }
 
-// Node Template Types
-export interface NodeTemplate {
+// Node Types
+export interface WorkflowNodeType {
   id: string;
   name: string;
   type: string;
@@ -110,7 +110,7 @@ export interface UseWorkflowStateReturn {
   handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
   handlePaneClick: () => void;
   handleAddNode: () => void;
-  handleNodeSelect: (template: NodeTemplate) => void;
+  handleNodeSelect: (template: WorkflowNodeType) => void;
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
   updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
@@ -158,8 +158,8 @@ export interface UseWorkflowExecutionProps {
 export interface WorkflowNodeSelectorProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (template: NodeTemplate) => void;
-  templates?: NodeTemplate[];
+  onSelect: (template: WorkflowNodeType) => void;
+  templates?: WorkflowNodeType[];
 }
 
 export interface WorkflowNodeInspectorProps {
@@ -188,7 +188,7 @@ export interface WorkflowBuilderProps {
   workflowId: string;
   initialNodes?: ReactFlowNode<WorkflowNodeData>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeData>[];
-  nodeTemplates?: NodeTemplate[];
+  nodeTemplates?: WorkflowNodeType[];
   onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeData>[]) => void;
   onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeData>[]) => void;
   validateConnection?: (connection: Connection) => boolean;

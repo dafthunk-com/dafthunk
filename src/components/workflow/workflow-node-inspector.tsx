@@ -150,7 +150,7 @@ export function WorkflowNodeInspector({
               {localInputs.map((input) => (
                 <div key={input.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
-                    <span>{input.label}</span>
+                    <span>{input.name}</span>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
 
@@ -200,7 +200,7 @@ export function WorkflowNodeInspector({
               {localOutputs.map((output) => (
                 <div key={output.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
-                    <span>{output.label}</span>
+                    <span>{output.name}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">
                         {output.type}
