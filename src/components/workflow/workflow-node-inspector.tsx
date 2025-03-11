@@ -11,7 +11,7 @@ export function WorkflowNodeInspector({
   onNodeUpdate,
 }: WorkflowNodeInspectorProps) {
   // Create local state to immediately reflect changes in the UI
-  const [localLabel, setLocalLabel] = useState<string>(node?.data.label || "");
+  const [localName, setLocalName] = useState<string>(node?.data.name || "");
   const [localInputs, setLocalInputs] = useState<Record<string, any>>(
     node?.data.inputs || {}
   );
@@ -24,21 +24,21 @@ export function WorkflowNodeInspector({
     if (!node) return;
 
     console.log(`Node inspector updating for node ${node.id}:`, node.data);
-    setLocalLabel(node.data.label);
+    setLocalName(node.data.name);
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
   }, [node]);
 
   if (!node) return null;
 
-  const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newLabel = e.target.value;
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
     // Update local state immediately
-    setLocalLabel(newLabel);
+    setLocalName(newName);
 
     // Propagate change to parent component
     if (onNodeUpdate) {
-      onNodeUpdate(node.id, { label: newLabel });
+      onNodeUpdate(node.id, { name: newName });
     }
   };
 
@@ -105,8 +105,7 @@ export function WorkflowNodeInspector({
   };
 
   // Check if the node is a slider node
-  const isSliderNode =
-    node.data.nodeType === "slider" || node.type === "slider";
+  const isSliderNode = node.data.type === "slider" || node.type === "slider";
 
   // Find min, max, step, and value for slider nodes
   const getSliderConfig = () => {
@@ -133,15 +132,15 @@ export function WorkflowNodeInspector({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Type</Label>
-            <div className="text-sm">{node.data.nodeType || node.type}</div>
+            <div className="text-sm">{node.data.type}</div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="node-name">Name</Label>
             <Input
               id="node-name"
-              value={localLabel}
-              onChange={handleLabelChange}
+              value={localName}
+              onChange={handleNameChange}
             />
           </div>
 

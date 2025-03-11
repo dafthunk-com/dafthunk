@@ -7,14 +7,17 @@ import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 export interface Parameter {
   id: string;
   type: string;
-  label: string;
+  name: string;
+  description?: string;
   value?: any;
 }
 
 type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 
 export interface WorkflowNodeData {
-  label: string;
+  name: string;
+  type: string;
+  description?: string;
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string | null;
@@ -73,7 +76,7 @@ export const WorkflowNode = memo(
       >
         {/* Header */}
         <div className="p-1 text-center">
-          <h3 className="m-0 text-xs font-medium">{data.label}</h3>
+          <h3 className="m-0 text-xs font-medium">{data.name}</h3>
         </div>
 
         {/* Parameters */}
@@ -90,7 +93,7 @@ export const WorkflowNode = memo(
                   position={Position.Left}
                   id={input.id}
                 />
-                <p className="overflow-hidden text-ellipsis">{input.label}</p>
+                <p className="overflow-hidden text-ellipsis">{input.name}</p>
               </div>
             ))}
           </div>
@@ -102,7 +105,7 @@ export const WorkflowNode = memo(
                 key={`output-${output.id}-${index}`}
                 className="flex items-center gap-1 text-xs relative"
               >
-                <p className="overflow-hidden text-ellipsis">{output.label}</p>
+                <p className="overflow-hidden text-ellipsis">{output.name}</p>
                 <TypeBadge
                   type={output.type}
                   position={Position.Right}
@@ -145,7 +148,7 @@ export const WorkflowNode = memo(
                     key={`output-value-${output.id}-${index}`}
                     className="space-y-1"
                   >
-                    <div className="text-xs font-medium">{output.label}</div>
+                    <div className="text-xs font-medium">{output.name}</div>
                     <WorkflowOutputRenderer output={output} compact={true} />
                   </div>
                 )

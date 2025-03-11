@@ -16,24 +16,28 @@ export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 // Parameter Types
 export interface WorkflowParameter {
   id: string;
+  name: string;
   type: string;
-  label: string;
+  description?: string;
   value?: any;
 }
 
 export interface WorkflowNodeData {
-  label: string;
+  name: string;
+  type: string;
+  description?: string;
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
   error?: string | null;
   executionState: NodeExecutionState;
-  nodeType?: string;
 }
 
 // Edge Types
 export interface WorkflowEdgeData {
   isValid?: boolean;
   isActive?: boolean;
+  sourceOutput?: string;
+  targetInput?: string;
   sourceType?: string;
   targetType?: string;
 }
@@ -41,10 +45,11 @@ export interface WorkflowEdgeData {
 // Node Template Types
 export interface NodeTemplate {
   id: string;
+  name: string;
   type: string;
-  label: string;
   description: string;
   category: string;
+  icon?: string;
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
 }

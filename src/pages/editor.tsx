@@ -72,18 +72,18 @@ export function EditorPage() {
         const templates: NodeTemplate[] = types.map((type) => ({
           id: type.id,
           type: type.type,
-          label: type.name, // Map name to label
+          name: type.name,
           description: type.description,
           category: type.category,
           inputs: type.inputs.map((input) => ({
             id: input.name,
             type: input.type,
-            label: input.name,
+            name: input.description || input.name,
           })),
           outputs: type.outputs.map((output) => ({
             id: output.name,
             type: output.type,
-            label: output.name,
+            name: output.description || output.name,
           })),
         }));
         setNodeTemplates(templates);
@@ -116,16 +116,18 @@ export function EditorPage() {
           inputs: node.inputs.map((input) => ({
             id: input.name,
             type: input.type,
-            label: input.description || input.name,
+            name: input.description || input.name,
             value: input.value,
           })),
           outputs: node.outputs.map((output) => ({
             id: output.name,
             type: output.type,
-            label: output.description || output.name,
+            name: output.description || output.name,
           })),
           executionState: "idle" as const,
-          nodeType: node.type, // Store the original node type
+          type: node.type,
+          name: node.name,
+          description: node.description,
         },
       }));
 
@@ -170,19 +172,19 @@ export function EditorPage() {
           const workflowNodes = nodes.map((node) => {
             return {
               id: node.id,
-              name: node.data.label,
-              type: node.data.nodeType || "default",
+              name: node.data.name,
+              type: node.data.type,
               position: node.position,
               inputs: node.data.inputs.map((input) => ({
                 name: input.id,
                 type: input.type,
-                description: input.label,
+                description: input.name,
                 value: input.value,
               })),
               outputs: node.data.outputs.map((output) => ({
                 name: output.id,
                 type: output.type,
-                description: output.label,
+                description: output.name,
                 value: output.value,
               })),
             };
