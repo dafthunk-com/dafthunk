@@ -1,4 +1,4 @@
-import { Edge } from "@/lib/workflowTypes";
+import { Edge } from "@lib/workflowModel.ts";
 import { Edge as ReactFlowEdge, Connection } from "reactflow";
 
 export type ConnectionValidationState = "default" | "valid" | "invalid";

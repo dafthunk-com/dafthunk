@@ -1,4 +1,4 @@
-import { Workflow } from "@/lib/workflowTypes";
+import { Workflow } from "@lib/workflowModel.ts";
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
 
 export const workflowValidationService = {

@@ -3,7 +3,7 @@ import {
   Node,
   ValidationError,
   Workflow,
-} from "./workflowTypes";
+} from "./workflowModel.ts";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodes/nodeRegistry";
 

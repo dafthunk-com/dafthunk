@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult } from "../../workflowTypes";
+import { ExecutionResult } from "../../workflowModel.ts";
 import { NodeContext } from "@lib/workflowRuntime.ts";
 
 export class TranslationNode extends BaseExecutableNode {

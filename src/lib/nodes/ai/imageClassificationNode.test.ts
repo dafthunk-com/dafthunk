@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ImageClassificationNode } from "./imageClassificationNode";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../workflowModel.ts";
 
 describe("ImageClassificationNode", () => {
   const mockNode: Node = {

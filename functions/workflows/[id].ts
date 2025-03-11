@@ -3,7 +3,7 @@
 import { createDatabase, type Env } from "../../db";
 import { eq } from "drizzle-orm";
 import { workflows } from "../../db/schema";
-import { Workflow, Node, Edge } from "../../src/lib/workflowTypes";
+import { Workflow, Node, Edge } from "../../src/lib/workflowModel";
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const db = createDatabase(context.env.DB);

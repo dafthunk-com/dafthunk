@@ -1,4 +1,4 @@
-import { Workflow, ValidationError } from "./workflowTypes";
+import { Workflow, ValidationError } from "./workflowModel.ts";
 
 /**
  * Checks if there are any cycles in the workflow using DFS

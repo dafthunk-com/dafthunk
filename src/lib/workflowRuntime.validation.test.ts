@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowExecutionOptions, WorkflowRuntime } from "./workflowRuntime";
-import { Workflow } from "./workflowTypes";
+import { Workflow } from "./workflowModel.ts";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodes/nodeRegistry";
 

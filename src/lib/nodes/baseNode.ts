@@ -2,7 +2,7 @@ import {
   Node,
   ExecutionResult,
   Parameter,
-} from "../workflowTypes";
+} from "../workflowModel.ts";
 import { ExecutableNode, NodeContext } from "@lib/workflowRuntime.ts";
 
 /**

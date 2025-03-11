@@ -9,7 +9,7 @@ import {
   Edge,
   ValidationError,
 
-} from "../../../src/lib/workflowTypes";
+} from "../../../src/lib/workflowModel";
 import { WorkflowExecutionOptions, WorkflowRuntime } from "../../../src/lib/workflowRuntime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";

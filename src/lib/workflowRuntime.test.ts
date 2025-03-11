@@ -18,7 +18,7 @@ import {
   Workflow,
   Node,
   ExecutionResult,
-} from "./workflowTypes";
+} from "./workflowModel.ts";
 import { validateWorkflow } from "./workflowValidation";
 
 // Mock the validateWorkflow function

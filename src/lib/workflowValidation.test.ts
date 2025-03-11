@@ -4,7 +4,7 @@ import {
   validateTypeCompatibility,
   validateWorkflow,
 } from "./workflowValidation";
-import type { Workflow, Node, Edge } from "./workflowTypes";
+import type { Workflow, Node, Edge } from "./workflowModel.ts";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node

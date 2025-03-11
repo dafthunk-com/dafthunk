@@ -1,4 +1,4 @@
-import { ExecutionResult } from "@/lib/workflowTypes";
+import { ExecutionResult } from "@lib/workflowModel.ts";
 import { BaseExecutableNode } from "../baseNode";
 import { NodeContext } from "@lib/workflowRuntime.ts";
 
