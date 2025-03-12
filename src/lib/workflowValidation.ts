@@ -1,4 +1,4 @@
-import { Workflow, ValidationError } from "./workflowModel.ts";
+import { Workflow, ValidationError } from "./workflowModel";
 
 /**
  * Checks if there are any cycles in the workflow using DFS
@@ -64,10 +64,10 @@ export function validateTypeCompatibility(
       };
     }
 
-    const sourceParam = sourceNode.outputs.find(
+    const sourceParam = sourceNode.outputValues.find(
       (o) => o.name === connection.sourceOutput
     );
-    const targetParam = targetNode.inputs.find(
+    const targetParam = targetNode.inputValues.find(
       (i) => i.name === connection.targetInput
     );
 

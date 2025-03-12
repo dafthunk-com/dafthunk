@@ -1,6 +1,6 @@
-import { ExecutionResult } from "@lib/workflowModel.ts";
+import { ExecutionResult } from "@lib/workflowModel";
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext } from "@lib/workflowRuntime.ts";
+import { NodeContext } from "@lib/workflowRuntime";
 
 export class ImageGenerationNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {

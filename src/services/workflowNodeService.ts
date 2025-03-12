@@ -1,6 +1,6 @@
 import { Node as ReactFlowNode, XYPosition } from "reactflow";
 import { API_BASE_URL } from "../config/api";
-import { Node, NodeType, ExecutionState } from "@lib/workflowModel.ts";
+import { Node, NodeType, ExecutionState } from "@lib/workflowModel";
 
 export const workflowNodeService = {
   convertToReactFlowNodes(nodes: Node[]): ReactFlowNode[] {
@@ -10,8 +10,8 @@ export const workflowNodeService = {
       position: node.position,
       data: {
         name: node.name,
-        inputs: node.inputs,
-        outputs: node.outputs,
+        inputs: node.inputValues,
+        outputs: node.outputValues,
         error: node.error,
         executionState: "idle" as ExecutionState,
       },
@@ -24,8 +24,16 @@ export const workflowNodeService = {
       type: template.type,
       name: template.name,
       position,
-      inputs: template.inputs,
-      outputs: template.outputs,
+      inputValues: template.inputTypes.map((input) => ({
+        name: input.name,
+        type: input.type,
+        value: input.defaultValue,
+      })),
+      outputValues: template.outputTypes.map((output) => ({
+        name: output.name,
+        type: output.type,
+        value: output.defaultValue,
+      })),
     };
   },
 

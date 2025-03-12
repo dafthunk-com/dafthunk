@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Workflow } from "@lib/workflowModel.ts";
+import { Workflow } from "@lib/workflowModel";
 import {
   Dialog,
   DialogContent,

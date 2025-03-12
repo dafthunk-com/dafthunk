@@ -5,11 +5,11 @@ export interface Position {
   y: number;
 }
 
-export interface Parameter {
+export interface ParameterType {
   name: string;
   type: string;
   description?: string;
-  value?: any;
+  defaultValue?: any;
 }
 
 export interface NodeType {
@@ -18,9 +18,14 @@ export interface NodeType {
   type: string;
   description: string;
   category: string;
-  icon: string;
-  inputs: Parameter[];
-  outputs: Parameter[];
+  inputTypes: ParameterType[];
+  outputTypes: ParameterType[];
+}
+
+export interface ParameterValue {
+  name: string;
+  type: string;
+  value?: any;
 }
 
 export interface Node {
@@ -29,8 +34,8 @@ export interface Node {
   type: string;
   description?: string;
   position: Position;
-  inputs: Parameter[];
-  outputs: Parameter[];
+  inputValues: ParameterValue[];
+  outputValues: ParameterValue[];
   error?: string;
 }
 

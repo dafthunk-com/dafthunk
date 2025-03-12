@@ -4,7 +4,7 @@ import {
   validateTypeCompatibility,
   validateWorkflow,
 } from "./workflowValidation";
-import type { Workflow, Node, Edge } from "./workflowModel.ts";
+import type { Workflow, Node, Edge } from "./workflowModel";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node
@@ -17,8 +17,8 @@ describe("workflowValidation", () => {
     name: `Node ${id}`,
     type: "test",
     position: { x: 0, y: 0 },
-    inputs,
-    outputs,
+    inputValues: inputs,
+    outputValues: outputs,
   });
 
   // Helper function to create a basic edge
@@ -79,11 +79,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: "string" }],
+            outputValues: [{ name: "out1", type: "string" }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: "string" }],
+            inputValues: [{ name: "in1", type: "string" }],
           },
         ],
         edges: [createEdge("1", "2", "out1", "in1")],
@@ -100,11 +100,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: "string" }],
+            outputValues: [{ name: "out1", type: "string" }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: "number" }],
+            inputValues: [{ name: "in1", type: "number" }],
           },
         ],
         edges: [createEdge("1", "2", "out1", "in1")],
@@ -168,11 +168,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: "string" }],
+            outputValues: [{ name: "out1", type: "string" }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: "string" }],
+            inputValues: [{ name: "in1", type: "string" }],
           },
         ],
         edges: [createEdge("1", "2", "out1", "in1")],
@@ -189,11 +189,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: "string" }],
+            outputValues: [{ name: "out1", type: "string" }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: "number" }],
+            inputValues: [{ name: "in1", type: "number" }],
           },
         ],
         edges: [

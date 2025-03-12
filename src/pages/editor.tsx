@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow } from "@lib/workflowModel.ts";
+import { Workflow } from "@lib/workflowModel";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
@@ -75,13 +75,13 @@ export function EditorPage() {
           name: type.name,
           description: type.description,
           category: type.category,
-          inputs: type.inputs.map((input) => ({
+          inputs: type.inputTypes?.map((input) => ({
             id: input.name,
             type: input.type,
             name: input.name,
             description: input.description,
           })),
-          outputs: type.outputs.map((output) => ({
+          outputs: type.outputTypes?.map((output) => ({
             id: output.name,
             type: output.type,
             name: output.name,
@@ -115,18 +115,16 @@ export function EditorPage() {
         position: node.position,
         data: {
           label: node.name,
-          inputs: node.inputs.map((input) => ({
+          inputs: node.inputValues.map((input) => ({
             id: input.name,
             type: input.type,
             name: input.name,
-            description: input.description,
             value: input.value,
           })),
-          outputs: node.outputs.map((output) => ({
+          outputs: node.outputValues.map((output) => ({
             id: output.name,
             type: output.type,
             name: output.name,
-            description: output.description,
           })),
           executionState: "idle" as const,
           type: node.type,
@@ -179,13 +177,13 @@ export function EditorPage() {
               name: node.data.name,
               type: node.data.type,
               position: node.position,
-              inputs: node.data.inputs.map((input) => ({
+              inputValues: node.data.inputs.map((input) => ({
                 name: input.id,
                 type: input.type,
                 description: input.description,
                 value: input.value,
               })),
-              outputs: node.data.outputs.map((output) => ({
+              outputValues: node.data.outputs.map((output) => ({
                 name: output.id,
                 type: output.type,
                 description: output.description,

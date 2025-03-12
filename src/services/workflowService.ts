@@ -1,4 +1,4 @@
-import { Workflow } from "@lib/workflowModel.ts";
+import { Workflow } from "@lib/workflowModel";
 import { API_BASE_URL } from "../config/api";
 
 export const workflowService = {

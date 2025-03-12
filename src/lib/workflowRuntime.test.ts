@@ -18,7 +18,7 @@ import {
   Workflow,
   Node,
   ExecutionResult,
-} from "./workflowModel.ts";
+} from "./workflowModel";
 import { validateWorkflow } from "./workflowValidation";
 
 // Mock the validateWorkflow function
@@ -53,8 +53,8 @@ class MockExecutableNode implements ExecutableNode {
   type: string;
   description?: string;
   position: { x: number; y: number };
-  inputs: { name: string; type: string; description?: string; value?: any }[];
-  outputs: { name: string; type: string; description?: string; value?: any }[];
+  inputValues: { name: string; type: string; description?: string; value?: any }[];
+  outputValues: { name: string; type: string; description?: string; value?: any }[];
   error?: string;
   executeMock: ReturnType<typeof vi.fn>;
 
@@ -64,8 +64,8 @@ class MockExecutableNode implements ExecutableNode {
     this.type = node.type;
     this.description = node.description;
     this.position = node.position;
-    this.inputs = node.inputs;
-    this.outputs = node.outputs;
+    this.inputValues = node.inputValues;
+    this.outputValues = node.outputValues;
     this.error = node.error;
     this.executeMock = vi.fn().mockResolvedValue({
       nodeId: this.id,
@@ -151,24 +151,24 @@ describe("WorkflowRuntime", () => {
           name: "Start Node",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
         {
           id: "node-3",
           name: "End Node",
           type: "end",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [],
         },
       ],
       edges: [
@@ -321,24 +321,24 @@ describe("WorkflowRuntime", () => {
           name: "Start Node",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Failing Node",
           type: "failing", // This will create a FailingMockExecutableNode
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
         {
           id: "node-3",
           name: "Process Node",
           type: "process",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -442,8 +442,8 @@ describe("WorkflowRuntime", () => {
           name: "Unknown Node",
           type: "unknown-type",
           position: { x: 700, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -474,24 +474,24 @@ describe("WorkflowRuntime", () => {
           name: "Start Node",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Failing Node",
           type: "failing",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
         {
           id: "node-3",
           name: "Process Node",
           type: "process",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -562,8 +562,8 @@ describe("WorkflowRuntime", () => {
           name: "Start Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [
+          inputValues: [],
+          outputValues: [
             { name: "output1", type: "string", value: "Hello from start-1" },
           ],
         },
@@ -572,8 +572,8 @@ describe("WorkflowRuntime", () => {
           name: "Start Node 2",
           type: "start",
           position: { x: 100, y: 300 },
-          inputs: [],
-          outputs: [
+          inputValues: [],
+          outputValues: [
             { name: "output1", type: "string", value: "Hello from start-2" },
           ],
         },
@@ -582,27 +582,27 @@ describe("WorkflowRuntime", () => {
           name: "Process Node 1",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
         {
           id: "process-2",
           name: "Process Node 2",
           type: "process",
           position: { x: 300, y: 300 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
         {
           id: "end",
           name: "End Node",
           type: "end",
           position: { x: 500, y: 200 },
-          inputs: [
+          inputValues: [
             { name: "input1", type: "string" },
             { name: "input2", type: "string" },
           ],
-          outputs: [],
+          outputValues: [],
         },
       ],
       edges: [

@@ -3,12 +3,13 @@ import {
   Node,
   ValidationError,
   Workflow,
-} from "./workflowModel.ts";
+} from "./workflowModel";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodes/nodeRegistry";
 
 // Initialize the node registry
-registerNodes();
+// Move this after the NodeRegistry class is defined
+// registerNodes();
 
 export interface NodeContext {
   nodeId: string;
@@ -62,6 +63,13 @@ export class NodeRegistry {
     }
     return implementation.createExecutableNode(node);
   }
+}
+
+// Initialize the node registry after the NodeRegistry class is defined
+try {
+  registerNodes();
+} catch (error) {
+  console.error("Error initializing node registry:", error);
 }
 
 export interface WorkflowExecutionOptions {
@@ -139,9 +147,9 @@ export class WorkflowRuntime {
     if (!node) return inputs;
 
     // Set default values for inputs
-    for (const input of node.inputs) {
+    for (const input of node.inputValues) {
       if (input.value !== undefined) {
-        inputs[input.name] = input.value;
+        inputs[input.type] = input.value;
       }
     }
 

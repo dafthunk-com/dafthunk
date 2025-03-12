@@ -1,6 +1,6 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult } from "../../workflowModel.ts";
-import { NodeContext } from "@lib/workflowRuntime.ts";
+import { ExecutionResult } from "../../workflowModel";
+import { NodeContext } from "@lib/workflowRuntime";
 
 /**
  * Exponentiation node implementation - raises base to an exponent

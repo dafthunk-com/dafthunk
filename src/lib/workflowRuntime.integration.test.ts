@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { WorkflowExecutionOptions, WorkflowRuntime } from "./workflowRuntime";
-import { Workflow } from "./workflowModel.ts";
+import { Workflow } from "./workflowModel";
 import { registerNodes } from "./nodes/nodeRegistry";
 
 // Ensure base nodes are registered
@@ -19,11 +19,11 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "First Number",
           type: "addition",
           position: { x: 100, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "a", type: "number", value: 5 },
             { name: "b", type: "number", value: 3 },
           ],
-          outputs: [{ name: "result", type: "number" }],
+          outputValues: [{ name: "result", type: "number" }],
         },
       ],
       edges: [],
@@ -57,33 +57,33 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Addition",
           type: "addition",
           position: { x: 100, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "a", type: "number", value: 10 },
             { name: "b", type: "number", value: 5 },
           ],
-          outputs: [{ name: "result", type: "number" }],
+          outputValues: [{ name: "result", type: "number" }],
         },
         {
           id: "multiplication-node",
           name: "Multiplication",
           type: "multiplication",
           position: { x: 300, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "a", type: "number" },
             { name: "b", type: "number", value: 2 },
           ],
-          outputs: [{ name: "result", type: "number" }],
+          outputValues: [{ name: "result", type: "number" }],
         },
         {
           id: "subtraction-node",
           name: "Subtraction",
           type: "subtraction",
           position: { x: 500, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "a", type: "number" },
             { name: "b", type: "number", value: 5 },
           ],
-          outputs: [{ name: "result", type: "number" }],
+          outputValues: [{ name: "result", type: "number" }],
         },
       ],
       edges: [
@@ -140,11 +140,11 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Division",
           type: "division",
           position: { x: 100, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "a", type: "number", value: 10 },
             { name: "b", type: "number", value: 0 },
           ],
-          outputs: [{ name: "result", type: "number" }],
+          outputValues: [{ name: "result", type: "number" }],
         },
       ],
       edges: [],
@@ -182,11 +182,11 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Addition",
           type: "addition",
           position: { x: 100, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "a", type: "number", value: "not a number" },
             { name: "b", type: "number", value: 5 },
           ],
-          outputs: [{ name: "result", type: "number" }],
+          outputValues: [{ name: "result", type: "number" }],
         },
       ],
       edges: [],

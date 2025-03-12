@@ -1,9 +1,9 @@
 import {
   Node,
   ExecutionResult,
-  Parameter,
-} from "../workflowModel.ts";
-import { ExecutableNode, NodeContext } from "@lib/workflowRuntime.ts";
+  ParameterValue,
+} from "../workflowModel";
+import { ExecutableNode, NodeContext } from "@lib/workflowRuntime";
 
 /**
  * Base class for all executable nodes
@@ -14,8 +14,8 @@ export abstract class BaseExecutableNode implements ExecutableNode {
   type: string;
   description?: string;
   position: { x: number; y: number };
-  inputs: Parameter[];
-  outputs: Parameter[];
+  inputValues: ParameterValue[];
+  outputValues: ParameterValue[];
   error?: string;
 
   constructor(node: Node) {
@@ -24,8 +24,8 @@ export abstract class BaseExecutableNode implements ExecutableNode {
     this.type = node.type;
     this.description = node.description;
     this.position = node.position;
-    this.inputs = node.inputs;
-    this.outputs = node.outputs;
+    this.inputValues = node.inputValues;
+    this.outputValues = node.outputValues;
     this.error = node.error;
   }
 

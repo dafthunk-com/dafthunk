@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ImageClassificationNode } from "./imageClassificationNode";
-import { Node } from "../../workflowModel.ts";
+import { Node } from "../../workflowModel";
 
 describe("ImageClassificationNode", () => {
   const mockNode: Node = {
@@ -8,19 +8,16 @@ describe("ImageClassificationNode", () => {
     name: "Test Image Classification",
     type: "image-classification",
     position: { x: 0, y: 0 },
-    inputs: [
+    inputValues: [
       {
         name: "image",
         type: "binary",
-        description: "The image to use for object detection",
       },
     ],
-    outputs: [
+    outputValues: [
       {
         name: "detections",
         type: "array",
-        description:
-          "Array of detected objects with scores, labels, and bounding boxes",
       },
     ],
   };

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowExecutionOptions, WorkflowRuntime } from "./workflowRuntime";
-import { Workflow } from "./workflowModel.ts";
+import { Workflow } from "./workflowModel";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodes/nodeRegistry";
 
@@ -63,24 +63,24 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
         {
           id: "node-3",
           name: "Node 3",
           type: "function",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -133,18 +133,18 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "number", value: 42 }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "number", value: 42 }],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [
+          inputValues: [
             { name: "input1", type: "string" }, // String type, but will receive number
           ],
-          outputs: [{ name: "output1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -188,16 +188,16 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -248,16 +248,16 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "unknown-type", // Unregistered type
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [
@@ -293,16 +293,16 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Start Node",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "End Node",
           type: "end",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [],
         },
       ],
       edges: [
@@ -336,16 +336,16 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string", value: "Hello" }],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputValues: [{ name: "input1", type: "string" }],
+          outputValues: [{ name: "output1", type: "string" }],
         },
       ],
       edges: [

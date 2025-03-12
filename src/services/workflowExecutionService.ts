@@ -3,7 +3,7 @@ import {
   Workflow,
   ExecutionResult,
   ExecutionState,
-} from "@lib/workflowModel.ts";
+} from "@lib/workflowModel";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {
@@ -99,6 +99,6 @@ export const workflowExecutionService = {
       incomingEdges.map((edge) => edge.targetInput)
     );
 
-    return node.inputs.every((input) => connectedInputs.has(input.name));
+    return node.inputValues.every((input) => connectedInputs.has(input.name));
   },
 };

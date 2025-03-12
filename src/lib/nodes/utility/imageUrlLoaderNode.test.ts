@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
-import { Node } from "../../workflowModel.ts";
+import { Node } from "../../workflowModel";
 
 // Mock global fetch
 const mockFetch = vi.fn();
@@ -12,18 +12,16 @@ describe("ImageUrlLoaderNode", () => {
     name: "Test Image URL Loader",
     type: "image-url-loader",
     position: { x: 0, y: 0 },
-    inputs: [
+    inputValues: [
       {
         name: "url",
         type: "string",
-        description: "The URL of the PNG image to load",
       },
     ],
-    outputs: [
+    outputValues: [
       {
         name: "imageData",
         type: "binary",
-        description: "The image data as a binary array",
       },
     ],
   };
