@@ -44,35 +44,40 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
 ### 💻 Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/workflow.git
    cd workflow
    ```
 
 2. Install dependencies:
+
    ```bash
    pnpm install
    ```
 
 3. Set up environment variables:
+
    ```bash
    cp .dev.vars.example .dev.vars
    # Edit with custom values
    ```
 
 4. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:
+
    ```bash
    # Install Wrangler globally
    npm install -g wrangler
-   
+
    # Login to Cloudflare
    wrangler login
-   
+
    # Create a D1 database
    wrangler d1 create workflow-development
    ```
 
 5. Start the development server and cross your fingers:
+
    ```bash
    pnpm dev
    ```
@@ -149,6 +154,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. We aim to 
 
 We've embraced the AI future before being deprecated (or obliterated?), but we still do the important bits ourselves (like architecture, blablabla, etc.). Right?
 
-🎵 *I kissed an AI and I liked it, hope my dev team doesn't mind it. It felt so wrong, it felt so right—doesn't mean I'm coding tonight.* 🎵
+🎵 _I kissed an AI and I liked it, hope my dev team doesn't mind it. It felt so wrong, it felt so right—doesn't mean I'm coding tonight._ 🎵
 
 (With apologies to Katy Perry)
