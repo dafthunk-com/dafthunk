@@ -1,4 +1,4 @@
-import { createDataUrl } from "@/lib/nodes/utility/binaryUtils";
+import { createDataUrl } from "@/lib/utils/binaryUtils";
 import { WorkflowParameter } from "./workflow-types";
 
 interface WorkflowOutputRendererProps {
