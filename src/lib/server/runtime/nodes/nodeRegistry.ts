@@ -90,7 +90,7 @@ export function registerNodes(): void {
   });
 
   registry.registerImplementation({
-    type: "image-classification",
+    type: ImageClassificationNode.nodeType.type,
     createExecutableNode: (node) => new ImageClassificationNode(node),
   });
 

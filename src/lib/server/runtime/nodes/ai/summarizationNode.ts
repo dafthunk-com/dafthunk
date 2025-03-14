@@ -1,10 +1,39 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Summarization node implementation using bart-large-cnn model
  */
 export class SummarizationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "summarization",
+    name: "Summarization",
+    type: "summarization",
+    description: "Summarizes text using BART-large-CNN model",
+    category: "AI",
+    icon: "summarize",
+    inputs: [
+      {
+        name: "inputText",
+        type: "string",
+        description: "The text that you want the model to summarize",
+      },
+      {
+        name: "maxLength",
+        type: "number",
+        description: "The maximum length of the generated summary in tokens",
+        value: 1024,
+      },
+    ],
+    outputs: [
+      {
+        name: "summary",
+        type: "string",
+        description: "The summarized version of the input text",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const inputText = context.inputs.inputText;

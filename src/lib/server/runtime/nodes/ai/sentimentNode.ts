@@ -1,10 +1,38 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
  */
 export class SentimentNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "sentiment",
+    name: "Sentiment Analysis",
+    type: "sentiment",
+    description: "Analyzes the sentiment of text",
+    category: "AI",
+    icon: "mood",
+    inputs: [
+      {
+        name: "text",
+        type: "string",
+        description: "The text to analyze for sentiment",
+      },
+    ],
+    outputs: [
+      {
+        name: "positive",
+        type: "number",
+        description: "Confidence score for positive sentiment",
+      },
+      {
+        name: "negative",
+        type: "number",
+        description: "Confidence score for negative sentiment",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const text = context.inputs.text;

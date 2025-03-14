@@ -1,7 +1,64 @@
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
+/**
+ * Image Generation node implementation using Stable Diffusion
+ */
 export class ImageGenerationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "image-generation",
+    name: "Image Generation",
+    type: "image-generation",
+    description:
+      "Generates images from text descriptions using Stable Diffusion XL Lightning",
+    category: "AI",
+    icon: "wand",
+    inputs: [
+      {
+        name: "prompt",
+        type: "string",
+        description: "A text description of the image you want to generate",
+      },
+      {
+        name: "negative_prompt",
+        type: "string",
+        description: "Text describing elements to avoid in the generated image",
+      },
+      {
+        name: "height",
+        type: "number",
+        description: "The height of the generated image in pixels (256-2048)",
+        value: 1024,
+      },
+      {
+        name: "width",
+        type: "number",
+        description: "The width of the generated image in pixels (256-2048)",
+        value: 1024,
+      },
+      {
+        name: "num_steps",
+        type: "number",
+        description: "The number of diffusion steps (1-20)",
+        value: 20,
+      },
+      {
+        name: "guidance",
+        type: "number",
+        description:
+          "Controls how closely the generated image should adhere to the prompt",
+        value: 7.5,
+      },
+    ],
+    outputs: [
+      {
+        name: "image",
+        type: "binary",
+        description: "The generated image in PNG format",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       if (!context.env?.AI) {

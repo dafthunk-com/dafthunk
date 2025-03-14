@@ -1,10 +1,43 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Simplified LLM node implementation with essential parameters
  */
 export class LLMNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "llm",
+    name: "LLM",
+    type: "llm",
+    description: "Generates text",
+    category: "AI",
+    icon: "ai",
+    inputs: [
+      {
+        name: "prompt",
+        type: "string",
+        description: "The input text prompt for the LLM",
+      },
+      {
+        name: "temperature",
+        type: "number",
+        description: "Controls randomness in the output (0.0 to 1.0)",
+      },
+      {
+        name: "seed",
+        type: "number",
+        description: "Random seed for deterministic generation",
+      },
+    ],
+    outputs: [
+      {
+        name: "response",
+        type: "string",
+        description: "Generated text response",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const { prompt, seed, temperature } = context.inputs;

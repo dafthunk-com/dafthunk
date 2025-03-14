@@ -1,7 +1,45 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
 
+/**
+ * Translation node implementation
+ */
 export class TranslationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "translation",
+    name: "Translation",
+    type: "translation",
+    description: "Translates text between languages",
+    category: "AI",
+    icon: "language",
+    inputs: [
+      {
+        name: "text",
+        type: "string",
+        description: "The text to be translated",
+      },
+      {
+        name: "sourceLang",
+        type: "string",
+        description:
+          "The language code of the source text (e.g., 'en' for English)",
+      },
+      {
+        name: "targetLang",
+        type: "string",
+        description:
+          "The language code to translate the text into (e.g., 'es' for Spanish)",
+      },
+    ],
+    outputs: [
+      {
+        name: "translatedText",
+        type: "string",
+        description: "The translated text in the target language",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const text = context.inputs.text;
@@ -29,7 +67,7 @@ export class TranslationNode extends BaseExecutableNode {
       });
 
       return this.createSuccessResult({
-        translatedText: result.translated_text,
+        translatedText: result.translatedText,
       });
     } catch (error) {
       return this.createErrorResult(

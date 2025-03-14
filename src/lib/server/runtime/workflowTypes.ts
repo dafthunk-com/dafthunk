@@ -1,4 +1,5 @@
 // Types for workflows
+import { BaseExecutableNode } from "./nodes/baseNode";
 
 export interface Position {
   x: number;
@@ -7,7 +8,7 @@ export interface Position {
 
 export interface Parameter {
   name: string;
-  type: string;
+  type: "string" | "number" | "array" | "binary" | "object" | "imageData";
   description?: string;
   value?: any;
 }
@@ -91,13 +92,9 @@ export interface NodeContext {
   };
 }
 
-export interface ExecutableNode extends Node {
-  execute(context: NodeContext): Promise<ExecutionResult>;
-}
-
 export interface NodeImplementation {
   type: string;
-  createExecutableNode(node: Node): ExecutableNode;
+  createExecutableNode(node: Node): BaseExecutableNode;
 }
 
 export class NodeRegistry {
@@ -121,7 +118,7 @@ export class NodeRegistry {
     return this.implementations.get(type);
   }
 
-  public createExecutableNode(node: Node): ExecutableNode | undefined {
+  public createExecutableNode(node: Node): BaseExecutableNode | undefined {
     const implementation = this.getImplementation(node.type);
     if (!implementation) {
       return undefined;

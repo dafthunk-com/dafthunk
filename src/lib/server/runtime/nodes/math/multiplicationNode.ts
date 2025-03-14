@@ -1,10 +1,24 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Multiplication node implementation
  */
 export class MultiplicationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "multiplication",
+    name: "Multiplication",
+    type: "multiplication",
+    description: "Multiplies two numbers",
+    category: "Math",
+    icon: "x",
+    inputs: [
+      { name: "a", type: "number" },
+      { name: "b", type: "number" },
+    ],
+    outputs: [{ name: "result", type: "number" }],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const a = Number(context.inputs.a);

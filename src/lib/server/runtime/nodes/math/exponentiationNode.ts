@@ -1,10 +1,24 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Exponentiation node implementation - raises base to an exponent
  */
 export class ExponentiationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "exponentiation",
+    name: "Exponentiation",
+    type: "exponentiation",
+    description: "Raises a base to an exponent",
+    category: "Math",
+    icon: "power",
+    inputs: [
+      { name: "base", type: "number" },
+      { name: "exponent", type: "number" },
+    ],
+    outputs: [{ name: "result", type: "number" }],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const base = Number(context.inputs.base);

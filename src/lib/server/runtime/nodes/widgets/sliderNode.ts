@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Slider node implementation
@@ -10,6 +10,41 @@ import { NodeContext, ExecutionResult } from "../../workflowTypes";
  * and passed directly to the output.
  */
 export class SliderNode extends BaseExecutableNode {
+  public readonly nodeType: NodeType = {
+    id: "slider",
+    name: "Slider",
+    type: "slider",
+    description:
+      "A slider widget for selecting a value constrained by min, max, and step values",
+    category: "Widgets",
+    icon: "sliders-horizontal",
+    inputs: [
+      {
+        name: "min",
+        type: "number",
+        description: "Minimum value of the slider",
+      },
+      {
+        name: "max",
+        type: "number",
+        description: "Maximum value of the slider",
+      },
+      { name: "step", type: "number", description: "Step size for the slider" },
+      {
+        name: "value",
+        type: "number",
+        description: "Current value of the slider",
+      },
+    ],
+    outputs: [
+      {
+        name: "value",
+        type: "number",
+        description: "The selected value from the slider",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const min = Number(context.inputs.min);
