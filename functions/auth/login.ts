@@ -81,7 +81,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
     }
 
     console.log(`Redirecting to OAuth provider (${provider}):`, authUrl);
-    
+
     // Two-step redirection approach:
     // 1. Return the authorization URL to the client instead of immediately redirecting
     // 2. Let the client handle the redirection after the cookie is set

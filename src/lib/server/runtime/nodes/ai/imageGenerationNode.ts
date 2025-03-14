@@ -1,4 +1,4 @@
-import { NodeContext, ExecutionResult } from "@/lib/workflowTypes";
+import { NodeContext, ExecutionResult } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 export class ImageGenerationNode extends BaseExecutableNode {

@@ -7,10 +7,9 @@ import {
   Workflow,
   Node,
   Edge,
-  ValidationError,
   WorkflowExecutionOptions,
-} from "../../../src/lib/workflowTypes";
-import { WorkflowRuntime } from "../../../src/lib/workflowRuntime";
+} from "../../../src/lib/server/api/apiTypes";
+import { WorkflowRuntime } from "../../../src/lib/server/runtime/workflowRuntime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
 
