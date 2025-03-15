@@ -32,5 +32,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CI: true
         run: |
-          npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations;DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
+          npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types;"
           npx wrangler d1 migrations apply DB --remote --env production
