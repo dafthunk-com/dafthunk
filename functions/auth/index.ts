@@ -15,3 +15,4 @@ export { onRequestGet as callbackHandler } from "./callback";
 export { onRequestPost as logoutHandler } from "./logout";
 export { onRequestGet as protectedHandler } from "./protected";
 export { onRequestGet as userHandler } from "./user";
+export { onRequestGet as renewalHandler } from "./renewal";

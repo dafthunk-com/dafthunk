@@ -108,6 +108,38 @@ functions/auth/
     }
     ```
 
+#### 6. `/auth/renewal`
+
+- **Method:** `GET`
+- **Description:** Automatically renews the JWT token before it expires.
+- **Authorization:** Requires a valid JWT in the `Authorization` header or cookie.
+- **Response:**
+  - If token is about to expire (less than 5 minutes remaining):
+    ```json
+    {
+      "message": "Token renewed successfully",
+      "renewed": true,
+      "tokenInfo": {
+        "expiresIn": 900,
+        "issuedAt": 1647345678,
+        "expiresAt": 1647346578
+      }
+    }
+    ```
+  - If token still has more than 5 minutes remaining:
+    ```json
+    {
+      "message": "Token is still valid",
+      "renewed": false,
+      "tokenInfo": {
+        "expiresIn": 450,
+        "issuedAt": 1647345678,
+        "expiresAt": 1647346128
+      }
+    }
+    ```
+  - Sets a new secure cookie with the renewed JWT if renewed.
+
 ## Security Considerations
 
 ### JWT Best Practices
