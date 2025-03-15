@@ -72,4 +72,19 @@ export const workflowService = {
 
     return response.json();
   },
+
+  // Delete a workflow
+  async delete(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete workflow: ${response.statusText}`);
+    }
+  },
 };
