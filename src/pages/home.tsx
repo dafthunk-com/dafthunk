@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react";
+import { PlusIcon, Trash2Icon, PencilIcon, PlayIcon, WorkflowIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Workflow } from "@/lib/server/api/apiTypes";
 import {
@@ -17,19 +17,25 @@ import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/lib/auth/authContext";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function HomePage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
-  const [workflowToEdit, setWorkflowToEdit] = useState<Workflow | null>(null);
-  const [editWorkflowName, setEditWorkflowName] = useState("");
+  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(null);
   const [newWorkflowName, setNewWorkflowName] = useState("");
+  const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
   const { isAuthenticated, isLoading: authLoading, login } = useAuth();
   const navigate = useNavigate();
 
@@ -101,36 +107,42 @@ export function HomePage() {
     setDeleteDialogOpen(true);
   };
 
-  const openEditDialog = (e: React.MouseEvent, workflow: Workflow) => {
+  const openRenameDialog = (e: React.MouseEvent, workflow: Workflow) => {
     e.preventDefault();
     e.stopPropagation();
-    setWorkflowToEdit(workflow);
-    setEditWorkflowName(workflow.name || "");
-    setEditDialogOpen(true);
+    setWorkflowToRename(workflow);
+    setRenameWorkflowName(workflow.name || "");
+    setRenameDialogOpen(true);
   };
 
-  const handleEditWorkflow = async (e: React.FormEvent) => {
+  const handleRenameWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!workflowToEdit) return;
+    if (!workflowToRename) return;
     
-    setIsEditing(true);
+    setIsRenaming(true);
     try {
-      const updatedWorkflow = { ...workflowToEdit, name: editWorkflowName };
-      const result = await workflowService.save(workflowToEdit.id, updatedWorkflow);
+      const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
+      const result = await workflowService.save(workflowToRename.id, updatedWorkflow);
       
       // Update the workflow in the list
       setWorkflows(workflows.map(w => 
-        w.id === workflowToEdit.id ? { ...w, name: editWorkflowName } : w
+        w.id === workflowToRename.id ? { ...w, name: renameWorkflowName } : w
       ));
       
-      setEditDialogOpen(false);
-      setWorkflowToEdit(null);
+      setRenameDialogOpen(false);
+      setWorkflowToRename(null);
     } catch (error) {
-      console.error("Error updating workflow:", error);
+      console.error("Error renaming workflow:", error);
     } finally {
-      setIsEditing(false);
+      setIsRenaming(false);
     }
+  };
+
+  const navigateToWorkflow = (e: React.MouseEvent, workflowId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/workflow/${workflowId}`);
   };
 
   const renderContent = () => {
@@ -185,20 +197,50 @@ export function HomePage() {
                 {workflow.name || "Untitled Workflow"}
               </h3>
               <div className="absolute top-1/2 right-2 -translate-y-1/2 flex space-x-1">
-                <button
-                  onClick={(e) => openEditDialog(e, workflow)}
-                  className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
-                  aria-label="Edit workflow"
-                >
-                  <PencilIcon className="w-5 h-5 text-blue-500" />
-                </button>
-                <button
-                  onClick={(e) => openDeleteDialog(e, workflow)}
-                  className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
-                  aria-label="Delete workflow"
-                >
-                  <Trash2Icon className="w-5 h-5 text-red-500" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={(e) => openRenameDialog(e, workflow)}
+                      className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
+                      aria-label="Rename workflow"
+                    >
+                      <PencilIcon className="w-6 h-6 text-blue-500" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Rename</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={(e) => navigateToWorkflow(e, workflow.id)}
+                      className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
+                      aria-label="Open"
+                    >
+                      <WorkflowIcon className="w-6 h-6 text-green-500" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Open workflow</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={(e) => openDeleteDialog(e, workflow)}
+                      className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
+                      aria-label="Delete workflow"
+                    >
+                      <Trash2Icon className="w-6 h-6 text-red-500" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </Link>
@@ -208,112 +250,114 @@ export function HomePage() {
   };
 
   return (
-    <main className="h-full">
-      <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100">
-        <div className="relative h-full p-6 overflow-auto">
-          {renderContent()}
+    <TooltipProvider>
+      <main className="h-full">
+        <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100">
+          <div className="relative h-full p-6 overflow-auto">
+            {renderContent()}
 
-          {isAuthenticated && (
-            <div className="absolute bottom-4 right-4">
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button className="rounded-full shadow-lg h-10 w-10 p-0">
-                    <PlusIcon className="w-6 h-6" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Workflow</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateWorkflow} className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Workflow Name</Label>
-                      <Input
-                        id="name"
-                        value={newWorkflowName}
-                        onChange={(e) => setNewWorkflowName(e.target.value)}
-                        placeholder="Enter workflow name"
-                        className="mt-2"
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Create Workflow
+            {isAuthenticated && (
+              <div className="absolute bottom-4 right-4">
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="rounded-full shadow-lg h-10 w-10 p-0">
+                      <PlusIcon className="w-6 h-6" />
                     </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Workflow</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateWorkflow} className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Workflow Name</Label>
+                        <Input
+                          id="name"
+                          value={newWorkflowName}
+                          onChange={(e) => setNewWorkflowName(e.target.value)}
+                          placeholder="Enter workflow name"
+                          className="mt-2"
+                        />
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Create Workflow
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Delete confirmation dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Workflow</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{workflowToDelete?.name || 'Untitled Workflow'}"? 
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteWorkflow}
-              disabled={isDeleting}
-            >
-              {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit workflow dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Workflow</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEditWorkflow} className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Workflow Name</Label>
-              <Input
-                id="edit-name"
-                value={editWorkflowName}
-                onChange={(e) => setEditWorkflowName(e.target.value)}
-                placeholder="Enter workflow name"
-                className="mt-2"
-              />
-            </div>
+        {/* Delete confirmation dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Workflow</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{workflowToDelete?.name || 'Untitled Workflow'}"? 
+                This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
             <DialogFooter>
               <Button 
                 variant="outline" 
-                type="button"
-                onClick={() => setEditDialogOpen(false)}
-                disabled={isEditing}
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={isDeleting}
               >
                 Cancel
               </Button>
               <Button 
-                type="submit"
-                disabled={isEditing}
+                variant="destructive" 
+                onClick={handleDeleteWorkflow}
+                disabled={isDeleting}
               >
-                {isEditing ? <Spinner className="h-4 w-4 mr-2" /> : null}
-                Save
+                {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                Delete
               </Button>
             </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </main>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit workflow dialog */}
+        <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rename Workflow</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleRenameWorkflow} className="space-y-4">
+              <div>
+                <Label htmlFor="rename-name">Workflow Name</Label>
+                <Input
+                  id="rename-name"
+                  value={renameWorkflowName}
+                  onChange={(e) => setRenameWorkflowName(e.target.value)}
+                  placeholder="Enter workflow name"
+                  className="mt-2"
+                />
+              </div>
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  type="button"
+                  onClick={() => setRenameDialogOpen(false)}
+                  disabled={isRenaming}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={isRenaming}
+                >
+                  {isRenaming ? <Spinner className="h-4 w-4 mr-2" /> : null}
+                  Rename
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </main>
+    </TooltipProvider>
   );
 }
