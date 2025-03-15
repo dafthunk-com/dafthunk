@@ -24,8 +24,8 @@ export async function createJWT(
   // Get the JWT secret from environment variables
   const secret = new TextEncoder().encode(env.JWT_SECRET);
 
-  // Set token expiration (15 minutes from now)
-  const expirationTime = Math.floor(Date.now() / 1000) + 15 * 60;
+  // Set token expiration (60 seconds from now)
+  const expirationTime = Math.floor(Date.now() / 1000) + 60;
 
   // Create and sign the JWT
   const token = await new SignJWT({ ...payload })
@@ -81,7 +81,7 @@ export function extractJWTFromHeader(authHeader: string | null): string | null {
 
 // Create secure cookie options
 export function getSecureCookieOptions(
-  expiresInSeconds: number = 15 * 60
+  expiresInSeconds: number = 60
 ): string {
   return `HttpOnly; Secure; SameSite=Strict; Max-Age=${expiresInSeconds}; Path=/`;
 }

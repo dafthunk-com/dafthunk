@@ -7,6 +7,18 @@ export interface User {
   provider: string;
 }
 
+export interface TokenInfo {
+  expiresIn: number;
+  issuedAt: number;
+  expiresAt: number;
+}
+
+export interface RenewalResponse {
+  message: string;
+  renewed: boolean;
+  tokenInfo: TokenInfo;
+}
+
 export const authService = {
   // Check if the user is authenticated
   async checkAuth(): Promise<boolean> {
@@ -83,6 +95,33 @@ export const authService = {
       window.location.href = "/";
     } catch (error) {
       console.error("Logout failed:", error);
+    }
+  },
+
+  // Renew the authentication token
+  async renewToken(): Promise<RenewalResponse | null> {
+    try {
+      console.log("Calling renewal endpoint at", new Date().toISOString());
+      const response = await fetch(`${API_BASE_URL}/auth/renewal`, {
+        method: "GET",
+        credentials: "include", // Important for cookies
+      });
+
+      console.log("Renewal endpoint response status:", response.status);
+      
+      if (response.ok) {
+        const data = (await response.json()) as RenewalResponse;
+        console.log("Renewal endpoint response data:", JSON.stringify(data));
+        return data;
+      }
+      
+      console.error("Renewal failed with status:", response.status);
+      const errorText = await response.text();
+      console.error("Error response:", errorText);
+      return null;
+    } catch (error) {
+      console.error("Token renewal failed:", error);
+      return null;
     }
   },
 };
