@@ -26,12 +26,7 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const [workflow] = await db
       .select()
       .from(workflows)
-      .where(
-        and(
-          eq(workflows.id, id),
-          eq(workflows.userId, user.sub)
-        )
-      );
+      .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
     if (!workflow) {
       return new Response("Workflow not found", { status: 404 });
@@ -67,12 +62,7 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const [existingWorkflow] = await db
       .select()
       .from(workflows)
-      .where(
-        and(
-          eq(workflows.id, id),
-          eq(workflows.userId, user.sub)
-        )
-      );
+      .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
     if (!existingWorkflow) {
       return new Response("Workflow not found", { status: 404 });
@@ -121,12 +111,7 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const [existingWorkflow] = await db
       .select()
       .from(workflows)
-      .where(
-        and(
-          eq(workflows.id, id),
-          eq(workflows.userId, user.sub)
-        )
-      );
+      .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
     if (!existingWorkflow) {
       return new Response("Workflow not found", { status: 404 });

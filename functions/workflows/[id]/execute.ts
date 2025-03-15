@@ -57,12 +57,7 @@ async function executeWorkflow(
     const [workflow] = await db
       .select()
       .from(workflows)
-      .where(
-        and(
-          eq(workflows.id, id),
-          eq(workflows.userId, user.sub)
-        )
-      );
+      .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
     if (!workflow) {
       return new Response(JSON.stringify({ error: "Workflow not found" }), {

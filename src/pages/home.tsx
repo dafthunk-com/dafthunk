@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, PencilIcon, PlayIcon, WorkflowIcon } from "lucide-react";
+import {
+  PlusIcon,
+  Trash2Icon,
+  PencilIcon,
+  PlayIcon,
+  WorkflowIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Workflow } from "@/lib/server/api/apiTypes";
 import {
@@ -29,8 +35,12 @@ export function HomePage() {
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
-  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
+    null
+  );
+  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
+    null
+  );
   const [newWorkflowName, setNewWorkflowName] = useState("");
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -86,11 +96,11 @@ export function HomePage() {
 
   const handleDeleteWorkflow = async () => {
     if (!workflowToDelete) return;
-    
+
     setIsDeleting(true);
     try {
       await workflowService.delete(workflowToDelete.id);
-      setWorkflows(workflows.filter(w => w.id !== workflowToDelete.id));
+      setWorkflows(workflows.filter((w) => w.id !== workflowToDelete.id));
       setDeleteDialogOpen(false);
       setWorkflowToDelete(null);
     } catch (error) {
@@ -117,19 +127,24 @@ export function HomePage() {
 
   const handleRenameWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!workflowToRename) return;
-    
+
     setIsRenaming(true);
     try {
       const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
-      const result = await workflowService.save(workflowToRename.id, updatedWorkflow);
-      
+      const result = await workflowService.save(
+        workflowToRename.id,
+        updatedWorkflow
+      );
+
       // Update the workflow in the list
-      setWorkflows(workflows.map(w => 
-        w.id === workflowToRename.id ? { ...w, name: renameWorkflowName } : w
-      ));
-      
+      setWorkflows(
+        workflows.map((w) =>
+          w.id === workflowToRename.id ? { ...w, name: renameWorkflowName } : w
+        )
+      );
+
       setRenameDialogOpen(false);
       setWorkflowToRename(null);
     } catch (error) {
@@ -217,13 +232,13 @@ export function HomePage() {
                     <button
                       onClick={(e) => navigateToWorkflow(e, workflow.id)}
                       className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
-                      aria-label="Open"
+                      aria-label="Open workflow"
                     >
                       <WorkflowIcon className="w-6 h-6 text-green-500" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Open workflow</p>
+                    <p>Open</p>
                   </TooltipContent>
                 </Tooltip>
 
@@ -296,20 +311,21 @@ export function HomePage() {
             <DialogHeader>
               <DialogTitle>Delete Workflow</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete "{workflowToDelete?.name || 'Untitled Workflow'}"? 
-                This action cannot be undone.
+                Are you sure you want to delete "
+                {workflowToDelete?.name || "Untitled Workflow"}"? This action
+                cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setDeleteDialogOpen(false)}
                 disabled={isDeleting}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
+              <Button
+                variant="destructive"
                 onClick={handleDeleteWorkflow}
                 disabled={isDeleting}
               >
@@ -338,18 +354,15 @@ export function HomePage() {
                 />
               </div>
               <DialogFooter>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   type="button"
                   onClick={() => setRenameDialogOpen(false)}
                   disabled={isRenaming}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit"
-                  disabled={isRenaming}
-                >
+                <Button type="submit" disabled={isRenaming}>
                   {isRenaming ? <Spinner className="h-4 w-4 mr-2" /> : null}
                   Rename
                 </Button>

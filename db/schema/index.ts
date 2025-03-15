@@ -36,7 +36,9 @@ export const workflows = sqliteTable("workflows", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   data: text("data", { mode: "json" }).notNull(), // This will store nodes and edges
-  userId: text("user_id").notNull().references(() => users.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
