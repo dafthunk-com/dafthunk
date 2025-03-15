@@ -380,21 +380,6 @@ export function EditorPage() {
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
-        <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
-          <div className="flex flex-col">
-            {isLoading && (
-              <div className="text-sm bg-blue-100 p-2 rounded-md">
-                Loading workflow...
-              </div>
-            )}
-            {isSaving && (
-              <div className="text-sm bg-yellow-100 p-2 rounded-md">
-                Saving...
-              </div>
-            )}
-          </div>
-        </div>
-
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <div className="text-center">
