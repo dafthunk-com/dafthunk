@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -35,6 +36,7 @@ export const workflows = sqliteTable("workflows", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   data: text("data", { mode: "json" }).notNull(), // This will store nodes and edges
+  userId: text("user_id").notNull().references(() => users.id),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -42,6 +44,18 @@ export const workflows = sqliteTable("workflows", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });
+
+// Relations definitions after all tables are defined
+export const usersRelations = relations(users, ({ many }) => ({
+  workflows: many(workflows),
+}));
+
+export const workflowsRelations = relations(workflows, ({ one }) => ({
+  user: one(users, {
+    fields: [workflows.userId],
+    references: [users.id],
+  }),
+}));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

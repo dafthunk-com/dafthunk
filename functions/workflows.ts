@@ -1,13 +1,21 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { createDatabase, type Env } from "../db";
+import { createDatabase } from "../db";
 import { eq } from "drizzle-orm";
 import { workflows, type NewWorkflow } from "../db/schema";
+import { withAuth } from "./auth/middleware";
+import { JWTPayload } from "./auth/jwt";
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-  const db = createDatabase(context.env.DB);
+// Extended environment type that includes both DB and JWT_SECRET
+interface WorkflowEnv {
+  DB: D1Database;
+  JWT_SECRET: string;
+}
 
-  if (context.request.method === "GET") {
+export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
+  const db = createDatabase(env.DB);
+
+  if (request.method === "GET") {
     const allWorkflows = await db
       .select({
         id: workflows.id,
@@ -15,7 +23,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         createdAt: workflows.createdAt,
         updatedAt: workflows.updatedAt,
       })
-      .from(workflows);
+      .from(workflows)
+      .where(eq(workflows.userId, user.sub));
 
     return new Response(JSON.stringify({ workflows: allWorkflows }), {
       headers: {
@@ -24,10 +33,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     });
   }
 
-  if (context.request.method === "POST") {
+  if (request.method === "POST") {
     let body: unknown;
     try {
-      body = await context.request.json();
+      body = await request.json();
     } catch (error) {
       return new Response("Invalid request body", { status: 400 });
     }
@@ -46,6 +55,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         nodes: Array.isArray(data.nodes) ? data.nodes : [],
         edges: Array.isArray(data.edges) ? data.edges : [],
       }),
+      userId: user.sub,
       createdAt: now,
       updatedAt: now,
     };
@@ -75,4 +85,4 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   return new Response("Method not allowed", { status: 405 });
-};
+});

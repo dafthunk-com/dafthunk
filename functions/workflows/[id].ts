@@ -1,24 +1,37 @@
 /// <reference types="@cloudflare/workers-types" />
 
-import { createDatabase, type Env } from "../../db";
-import { eq } from "drizzle-orm";
+import { createDatabase } from "../../db";
+import { eq, and } from "drizzle-orm";
 import { workflows } from "../../db/schema";
 import { Node, Edge } from "../../src/lib/server/api/apiTypes";
+import { withAuth } from "../auth/middleware";
+import { JWTPayload } from "../auth/jwt";
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-  const db = createDatabase(context.env.DB);
-  const url = new URL(context.request.url);
+// Extended environment type that includes both DB and JWT_SECRET
+interface WorkflowEnv {
+  DB: D1Database;
+  JWT_SECRET: string;
+}
+
+export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
+  const db = createDatabase(env.DB);
+  const url = new URL(request.url);
   const id = url.pathname.split("/").pop();
 
   if (!id) {
     return new Response("Workflow ID is required", { status: 400 });
   }
 
-  if (context.request.method === "GET") {
+  if (request.method === "GET") {
     const [workflow] = await db
       .select()
       .from(workflows)
-      .where(eq(workflows.id, id));
+      .where(
+        and(
+          eq(workflows.id, id),
+          eq(workflows.userId, user.sub)
+        )
+      );
 
     if (!workflow) {
       return new Response("Workflow not found", { status: 404 });
@@ -43,11 +56,26 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     );
   }
 
-  if (context.request.method === "PUT") {
-    const body = (await context.request.json()) as unknown;
+  if (request.method === "PUT") {
+    const body = (await request.json()) as unknown;
 
     if (typeof body !== "object" || body === null) {
       return new Response("Invalid request body", { status: 400 });
+    }
+
+    // First check if the workflow belongs to the user
+    const [existingWorkflow] = await db
+      .select()
+      .from(workflows)
+      .where(
+        and(
+          eq(workflows.id, id),
+          eq(workflows.userId, user.sub)
+        )
+      );
+
+    if (!existingWorkflow) {
+      return new Response("Workflow not found", { status: 404 });
     }
 
     const data = body as any;
@@ -65,10 +93,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       })
       .where(eq(workflows.id, id))
       .returning();
-
-    if (!updatedWorkflow) {
-      return new Response("Workflow not found", { status: 404 });
-    }
 
     const workflowData = updatedWorkflow.data as {
       nodes: Node[];
@@ -92,18 +116,29 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     );
   }
 
-  if (context.request.method === "DELETE") {
+  if (request.method === "DELETE") {
+    // First check if the workflow belongs to the user
+    const [existingWorkflow] = await db
+      .select()
+      .from(workflows)
+      .where(
+        and(
+          eq(workflows.id, id),
+          eq(workflows.userId, user.sub)
+        )
+      );
+
+    if (!existingWorkflow) {
+      return new Response("Workflow not found", { status: 404 });
+    }
+
     const [deletedWorkflow] = await db
       .delete(workflows)
       .where(eq(workflows.id, id))
       .returning();
 
-    if (!deletedWorkflow) {
-      return new Response("Workflow not found", { status: 404 });
-    }
-
     return new Response(null, { status: 204 });
   }
 
   return new Response("Method not allowed", { status: 405 });
-};
+});

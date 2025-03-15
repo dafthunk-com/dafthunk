@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { createDatabase } from "../../../db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { workflows } from "../../../db/schema";
 import {
   Workflow,
@@ -57,7 +57,12 @@ async function executeWorkflow(
     const [workflow] = await db
       .select()
       .from(workflows)
-      .where(eq(workflows.id, id));
+      .where(
+        and(
+          eq(workflows.id, id),
+          eq(workflows.userId, user.sub)
+        )
+      );
 
     if (!workflow) {
       return new Response(JSON.stringify({ error: "Workflow not found" }), {
