@@ -1,6 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
 import { Env, createJWT, getSecureCookieOptions } from "./jwt";
 import { getProviderConfig } from "./providers";
+import { createDatabase } from "../../db";
+import { users } from "../../db/schema";
+import { eq } from "drizzle-orm";
 
 // Parse cookies from the request
 function parseCookies(request: Request): Record<string, string> {
@@ -145,6 +148,55 @@ async function fetchUserInfo(
   }
 }
 
+// Save or update user in the database
+async function saveUserToDatabase(
+  userId: string,
+  userName: string,
+  userEmail: string | undefined,
+  provider: string,
+  env: Env
+): Promise<void> {
+  try {
+    const db = createDatabase(env.DB);
+    
+    // Check if user already exists
+    const existingUser = await db.select().from(users).where(eq(users.id, userId)).get();
+    
+    if (existingUser) {
+      // Update existing user
+      await db
+        .update(users)
+        .set({
+          name: userName,
+          email: userEmail,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId))
+        .run();
+      
+      console.log(`Updated existing user in database: ${userId}`);
+    } else {
+      // Insert new user
+      await db
+        .insert(users)
+        .values({
+          id: userId,
+          name: userName,
+          email: userEmail,
+          provider: provider,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .run();
+      
+      console.log(`Saved new user to database: ${userId}`);
+    }
+  } catch (error) {
+    console.error("Error saving user to database:", error);
+    // Don't throw the error to avoid breaking the authentication flow
+  }
+}
+
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const url = new URL(request.url);
@@ -272,6 +324,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         }
       );
     }
+
+    // Save user to database
+    await saveUserToDatabase(userId, userName, userEmail, provider, env);
 
     // Create a JWT
     const jwt = await createJWT(

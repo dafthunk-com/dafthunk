@@ -1,6 +1,19 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email"),
+  provider: text("provider").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const nodeTypes = sqliteTable("node_types", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -29,6 +42,9 @@ export const workflows = sqliteTable("workflows", {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
 export type NodeType = typeof nodeTypes.$inferSelect;
 export type NewNodeType = typeof nodeTypes.$inferInsert;
