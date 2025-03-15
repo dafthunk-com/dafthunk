@@ -79,18 +79,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const renewalResponse = await authService.renewToken();
 
       if (renewalResponse) {
-        console.log("Renewal response received:", JSON.stringify(renewalResponse));
+        console.log(
+          "Renewal response received:",
+          JSON.stringify(renewalResponse)
+        );
         console.log(
           `Token renewal ${renewalResponse.renewed ? "successful" : "not needed"}`
         );
-        console.log(`Token expires in ${renewalResponse.tokenInfo.expiresIn} seconds`);
+        console.log(
+          `Token expires in ${renewalResponse.tokenInfo.expiresIn} seconds`
+        );
 
         // Calculate when to schedule the next renewal (after 30 seconds)
         const timeUntilNextRenewal =
           calculateTimeUntilNextRenewal(renewalResponse);
 
-        console.log(`Next renewal scheduled in ${Math.round(timeUntilNextRenewal / 1000)} seconds`);
-        
+        console.log(
+          `Next renewal scheduled in ${Math.round(timeUntilNextRenewal / 1000)} seconds`
+        );
+
         // Schedule the next renewal
         scheduleTokenRenewal(timeUntilNextRenewal);
       } else {
@@ -111,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // For testing purposes, we're using a fixed renewal interval of 30 seconds
     // This is half of the token lifetime of 60 seconds
     const renewalInterval = 30 * 1000; // 30 seconds in milliseconds
-    
+
     // Ensure we don't schedule in the past
     return Math.max(renewalInterval, 1000); // Minimum 1 second
   };
@@ -123,15 +130,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Check if user is authenticated
         const isAuth = await authService.checkAuth();
         console.log("Authentication check result:", isAuth);
-        
+
         if (isAuth) {
           // If authenticated, get user info and update the authentication state
           const userAuthenticated = await refreshUser();
-          console.log("User refreshed, authentication state:", userAuthenticated);
-          
+          console.log(
+            "User refreshed, authentication state:",
+            userAuthenticated
+          );
+
           // Directly update the ref to ensure it's set before calling renewToken
           isAuthenticatedRef.current = userAuthenticated;
-          
+
           if (userAuthenticated) {
             console.log("Starting token renewal process");
             // Start the token renewal process immediately

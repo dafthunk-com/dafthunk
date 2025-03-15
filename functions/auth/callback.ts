@@ -158,10 +158,14 @@ async function saveUserToDatabase(
 ): Promise<void> {
   try {
     const db = createDatabase(env.DB);
-    
+
     // Check if user already exists
-    const existingUser = await db.select().from(users).where(eq(users.id, userId)).get();
-    
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .get();
+
     if (existingUser) {
       // Update existing user
       await db
@@ -173,7 +177,7 @@ async function saveUserToDatabase(
         })
         .where(eq(users.id, userId))
         .run();
-      
+
       console.log(`Updated existing user in database: ${userId}`);
     } else {
       // Insert new user
@@ -188,7 +192,7 @@ async function saveUserToDatabase(
           updatedAt: new Date(),
         })
         .run();
-      
+
       console.log(`Saved new user to database: ${userId}`);
     }
   } catch (error) {

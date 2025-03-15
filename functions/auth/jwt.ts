@@ -80,8 +80,6 @@ export function extractJWTFromHeader(authHeader: string | null): string | null {
 }
 
 // Create secure cookie options
-export function getSecureCookieOptions(
-  expiresInSeconds: number = 60
-): string {
+export function getSecureCookieOptions(expiresInSeconds: number = 60): string {
   return `HttpOnly; Secure; SameSite=Strict; Max-Age=${expiresInSeconds}; Path=/`;
 }

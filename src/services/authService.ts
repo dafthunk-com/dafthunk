@@ -108,13 +108,13 @@ export const authService = {
       });
 
       console.log("Renewal endpoint response status:", response.status);
-      
+
       if (response.ok) {
         const data = (await response.json()) as RenewalResponse;
         console.log("Renewal endpoint response data:", JSON.stringify(data));
         return data;
       }
-      
+
       console.error("Renewal failed with status:", response.status);
       const errorText = await response.text();
       console.error("Error response:", errorText);
