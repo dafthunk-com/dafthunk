@@ -15,9 +15,17 @@ const createSmoothStepPath = (params: {
   targetY: number;
   sourcePosition: any;
   targetPosition: any;
+  sourceOffset?: number;
+  targetOffset?: number;
 }) => {
+  const { sourceOffset = 0, targetOffset = 0 } = params;
   return getSmoothStepPath({
-    ...params,
+    sourceX: params.sourceX + sourceOffset,
+    sourceY: params.sourceY,
+    targetX: params.targetX + targetOffset,
+    targetY: params.targetY,
+    sourcePosition: params.sourcePosition,
+    targetPosition: params.targetPosition,
     borderRadius: 8,
   });
 };
@@ -101,12 +109,15 @@ export const WorkflowEdge = memo(
     zIndex,
   }: WorkflowEdgeProps) => {
     const [edgePath] = createSmoothStepPath({
-      sourceX: sourceX + 6,
+      sourceX,
       sourceY,
-      targetX: targetX - 9,
+      targetX,
       targetY,
       sourcePosition,
       targetPosition,
+      // Use fixed offsets for regular edges
+      sourceOffset: 6,
+      targetOffset: -9,
     });
 
     const isValid = data?.isValid ?? true;
@@ -135,13 +146,17 @@ export const WorkflowConnectionLine = memo(
     toPosition,
     connectionStatus,
   }: ConnectionLineComponentProps) => {
+    // For connection lines, use different offsets or no offsets
     const [edgePath] = createSmoothStepPath({
-      sourceX: fromX + 6,
+      sourceX: fromX,
       sourceY: fromY,
-      targetX: toX - 9,
+      targetX: toX,
       targetY: toY,
       sourcePosition: fromPosition,
       targetPosition: toPosition,
+      // No offsets for connection lines
+      sourceOffset: 16,
+      targetOffset: -19,
     });
 
     const getColor = () => {
