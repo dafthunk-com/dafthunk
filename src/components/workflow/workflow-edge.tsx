@@ -3,6 +3,10 @@ import { EdgeProps, getSmoothStepPath, MarkerType } from "reactflow";
 import { cn } from "@/lib/utils";
 import { WorkflowEdgeData } from "./workflow-types";
 
+interface WorkflowEdgeProps extends EdgeProps<WorkflowEdgeData> {
+  zIndex?: number;
+}
+
 export const WorkflowEdge = memo(
   ({
     id,
@@ -14,11 +18,12 @@ export const WorkflowEdge = memo(
     targetPosition,
     data,
     selected,
-  }: EdgeProps<WorkflowEdgeData>) => {
+    zIndex,
+  }: WorkflowEdgeProps) => {
     const [edgePath] = getSmoothStepPath({
-      sourceX,
+      sourceX: sourceX + 6,
       sourceY,
-      targetX,
+      targetX: targetX - 9,
       targetY,
       sourcePosition,
       targetPosition,
@@ -43,7 +48,7 @@ export const WorkflowEdge = memo(
           <marker
             id={arrowId}
             viewBox="0 0 10 10"
-            refX="16"
+            refX="5"
             refY="5"
             markerWidth="8"
             markerHeight="8"
@@ -59,7 +64,7 @@ export const WorkflowEdge = memo(
           <marker
             id={rectId}
             viewBox="0 0 4 10"
-            refX="-5"
+            refX="2"
             refY="5"
             markerWidth="4"
             markerHeight="8"
@@ -82,11 +87,12 @@ export const WorkflowEdge = memo(
             "stroke-blue-500": selected && isValid,
             "stroke-red-400": !isValid,
             "animate-pulse": isActive,
-            "z-0": !selected,
-            "z-10": selected,
           })}
           markerEnd={`url(#${arrowId})`}
           markerStart={`url(#${rectId})`}
+          style={{
+            zIndex: zIndex
+          }}
         />
       </g>
     );

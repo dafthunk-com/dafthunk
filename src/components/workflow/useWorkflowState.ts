@@ -69,13 +69,29 @@ export function useWorkflowState({
     event.stopPropagation();
     setSelectedEdge(edge);
     setSelectedNode(null);
-  }, []);
+
+    // Update z-indices when an edge is selected
+    setEdges((eds) =>
+      eds.map((e) => ({
+        ...e,
+        zIndex: e.id === edge.id ? 1000 : 0,
+      }))
+    );
+  }, [setEdges]);
 
   // Handle pane click (deselect)
   const handlePaneClick = useCallback(() => {
     setSelectedNode(null);
     setSelectedEdge(null);
-  }, []);
+    
+    // Reset all edge z-indices
+    setEdges((eds) =>
+      eds.map((e) => ({
+        ...e,
+        zIndex: 0,
+      }))
+    );
+  }, [setEdges]);
 
   // Handle connection start
   const onConnectStart = useCallback((_event: any, params: any) => {
@@ -107,9 +123,18 @@ export function useWorkflowState({
             sourceType: connection.sourceHandle,
             targetType: connection.targetHandle,
           },
+          zIndex: 0,
         };
 
-        setEdges((eds) => addEdge(newEdge, eds));
+        setEdges((eds) => {
+          // Update all existing edges to have zIndex 0
+          const updatedEdges = eds.map(edge => ({
+            ...edge,
+            zIndex: 0
+          }));
+          // Add the new edge
+          return addEdge(newEdge, updatedEdges);
+        });
       }
     },
     [setEdges, validateConnection]
