@@ -1,5 +1,9 @@
 import { memo } from "react";
-import { EdgeProps, getSmoothStepPath, ConnectionLineComponentProps } from "reactflow";
+import {
+  EdgeProps,
+  getSmoothStepPath,
+  ConnectionLineComponentProps,
+} from "reactflow";
 import { cn } from "@/lib/utils";
 import { WorkflowEdgeData } from "./workflow-types";
 
@@ -36,7 +40,7 @@ const renderPath = (
   id: string,
   color: string,
   isActive?: boolean,
-  zIndex?: number,
+  zIndex?: number
 ) => {
   const arrowId = `arrow-${id}`;
   const rectId = `rect-${id}`;
@@ -124,9 +128,9 @@ export const WorkflowEdge = memo(
     const isActive = data?.isActive ?? false;
 
     const getColor = () => {
-      if (!isValid) return '#f87171'; // red-400
-      if (selected) return '#3b82f6'; // blue-500
-      return '#d1d5db'; // gray-300
+      if (!isValid) return "#f87171"; // red-400
+      if (selected) return "#3b82f6"; // blue-500
+      return "#d1d5db"; // gray-300
     };
 
     return renderPath(edgePath, id, getColor(), isActive, zIndex);

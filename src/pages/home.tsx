@@ -1,10 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  PlusIcon,
-  Trash2Icon,
-  PencilIcon,
-  WorkflowIcon,
-} from "lucide-react";
+import { PlusIcon, Trash2Icon, PencilIcon, WorkflowIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Workflow } from "@/lib/server/api/apiTypes";
 import {
@@ -132,10 +127,7 @@ export function HomePage() {
     setIsRenaming(true);
     try {
       const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
-      await workflowService.save(
-        workflowToRename.id,
-        updatedWorkflow
-      );
+      await workflowService.save(workflowToRename.id, updatedWorkflow);
 
       // Update the workflow in the list
       setWorkflows(

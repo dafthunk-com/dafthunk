@@ -65,25 +65,28 @@ export function useWorkflowState({
   }, [nodes, selectedNode]);
 
   // Handle edge selection
-  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
-    event.stopPropagation();
-    setSelectedEdge(edge);
-    setSelectedNode(null);
+  const handleEdgeClick = useCallback(
+    (event: React.MouseEvent, edge: any) => {
+      event.stopPropagation();
+      setSelectedEdge(edge);
+      setSelectedNode(null);
 
-    // Update z-indices when an edge is selected
-    setEdges((eds) =>
-      eds.map((e) => ({
-        ...e,
-        zIndex: e.id === edge.id ? 1000 : 0,
-      }))
-    );
-  }, [setEdges]);
+      // Update z-indices when an edge is selected
+      setEdges((eds) =>
+        eds.map((e) => ({
+          ...e,
+          zIndex: e.id === edge.id ? 1000 : 0,
+        }))
+      );
+    },
+    [setEdges]
+  );
 
   // Handle pane click (deselect)
   const handlePaneClick = useCallback(() => {
     setSelectedNode(null);
     setSelectedEdge(null);
-    
+
     // Reset all edge z-indices
     setEdges((eds) =>
       eds.map((e) => ({
@@ -128,9 +131,9 @@ export function useWorkflowState({
 
         setEdges((eds) => {
           // Update all existing edges to have zIndex 0
-          const updatedEdges = eds.map(edge => ({
+          const updatedEdges = eds.map((edge) => ({
             ...edge,
-            zIndex: 0
+            zIndex: 0,
           }));
           // Add the new edge
           return addEdge(newEdge, updatedEdges);
