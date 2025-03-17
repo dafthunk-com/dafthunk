@@ -38,6 +38,7 @@ const TypeBadge = ({
         position={position}
         id={id}
         className="opacity-0 !w-full !h-full !bg-transparent !border-none !absolute !left-0 !top-0 !transform-none !m-0 !z-[1000]"
+        isConnectableStart={position !== Position.Left}
       />
       <span
         className={cn(
