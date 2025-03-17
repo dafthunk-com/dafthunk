@@ -19,6 +19,7 @@ export interface Parameter {
   type: string;
   label: string;
   value?: any;
+  isConnected?: boolean;
 }
 
 type NodeExecutionState = "idle" | "executing" | "completed" | "error";
@@ -53,8 +54,10 @@ const TypeBadge = ({
     }
   };
   
-  // Check if the parameter has a value set
+  // Check if the parameter has a value set (only for input parameters)
   const hasValue = position === Position.Left && parameter && parameter.value !== undefined;
+  // Check if the parameter is connected
+  const isConnected = parameter?.isConnected === true;
   
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -69,8 +72,9 @@ const TypeBadge = ({
         className={cn(
           "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
           {
-            "bg-gray-300 text-gray-800 hover:bg-gray-400": hasValue,
-            "bg-gray-100 text-gray-600 hover:bg-gray-200": !hasValue,
+            "bg-gray-400 text-gray-900 hover:bg-gray-500": isConnected,
+            "bg-gray-300 text-gray-800 hover:bg-gray-400": !isConnected && hasValue,
+            "bg-gray-100 text-gray-600 hover:bg-gray-200": !isConnected && !hasValue,
           }
         )}
         onClick={handleClick}
@@ -176,6 +180,7 @@ export const WorkflowNode = memo(
                     type={output.type}
                     position={Position.Right}
                     id={output.id}
+                    parameter={output}
                   />
                 </div>
               ))}

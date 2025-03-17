@@ -4,6 +4,7 @@ import { useWorkflowState } from "./useWorkflowState";
 import { useWorkflowExecution } from "./useWorkflowExecution";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
+import { useEffect } from "react";
 
 export function WorkflowBuilder({
   workflowId,
@@ -51,6 +52,48 @@ export function WorkflowBuilder({
     onEdgesChange,
     validateConnection,
   });
+
+  // Update connection states for all parameters based on current edges
+  useEffect(() => {
+    // Create a map to track connected parameters
+    const connectedParams = new Map();
+    
+    // Collect all connections from edges
+    edges.forEach(edge => {
+      if (edge.targetHandle) {
+        connectedParams.set(`${edge.target}-${edge.targetHandle}`, true);
+      }
+      if (edge.sourceHandle) {
+        connectedParams.set(`${edge.source}-${edge.sourceHandle}`, true);
+      }
+    });
+    
+    // Update nodes with connection information
+    nodes.forEach(node => {
+      const inputs = node.data.inputs.map(input => ({
+        ...input,
+        isConnected: connectedParams.has(`${node.id}-${input.id}`)
+      }));
+      
+      const outputs = node.data.outputs.map(output => ({
+        ...output,
+        isConnected: connectedParams.has(`${node.id}-${output.id}`)
+      }));
+      
+      // Only update if there's a change to avoid infinite loops
+      const inputChanged = inputs.some((input, i) => 
+        input.isConnected !== node.data.inputs[i].isConnected
+      );
+      
+      const outputChanged = outputs.some((output, i) => 
+        output.isConnected !== node.data.outputs[i].isConnected
+      );
+      
+      if (inputChanged || outputChanged) {
+        updateNodeData(node.id, { inputs, outputs });
+      }
+    });
+  }, [edges, nodes]);
 
   const { handleExecute } = useWorkflowExecution({
     workflowId,
