@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []); // Empty dependency array since we're using refs
 
   // Calculate when to schedule the next renewal (after 30 seconds)
-  const calculateTimeUntilNextRenewal = (response: RenewalResponse): number => {
+  const calculateTimeUntilNextRenewal = (_: RenewalResponse): number => {
     // For testing purposes, we're using a fixed renewal interval of 30 seconds
     // This is half of the token lifetime of 60 seconds
     const renewalInterval = 30 * 1000; // 30 seconds in milliseconds

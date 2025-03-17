@@ -56,7 +56,7 @@ export function EditorPage() {
   const { workflow: initialWorkflow } = useLoaderData() as {
     workflow: Workflow;
   };
-  const [isSaving, setIsSaving] = useState(false);
+  const [_, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [nodes, setNodes] = useState<Node<WorkflowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeData>[]>([]);

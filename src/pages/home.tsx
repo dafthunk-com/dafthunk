@@ -3,7 +3,6 @@ import {
   PlusIcon,
   Trash2Icon,
   PencilIcon,
-  PlayIcon,
   WorkflowIcon,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -133,7 +132,7 @@ export function HomePage() {
     setIsRenaming(true);
     try {
       const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
-      const result = await workflowService.save(
+      await workflowService.save(
         workflowToRename.id,
         updatedWorkflow
       );

@@ -3,11 +3,10 @@ import ReactFlow, {
   Background,
   BackgroundVariant,
   ConnectionMode,
-  ConnectionLineType,
 } from "reactflow";
 import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
-import { WorkflowEdge } from "./workflow-edge";
+import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
 import "reactflow/dist/style.css";
 
@@ -19,18 +18,9 @@ const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
 
-const connectionLineOptions = {
-  type: ConnectionLineType.SmoothStep,
-  style: {
-    strokeWidth: 1,
-    stroke: "#d1d5db",
-  },
-};
-
 export function WorkflowCanvas({
   nodes,
   edges,
-  connectionValidationState,
   onNodesChange,
   onEdgesChange,
   onConnect,
@@ -60,21 +50,11 @@ export function WorkflowCanvas({
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
       connectionMode={ConnectionMode.Strict}
-      connectionLineType={ConnectionLineType.SmoothStep}
+      connectionLineComponent={WorkflowConnectionLine}
       connectionRadius={8}
-      defaultEdgeOptions={connectionLineOptions}
       onInit={onInit}
       fitView
       className="bg-gray-100"
-      connectionLineStyle={{
-        stroke:
-          connectionValidationState === "default"
-            ? "#d1d5db"
-            : connectionValidationState === "valid"
-              ? "#16a34a"
-              : "#dc2626",
-        strokeWidth: 1,
-      }}
     >
       {showControls && <Controls showInteractive={false} />}
       <Background
