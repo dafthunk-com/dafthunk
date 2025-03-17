@@ -124,6 +124,22 @@ export const WorkflowNode = memo(
       setSelectedInput(null);
     };
     
+    const handleClearValue = () => {
+      if (!selectedInput) return;
+      
+      // Dispatch a custom event to clear the node input value
+      const updateEvent = new CustomEvent("workflow:node:update", {
+        detail: {
+          nodeId: id,
+          inputId: selectedInput.id,
+          value: undefined
+        },
+      });
+      document.dispatchEvent(updateEvent);
+      
+      setSelectedInput(null);
+    };
+    
     const handleDialogClose = () => {
       setSelectedInput(null);
     };
@@ -286,6 +302,7 @@ export const WorkflowNode = memo(
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleDialogClose}>Cancel</Button>
+              <Button variant="destructive" onClick={handleClearValue}>Clear</Button>
               <Button onClick={handleInputSave}>Save</Button>
             </DialogFooter>
           </DialogContent>
