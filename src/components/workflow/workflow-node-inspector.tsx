@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
+import { Parameter } from "./workflow-node";
 
 export function WorkflowNodeInspector({
   node,
@@ -12,11 +13,11 @@ export function WorkflowNodeInspector({
 }: WorkflowNodeInspectorProps) {
   // Create local state to immediately reflect changes in the UI
   const [localLabel, setLocalLabel] = useState<string>(node?.data.label || "");
-  const [localInputs, setLocalInputs] = useState<Record<string, any>>(
-    node?.data.inputs || {}
+  const [localInputs, setLocalInputs] = useState<Parameter[]>(
+    node?.data.inputs || []
   );
-  const [localOutputs, setLocalOutputs] = useState<Record<string, any>>(
-    node?.data.outputs || {}
+  const [localOutputs, setLocalOutputs] = useState<Parameter[]>(
+    node?.data.outputs || []
   );
 
   // Update local state when node changes
@@ -28,6 +29,43 @@ export function WorkflowNodeInspector({
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
   }, [node]);
+
+  // Listen for node update events (from handle clicks)
+  useEffect(() => {
+    if (!node || !onNodeUpdate) return;
+    
+    const handleNodeUpdateEvent = (event: CustomEvent) => {
+      const { nodeId, inputId, value } = event.detail;
+      
+      // Only update if we have a node selected and it matches the node in the event
+      if (!node || node.id !== nodeId) return;
+      
+      // Create a new inputs array with the updated value
+      const updatedInputs = node.data.inputs.map((input) => {
+        if (input.id === inputId) {
+          return { ...input, value };
+        }
+        return input;
+      });
+      
+      // Update the node
+      onNodeUpdate(node.id, { inputs: updatedInputs });
+    };
+    
+    // Add event listener
+    document.addEventListener(
+      "workflow:node:update", 
+      handleNodeUpdateEvent as EventListener
+    );
+    
+    // Clean up
+    return () => {
+      document.removeEventListener(
+        "workflow:node:update", 
+        handleNodeUpdateEvent as EventListener
+      );
+    };
+  }, [node, onNodeUpdate]);
 
   if (!node) return null;
 
