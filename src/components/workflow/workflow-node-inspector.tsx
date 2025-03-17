@@ -33,13 +33,13 @@ export function WorkflowNodeInspector({
   // Listen for node update events (from handle clicks)
   useEffect(() => {
     if (!node || !onNodeUpdate) return;
-    
+
     const handleNodeUpdateEvent = (event: CustomEvent) => {
       const { nodeId, inputId, value } = event.detail;
-      
+
       // Only update if we have a node selected and it matches the node in the event
       if (!node || node.id !== nodeId) return;
-      
+
       // Create a new inputs array with the updated value
       const updatedInputs = node.data.inputs.map((input) => {
         if (input.id === inputId) {
@@ -47,21 +47,21 @@ export function WorkflowNodeInspector({
         }
         return input;
       });
-      
+
       // Update the node
       onNodeUpdate(node.id, { inputs: updatedInputs });
     };
-    
+
     // Add event listener
     document.addEventListener(
-      "workflow:node:update", 
+      "workflow:node:update",
       handleNodeUpdateEvent as EventListener
     );
-    
+
     // Clean up
     return () => {
       document.removeEventListener(
-        "workflow:node:update", 
+        "workflow:node:update",
         handleNodeUpdateEvent as EventListener
       );
     };

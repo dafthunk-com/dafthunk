@@ -46,19 +46,20 @@ const TypeBadge = ({
   onInputClick?: (param: Parameter) => void;
 }) => {
   const label = type.charAt(0).toUpperCase();
-  
+
   const handleClick = (e: React.MouseEvent) => {
     if (position === Position.Left && parameter && onInputClick) {
       e.stopPropagation();
       onInputClick(parameter);
     }
   };
-  
+
   // Check if the parameter has a value set (only for input parameters)
-  const hasValue = position === Position.Left && parameter && parameter.value !== undefined;
+  const hasValue =
+    position === Position.Left && parameter && parameter.value !== undefined;
   // Check if the parameter is connected
   const isConnected = parameter?.isConnected === true;
-  
+
   return (
     <div className="relative inline-flex items-center justify-center">
       <Handle
@@ -73,8 +74,10 @@ const TypeBadge = ({
           "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
           {
             "bg-gray-400 text-gray-900 hover:bg-gray-500": isConnected,
-            "bg-gray-300 text-gray-800 hover:bg-gray-400": !isConnected && hasValue,
-            "bg-gray-100 text-gray-600 hover:bg-gray-200": !isConnected && !hasValue,
+            "bg-gray-300 text-gray-800 hover:bg-gray-400":
+              !isConnected && hasValue,
+            "bg-gray-100 text-gray-600 hover:bg-gray-200":
+              !isConnected && !hasValue,
           }
         )}
         onClick={handleClick}
@@ -86,22 +89,30 @@ const TypeBadge = ({
 };
 
 export const WorkflowNode = memo(
-  ({ data, selected, id }: { data: WorkflowNodeData; selected?: boolean; id: string }) => {
+  ({
+    data,
+    selected,
+    id,
+  }: {
+    data: WorkflowNodeData;
+    selected?: boolean;
+    id: string;
+  }) => {
     const [showOutputs, setShowOutputs] = useState(false);
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
     );
     const [selectedInput, setSelectedInput] = useState<Parameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");
-    
+
     const handleInputClick = (input: Parameter) => {
       setSelectedInput(input);
       setInputValue(input.value !== undefined ? String(input.value) : "");
     };
-    
+
     const handleInputSave = () => {
       if (!selectedInput) return;
-      
+
       // Convert value based on parameter type
       let typedValue: any = inputValue;
       if (selectedInput.type === "number") {
@@ -110,36 +121,36 @@ export const WorkflowNode = memo(
       } else if (selectedInput.type === "boolean") {
         typedValue = inputValue.toLowerCase() === "true";
       }
-      
+
       // Dispatch a custom event to update the node data
       const updateEvent = new CustomEvent("workflow:node:update", {
         detail: {
           nodeId: id,
           inputId: selectedInput.id,
-          value: typedValue
+          value: typedValue,
         },
       });
       document.dispatchEvent(updateEvent);
-      
+
       setSelectedInput(null);
     };
-    
+
     const handleClearValue = () => {
       if (!selectedInput) return;
-      
+
       // Dispatch a custom event to clear the node input value
       const updateEvent = new CustomEvent("workflow:node:update", {
         detail: {
           nodeId: id,
           inputId: selectedInput.id,
-          value: undefined
+          value: undefined,
         },
       });
       document.dispatchEvent(updateEvent);
-      
+
       setSelectedInput(null);
     };
-    
+
     const handleDialogClose = () => {
       setSelectedInput(null);
     };
@@ -191,7 +202,9 @@ export const WorkflowNode = memo(
                   key={`output-${output.id}-${index}`}
                   className="flex items-center gap-1 text-xs relative"
                 >
-                  <p className="overflow-hidden text-ellipsis">{output.label}</p>
+                  <p className="overflow-hidden text-ellipsis">
+                    {output.label}
+                  </p>
                   <TypeBadge
                     type={output.type}
                     position={Position.Right}
@@ -250,20 +263,28 @@ export const WorkflowNode = memo(
             </div>
           )}
         </div>
-        
+
         {/* Input Value Dialog */}
-        <Dialog open={selectedInput !== null} onOpenChange={() => selectedInput && handleDialogClose()}>
+        <Dialog
+          open={selectedInput !== null}
+          onOpenChange={() => selectedInput && handleDialogClose()}
+        >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Set Input Value for {selectedInput?.label}</DialogTitle>
+              <DialogTitle>
+                Set Input Value for {selectedInput?.label}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {selectedInput && (
                 <div className="space-y-2">
                   <Label htmlFor="input-value">
-                    {selectedInput.label} <span className="text-xs text-gray-500">({selectedInput.type})</span>
+                    {selectedInput.label}{" "}
+                    <span className="text-xs text-gray-500">
+                      ({selectedInput.type})
+                    </span>
                   </Label>
-                  
+
                   {selectedInput.type === "boolean" ? (
                     <div className="flex gap-2">
                       <Button
@@ -301,8 +322,12 @@ export const WorkflowNode = memo(
               )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={handleDialogClose}>Cancel</Button>
-              <Button variant="destructive" onClick={handleClearValue}>Clear</Button>
+              <Button variant="outline" onClick={handleDialogClose}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleClearValue}>
+                Clear
+              </Button>
               <Button onClick={handleInputSave}>Save</Button>
             </DialogFooter>
           </DialogContent>

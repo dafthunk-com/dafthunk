@@ -57,9 +57,9 @@ export function WorkflowBuilder({
   useEffect(() => {
     // Create a map to track connected parameters
     const connectedParams = new Map();
-    
+
     // Collect all connections from edges
-    edges.forEach(edge => {
+    edges.forEach((edge) => {
       if (edge.targetHandle) {
         connectedParams.set(`${edge.target}-${edge.targetHandle}`, true);
       }
@@ -67,28 +67,28 @@ export function WorkflowBuilder({
         connectedParams.set(`${edge.source}-${edge.sourceHandle}`, true);
       }
     });
-    
+
     // Update nodes with connection information
-    nodes.forEach(node => {
-      const inputs = node.data.inputs.map(input => ({
+    nodes.forEach((node) => {
+      const inputs = node.data.inputs.map((input) => ({
         ...input,
-        isConnected: connectedParams.has(`${node.id}-${input.id}`)
+        isConnected: connectedParams.has(`${node.id}-${input.id}`),
       }));
-      
-      const outputs = node.data.outputs.map(output => ({
+
+      const outputs = node.data.outputs.map((output) => ({
         ...output,
-        isConnected: connectedParams.has(`${node.id}-${output.id}`)
+        isConnected: connectedParams.has(`${node.id}-${output.id}`),
       }));
-      
+
       // Only update if there's a change to avoid infinite loops
-      const inputChanged = inputs.some((input, i) => 
-        input.isConnected !== node.data.inputs[i].isConnected
+      const inputChanged = inputs.some(
+        (input, i) => input.isConnected !== node.data.inputs[i].isConnected
       );
-      
-      const outputChanged = outputs.some((output, i) => 
-        output.isConnected !== node.data.outputs[i].isConnected
+
+      const outputChanged = outputs.some(
+        (output, i) => output.isConnected !== node.data.outputs[i].isConnected
       );
-      
+
       if (inputChanged || outputChanged) {
         updateNodeData(node.id, { inputs, outputs });
       }
