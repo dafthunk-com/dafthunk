@@ -49,7 +49,6 @@ export function WorkflowBuilder({
     updateNodeData,
     updateNodeOutputs,
     updateEdgeData,
-    deleteNode,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -155,7 +154,6 @@ export function WorkflowBuilder({
       <WorkflowProvider
         updateNodeData={updateNodeData}
         updateEdgeData={updateEdgeData}
-        deleteNode={deleteNode}
       >
         <div className="w-full h-full flex">
           <div

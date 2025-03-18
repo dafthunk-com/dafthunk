@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from "react";
 import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, PencilIcon, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, PencilIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import {
   Dialog,
@@ -111,7 +111,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, deleteNode } = useWorkflow();
+    const { updateNodeData } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
@@ -120,7 +120,6 @@ export const WorkflowNode = memo(
     const [inputValue, setInputValue] = useState<string>("");
     const [isEditingLabel, setIsEditingLabel] = useState(false);
     const [labelValue, setLabelValue] = useState(data.label);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Keep labelValue in sync with data.label when not editing
     useEffect(() => {
@@ -169,15 +168,6 @@ export const WorkflowNode = memo(
       setIsEditingLabel(false);
     };
 
-    const handleDeleteClick = () => {
-      setShowDeleteConfirm(true);
-    };
-
-    const handleDeleteConfirm = () => {
-      deleteNode(id);
-      setShowDeleteConfirm(false);
-    };
-
     return (
       <TooltipProvider>
         <div
@@ -208,21 +198,6 @@ export const WorkflowNode = memo(
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Edit Label</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={handleDeleteClick}
-                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-red-500 hover:bg-gray-200"
-                    aria-label="Delete node"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Delete Node</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -415,32 +390,6 @@ export const WorkflowNode = memo(
                 Cancel
               </Button>
               <Button onClick={handleLabelSave}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog
-          open={showDeleteConfirm}
-          onOpenChange={(open) => !open && setShowDeleteConfirm(false)}
-        >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Delete Node</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p>Are you sure you want to delete this node? This action cannot be undone.</p>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteConfirm}>
-                Delete
-              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
