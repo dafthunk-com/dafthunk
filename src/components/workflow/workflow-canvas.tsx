@@ -112,8 +112,8 @@ export function WorkflowCanvas({
             workflowStatus === "idle"
               ? "bg-green-600 hover:bg-green-700"
               : workflowStatus === "executing"
-                ? "bg-amber-500 hover:bg-amber-600"
-                : "bg-red-600 hover:bg-red-700"
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-600 hover:bg-blue-700"
           }`}
           title={getActionTitle()}
         >
