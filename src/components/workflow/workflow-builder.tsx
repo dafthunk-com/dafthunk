@@ -4,7 +4,7 @@ import { useWorkflowState } from "./useWorkflowState";
 import { useWorkflowExecution } from "./useWorkflowExecution";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ReactFlowProvider } from "reactflow";
 import { WorkflowProvider } from "./workflow-context";
 
@@ -24,6 +24,8 @@ export function WorkflowBuilder({
   onNodeComplete,
   onNodeError,
 }: WorkflowBuilderProps) {
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
   const {
     nodes,
     edges,
@@ -141,6 +143,12 @@ export function WorkflowBuilder({
     });
   };
 
+  const handleToggleSidebar = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
@@ -150,7 +158,7 @@ export function WorkflowBuilder({
         <div className="w-full h-full flex">
           <div
             className={`h-full rounded-xl overflow-hidden relative ${
-              selectedNode || selectedEdge ? "w-[calc(100%-384px)]" : "w-full"
+              isSidebarVisible ? "w-[calc(100%-384px)]" : "w-full"
             }`}
           >
             <WorkflowCanvas
@@ -169,10 +177,12 @@ export function WorkflowBuilder({
               onAddNode={handleAddNode}
               onExecute={handleExecuteClick}
               onClean={handleCleanClick}
+              onToggleSidebar={handleToggleSidebar}
+              isSidebarVisible={isSidebarVisible}
             />
           </div>
 
-          {(selectedNode || selectedEdge) && (
+          {isSidebarVisible && (
             <div className="w-96">
               <WorkflowSidebar
                 node={selectedNode}

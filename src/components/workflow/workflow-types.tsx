@@ -69,6 +69,8 @@ export interface WorkflowCanvasProps {
   onAddNode?: () => void;
   onExecute?: (e: React.MouseEvent) => void;
   onClean?: (e: React.MouseEvent) => void;
+  onToggleSidebar?: (e: React.MouseEvent) => void;
+  isSidebarVisible?: boolean;
   showControls?: boolean;
 }
 
