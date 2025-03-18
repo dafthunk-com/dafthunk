@@ -207,10 +207,10 @@ export function HomePage() {
                   <TooltipTrigger asChild>
                     <button
                       onClick={(e) => openRenameDialog(e, workflow)}
-                      className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded bg-gray-100 text-blue-500 hover:bg-gray-200"
                       aria-label="Rename workflow"
                     >
-                      <PencilIcon className="w-6 h-6 text-blue-500" />
+                      <PencilIcon className="w-5 h-5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -221,26 +221,11 @@ export function HomePage() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={(e) => navigateToWorkflow(e, workflow.id)}
-                      className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
-                      aria-label="Open workflow"
-                    >
-                      <WorkflowIcon className="w-6 h-6 text-green-500" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Open</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
                       onClick={(e) => openDeleteDialog(e, workflow)}
-                      className="p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded bg-gray-100 text-red-500 hover:bg-gray-200"
                       aria-label="Delete workflow"
                     >
-                      <Trash2Icon className="w-6 h-6 text-red-500" />
+                      <Trash2Icon className="w-5 h-5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
