@@ -6,11 +6,24 @@ import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { Parameter } from "./workflow-node";
+import {
+  useWorkflow,
+  updateNodeInput,
+  updateNodeLabel,
+  convertValueByType,
+} from "./workflow-context";
 
 export function WorkflowNodeInspector({
   node,
   onNodeUpdate,
 }: WorkflowNodeInspectorProps) {
+  // Here we get the update functions from context, but still use the onNodeUpdate
+  // prop for backward compatibility and to keep the existing architecture
+  const { updateNodeData: contextUpdateNodeData } = useWorkflow();
+
+  // Prefer the context function but fall back to the prop if needed
+  const updateNodeData = onNodeUpdate || contextUpdateNodeData;
+
   // Create local state to immediately reflect changes in the UI
   const [localLabel, setLocalLabel] = useState<string>(node?.data.label || "");
   const [localInputs, setLocalInputs] = useState<Parameter[]>(
@@ -30,52 +43,7 @@ export function WorkflowNodeInspector({
     setLocalOutputs(node.data.outputs);
   }, [node]);
 
-  // Listen for node update events (from handle clicks)
-  useEffect(() => {
-    if (!node || !onNodeUpdate) return;
-
-    const handleNodeUpdateEvent = (event: CustomEvent) => {
-      const { nodeId, inputId, value, label } = event.detail;
-
-      // Only update if we have a node selected and it matches the node in the event
-      if (!node || node.id !== nodeId) return;
-
-      // Handle label update
-      if (label !== undefined) {
-        setLocalLabel(label);
-        onNodeUpdate(node.id, { label });
-        return;
-      }
-
-      // Handle input value update
-      if (inputId !== undefined) {
-        // Create a new inputs array with the updated value
-        const updatedInputs = node.data.inputs.map((input) => {
-          if (input.id === inputId) {
-            return { ...input, value };
-          }
-          return input;
-        });
-
-        // Update the node
-        onNodeUpdate(node.id, { inputs: updatedInputs });
-      }
-    };
-
-    // Add event listener
-    document.addEventListener(
-      "workflow:node:update",
-      handleNodeUpdateEvent as EventListener
-    );
-
-    // Clean up
-    return () => {
-      document.removeEventListener(
-        "workflow:node:update",
-        handleNodeUpdateEvent as EventListener
-      );
-    };
-  }, [node, onNodeUpdate]);
+  // We no longer need to listen for node update events since we're using the context
 
   if (!node) return null;
 
@@ -84,72 +52,47 @@ export function WorkflowNodeInspector({
     // Update local state immediately
     setLocalLabel(newLabel);
 
-    // Propagate change to parent component
-    if (onNodeUpdate) {
-      onNodeUpdate(node.id, { label: newLabel });
-    }
+    // Update the node using the common utility
+    updateNodeLabel(node.id, newLabel, updateNodeData);
   };
 
   const handleInputValueChange = (inputId: string, value: string) => {
-    if (!onNodeUpdate) return;
+    if (!updateNodeData) return;
 
-    // Create a new inputs array with the updated value
-    const updatedInputs = localInputs.map((input) => {
-      if (input.id === inputId) {
-        return { ...input, value: convertValueByType(value, input.type) };
-      }
-      return input;
-    });
+    const typedValue = convertValueByType(
+      value,
+      localInputs.find((i) => i.id === inputId)?.type || "string"
+    );
 
-    // Update local state immediately
+    // Use the utility function to update inputs directly
+    const updatedInputs = updateNodeInput(
+      node.id,
+      inputId,
+      typedValue,
+      localInputs,
+      updateNodeData
+    );
+
+    // Update local state as well for immediate feedback
     setLocalInputs(updatedInputs);
-
-    // Propagate change to parent component
-    onNodeUpdate(node.id, { inputs: updatedInputs });
   };
 
   const handleSliderChange = (inputId: string, values: number[]) => {
-    if (!onNodeUpdate || !values.length) return;
+    if (!updateNodeData || !values.length) return;
 
     const value = values[0];
 
-    // Create a new inputs array with the updated value
-    const updatedInputs = localInputs.map((input) => {
-      if (input.id === inputId) {
-        return { ...input, value };
-      }
-      return input;
-    });
+    // Use the utility function for consistent updates
+    const updatedInputs = updateNodeInput(
+      node.id,
+      inputId,
+      value,
+      localInputs,
+      updateNodeData
+    );
 
-    // Update local state immediately
+    // Update local state as well for immediate feedback
     setLocalInputs(updatedInputs);
-
-    // Propagate change to parent component
-    onNodeUpdate(node.id, { inputs: updatedInputs });
-
-    // Special handling for slider node: trigger an immediate save
-    // This ensures the value persists across page loads
-    try {
-      // This will trigger an API/DB save in the component that manages the workflow
-      const workflowEvent = new CustomEvent("workflow:save", {
-        detail: { nodeId: node.id, type: "slider-value-change", value },
-      });
-      document.dispatchEvent(workflowEvent);
-    } catch (e) {
-      console.error("Error dispatching workflow save event:", e);
-    }
-  };
-
-  // Convert string values to the appropriate type
-  const convertValueByType = (value: string, type: string) => {
-    if (type === "number") {
-      const num = parseFloat(value);
-      return isNaN(num) ? undefined : num;
-    }
-    if (type === "boolean") {
-      return value.toLowerCase() === "true";
-    }
-    return value; // Default to string
   };
 
   // Check if the node is a slider node

@@ -13,6 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  useWorkflow,
+  updateNodeInput,
+  clearNodeInput,
+  updateNodeLabel,
+  convertValueByType,
+} from "./workflow-context";
 
 export interface Parameter {
   id: string;
@@ -98,6 +105,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
+    const { updateNodeData } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
@@ -122,70 +130,20 @@ export const WorkflowNode = memo(
     const handleInputSave = () => {
       if (!selectedInput) return;
 
-      // Convert value based on parameter type
-      let typedValue: any = inputValue;
-      if (selectedInput.type === "number") {
-        typedValue = parseFloat(inputValue);
-        if (isNaN(typedValue)) typedValue = 0;
-      } else if (selectedInput.type === "boolean") {
-        typedValue = inputValue.toLowerCase() === "true";
-      }
-
-      // Dispatch a custom event to update the node data
-      const updateEvent = new CustomEvent("workflow:node:update", {
-        detail: {
-          nodeId: id,
-          inputId: selectedInput.id,
-          value: typedValue,
-        },
-      });
-      document.dispatchEvent(updateEvent);
-
-      // Also dispatch a save event to persist changes
-      try {
-        const workflowEvent = new CustomEvent("workflow:save", {
-          detail: {
-            nodeId: id,
-            type: "input-change",
-            inputId: selectedInput.id,
-            value: typedValue,
-          },
-        });
-        document.dispatchEvent(workflowEvent);
-      } catch (e) {
-        console.error("Error dispatching workflow save event:", e);
-      }
-
+      const typedValue = convertValueByType(inputValue, selectedInput.type);
+      updateNodeInput(
+        id,
+        selectedInput.id,
+        typedValue,
+        data.inputs,
+        updateNodeData
+      );
       setSelectedInput(null);
     };
 
     const handleClearValue = () => {
       if (!selectedInput) return;
-
-      // Dispatch a custom event to clear the node input value
-      const updateEvent = new CustomEvent("workflow:node:update", {
-        detail: {
-          nodeId: id,
-          inputId: selectedInput.id,
-          value: undefined,
-        },
-      });
-      document.dispatchEvent(updateEvent);
-
-      // Also dispatch a save event to persist changes
-      try {
-        const workflowEvent = new CustomEvent("workflow:save", {
-          detail: {
-            nodeId: id,
-            type: "input-clear",
-            inputId: selectedInput.id,
-          },
-        });
-        document.dispatchEvent(workflowEvent);
-      } catch (e) {
-        console.error("Error dispatching workflow save event:", e);
-      }
-
+      clearNodeInput(id, selectedInput.id, data.inputs, updateNodeData);
       setSelectedInput(null);
     };
 
@@ -200,27 +158,7 @@ export const WorkflowNode = memo(
 
     const handleLabelSave = () => {
       if (labelValue.trim() === "") return;
-
-      // Dispatch a custom event to update the node label
-      // Use the same event structure as expected by WorkflowNodeInspector
-      const updateEvent = new CustomEvent("workflow:node:update", {
-        detail: {
-          nodeId: id,
-          label: labelValue,
-        },
-      });
-      document.dispatchEvent(updateEvent);
-
-      // Also dispatch a save event to persist changes
-      try {
-        const workflowEvent = new CustomEvent("workflow:save", {
-          detail: { nodeId: id, type: "label-change", value: labelValue },
-        });
-        document.dispatchEvent(workflowEvent);
-      } catch (e) {
-        console.error("Error dispatching workflow save event:", e);
-      }
-
+      updateNodeLabel(id, labelValue, updateNodeData);
       setIsEditingLabel(false);
     };
 
