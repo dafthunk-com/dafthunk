@@ -11,7 +11,9 @@ import {
   updateNodeInput,
   updateNodeLabel,
   convertValueByType,
+  clearNodeInput,
 } from "./workflow-context";
+import { XCircleIcon } from "lucide-react";
 
 export function WorkflowNodeInspector({
   node,
@@ -69,6 +71,21 @@ export function WorkflowNodeInspector({
       node.id,
       inputId,
       typedValue,
+      localInputs,
+      updateNodeData
+    );
+
+    // Update local state as well for immediate feedback
+    setLocalInputs(updatedInputs);
+  };
+
+  const handleClearValue = (inputId: string) => {
+    if (!updateNodeData) return;
+
+    // Use the utility function for consistent updates
+    const updatedInputs = clearNodeInput(
+      node.id,
+      inputId,
       localInputs,
       updateNodeData
     );
@@ -167,16 +184,27 @@ export function WorkflowNodeInspector({
                     </div>
                   ) : (
                     // Regular input for other inputs
-                    <Input
-                      placeholder={`Enter ${input.type} value`}
-                      value={
-                        input.value !== undefined ? String(input.value) : ""
-                      }
-                      onChange={(e) =>
-                        handleInputValueChange(input.id, e.target.value)
-                      }
-                      className="text-sm h-8"
-                    />
+                    <div className="relative">
+                      <Input
+                        placeholder={`Enter ${input.type} value`}
+                        value={
+                          input.value !== undefined ? String(input.value) : ""
+                        }
+                        onChange={(e) =>
+                          handleInputValueChange(input.id, e.target.value)
+                        }
+                        className="text-sm h-8 pr-8"
+                      />
+                      {input.value !== undefined && (
+                        <button
+                          onClick={() => handleClearValue(input.id)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          aria-label={`Clear ${input.label} value`}
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}

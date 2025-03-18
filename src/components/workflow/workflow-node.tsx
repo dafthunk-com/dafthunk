@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from "react";
 import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, PencilIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import {
   Dialog,
@@ -133,10 +133,13 @@ export const WorkflowNode = memo(
       setInputValue(input.value !== undefined ? String(input.value) : "");
     };
 
-    const handleInputSave = () => {
+    const handleInputChange = (value: string) => {
       if (!selectedInput) return;
-
-      const typedValue = convertValueByType(inputValue, selectedInput.type);
+      
+      setInputValue(value);
+      
+      // Auto-save as the user types
+      const typedValue = convertValueByType(value, selectedInput.type);
       updateNodeInput(
         id,
         selectedInput.id,
@@ -144,13 +147,12 @@ export const WorkflowNode = memo(
         data.inputs,
         updateNodeData
       );
-      setSelectedInput(null);
     };
 
     const handleClearValue = () => {
       if (!selectedInput) return;
       clearNodeInput(id, selectedInput.id, data.inputs, updateNodeData);
-      setSelectedInput(null);
+      setInputValue("");
     };
 
     const handleDialogClose = () => {
@@ -301,63 +303,83 @@ export const WorkflowNode = memo(
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                Set Input Value for {selectedInput?.label}
+                Edit Parameter
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {selectedInput && (
-                <div className="space-y-2">
-                  <Label htmlFor="input-value">
-                    {selectedInput.label}{" "}
-                    <span className="text-xs text-gray-500">
-                      ({selectedInput.type})
-                    </span>
-                  </Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="input-value" className="text-sm font-medium">
+                      {selectedInput.label}
+                    </Label>
+                    <span className="text-xs text-gray-500">{selectedInput.type}</span>
+                  </div>
 
-                  {selectedInput.type === "boolean" ? (
-                    <div className="flex gap-2">
-                      <Button
-                        variant={inputValue === "true" ? "default" : "outline"}
-                        onClick={() => setInputValue("true")}
-                        className="flex-1"
-                      >
-                        True
-                      </Button>
-                      <Button
-                        variant={inputValue === "false" ? "default" : "outline"}
-                        onClick={() => setInputValue("false")}
-                        className="flex-1"
-                      >
-                        False
-                      </Button>
-                    </div>
-                  ) : selectedInput.type === "number" ? (
-                    <Input
-                      id="input-value"
-                      type="number"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Enter number value"
-                    />
-                  ) : (
-                    <Input
-                      id="input-value"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Enter text value"
-                    />
-                  )}
+                  <div className="relative">
+                    {selectedInput.type === "boolean" ? (
+                      <div className="flex gap-2">
+                        <Button
+                          variant={inputValue === "true" ? "default" : "outline"}
+                          onClick={() => handleInputChange("true")}
+                          className="flex-1"
+                        >
+                          True
+                        </Button>
+                        <Button
+                          variant={inputValue === "false" ? "default" : "outline"}
+                          onClick={() => handleInputChange("false")}
+                          className="flex-1"
+                        >
+                          False
+                        </Button>
+                      </div>
+                    ) : selectedInput.type === "number" ? (
+                      <div className="relative">
+                        <Input
+                          id="input-value"
+                          type="number"
+                          value={inputValue}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          placeholder="Enter number value"
+                        />
+                        {inputValue && (
+                          <button
+                            onClick={handleClearValue}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            aria-label="Clear value"
+                          >
+                            <XCircleIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <Input
+                          id="input-value"
+                          value={inputValue}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          placeholder="Enter text value"
+                        />
+                        {inputValue && (
+                          <button
+                            onClick={handleClearValue}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            aria-label="Clear value"
+                          >
+                            <XCircleIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleDialogClose}>
-                Cancel
+                Close
               </Button>
-              <Button variant="destructive" onClick={handleClearValue}>
-                Clear
-              </Button>
-              <Button onClick={handleInputSave}>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -373,7 +395,12 @@ export const WorkflowNode = memo(
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="label-value">Node Label</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="label-value" className="text-sm font-medium">
+                    Node Label
+                  </Label>
+                  <span className="text-xs text-gray-500">string</span>
+                </div>
                 <Input
                   id="label-value"
                   value={labelValue}
