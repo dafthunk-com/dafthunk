@@ -192,7 +192,7 @@ describe("WorkflowRuntime", () => {
       onNodeError: vi.fn(),
       onExecutionComplete: vi.fn(),
       onExecutionError: vi.fn(),
-      abortSignal: new AbortController().signal
+      abortSignal: new AbortController().signal,
     };
   });
 

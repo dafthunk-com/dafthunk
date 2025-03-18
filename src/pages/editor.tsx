@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
-import { useLoaderData, useParams } from "react-router-dom";
+import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
 import { Workflow } from "@/lib/server/api/apiTypes";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
@@ -13,6 +13,7 @@ import {
   WorkflowEdgeData,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
+import { WorkflowError } from "@/components/workflow/workflow-error";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
@@ -56,8 +57,10 @@ export function EditorPage() {
   const { workflow: initialWorkflow } = useLoaderData() as {
     workflow: Workflow;
   };
+  const navigate = useNavigate();
   const [_, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<WorkflowNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeData>[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
@@ -102,6 +105,7 @@ export function EditorPage() {
   useEffect(() => {
     if (!initialWorkflow) {
       setIsLoading(false);
+      setLoadError("Failed to load workflow data");
       return;
     }
 
@@ -147,8 +151,10 @@ export function EditorPage() {
       // Set the state with the converted data
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
+      setLoadError(null);
     } catch (error) {
-      // Error handling without logging
+      console.error("Error processing workflow data:", error);
+      setLoadError("Failed to process workflow data");
     } finally {
       setIsLoading(false);
     }
@@ -376,6 +382,18 @@ export function EditorPage() {
     },
     []
   );
+
+  // Handle retry loading
+  const handleRetryLoading = () => {
+    if (id) {
+      navigate(0); // Refresh the current page
+    }
+  };
+
+  // Show error if loading failed
+  if (loadError && !isLoading) {
+    return <WorkflowError message={loadError} onRetry={handleRetryLoading} />;
+  }
 
   return (
     <ReactFlowProvider>

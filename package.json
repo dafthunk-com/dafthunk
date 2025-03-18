@@ -34,6 +34,7 @@
     "lucide-react": "^0.475.0",
     "react": "19.0.0-beta-26f2496093-20240514",
     "react-dom": "19.0.0-beta-26f2496093-20240514",
+    "react-error-boundary": "^5.0.0",
     "react-router-dom": "^7.2.0",
     "reactflow": "^11.11.4",
     "simple-oauth2": "^5.1.0"

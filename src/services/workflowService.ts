@@ -40,19 +40,35 @@ export const workflowService = {
 
   // Load a workflow by ID
   async load(id: string): Promise<Workflow> {
-    const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/workflows/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to load workflow: ${response.statusText}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Workflow not found");
+        } else if (response.status === 401 || response.status === 403) {
+          throw new Error("Unauthorized access to workflow");
+        } else {
+          throw new Error(`Failed to load workflow: ${response.statusText}`);
+        }
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error loading workflow:", error);
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error("Failed to fetch workflow");
+      }
     }
-
-    return response.json();
   },
 
   // Save a workflow
