@@ -81,11 +81,31 @@ async function executeWorkflow(
     // Create a TransformStream for SSE with Uint8Array chunks
     const { readable, writable } = new TransformStream<Uint8Array>();
     const writer = writable.getWriter();
+    
+    // Create an AbortController to handle client disconnections
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    // Safe write function to detect client disconnections
+    async function safeWrite(data: Uint8Array): Promise<void> {
+      try {
+        await writer.write(data);
+      } catch (error) {
+        console.log('Client disconnected:', error);
+        abortController.abort();
+        try {
+          await writer.close();
+        } catch (e) {
+          // Ignore errors on close after disconnection
+        }
+      }
+    }
 
     // Create execution options that emit SSE events
     const executionOptions: WorkflowExecutionOptions = {
       onNodeStart: (nodeId) => {
-        writer.write(
+        if (signal.aborted) return;
+        safeWrite(
           createEvent({
             type: "node-start",
             nodeId,
@@ -94,7 +114,8 @@ async function executeWorkflow(
         );
       },
       onNodeComplete: (nodeId, outputs) => {
-        writer.write(
+        if (signal.aborted) return;
+        safeWrite(
           createEvent({
             type: "node-complete",
             nodeId,
@@ -104,7 +125,8 @@ async function executeWorkflow(
         );
       },
       onNodeError: (nodeId, error) => {
-        writer.write(
+        if (signal.aborted) return;
+        safeWrite(
           createEvent({
             type: "node-error",
             nodeId,
@@ -113,27 +135,36 @@ async function executeWorkflow(
           })
         );
       },
-      onExecutionComplete: () => {
-        writer
-          .write(
+      onExecutionComplete: async () => {
+        if (signal.aborted) return;
+        try {
+          await safeWrite(
             createEvent({
               type: "execution-complete",
               timestamp: Date.now(),
             })
-          )
-          .then(() => writer.close());
+          );
+          await writer.close();
+        } catch (error) {
+          console.log('Error closing writer on execution complete:', error);
+        }
       },
-      onExecutionError: (error) => {
-        writer
-          .write(
+      onExecutionError: async (error) => {
+        if (signal.aborted) return;
+        try {
+          await safeWrite(
             createEvent({
               type: "execution-error",
               error,
               timestamp: Date.now(),
             })
-          )
-          .then(() => writer.close());
+          );
+          await writer.close();
+        } catch (e) {
+          console.log('Error closing writer on execution error:', e);
+        }
       },
+      abortSignal: signal, // Pass the abort signal to the runtime
     };
 
     // Create and execute the workflow runtime
@@ -143,6 +174,20 @@ async function executeWorkflow(
     runtime.execute().catch(async (error) => {
       console.error("Runtime execution error:", error);
       // The error will be handled by the onExecutionError callback
+      if (!signal.aborted) {
+        try {
+          await safeWrite(
+            createEvent({
+              type: "execution-error",
+              error: error instanceof Error ? error.message : "Unknown error",
+              timestamp: Date.now(),
+            })
+          );
+          await writer.close();
+        } catch (e) {
+          // Ignore errors on close after error
+        }
+      }
     });
 
     return new Response(readable, {

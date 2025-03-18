@@ -23,6 +23,7 @@ export class WorkflowRuntime {
   private executableNodes: Map<string, ExecutableNode> = new Map();
   private options: WorkflowExecutionOptions;
   private env?: any;
+  private aborted: boolean = false;
 
   constructor(
     workflow: Workflow,
@@ -33,6 +34,14 @@ export class WorkflowRuntime {
     this.options = options;
     this.env = env;
     this.initializeExecutableNodes();
+    
+    // Set up abort signal listener if provided
+    if (options.abortSignal) {
+      options.abortSignal.addEventListener('abort', () => {
+        console.log('Workflow execution aborted by client');
+        this.aborted = true;
+      });
+    }
   }
 
   /**
@@ -126,6 +135,12 @@ export class WorkflowRuntime {
    * Executes a single node
    */
   private async executeNode(nodeId: string): Promise<void> {
+    // Check if execution has been aborted
+    if (this.aborted) {
+      console.log(`Skipping execution of node ${nodeId} due to abort`);
+      return;
+    }
+    
     const executableNode = this.executableNodes.get(nodeId);
     if (!executableNode) {
       const node = this.workflow.nodes.find((n) => n.id === nodeId);
@@ -162,6 +177,12 @@ export class WorkflowRuntime {
 
       // Execute the node
       const result = await executableNode.execute(context);
+
+      // Check if execution has been aborted after node execution
+      if (this.aborted) {
+        console.log(`Execution aborted after node ${nodeId} execution`);
+        return;
+      }
 
       if (result.success) {
         // Store the outputs for use by downstream nodes
@@ -202,6 +223,12 @@ export class WorkflowRuntime {
    */
   async execute(): Promise<Map<string, Record<string, any>>> {
     try {
+      // Check if execution has been aborted before we start
+      if (this.aborted) {
+        console.log('Execution aborted before starting');
+        throw new Error('Execution aborted');
+      }
+      
       // Validate the workflow
       const errors = await this.validate();
       if (errors.length > 0) {
@@ -227,15 +254,19 @@ export class WorkflowRuntime {
 
       // Execute start nodes
       for (const node of startNodes) {
+        if (this.aborted) break;
         await this.executeNode(node.id);
       }
 
       // Continue executing nodes until all are executed or no more can be executed
       let progress = true;
-      while (progress) {
+      while (progress && !this.aborted) {
         progress = false;
 
         for (const node of this.workflow.nodes) {
+          // Check for abort after each node
+          if (this.aborted) break;
+          
           // Skip nodes that have already been executed or have errors
           if (this.executedNodes.has(node.id) || this.nodeErrors.has(node.id)) {
             continue;
@@ -247,6 +278,12 @@ export class WorkflowRuntime {
             progress = true;
           }
         }
+      }
+
+      // If execution was aborted, exit early
+      if (this.aborted) {
+        console.log('Workflow execution was aborted');
+        return this.nodeOutputs;
       }
 
       // Check if all nodes were executed
@@ -270,10 +307,13 @@ export class WorkflowRuntime {
 
       return this.nodeOutputs;
     } catch (error) {
-      console.error("Workflow execution error:", error);
+      // Don't log aborted executions as errors
+      if (!this.aborted) {
+        console.error("Workflow execution error:", error);
+      }
 
-      // Notify execution error
-      if (this.options.onExecutionError) {
+      // Notify execution error if not aborted
+      if (this.options.onExecutionError && !this.aborted) {
         this.options.onExecutionError(
           error instanceof Error ? error.message : "Unknown error"
         );
@@ -290,11 +330,13 @@ export class WorkflowRuntime {
     executedNodes: string[];
     errorNodes: Map<string, string>;
     outputs: Map<string, Record<string, any>>;
+    aborted: boolean;
   } {
     return {
       executedNodes: Array.from(this.executedNodes),
       errorNodes: this.nodeErrors,
       outputs: this.nodeOutputs,
+      aborted: this.aborted
     };
   }
 }

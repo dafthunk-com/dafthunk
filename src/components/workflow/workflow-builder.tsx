@@ -4,7 +4,7 @@ import { useWorkflowState } from "./useWorkflowState";
 import { useWorkflowExecution } from "./useWorkflowExecution";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ReactFlowProvider } from "reactflow";
 import { WorkflowProvider } from "./workflow-context";
 
@@ -25,6 +25,8 @@ export function WorkflowBuilder({
   onNodeError,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   const {
     nodes,
@@ -104,9 +106,18 @@ export function WorkflowBuilder({
     updateNodeExecutionState,
     updateNodeData,
     updateNodeOutputs,
-    onExecutionStart,
-    onExecutionComplete,
-    onExecutionError,
+    onExecutionStart: () => {
+      setIsExecuting(true);
+      onExecutionStart?.();
+    },
+    onExecutionComplete: () => {
+      setIsExecuting(false);
+      onExecutionComplete?.();
+    },
+    onExecutionError: (error) => {
+      setIsExecuting(false);
+      onExecutionError?.(error);
+    },
     onNodeStart,
     onNodeComplete,
     onNodeError,
@@ -120,12 +131,23 @@ export function WorkflowBuilder({
     nodes.forEach((node) => {
       updateNodeExecutionState(node.id, "idle");
     });
-    handleExecute();
+    
+    // Execute and store cleanup function if returned
+    const cleanup = handleExecute();
+    if (typeof cleanup === 'function') {
+      cleanupRef.current = cleanup;
+    }
   };
 
-  const handleCleanClick = (e: React.MouseEvent) => {
+  const handleCleanOrStopClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // If executing, stop the execution by calling the cleanup function
+    if (isExecuting && cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
 
     // Reset all nodes to idle state
     nodes.forEach((node) => {
@@ -141,6 +163,9 @@ export function WorkflowBuilder({
         error: null,
       });
     });
+    
+    // Ensure execution state is set to false
+    setIsExecuting(false);
   };
 
   const handleToggleSidebar = (e: React.MouseEvent) => {
@@ -176,7 +201,8 @@ export function WorkflowBuilder({
               onInit={setReactFlowInstance}
               onAddNode={handleAddNode}
               onExecute={executeWorkflow ? handleExecuteClick : undefined}
-              onClean={handleCleanClick}
+              onClean={handleCleanOrStopClick}
+              isExecuting={isExecuting}
               onToggleSidebar={handleToggleSidebar}
               isSidebarVisible={isSidebarVisible}
             />

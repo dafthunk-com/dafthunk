@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
-import { Plus, Play, X, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Plus, Play, X, PanelLeftClose, PanelLeft, Square } from "lucide-react";
 import "reactflow/dist/style.css";
 
 const nodeTypes = {
@@ -36,6 +36,7 @@ export function WorkflowCanvas({
   onClean,
   onToggleSidebar,
   isSidebarVisible,
+  isExecuting = false,
   showControls = true,
 }: WorkflowCanvasProps) {
   return (
@@ -84,6 +85,7 @@ export function WorkflowCanvas({
           onClick={onExecute}
           className="absolute top-4 right-28 z-50 rounded-full shadow-lg h-10 w-10 p-0"
           title="Execute Workflow"
+          disabled={isExecuting}
         >
           <Play className="w-6 h-6" />
         </Button>
@@ -92,9 +94,13 @@ export function WorkflowCanvas({
         <Button
           onClick={onClean}
           className="absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-          title="Clean Workflow"
+          title={isExecuting ? "Stop Execution" : "Clean Workflow"}
         >
-          <X className="w-6 h-6" />
+          {isExecuting ? (
+            <Square className="w-6 h-6" />
+          ) : (
+            <X className="w-6 h-6" />
+          )}
         </Button>
       )}
       {onToggleSidebar && (

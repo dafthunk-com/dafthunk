@@ -136,4 +136,5 @@ export interface WorkflowExecutionOptions {
   onNodeError?: (nodeId: string, error: string) => void;
   onExecutionComplete?: () => void;
   onExecutionError?: (error: string) => void;
+  abortSignal?: AbortSignal;
 }
