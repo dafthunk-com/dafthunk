@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Tooltip,
@@ -135,9 +136,9 @@ export const WorkflowNode = memo(
 
     const handleInputChange = (value: string) => {
       if (!selectedInput) return;
-      
+
       setInputValue(value);
-      
+
       // Auto-save as the user types
       const typedValue = convertValueByType(value, selectedInput.type);
       updateNodeInput(
@@ -302,32 +303,39 @@ export const WorkflowNode = memo(
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                Edit Parameter
-              </DialogTitle>
+              <DialogTitle>Edit Parameter</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {selectedInput && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="input-value" className="text-sm font-medium">
+                    <Label
+                      htmlFor="input-value"
+                      className="text-sm font-medium"
+                    >
                       {selectedInput.label}
                     </Label>
-                    <span className="text-xs text-gray-500">{selectedInput.type}</span>
+                    <span className="text-xs text-gray-500">
+                      {selectedInput.type}
+                    </span>
                   </div>
 
                   <div className="relative">
                     {selectedInput.type === "boolean" ? (
                       <div className="flex gap-2">
                         <Button
-                          variant={inputValue === "true" ? "default" : "outline"}
+                          variant={
+                            inputValue === "true" ? "default" : "outline"
+                          }
                           onClick={() => handleInputChange("true")}
                           className="flex-1"
                         >
                           True
                         </Button>
                         <Button
-                          variant={inputValue === "false" ? "default" : "outline"}
+                          variant={
+                            inputValue === "false" ? "default" : "outline"
+                          }
                           onClick={() => handleInputChange("false")}
                           className="flex-1"
                         >
@@ -347,6 +355,25 @@ export const WorkflowNode = memo(
                           <button
                             onClick={handleClearValue}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            aria-label="Clear value"
+                          >
+                            <XCircleIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ) : selectedInput.type === "string" ? (
+                      <div className="relative">
+                        <Textarea
+                          id="input-value"
+                          value={inputValue}
+                          onChange={(e) => handleInputChange(e.target.value)}
+                          placeholder="Enter text value"
+                          className="min-h-[100px] resize-y"
+                        />
+                        {inputValue && (
+                          <button
+                            onClick={handleClearValue}
+                            className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
                             aria-label="Clear value"
                           >
                             <XCircleIcon className="h-4 w-4" />

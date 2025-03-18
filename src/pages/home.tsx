@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, PencilIcon, WorkflowIcon } from "lucide-react";
+import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Workflow } from "@/lib/server/api/apiTypes";
 import {
@@ -143,12 +143,6 @@ export function HomePage() {
     } finally {
       setIsRenaming(false);
     }
-  };
-
-  const navigateToWorkflow = (e: React.MouseEvent, workflowId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigate(`/workflow/${workflowId}`);
   };
 
   const renderContent = () => {

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
@@ -181,6 +182,29 @@ export function WorkflowNodeInspector({
                         <span>Value: {getSliderConfig().value}</span>
                         <span>{getSliderConfig().max}</span>
                       </div>
+                    </div>
+                  ) : input.type === "string" ? (
+                    // Render textarea for string inputs
+                    <div className="relative">
+                      <Textarea
+                        placeholder={`Enter ${input.type} value`}
+                        value={
+                          input.value !== undefined ? String(input.value) : ""
+                        }
+                        onChange={(e) =>
+                          handleInputValueChange(input.id, e.target.value)
+                        }
+                        className="text-sm min-h-[80px] resize-y"
+                      />
+                      {input.value !== undefined && (
+                        <button
+                          onClick={() => handleClearValue(input.id)}
+                          className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                          aria-label={`Clear ${input.label} value`}
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   ) : (
                     // Regular input for other inputs
