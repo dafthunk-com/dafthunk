@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -104,6 +104,15 @@ export const WorkflowNode = memo(
     );
     const [selectedInput, setSelectedInput] = useState<Parameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");
+    const [isEditingLabel, setIsEditingLabel] = useState(false);
+    const [labelValue, setLabelValue] = useState(data.label);
+
+    // Keep labelValue in sync with data.label when not editing
+    useEffect(() => {
+      if (!isEditingLabel) {
+        setLabelValue(data.label);
+      }
+    }, [data.label, isEditingLabel]);
 
     const handleInputClick = (input: Parameter) => {
       setSelectedInput(input);
@@ -132,6 +141,21 @@ export const WorkflowNode = memo(
       });
       document.dispatchEvent(updateEvent);
 
+      // Also dispatch a save event to persist changes
+      try {
+        const workflowEvent = new CustomEvent("workflow:save", {
+          detail: { 
+            nodeId: id, 
+            type: "input-change",
+            inputId: selectedInput.id,
+            value: typedValue
+          },
+        });
+        document.dispatchEvent(workflowEvent);
+      } catch (e) {
+        console.error("Error dispatching workflow save event:", e);
+      }
+
       setSelectedInput(null);
     };
 
@@ -148,11 +172,56 @@ export const WorkflowNode = memo(
       });
       document.dispatchEvent(updateEvent);
 
+      // Also dispatch a save event to persist changes
+      try {
+        const workflowEvent = new CustomEvent("workflow:save", {
+          detail: { 
+            nodeId: id, 
+            type: "input-clear",
+            inputId: selectedInput.id 
+          },
+        });
+        document.dispatchEvent(workflowEvent);
+      } catch (e) {
+        console.error("Error dispatching workflow save event:", e);
+      }
+
       setSelectedInput(null);
     };
 
     const handleDialogClose = () => {
       setSelectedInput(null);
+    };
+
+    const handleLabelClick = () => {
+      setIsEditingLabel(true);
+      setLabelValue(data.label);
+    };
+
+    const handleLabelSave = () => {
+      if (labelValue.trim() === "") return;
+      
+      // Dispatch a custom event to update the node label
+      // Use the same event structure as expected by WorkflowNodeInspector
+      const updateEvent = new CustomEvent("workflow:node:update", {
+        detail: {
+          nodeId: id,
+          label: labelValue,
+        },
+      });
+      document.dispatchEvent(updateEvent);
+
+      // Also dispatch a save event to persist changes
+      try {
+        const workflowEvent = new CustomEvent("workflow:save", {
+          detail: { nodeId: id, type: "label-change", value: labelValue },
+        });
+        document.dispatchEvent(workflowEvent);
+      } catch (e) {
+        console.error("Error dispatching workflow save event:", e);
+      }
+
+      setIsEditingLabel(false);
     };
 
     return (
@@ -170,7 +239,10 @@ export const WorkflowNode = memo(
           )}
         >
           {/* Header */}
-          <div className="p-1 text-center">
+          <div 
+            className="p-1 text-center cursor-pointer"
+            onClick={handleLabelClick}
+          >
             <h3 className="m-0 text-xs font-medium">{data.label}</h3>
           </div>
 
@@ -329,6 +401,35 @@ export const WorkflowNode = memo(
                 Clear
               </Button>
               <Button onClick={handleInputSave}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Label Edit Dialog */}
+        <Dialog
+          open={isEditingLabel}
+          onOpenChange={(open) => !open && setIsEditingLabel(false)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Node Label</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="label-value">Node Label</Label>
+                <Input
+                  id="label-value"
+                  value={labelValue}
+                  onChange={(e) => setLabelValue(e.target.value)}
+                  placeholder="Enter node label"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditingLabel(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleLabelSave}>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

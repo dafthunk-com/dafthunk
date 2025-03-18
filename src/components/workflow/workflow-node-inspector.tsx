@@ -35,21 +35,31 @@ export function WorkflowNodeInspector({
     if (!node || !onNodeUpdate) return;
 
     const handleNodeUpdateEvent = (event: CustomEvent) => {
-      const { nodeId, inputId, value } = event.detail;
+      const { nodeId, inputId, value, label } = event.detail;
 
       // Only update if we have a node selected and it matches the node in the event
       if (!node || node.id !== nodeId) return;
 
-      // Create a new inputs array with the updated value
-      const updatedInputs = node.data.inputs.map((input) => {
-        if (input.id === inputId) {
-          return { ...input, value };
-        }
-        return input;
-      });
+      // Handle label update
+      if (label !== undefined) {
+        setLocalLabel(label);
+        onNodeUpdate(node.id, { label });
+        return;
+      }
 
-      // Update the node
-      onNodeUpdate(node.id, { inputs: updatedInputs });
+      // Handle input value update
+      if (inputId !== undefined) {
+        // Create a new inputs array with the updated value
+        const updatedInputs = node.data.inputs.map((input) => {
+          if (input.id === inputId) {
+            return { ...input, value };
+          }
+          return input;
+        });
+
+        // Update the node
+        onNodeUpdate(node.id, { inputs: updatedInputs });
+      }
     };
 
     // Add event listener
