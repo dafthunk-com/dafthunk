@@ -313,16 +313,18 @@ export function useWorkflowState({
     (nodeId: string) => {
       // First find all edges connected to this node
       const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
-      const edgeIdsToRemove = nodeEdges.map(edge => edge.id);
-      
+      const edgeIdsToRemove = nodeEdges.map((edge) => edge.id);
+
       // Remove the edges
       if (edgeIdsToRemove.length > 0) {
-        setEdges(eds => eds.filter(edge => !edgeIdsToRemove.includes(edge.id)));
+        setEdges((eds) =>
+          eds.filter((edge) => !edgeIdsToRemove.includes(edge.id))
+        );
       }
-      
+
       // Remove the node
-      setNodes(nds => nds.filter(node => node.id !== nodeId));
-      
+      setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+
       // If this was the selected node, clear the selection
       if (selectedNode?.id === nodeId) {
         setSelectedNode(null);

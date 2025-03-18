@@ -67,11 +67,10 @@ export interface WorkflowCanvasProps {
   onPaneClick: () => void;
   onInit: (instance: ReactFlowInstance) => void;
   onAddNode?: () => void;
-  onExecute?: (e: React.MouseEvent) => void;
-  onClean?: (e: React.MouseEvent) => void;
+  onAction?: (e: React.MouseEvent) => void;
+  workflowStatus?: "idle" | "executing" | "completed";
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
-  isExecuting?: boolean;
   showControls?: boolean;
 }
 

@@ -81,7 +81,7 @@ async function executeWorkflow(
     // Create a TransformStream for SSE with Uint8Array chunks
     const { readable, writable } = new TransformStream<Uint8Array>();
     const writer = writable.getWriter();
-    
+
     // Create an AbortController to handle client disconnections
     const abortController = new AbortController();
     const { signal } = abortController;
@@ -91,7 +91,7 @@ async function executeWorkflow(
       try {
         await writer.write(data);
       } catch (error) {
-        console.log('Client disconnected:', error);
+        console.log("Client disconnected:", error);
         abortController.abort();
         try {
           await writer.close();
@@ -146,7 +146,7 @@ async function executeWorkflow(
           );
           await writer.close();
         } catch (error) {
-          console.log('Error closing writer on execution complete:', error);
+          console.log("Error closing writer on execution complete:", error);
         }
       },
       onExecutionError: async (error) => {
@@ -161,7 +161,7 @@ async function executeWorkflow(
           );
           await writer.close();
         } catch (e) {
-          console.log('Error closing writer on execution error:', e);
+          console.log("Error closing writer on execution error:", e);
         }
       },
       abortSignal: signal, // Pass the abort signal to the runtime

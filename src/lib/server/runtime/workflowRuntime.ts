@@ -34,11 +34,11 @@ export class WorkflowRuntime {
     this.options = options;
     this.env = env;
     this.initializeExecutableNodes();
-    
+
     // Set up abort signal listener if provided
     if (options.abortSignal) {
-      options.abortSignal.addEventListener('abort', () => {
-        console.log('Workflow execution aborted by client');
+      options.abortSignal.addEventListener("abort", () => {
+        console.log("Workflow execution aborted by client");
         this.aborted = true;
       });
     }
@@ -140,7 +140,7 @@ export class WorkflowRuntime {
       console.log(`Skipping execution of node ${nodeId} due to abort`);
       return;
     }
-    
+
     const executableNode = this.executableNodes.get(nodeId);
     if (!executableNode) {
       const node = this.workflow.nodes.find((n) => n.id === nodeId);
@@ -225,10 +225,10 @@ export class WorkflowRuntime {
     try {
       // Check if execution has been aborted before we start
       if (this.aborted) {
-        console.log('Execution aborted before starting');
-        throw new Error('Execution aborted');
+        console.log("Execution aborted before starting");
+        throw new Error("Execution aborted");
       }
-      
+
       // Validate the workflow
       const errors = await this.validate();
       if (errors.length > 0) {
@@ -266,7 +266,7 @@ export class WorkflowRuntime {
         for (const node of this.workflow.nodes) {
           // Check for abort after each node
           if (this.aborted) break;
-          
+
           // Skip nodes that have already been executed or have errors
           if (this.executedNodes.has(node.id) || this.nodeErrors.has(node.id)) {
             continue;
@@ -282,7 +282,7 @@ export class WorkflowRuntime {
 
       // If execution was aborted, exit early
       if (this.aborted) {
-        console.log('Workflow execution was aborted');
+        console.log("Workflow execution was aborted");
         return this.nodeOutputs;
       }
 
@@ -336,7 +336,7 @@ export class WorkflowRuntime {
       executedNodes: Array.from(this.executedNodes),
       errorNodes: this.nodeErrors,
       outputs: this.nodeOutputs,
-      aborted: this.aborted
+      aborted: this.aborted,
     };
   }
 }

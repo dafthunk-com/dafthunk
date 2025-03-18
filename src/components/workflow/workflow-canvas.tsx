@@ -32,13 +32,38 @@ export function WorkflowCanvas({
   onPaneClick,
   onInit,
   onAddNode,
-  onExecute,
-  onClean,
+  onAction,
+  workflowStatus = "idle",
   onToggleSidebar,
   isSidebarVisible,
-  isExecuting = false,
   showControls = true,
 }: WorkflowCanvasProps) {
+  // Function to get the action button icon based on workflow status
+  const getActionIcon = () => {
+    switch (workflowStatus) {
+      case "executing":
+        return <Square className="w-6 h-6" />;
+      case "completed":
+        return <X className="w-6 h-6" />;
+      case "idle":
+      default:
+        return <Play className="w-6 h-6" />;
+    }
+  };
+
+  // Function to get the action button title based on workflow status
+  const getActionTitle = () => {
+    switch (workflowStatus) {
+      case "executing":
+        return "Stop Execution";
+      case "completed":
+        return "Clear Outputs & Reset";
+      case "idle":
+      default:
+        return "Execute Workflow";
+    }
+  };
+
   return (
     <ReactFlow
       nodes={nodes}
@@ -80,27 +105,19 @@ export function WorkflowCanvas({
           <Plus className="w-6 h-6" />
         </Button>
       )}
-      {onExecute && (
+      {onAction && (
         <Button
-          onClick={onExecute}
-          className="absolute top-4 right-28 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-          title="Execute Workflow"
-          disabled={isExecuting}
+          onClick={onAction}
+          className={`absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0 ${
+            workflowStatus === "idle"
+              ? "bg-green-600 hover:bg-green-700"
+              : workflowStatus === "executing"
+                ? "bg-amber-500 hover:bg-amber-600"
+                : "bg-red-600 hover:bg-red-700"
+          }`}
+          title={getActionTitle()}
         >
-          <Play className="w-6 h-6" />
-        </Button>
-      )}
-      {onClean && (
-        <Button
-          onClick={onClean}
-          className="absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-          title={isExecuting ? "Stop Execution" : "Clean Workflow"}
-        >
-          {isExecuting ? (
-            <Square className="w-6 h-6" />
-          ) : (
-            <X className="w-6 h-6" />
-          )}
+          {getActionIcon()}
         </Button>
       )}
       {onToggleSidebar && (
