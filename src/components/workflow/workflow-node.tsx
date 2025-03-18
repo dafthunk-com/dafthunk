@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from "react";
 import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, PencilIcon, Trash2 } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import {
   Dialog,
@@ -13,6 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   useWorkflow,
   updateNodeInput,
@@ -105,7 +111,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData } = useWorkflow();
+    const { updateNodeData, deleteNode } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
@@ -114,6 +120,7 @@ export const WorkflowNode = memo(
     const [inputValue, setInputValue] = useState<string>("");
     const [isEditingLabel, setIsEditingLabel] = useState(false);
     const [labelValue, setLabelValue] = useState(data.label);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Keep labelValue in sync with data.label when not editing
     useEffect(() => {
@@ -162,8 +169,17 @@ export const WorkflowNode = memo(
       setIsEditingLabel(false);
     };
 
+    const handleDeleteClick = () => {
+      setShowDeleteConfirm(true);
+    };
+
+    const handleDeleteConfirm = () => {
+      deleteNode(id);
+      setShowDeleteConfirm(false);
+    };
+
     return (
-      <>
+      <TooltipProvider>
         <div
           className={cn(
             "bg-white shadow-sm w-[200px] rounded-lg border-[1px] transition-colors overflow-hidden",
@@ -177,15 +193,43 @@ export const WorkflowNode = memo(
           )}
         >
           {/* Header */}
-          <div
-            className="p-1 text-center cursor-pointer"
-            onClick={handleLabelClick}
-          >
-            <h3 className="m-0 text-xs font-medium">{data.label}</h3>
+          <div className="pl-2 pr-1 py-1 flex justify-between items-center border-b border-gray-200">
+            <h3 className="text-xs font-medium truncate">{data.label}</h3>
+            <div className="flex gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleLabelClick}
+                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-blue-500 hover:bg-gray-200"
+                    aria-label="Edit node label"
+                  >
+                    <PencilIcon className="w-3 h-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Label</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleDeleteClick}
+                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-red-500 hover:bg-gray-200"
+                    aria-label="Delete node"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete Node</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
 
           {/* Parameters */}
-          <div className="px-1 pb-1 grid grid-cols-2 justify-between gap-2.5">
+          <div className="px-1 py-1 grid grid-cols-2 justify-between gap-2.5">
             {/* Input Parameters */}
             <div className="flex flex-col gap-1 flex-1">
               {data.inputs.map((input, index) => (
@@ -250,7 +294,7 @@ export const WorkflowNode = memo(
           </div>
 
           {hasOutputValues && showOutputs && (
-            <div className="px-2 py-1 border-t border-gray-200 space-y-2">
+            <div className="px-2 pt-1 pb-2 border-t border-gray-200 space-y-2">
               {data.outputs.map(
                 (output, index) =>
                   output.value !== undefined && (
@@ -374,7 +418,33 @@ export const WorkflowNode = memo(
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={showDeleteConfirm}
+          onOpenChange={(open) => !open && setShowDeleteConfirm(false)}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Delete Node</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>Are you sure you want to delete this node? This action cannot be undone.</p>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteConfirm}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </TooltipProvider>
     );
   }
 );

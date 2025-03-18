@@ -49,6 +49,7 @@ export function WorkflowBuilder({
     updateNodeData,
     updateNodeOutputs,
     updateEdgeData,
+    deleteNode,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -154,6 +155,7 @@ export function WorkflowBuilder({
       <WorkflowProvider
         updateNodeData={updateNodeData}
         updateEdgeData={updateEdgeData}
+        deleteNode={deleteNode}
       >
         <div className="w-full h-full flex">
           <div
@@ -175,7 +177,7 @@ export function WorkflowBuilder({
               onPaneClick={handlePaneClick}
               onInit={setReactFlowInstance}
               onAddNode={handleAddNode}
-              onExecute={handleExecuteClick}
+              onExecute={executeWorkflow ? handleExecuteClick : undefined}
               onClean={handleCleanClick}
               onToggleSidebar={handleToggleSidebar}
               isSidebarVisible={isSidebarVisible}

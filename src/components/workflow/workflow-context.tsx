@@ -4,35 +4,39 @@ import { Parameter } from "./workflow-node";
 export interface WorkflowContextProps {
   updateNodeData: (nodeId: string, data: any) => void;
   updateEdgeData: (edgeId: string, data: any) => void;
+  deleteNode: (nodeId: string) => void;
 }
 
-export const WorkflowContext = createContext<WorkflowContextProps | undefined>(
-  undefined
-);
+// Create the context with a default value
+const WorkflowContext = createContext<WorkflowContextProps>({
+  updateNodeData: () => {},
+  updateEdgeData: () => {},
+  deleteNode: () => {},
+});
 
+// Custom hook for using the workflow context
 export function useWorkflow() {
-  const context = useContext(WorkflowContext);
-  if (!context) {
-    throw new Error("useWorkflow must be used within a WorkflowProvider");
-  }
-  return context;
+  return useContext(WorkflowContext);
 }
 
 export interface WorkflowProviderProps {
   children: ReactNode;
   updateNodeData: (nodeId: string, data: any) => void;
   updateEdgeData: (edgeId: string, data: any) => void;
+  deleteNode?: (nodeId: string) => void;
 }
 
 export function WorkflowProvider({
   children,
   updateNodeData,
   updateEdgeData,
+  deleteNode = () => {},
 }: WorkflowProviderProps) {
   // Create the context value
   const workflowContextValue = {
     updateNodeData,
     updateEdgeData,
+    deleteNode,
   };
 
   return (

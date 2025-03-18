@@ -114,6 +114,7 @@ export interface UseWorkflowStateReturn {
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
   updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+  deleteNode: (nodeId: string) => void;
 }
 
 // Execution Types
