@@ -144,11 +144,11 @@ export const WorkflowNode = memo(
       // Also dispatch a save event to persist changes
       try {
         const workflowEvent = new CustomEvent("workflow:save", {
-          detail: { 
-            nodeId: id, 
+          detail: {
+            nodeId: id,
             type: "input-change",
             inputId: selectedInput.id,
-            value: typedValue
+            value: typedValue,
           },
         });
         document.dispatchEvent(workflowEvent);
@@ -175,10 +175,10 @@ export const WorkflowNode = memo(
       // Also dispatch a save event to persist changes
       try {
         const workflowEvent = new CustomEvent("workflow:save", {
-          detail: { 
-            nodeId: id, 
+          detail: {
+            nodeId: id,
             type: "input-clear",
-            inputId: selectedInput.id 
+            inputId: selectedInput.id,
           },
         });
         document.dispatchEvent(workflowEvent);
@@ -200,7 +200,7 @@ export const WorkflowNode = memo(
 
     const handleLabelSave = () => {
       if (labelValue.trim() === "") return;
-      
+
       // Dispatch a custom event to update the node label
       // Use the same event structure as expected by WorkflowNodeInspector
       const updateEvent = new CustomEvent("workflow:node:update", {
@@ -239,7 +239,7 @@ export const WorkflowNode = memo(
           )}
         >
           {/* Header */}
-          <div 
+          <div
             className="p-1 text-center cursor-pointer"
             onClick={handleLabelClick}
           >
@@ -426,7 +426,10 @@ export const WorkflowNode = memo(
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditingLabel(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditingLabel(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={handleLabelSave}>Save</Button>
