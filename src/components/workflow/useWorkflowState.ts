@@ -108,12 +108,48 @@ export function useWorkflowState({
     setConnectionValidationState("default");
   }, []);
 
+  // Function to validate connection based on type compatibility
+  const isValidConnection = useCallback(
+    (connection: any) => {
+      if (!connection.source || !connection.target) return false;
+
+      // Find the source and target nodes
+      const sourceNode = nodes.find((node) => node.id === connection.source);
+      const targetNode = nodes.find((node) => node.id === connection.target);
+
+      if (!sourceNode || !targetNode) return false;
+
+      // Find the specific output and input parameters
+      const sourceOutput = sourceNode.data.outputs.find(
+        (output) => output.id === connection.sourceHandle
+      );
+      const targetInput = targetNode.data.inputs.find(
+        (input) => input.id === connection.targetHandle
+      );
+
+      if (!sourceOutput || !targetInput) return false;
+
+      // Check if types are compatible
+      const typesMatch =
+        sourceOutput.type === targetInput.type ||
+        sourceOutput.type === "any" ||
+        targetInput.type === "any";
+
+      // Update validation state to provide visual feedback
+      setConnectionValidationState(typesMatch ? "valid" : "invalid");
+
+      // Also run the external validation if provided
+      return typesMatch && validateConnection(connection);
+    },
+    [nodes, validateConnection]
+  );
+
   // Handle connection
   const onConnect = useCallback(
     (connection: any) => {
       if (!connection.source || !connection.target) return;
 
-      const isValid = validateConnection(connection);
+      const isValid = isValidConnection(connection);
 
       if (isValid) {
         const newEdge = {
@@ -140,7 +176,7 @@ export function useWorkflowState({
         });
       }
     },
-    [setEdges, validateConnection]
+    [setEdges, isValidConnection]
   );
 
   // Handle adding a new node
@@ -347,6 +383,7 @@ export function useWorkflowState({
     onConnectStart,
     onConnectEnd,
     connectionValidationState,
+    isValidConnection,
     handleNodeClick,
     handleEdgeClick,
     handlePaneClick,

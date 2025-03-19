@@ -5,7 +5,11 @@ import {
   generateState,
   getProviderConfig,
 } from "./providers";
-import { isMockAuthEnabled, createMockAuthResponse, ensureMockUserInDatabase } from "./mock";
+import {
+  isMockAuthEnabled,
+  createMockAuthResponse,
+  ensureMockUserInDatabase,
+} from "./mock";
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   try {

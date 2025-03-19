@@ -34,7 +34,7 @@ export async function verifyAuth(
   if (isMockAuthEnabled(env)) {
     // Ensure mock user exists in the database
     await ensureMockUserInDatabase(env);
-    
+
     return {
       isAuthenticated: true,
       user: {

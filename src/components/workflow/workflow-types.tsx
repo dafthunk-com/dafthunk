@@ -72,6 +72,7 @@ export interface WorkflowCanvasProps {
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
   showControls?: boolean;
+  isValidConnection?: (connection: Connection) => boolean;
 }
 
 // Workflow State Types
@@ -104,6 +105,7 @@ export interface UseWorkflowStateReturn {
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
   connectionValidationState: ConnectionValidationState;
+  isValidConnection: (connection: Connection) => boolean;
   handleNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
   handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
   handlePaneClick: () => void;

@@ -51,6 +51,7 @@ export function WorkflowBuilder({
     updateNodeExecutionState,
     setReactFlowInstance,
     connectionValidationState,
+    isValidConnection,
     updateNodeData,
     updateNodeOutputs,
     updateEdgeData,
@@ -216,6 +217,7 @@ export function WorkflowBuilder({
               workflowStatus={workflowStatus}
               onToggleSidebar={handleToggleSidebar}
               isSidebarVisible={isSidebarVisible}
+              isValidConnection={isValidConnection}
             />
           </div>
 

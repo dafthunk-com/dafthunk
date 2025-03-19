@@ -32,14 +32,14 @@ export const ensureMockUserInDatabase = async (env: Env): Promise<void> => {
 
   try {
     const db = createDatabase(env.DB);
-    
+
     // Check if mock user already exists
     const existingUser = await db
       .select()
       .from(users)
       .where(eq(users.id, MOCK_USER.id))
       .get();
-    
+
     if (!existingUser) {
       // Insert mock user if not exists
       await db
@@ -53,7 +53,7 @@ export const ensureMockUserInDatabase = async (env: Env): Promise<void> => {
           updatedAt: new Date(),
         })
         .run();
-      
+
       console.log("Mock user created in database");
     }
   } catch (error) {

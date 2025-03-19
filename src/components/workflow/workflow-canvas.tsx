@@ -37,6 +37,7 @@ export function WorkflowCanvas({
   onToggleSidebar,
   isSidebarVisible,
   showControls = true,
+  isValidConnection,
 }: WorkflowCanvasProps) {
   // Function to get the action button icon based on workflow status
   const getActionIcon = () => {
@@ -82,6 +83,7 @@ export function WorkflowCanvas({
       connectionLineComponent={WorkflowConnectionLine}
       connectionRadius={8}
       onInit={onInit}
+      isValidConnection={isValidConnection}
       fitView
       className="bg-gray-100"
     >
