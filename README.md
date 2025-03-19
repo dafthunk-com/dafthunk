@@ -8,7 +8,7 @@ A modern workflow execution platform built on Cloudflare Pages, Workers, and AI.
 
 ## 🔍 Overview
 
-Dafthunk (short for Dumb as F*** Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution and Cloudflare AI for intelligent workflow processing.
+Dafthunk (short for Dumb as F\*\*\* Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution and Cloudflare AI for intelligent workflow processing.
 
 The platform features a visual workflow editor built with React Flow, allowing you to create complex workflows by connecting various node types, including AI-powered nodes for text processing, image classification, and more. Think digital LEGO, but with less risk to your bare feet at 2 AM.
 
