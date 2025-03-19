@@ -56,7 +56,7 @@ export type ConnectionValidationState = "default" | "valid" | "invalid";
 export interface WorkflowCanvasProps {
   nodes: ReactFlowNode[];
   edges: ReactFlowEdge[];
-  connectionValidationState: ConnectionValidationState;
+  connectionValidationState?: ConnectionValidationState;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: OnConnect;
