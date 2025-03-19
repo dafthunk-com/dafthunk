@@ -45,7 +45,7 @@ export function Inspiration({ className }: InspirationProps) {
   const [isVideoVisible, setIsVideoVisible] = useState(false);
 
   return (
-    <>
+    <div className={className}>
       {!isVideoVisible && (
         <Button
           onClick={() => setIsVideoVisible(true)}
@@ -67,6 +67,6 @@ export function Inspiration({ className }: InspirationProps) {
           onClose={() => setIsVideoVisible(false)}
         />
       )}
-    </>
+    </div>
   );
 }

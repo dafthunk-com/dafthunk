@@ -5,7 +5,6 @@ import ReactFlow, {
   ConnectionMode,
 } from "reactflow";
 import { Button } from "@/components/ui/button";
-import { Inspiration } from "@/components/ui/inspiration";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
