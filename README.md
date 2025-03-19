@@ -1,10 +1,14 @@
-# Workflow
+# Dafthunk
 
-A modern workflow execution platform built on Cloudflare Pages, Workers, and AI. Because apparently, the world needed another one of these.
+> Workflows No One Asked For
+
+A modern workflow execution platform built on Cloudflare Pages, Workers, and AI. Because apparently, the [world](https://www.youtube.com/watch?v=K0HSD_i2DvA) needed another one of these.
+
+> Break it, fix it, prompt it, automatic, automatic, ...
 
 ## 🔍 Overview
 
-Workflow is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution and Cloudflare AI for intelligent workflow processing.
+Dafthunk (short for Dumb as F*** Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution and Cloudflare AI for intelligent workflow processing.
 
 The platform features a visual workflow editor built with React Flow, allowing you to create complex workflows by connecting various node types, including AI-powered nodes for text processing, image classification, and more. Think digital LEGO, but with less risk to your bare feet at 2 AM.
 
@@ -46,7 +50,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/workflow.git
+   git clone https://github.com/heigvd-software-engineering/workflow.git
    cd workflow
    ```
 

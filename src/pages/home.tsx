@@ -157,9 +157,10 @@ export function HomePage() {
     if (!isAuthenticated) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
-          <h1 className="text-2xl font-bold">Workflow Editor</h1>
-          <p className="text-gray-500 text-lg mt-2 mb-6">
-            Sign in to create and manage your workflows
+          <img src="/logo.svg" alt="Dafthunk – Short for Dumb as F*** Thunk." className="h-32 mb-8" />
+          <h1 className="text-2xl font-bold"><Link target="_blank" to="https://www.youtube.com/watch?v=K0HSD_i2DvA">Workflows No One Asked For</Link></h1>
+          <p className="text-gray-500 text-lg mt-2 mb-14">
+            <Link target="_blank" to="https://www.youtube.com/watch?v=D8K90hX4PrE">Break it, fix it, prompt it, automatic, automatic, ...</Link>
           </p>
           <Button onClick={handleLoginClick} className="px-6">
             Sign in with GitHub
@@ -180,9 +181,10 @@ export function HomePage() {
     if (workflows.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
-          <h1 className="text-2xl font-bold">Workflow Editor</h1>
-          <p className="text-gray-500 text-lg mt-2">
-            No workflows yet. Create your first one!
+          <img src="/logo.svg" alt="Dafthunk – Short for Dumb as F*** Thunk." className="h-32 mb-8" />
+          <h1 className="text-2xl font-bold"><Link target="_blank" to="https://www.youtube.com/watch?v=K0HSD_i2DvA">Workflows No One Asked For</Link></h1>
+          <p className="text-gray-500 text-lg mt-2 mb-14">
+            <Link target="_blank" to="https://www.youtube.com/watch?v=D8K90hX4PrE">Break it, fix it, prompt it, automatic, automatic, ...</Link>
           </p>
         </div>
       );

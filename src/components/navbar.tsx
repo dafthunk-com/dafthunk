@@ -16,7 +16,7 @@ export function NavBar({ className }: NavBarProps) {
     >
       <div className="flex items-center">
         <Link to="/" className="text-xl font-semibold">
-          Workflow
+          <img src="/logo.svg" alt="Workflow" className="h-10" />
         </Link>
       </div>
       <div className="flex items-center">
