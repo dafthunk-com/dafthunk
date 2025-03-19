@@ -5,13 +5,15 @@ import {
   generateState,
   getProviderConfig,
 } from "./providers";
-import { isMockAuthEnabled, createMockAuthResponse } from "./mock";
+import { isMockAuthEnabled, createMockAuthResponse, ensureMockUserInDatabase } from "./mock";
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request }) => {
   try {
     // Check if mock auth is enabled
     if (isMockAuthEnabled(env)) {
       console.log("Using mock authentication");
+      // Ensure mock user exists in the database
+      await ensureMockUserInDatabase(env);
       return createMockAuthResponse();
     }
 

@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 import { Env, extractJWTFromHeader, verifyJWT, JWTPayload } from "./jwt";
 import { isMockAuthEnabled, MOCK_USER } from "./mock";
+import { ensureMockUserInDatabase } from "./mock";
 
 // Parse cookies from the request
 export function parseCookies(request: Request): Record<string, string> {
@@ -31,6 +32,9 @@ export async function verifyAuth(
 ): Promise<AuthResult> {
   // Check if mock auth is enabled
   if (isMockAuthEnabled(env)) {
+    // Ensure mock user exists in the database
+    await ensureMockUserInDatabase(env);
+    
     return {
       isAuthenticated: true,
       user: {
