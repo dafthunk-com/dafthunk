@@ -159,7 +159,7 @@ export function HomePage() {
         <div className="flex flex-col items-center justify-center h-full">
           <img
             src="/logo.svg"
-            alt="Dafthunk – Short for Dumb as F*** Thunk."
+            alt="Dafthunk – Short for Dope as F*** Thunk."
             className="h-32 mb-8"
           />
           <h1 className="text-2xl font-bold">
@@ -199,7 +199,7 @@ export function HomePage() {
         <div className="flex flex-col items-center justify-center h-full">
           <img
             src="/logo.svg"
-            alt="Dafthunk – Short for Dumb as F*** Thunk."
+            alt="Dafthunk – Short for Dope as F*** Thunk."
             className="h-32 mb-8"
           />
           <h1 className="text-2xl font-bold">
