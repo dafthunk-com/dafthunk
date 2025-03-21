@@ -1,10 +1,24 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Modulo node implementation - calculates remainder after division
  */
 export class ModuloNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "modulo",
+    name: "Modulo",
+    type: "modulo",
+    description: "Calculates the remainder after division",
+    category: "Math",
+    icon: "percent",
+    inputs: [
+      { name: "a", type: "number" },
+      { name: "b", type: "number" },
+    ],
+    outputs: [{ name: "result", type: "number" }],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const a = Number(context.inputs.a);

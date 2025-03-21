@@ -80,7 +80,7 @@ describe("ImageClassificationNode", () => {
     });
 
     expect(mockAIRun).toHaveBeenCalledWith("@cf/facebook/detr-resnet-50", {
-      image: expect.any(Uint8Array),
+      image: [1, 2, 3],
     });
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({

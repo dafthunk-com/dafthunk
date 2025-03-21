@@ -1,10 +1,21 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
  * Absolute Value node implementation
  */
 export class AbsoluteValueNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "absolute-value",
+    name: "Absolute Value",
+    type: "absolute-value",
+    description: "Calculates the absolute value of a number",
+    category: "Math",
+    icon: "absolute",
+    inputs: [{ name: "value", type: "number" }],
+    outputs: [{ name: "result", type: "number" }],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const value = Number(context.inputs.value);

@@ -9,6 +9,22 @@ vi.mock("../db", () => ({
   createDatabase: vi.fn(),
 }));
 
+// Mock the auth middleware
+vi.mock("./auth/middleware", () => ({
+  withAuth: (handler) => {
+    return async (context) => {
+      // Simulate successful authentication
+      const user = {
+        sub: "mock-user-id",
+        name: "Mock User",
+        email: "mock@example.com",
+        provider: "mock",
+      };
+      return handler(context.request, context.env, user);
+    };
+  },
+}));
+
 describe("workflows function", () => {
   let mockDb: any;
   let mockContext: { env: Env; request: Request };
@@ -24,7 +40,8 @@ describe("workflows function", () => {
     // Setup mock database
     mockDb = {
       select: vi.fn().mockReturnThis(),
-      from: vi.fn().mockResolvedValue([]),
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockResolvedValue([]),
       insert: vi.fn().mockReturnThis(),
       values: vi.fn().mockReturnThis(),
       returning: vi.fn().mockResolvedValue([
@@ -68,7 +85,7 @@ describe("workflows function", () => {
         },
       ];
 
-      mockDb.from.mockResolvedValueOnce(mockWorkflows);
+      mockDb.where.mockResolvedValueOnce(mockWorkflows);
       mockContext.request = new Request("https://example.com/api/workflows", {
         method: "GET",
       });

@@ -13,11 +13,12 @@ import {
   Node,
   NodeRegistry,
   WorkflowExecutionOptions,
-  ExecutableNode,
   NodeContext,
   ExecutionResult,
+  NodeType,
 } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
+import { BaseExecutableNode } from "./nodes/baseNode";
 
 // Mock the validateWorkflow function
 vi.mock("./workflowValidation", () => ({
@@ -45,30 +46,26 @@ vi.mock("./workflowTypes", async () => {
 });
 
 // Create a mock node implementation for testing
-class MockExecutableNode implements ExecutableNode {
-  id: string;
-  name: string;
-  type: string;
-  description?: string;
-  position: { x: number; y: number };
-  inputs: { name: string; type: string; description?: string; value?: any }[];
-  outputs: { name: string; type: string; description?: string; value?: any }[];
-  error?: string;
+class MockExecutableNode extends BaseExecutableNode {
+  protected readonly nodeType: NodeType;
   executeMock: ReturnType<typeof vi.fn>;
 
   constructor(node: Node) {
-    this.id = node.id;
-    this.name = node.name;
-    this.type = node.type;
-    this.description = node.description;
-    this.position = node.position;
-    this.inputs = node.inputs;
-    this.outputs = node.outputs;
-    this.error = node.error;
+    super(node);
+    this.nodeType = {
+      id: node.type,
+      name: node.name,
+      type: node.type,
+      description: node.description || "",
+      category: "Test",
+      icon: "test",
+      inputs: node.inputs.map((input) => ({ ...input })),
+      outputs: node.outputs.map((output) => ({ ...output })),
+    };
     this.executeMock = vi.fn().mockResolvedValue({
-      nodeId: this.id,
+      nodeId: node.id,
       success: true,
-      outputs: { result: `Output from ${this.id}` },
+      outputs: { result: `Output from ${node.id}` },
     });
   }
 
@@ -82,9 +79,9 @@ class FailingMockExecutableNode extends MockExecutableNode {
   constructor(node: Node) {
     super(node);
     this.executeMock = vi.fn().mockResolvedValue({
-      nodeId: this.id,
+      nodeId: node.id,
       success: false,
-      error: `Error executing node ${this.id}`,
+      error: `Error executing node ${node.id}`,
     });
   }
 }

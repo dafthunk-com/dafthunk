@@ -1,4 +1,5 @@
 // Types for workflows
+import { BaseExecutableNode } from "./nodes/baseNode";
 
 export interface Position {
   x: number;
@@ -7,7 +8,7 @@ export interface Position {
 
 export interface Parameter {
   name: string;
-  type: string;
+  type: "string" | "number" | "array" | "binary" | "object" | "imageData";
   description?: string;
   value?: any;
 }
@@ -91,18 +92,16 @@ export interface NodeContext {
   };
 }
 
-export interface ExecutableNode extends Node {
-  execute(context: NodeContext): Promise<ExecutionResult>;
-}
-
-export interface NodeImplementation {
-  type: string;
-  createExecutableNode(node: Node): ExecutableNode;
+// This interface represents concrete (non-abstract) node implementations
+export interface NodeImplementationConstructor {
+  new (node: Node): BaseExecutableNode;
+  readonly nodeType: NodeType;
 }
 
 export class NodeRegistry {
   private static instance: NodeRegistry;
-  private implementations: Map<string, NodeImplementation> = new Map();
+  private implementations: Map<string, NodeImplementationConstructor> =
+    new Map();
 
   private constructor() {}
 
@@ -113,20 +112,27 @@ export class NodeRegistry {
     return NodeRegistry.instance;
   }
 
-  public registerImplementation(implementation: NodeImplementation): void {
-    this.implementations.set(implementation.type, implementation);
+  public registerImplementation(
+    Implementation: NodeImplementationConstructor
+  ): void {
+    if (!Implementation?.nodeType?.type) {
+      throw new Error("NodeType is not defined");
+    }
+    this.implementations.set(Implementation.nodeType.type, Implementation);
   }
 
-  public getImplementation(type: string): NodeImplementation | undefined {
-    return this.implementations.get(type);
-  }
-
-  public createExecutableNode(node: Node): ExecutableNode | undefined {
-    const implementation = this.getImplementation(node.type);
-    if (!implementation) {
+  public createExecutableNode(node: Node): BaseExecutableNode | undefined {
+    const Implementation = this.implementations.get(node.type);
+    if (!Implementation) {
       return undefined;
     }
-    return implementation.createExecutableNode(node);
+    return new Implementation(node);
+  }
+
+  public getNodeTypes(): NodeType[] {
+    return Array.from(this.implementations.values()).map(
+      (implementation) => implementation.nodeType
+    );
   }
 }
 

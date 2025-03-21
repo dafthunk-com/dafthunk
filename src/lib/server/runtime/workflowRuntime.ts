@@ -2,12 +2,12 @@ import {
   Workflow,
   ValidationError,
   NodeRegistry,
-  ExecutableNode,
   NodeContext,
   WorkflowExecutionOptions,
 } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodes/nodeRegistry";
+import { BaseExecutableNode } from "./nodes/baseNode";
 
 // Initialize the node registry
 registerNodes();
@@ -20,7 +20,7 @@ export class WorkflowRuntime {
   private nodeOutputs: Map<string, Record<string, any>> = new Map();
   private executedNodes: Set<string> = new Set();
   private nodeErrors: Map<string, string> = new Map();
-  private executableNodes: Map<string, ExecutableNode> = new Map();
+  private executableNodes: Map<string, BaseExecutableNode> = new Map();
   private options: WorkflowExecutionOptions;
   private env?: any;
   private aborted: boolean = false;

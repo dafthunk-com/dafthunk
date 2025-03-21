@@ -1,7 +1,30 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
 
 export class ImageUrlLoaderNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "image-url-loader",
+    name: "Image URL Loader",
+    type: "image-url-loader",
+    description: "Loads an image from a URL and converts it to a data array",
+    category: "Utility",
+    icon: "link",
+    inputs: [
+      {
+        name: "url",
+        type: "string",
+        description: "The URL of the PNG image to load",
+      },
+    ],
+    outputs: [
+      {
+        name: "imageData",
+        type: "binary",
+        description: "The image data as a binary array",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const url = context.inputs.url;

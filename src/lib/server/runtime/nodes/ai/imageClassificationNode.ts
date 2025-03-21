@@ -1,7 +1,34 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
 
+/**
+ * Image Classification node implementation
+ */
 export class ImageClassificationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "image-classification",
+    name: "Image Classification",
+    type: "image-classification",
+    description: "Detects and classifies objects in images",
+    category: "AI",
+    icon: "image",
+    inputs: [
+      {
+        name: "image",
+        type: "binary",
+        description: "The image to use for object detection",
+      },
+    ],
+    outputs: [
+      {
+        name: "detections",
+        type: "array",
+        description:
+          "Array of detected objects with scores, labels, and bounding boxes",
+      },
+    ],
+  };
+
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const image = context.inputs.image;

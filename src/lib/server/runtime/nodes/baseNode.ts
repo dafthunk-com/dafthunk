@@ -1,40 +1,21 @@
-import {
-  Node,
-  ExecutableNode,
-  NodeContext,
-  ExecutionResult,
-  Parameter,
-} from "../workflowTypes";
+import { Node, NodeContext, ExecutionResult, NodeType } from "../workflowTypes";
 
 /**
  * Base class for all executable nodes
  */
-export abstract class BaseExecutableNode implements ExecutableNode {
-  id: string;
-  name: string;
-  type: string;
-  description?: string;
-  position: { x: number; y: number };
-  inputs: Parameter[];
-  outputs: Parameter[];
-  error?: string;
+export abstract class BaseExecutableNode {
+  public readonly node: Node;
+  public static readonly nodeType: NodeType;
 
   constructor(node: Node) {
-    this.id = node.id;
-    this.name = node.name;
-    this.type = node.type;
-    this.description = node.description;
-    this.position = node.position;
-    this.inputs = node.inputs;
-    this.outputs = node.outputs;
-    this.error = node.error;
+    this.node = node;
   }
 
-  abstract execute(context: NodeContext): Promise<ExecutionResult>;
+  public abstract execute(context: NodeContext): Promise<ExecutionResult>;
 
   protected createSuccessResult(outputs: Record<string, any>): ExecutionResult {
     return {
-      nodeId: this.id,
+      nodeId: this.node.id,
       success: true,
       outputs,
     };
@@ -42,7 +23,7 @@ export abstract class BaseExecutableNode implements ExecutableNode {
 
   protected createErrorResult(error: string): ExecutionResult {
     return {
-      nodeId: this.id,
+      nodeId: this.node.id,
       success: false,
       error,
     };
