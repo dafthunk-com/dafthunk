@@ -9,4 +9,8 @@ export * from "./math/absoluteValueNode";
 export * from "./widgets/sliderNode";
 export * from "./ai/llmNode";
 export * from "./ai/imageGenerationNode";
+export * from "./ai/ttsNode";
+export * from "./ai/whisperNode";
+export * from "./ai/llavaNode";
+export * from "./ai/uformNode";
 export * from "./utility";

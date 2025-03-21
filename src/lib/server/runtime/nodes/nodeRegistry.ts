@@ -16,6 +16,10 @@ import {
   AbsoluteValueNode,
   SliderNode,
   LLMNode,
+  TTSNode,
+  WhisperNode,
+  LLaVANode,
+  UFormNode,
 } from "./index";
 
 /**
@@ -34,6 +38,10 @@ export function registerNodes(): void {
   registry.registerImplementation(AbsoluteValueNode);
   registry.registerImplementation(SliderNode);
   registry.registerImplementation(LLMNode);
+  registry.registerImplementation(TTSNode);
+  registry.registerImplementation(WhisperNode);
+  registry.registerImplementation(LLaVANode);
+  registry.registerImplementation(UFormNode);
   registry.registerImplementation(SummarizationNode);
   registry.registerImplementation(TranslationNode);
   registry.registerImplementation(SentimentNode);

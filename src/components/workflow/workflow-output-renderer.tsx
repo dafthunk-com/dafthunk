@@ -1,5 +1,6 @@
 import { createDataUrl } from "@/lib/utils/binaryUtils";
 import { WorkflowParameter } from "./workflow-types";
+import { useEffect, useRef, useState } from "react";
 
 interface WorkflowOutputRendererProps {
   output: WorkflowParameter;
@@ -66,6 +67,72 @@ export function WorkflowOutputRenderer({
           </div>
         );
       }
+    } else if (output.value.data && output.value.mimeType?.startsWith("audio/")) {
+      const [audioError, setAudioError] = useState<string | null>(null);
+      const [audioUrl, setAudioUrl] = useState<string | null>(null);
+      const audioRef = useRef<HTMLAudioElement>(null);
+      
+      useEffect(() => {
+        try {
+          console.log("Processing audio data:", {
+            dataLength: output.value.data.length,
+            mimeType: output.value.mimeType,
+            sampleData: output.value.data.slice(0, 20)
+          });
+          
+          // Create the data URL for the audio
+          const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
+          setAudioUrl(dataUrl);
+          
+          // Log the data URL format (first 100 chars)
+          console.log("Audio data URL:", dataUrl.substring(0, 100) + "...");
+        } catch (error) {
+          console.error("Error creating audio data URL:", error);
+          setAudioError("Failed to process audio data");
+        }
+      }, [output.value.data, output.value.mimeType]);
+      
+      const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+        console.error("Audio playback error:", e);
+        if (audioRef.current) {
+          console.log("Audio element error:", audioRef.current.error);
+        }
+        setAudioError("Error playing audio. The data may be corrupted.");
+      };
+      
+      // If we already have an error, show it
+      if (audioError && !audioUrl) {
+        return (
+          <div
+            className={
+              compact
+                ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
+                : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+            }
+          >
+            {audioError}
+          </div>
+        );
+      }
+      
+      return (
+        <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
+          {audioUrl && (
+            <audio
+              ref={audioRef}
+              controls
+              src={audioUrl}
+              className="w-full rounded-md"
+              onError={handleAudioError}
+            />
+          )}
+          {audioError && (
+            <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
+              {audioError}
+            </div>
+          )}
+        </div>
+      );
     }
     return (
       <div

@@ -1,0 +1,114 @@
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { BaseExecutableNode } from "../baseNode";
+
+/**
+ * Image-to-Text node implementation using LLaVA
+ */
+export class LLaVANode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "image-to-text",
+    name: "Image to Text",
+    type: "image-to-text",
+    description:
+      "Generates text descriptions from images using LLaVA model",
+    category: "AI",
+    icon: "image",
+    inputs: [
+      {
+        name: "image",
+        type: "binary",
+        description: "The image to generate a description for",
+      },
+      {
+        name: "prompt",
+        type: "string",
+        description: "The input text prompt for guiding the model's response",
+        value: "Generate a caption for this image",
+      },
+      {
+        name: "max_tokens",
+        type: "number",
+        description: "The maximum number of tokens to generate in the response",
+        value: 512,
+      },
+      {
+        name: "temperature",
+        type: "number",
+        description: "Controls the randomness of the output; higher values produce more random results",
+        value: 0.7,
+      },
+      {
+        name: "top_p",
+        type: "number",
+        description: "Controls the diversity of outputs by limiting to the most probable tokens",
+        value: 0.95,
+      },
+      {
+        name: "top_k",
+        type: "number",
+        description: "Limits the AI to choose from the top 'k' most probable words",
+        value: 40,
+      },
+    ],
+    outputs: [
+      {
+        name: "description",
+        type: "string",
+        description: "The generated text description of the image",
+      },
+    ],
+  };
+
+  async execute(context: NodeContext): Promise<ExecutionResult> {
+    try {
+      if (!context.env?.AI) {
+        throw new Error("AI service is not available");
+      }
+
+      const { image, prompt, max_tokens, temperature, top_p, top_k } = context.inputs;
+
+      // Validate inputs
+      if (!image || !image.data) {
+        throw new Error("Image input is required");
+      }
+
+      console.log(`Processing image for LLaVA, data length: ${image.data.length} bytes`);
+      console.log(`Prompt: "${prompt || 'Generate a caption for this image'}"`);
+
+      // Prepare the image data - convert to array of numbers
+      const imageData = Array.from(new Uint8Array(image.data));
+
+      // Prepare parameters for the model
+      const params: any = {
+        image: imageData,
+        prompt: prompt || "Generate a caption for this image",
+        max_tokens: max_tokens || 512,
+      };
+
+      // Add optional parameters if provided
+      if (temperature !== undefined) params.temperature = temperature;
+      if (top_p !== undefined) params.top_p = top_p;
+      if (top_k !== undefined) params.top_k = top_k;
+
+      // Call Cloudflare AI LLaVA model
+      const response = await context.env.AI.run(
+        "@cf/llava-hf/llava-1.5-7b-hf",
+        params
+      );
+
+      console.log("LLaVA response:", response);
+
+      // Extract the description from the response
+      const { description } = response;
+
+      return this.createSuccessResult({
+        description,
+      });
+    } catch (error) {
+      console.error("LLaVANode execution error:", error);
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+  }
+} 
