@@ -13,7 +13,7 @@ export const formatOutputValue = (value: any, type: string): string => {
   try {
     if (type === "binary") {
       return ""; // Don't display binary data as text
-    } else if (type === "object" || type === "array") {
+    } else if (type === "json" || type === "array") {
       return JSON.stringify(value, null, 2);
     } else if (type === "boolean") {
       return value ? "true" : "false";

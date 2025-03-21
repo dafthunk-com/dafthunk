@@ -141,8 +141,11 @@ describe("ImageUrlLoaderNode", () => {
 
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
-      imageData: expect.any(Uint8Array),
+      image: {
+        data: expect.any(Uint8Array),
+        mimeType: "image/png",
+      },
     });
-    expect(result.outputs?.imageData).toEqual(new Uint8Array([1, 2, 3, 4]));
+    expect(result.outputs?.image.data).toEqual(new Uint8Array([1, 2, 3, 4]));
   });
 });

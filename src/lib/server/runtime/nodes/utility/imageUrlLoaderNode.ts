@@ -18,7 +18,7 @@ export class ImageUrlLoaderNode extends BaseExecutableNode {
     ],
     outputs: [
       {
-        name: "imageData",
+        name: "image",
         type: "binary",
         description: "The image data as a binary array",
       },
@@ -65,7 +65,10 @@ export class ImageUrlLoaderNode extends BaseExecutableNode {
         const imageData = new Uint8Array(arrayBuffer);
 
         return this.createSuccessResult({
-          imageData: imageData,
+          image: {
+            data: imageData,
+            mimeType: "image/png",
+          },
         });
       } catch (error) {
         return this.createErrorResult(

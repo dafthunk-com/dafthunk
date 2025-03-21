@@ -43,7 +43,10 @@ describe("ImageClassificationNode", () => {
       nodeId: "test-id",
       workflowId: "test-workflow",
       inputs: {
-        image: new Uint8Array([1, 2, 3]),
+        image: {
+          data: new Uint8Array([1, 2, 3]),
+          mimeType: "image/png",
+        },
       },
     });
 
@@ -70,7 +73,10 @@ describe("ImageClassificationNode", () => {
       nodeId: "test-id",
       workflowId: "test-workflow",
       inputs: {
-        image: new Uint8Array([1, 2, 3]),
+        image: {
+          data: new Uint8Array([1, 2, 3]),
+          mimeType: "image/png",
+        },
       },
       env: {
         AI: {
@@ -100,14 +106,19 @@ describe("ImageClassificationNode", () => {
   });
 
   it("should handle errors during execution", async () => {
-    const mockAIRun = vi.fn().mockRejectedValue(new Error("API error"));
+    const mockAIRun = vi
+      .fn()
+      .mockRejectedValue(new Error("image.data is not iterable"));
 
     const node = new ImageClassificationNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
       inputs: {
-        image: new Uint8Array([1, 2, 3]),
+        image: {
+          data: new Uint8Array([1, 2, 3]),
+          mimeType: "image/png",
+        },
       },
       env: {
         AI: {
@@ -117,6 +128,6 @@ describe("ImageClassificationNode", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("API error");
+    expect(result.error).toBe("image.data is not iterable");
   });
 });
