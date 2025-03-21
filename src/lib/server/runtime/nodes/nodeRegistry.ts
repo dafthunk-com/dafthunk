@@ -24,83 +24,20 @@ import {
 export function registerNodes(): void {
   const registry = NodeRegistry.getInstance();
 
-  registry.registerImplementation({
-    type: "addition",
-    createExecutableNode: (node) => new AdditionNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "subtraction",
-    createExecutableNode: (node) => new SubtractionNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "multiplication",
-    createExecutableNode: (node) => new MultiplicationNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "division",
-    createExecutableNode: (node) => new DivisionNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "modulo",
-    createExecutableNode: (node) => new ModuloNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "exponentiation",
-    createExecutableNode: (node) => new ExponentiationNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "square-root",
-    createExecutableNode: (node) => new SquareRootNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "absolute-value",
-    createExecutableNode: (node) => new AbsoluteValueNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "slider",
-    createExecutableNode: (node) => new SliderNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "llm",
-    createExecutableNode: (node) => new LLMNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "summarization",
-    createExecutableNode: (node) => new SummarizationNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "translation",
-    createExecutableNode: (node) => new TranslationNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "sentiment",
-    createExecutableNode: (node) => new SentimentNode(node),
-  });
-
-  registry.registerImplementation({
-    type: ImageClassificationNode.nodeType.type,
-    createExecutableNode: (node) => new ImageClassificationNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "image-url-loader",
-    createExecutableNode: (node) => new ImageUrlLoaderNode(node),
-  });
-
-  registry.registerImplementation({
-    type: "image-generation",
-    createExecutableNode: (node) => new ImageGenerationNode(node),
-  });
+  registry.registerImplementation(AdditionNode);
+  registry.registerImplementation(SubtractionNode);
+  registry.registerImplementation(MultiplicationNode);
+  registry.registerImplementation(DivisionNode);
+  registry.registerImplementation(ModuloNode);
+  registry.registerImplementation(ExponentiationNode);
+  registry.registerImplementation(SquareRootNode);
+  registry.registerImplementation(AbsoluteValueNode);
+  registry.registerImplementation(SliderNode);
+  registry.registerImplementation(LLMNode);
+  registry.registerImplementation(SummarizationNode);
+  registry.registerImplementation(TranslationNode);
+  registry.registerImplementation(SentimentNode);
+  registry.registerImplementation(ImageClassificationNode);
+  registry.registerImplementation(ImageUrlLoaderNode);
+  registry.registerImplementation(ImageGenerationNode);
 }

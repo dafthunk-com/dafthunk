@@ -10,7 +10,7 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
  * and passed directly to the output.
  */
 export class SliderNode extends BaseExecutableNode {
-  public readonly nodeType: NodeType = {
+  public static readonly nodeType: NodeType = {
     id: "slider",
     name: "Slider",
     type: "slider",
