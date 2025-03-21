@@ -54,7 +54,7 @@ export class ImageGenerationNode extends BaseExecutableNode {
       {
         name: "image",
         type: "binary",
-        description: "The generated image in PNG format",
+        description: "The generated image in JPEG format",
       },
     ],
   };
@@ -92,48 +92,18 @@ export class ImageGenerationNode extends BaseExecutableNode {
         }
       )) as ReadableStream;
 
-      if (!stream) {
-        throw new Error("Failed to generate image");
-      }
-
-      // Convert the stream to a Uint8Array
-      const reader = stream.getReader();
-      const chunks: Uint8Array[] = [];
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (value) {
-          chunks.push(value);
-        }
-      }
-
-      // Concatenate all chunks into a single Uint8Array
-      const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-      const result = new Uint8Array(totalLength);
-      let offset = 0;
-
-      for (const chunk of chunks) {
-        result.set(chunk, offset);
-        offset += chunk.length;
-      }
-
-      // Ensure we have valid image data
-      if (totalLength === 0) {
-        throw new Error("No image data received from AI model");
-      }
-
-      // Convert Uint8Array to regular array for proper serialization
-      // This ensures the binary data is properly transmitted to the client
-      const serializedImageData = Array.from(result);
+      const response = new Response(stream);
+      const blob = await response.blob();
+      const buffer = await blob.arrayBuffer();
 
       return this.createSuccessResult({
         image: {
-          data: serializedImageData,
-          mimeType: "image/png",
+          data: Array.from(new Uint8Array(buffer)),
+          mimeType: "image/jpeg",
         },
       });
     } catch (error) {
+      console.error(error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

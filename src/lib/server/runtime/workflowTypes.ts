@@ -8,7 +8,7 @@ export interface Position {
 
 export interface Parameter {
   name: string;
-  type: "string" | "number" | "array" | "binary" | "object" | "imageData";
+  type: "string" | "number" | "array" | "binary" | "json";
   description?: string;
   value?: any;
 }
