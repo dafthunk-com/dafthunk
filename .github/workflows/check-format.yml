@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  check-format:
+  lint-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,5 +25,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Check code format
+      - name: Lint
         run: pnpm run format:check
+
+      - name: Test
+        run: pnpm run test
