@@ -2,11 +2,21 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 
+// Define plans
+export const Plan = {
+  FREE: 'free',
+  BASIC: 'basic',
+  PRO: 'pro',
+} as const;
+
+export type PlanType = typeof Plan[keyof typeof Plan];
+
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email"),
   provider: text("provider").notNull(),
+  plan: text("plan").$type<PlanType>().notNull().default(Plan.FREE),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
