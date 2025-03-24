@@ -65,6 +65,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         email: user.email,
         provider: user.provider,
         plan: user.plan,
+        role: user.role,
       },
       env
     );

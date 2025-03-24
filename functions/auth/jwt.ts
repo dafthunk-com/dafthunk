@@ -12,7 +12,8 @@ export interface JWTPayload {
   name: string; // User's name
   email?: string; // User's email (optional)
   provider: string; // OAuth provider (e.g., 'github')
-  plan?: string; // User's subscription plan
+  plan: string; // User's subscription plan
+  role: string; // User's role (e.g., 'user', 'admin')
   iat: number; // Issued at timestamp
   exp: number; // Expiration timestamp
 }
@@ -52,6 +53,8 @@ export async function verifyJWT(
       typeof payload.sub !== "string" ||
       typeof payload.name !== "string" ||
       typeof payload.provider !== "string" ||
+      typeof payload.plan !== "string" ||
+      typeof payload.role !== "string" ||
       typeof payload.iat !== "number" ||
       typeof payload.exp !== "number"
     ) {
@@ -63,7 +66,8 @@ export async function verifyJWT(
       name: payload.name,
       email: payload.email as string | undefined,
       provider: payload.provider as string,
-      plan: payload.plan as string | undefined,
+      plan: payload.plan as string,
+      role: payload.role as string,
       iat: payload.iat,
       exp: payload.exp,
     };

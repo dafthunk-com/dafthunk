@@ -11,12 +11,21 @@ export const Plan = {
 
 export type PlanType = typeof Plan[keyof typeof Plan];
 
+// Define roles
+export const Role = {
+  USER: 'user',
+  ADMIN: 'admin',
+} as const;
+
+export type RoleType = typeof Role[keyof typeof Role];
+
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email"),
   provider: text("provider").notNull(),
   plan: text("plan").$type<PlanType>().notNull().default(Plan.FREE),
+  role: text("role").$type<RoleType>().notNull().default(Role.USER),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

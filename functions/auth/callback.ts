@@ -155,7 +155,7 @@ async function saveUserToDatabase(
   userEmail: string | undefined,
   provider: string,
   env: Env
-): Promise<string | undefined> {
+): Promise<void> {
   try {
     const db = createDatabase(env.DB);
 
@@ -179,9 +179,9 @@ async function saveUserToDatabase(
         .run();
 
       console.log(`Updated existing user in database: ${userId}`);
-      return existingUser.plan;
     } else {
       // Insert new user
+      const defaultPlan = 'free';
       await db
         .insert(users)
         .values({
@@ -189,19 +189,18 @@ async function saveUserToDatabase(
           name: userName,
           email: userEmail,
           provider: provider,
-          plan: 'free',
+          plan: defaultPlan,
+          role: 'user',
           createdAt: new Date(),
           updatedAt: new Date(),
         })
         .run();
 
       console.log(`Saved new user to database: ${userId}`);
-      return 'basic'; // Default plan for new users
     }
   } catch (error) {
     console.error("Error saving user to database:", error);
-    // Don't throw the error to avoid breaking the authentication flow
-    return undefined;
+    throw error; // Let the caller handle the error
   }
 }
 
@@ -334,16 +333,35 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Save user to database
-    const userPlan = await saveUserToDatabase(userId, userName, userEmail, provider, env);
+    await saveUserToDatabase(userId, userName, userEmail, provider, env);
+
+    // Fetch the complete user data
+    const db = createDatabase(env.DB);
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .get();
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch user data" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // Create a JWT
     const jwt = await createJWT(
       {
-        sub: userId,
-        name: userName,
-        email: userEmail,
-        provider,
-        plan: userPlan,
+        sub: user.id,
+        name: user.name,
+        email: user.email || undefined,
+        provider: user.provider,
+        plan: user.plan,
+        role: user.role,
       },
       env
     );
