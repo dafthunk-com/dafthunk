@@ -114,6 +114,7 @@ async function executeWorkflow(
         );
       },
       onNodeComplete: (nodeId, outputs) => {
+        console.log("onNodeComplete", nodeId, outputs);
         if (signal.aborted) return;
         safeWrite(
           createEvent({
