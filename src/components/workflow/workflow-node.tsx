@@ -24,14 +24,14 @@ import {
   useWorkflow,
   updateNodeInput,
   clearNodeInput,
-  updateNodeLabel,
+  updateNodeName,
   convertValueByType,
 } from "./workflow-context";
 
 export interface Parameter {
   id: string;
   type: string;
-  label: string;
+  name: string;
   value?: any;
   isConnected?: boolean;
 }
@@ -39,7 +39,7 @@ export interface Parameter {
 type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 
 export interface WorkflowNodeData {
-  label: string;
+  name: string;
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string | null;
@@ -59,7 +59,7 @@ const TypeBadge = ({
   parameter?: Parameter;
   onInputClick?: (param: Parameter) => void;
 }) => {
-  const label = type.charAt(0).toUpperCase();
+  const name = type.charAt(0).toUpperCase();
 
   const handleClick = (e: React.MouseEvent) => {
     if (position === Position.Left && parameter && onInputClick) {
@@ -96,7 +96,7 @@ const TypeBadge = ({
         )}
         onClick={handleClick}
       >
-        {label}
+        {name}
       </span>
     </div>
   );
@@ -119,15 +119,15 @@ export const WorkflowNode = memo(
     );
     const [selectedInput, setSelectedInput] = useState<Parameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");
-    const [isEditingLabel, setIsEditingLabel] = useState(false);
-    const [labelValue, setLabelValue] = useState(data.label);
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [nameValue, setNameValue] = useState(data.name);
 
-    // Keep labelValue in sync with data.label when not editing
+    // Keep nameValue in sync with data.name when not editing
     useEffect(() => {
-      if (!isEditingLabel) {
-        setLabelValue(data.label);
+      if (!isEditingName) {
+        setNameValue(data.name);
       }
-    }, [data.label, isEditingLabel]);
+    }, [data.name, isEditingName]);
 
     const handleInputClick = (input: Parameter) => {
       setSelectedInput(input);
@@ -160,15 +160,15 @@ export const WorkflowNode = memo(
       setSelectedInput(null);
     };
 
-    const handleLabelClick = () => {
-      setIsEditingLabel(true);
-      setLabelValue(data.label);
+    const handleNameClick = () => {
+      setIsEditingName(true);
+      setNameValue(data.name);
     };
 
-    const handleLabelSave = () => {
-      if (labelValue.trim() === "") return;
-      updateNodeLabel(id, labelValue, updateNodeData);
-      setIsEditingLabel(false);
+    const handleNameSave = () => {
+      if (nameValue.trim() === "") return;
+      updateNodeName(id, nameValue, updateNodeData);
+      setIsEditingName(false);
     };
 
     return (
@@ -187,12 +187,12 @@ export const WorkflowNode = memo(
         >
           {/* Header */}
           <div className="pl-2 pr-1 py-1 flex justify-between items-center border-b border-gray-200">
-            <h3 className="text-xs font-medium truncate">{data.label}</h3>
+            <h3 className="text-xs font-medium truncate">{data.name}</h3>
             <div className="flex gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={handleLabelClick}
+                    onClick={handleNameClick}
                     className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-blue-500 hover:bg-gray-200"
                     aria-label="Edit node label"
                   >
@@ -222,7 +222,7 @@ export const WorkflowNode = memo(
                     parameter={input}
                     onInputClick={handleInputClick}
                   />
-                  <p className="overflow-hidden text-ellipsis">{input.label}</p>
+                  <p className="overflow-hidden text-ellipsis">{input.name}</p>
                 </div>
               ))}
             </div>
@@ -235,7 +235,7 @@ export const WorkflowNode = memo(
                   className="flex items-center gap-1 text-xs relative"
                 >
                   <p className="overflow-hidden text-ellipsis">
-                    {output.label}
+                    {output.name}
                   </p>
                   <TypeBadge
                     type={output.type}
@@ -280,7 +280,7 @@ export const WorkflowNode = memo(
                       key={`output-value-${output.id}-${index}`}
                       className="space-y-1"
                     >
-                      <div className="text-xs font-medium">{output.label}</div>
+                      <div className="text-xs font-medium">{output.name}</div>
                       <WorkflowOutputRenderer output={output} compact={true} />
                     </div>
                   )
@@ -313,7 +313,7 @@ export const WorkflowNode = memo(
                       htmlFor="input-value"
                       className="text-sm font-medium"
                     >
-                      {selectedInput.label}
+                      {selectedInput.name}
                     </Label>
                     <span className="text-xs text-gray-500">
                       {selectedInput.type}
@@ -413,8 +413,8 @@ export const WorkflowNode = memo(
 
         {/* Label Edit Dialog */}
         <Dialog
-          open={isEditingLabel}
-          onOpenChange={(open) => !open && setIsEditingLabel(false)}
+          open={isEditingName}
+          onOpenChange={(open) => !open && setIsEditingName(false)}
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -430,8 +430,8 @@ export const WorkflowNode = memo(
                 </div>
                 <Input
                   id="label-value"
-                  value={labelValue}
-                  onChange={(e) => setLabelValue(e.target.value)}
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
                   placeholder="Enter node label"
                 />
               </div>
@@ -439,11 +439,11 @@ export const WorkflowNode = memo(
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => setIsEditingLabel(false)}
+                onClick={() => setIsEditingName(false)}
               >
                 Cancel
               </Button>
-              <Button onClick={handleLabelSave}>Save</Button>
+              <Button onClick={handleNameSave}>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

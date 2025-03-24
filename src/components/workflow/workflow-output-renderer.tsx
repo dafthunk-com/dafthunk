@@ -42,7 +42,7 @@ export function WorkflowOutputRenderer({
           <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
             <img
               src={dataUrl}
-              alt={`${output.label} output`}
+              alt={`${output.name} output`}
               className="w-full rounded-md border border-gray-200"
               onError={(e) => {
                 console.error("Error loading image:", e);

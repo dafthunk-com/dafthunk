@@ -10,7 +10,7 @@ import { Parameter } from "./workflow-node";
 import {
   useWorkflow,
   updateNodeInput,
-  updateNodeLabel,
+  updateNodeName,
   convertValueByType,
   clearNodeInput,
 } from "./workflow-context";
@@ -28,7 +28,7 @@ export function WorkflowNodeInspector({
   const updateNodeData = onNodeUpdate || contextUpdateNodeData;
 
   // Create local state to immediately reflect changes in the UI
-  const [localLabel, setLocalLabel] = useState<string>(node?.data.label || "");
+  const [localName, setLocalName] = useState<string>(node?.data.name || "");
   const [localInputs, setLocalInputs] = useState<Parameter[]>(
     node?.data.inputs || []
   );
@@ -41,7 +41,7 @@ export function WorkflowNodeInspector({
     if (!node) return;
 
     console.log(`Node inspector updating for node ${node.id}:`, node.data);
-    setLocalLabel(node.data.label);
+    setLocalName(node.data.name);
     setLocalInputs(node.data.inputs);
     setLocalOutputs(node.data.outputs);
   }, [node]);
@@ -50,13 +50,13 @@ export function WorkflowNodeInspector({
 
   if (!node) return null;
 
-  const handleLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newLabel = e.target.value;
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
     // Update local state immediately
-    setLocalLabel(newLabel);
+    setLocalName(newName);
 
     // Update the node using the common utility
-    updateNodeLabel(node.id, newLabel, updateNodeData);
+    updateNodeName(node.id, newName, updateNodeData);
   };
 
   const handleInputValueChange = (inputId: string, value: string) => {
@@ -149,8 +149,8 @@ export function WorkflowNodeInspector({
             <Label htmlFor="node-name">Name</Label>
             <Input
               id="node-name"
-              value={localLabel}
-              onChange={handleLabelChange}
+              value={localName}
+              onChange={handleNameChange}
             />
           </div>
 
@@ -160,7 +160,7 @@ export function WorkflowNodeInspector({
               {localInputs.map((input) => (
                 <div key={input.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
-                    <span>{input.label}</span>
+                    <span>{input.name}</span>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
 
@@ -200,7 +200,7 @@ export function WorkflowNodeInspector({
                         <button
                           onClick={() => handleClearValue(input.id)}
                           className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-                          aria-label={`Clear ${input.label} value`}
+                          aria-label={`Clear ${input.name} value`}
                         >
                           <XCircleIcon className="h-4 w-4" />
                         </button>
@@ -223,7 +223,7 @@ export function WorkflowNodeInspector({
                         <button
                           onClick={() => handleClearValue(input.id)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          aria-label={`Clear ${input.label} value`}
+                          aria-label={`Clear ${input.name} value`}
                         >
                           <XCircleIcon className="h-4 w-4" />
                         </button>
@@ -244,7 +244,7 @@ export function WorkflowNodeInspector({
               {localOutputs.map((output) => (
                 <div key={output.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
-                    <span>{output.label}</span>
+                    <span>{output.name}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-500">
                         {output.type}

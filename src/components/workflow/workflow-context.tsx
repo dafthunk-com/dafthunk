@@ -88,10 +88,10 @@ export const clearNodeInput = (
   return updatedInputs;
 };
 
-export const updateNodeLabel = (
+export const updateNodeName = (
   nodeId: string,
-  label: string,
+  name: string,
   updateNodeData: WorkflowContextProps["updateNodeData"]
 ) => {
-  updateNodeData(nodeId, { label });
+  updateNodeData(nodeId, { name: name });
 };

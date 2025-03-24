@@ -199,7 +199,7 @@ export function useWorkflowState({
         type: "workflowNode",
         position,
         data: {
-          label: template.label,
+          name: template.name,
           inputs: template.inputs,
           outputs: template.outputs,
           executionState: "idle" as NodeExecutionState,

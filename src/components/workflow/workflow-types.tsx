@@ -17,13 +17,13 @@ export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 export interface WorkflowParameter {
   id: string;
   type: string;
-  label: string;
+  name: string;
   value?: any;
   isConnected?: boolean;
 }
 
 export interface WorkflowNodeData {
-  label: string;
+  name: string;
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
   error?: string | null;
@@ -43,7 +43,7 @@ export interface WorkflowEdgeData {
 export interface NodeTemplate {
   id: string;
   type: string;
-  label: string;
+  name: string;
   description: string;
   category: string;
   inputs: WorkflowParameter[];

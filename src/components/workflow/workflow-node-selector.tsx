@@ -28,7 +28,7 @@ export function WorkflowNodeSelector({
   // Filter templates based on search term and selected category
   const filteredTemplates = templates.filter((template) => {
     const matchesSearch =
-      template.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
       !selectedCategory || template.category === selectedCategory;
@@ -90,7 +90,7 @@ export function WorkflowNodeSelector({
                 }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-medium">{template.label}</h3>
+                  <h3 className="font-medium">{template.name}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-2">
                   {template.description}

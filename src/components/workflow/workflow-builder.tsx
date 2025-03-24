@@ -37,9 +37,6 @@ export function WorkflowBuilder({
   onNodeError,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<any>(null);
-  const [selectedEdge, setSelectedEdge] = useState<any>(null);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>("idle");
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
