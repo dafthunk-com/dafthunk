@@ -82,11 +82,13 @@ export function EditorPage() {
             id: input.id || input.name,
             type: input.type,
             name: input.name,
+            hidden: input.hidden,
           })),
           outputs: type.outputs.map((output) => ({
             id: output.id || output.name,
             type: output.type,
             name: output.name,
+            hidden: output.hidden,
           })),
         }));
         setNodeTemplates(templates);
@@ -122,11 +124,13 @@ export function EditorPage() {
             type: input.type,
             name: input.name,
             value: input.value,
+            hidden: input.hidden,
           })),
           outputs: node.outputs.map((output) => ({
             id: output.id || output.name,
             type: output.type,
             name: output.name,
+            hidden: output.hidden,
           })),
           executionState: "idle" as const,
           nodeType: node.type,
@@ -184,12 +188,14 @@ export function EditorPage() {
                 type: input.type,
                 description: input.name,
                 value: input.value,
+                hidden: input.hidden,
               })),
               outputs: node.data.outputs.map((output) => ({
                 name: output.id,
                 type: output.type,
                 description: output.name,
                 value: output.value,
+                hidden: output.hidden,
               })),
             };
           });

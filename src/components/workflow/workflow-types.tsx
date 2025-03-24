@@ -20,6 +20,7 @@ export interface WorkflowParameter {
   name: string;
   value?: any;
   isConnected?: boolean;
+  hidden?: boolean;
 }
 
 export interface WorkflowNodeData {

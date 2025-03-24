@@ -11,6 +11,7 @@ export interface Parameter {
   type: "string" | "number" | "array" | "binary" | "json";
   description?: string;
   value?: any;
+  hidden?: boolean;
 }
 
 export interface NodeType {

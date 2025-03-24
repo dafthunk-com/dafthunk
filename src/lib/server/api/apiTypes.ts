@@ -9,6 +9,7 @@ export interface Parameter {
   type: string;
   description?: string;
   value?: any;
+  hidden?: boolean;
 }
 
 export interface Node {

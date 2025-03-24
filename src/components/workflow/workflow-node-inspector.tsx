@@ -154,36 +154,46 @@ export function WorkflowNodeInspector({
             />
           </div>
 
+          {/* Slider for slider nodes */}
+          {isSliderNode && (
+            <div className="space-y-2">
+              <Label>Widget</Label>
+              <div className="space-y-2">
+                <Slider
+                  min={getSliderConfig().min}
+                  max={getSliderConfig().max}
+                  step={getSliderConfig().step}
+                  value={[getSliderConfig().value]}
+                  onValueChange={(values) =>
+                    handleSliderChange("value", values)
+                  }
+                  className="py-4"
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>{getSliderConfig().min}</span>
+                  <span>Value: {getSliderConfig().value}</span>
+                  <span>{getSliderConfig().max}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Inputs</Label>
             <div className="space-y-2">
               {localInputs.map((input) => (
                 <div key={input.id} className="text-sm space-y-1">
                   <div className="flex items-center justify-between">
-                    <span>{input.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{input.name}</span>
+                      {input.hidden && (
+                        <span className="text-xs text-gray-400">(Hidden in node)</span>
+                      )}
+                    </div>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
 
-                  {isSliderNode && input.id === "value" ? (
-                    // Render slider for value input in slider nodes
-                    <div className="space-y-2">
-                      <Slider
-                        min={getSliderConfig().min}
-                        max={getSliderConfig().max}
-                        step={getSliderConfig().step}
-                        value={[getSliderConfig().value]}
-                        onValueChange={(values) =>
-                          handleSliderChange(input.id, values)
-                        }
-                        className="py-4"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500">
-                        <span>{getSliderConfig().min}</span>
-                        <span>Value: {getSliderConfig().value}</span>
-                        <span>{getSliderConfig().max}</span>
-                      </div>
-                    </div>
-                  ) : input.type === "string" ? (
+                  {input.type === "string" ? (
                     // Render textarea for string inputs
                     <div className="relative">
                       <Textarea

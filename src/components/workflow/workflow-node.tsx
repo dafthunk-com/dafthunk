@@ -3,6 +3,7 @@ import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
+import { Slider } from "@/components/ui/slider";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export interface Parameter {
   name: string;
   value?: any;
   isConnected?: boolean;
+  hidden?: boolean;
 }
 
 type NodeExecutionState = "idle" | "executing" | "completed" | "error";
@@ -44,6 +46,7 @@ export interface WorkflowNodeData {
   outputs: Parameter[];
   error?: string | null;
   executionState: NodeExecutionState;
+  nodeType?: string;
 }
 
 const TypeBadge = ({
@@ -121,6 +124,33 @@ export const WorkflowNode = memo(
     const [inputValue, setInputValue] = useState<string>("");
     const [isEditingName, setIsEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(data.name);
+
+    // Check if the node is a slider node
+    const isSliderNode = data.nodeType === "slider";
+
+    // Get slider configuration
+    const getSliderConfig = () => {
+      const min = data.inputs.find((i) => i.id === "min")?.value || 0;
+      const max = data.inputs.find((i) => i.id === "max")?.value || 100;
+      const step = data.inputs.find((i) => i.id === "step")?.value || 1;
+      const value = data.inputs.find((i) => i.id === "value")?.value;
+
+      return {
+        min: typeof min === "number" ? min : 0,
+        max: typeof max === "number" ? max : 100,
+        step: typeof step === "number" ? step : 1,
+        value: typeof value === "number" ? value : min,
+      };
+    };
+
+    const handleSliderChange = (values: number[]) => {
+      if (!values.length) return;
+      const value = values[0];
+      const valueInput = data.inputs.find((i) => i.id === "value");
+      if (valueInput) {
+        updateNodeInput(id, valueInput.id, value, data.inputs, updateNodeData);
+      }
+    };
 
     // Keep nameValue in sync with data.name when not editing
     useEffect(() => {
@@ -206,11 +236,32 @@ export const WorkflowNode = memo(
             </div>
           </div>
 
+          {/* Slider for slider nodes */}
+          {isSliderNode && (
+            <div className="px-3 py-2 border-b border-gray-200">
+              <div className="space-y-2">
+                <Slider
+                  min={getSliderConfig().min}
+                  max={getSliderConfig().max}
+                  step={getSliderConfig().step}
+                  value={[getSliderConfig().value]}
+                  onValueChange={handleSliderChange}
+                  className="py-2"
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>{getSliderConfig().min}</span>
+                  <span>Value: {getSliderConfig().value}</span>
+                  <span>{getSliderConfig().max}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Parameters */}
           <div className="px-1 py-1 grid grid-cols-2 justify-between gap-2.5">
             {/* Input Parameters */}
             <div className="flex flex-col gap-1 flex-1">
-              {data.inputs.map((input, index) => (
+              {data.inputs.filter(input => !input.hidden).map((input, index) => (
                 <div
                   key={`input-${input.id}-${index}`}
                   className="flex items-center gap-1 text-xs relative"
@@ -229,7 +280,7 @@ export const WorkflowNode = memo(
 
             {/* Output Parameters */}
             <div className="flex flex-col gap-1 flex-1 items-end">
-              {data.outputs.map((output, index) => (
+              {data.outputs.filter(output => !output.hidden).map((output, index) => (
                 <div
                   key={`output-${output.id}-${index}`}
                   className="flex items-center gap-1 text-xs relative"
@@ -418,7 +469,7 @@ export const WorkflowNode = memo(
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Edit Node Label</DialogTitle>
+              <DialogTitle>Edit Node Name</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -432,7 +483,7 @@ export const WorkflowNode = memo(
                   id="label-value"
                   value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
-                  placeholder="Enter node label"
+                  placeholder="Enter node name"
                 />
               </div>
             </div>
