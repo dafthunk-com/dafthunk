@@ -3,7 +3,7 @@ import { Handle, Position } from "reactflow";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
-import { Slider } from "@/components/ui/slider";
+import { SliderWidget } from "./widgets/slider-widget";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ import {
   updateNodeName,
   convertValueByType,
 } from "./workflow-context";
+import { createWidgetConfig } from "./widgets/widget-factory";
 
 export interface Parameter {
   id: string;
@@ -128,24 +129,12 @@ export const WorkflowNode = memo(
     // Check if the node is a slider node
     const isSliderNode = data.nodeType === "slider";
 
-    // Get slider configuration
-    const getSliderConfig = () => {
-      const min = data.inputs.find((i) => i.id === "min")?.value || 0;
-      const max = data.inputs.find((i) => i.id === "max")?.value || 100;
-      const step = data.inputs.find((i) => i.id === "step")?.value || 1;
-      const value = data.inputs.find((i) => i.id === "value")?.value;
+    // Get widget configuration
+    const widgetConfig = isSliderNode ? createWidgetConfig(id, data.inputs, data.nodeType || "") : null;
 
-      return {
-        min: typeof min === "number" ? min : 0,
-        max: typeof max === "number" ? max : 100,
-        step: typeof step === "number" ? step : 1,
-        value: typeof value === "number" ? value : min,
-      };
-    };
+    const handleWidgetChange = (value: any) => {
+      if (!updateNodeData || !widgetConfig) return;
 
-    const handleSliderChange = (values: number[]) => {
-      if (!values.length) return;
-      const value = values[0];
       const valueInput = data.inputs.find((i) => i.id === "value");
       if (valueInput) {
         updateNodeInput(id, valueInput.id, value, data.inputs, updateNodeData);
@@ -236,24 +225,14 @@ export const WorkflowNode = memo(
             </div>
           </div>
 
-          {/* Slider for slider nodes */}
-          {isSliderNode && (
+          {/* Widget */}
+          {widgetConfig && (
             <div className="px-3 py-2 border-b border-gray-200">
-              <div className="space-y-2">
-                <Slider
-                  min={getSliderConfig().min}
-                  max={getSliderConfig().max}
-                  step={getSliderConfig().step}
-                  value={[getSliderConfig().value]}
-                  onValueChange={handleSliderChange}
-                  className="py-2"
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{getSliderConfig().min}</span>
-                  <span>Value: {getSliderConfig().value}</span>
-                  <span>{getSliderConfig().max}</span>
-                </div>
-              </div>
+              <SliderWidget
+                config={widgetConfig}
+                onChange={handleWidgetChange}
+                compact={true}
+              />
             </div>
           )}
 

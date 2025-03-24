@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 import { Toggle } from "@/components/ui/toggle";
 import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
@@ -16,6 +15,8 @@ import {
   clearNodeInput,
 } from "./workflow-context";
 import { XCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { SliderWidget } from "./widgets/slider-widget";
+import { createWidgetConfig } from "./widgets/widget-factory";
 
 export function WorkflowNodeInspector({
   node,
@@ -138,23 +139,25 @@ export function WorkflowNodeInspector({
   };
 
   // Check if the node is a slider node
-  const isSliderNode =
-    node.data.nodeType === "slider" || node.type === "slider";
+  const isSliderNode = node.data.nodeType === "slider";
 
-  // Find min, max, step, and value for slider nodes
-  const getSliderConfig = () => {
-    // Find min, max, step values from node inputs
-    const min = localInputs.find((i) => i.id === "min")?.value || 0;
-    const max = localInputs.find((i) => i.id === "max")?.value || 100;
-    const step = localInputs.find((i) => i.id === "step")?.value || 1;
-    const value = localInputs.find((i) => i.id === "value")?.value;
+  // Get widget configuration
+  const widgetConfig = isSliderNode ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") : null;
 
-    return {
-      min: typeof min === "number" ? min : 0,
-      max: typeof max === "number" ? max : 100,
-      step: typeof step === "number" ? step : 1,
-      value: typeof value === "number" ? value : min,
-    };
+  const handleWidgetChange = (value: any) => {
+    if (!updateNodeData || !widgetConfig) return;
+
+    const valueInput = localInputs.find((i) => i.id === "value");
+    if (valueInput) {
+      const updatedInputs = updateNodeInput(
+        node.id,
+        valueInput.id,
+        value,
+        localInputs,
+        updateNodeData
+      );
+      setLocalInputs(updatedInputs);
+    }
   };
 
   return (
@@ -178,27 +181,14 @@ export function WorkflowNodeInspector({
             />
           </div>
 
-          {/* Slider for slider nodes */}
-          {isSliderNode && (
+          {/* Widget */}
+          {widgetConfig && (
             <div className="space-y-2">
               <Label>Widget</Label>
-              <div className="space-y-2">
-                <Slider
-                  min={getSliderConfig().min}
-                  max={getSliderConfig().max}
-                  step={getSliderConfig().step}
-                  value={[getSliderConfig().value]}
-                  onValueChange={(values) =>
-                    handleSliderChange("value", values)
-                  }
-                  className="py-4"
-                />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{getSliderConfig().min}</span>
-                  <span>Value: {getSliderConfig().value}</span>
-                  <span>{getSliderConfig().max}</span>
-                </div>
-              </div>
+              <SliderWidget
+                config={widgetConfig}
+                onChange={handleWidgetChange}
+              />
             </div>
           )}
 
