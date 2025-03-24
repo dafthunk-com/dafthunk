@@ -155,7 +155,7 @@ async function saveUserToDatabase(
   userEmail: string | undefined,
   provider: string,
   env: Env
-): Promise<void> {
+): Promise<string | undefined> {
   try {
     const db = createDatabase(env.DB);
 
@@ -179,6 +179,7 @@ async function saveUserToDatabase(
         .run();
 
       console.log(`Updated existing user in database: ${userId}`);
+      return existingUser.plan;
     } else {
       // Insert new user
       await db
@@ -194,10 +195,12 @@ async function saveUserToDatabase(
         .run();
 
       console.log(`Saved new user to database: ${userId}`);
+      return 'trial'; // Default plan for new users
     }
   } catch (error) {
     console.error("Error saving user to database:", error);
     // Don't throw the error to avoid breaking the authentication flow
+    return undefined;
   }
 }
 
@@ -330,7 +333,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Save user to database
-    await saveUserToDatabase(userId, userName, userEmail, provider, env);
+    const userPlan = await saveUserToDatabase(userId, userName, userEmail, provider, env);
 
     // Create a JWT
     const jwt = await createJWT(
@@ -339,6 +342,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         name: userName,
         email: userEmail,
         provider,
+        plan: userPlan,
       },
       env
     );

@@ -20,6 +20,8 @@ export const formatOutputValue = (value: any, type: string): string => {
       return value ? "true" : "false";
     } else if (type === "number") {
       return value.toString();
+    } else if (type === "string") {
+      return String(value);
     }
     return String(value);
   } catch (e) {

@@ -4,6 +4,7 @@ export interface Position {
 }
 
 export interface Parameter {
+  id?: string;
   name: string;
   type: string;
   description?: string;

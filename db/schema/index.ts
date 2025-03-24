@@ -4,8 +4,8 @@ import { relations } from "drizzle-orm";
 
 // Define plans
 export const Plan = {
+  TRIAL: 'trial',
   FREE: 'free',
-  BASIC: 'basic',
   PRO: 'pro',
 } as const;
 

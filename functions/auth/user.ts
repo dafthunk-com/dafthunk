@@ -16,6 +16,7 @@ async function userHandler(
         name: user.name,
         email: user.email,
         provider: user.provider,
+        plan: user.plan,
       },
     }),
     {
