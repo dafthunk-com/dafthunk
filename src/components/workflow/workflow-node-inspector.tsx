@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Toggle } from "@/components/ui/toggle";
 import { WorkflowNodeInspectorProps } from "./workflow-types";
 import { useState, useEffect } from "react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
@@ -14,7 +15,7 @@ import {
   convertValueByType,
   clearNodeInput,
 } from "./workflow-context";
-import { XCircleIcon } from "lucide-react";
+import { XCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 
 export function WorkflowNodeInspector({
   node,
@@ -113,6 +114,29 @@ export function WorkflowNodeInspector({
     setLocalInputs(updatedInputs);
   };
 
+  const handleToggleVisibility = (inputId: string) => {
+    if (!updateNodeData) return;
+
+    const updatedInputs = localInputs.map((input) => {
+      if (input.id === inputId) {
+        return {
+          ...input,
+          hidden: !input.hidden,
+        };
+      }
+      return input;
+    });
+
+    // Update the node data
+    updateNodeData(node.id, {
+      ...node.data,
+      inputs: updatedInputs,
+    });
+
+    // Update local state
+    setLocalInputs(updatedInputs);
+  };
+
   // Check if the node is a slider node
   const isSliderNode =
     node.data.nodeType === "slider" || node.type === "slider";
@@ -186,9 +210,6 @@ export function WorkflowNodeInspector({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span>{input.name}</span>
-                      {input.hidden && (
-                        <span className="text-xs text-gray-400">(Hidden in node)</span>
-                      )}
                     </div>
                     <span className="text-xs text-gray-500">{input.type}</span>
                   </div>
@@ -204,17 +225,32 @@ export function WorkflowNodeInspector({
                         onChange={(e) =>
                           handleInputValueChange(input.id, e.target.value)
                         }
-                        className="text-sm min-h-[80px] resize-y"
+                        className="text-sm min-h-[80px] resize-y pr-16"
                       />
-                      {input.value !== undefined && (
-                        <button
-                          onClick={() => handleClearValue(input.id)}
-                          className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
-                          aria-label={`Clear ${input.name} value`}
+                      <div className="absolute right-2 top-2 flex items-center gap-2">
+                        {input.value !== undefined && (
+                          <button
+                            onClick={() => handleClearValue(input.id)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            aria-label={`Clear ${input.name} value`}
+                          >
+                            <XCircleIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                        <Toggle
+                          size="sm"
+                          pressed={input.hidden}
+                          onPressedChange={() => handleToggleVisibility(input.id)}
+                          aria-label={`Toggle visibility for ${input.name}`}
+                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-gray-400 hover:text-gray-600 transition-colors"
                         >
-                          <XCircleIcon className="h-4 w-4" />
-                        </button>
-                      )}
+                          {input.hidden ? (
+                            <EyeOffIcon className="h-3 w-3" />
+                          ) : (
+                            <EyeIcon className="h-3 w-3" />
+                          )}
+                        </Toggle>
+                      </div>
                     </div>
                   ) : (
                     // Regular input for other inputs
@@ -227,17 +263,32 @@ export function WorkflowNodeInspector({
                         onChange={(e) =>
                           handleInputValueChange(input.id, e.target.value)
                         }
-                        className="text-sm h-8 pr-8"
+                        className="text-sm h-8 pr-16"
                       />
-                      {input.value !== undefined && (
-                        <button
-                          onClick={() => handleClearValue(input.id)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          aria-label={`Clear ${input.name} value`}
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        {input.value !== undefined && (
+                          <button
+                            onClick={() => handleClearValue(input.id)}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            aria-label={`Clear ${input.name} value`}
+                          >
+                            <XCircleIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                        <Toggle
+                          size="sm"
+                          pressed={input.hidden}
+                          onPressedChange={() => handleToggleVisibility(input.id)}
+                          aria-label={`Toggle visibility for ${input.name}`}
+                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-gray-400 hover:text-gray-600 transition-colors"
                         >
-                          <XCircleIcon className="h-4 w-4" />
-                        </button>
-                      )}
+                          {input.hidden ? (
+                            <EyeOffIcon className="h-3 w-3" />
+                          ) : (
+                            <EyeIcon className="h-3 w-3" />
+                          )}
+                        </Toggle>
+                      </div>
                     </div>
                   )}
                 </div>
