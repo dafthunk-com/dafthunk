@@ -189,13 +189,14 @@ async function saveUserToDatabase(
           name: userName,
           email: userEmail,
           provider: provider,
+          plan: 'free',
           createdAt: new Date(),
           updatedAt: new Date(),
         })
         .run();
 
       console.log(`Saved new user to database: ${userId}`);
-      return 'trial'; // Default plan for new users
+      return 'basic'; // Default plan for new users
     }
   } catch (error) {
     console.error("Error saving user to database:", error);

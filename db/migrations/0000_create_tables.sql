@@ -3,7 +3,7 @@ CREATE TABLE `users` (
 	`name` text NOT NULL,
 	`email` text,
 	`provider` text NOT NULL,
-	`plan` text DEFAULT 'trial' NOT NULL,
+	`plan` text DEFAULT 'free' NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );

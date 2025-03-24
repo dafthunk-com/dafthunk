@@ -7,6 +7,15 @@ import { WorkflowBuilderProps } from "./workflow-types";
 import { useEffect, useState, useRef } from "react";
 import { ReactFlowProvider } from "reactflow";
 import { WorkflowProvider } from "./workflow-context";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 // Define workflow status states
 type WorkflowStatus = "idle" | "executing" | "completed";
@@ -28,16 +37,21 @@ export function WorkflowBuilder({
   onNodeError,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [selectedEdge, setSelectedEdge] = useState<any>(null);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>("idle");
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const cleanupRef = useRef<(() => void) | null>(null);
 
   const {
     nodes,
     edges,
-    selectedNode,
-    selectedEdge,
-    isNodeSelectorOpen,
-    setIsNodeSelectorOpen,
+    selectedNode: handleSelectedNode,
+    selectedEdge: handleSelectedEdge,
+    isNodeSelectorOpen: handleIsNodeSelectorOpen,
+    setIsNodeSelectorOpen: handleSetIsNodeSelectorOpen,
     onNodesChange: handleNodesChange,
     onEdgesChange: handleEdgesChange,
     onConnect,
@@ -120,6 +134,8 @@ export function WorkflowBuilder({
     },
     onExecutionError: (error) => {
       setWorkflowStatus("completed");
+      setErrorMessage(error);
+      setErrorDialogOpen(true);
       onExecutionError?.(error);
     },
     onNodeStart,
@@ -224,8 +240,8 @@ export function WorkflowBuilder({
           {isSidebarVisible && (
             <div className="w-96">
               <WorkflowSidebar
-                node={selectedNode}
-                edge={selectedEdge}
+                node={handleSelectedNode}
+                edge={handleSelectedEdge}
                 onNodeUpdate={updateNodeData}
                 onEdgeUpdate={updateEdgeData}
               />
@@ -233,12 +249,29 @@ export function WorkflowBuilder({
           )}
 
           <WorkflowNodeSelector
-            open={isNodeSelectorOpen}
+            open={handleIsNodeSelectorOpen}
             onSelect={handleNodeSelect}
-            onClose={() => setIsNodeSelectorOpen(false)}
+            onClose={() => handleSetIsNodeSelectorOpen(false)}
             templates={nodeTemplates}
           />
         </div>
+
+        {/* Error Dialog */}
+        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Workflow Execution Error</DialogTitle>
+              <DialogDescription>
+                {errorMessage}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => setErrorDialogOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </WorkflowProvider>
     </ReactFlowProvider>
   );

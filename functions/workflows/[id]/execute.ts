@@ -12,6 +12,8 @@ import {
 import { WorkflowRuntime } from "../../../src/lib/server/runtime/workflowRuntime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
+import { NodeRegistry } from "../../../src/lib/server/runtime/workflowTypes";
+import { use } from "react";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -77,6 +79,35 @@ async function executeWorkflow(
       nodes: workflowData.nodes || [],
       edges: workflowData.edges || [],
     };
+
+    // Check if user is on free plan and workflow contains AI nodes
+    if (user.plan === "free") {
+      const registry = NodeRegistry.getInstance();
+      const nodeTypes = registry.getNodeTypes();
+
+      const aiNodeTypes = new Set(
+        nodeTypes
+          .filter(type => type.category === "AI")
+          .map(type => type.type)
+      );
+      
+      const hasAINodes = workflowGraph.nodes.some(node => aiNodeTypes.has(node.type));
+
+      if (hasAINodes) {
+        return new Response(
+          JSON.stringify({
+            error: "AI nodes are not available in the free plan. Please upgrade to use AI features.",
+          }),
+          {
+            status: 403,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
+      }
+    }
 
     // Create a TransformStream for SSE with Uint8Array chunks
     const { readable, writable } = new TransformStream<Uint8Array>();
