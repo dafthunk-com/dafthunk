@@ -7,6 +7,7 @@ import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15Inpa
 import { StableDiffusionV15Img2ImgNode } from "./image/stableDiffusionV15Img2ImgNode";
 import { Resnet50Node } from "./image/resnet50Node";
 import { StableDiffusionXLBase10Node } from "./image/stableDiffusionXLBase10Node";
+import { Flux1SchnellNode } from "./image/flux1SchnellNode";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -84,4 +85,5 @@ export function registerNodes(): void {
   registry.registerImplementation(WebcamNode);
   registry.registerImplementation(AudioRecorderNode);
   registry.registerImplementation(StableDiffusionXLBase10Node);
+  registry.registerImplementation(Flux1SchnellNode);
 }
