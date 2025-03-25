@@ -20,6 +20,7 @@ import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import { TextAreaWidget } from "./widgets/text-area-widget";
 import { InputTextWidget } from "./widgets/input-text-widget";
 import { NumberInputWidget } from "./widgets/number-input-widget";
+import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 
 export function WorkflowNodeInspector({
@@ -130,9 +131,10 @@ export function WorkflowNodeInspector({
   const isTextAreaNode = node.data.nodeType === "text-area";
   const isInputTextNode = node.data.nodeType === "input-text";
   const isNumberInputNode = node.data.nodeType === "number-input";
+  const isMonacoEditorNode = node.data.nodeType === "monaco-editor";
 
   // Get widget configuration
-  const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode || isInputTextNode || isNumberInputNode
+  const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode || isInputTextNode || isNumberInputNode || isMonacoEditorNode
     ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") 
     : null;
 
@@ -203,6 +205,12 @@ export function WorkflowNodeInspector({
               )}
               {isNumberInputNode && 'type' in widgetConfig && widgetConfig.type === 'number-input' && (
                 <NumberInputWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                />
+              )}
+              {isMonacoEditorNode && 'type' in widgetConfig && widgetConfig.type === 'monaco-editor' && (
+                <MonacoEditorWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                 />

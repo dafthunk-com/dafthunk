@@ -46,7 +46,19 @@ export interface NumberInputWidgetConfig {
   placeholder?: string;
 }
 
-export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig | InputTextWidgetConfig | NumberInputWidgetConfig;
+export interface MonacoEditorWidgetConfig {
+  type: "monaco-editor";
+  id: string;
+  name: string;
+  value: string;
+  language?: string;
+  theme?: string;
+  minimap?: boolean;
+  lineNumbers?: boolean;
+  fontSize?: number;
+}
+
+export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig | InputTextWidgetConfig | NumberInputWidgetConfig | MonacoEditorWidgetConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -190,6 +202,58 @@ export function createWidgetConfig(
         max,
         step,
         placeholder,
+      };
+    }
+    case "monaco-editor": {
+      const valueInput = inputs.find((i) => i.id === "value");
+      const languageInput = inputs.find((i) => i.id === "language");
+      const themeInput = inputs.find((i) => i.id === "theme");
+      const minimapInput = inputs.find((i) => i.id === "minimap");
+      const lineNumbersInput = inputs.find((i) => i.id === "lineNumbers");
+      const fontSizeInput = inputs.find((i) => i.id === "fontSize");
+
+      // Ensure required inputs are present
+      if (!valueInput) {
+        console.warn(`Missing required inputs for Monaco Editor widget in node ${nodeId}`);
+        return null;
+      }
+
+      // Handle optional inputs
+      let language: string | undefined;
+      if (languageInput?.value !== undefined) {
+        language = String(languageInput.value);
+      }
+
+      let theme: string | undefined;
+      if (themeInput?.value !== undefined) {
+        theme = String(themeInput.value);
+      }
+
+      let minimap: boolean | undefined;
+      if (minimapInput?.value !== undefined) {
+        minimap = Boolean(minimapInput.value);
+      }
+
+      let lineNumbers: boolean | undefined;
+      if (lineNumbersInput?.value !== undefined) {
+        lineNumbers = Boolean(lineNumbersInput.value);
+      }
+
+      let fontSize: number | undefined;
+      if (fontSizeInput?.value !== undefined) {
+        fontSize = Number(fontSizeInput.value);
+      }
+
+      return {
+        type: "monaco-editor",
+        id: nodeId,
+        name: "Code Editor",
+        value: String(valueInput.value || ""),
+        language,
+        theme,
+        minimap,
+        lineNumbers,
+        fontSize,
       };
     }
     default:

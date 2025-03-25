@@ -25,6 +25,7 @@ import { RadioGroupNode } from "./widgets/radioGroupNode";
 import { TextAreaNode } from "./widgets/textAreaNode";
 import { InputTextNode } from "./widgets/inputTextNode";
 import { NumberInputNode } from "./widgets/numberInputNode";
+import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 
 /**
  * Register the mathematical operation nodes
@@ -61,4 +62,5 @@ export function registerNodes(): void {
   registry.registerImplementation(JsonNumberExtractorNode);
   registry.registerImplementation(JsonJsonExtractorNode);
   registry.registerImplementation(StringTemplateNode);
+  registry.registerImplementation(MonacoEditorNode);
 }
