@@ -2,43 +2,39 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
- * Image Transformation node implementation using Stable Diffusion v1.5 img2img
+ * Image Generation node implementation using Stable Diffusion
  */
-export class ImageTransformationNode extends BaseExecutableNode {
+export class ImageGenerationNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "image-transformation",
-    name: "Image Transformation",
-    type: "image-transformation",
-    description: "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
-    category: "AI",
+    id: "image-generation",
+    name: "Image Generation",
+    type: "image-generation",
+    description:
+      "Generates images from text descriptions using Stable Diffusion XL Lightning",
+    category: "Image",
     icon: "wand",
     inputs: [
       {
-        name: "image",
-        type: "image",
-        description: "The input image to transform",
-      },
-      {
         name: "prompt",
         type: "string",
-        description: "A text description of how you want to transform the image",
+        description: "A text description of the image you want to generate",
       },
       {
         name: "negative_prompt",
         type: "string",
-        description: "Text describing elements to avoid in the transformed image",
+        description: "Text describing elements to avoid in the generated image",
       },
       {
-        name: "strength",
+        name: "height",
         type: "number",
-        description: "How strongly to apply the transformation (0-1)",
-        value: 0.75,
+        description: "The height of the generated image in pixels (256-2048)",
+        value: 1024,
       },
       {
-        name: "guidance",
+        name: "width",
         type: "number",
-        description: "Controls how closely the transformation should adhere to the prompt",
-        value: 7.5,
+        description: "The width of the generated image in pixels (256-2048)",
+        value: 1024,
       },
       {
         name: "num_steps",
@@ -46,12 +42,19 @@ export class ImageTransformationNode extends BaseExecutableNode {
         description: "The number of diffusion steps (1-20)",
         value: 20,
       },
+      {
+        name: "guidance",
+        type: "number",
+        description:
+          "Controls how closely the generated image should adhere to the prompt",
+        value: 7.5,
+      },
     ],
     outputs: [
       {
         name: "image",
         type: "image",
-        description: "The transformed image in PNG format",
+        description: "The generated image in JPEG format",
       },
     ],
   };
@@ -62,31 +65,30 @@ export class ImageTransformationNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, negative_prompt, strength, guidance, num_steps } = context.inputs;
+      const { prompt, negative_prompt, height, width, num_steps, guidance } =
+        context.inputs;
 
       // Validate inputs
-      if (!image) {
-        throw new Error("Input image is required");
-      }
       if (!prompt) {
         throw new Error("Prompt is required");
       }
 
       // Ensure numeric parameters are within valid ranges
-      const validatedStrength = Math.min(Math.max(strength || 0.75, 0), 1);
-      const validatedGuidance = guidance || 7.5;
+      const validatedHeight = Math.min(Math.max(height || 1024, 256), 2048);
+      const validatedWidth = Math.min(Math.max(width || 1024, 256), 2048);
       const validatedSteps = Math.min(Math.max(num_steps || 20, 1), 20);
+      const validatedGuidance = guidance || 7.5;
 
-      // Call Cloudflare AI Stable Diffusion v1.5 img2img model
+      // Call Cloudflare AI SDXL-Lightning model
       const stream = (await context.env.AI.run(
-        "@cf/runwayml/stable-diffusion-v1-5-img2img",
+        "@cf/bytedance/stable-diffusion-xl-lightning",
         {
           prompt,
           negative_prompt: negative_prompt || "",
-          image: image.data,
-          strength: validatedStrength,
-          guidance: validatedGuidance,
+          height: validatedHeight,
+          width: validatedWidth,
           num_steps: validatedSteps,
+          guidance: validatedGuidance,
         }
       )) as ReadableStream;
 
@@ -97,7 +99,7 @@ export class ImageTransformationNode extends BaseExecutableNode {
       return this.createSuccessResult({
         image: {
           data: Array.from(new Uint8Array(buffer)),
-          mimeType: "image/png",
+          mimeType: "image/jpeg",
         },
       });
     } catch (error) {
@@ -107,4 +109,4 @@ export class ImageTransformationNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

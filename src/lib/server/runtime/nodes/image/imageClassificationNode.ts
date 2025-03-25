@@ -10,7 +10,7 @@ export class ImageClassificationNode extends BaseExecutableNode {
     name: "Image Classification",
     type: "image-classification",
     description: "Detects and classifies objects in images",
-    category: "AI",
+    category: "Image",
     icon: "image",
     inputs: [
       {

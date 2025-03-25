@@ -10,7 +10,7 @@ export class ImageInpaintingNode extends BaseExecutableNode {
     name: "Image Inpainting",
     type: "image-inpainting",
     description: "Generates images by inpainting masked areas using Stable Diffusion v1.5",
-    category: "AI",
+    category: "Image",
     icon: "brush",
     inputs: [
       {

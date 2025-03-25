@@ -2,10 +2,10 @@ import { NodeRegistry } from "../workflowTypes";
 import { SummarizationNode } from "./ai/summarizationNode";
 import { SentimentNode } from "./ai/sentimentNode";
 import { TranslationNode } from "./ai/translationNode";
-import { ImageClassificationNode } from "./ai/imageClassificationNode";
-import { ImageTransformationNode } from "./ai/imageTransformationNode";
-import { ImageGenerationNode } from "./ai/imageGenerationNode";
-import { ImageInpaintingNode } from "./ai/imageInpaintingNode";
+import { ImageClassificationNode } from "./image/imageClassificationNode";
+import { ImageTransformationNode } from "./image/imageTransformationNode";
+import { ImageGenerationNode } from "./image/imageGenerationNode";
+import { ImageInpaintingNode } from "./image/imageInpaintingNode";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -27,9 +27,9 @@ import {
   LLMNode,
   TTSNode,
   WhisperNode,
-  LLaVANode,
   UFormNode,
 } from "./index";
+import { LLaVANode } from "./image/llavaNode";
 import { RadioGroupNode } from "./widgets/radioGroupNode";
 import { TextAreaNode } from "./widgets/textAreaNode";
 import { InputTextNode } from "./widgets/inputTextNode";
@@ -58,7 +58,6 @@ export function registerNodes(): void {
   registry.registerImplementation(LLMNode);
   registry.registerImplementation(TTSNode);
   registry.registerImplementation(WhisperNode);
-  registry.registerImplementation(LLaVANode);
   registry.registerImplementation(UFormNode);
   registry.registerImplementation(SummarizationNode);
   registry.registerImplementation(TranslationNode);
@@ -74,4 +73,5 @@ export function registerNodes(): void {
   registry.registerImplementation(JsonJsonExtractorNode);
   registry.registerImplementation(StringTemplateNode);
   registry.registerImplementation(MonacoEditorNode);
+  registry.registerImplementation(LLaVANode);
 }

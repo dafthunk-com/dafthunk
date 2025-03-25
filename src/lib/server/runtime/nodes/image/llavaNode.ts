@@ -2,17 +2,16 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
- * Image-to-Text node implementation using UForm-Gen2
+ * Image-to-Text node implementation using LLaVA
  */
-export class UFormNode extends BaseExecutableNode {
+export class LLaVANode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "uform-image-to-text",
-    name: "UForm Image to Text",
-    type: "uform-image-to-text",
-    description:
-      "Generates text descriptions from images using UForm-Gen2 model (smaller and faster than LLaVA)",
-    category: "AI",
-    icon: "messageSquare",
+    id: "image-to-text",
+    name: "Image to Text",
+    type: "image-to-text",
+    description: "Generates text descriptions from images using LLaVA model",
+    category: "Image",
+    icon: "image",
     inputs: [
       {
         name: "image",
@@ -32,6 +31,13 @@ export class UFormNode extends BaseExecutableNode {
         value: 512,
       },
       {
+        name: "temperature",
+        type: "number",
+        description:
+          "Controls the randomness of the output; higher values produce more random results",
+        value: 0.7,
+      },
+      {
         name: "top_p",
         type: "number",
         description:
@@ -44,13 +50,6 @@ export class UFormNode extends BaseExecutableNode {
         description:
           "Limits the AI to choose from the top 'k' most probable words",
         value: 40,
-      },
-      {
-        name: "repetition_penalty",
-        type: "number",
-        description:
-          "Penalty for repeated tokens; higher values discourage repetition",
-        value: 1.0,
       },
     ],
     outputs: [
@@ -68,7 +67,7 @@ export class UFormNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, max_tokens, top_p, top_k, repetition_penalty } =
+      const { image, prompt, max_tokens, temperature, top_p, top_k } =
         context.inputs;
 
       // Validate inputs
@@ -77,7 +76,7 @@ export class UFormNode extends BaseExecutableNode {
       }
 
       console.log(
-        `Processing image for UForm, data length: ${image.data.length} bytes`
+        `Processing image for LLaVA, data length: ${image.data.length} bytes`
       );
       console.log(`Prompt: "${prompt || "Generate a caption for this image"}"`);
 
@@ -92,18 +91,17 @@ export class UFormNode extends BaseExecutableNode {
       };
 
       // Add optional parameters if provided
+      if (temperature !== undefined) params.temperature = temperature;
       if (top_p !== undefined) params.top_p = top_p;
       if (top_k !== undefined) params.top_k = top_k;
-      if (repetition_penalty !== undefined)
-        params.repetition_penalty = repetition_penalty;
 
-      // Call Cloudflare AI UForm model
+      // Call Cloudflare AI LLaVA model
       const response = await context.env.AI.run(
-        "@cf/unum/uform-gen2-qwen-500m",
+        "@cf/llava-hf/llava-1.5-7b-hf",
         params
       );
 
-      console.log("UForm response:", response);
+      console.log("LLaVA response:", response);
 
       // Extract the description from the response
       const { description } = response;
@@ -112,7 +110,7 @@ export class UFormNode extends BaseExecutableNode {
         description,
       });
     } catch (error) {
-      console.error("UFormNode execution error:", error);
+      console.error("LLaVANode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
