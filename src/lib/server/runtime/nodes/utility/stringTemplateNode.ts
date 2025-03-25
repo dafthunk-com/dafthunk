@@ -34,12 +34,6 @@ export class StringTemplateNode extends BaseExecutableNode {
         type: "string",
         description: "The resulting string with variables replaced",
       },
-      {
-        name: "missingVariables",
-        type: "json",
-        description:
-          "Array of variable names that were not found in the variables object",
-      },
     ],
   };
 
@@ -52,17 +46,14 @@ export class StringTemplateNode extends BaseExecutableNode {
   private replaceVariables(
     template: string,
     variables: Record<string, any>
-  ): [string, string[]] {
-    const missingVariables: string[] = [];
-    const result = template.replace(/\${([^}]+)}/g, (match, varName) => {
+  ): string {
+    return template.replace(/\${([^}]+)}/g, (match, varName) => {
       if (variables.hasOwnProperty(varName)) {
         const value = variables[varName];
         return value !== null && value !== undefined ? String(value) : "";
       }
-      missingVariables.push(varName);
       return match;
     });
-    return [result, missingVariables];
   }
 
   public async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -96,14 +87,10 @@ export class StringTemplateNode extends BaseExecutableNode {
         return this.createErrorResult("Invalid or missing variables object");
       }
 
-      const [result, missingVariables] = this.replaceVariables(
-        template,
-        parsedVariables
-      );
+      const result = this.replaceVariables(template, parsedVariables);
 
       return this.createSuccessResult({
         result,
-        missingVariables,
       });
     } catch (err) {
       const error = err as Error;
