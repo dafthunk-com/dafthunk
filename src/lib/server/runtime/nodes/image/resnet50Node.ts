@@ -1,0 +1,59 @@
+import { BaseExecutableNode } from "../baseNode";
+import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
+
+/**
+ * ResNet-50 node implementation for image classification
+ */
+export class Resnet50Node extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "resnet-50",
+    name: "ResNet-50",
+    type: "resnet-50",
+    description: "Classifies images using the ResNet-50 model trained on ImageNet",
+    category: "Image",
+    icon: "image",
+    inputs: [
+      {
+        name: "image",
+        type: "image",
+        description: "The image to classify",
+      },
+    ],
+    outputs: [
+      {
+        name: "classifications",
+        type: "array",
+        description: "Array of predicted classes with confidence scores",
+      },
+    ],
+  };
+
+  async execute(context: NodeContext): Promise<ExecutionResult> {
+    try {
+      const image = context.inputs.image;
+
+      if (!image) {
+        return this.createErrorResult("Image is required");
+      }
+
+      if (!context.env?.AI) {
+        return this.createErrorResult("AI service is not available");
+      }
+
+      // Run the ResNet-50 model for image classification
+      const result = await context.env.AI.run("@cf/microsoft/resnet-50", {
+        image: [...image.data],
+      });
+
+      // The result should be an array of classifications
+      // Each classification has score and label properties
+      return this.createSuccessResult({
+        classifications: result,
+      });
+    } catch (error) {
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+  }
+} 

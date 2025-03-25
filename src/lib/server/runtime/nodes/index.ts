@@ -15,4 +15,5 @@ export * from "./image/llava157BHFNode";
 export * from "./image/stableDiffusionV15InpaintingNode";
 export * from "./image/stableDiffusionV15Img2ImgNode";
 export * from "./image/uformGen2Qwen500mNode";
+export * from "./image/resnet50Node";
 export * from "./utility";

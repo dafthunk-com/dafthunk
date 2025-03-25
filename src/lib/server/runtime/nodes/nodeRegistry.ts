@@ -5,6 +5,7 @@ import { TranslationNode } from "./text/translationNode";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
 import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15InpaintingNode";
 import { StableDiffusionV15Img2ImgNode } from "./image/stableDiffusionV15Img2ImgNode";
+import { Resnet50Node } from "./image/resnet50Node";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -66,6 +67,7 @@ export function registerNodes(): void {
   registry.registerImplementation(TranslationNode);
   registry.registerImplementation(SentimentNode);
   registry.registerImplementation(DetrResnet50Node);
+  registry.registerImplementation(Resnet50Node);
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(StableDiffusionXLLightningNode);
   registry.registerImplementation(StableDiffusionV15InpaintingNode);
