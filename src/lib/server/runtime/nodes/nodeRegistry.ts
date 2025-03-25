@@ -35,6 +35,7 @@ import { TextAreaNode } from "./widgets/textAreaNode";
 import { InputTextNode } from "./widgets/inputTextNode";
 import { NumberInputNode } from "./widgets/numberInputNode";
 import { MonacoEditorNode } from "./widgets/monacoEditorNode";
+import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
 
 /**
  * Register the mathematical operation nodes
@@ -74,4 +75,5 @@ export function registerNodes(): void {
   registry.registerImplementation(StringTemplateNode);
   registry.registerImplementation(MonacoEditorNode);
   registry.registerImplementation(LLaVANode);
+  registry.registerImplementation(CanvasDoodleNode);
 }

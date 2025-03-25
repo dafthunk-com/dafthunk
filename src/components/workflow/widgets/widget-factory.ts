@@ -53,20 +53,30 @@ export interface MonacoEditorWidgetConfig {
   value: string;
 }
 
+interface CanvasDoodleConfig {
+  type: "canvas-doodle";
+  value: string;
+  width: number;
+  height: number;
+  strokeColor: string;
+  strokeWidth: number;
+}
+
 export type WidgetConfig =
   | SliderWidgetConfig
   | RadioGroupWidgetConfig
   | TextAreaWidgetConfig
   | InputTextWidgetConfig
   | NumberInputWidgetConfig
-  | MonacoEditorWidgetConfig;
+  | MonacoEditorWidgetConfig
+  | CanvasDoodleConfig;
 
 export function createWidgetConfig(
   nodeId: string,
   inputs: Parameter[],
-  nodeType: string
+  type: string
 ): WidgetConfig | null {
-  switch (nodeType) {
+  switch (type) {
     case "slider":
       return {
         type: "slider",
@@ -229,6 +239,22 @@ export function createWidgetConfig(
         id: nodeId,
         name: "JSON Editor",
         value: String(valueInput.value || "{}"),
+      };
+    }
+    case "canvas-doodle": {
+      const value = inputs.find((i) => i.id === "value")?.value as string;
+      const width = inputs.find((i) => i.id === "width")?.value as number;
+      const height = inputs.find((i) => i.id === "height")?.value as number;
+      const strokeColor = inputs.find((i) => i.id === "strokeColor")?.value as string;
+      const strokeWidth = inputs.find((i) => i.id === "strokeWidth")?.value as number;
+
+      return {
+        type: "canvas-doodle",
+        value: value || "",
+        width: width || 400,
+        height: height || 300,
+        strokeColor: strokeColor || "#000000",
+        strokeWidth: strokeWidth || 2,
       };
     }
     default:

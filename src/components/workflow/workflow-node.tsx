@@ -9,6 +9,7 @@ import { TextAreaWidget } from "./widgets/text-area-widget";
 import { InputTextWidget } from "./widgets/input-text-widget";
 import { NumberInputWidget } from "./widgets/number-input-widget";
 import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
+import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
 import {
   Dialog,
   DialogContent,
@@ -144,6 +145,7 @@ export const WorkflowNode = memo(
     const isInputTextNode = data.nodeType === "input-text";
     const isNumberInputNode = data.nodeType === "number-input";
     const isMonacoEditorNode = data.nodeType === "monaco-editor";
+    const isCanvasDoodleNode = data.nodeType === "canvas-doodle";
 
     // Get widget configuration
     const widgetConfig =
@@ -152,7 +154,8 @@ export const WorkflowNode = memo(
       isTextAreaNode ||
       isInputTextNode ||
       isNumberInputNode ||
-      isMonacoEditorNode
+      isMonacoEditorNode ||
+      isCanvasDoodleNode
         ? createWidgetConfig(id, data.inputs, data.nodeType || "")
         : null;
 
@@ -306,6 +309,15 @@ export const WorkflowNode = memo(
                 "type" in widgetConfig &&
                 widgetConfig.type === "monaco-editor" && (
                   <MonacoEditorWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isCanvasDoodleNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "canvas-doodle" && (
+                  <CanvasDoodleWidget
                     config={widgetConfig}
                     onChange={handleWidgetChange}
                     compact={true}
