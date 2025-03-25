@@ -18,4 +18,5 @@ export * from "./image/uformGen2Qwen500mNode";
 export * from "./image/resnet50Node";
 export * from "./image/stableDiffusionXLBase10Node";
 export * from "./image/flux1SchnellNode";
+export * from "./image/dreamShaper8LCMNode";
 export * from "./utility";

@@ -8,6 +8,7 @@ import { StableDiffusionV15Img2ImgNode } from "./image/stableDiffusionV15Img2Img
 import { Resnet50Node } from "./image/resnet50Node";
 import { StableDiffusionXLBase10Node } from "./image/stableDiffusionXLBase10Node";
 import { Flux1SchnellNode } from "./image/flux1SchnellNode";
+import { DreamShaper8LCMNode } from "./image/dreamShaper8LCMNode";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -38,8 +39,6 @@ import { InputTextNode } from "./widgets/inputTextNode";
 import { NumberInputNode } from "./widgets/numberInputNode";
 import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
-import { WebcamNode } from "./widgets/webcamNode";
-import { AudioRecorderNode } from "./widgets/audioRecorderNode";
 import { DetrResnet50Node } from "./image/detrResnet50Node";
 
 /**
@@ -82,8 +81,7 @@ export function registerNodes(): void {
   registry.registerImplementation(MonacoEditorNode);
   registry.registerImplementation(LLaVA157BHFNode);
   registry.registerImplementation(CanvasDoodleNode);
-  registry.registerImplementation(WebcamNode);
-  registry.registerImplementation(AudioRecorderNode);
   registry.registerImplementation(StableDiffusionXLBase10Node);
   registry.registerImplementation(Flux1SchnellNode);
+  registry.registerImplementation(DreamShaper8LCMNode);
 }
