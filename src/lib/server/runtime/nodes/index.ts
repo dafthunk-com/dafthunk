@@ -8,7 +8,7 @@ export * from "./math/squareRootNode";
 export * from "./math/absoluteValueNode";
 export * from "./widgets/sliderNode";
 export * from "./text/llmNode";
-export * from "./image/imageGenerationNode";
+export * from "./image/stableDiffusionXLLightningNode";
 export * from "./audio/ttsNode";
 export * from "./audio/whisperNode";
 export * from "./image/llavaNode";

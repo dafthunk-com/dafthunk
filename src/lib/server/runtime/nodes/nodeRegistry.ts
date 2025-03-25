@@ -3,7 +3,7 @@ import { SummarizationNode } from "./text/summarizationNode";
 import { SentimentNode } from "./text/sentimentNode";
 import { TranslationNode } from "./text/translationNode";
 import { ImageTransformationNode } from "./image/imageTransformationNode";
-import { ImageGenerationNode } from "./image/imageGenerationNode";
+import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
 import { ImageInpaintingNode } from "./image/imageInpaintingNode";
 import {
   ImageUrlLoaderNode,
@@ -67,7 +67,7 @@ export function registerNodes(): void {
   registry.registerImplementation(SentimentNode);
   registry.registerImplementation(DetrResnet50Node);
   registry.registerImplementation(ImageUrlLoaderNode);
-  registry.registerImplementation(ImageGenerationNode);
+  registry.registerImplementation(StableDiffusionXLLightningNode);
   registry.registerImplementation(ImageTransformationNode);
   registry.registerImplementation(ImageInpaintingNode);
   registry.registerImplementation(JsonStringExtractorNode);

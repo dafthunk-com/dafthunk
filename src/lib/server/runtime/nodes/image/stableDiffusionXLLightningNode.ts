@@ -2,12 +2,12 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
- * Image Generation node implementation using Stable Diffusion
+ * Image Generation node implementation using Stable Diffusion XL Lightning
  */
-export class ImageGenerationNode extends BaseExecutableNode {
+export class StableDiffusionXLLightningNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "image-generation",
-    name: "Image Generation",
+    id: "stable-diffusion-xl-lightning",
+    name: "Stable Diffusion XL Lightning",
     type: "image-generation",
     description:
       "Generates images from text descriptions using Stable Diffusion XL Lightning",
