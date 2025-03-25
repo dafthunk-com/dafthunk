@@ -91,19 +91,6 @@ describe("JsonStringExtractorNode", () => {
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should fail with invalid JSON input", async () => {
-    const node = new JsonStringExtractorNode(createNode());
-    const result = await node.execute(
-      createContext({
-        json: null,
-        path: "$.name",
-      })
-    );
-
-    expect(result.success).toBe(false);
-    expect(result.error).toBe("Invalid or missing JSON input");
-  });
-
   it("should fail with invalid path", async () => {
     const node = new JsonStringExtractorNode(createNode());
     const result = await node.execute(
@@ -157,5 +144,19 @@ describe("JsonStringExtractorNode", () => {
     expect(result.success).toBe(true);
     expect(result.outputs?.value).toBe("Hello\nWorld! 🌍");
     expect(result.outputs?.found).toBe(true);
+  });
+
+  it("should return empty string and found=false when JSON input is null", async () => {
+    const node = new JsonStringExtractorNode(createNode());
+    const result = await node.execute(
+      createContext({
+        json: null,
+        path: "$.name",
+      })
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.outputs?.value).toBe("");
+    expect(result.outputs?.found).toBe(false);
   });
 });

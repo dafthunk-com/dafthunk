@@ -53,7 +53,7 @@ export class ImageGenerationNode extends BaseExecutableNode {
     outputs: [
       {
         name: "image",
-        type: "binary",
+        type: "image",
         description: "The generated image in JPEG format",
       },
     ],

@@ -15,7 +15,7 @@ export class ImageClassificationNode extends BaseExecutableNode {
     inputs: [
       {
         name: "image",
-        type: "binary",
+        type: "image",
         description: "The image to use for object detection",
       },
     ],

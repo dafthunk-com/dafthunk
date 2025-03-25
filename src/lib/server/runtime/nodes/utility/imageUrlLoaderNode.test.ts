@@ -22,7 +22,7 @@ describe("ImageUrlLoaderNode", () => {
     outputs: [
       {
         name: "imageData",
-        type: "binary",
+        type: "image",
         description: "The image data as a binary array",
       },
     ],

@@ -19,7 +19,7 @@ export class ImageUrlLoaderNode extends BaseExecutableNode {
     outputs: [
       {
         name: "image",
-        type: "binary",
+        type: "image",
         description: "The image data as a binary array",
       },
     ],

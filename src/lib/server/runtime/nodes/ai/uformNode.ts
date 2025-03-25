@@ -16,7 +16,7 @@ export class UFormNode extends BaseExecutableNode {
     inputs: [
       {
         name: "image",
-        type: "binary",
+        type: "image",
         description: "The image to generate a description for",
       },
       {
