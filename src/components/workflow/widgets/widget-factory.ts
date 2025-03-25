@@ -62,6 +62,23 @@ interface CanvasDoodleConfig {
   strokeWidth: number;
 }
 
+interface WebcamConfig {
+  type: "webcam";
+  value: string;
+  width: number;
+  height: number;
+}
+
+export type WidgetType =
+  | "slider"
+  | "radio-group"
+  | "text-area"
+  | "input-text"
+  | "number-input"
+  | "monaco-editor"
+  | "canvas-doodle"
+  | "webcam";
+
 export type WidgetConfig =
   | SliderWidgetConfig
   | RadioGroupWidgetConfig
@@ -69,7 +86,8 @@ export type WidgetConfig =
   | InputTextWidgetConfig
   | NumberInputWidgetConfig
   | MonacoEditorWidgetConfig
-  | CanvasDoodleConfig;
+  | CanvasDoodleConfig
+  | WebcamConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -255,6 +273,18 @@ export function createWidgetConfig(
         height: height || 300,
         strokeColor: strokeColor || "#000000",
         strokeWidth: strokeWidth || 2,
+      };
+    }
+    case "webcam": {
+      const value = inputs.find((i) => i.id === "value")?.value as string;
+      const width = inputs.find((i) => i.id === "width")?.value as number;
+      const height = inputs.find((i) => i.id === "height")?.value as number;
+
+      return {
+        type: "webcam",
+        value: value || "",
+        width: width || 640,
+        height: height || 480,
       };
     }
     default:

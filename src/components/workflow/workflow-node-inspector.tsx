@@ -21,6 +21,8 @@ import { TextAreaWidget } from "./widgets/text-area-widget";
 import { InputTextWidget } from "./widgets/input-text-widget";
 import { NumberInputWidget } from "./widgets/number-input-widget";
 import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
+import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
+import { WebcamWidget } from "./widgets/webcam-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 
 export function WorkflowNodeInspector({
@@ -132,6 +134,8 @@ export function WorkflowNodeInspector({
   const isInputTextNode = node.data.nodeType === "input-text";
   const isNumberInputNode = node.data.nodeType === "number-input";
   const isMonacoEditorNode = node.data.nodeType === "monaco-editor";
+  const isCanvasDoodleNode = node.data.nodeType === "canvas-doodle";
+  const isWebcamNode = node.data.nodeType === "webcam";
 
   // Get widget configuration
   const widgetConfig =
@@ -140,7 +144,9 @@ export function WorkflowNodeInspector({
     isTextAreaNode ||
     isInputTextNode ||
     isNumberInputNode ||
-    isMonacoEditorNode
+    isMonacoEditorNode ||
+    isCanvasDoodleNode ||
+    isWebcamNode
       ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "")
       : null;
 
@@ -229,6 +235,22 @@ export function WorkflowNodeInspector({
                 "type" in widgetConfig &&
                 widgetConfig.type === "monaco-editor" && (
                   <MonacoEditorWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isCanvasDoodleNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "canvas-doodle" && (
+                  <CanvasDoodleWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isWebcamNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "webcam" && (
+                  <WebcamWidget
                     config={widgetConfig}
                     onChange={handleWidgetChange}
                   />
