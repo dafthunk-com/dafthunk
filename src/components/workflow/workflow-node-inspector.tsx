@@ -134,9 +134,15 @@ export function WorkflowNodeInspector({
   const isMonacoEditorNode = node.data.nodeType === "monaco-editor";
 
   // Get widget configuration
-  const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode || isInputTextNode || isNumberInputNode || isMonacoEditorNode
-    ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") 
-    : null;
+  const widgetConfig =
+    isSliderNode ||
+    isRadioGroupNode ||
+    isTextAreaNode ||
+    isInputTextNode ||
+    isNumberInputNode ||
+    isMonacoEditorNode
+      ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "")
+      : null;
 
   const handleWidgetChange = (value: any) => {
     if (!updateNodeData || !widgetConfig) return;
@@ -179,42 +185,54 @@ export function WorkflowNodeInspector({
           {widgetConfig && (
             <div className="space-y-2">
               <Label>Widget</Label>
-              {isSliderNode && 'type' in widgetConfig && widgetConfig.type === 'slider' && (
-                <SliderWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                />
-              )}
-              {isRadioGroupNode && 'type' in widgetConfig && widgetConfig.type === 'radio-group' && (
-                <RadioGroupWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                />
-              )}
-              {isTextAreaNode && 'type' in widgetConfig && widgetConfig.type === 'text-area' && (
-                <TextAreaWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                />
-              )}
-              {isInputTextNode && 'type' in widgetConfig && widgetConfig.type === 'input-text' && (
-                <InputTextWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                />
-              )}
-              {isNumberInputNode && 'type' in widgetConfig && widgetConfig.type === 'number-input' && (
-                <NumberInputWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                />
-              )}
-              {isMonacoEditorNode && 'type' in widgetConfig && widgetConfig.type === 'monaco-editor' && (
-                <MonacoEditorWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                />
-              )}
+              {isSliderNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "slider" && (
+                  <SliderWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isRadioGroupNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "radio-group" && (
+                  <RadioGroupWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isTextAreaNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "text-area" && (
+                  <TextAreaWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isInputTextNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "input-text" && (
+                  <InputTextWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isNumberInputNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "number-input" && (
+                  <NumberInputWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+              {isMonacoEditorNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "monaco-editor" && (
+                  <MonacoEditorWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
             </div>
           )}
 
@@ -256,7 +274,9 @@ export function WorkflowNodeInspector({
                         <Toggle
                           size="sm"
                           pressed={input.hidden}
-                          onPressedChange={() => handleToggleVisibility(input.id)}
+                          onPressedChange={() =>
+                            handleToggleVisibility(input.id)
+                          }
                           aria-label={`Toggle visibility for ${input.name}`}
                           className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-gray-400 hover:text-gray-600 transition-colors"
                         >
@@ -294,7 +314,9 @@ export function WorkflowNodeInspector({
                         <Toggle
                           size="sm"
                           pressed={input.hidden}
-                          onPressedChange={() => handleToggleVisibility(input.id)}
+                          onPressedChange={() =>
+                            handleToggleVisibility(input.id)
+                          }
                           aria-label={`Toggle visibility for ${input.name}`}
                           className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-gray-400 hover:text-gray-600 transition-colors"
                         >

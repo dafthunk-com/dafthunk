@@ -57,7 +57,9 @@ describe("TranslationNode", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Target language is required and must be a string");
+    expect(result.error).toBe(
+      "Target language is required and must be a string"
+    );
   });
 
   it("should return error if AI service is not available", async () => {
@@ -139,7 +141,9 @@ describe("TranslationNode", () => {
   });
 
   it("should handle errors during execution", async () => {
-    const mockAIRun = vi.fn().mockRejectedValue(new Error("Translation failed"));
+    const mockAIRun = vi
+      .fn()
+      .mockRejectedValue(new Error("Translation failed"));
 
     const node = new TranslationNode(mockNode);
     const result = await node.execute({
@@ -159,4 +163,4 @@ describe("TranslationNode", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("Translation failed");
   });
-}); 
+});

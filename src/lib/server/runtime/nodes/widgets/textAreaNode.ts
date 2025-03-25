@@ -22,22 +22,22 @@ export class TextAreaNode extends BaseExecutableNode {
         type: "string",
         description: "Current text value in the text area",
         hidden: true,
-        value: "" // Default empty string
+        value: "", // Default empty string
       },
       {
         name: "placeholder",
         type: "string",
         description: "Placeholder text to show when empty",
         hidden: true,
-        value: undefined // Allow undefined as default
+        value: undefined, // Allow undefined as default
       },
       {
         name: "rows",
         type: "number",
         description: "Number of visible rows in the text area",
         hidden: true,
-        value: 4
-      }
+        value: 4,
+      },
     ],
     outputs: [
       {
@@ -60,7 +60,9 @@ export class TextAreaNode extends BaseExecutableNode {
       }
 
       if (placeholder !== undefined && typeof placeholder !== "string") {
-        return this.createErrorResult("Placeholder must be a string or undefined");
+        return this.createErrorResult(
+          "Placeholder must be a string or undefined"
+        );
       }
 
       if (typeof rows !== "number" || rows < 1) {
@@ -76,4 +78,4 @@ export class TextAreaNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

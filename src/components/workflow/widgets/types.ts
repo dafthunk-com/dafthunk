@@ -6,7 +6,7 @@ export interface BaseWidgetConfig {
 }
 
 export interface SliderWidgetConfig extends BaseWidgetConfig {
-  type: 'slider';
+  type: "slider";
   min: number;
   max: number;
   step: number;
@@ -23,4 +23,4 @@ export interface BaseWidgetProps<T extends BaseWidgetConfig> {
 
 export interface SliderWidgetProps extends BaseWidgetProps<SliderWidgetConfig> {
   config: SliderWidgetConfig;
-} 
+}

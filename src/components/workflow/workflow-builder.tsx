@@ -258,14 +258,10 @@ export function WorkflowBuilder({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Workflow Execution Error</DialogTitle>
-              <DialogDescription>
-                {errorMessage}
-              </DialogDescription>
+              <DialogDescription>{errorMessage}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button onClick={() => setErrorDialogOpen(false)}>
-                Close
-              </Button>
+              <Button onClick={() => setErrorDialogOpen(false)}>Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

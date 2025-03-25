@@ -4,20 +4,20 @@ import { relations } from "drizzle-orm";
 
 // Define plans
 export const Plan = {
-  TRIAL: 'trial',
-  FREE: 'free',
-  PRO: 'pro',
+  TRIAL: "trial",
+  FREE: "free",
+  PRO: "pro",
 } as const;
 
-export type PlanType = typeof Plan[keyof typeof Plan];
+export type PlanType = (typeof Plan)[keyof typeof Plan];
 
 // Define roles
 export const Role = {
-  USER: 'user',
-  ADMIN: 'admin',
+  USER: "user",
+  ADMIN: "admin",
 } as const;
 
-export type RoleType = typeof Role[keyof typeof Role];
+export type RoleType = (typeof Role)[keyof typeof Role];
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),

@@ -23,25 +23,25 @@ export class SliderNode extends BaseExecutableNode {
         name: "min",
         type: "number",
         description: "Minimum value of the slider",
-        hidden: true
+        hidden: true,
       },
       {
         name: "max",
         type: "number",
         description: "Maximum value of the slider",
-        hidden: true
+        hidden: true,
       },
-      { 
-        name: "step", 
-        type: "number", 
+      {
+        name: "step",
+        type: "number",
         description: "Step size for the slider",
-        hidden: true
+        hidden: true,
       },
       {
         name: "value",
         type: "number",
         description: "Current value of the slider",
-        hidden: true
+        hidden: true,
       },
     ],
     outputs: [

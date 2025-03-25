@@ -22,15 +22,15 @@ export class MonacoEditorNode extends BaseExecutableNode {
         type: "string",
         description: "Current JSON value in the editor",
         hidden: true,
-        value: "{}"
-      }
+        value: "{}",
+      },
     ],
     outputs: [
       {
         name: "value",
         type: "json",
         description: "The current JSON value from the editor",
-      }
+      },
     ],
   };
 
@@ -38,18 +38,18 @@ export class MonacoEditorNode extends BaseExecutableNode {
     try {
       const value = context.inputs.value as string;
 
-      console.log(value)
+      console.log(value);
 
       // Validate inputs
       if (typeof value !== "string") {
         return this.createErrorResult("Value must be a string");
       }
-      
+
       // Validate JSON
       try {
         const parsedValue = JSON.parse(value);
         return this.createSuccessResult({
-          value: parsedValue
+          value: parsedValue,
         });
       } catch (error) {
         return this.createErrorResult(
@@ -62,4 +62,4 @@ export class MonacoEditorNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

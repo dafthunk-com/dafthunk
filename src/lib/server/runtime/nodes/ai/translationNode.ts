@@ -65,7 +65,7 @@ export class TranslationNode extends BaseExecutableNode {
         source_lang: sourceLang,
         target_lang: targetLang,
       });
-      
+
       return this.createSuccessResult({
         translatedText: result.translated_text,
       });

@@ -15,7 +15,11 @@ interface NumberInputWidgetProps {
   compact?: boolean;
 }
 
-export function NumberInputWidget({ config, onChange, compact = false }: NumberInputWidgetProps) {
+export function NumberInputWidget({
+  config,
+  onChange,
+  compact = false,
+}: NumberInputWidgetProps) {
   const { value, min, max, step, placeholder } = config;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,4 +44,4 @@ export function NumberInputWidget({ config, onChange, compact = false }: NumberI
       />
     </div>
   );
-} 
+}

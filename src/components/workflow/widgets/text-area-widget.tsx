@@ -13,7 +13,11 @@ interface TextAreaWidgetProps {
   compact?: boolean;
 }
 
-export function TextAreaWidget({ config, onChange, compact = false }: TextAreaWidgetProps) {
+export function TextAreaWidget({
+  config,
+  onChange,
+  compact = false,
+}: TextAreaWidgetProps) {
   const { value, placeholder, rows } = config;
 
   return (
@@ -28,4 +32,4 @@ export function TextAreaWidget({ config, onChange, compact = false }: TextAreaWi
       />
     </div>
   );
-} 
+}

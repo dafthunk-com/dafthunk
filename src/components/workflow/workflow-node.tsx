@@ -140,9 +140,15 @@ export const WorkflowNode = memo(
     const isMonacoEditorNode = data.nodeType === "monaco-editor";
 
     // Get widget configuration
-    const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode || isInputTextNode || isNumberInputNode || isMonacoEditorNode
-      ? createWidgetConfig(id, data.inputs, data.nodeType || "") 
-      : null;
+    const widgetConfig =
+      isSliderNode ||
+      isRadioGroupNode ||
+      isTextAreaNode ||
+      isInputTextNode ||
+      isNumberInputNode ||
+      isMonacoEditorNode
+        ? createWidgetConfig(id, data.inputs, data.nodeType || "")
+        : null;
 
     const handleWidgetChange = (value: any) => {
       if (!updateNodeData || !widgetConfig) return;
@@ -240,48 +246,60 @@ export const WorkflowNode = memo(
           {/* Widget */}
           {widgetConfig && (
             <div className="px-3 py-2 border-b border-gray-200">
-              {isSliderNode && 'type' in widgetConfig && widgetConfig.type === 'slider' && (
-                <SliderWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                  compact={true}
-                />
-              )}
-              {isRadioGroupNode && 'type' in widgetConfig && widgetConfig.type === 'radio-group' && (
-                <RadioGroupWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                  compact={true}
-                />
-              )}
-              {isTextAreaNode && 'type' in widgetConfig && widgetConfig.type === 'text-area' && (
-                <TextAreaWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                  compact={true}
-                />
-              )}
-              {isInputTextNode && 'type' in widgetConfig && widgetConfig.type === 'input-text' && (
-                <InputTextWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                  compact={true}
-                />
-              )}
-              {isNumberInputNode && 'type' in widgetConfig && widgetConfig.type === 'number-input' && (
-                <NumberInputWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                  compact={true}
-                />
-              )}
-              {isMonacoEditorNode && 'type' in widgetConfig && widgetConfig.type === 'monaco-editor' && (
-                <MonacoEditorWidget
-                  config={widgetConfig}
-                  onChange={handleWidgetChange}
-                  compact={true}
-                />
-              )}
+              {isSliderNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "slider" && (
+                  <SliderWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isRadioGroupNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "radio-group" && (
+                  <RadioGroupWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isTextAreaNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "text-area" && (
+                  <TextAreaWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isInputTextNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "input-text" && (
+                  <InputTextWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isNumberInputNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "number-input" && (
+                  <NumberInputWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isMonacoEditorNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "monaco-editor" && (
+                  <MonacoEditorWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
             </div>
           )}
 
@@ -289,41 +307,47 @@ export const WorkflowNode = memo(
           <div className="px-1 py-1 grid grid-cols-2 justify-between gap-2.5">
             {/* Input Parameters */}
             <div className="flex flex-col gap-1 flex-1">
-              {data.inputs.filter(input => !input.hidden).map((input, index) => (
-                <div
-                  key={`input-${input.id}-${index}`}
-                  className="flex items-center gap-1 text-xs relative"
-                >
-                  <TypeBadge
-                    type={input.type}
-                    position={Position.Left}
-                    id={input.id}
-                    parameter={input}
-                    onInputClick={handleInputClick}
-                  />
-                  <p className="overflow-hidden text-ellipsis">{input.name}</p>
-                </div>
-              ))}
+              {data.inputs
+                .filter((input) => !input.hidden)
+                .map((input, index) => (
+                  <div
+                    key={`input-${input.id}-${index}`}
+                    className="flex items-center gap-1 text-xs relative"
+                  >
+                    <TypeBadge
+                      type={input.type}
+                      position={Position.Left}
+                      id={input.id}
+                      parameter={input}
+                      onInputClick={handleInputClick}
+                    />
+                    <p className="overflow-hidden text-ellipsis">
+                      {input.name}
+                    </p>
+                  </div>
+                ))}
             </div>
 
             {/* Output Parameters */}
             <div className="flex flex-col gap-1 flex-1 items-end">
-              {data.outputs.filter(output => !output.hidden).map((output, index) => (
-                <div
-                  key={`output-${output.id}-${index}`}
-                  className="flex items-center gap-1 text-xs relative"
-                >
-                  <p className="overflow-hidden text-ellipsis">
-                    {output.name}
-                  </p>
-                  <TypeBadge
-                    type={output.type}
-                    position={Position.Right}
-                    id={output.id}
-                    parameter={output}
-                  />
-                </div>
-              ))}
+              {data.outputs
+                .filter((output) => !output.hidden)
+                .map((output, index) => (
+                  <div
+                    key={`output-${output.id}-${index}`}
+                    className="flex items-center gap-1 text-xs relative"
+                  >
+                    <p className="overflow-hidden text-ellipsis">
+                      {output.name}
+                    </p>
+                    <TypeBadge
+                      type={output.type}
+                      position={Position.Right}
+                      id={output.id}
+                      parameter={output}
+                    />
+                  </div>
+                ))}
             </div>
           </div>
 
@@ -516,10 +540,7 @@ export const WorkflowNode = memo(
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsEditingName(false)}
-              >
+              <Button variant="outline" onClick={() => setIsEditingName(false)}>
                 Cancel
               </Button>
               <Button onClick={handleNameSave}>Save</Button>

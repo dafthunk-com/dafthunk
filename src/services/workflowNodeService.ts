@@ -24,11 +24,11 @@ export const workflowNodeService = {
       type: template.type,
       name: template.name,
       position,
-      inputs: template.inputs.map(input => ({
+      inputs: template.inputs.map((input) => ({
         ...input,
         id: input.name,
       })),
-      outputs: template.outputs.map(output => ({
+      outputs: template.outputs.map((output) => ({
         ...output,
         id: output.name,
       })),

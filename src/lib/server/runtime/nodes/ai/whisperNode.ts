@@ -57,18 +57,17 @@ export class WhisperNode extends BaseExecutableNode {
         throw new Error("Audio input is required");
       }
 
-      console.log(`Processing audio file for speech recognition, data length: ${audio.data.length} bytes`);
+      console.log(
+        `Processing audio file for speech recognition, data length: ${audio.data.length} bytes`
+      );
 
       // Prepare the audio data - convert back to Uint8Array
       const audioData = new Uint8Array(audio.data);
 
       // Call Cloudflare AI Whisper model
-      const response = await context.env.AI.run(
-        "@cf/openai/whisper",
-        {
-          audio: Array.from(audioData),
-        }
-      );
+      const response = await context.env.AI.run("@cf/openai/whisper", {
+        audio: Array.from(audioData),
+      });
 
       console.log("Whisper transcription response:", response);
 
@@ -88,4 +87,4 @@ export class WhisperNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

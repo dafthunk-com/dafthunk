@@ -87,16 +87,19 @@ async function executeWorkflow(
 
       const aiNodeTypes = new Set(
         nodeTypes
-          .filter(type => type.category === "AI")
-          .map(type => type.type)
+          .filter((type) => type.category === "AI")
+          .map((type) => type.type)
       );
-      
-      const hasAINodes = workflowGraph.nodes.some(node => aiNodeTypes.has(node.type));
+
+      const hasAINodes = workflowGraph.nodes.some((node) =>
+        aiNodeTypes.has(node.type)
+      );
 
       if (hasAINodes) {
         return new Response(
           JSON.stringify({
-            error: "AI nodes are not available in the free plan. Please upgrade to use AI features.",
+            error:
+              "AI nodes are not available in the free plan. Please upgrade to use AI features.",
           }),
           {
             status: 403,

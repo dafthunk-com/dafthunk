@@ -12,7 +12,11 @@ interface InputTextWidgetProps {
   compact?: boolean;
 }
 
-export function InputTextWidget({ config, onChange, compact = false }: InputTextWidgetProps) {
+export function InputTextWidget({
+  config,
+  onChange,
+  compact = false,
+}: InputTextWidgetProps) {
   const { value, placeholder } = config;
 
   return (
@@ -26,4 +30,4 @@ export function InputTextWidget({ config, onChange, compact = false }: InputText
       />
     </div>
   );
-} 
+}

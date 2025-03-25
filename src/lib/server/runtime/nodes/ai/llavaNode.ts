@@ -9,8 +9,7 @@ export class LLaVANode extends BaseExecutableNode {
     id: "image-to-text",
     name: "Image to Text",
     type: "image-to-text",
-    description:
-      "Generates text descriptions from images using LLaVA model",
+    description: "Generates text descriptions from images using LLaVA model",
     category: "AI",
     icon: "image",
     inputs: [
@@ -34,19 +33,22 @@ export class LLaVANode extends BaseExecutableNode {
       {
         name: "temperature",
         type: "number",
-        description: "Controls the randomness of the output; higher values produce more random results",
+        description:
+          "Controls the randomness of the output; higher values produce more random results",
         value: 0.7,
       },
       {
         name: "top_p",
         type: "number",
-        description: "Controls the diversity of outputs by limiting to the most probable tokens",
+        description:
+          "Controls the diversity of outputs by limiting to the most probable tokens",
         value: 0.95,
       },
       {
         name: "top_k",
         type: "number",
-        description: "Limits the AI to choose from the top 'k' most probable words",
+        description:
+          "Limits the AI to choose from the top 'k' most probable words",
         value: 40,
       },
     ],
@@ -65,15 +67,18 @@ export class LLaVANode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, max_tokens, temperature, top_p, top_k } = context.inputs;
+      const { image, prompt, max_tokens, temperature, top_p, top_k } =
+        context.inputs;
 
       // Validate inputs
       if (!image || !image.data) {
         throw new Error("Image input is required");
       }
 
-      console.log(`Processing image for LLaVA, data length: ${image.data.length} bytes`);
-      console.log(`Prompt: "${prompt || 'Generate a caption for this image'}"`);
+      console.log(
+        `Processing image for LLaVA, data length: ${image.data.length} bytes`
+      );
+      console.log(`Prompt: "${prompt || "Generate a caption for this image"}"`);
 
       // Prepare the image data - convert to array of numbers
       const imageData = Array.from(new Uint8Array(image.data));
@@ -111,4 +116,4 @@ export class LLaVANode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

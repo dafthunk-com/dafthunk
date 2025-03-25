@@ -379,14 +379,16 @@ export function EditorPage() {
         // Check if the error is due to a 403 response (AI nodes in free plan)
         if (eventSource.readyState === EventSource.CLOSED) {
           fetch(`/workflows/${workflowId}/execute`)
-            .then(response => {
+            .then((response) => {
               if (response.status === 403) {
                 return response.json();
               }
               throw new Error("Connection to execution service failed");
             })
-            .then(data => {
-              callbacks.onError(data.error || "AI nodes are not available in the free plan");
+            .then((data) => {
+              callbacks.onError(
+                data.error || "AI nodes are not available in the free plan"
+              );
             })
             .catch(() => {
               callbacks.onError("Connection to execution service failed");

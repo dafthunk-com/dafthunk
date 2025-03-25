@@ -11,7 +11,11 @@ interface MonacoEditorWidgetProps {
   compact?: boolean;
 }
 
-export function MonacoEditorWidget({ config, onChange, compact = false }: MonacoEditorWidgetProps) {
+export function MonacoEditorWidget({
+  config,
+  onChange,
+  compact = false,
+}: MonacoEditorWidgetProps) {
   const { value } = config;
 
   const handleEditorChange = (value: string | undefined) => {
@@ -34,7 +38,9 @@ export function MonacoEditorWidget({ config, onChange, compact = false }: Monaco
   return (
     <div className="space-y-2">
       {!compact && <Label>JSON Editor</Label>}
-      <div className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible border relative`}>
+      <div
+        className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible border relative`}
+      >
         <Editor
           height="100%"
           defaultLanguage="json"
@@ -51,8 +57,8 @@ export function MonacoEditorWidget({ config, onChange, compact = false }: Monaco
             automaticLayout: true,
             padding: { top: 0, bottom: 0 },
             scrollbar: {
-              vertical: 'visible',
-              horizontal: 'visible',
+              vertical: "visible",
+              horizontal: "visible",
               useShadows: false,
               verticalScrollbarSize: 8,
               horizontalScrollbarSize: 8,
@@ -60,7 +66,7 @@ export function MonacoEditorWidget({ config, onChange, compact = false }: Monaco
               horizontalSliderSize: 8,
               arrowSize: 0,
             },
-            renderLineHighlight: 'none',
+            renderLineHighlight: "none",
             overviewRulerBorder: false,
             hideCursorInOverviewRuler: true,
             overviewRulerLanes: 0,
@@ -71,20 +77,20 @@ export function MonacoEditorWidget({ config, onChange, compact = false }: Monaco
             wordWrap: "on",
             renderWhitespace: "none",
             bracketPairColorization: {
-              enabled: false
+              enabled: false,
             },
             guides: {
               indentation: false,
               highlightActiveIndentation: false,
-              bracketPairs: false
+              bracketPairs: false,
             },
             renderFinalNewline: "off",
             renderLineHighlightOnlyWhenFocus: true,
-            renderValidationDecorations: "off"
+            renderValidationDecorations: "off",
           }}
           onChange={handleEditorChange}
         />
       </div>
     </div>
   );
-} 
+}

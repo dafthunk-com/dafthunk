@@ -31,4 +31,4 @@ export function SliderWidget({
       </div>
     </div>
   );
-} 
+}

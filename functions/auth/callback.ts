@@ -181,7 +181,7 @@ async function saveUserToDatabase(
       console.log(`Updated existing user in database: ${userId}`);
     } else {
       // Insert new user
-      const defaultPlan = 'free';
+      const defaultPlan = "free";
       await db
         .insert(users)
         .values({
@@ -190,7 +190,7 @@ async function saveUserToDatabase(
           email: userEmail,
           provider: provider,
           plan: defaultPlan,
-          role: 'user',
+          role: "user",
           createdAt: new Date(),
           updatedAt: new Date(),
         })

@@ -22,15 +22,15 @@ export class InputTextNode extends BaseExecutableNode {
         type: "string",
         description: "Current text value in the input",
         hidden: true,
-        value: "" // Default empty string
+        value: "", // Default empty string
       },
       {
         name: "placeholder",
         type: "string",
         description: "Placeholder text to show when empty",
         hidden: true,
-        value: undefined // Allow undefined as default
-      }
+        value: undefined, // Allow undefined as default
+      },
     ],
     outputs: [
       {
@@ -52,7 +52,9 @@ export class InputTextNode extends BaseExecutableNode {
       }
 
       if (placeholder !== undefined && typeof placeholder !== "string") {
-        return this.createErrorResult("Placeholder must be a string or undefined");
+        return this.createErrorResult(
+          "Placeholder must be a string or undefined"
+        );
       }
 
       return this.createSuccessResult({
@@ -64,4 +66,4 @@ export class InputTextNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

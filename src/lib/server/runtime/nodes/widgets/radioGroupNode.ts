@@ -19,7 +19,8 @@ export class RadioGroupNode extends BaseExecutableNode {
     id: "radio-group",
     name: "Radio Group",
     type: "radio-group",
-    description: "A radio group widget for selecting one option from a list of choices",
+    description:
+      "A radio group widget for selecting one option from a list of choices",
     category: "Widgets",
     icon: "radio",
     inputs: [
@@ -31,16 +32,16 @@ export class RadioGroupNode extends BaseExecutableNode {
         value: [
           { value: "option1", label: "Option 1" },
           { value: "option2", label: "Option 2" },
-          { value: "option3", label: "Option 3" }
-        ]
+          { value: "option3", label: "Option 3" },
+        ],
       },
       {
         name: "value",
         type: "string",
         description: "Currently selected value",
         hidden: true,
-        value: "option1" // Default to first option
-      }
+        value: "option1", // Default to first option
+      },
     ],
     outputs: [
       {
@@ -82,9 +83,8 @@ export class RadioGroupNode extends BaseExecutableNode {
 
       // If no value is provided or the value is not in options, use first option's value
       const validValues = options.map((opt) => opt.value);
-      const outputValue = value && validValues.includes(value) 
-        ? value 
-        : options[0].value;
+      const outputValue =
+        value && validValues.includes(value) ? value : options[0].value;
 
       return this.createSuccessResult({
         value: outputValue,
@@ -95,4 +95,4 @@ export class RadioGroupNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

@@ -34,19 +34,22 @@ export class UFormNode extends BaseExecutableNode {
       {
         name: "top_p",
         type: "number",
-        description: "Controls the diversity of outputs by limiting to the most probable tokens",
+        description:
+          "Controls the diversity of outputs by limiting to the most probable tokens",
         value: 0.95,
       },
       {
         name: "top_k",
         type: "number",
-        description: "Limits the AI to choose from the top 'k' most probable words",
+        description:
+          "Limits the AI to choose from the top 'k' most probable words",
         value: 40,
       },
       {
         name: "repetition_penalty",
         type: "number",
-        description: "Penalty for repeated tokens; higher values discourage repetition",
+        description:
+          "Penalty for repeated tokens; higher values discourage repetition",
         value: 1.0,
       },
     ],
@@ -65,15 +68,18 @@ export class UFormNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, max_tokens, top_p, top_k, repetition_penalty } = context.inputs;
+      const { image, prompt, max_tokens, top_p, top_k, repetition_penalty } =
+        context.inputs;
 
       // Validate inputs
       if (!image || !image.data) {
         throw new Error("Image input is required");
       }
 
-      console.log(`Processing image for UForm, data length: ${image.data.length} bytes`);
-      console.log(`Prompt: "${prompt || 'Generate a caption for this image'}"`);
+      console.log(
+        `Processing image for UForm, data length: ${image.data.length} bytes`
+      );
+      console.log(`Prompt: "${prompt || "Generate a caption for this image"}"`);
 
       // Prepare the image data - convert to array of numbers
       const imageData = Array.from(new Uint8Array(image.data));
@@ -88,7 +94,8 @@ export class UFormNode extends BaseExecutableNode {
       // Add optional parameters if provided
       if (top_p !== undefined) params.top_p = top_p;
       if (top_k !== undefined) params.top_k = top_k;
-      if (repetition_penalty !== undefined) params.repetition_penalty = repetition_penalty;
+      if (repetition_penalty !== undefined)
+        params.repetition_penalty = repetition_penalty;
 
       // Call Cloudflare AI UForm model
       const response = await context.env.AI.run(
@@ -111,4 +118,4 @@ export class UFormNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

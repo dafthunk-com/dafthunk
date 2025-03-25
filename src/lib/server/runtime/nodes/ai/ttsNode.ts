@@ -9,8 +9,7 @@ export class TTSNode extends BaseExecutableNode {
     id: "text-to-speech",
     name: "Text to Speech",
     type: "text-to-speech",
-    description:
-      "Converts text to natural-sounding speech using MeloTTS",
+    description: "Converts text to natural-sounding speech using MeloTTS",
     category: "AI",
     icon: "audio",
     inputs: [
@@ -22,7 +21,8 @@ export class TTSNode extends BaseExecutableNode {
       {
         name: "lang",
         type: "string",
-        description: "The speech language (e.g., 'en' for English, 'fr' for French)",
+        description:
+          "The speech language (e.g., 'en' for English, 'fr' for French)",
         value: "en",
       },
     ],
@@ -48,21 +48,20 @@ export class TTSNode extends BaseExecutableNode {
         throw new Error("Prompt is required");
       }
 
-      console.log(`Calling MeloTTS with prompt: "${prompt}" and language: "${lang || 'en'}"`);
+      console.log(
+        `Calling MeloTTS with prompt: "${prompt}" and language: "${lang || "en"}"`
+      );
 
       // Call Cloudflare AI MeloTTS model
       // Request raw binary response instead of JSON
-      const response = await context.env.AI.run(
-        "@cf/myshell-ai/melotts",
-        {
-          prompt,
-          lang: lang || "en",
-        }
-      );
+      const response = await context.env.AI.run("@cf/myshell-ai/melotts", {
+        prompt,
+        lang: lang || "en",
+      });
 
       // Handle different response types from the API
       let audioBuffer;
-      
+
       if (response instanceof ReadableStream) {
         console.log("Received ReadableStream response");
         const newResponse = new Response(response);
@@ -71,11 +70,15 @@ export class TTSNode extends BaseExecutableNode {
       } else if (response instanceof ArrayBuffer) {
         console.log("Received ArrayBuffer response");
         audioBuffer = response;
-      } else if (response && typeof response === 'object' && 'audio' in response) {
+      } else if (
+        response &&
+        typeof response === "object" &&
+        "audio" in response
+      ) {
         console.log("Received object with audio property");
         // Handle case where API returns { audio: base64string }
         const audioBase64 = response.audio;
-        if (typeof audioBase64 === 'string') {
+        if (typeof audioBase64 === "string") {
           // Convert base64 to array buffer
           const binaryString = atob(audioBase64);
           const bytes = new Uint8Array(binaryString.length);
@@ -91,7 +94,9 @@ export class TTSNode extends BaseExecutableNode {
         throw new Error("Unexpected response format from MeloTTS API");
       }
 
-      console.log(`Received audio data of size: ${audioBuffer.byteLength} bytes`);
+      console.log(
+        `Received audio data of size: ${audioBuffer.byteLength} bytes`
+      );
 
       return this.createSuccessResult({
         audio: {
@@ -106,4 +111,4 @@ export class TTSNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

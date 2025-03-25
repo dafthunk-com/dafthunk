@@ -53,7 +53,13 @@ export interface MonacoEditorWidgetConfig {
   value: string;
 }
 
-export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig | InputTextWidgetConfig | NumberInputWidgetConfig | MonacoEditorWidgetConfig;
+export type WidgetConfig =
+  | SliderWidgetConfig
+  | RadioGroupWidgetConfig
+  | TextAreaWidgetConfig
+  | InputTextWidgetConfig
+  | NumberInputWidgetConfig
+  | MonacoEditorWidgetConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -100,7 +106,9 @@ export function createWidgetConfig(
         type: "radio-group",
         id: nodeId,
         name: "Radio Group",
-        value: (inputs.find((i) => i.id === "value")?.value as string) || options[0].value,
+        value:
+          (inputs.find((i) => i.id === "value")?.value as string) ||
+          options[0].value,
         options,
       };
     }
@@ -111,7 +119,9 @@ export function createWidgetConfig(
 
       // Ensure required inputs are present
       if (!valueInput || !rowsInput) {
-        console.warn(`Missing required inputs for text area widget in node ${nodeId}`);
+        console.warn(
+          `Missing required inputs for text area widget in node ${nodeId}`
+        );
         return null;
       }
 
@@ -136,7 +146,9 @@ export function createWidgetConfig(
 
       // Ensure required inputs are present
       if (!valueInput) {
-        console.warn(`Missing required inputs for input text widget in node ${nodeId}`);
+        console.warn(
+          `Missing required inputs for input text widget in node ${nodeId}`
+        );
         return null;
       }
 
@@ -163,7 +175,9 @@ export function createWidgetConfig(
 
       // Ensure required inputs are present
       if (!valueInput) {
-        console.warn(`Missing required inputs for number input widget in node ${nodeId}`);
+        console.warn(
+          `Missing required inputs for number input widget in node ${nodeId}`
+        );
         return null;
       }
 
@@ -204,7 +218,9 @@ export function createWidgetConfig(
 
       // Ensure required inputs are present
       if (!valueInput) {
-        console.warn(`Missing required inputs for Monaco Editor widget in node ${nodeId}`);
+        console.warn(
+          `Missing required inputs for Monaco Editor widget in node ${nodeId}`
+        );
         return null;
       }
 
@@ -218,4 +234,4 @@ export function createWidgetConfig(
     default:
       return null;
   }
-} 
+}
