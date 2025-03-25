@@ -4,11 +4,11 @@ import { BaseExecutableNode } from "../baseNode";
 /**
  * Image Inpainting node implementation using Stable Diffusion v1.5
  */
-export class ImageInpaintingNode extends BaseExecutableNode {
+export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "image-inpainting",
-    name: "Image Inpainting",
-    type: "image-inpainting",
+    id: "stable-diffusion-v1-5-inpainting",
+    name: "Stable Diffusion v1.5 Inpainting",
+    type: "stable-diffusion-v1-5-inpainting",
     description:
       "Generates images by inpainting masked areas using Stable Diffusion v1.5",
     category: "Image",

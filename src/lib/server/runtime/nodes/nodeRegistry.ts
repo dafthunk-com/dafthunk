@@ -4,7 +4,7 @@ import { SentimentNode } from "./text/sentimentNode";
 import { TranslationNode } from "./text/translationNode";
 import { ImageTransformationNode } from "./image/imageTransformationNode";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
-import { ImageInpaintingNode } from "./image/imageInpaintingNode";
+import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15InpaintingNode";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -69,7 +69,7 @@ export function registerNodes(): void {
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(StableDiffusionXLLightningNode);
   registry.registerImplementation(ImageTransformationNode);
-  registry.registerImplementation(ImageInpaintingNode);
+  registry.registerImplementation(StableDiffusionV15InpaintingNode);
   registry.registerImplementation(JsonStringExtractorNode);
   registry.registerImplementation(JsonBooleanExtractorNode);
   registry.registerImplementation(JsonNumberExtractorNode);

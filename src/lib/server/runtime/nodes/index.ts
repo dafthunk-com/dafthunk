@@ -13,4 +13,5 @@ export * from "./audio/ttsNode";
 export * from "./audio/whisperNode";
 export * from "./image/llavaNode";
 export * from "./image/uformNode";
+export * from "./image/stableDiffusionV15InpaintingNode";
 export * from "./utility";
