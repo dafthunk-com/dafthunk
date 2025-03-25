@@ -2,7 +2,6 @@ import { NodeRegistry } from "../workflowTypes";
 import { SummarizationNode } from "./text/summarizationNode";
 import { SentimentNode } from "./text/sentimentNode";
 import { TranslationNode } from "./text/translationNode";
-import { ImageTransformationNode } from "./image/imageTransformationNode";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
 import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15InpaintingNode";
 import { StableDiffusionV15Img2ImgNode } from "./image/stableDiffusionV15Img2ImgNode";
@@ -27,7 +26,7 @@ import {
   LLMNode,
   TTSNode,
   WhisperNode,
-  UFormNode,
+  UformGen2Qwen500mNode,
 } from "./index";
 import { LLaVA157BHFNode } from "./image/llava157BHFNode";
 import { RadioGroupNode } from "./widgets/radioGroupNode";
@@ -62,14 +61,13 @@ export function registerNodes(): void {
   registry.registerImplementation(LLMNode);
   registry.registerImplementation(TTSNode);
   registry.registerImplementation(WhisperNode);
-  registry.registerImplementation(UFormNode);
+  registry.registerImplementation(UformGen2Qwen500mNode);
   registry.registerImplementation(SummarizationNode);
   registry.registerImplementation(TranslationNode);
   registry.registerImplementation(SentimentNode);
   registry.registerImplementation(DetrResnet50Node);
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(StableDiffusionXLLightningNode);
-  registry.registerImplementation(ImageTransformationNode);
   registry.registerImplementation(StableDiffusionV15InpaintingNode);
   registry.registerImplementation(StableDiffusionV15Img2ImgNode);
   registry.registerImplementation(JsonStringExtractorNode);

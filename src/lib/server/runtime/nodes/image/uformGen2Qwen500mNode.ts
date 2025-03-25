@@ -4,11 +4,11 @@ import { BaseExecutableNode } from "../baseNode";
 /**
  * Image-to-Text node implementation using UForm-Gen2
  */
-export class UFormNode extends BaseExecutableNode {
+export class UformGen2Qwen500mNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "uform-image-to-text",
-    name: "UForm Image to Text",
-    type: "uform-image-to-text",
+    id: "uform-gen2-qwen-500m",
+    name: "UForm Gen2 Qwen 500M",
+    type: "uform-gen2-qwen-500m",
     description:
       "Generates text descriptions from images using UForm-Gen2 model (smaller and faster than LLaVA)",
     category: "Image",

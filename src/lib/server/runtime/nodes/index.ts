@@ -12,7 +12,7 @@ export * from "./image/stableDiffusionXLLightningNode";
 export * from "./audio/ttsNode";
 export * from "./audio/whisperNode";
 export * from "./image/llava157BHFNode";
-export * from "./image/uformNode";
 export * from "./image/stableDiffusionV15InpaintingNode";
 export * from "./image/stableDiffusionV15Img2ImgNode";
+export * from "./image/uformGen2Qwen500mNode";
 export * from "./utility";
