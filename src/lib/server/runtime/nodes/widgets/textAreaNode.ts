@@ -31,13 +31,6 @@ export class TextAreaNode extends BaseExecutableNode {
         hidden: true,
         value: undefined, // Allow undefined as default
       },
-      {
-        name: "rows",
-        type: "number",
-        description: "Number of visible rows in the text area",
-        hidden: true,
-        value: 4,
-      },
     ],
     outputs: [
       {
@@ -52,7 +45,6 @@ export class TextAreaNode extends BaseExecutableNode {
     try {
       const value = context.inputs.value as string;
       const placeholder = context.inputs.placeholder as string | undefined;
-      const rows = context.inputs.rows as number;
 
       // Validate inputs
       if (typeof value !== "string") {
@@ -63,10 +55,6 @@ export class TextAreaNode extends BaseExecutableNode {
         return this.createErrorResult(
           "Placeholder must be a string or undefined"
         );
-      }
-
-      if (typeof rows !== "number" || rows < 1) {
-        return this.createErrorResult("Rows must be a positive number");
       }
 
       return this.createSuccessResult({

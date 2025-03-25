@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label";
 interface TextAreaWidgetConfig {
   value: string;
   placeholder?: string;
-  rows: number;
 }
 
 interface TextAreaWidgetProps {
@@ -18,7 +17,7 @@ export function TextAreaWidget({
   onChange,
   compact = false,
 }: TextAreaWidgetProps) {
-  const { value, placeholder, rows } = config;
+  const { value, placeholder } = config;
 
   return (
     <div className="space-y-2">
@@ -27,7 +26,7 @@ export function TextAreaWidget({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={rows}
+        rows={4}
         className={compact ? "text-sm" : ""}
       />
     </div>
