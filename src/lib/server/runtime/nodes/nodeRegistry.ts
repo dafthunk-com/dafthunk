@@ -28,7 +28,6 @@ import {
   AbsoluteValueNode,
   SliderNode,
   Llama318BInstructFastNode,
-  TTSNode,
   WhisperNode,
   UformGen2Qwen500mNode,
 } from "./index";
@@ -40,6 +39,7 @@ import { NumberInputNode } from "./widgets/numberInputNode";
 import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
 import { DetrResnet50Node } from "./image/detrResnet50Node";
+import { MelottsNode } from "./audio/melottsNode";
 
 /**
  * Register the mathematical operation nodes
@@ -61,7 +61,6 @@ export function registerNodes(): void {
   registry.registerImplementation(NumberInputNode);
   registry.registerImplementation(SliderNode);
   registry.registerImplementation(Llama318BInstructFastNode);
-  registry.registerImplementation(TTSNode);
   registry.registerImplementation(WhisperNode);
   registry.registerImplementation(UformGen2Qwen500mNode);
   registry.registerImplementation(BartLargeCnnNode);
@@ -84,4 +83,5 @@ export function registerNodes(): void {
   registry.registerImplementation(StableDiffusionXLBase10Node);
   registry.registerImplementation(Flux1SchnellNode);
   registry.registerImplementation(DreamShaper8LCMNode);
+  registry.registerImplementation(MelottsNode);
 }

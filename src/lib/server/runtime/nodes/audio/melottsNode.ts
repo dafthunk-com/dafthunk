@@ -4,11 +4,11 @@ import { BaseExecutableNode } from "../baseNode";
 /**
  * Text-to-Speech node implementation using MeloTTS
  */
-export class TTSNode extends BaseExecutableNode {
+export class MelottsNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "text-to-speech",
-    name: "Text to Speech",
-    type: "text-to-speech",
+    id: "melotts",
+    name: "MeloTTS",
+    type: "melotts",
     description: "Converts text to natural-sounding speech using MeloTTS",
     category: "Audio",
     icon: "audio",
@@ -105,10 +105,10 @@ export class TTSNode extends BaseExecutableNode {
         },
       });
     } catch (error) {
-      console.error("TTSNode execution error:", error);
+      console.error("MelottsNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-}
+} 
