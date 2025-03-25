@@ -3,7 +3,6 @@ import { Label } from "@/components/ui/label";
 
 interface MonacoEditorWidgetConfig {
   value: string;
-  language?: string;
 }
 
 interface MonacoEditorWidgetProps {
@@ -13,15 +12,32 @@ interface MonacoEditorWidgetProps {
 }
 
 export function MonacoEditorWidget({ config, onChange, compact = false }: MonacoEditorWidgetProps) {
-  const { value, language = "javascript" } = config;
+  const { value } = config;
+
+  const handleEditorChange = (value: string | undefined) => {
+    if (!value) {
+      onChange("{}");
+      return;
+    }
+
+    try {
+      // Parse and stringify to validate and format JSON
+      const parsed = JSON.parse(value);
+      const formatted = JSON.stringify(parsed, null, 2);
+      onChange(formatted);
+    } catch (error) {
+      // If invalid JSON, just pass through the raw value
+      onChange(value);
+    }
+  };
 
   return (
     <div className="space-y-2">
-      {!compact && <Label>Code Editor</Label>}
+      {!compact && <Label>JSON Editor</Label>}
       <div className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible border relative`}>
         <Editor
           height="100%"
-          defaultLanguage={language}
+          defaultLanguage="json"
           defaultValue={value}
           theme="vs"
           options={{
@@ -50,18 +66,23 @@ export function MonacoEditorWidget({ config, onChange, compact = false }: Monaco
             overviewRulerLanes: 0,
             fixedOverflowWidgets: false,
             roundedSelection: false,
+            formatOnPaste: true,
+            formatOnType: true,
+            wordWrap: "on",
+            renderWhitespace: "none",
+            bracketPairColorization: {
+              enabled: false
+            },
             guides: {
               indentation: false,
               highlightActiveIndentation: false,
               bracketPairs: false
             },
-            suggest: {
-              showInlineDetails: false,
-              showStatusBar: false,
-              preview: false
-            }
+            renderFinalNewline: "off",
+            renderLineHighlightOnlyWhenFocus: true,
+            renderValidationDecorations: "off"
           }}
-          onChange={(value) => onChange(value || "")}
+          onChange={handleEditorChange}
         />
       </div>
     </div>

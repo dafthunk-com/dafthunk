@@ -47,8 +47,16 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
       const path = context.inputs['path'];
       const defaultValue = context.inputs['defaultValue'] || '';
 
-      if (!json || typeof json !== 'object') {
-        return this.createErrorResult('Invalid or missing JSON input');
+      // Handle empty or invalid JSON input
+      if (!json) {
+        return this.createSuccessResult({
+          value: defaultValue,
+          found: false
+        });
+      }
+
+      if (typeof json !== 'object') {
+        return this.createErrorResult('Invalid JSON input: must be an object');
       }
 
       if (!path || typeof path !== 'string') {
@@ -57,6 +65,14 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
 
       try {
         const results = JSONPath({ path, json });
+        
+        // If no results found, return default value
+        if (!results || results.length === 0) {
+          return this.createSuccessResult({
+            value: defaultValue,
+            found: false
+          });
+        }
         
         // Get the first result that is a string
         const stringValue = results.find(value => typeof value === 'string');

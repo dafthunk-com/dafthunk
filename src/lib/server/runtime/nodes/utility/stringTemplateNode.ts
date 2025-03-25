@@ -63,12 +63,21 @@ export class StringTemplateNode extends BaseExecutableNode {
         return this.createErrorResult('Invalid or missing template string');
       }
 
-      // Empty string is a valid template
-      if (variables === null || variables === undefined || typeof variables !== 'object') {
+      // Handle both JSON strings and objects
+      let parsedVariables = variables;
+      if (typeof variables === 'string') {
+        try {
+          parsedVariables = JSON.parse(variables);
+        } catch (err) {
+          return this.createErrorResult('Invalid JSON string in variables');
+        }
+      }
+
+      if (parsedVariables === null || parsedVariables === undefined || typeof parsedVariables !== 'object') {
         return this.createErrorResult('Invalid or missing variables object');
       }
 
-      const [result, missingVariables] = this.replaceVariables(template, variables);
+      const [result, missingVariables] = this.replaceVariables(template, parsedVariables);
 
       return this.createSuccessResult({
         result,
