@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
-import { TranslationNode } from "./translationNode";
+import { M2m10012bNode } from "./m2m10012bNode";
 import { Node } from "../../workflowTypes";
 
-describe("TranslationNode", () => {
+describe("M2m10012bNode", () => {
   const mockNode: Node = {
     id: "test-id",
     name: "Test Translation",
-    type: "translation",
+    type: "m2m100-1.2b",
     position: { x: 0, y: 0 },
     inputs: [
       {
@@ -35,7 +35,7 @@ describe("TranslationNode", () => {
   };
 
   it("should return error if text is not provided", async () => {
-    const node = new TranslationNode(mockNode);
+    const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -47,7 +47,7 @@ describe("TranslationNode", () => {
   });
 
   it("should return error if target language is not provided", async () => {
-    const node = new TranslationNode(mockNode);
+    const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -63,7 +63,7 @@ describe("TranslationNode", () => {
   });
 
   it("should return error if AI service is not available", async () => {
-    const node = new TranslationNode(mockNode);
+    const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -82,7 +82,7 @@ describe("TranslationNode", () => {
       translated_text: "Hola mundo",
     });
 
-    const node = new TranslationNode(mockNode);
+    const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -114,7 +114,7 @@ describe("TranslationNode", () => {
       translated_text: "Hola mundo",
     });
 
-    const node = new TranslationNode(mockNode);
+    const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -145,7 +145,7 @@ describe("TranslationNode", () => {
       .fn()
       .mockRejectedValue(new Error("Translation failed"));
 
-    const node = new TranslationNode(mockNode);
+    const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",

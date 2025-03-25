@@ -1,7 +1,7 @@
 import { NodeRegistry } from "../workflowTypes";
 import { BartLargeCnnNode } from "./text/bartLargeCnnNode";
 import { DistilbertSst2Int8Node } from "./text/distilbertSst2Int8Node";
-import { TranslationNode } from "./text/translationNode";
+import { M2m10012bNode } from "./text/m2m10012bNode";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
 import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15InpaintingNode";
 import { StableDiffusionV15Img2ImgNode } from "./image/stableDiffusionV15Img2ImgNode";
@@ -65,7 +65,7 @@ export function registerNodes(): void {
   registry.registerImplementation(WhisperNode);
   registry.registerImplementation(UformGen2Qwen500mNode);
   registry.registerImplementation(BartLargeCnnNode);
-  registry.registerImplementation(TranslationNode);
+  registry.registerImplementation(M2m10012bNode);
   registry.registerImplementation(DistilbertSst2Int8Node);
   registry.registerImplementation(DetrResnet50Node);
   registry.registerImplementation(Resnet50Node);

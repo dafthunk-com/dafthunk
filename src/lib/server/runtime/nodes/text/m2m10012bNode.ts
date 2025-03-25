@@ -2,14 +2,14 @@ import { BaseExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
 
 /**
- * Translation node implementation
+ * Translation node implementation using m2m100-1.2b model
  */
-export class TranslationNode extends BaseExecutableNode {
+export class M2m10012bNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "translation",
-    name: "Translation",
-    type: "translation",
-    description: "Translates text between languages",
+    id: "m2m100-1.2b",
+    name: "M2M100 1.2B",
+    type: "m2m100-1.2b",
+    description: "Translates text between languages using M2M100 1.2B model",
     category: "Text",
     icon: "language",
     inputs: [
