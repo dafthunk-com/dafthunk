@@ -34,6 +34,7 @@
     "drizzle-orm": "^0.39.3",
     "eslint-plugin-react-compiler": "19.0.0-beta-40c6c23-20250301",
     "jose": "^6.0.8",
+    "jsonpath-plus": "^10.3.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.475.0",
     "react": "19.0.0-beta-26f2496093-20240514",
