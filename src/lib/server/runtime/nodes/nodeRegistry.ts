@@ -9,31 +9,24 @@ import { Resnet50Node } from "./image/resnet50Node";
 import { StableDiffusionXLBase10Node } from "./image/stableDiffusionXLBase10Node";
 import { Flux1SchnellNode } from "./image/flux1SchnellNode";
 import { DreamShaper8LCMNode } from "./image/dreamShaper8LCMNode";
-
-import {
-  ImageUrlLoaderNode,
-  JsonStringExtractorNode,
-  JsonBooleanExtractorNode,
-  JsonNumberExtractorNode,
-  JsonJsonExtractorNode,
-  StringTemplateNode,
-} from "./utility";
-
-import {
-  AdditionNode,
-  SubtractionNode,
-  MultiplicationNode,
-  DivisionNode,
-  ModuloNode,
-  ExponentiationNode,
-  SquareRootNode,
-  AbsoluteValueNode,
-  SliderNode,
-  Llama318BInstructFastNode,
-  WhisperNode,
-  UformGen2Qwen500mNode,
-} from "./index";
-
+import { UformGen2Qwen500mNode } from "./image/uformGen2Qwen500mNode";
+import { ImageUrlLoaderNode } from "./utility/imageUrlLoaderNode";
+import { JsonStringExtractorNode } from "./utility/jsonStringExtractorNode";
+import { JsonBooleanExtractorNode } from "./utility/jsonBooleanExtractorNode";
+import { JsonNumberExtractorNode } from "./utility/jsonNumberExtractorNode";
+import { JsonJsonExtractorNode } from "./utility/jsonJsonExtractorNode";
+import { StringTemplateNode } from "./utility/stringTemplateNode";
+import { AdditionNode } from "./math/additionNode";
+import { SubtractionNode } from "./math/subtractionNode";
+import { MultiplicationNode } from "./math/multiplicationNode";
+import { DivisionNode } from "./math/divisionNode";
+import { ModuloNode } from "./math/moduloNode";
+import { ExponentiationNode } from "./math/exponentiationNode";
+import { SquareRootNode } from "./math/squareRootNode";
+import { AbsoluteValueNode } from "./math/absoluteValueNode";
+import { SliderNode } from "./widgets/sliderNode";
+import { Llama318BInstructFastNode } from "./text/llama318BInstructFastNode";
+import { WhisperNode } from "./audio/whisperNode";
 import { LLaVA157BHFNode } from "./image/llava157BHFNode";
 import { RadioGroupNode } from "./widgets/radioGroupNode";
 import { TextAreaNode } from "./widgets/textAreaNode";
@@ -41,6 +34,8 @@ import { InputTextNode } from "./widgets/inputTextNode";
 import { NumberInputNode } from "./widgets/numberInputNode";
 import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
+import { WebcamNode } from "./widgets/webcamNode";
+import { AudioRecorderNode } from "./widgets/audioRecorderNode";
 import { DetrResnet50Node } from "./image/detrResnet50Node";
 import { MelottsNode } from "./audio/melottsNode";
 import { BgeRerankerBaseNode } from "./text/bgeRerankerBaseNode";
@@ -93,4 +88,6 @@ export function registerNodes(): void {
   registry.registerImplementation(Flux1SchnellNode);
   registry.registerImplementation(DreamShaper8LCMNode);
   registry.registerImplementation(MelottsNode);
+  registry.registerImplementation(WebcamNode);
+  registry.registerImplementation(AudioRecorderNode);
 }
