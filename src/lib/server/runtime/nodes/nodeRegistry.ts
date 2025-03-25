@@ -40,6 +40,7 @@ import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
 import { DetrResnet50Node } from "./image/detrResnet50Node";
 import { MelottsNode } from "./audio/melottsNode";
+import { BgeRerankerBaseNode } from "./text/bgeRerankerBaseNode";
 
 /**
  * Register the mathematical operation nodes
@@ -66,6 +67,7 @@ export function registerNodes(): void {
   registry.registerImplementation(BartLargeCnnNode);
   registry.registerImplementation(M2m10012bNode);
   registry.registerImplementation(DistilbertSst2Int8Node);
+  registry.registerImplementation(BgeRerankerBaseNode);
   registry.registerImplementation(DetrResnet50Node);
   registry.registerImplementation(Resnet50Node);
   registry.registerImplementation(ImageUrlLoaderNode);
