@@ -6,6 +6,7 @@ import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { SliderWidget } from "./widgets/slider-widget";
 import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import { TextAreaWidget } from "./widgets/text-area-widget";
+import { InputTextWidget } from "./widgets/input-text-widget";
 import {
   Dialog,
   DialogContent,
@@ -132,9 +133,10 @@ export const WorkflowNode = memo(
     const isSliderNode = data.nodeType === "slider";
     const isRadioGroupNode = data.nodeType === "radio-group";
     const isTextAreaNode = data.nodeType === "text-area";
+    const isInputTextNode = data.nodeType === "input-text";
 
     // Get widget configuration
-    const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode 
+    const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode || isInputTextNode
       ? createWidgetConfig(id, data.inputs, data.nodeType || "") 
       : null;
 
@@ -250,6 +252,13 @@ export const WorkflowNode = memo(
               )}
               {isTextAreaNode && 'type' in widgetConfig && widgetConfig.type === 'text-area' && (
                 <TextAreaWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                  compact={true}
+                />
+              )}
+              {isInputTextNode && 'type' in widgetConfig && widgetConfig.type === 'input-text' && (
+                <InputTextWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                   compact={true}

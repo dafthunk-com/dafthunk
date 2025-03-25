@@ -27,7 +27,15 @@ export interface TextAreaWidgetConfig {
   rows: number;
 }
 
-export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig;
+export interface InputTextWidgetConfig {
+  type: "input-text";
+  id: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+}
+
+export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig | InputTextWidgetConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -102,6 +110,30 @@ export function createWidgetConfig(
         value: String(valueInput.value || ""),
         placeholder,
         rows: Number(rowsInput.value) || 4,
+      };
+    }
+    case "input-text": {
+      const valueInput = inputs.find((i) => i.id === "value");
+      const placeholderInput = inputs.find((i) => i.id === "placeholder");
+
+      // Ensure required inputs are present
+      if (!valueInput) {
+        console.warn(`Missing required inputs for input text widget in node ${nodeId}`);
+        return null;
+      }
+
+      // Handle placeholder value
+      let placeholder: string | undefined;
+      if (placeholderInput?.value !== undefined) {
+        placeholder = String(placeholderInput.value);
+      }
+
+      return {
+        type: "input-text",
+        id: nodeId,
+        name: "Text Input",
+        value: String(valueInput.value || ""),
+        placeholder,
       };
     }
     default:

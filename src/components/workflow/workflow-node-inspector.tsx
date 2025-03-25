@@ -18,6 +18,7 @@ import { XCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { SliderWidget } from "./widgets/slider-widget";
 import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import { TextAreaWidget } from "./widgets/text-area-widget";
+import { InputTextWidget } from "./widgets/input-text-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 
 export function WorkflowNodeInspector({
@@ -126,9 +127,10 @@ export function WorkflowNodeInspector({
   const isSliderNode = node.data.nodeType === "slider";
   const isRadioGroupNode = node.data.nodeType === "radio-group";
   const isTextAreaNode = node.data.nodeType === "text-area";
+  const isInputTextNode = node.data.nodeType === "input-text";
 
   // Get widget configuration
-  const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode 
+  const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode || isInputTextNode
     ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") 
     : null;
 
@@ -187,6 +189,12 @@ export function WorkflowNodeInspector({
               )}
               {isTextAreaNode && 'type' in widgetConfig && widgetConfig.type === 'text-area' && (
                 <TextAreaWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                />
+              )}
+              {isInputTextNode && 'type' in widgetConfig && widgetConfig.type === 'input-text' && (
+                <InputTextWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                 />
