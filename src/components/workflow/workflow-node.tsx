@@ -53,6 +53,7 @@ export interface WorkflowNodeData {
   error?: string | null;
   executionState: NodeExecutionState;
   nodeType?: string;
+  dragHandle?: string;
 }
 
 const TypeBadge = ({
@@ -228,14 +229,19 @@ export const WorkflowNode = memo(
           )}
         >
           {/* Header */}
-          <div className="pl-2 pr-1 py-1 flex justify-between items-center border-b border-gray-200">
+          <div 
+            className={cn(
+              "pl-2 pr-1 py-1 flex justify-between items-center border-b border-gray-200 hover:cursor-grab active:cursor-grabbing",
+              "workflow-node-drag-handle"
+            )}
+          >
             <h3 className="text-xs font-medium truncate">{data.name}</h3>
             <div className="flex gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={handleNameClick}
-                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-blue-500 hover:bg-gray-200"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-blue-500 hover:bg-gray-200 nodrag"
                     aria-label="Edit node label"
                   >
                     <PencilIcon className="w-3 h-3" />
@@ -250,7 +256,7 @@ export const WorkflowNode = memo(
 
           {/* Widget */}
           {widgetConfig && (
-            <div className="px-3 py-2 border-b border-gray-200">
+            <div className="px-3 py-2 border-b border-gray-200 nodrag">
               {isSliderNode &&
                 "type" in widgetConfig &&
                 widgetConfig.type === "slider" && (
@@ -309,7 +315,7 @@ export const WorkflowNode = memo(
           )}
 
           {/* Parameters */}
-          <div className="px-1 py-1 grid grid-cols-2 justify-between gap-2.5">
+          <div className="px-1 py-1 grid grid-cols-2 justify-between gap-2.5 nodrag">
             {/* Input Parameters */}
             <div className="flex flex-col gap-1 flex-1">
               {data.inputs
@@ -359,7 +365,7 @@ export const WorkflowNode = memo(
           {/* Output Values Section - Always visible but disabled when no outputs */}
           <div
             className={cn(
-              "px-2 py-1 border-t border-gray-200 flex items-center justify-between",
+              "px-2 py-1 border-t border-gray-200 flex items-center justify-between nodrag",
               {
                 "cursor-pointer hover:bg-gray-50": hasOutputValues,
                 "cursor-not-allowed opacity-60": !hasOutputValues,
