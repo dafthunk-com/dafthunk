@@ -9,7 +9,8 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
     id: "dreamshaper-8-lcm",
     name: "DreamShaper 8 LCM",
     type: "dreamshaper-8-lcm",
-    description: "Generates images from text descriptions using the DreamShaper 8 LCM model",
+    description:
+      "Generates images from text descriptions using the DreamShaper 8 LCM model",
     category: "Image",
     icon: "image",
     inputs: [
@@ -44,7 +45,8 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
       {
         name: "guidance",
         type: "number",
-        description: "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
+        description:
+          "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
         value: 7.5,
       },
       {
@@ -131,4 +133,4 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

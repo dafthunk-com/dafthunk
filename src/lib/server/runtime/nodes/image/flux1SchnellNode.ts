@@ -9,7 +9,8 @@ export class Flux1SchnellNode extends BaseExecutableNode {
     id: "flux-1-schnell",
     name: "FLUX.1 Schnell",
     type: "flux-1-schnell",
-    description: "Generates images from text descriptions using the FLUX.1 schnell model",
+    description:
+      "Generates images from text descriptions using the FLUX.1 schnell model",
     category: "Image",
     icon: "image",
     inputs: [
@@ -48,10 +49,13 @@ export class Flux1SchnellNode extends BaseExecutableNode {
       }
 
       // Run the FLUX.1 schnell model for text-to-image generation
-      const result = await context.env.AI.run("@cf/black-forest-labs/flux-1-schnell", {
-        prompt,
-        ...(steps && { steps }),
-      });
+      const result = await context.env.AI.run(
+        "@cf/black-forest-labs/flux-1-schnell",
+        {
+          prompt,
+          ...(steps && { steps }),
+        }
+      );
 
       // Convert base64 string to Uint8Array
       const binaryString = atob(result.image);
@@ -72,4 +76,4 @@ export class Flux1SchnellNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

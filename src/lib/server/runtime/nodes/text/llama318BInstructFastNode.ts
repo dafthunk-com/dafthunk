@@ -4,10 +4,10 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 /**
  * Simplified LLM node implementation with essential parameters
  */
-export class LLMNode extends BaseExecutableNode {
+export class Llama318BInstructFastNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "llm",
-    name: "LLM",
+    id: "llama-3.1-8b-instruct-fast",
+    name: "llama-3.1-8b-instruct-fast",
     type: "llm",
     description: "Generates text",
     category: "Text",

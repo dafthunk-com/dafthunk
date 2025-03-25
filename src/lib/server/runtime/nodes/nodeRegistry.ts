@@ -27,7 +27,7 @@ import {
   SquareRootNode,
   AbsoluteValueNode,
   SliderNode,
-  LLMNode,
+  Llama318BInstructFastNode,
   TTSNode,
   WhisperNode,
   UformGen2Qwen500mNode,
@@ -60,7 +60,7 @@ export function registerNodes(): void {
   registry.registerImplementation(InputTextNode);
   registry.registerImplementation(NumberInputNode);
   registry.registerImplementation(SliderNode);
-  registry.registerImplementation(LLMNode);
+  registry.registerImplementation(Llama318BInstructFastNode);
   registry.registerImplementation(TTSNode);
   registry.registerImplementation(WhisperNode);
   registry.registerImplementation(UformGen2Qwen500mNode);
