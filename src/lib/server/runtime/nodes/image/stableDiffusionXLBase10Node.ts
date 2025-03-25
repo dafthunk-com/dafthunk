@@ -4,7 +4,7 @@ import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
 /**
  * Stable Diffusion XL Base 1.0 node implementation for text-to-image generation
  */
-export class StableDiffusionXLBaseNode10 extends BaseExecutableNode {
+export class StableDiffusionXLBase10Node extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-base",
     name: "Stable Diffusion XL Base",
@@ -87,10 +87,18 @@ export class StableDiffusionXLBaseNode10 extends BaseExecutableNode {
       }
 
       // Get default values from node type definition
-      const defaultWidth = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "width")?.value as number;
-      const defaultHeight = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "height")?.value as number;
-      const defaultNumSteps = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "num_steps")?.value as number;
-      const defaultGuidance = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "guidance")?.value as number;
+      const defaultWidth = StableDiffusionXLBase10Node.nodeType.inputs.find(
+        (i) => i.name === "width"
+      )?.value as number;
+      const defaultHeight = StableDiffusionXLBase10Node.nodeType.inputs.find(
+        (i) => i.name === "height"
+      )?.value as number;
+      const defaultNumSteps = StableDiffusionXLBase10Node.nodeType.inputs.find(
+        (i) => i.name === "num_steps"
+      )?.value as number;
+      const defaultGuidance = StableDiffusionXLBase10Node.nodeType.inputs.find(
+        (i) => i.name === "guidance"
+      )?.value as number;
 
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
@@ -106,10 +114,10 @@ export class StableDiffusionXLBaseNode10 extends BaseExecutableNode {
       if (seed) inputs.seed = seed;
 
       // Run the Stable Diffusion XL Base model
-      const stream = await context.env.AI.run(
+      const stream = (await context.env.AI.run(
         "@cf/stabilityai/stable-diffusion-xl-base-1.0",
         inputs
-      ) as ReadableStream;
+      )) as ReadableStream;
 
       const response = new Response(stream);
       const blob = await response.blob();

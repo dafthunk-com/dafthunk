@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { StableDiffusionXLBaseNode10 } from "./stableDiffusionXLBaseNode10";
+import { StableDiffusionXLBase10Node } from "./stableDiffusionXLBase10Node";
 import { Node } from "../../workflowTypes";
 
-describe("StableDiffusionXLBaseNode10", () => {
+describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {
     id: "test-id",
     name: "Test Stable Diffusion XL",
@@ -59,7 +59,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   };
 
   it("should return error if prompt is not provided", async () => {
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -71,7 +71,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   });
 
   it("should return error if AI service is not available", async () => {
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -87,7 +87,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   it("should generate image with minimal required inputs", async () => {
     const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
 
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -101,13 +101,16 @@ describe("StableDiffusionXLBaseNode10", () => {
       },
     });
 
-    expect(mockAIRun).toHaveBeenCalledWith("@cf/stabilityai/stable-diffusion-xl-base-1.0", {
-      prompt: "a beautiful sunset over mountains",
-      width: 1024,
-      height: 1024,
-      num_steps: 20,
-      guidance: 7.5,
-    });
+    expect(mockAIRun).toHaveBeenCalledWith(
+      "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        prompt: "a beautiful sunset over mountains",
+        width: 1024,
+        height: 1024,
+        num_steps: 20,
+        guidance: 7.5,
+      }
+    );
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
@@ -120,7 +123,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   it("should generate image with all optional parameters", async () => {
     const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
 
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -140,15 +143,18 @@ describe("StableDiffusionXLBaseNode10", () => {
       },
     });
 
-    expect(mockAIRun).toHaveBeenCalledWith("@cf/stabilityai/stable-diffusion-xl-base-1.0", {
-      prompt: "a beautiful sunset over mountains",
-      negative_prompt: "blurry, low quality",
-      width: 512,
-      height: 768,
-      num_steps: 15,
-      guidance: 8.5,
-      seed: 12345,
-    });
+    expect(mockAIRun).toHaveBeenCalledWith(
+      "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        prompt: "a beautiful sunset over mountains",
+        negative_prompt: "blurry, low quality",
+        width: 512,
+        height: 768,
+        num_steps: 15,
+        guidance: 8.5,
+        seed: 12345,
+      }
+    );
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
@@ -161,7 +167,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   it("should clamp width and height values within valid range", async () => {
     const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
 
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -177,13 +183,16 @@ describe("StableDiffusionXLBaseNode10", () => {
       },
     });
 
-    expect(mockAIRun).toHaveBeenCalledWith("@cf/stabilityai/stable-diffusion-xl-base-1.0", {
-      prompt: "a beautiful sunset over mountains",
-      width: 2048,
-      height: 256,
-      num_steps: 20,
-      guidance: 7.5,
-    });
+    expect(mockAIRun).toHaveBeenCalledWith(
+      "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        prompt: "a beautiful sunset over mountains",
+        width: 2048,
+        height: 256,
+        num_steps: 20,
+        guidance: 7.5,
+      }
+    );
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
@@ -196,7 +205,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   it("should clamp num_steps to maximum value of 20", async () => {
     const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
 
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -211,13 +220,16 @@ describe("StableDiffusionXLBaseNode10", () => {
       },
     });
 
-    expect(mockAIRun).toHaveBeenCalledWith("@cf/stabilityai/stable-diffusion-xl-base-1.0", {
-      prompt: "a beautiful sunset over mountains",
-      width: 1024,
-      height: 1024,
-      num_steps: 20,
-      guidance: 7.5,
-    });
+    expect(mockAIRun).toHaveBeenCalledWith(
+      "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        prompt: "a beautiful sunset over mountains",
+        width: 1024,
+        height: 1024,
+        num_steps: 20,
+        guidance: 7.5,
+      }
+    );
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
@@ -230,7 +242,7 @@ describe("StableDiffusionXLBaseNode10", () => {
   it("should handle errors during execution", async () => {
     const mockAIRun = vi.fn().mockRejectedValue(new Error("Generation failed"));
 
-    const node = new StableDiffusionXLBaseNode10(mockNode);
+    const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
       workflowId: "test-workflow",
@@ -247,4 +259,4 @@ describe("StableDiffusionXLBaseNode10", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("Generation failed");
   });
-}); 
+});
