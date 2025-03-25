@@ -82,6 +82,8 @@ const TypeBadge = ({
     position === Position.Left && parameter && parameter.value !== undefined;
   // Check if the parameter is connected
   const isConnected = parameter?.isConnected === true;
+  // Determine if this is an input parameter
+  const isInput = position === Position.Left;
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -96,11 +98,14 @@ const TypeBadge = ({
         className={cn(
           "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
           {
+            // Dark gray for connected parameters (both input and output)
             "bg-gray-400 text-gray-900 hover:bg-gray-500": isConnected,
+            // Medium gray for input parameters with values
             "bg-gray-300 text-gray-800 hover:bg-gray-400":
-              !isConnected && hasValue,
+              isInput && !isConnected && hasValue,
+            // Light gray for unconnected parameters
             "bg-gray-100 text-gray-600 hover:bg-gray-200":
-              !isConnected && !hasValue,
+              !isConnected && (!isInput || !hasValue),
           }
         )}
         onClick={handleClick}

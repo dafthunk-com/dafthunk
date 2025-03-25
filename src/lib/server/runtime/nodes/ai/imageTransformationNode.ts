@@ -1,0 +1,110 @@
+import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { BaseExecutableNode } from "../baseNode";
+
+/**
+ * Image Transformation node implementation using Stable Diffusion v1.5 img2img
+ */
+export class ImageTransformationNode extends BaseExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "image-transformation",
+    name: "Image Transformation",
+    type: "image-transformation",
+    description: "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
+    category: "AI",
+    icon: "wand",
+    inputs: [
+      {
+        name: "image",
+        type: "image",
+        description: "The input image to transform",
+      },
+      {
+        name: "prompt",
+        type: "string",
+        description: "A text description of how you want to transform the image",
+      },
+      {
+        name: "negative_prompt",
+        type: "string",
+        description: "Text describing elements to avoid in the transformed image",
+      },
+      {
+        name: "strength",
+        type: "number",
+        description: "How strongly to apply the transformation (0-1)",
+        value: 0.75,
+      },
+      {
+        name: "guidance",
+        type: "number",
+        description: "Controls how closely the transformation should adhere to the prompt",
+        value: 7.5,
+      },
+      {
+        name: "num_steps",
+        type: "number",
+        description: "The number of diffusion steps (1-20)",
+        value: 20,
+      },
+    ],
+    outputs: [
+      {
+        name: "image",
+        type: "image",
+        description: "The transformed image in PNG format",
+      },
+    ],
+  };
+
+  async execute(context: NodeContext): Promise<ExecutionResult> {
+    try {
+      if (!context.env?.AI) {
+        throw new Error("AI service is not available");
+      }
+
+      const { image, prompt, negative_prompt, strength, guidance, num_steps } = context.inputs;
+
+      // Validate inputs
+      if (!image) {
+        throw new Error("Input image is required");
+      }
+      if (!prompt) {
+        throw new Error("Prompt is required");
+      }
+
+      // Ensure numeric parameters are within valid ranges
+      const validatedStrength = Math.min(Math.max(strength || 0.75, 0), 1);
+      const validatedGuidance = guidance || 7.5;
+      const validatedSteps = Math.min(Math.max(num_steps || 20, 1), 20);
+
+      // Call Cloudflare AI Stable Diffusion v1.5 img2img model
+      const stream = (await context.env.AI.run(
+        "@cf/runwayml/stable-diffusion-v1-5-img2img",
+        {
+          prompt,
+          negative_prompt: negative_prompt || "",
+          image: image.data,
+          strength: validatedStrength,
+          guidance: validatedGuidance,
+          num_steps: validatedSteps,
+        }
+      )) as ReadableStream;
+
+      const response = new Response(stream);
+      const blob = await response.blob();
+      const buffer = await blob.arrayBuffer();
+
+      return this.createSuccessResult({
+        image: {
+          data: Array.from(new Uint8Array(buffer)),
+          mimeType: "image/png",
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+  }
+} 

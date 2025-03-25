@@ -76,16 +76,17 @@ export function WorkflowBuilder({
 
   // Keep the connection state effect as is
   useEffect(() => {
-    // Create a map to track connected parameters
-    const connectedParams = new Map();
+    // Create separate maps to track input and output connections
+    const connectedInputs = new Map();
+    const connectedOutputs = new Map();
 
     // Collect all connections from edges
     edges.forEach((edge) => {
       if (edge.targetHandle) {
-        connectedParams.set(`${edge.target}-${edge.targetHandle}`, true);
+        connectedInputs.set(`${edge.target}-${edge.targetHandle}`, true);
       }
       if (edge.sourceHandle) {
-        connectedParams.set(`${edge.source}-${edge.sourceHandle}`, true);
+        connectedOutputs.set(`${edge.source}-${edge.sourceHandle}`, true);
       }
     });
 
@@ -93,12 +94,12 @@ export function WorkflowBuilder({
     nodes.forEach((node) => {
       const inputs = node.data.inputs.map((input) => ({
         ...input,
-        isConnected: connectedParams.has(`${node.id}-${input.id}`),
+        isConnected: connectedInputs.has(`${node.id}-${input.id}`),
       }));
 
       const outputs = node.data.outputs.map((output) => ({
         ...output,
-        isConnected: connectedParams.has(`${node.id}-${output.id}`),
+        isConnected: connectedOutputs.has(`${node.id}-${output.id}`),
       }));
 
       // Only update if there's a change to avoid infinite loops

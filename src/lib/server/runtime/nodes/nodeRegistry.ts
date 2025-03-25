@@ -3,6 +3,7 @@ import { SummarizationNode } from "./ai/summarizationNode";
 import { SentimentNode } from "./ai/sentimentNode";
 import { TranslationNode } from "./ai/translationNode";
 import { ImageClassificationNode } from "./ai/imageClassificationNode";
+import { ImageTransformationNode } from "./ai/imageTransformationNode";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -64,6 +65,7 @@ export function registerNodes(): void {
   registry.registerImplementation(ImageClassificationNode);
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(ImageGenerationNode);
+  registry.registerImplementation(ImageTransformationNode);
   registry.registerImplementation(JsonStringExtractorNode);
   registry.registerImplementation(JsonBooleanExtractorNode);
   registry.registerImplementation(JsonNumberExtractorNode);
