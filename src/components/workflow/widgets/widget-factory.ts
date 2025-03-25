@@ -69,6 +69,13 @@ interface WebcamConfig {
   height: number;
 }
 
+interface AudioRecorderConfig {
+  type: "audio-recorder";
+  value: string;
+  sampleRate: number;
+  channels: number;
+}
+
 export type WidgetType =
   | "slider"
   | "radio-group"
@@ -77,7 +84,8 @@ export type WidgetType =
   | "number-input"
   | "monaco-editor"
   | "canvas-doodle"
-  | "webcam";
+  | "webcam"
+  | "audio-recorder";
 
 export type WidgetConfig =
   | SliderWidgetConfig
@@ -87,7 +95,8 @@ export type WidgetConfig =
   | NumberInputWidgetConfig
   | MonacoEditorWidgetConfig
   | CanvasDoodleConfig
-  | WebcamConfig;
+  | WebcamConfig
+  | AudioRecorderConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -285,6 +294,18 @@ export function createWidgetConfig(
         value: value || "",
         width: width || 640,
         height: height || 480,
+      };
+    }
+    case "audio-recorder": {
+      const value = inputs.find((i) => i.id === "value")?.value as string;
+      const sampleRate = inputs.find((i) => i.id === "sampleRate")?.value as number;
+      const channels = inputs.find((i) => i.id === "channels")?.value as number;
+
+      return {
+        type: "audio-recorder",
+        value: value || "",
+        sampleRate: sampleRate || 44100,
+        channels: channels || 1,
       };
     }
     default:

@@ -37,6 +37,7 @@ import { NumberInputNode } from "./widgets/numberInputNode";
 import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
 import { WebcamNode } from "./widgets/webcamNode";
+import { AudioRecorderNode } from "./widgets/audioRecorderNode";
 
 /**
  * Register the mathematical operation nodes
@@ -78,4 +79,5 @@ export function registerNodes(): void {
   registry.registerImplementation(LLaVANode);
   registry.registerImplementation(CanvasDoodleNode);
   registry.registerImplementation(WebcamNode);
+  registry.registerImplementation(AudioRecorderNode);
 }
