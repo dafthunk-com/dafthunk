@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { SliderWidget } from "./widgets/slider-widget";
+import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import {
   Dialog,
   DialogContent,
@@ -126,11 +127,12 @@ export const WorkflowNode = memo(
     const [isEditingName, setIsEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(data.name);
 
-    // Check if the node is a slider node
+    // Check if the node is a widget node
     const isSliderNode = data.nodeType === "slider";
+    const isRadioGroupNode = data.nodeType === "radio-group";
 
     // Get widget configuration
-    const widgetConfig = isSliderNode ? createWidgetConfig(id, data.inputs, data.nodeType || "") : null;
+    const widgetConfig = isSliderNode || isRadioGroupNode ? createWidgetConfig(id, data.inputs, data.nodeType || "") : null;
 
     const handleWidgetChange = (value: any) => {
       if (!updateNodeData || !widgetConfig) return;
@@ -228,11 +230,20 @@ export const WorkflowNode = memo(
           {/* Widget */}
           {widgetConfig && (
             <div className="px-3 py-2 border-b border-gray-200">
-              <SliderWidget
-                config={widgetConfig}
-                onChange={handleWidgetChange}
-                compact={true}
-              />
+              {isSliderNode && 'type' in widgetConfig && (
+                <SliderWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                  compact={true}
+                />
+              )}
+              {isRadioGroupNode && 'options' in widgetConfig && (
+                <RadioGroupWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                  compact={true}
+                />
+              )}
             </div>
           )}
 

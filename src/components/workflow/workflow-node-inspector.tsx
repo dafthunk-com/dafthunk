@@ -16,6 +16,7 @@ import {
 } from "./workflow-context";
 import { XCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { SliderWidget } from "./widgets/slider-widget";
+import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 
 export function WorkflowNodeInspector({
@@ -97,24 +98,6 @@ export function WorkflowNodeInspector({
     setLocalInputs(updatedInputs);
   };
 
-  const handleSliderChange = (inputId: string, values: number[]) => {
-    if (!updateNodeData || !values.length) return;
-
-    const value = values[0];
-
-    // Use the utility function for consistent updates
-    const updatedInputs = updateNodeInput(
-      node.id,
-      inputId,
-      value,
-      localInputs,
-      updateNodeData
-    );
-
-    // Update local state as well for immediate feedback
-    setLocalInputs(updatedInputs);
-  };
-
   const handleToggleVisibility = (inputId: string) => {
     if (!updateNodeData) return;
 
@@ -138,11 +121,12 @@ export function WorkflowNodeInspector({
     setLocalInputs(updatedInputs);
   };
 
-  // Check if the node is a slider node
+  // Check if the node is a widget node
   const isSliderNode = node.data.nodeType === "slider";
+  const isRadioGroupNode = node.data.nodeType === "radio-group";
 
   // Get widget configuration
-  const widgetConfig = isSliderNode ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") : null;
+  const widgetConfig = isSliderNode || isRadioGroupNode ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") : null;
 
   const handleWidgetChange = (value: any) => {
     if (!updateNodeData || !widgetConfig) return;
@@ -185,10 +169,18 @@ export function WorkflowNodeInspector({
           {widgetConfig && (
             <div className="space-y-2">
               <Label>Widget</Label>
-              <SliderWidget
-                config={widgetConfig}
-                onChange={handleWidgetChange}
-              />
+              {isSliderNode && 'type' in widgetConfig && (
+                <SliderWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                />
+              )}
+              {isRadioGroupNode && 'options' in widgetConfig && (
+                <RadioGroupWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                />
+              )}
             </div>
           )}
 
