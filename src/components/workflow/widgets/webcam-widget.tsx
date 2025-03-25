@@ -33,7 +33,10 @@ export function WebcamWidget({
   const startWebcam = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: config.width }, height: { ideal: config.height } }
+        video: {
+          width: { ideal: config.width },
+          height: { ideal: config.height },
+        },
       });
       if (videoRef.current) videoRef.current.srcObject = stream;
       setError(null);
@@ -45,7 +48,7 @@ export function WebcamWidget({
   const stopWebcam = () => {
     if (videoRef.current?.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       videoRef.current.srcObject = null;
     }
   };
@@ -60,12 +63,20 @@ export function WebcamWidget({
     ctx.drawImage(videoRef.current, 0, 0, config.width, config.height);
     const base64Data = canvas.toDataURL("image/png").split(",")[1];
     setCapturedImage(base64Data);
-    onChange(JSON.stringify({ value: base64Data, width: config.width, height: config.height }));
+    onChange(
+      JSON.stringify({
+        value: base64Data,
+        width: config.width,
+        height: config.height,
+      })
+    );
   };
 
   const clearImage = () => {
     setCapturedImage(null);
-    onChange(JSON.stringify({ value: "", width: config.width, height: config.height }));
+    onChange(
+      JSON.stringify({ value: "", width: config.width, height: config.height })
+    );
   };
 
   return (
@@ -117,4 +128,4 @@ export function WebcamWidget({
       </div>
     </div>
   );
-} 
+}

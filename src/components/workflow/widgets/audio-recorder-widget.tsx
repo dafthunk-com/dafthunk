@@ -27,7 +27,10 @@ export function AudioRecorderWidget({
 
   useEffect(() => {
     return () => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state === "recording"
+      ) {
         mediaRecorderRef.current.stop();
       }
     };
@@ -51,18 +54,22 @@ export function AudioRecorderWidget({
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
           const base64Data = reader.result as string;
           const base64String = base64Data.split(",")[1];
           setAudioUrl(base64Data);
-          onChange(JSON.stringify({ 
-            value: base64String, 
-            sampleRate: config.sampleRate, 
-            channels: config.channels 
-          }));
+          onChange(
+            JSON.stringify({
+              value: base64String,
+              sampleRate: config.sampleRate,
+              channels: config.channels,
+            })
+          );
         };
       };
 
@@ -70,25 +77,34 @@ export function AudioRecorderWidget({
       setIsRecording(true);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to access microphone");
+      setError(
+        err instanceof Error ? err.message : "Failed to access microphone"
+      );
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === "recording"
+    ) {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stream
+        .getTracks()
+        .forEach((track) => track.stop());
       setIsRecording(false);
     }
   };
 
   const clearRecording = () => {
     setAudioUrl(null);
-    onChange(JSON.stringify({ 
-      value: "", 
-      sampleRate: config.sampleRate, 
-      channels: config.channels 
-    }));
+    onChange(
+      JSON.stringify({
+        value: "",
+        sampleRate: config.sampleRate,
+        channels: config.channels,
+      })
+    );
   };
 
   return (
@@ -125,11 +141,7 @@ export function AudioRecorderWidget({
         <div className="border rounded-lg overflow-hidden bg-white">
           <div className="relative h-24 bg-gray-100">
             {audioUrl ? (
-              <audio
-                src={audioUrl}
-                controls
-                className="w-full h-full"
-              />
+              <audio src={audioUrl} controls className="w-full h-full" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 {isRecording ? (
@@ -138,7 +150,9 @@ export function AudioRecorderWidget({
                     <span className="text-sm">Recording...</span>
                   </div>
                 ) : (
-                  <span className="text-sm text-gray-500">Click to start recording</span>
+                  <span className="text-sm text-gray-500">
+                    Click to start recording
+                  </span>
                 )}
               </div>
             )}
@@ -152,4 +166,4 @@ export function AudioRecorderWidget({
       </div>
     </div>
   );
-} 
+}

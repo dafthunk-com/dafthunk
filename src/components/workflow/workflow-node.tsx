@@ -238,7 +238,7 @@ export const WorkflowNode = memo(
           )}
         >
           {/* Header */}
-          <div 
+          <div
             className={cn(
               "pl-2 pr-1 py-1 flex justify-between items-center border-b border-gray-200 hover:cursor-grab active:cursor-grabbing",
               "workflow-node-drag-handle"

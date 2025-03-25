@@ -9,7 +9,8 @@ export class Resnet50Node extends BaseExecutableNode {
     id: "resnet-50",
     name: "ResNet-50",
     type: "resnet-50",
-    description: "Classifies images using the ResNet-50 model trained on ImageNet",
+    description:
+      "Classifies images using the ResNet-50 model trained on ImageNet",
     category: "Image",
     icon: "image",
     inputs: [
@@ -56,4 +57,4 @@ export class Resnet50Node extends BaseExecutableNode {
       );
     }
   }
-} 
+}

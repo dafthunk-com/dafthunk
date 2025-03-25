@@ -48,7 +48,7 @@ export class CanvasDoodleNode extends BaseExecutableNode {
         description: "Width of the drawing stroke",
         hidden: true,
         value: 2,
-      }
+      },
     ],
     outputs: [
       {
@@ -61,17 +61,22 @@ export class CanvasDoodleNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      console.log('Received input:', context.inputs.value); // Debug log
-      
+      console.log("Received input:", context.inputs.value); // Debug log
+
       let inputs;
       try {
-        if (typeof context.inputs.value !== 'string') {
-          return this.createErrorResult(`Invalid input type: expected string, got ${typeof context.inputs.value}`);
+        if (typeof context.inputs.value !== "string") {
+          return this.createErrorResult(
+            `Invalid input type: expected string, got ${typeof context.inputs.value}`
+          );
         }
         inputs = JSON.parse(context.inputs.value);
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
-        return this.createErrorResult(`Invalid input format: expected JSON string. Error: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown parsing error";
+        return this.createErrorResult(
+          `Invalid input format: expected JSON string. Error: ${errorMessage}`
+        );
       }
 
       const { value, width, height, strokeColor, strokeWidth } = inputs;
@@ -107,8 +112,8 @@ export class CanvasDoodleNode extends BaseExecutableNode {
       return this.createSuccessResult({
         image: {
           data: bytes,
-          type: "image/png"
-        }
+          type: "image/png",
+        },
       });
     } catch (error) {
       return this.createErrorResult(
@@ -116,4 +121,4 @@ export class CanvasDoodleNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

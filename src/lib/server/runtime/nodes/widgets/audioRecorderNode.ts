@@ -35,7 +35,7 @@ export class AudioRecorderNode extends BaseExecutableNode {
         description: "Number of audio channels",
         hidden: true,
         value: 1,
-      }
+      },
     ],
     outputs: [
       {
@@ -50,13 +50,18 @@ export class AudioRecorderNode extends BaseExecutableNode {
     try {
       let inputs;
       try {
-        if (typeof context.inputs.value !== 'string') {
-          return this.createErrorResult(`Invalid input type: expected string, got ${typeof context.inputs.value}`);
+        if (typeof context.inputs.value !== "string") {
+          return this.createErrorResult(
+            `Invalid input type: expected string, got ${typeof context.inputs.value}`
+          );
         }
         inputs = JSON.parse(context.inputs.value);
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
-        return this.createErrorResult(`Invalid input format: expected JSON string. Error: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown parsing error";
+        return this.createErrorResult(
+          `Invalid input format: expected JSON string. Error: ${errorMessage}`
+        );
       }
 
       const { value, sampleRate, channels } = inputs;
@@ -86,8 +91,8 @@ export class AudioRecorderNode extends BaseExecutableNode {
           data: bytes,
           type: "audio/webm",
           sampleRate,
-          channels
-        }
+          channels,
+        },
       });
     } catch (error) {
       return this.createErrorResult(
@@ -95,4 +100,4 @@ export class AudioRecorderNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

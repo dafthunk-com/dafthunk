@@ -52,7 +52,7 @@ export function CanvasDoodleWidget({
     canvas.style.height = `${displayHeight}px`;
 
     // Fill with white background
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = "white";
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
     // Set initial styles with adjusted stroke width for DPR
@@ -74,7 +74,7 @@ export function CanvasDoodleWidget({
           const img = new Image();
           img.onload = () => {
             // First fill with white background
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = "white";
             ctx.fillRect(0, 0, displayWidth, displayHeight);
             // Then draw the image
             ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
@@ -82,7 +82,7 @@ export function CanvasDoodleWidget({
           img.src = `data:image/png;base64,${parsedConfig.value}`;
         }
       } catch (error) {
-        console.error('Error loading existing drawing:', error);
+        console.error("Error loading existing drawing:", error);
       }
     }
   }, [config.value, strokeColor, strokeWidth]);
@@ -94,10 +94,10 @@ export function CanvasDoodleWidget({
 
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 4);
-    
+
     return {
       x: ((e.clientX - rect.left) * (canvas.width / rect.width)) / dpr,
-      y: ((e.clientY - rect.top) * (canvas.height / rect.height)) / dpr
+      y: ((e.clientY - rect.top) * (canvas.height / rect.height)) / dpr,
     };
   };
 
@@ -105,36 +105,36 @@ export function CanvasDoodleWidget({
   const saveCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     // Ensure white background before saving
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    
+
     // Get base64 data and remove the data URL prefix
     const fullDataUrl = canvas.toDataURL("image/png", 1.0);
     const base64Data = fullDataUrl.replace(/^data:image\/\w+;base64,/, "");
-    
+
     // Create node inputs object with explicit type conversion
     const nodeInputs = {
       value: base64Data,
       width: Number(canvas.width),
       height: Number(canvas.height),
       strokeColor: String(config.strokeColor || "#000000"),
-      strokeWidth: Number(config.strokeWidth || 2)
+      strokeWidth: Number(config.strokeWidth || 2),
     };
 
     try {
       // Convert to JSON string
       const jsonString = JSON.stringify(nodeInputs);
-      console.log('Canvas data:', {
+      console.log("Canvas data:", {
         inputObject: nodeInputs,
         jsonString,
         width: canvas.width,
-        height: canvas.height
+        height: canvas.height,
       });
       onChange(jsonString);
     } catch (error) {
-      console.error('Error stringifying canvas data:', error);
+      console.error("Error stringifying canvas data:", error);
     }
   };
 
