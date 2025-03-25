@@ -1,7 +1,6 @@
 import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
 import {
-  Node,
   NodeContext,
   ExecutionResult,
   NodeType,

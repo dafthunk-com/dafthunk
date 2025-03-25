@@ -1,6 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
 import {
-  Node,
   NodeContext,
   ExecutionResult,
   NodeType,
