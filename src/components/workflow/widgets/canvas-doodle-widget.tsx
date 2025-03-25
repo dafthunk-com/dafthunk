@@ -51,8 +51,13 @@ export function CanvasDoodleWidget({
     canvas.style.width = `${displayWidth}px`;
     canvas.style.height = `${displayHeight}px`;
 
+    // Fill with white background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
+
     // Set initial styles with adjusted stroke width for DPR
     ctx.strokeStyle = strokeColor;
+    ctx.fillStyle = strokeColor;
     ctx.lineWidth = strokeWidth * (dpr / 4); // Adjust stroke width for DPR
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -63,12 +68,22 @@ export function CanvasDoodleWidget({
 
     // Load existing drawing if any
     if (config.value) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.clearRect(0, 0, displayWidth, displayHeight);
-        ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
-      };
-      img.src = config.value;
+      try {
+        const parsedConfig = JSON.parse(config.value);
+        if (parsedConfig.value) {
+          const img = new Image();
+          img.onload = () => {
+            // First fill with white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, displayWidth, displayHeight);
+            // Then draw the image
+            ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+          };
+          img.src = `data:image/png;base64,${parsedConfig.value}`;
+        }
+      } catch (error) {
+        console.error('Error loading existing drawing:', error);
+      }
     }
   }, [config.value, strokeColor, strokeWidth]);
 
@@ -90,8 +105,37 @@ export function CanvasDoodleWidget({
   const saveCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dataUrl = canvas.toDataURL("image/png", 1.0);
-    onChange(dataUrl);
+    
+    // Ensure white background before saving
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    // Get base64 data and remove the data URL prefix
+    const fullDataUrl = canvas.toDataURL("image/png", 1.0);
+    const base64Data = fullDataUrl.replace(/^data:image\/\w+;base64,/, "");
+    
+    // Create node inputs object with explicit type conversion
+    const nodeInputs = {
+      value: base64Data,
+      width: Number(canvas.width),
+      height: Number(canvas.height),
+      strokeColor: String(config.strokeColor || "#000000"),
+      strokeWidth: Number(config.strokeWidth || 2)
+    };
+
+    try {
+      // Convert to JSON string
+      const jsonString = JSON.stringify(nodeInputs);
+      console.log('Canvas data:', {
+        inputObject: nodeInputs,
+        jsonString,
+        width: canvas.width,
+        height: canvas.height
+      });
+      onChange(jsonString);
+    } catch (error) {
+      console.error('Error stringifying canvas data:', error);
+    }
   };
 
   // Handle drawing

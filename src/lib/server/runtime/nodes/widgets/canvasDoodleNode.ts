@@ -61,11 +61,20 @@ export class CanvasDoodleNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const value = context.inputs.value as string;
-      const width = context.inputs.width as number;
-      const height = context.inputs.height as number;
-      const strokeColor = context.inputs.strokeColor as string;
-      const strokeWidth = context.inputs.strokeWidth as number;
+      console.log('Received input:', context.inputs.value); // Debug log
+      
+      let inputs;
+      try {
+        if (typeof context.inputs.value !== 'string') {
+          return this.createErrorResult(`Invalid input type: expected string, got ${typeof context.inputs.value}`);
+        }
+        inputs = JSON.parse(context.inputs.value);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
+        return this.createErrorResult(`Invalid input format: expected JSON string. Error: ${errorMessage}`);
+      }
+
+      const { value, width, height, strokeColor, strokeWidth } = inputs;
 
       // Validate inputs
       if (typeof value !== "string") {
@@ -88,8 +97,18 @@ export class CanvasDoodleNode extends BaseExecutableNode {
         return this.createErrorResult("Stroke width must be a positive number");
       }
 
+      // Convert base64 directly to binary (value is already pure base64)
+      const binaryString = atob(value);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
       return this.createSuccessResult({
-        image: value,
+        image: {
+          data: bytes,
+          type: "image/png"
+        }
       });
     } catch (error) {
       return this.createErrorResult(
