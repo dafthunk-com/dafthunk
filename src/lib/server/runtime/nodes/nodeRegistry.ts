@@ -1,7 +1,7 @@
 import { NodeRegistry } from "../workflowTypes";
-import { SummarizationNode } from "./ai/summarizationNode";
-import { SentimentNode } from "./ai/sentimentNode";
-import { TranslationNode } from "./ai/translationNode";
+import { SummarizationNode } from "./text/summarizationNode";
+import { SentimentNode } from "./text/sentimentNode";
+import { TranslationNode } from "./text/translationNode";
 import { ImageClassificationNode } from "./image/imageClassificationNode";
 import { ImageTransformationNode } from "./image/imageTransformationNode";
 import { ImageGenerationNode } from "./image/imageGenerationNode";

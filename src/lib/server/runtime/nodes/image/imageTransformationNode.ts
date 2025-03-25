@@ -9,7 +9,8 @@ export class ImageTransformationNode extends BaseExecutableNode {
     id: "image-transformation",
     name: "Image Transformation",
     type: "image-transformation",
-    description: "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
+    description:
+      "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
     category: "Image",
     icon: "wand",
     inputs: [
@@ -21,12 +22,14 @@ export class ImageTransformationNode extends BaseExecutableNode {
       {
         name: "prompt",
         type: "string",
-        description: "A text description of how you want to transform the image",
+        description:
+          "A text description of how you want to transform the image",
       },
       {
         name: "negative_prompt",
         type: "string",
-        description: "Text describing elements to avoid in the transformed image",
+        description:
+          "Text describing elements to avoid in the transformed image",
       },
       {
         name: "strength",
@@ -37,7 +40,8 @@ export class ImageTransformationNode extends BaseExecutableNode {
       {
         name: "guidance",
         type: "number",
-        description: "Controls how closely the transformation should adhere to the prompt",
+        description:
+          "Controls how closely the transformation should adhere to the prompt",
         value: 7.5,
       },
       {
@@ -62,7 +66,8 @@ export class ImageTransformationNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, negative_prompt, strength, guidance, num_steps } = context.inputs;
+      const { image, prompt, negative_prompt, strength, guidance, num_steps } =
+        context.inputs;
 
       // Validate inputs
       if (!image) {
@@ -107,4 +112,4 @@ export class ImageTransformationNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

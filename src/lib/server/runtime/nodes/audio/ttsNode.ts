@@ -10,7 +10,7 @@ export class TTSNode extends BaseExecutableNode {
     name: "Text to Speech",
     type: "text-to-speech",
     description: "Converts text to natural-sounding speech using MeloTTS",
-    category: "AI",
+    category: "Audio",
     icon: "audio",
     inputs: [
       {

@@ -10,7 +10,7 @@ export class SentimentNode extends BaseExecutableNode {
     name: "Sentiment Analysis",
     type: "sentiment",
     description: "Analyzes the sentiment of text",
-    category: "AI",
+    category: "Text",
     icon: "mood",
     inputs: [
       {

@@ -10,7 +10,7 @@ export class TranslationNode extends BaseExecutableNode {
     name: "Translation",
     type: "translation",
     description: "Translates text between languages",
-    category: "AI",
+    category: "Text",
     icon: "language",
     inputs: [
       {

@@ -84,10 +84,7 @@ export function WorkflowOutputRenderer({
         });
 
         // Create the data URL for the audio
-        const dataUrl = createDataUrl(
-          output.value.data,
-          output.value.mimeType
-        );
+        const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
         setAudioUrl(dataUrl);
 
         // Log the data URL format (first 100 chars)

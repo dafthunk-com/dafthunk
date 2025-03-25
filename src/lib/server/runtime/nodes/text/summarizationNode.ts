@@ -10,7 +10,7 @@ export class SummarizationNode extends BaseExecutableNode {
     name: "Summarization",
     type: "summarization",
     description: "Summarizes text using BART-large-CNN model",
-    category: "AI",
+    category: "Text",
     icon: "summarize",
     inputs: [
       {

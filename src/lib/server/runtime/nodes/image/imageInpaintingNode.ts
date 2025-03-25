@@ -9,14 +9,16 @@ export class ImageInpaintingNode extends BaseExecutableNode {
     id: "image-inpainting",
     name: "Image Inpainting",
     type: "image-inpainting",
-    description: "Generates images by inpainting masked areas using Stable Diffusion v1.5",
+    description:
+      "Generates images by inpainting masked areas using Stable Diffusion v1.5",
     category: "Image",
     icon: "brush",
     inputs: [
       {
         name: "prompt",
         type: "string",
-        description: "A text description of what to generate in the masked area",
+        description:
+          "A text description of what to generate in the masked area",
       },
       {
         name: "negative_prompt",
@@ -48,7 +50,8 @@ export class ImageInpaintingNode extends BaseExecutableNode {
       {
         name: "guidance",
         type: "number",
-        description: "Controls how closely the generated image should adhere to the prompt",
+        description:
+          "Controls how closely the generated image should adhere to the prompt",
         value: 7.5,
       },
       {
@@ -72,15 +75,15 @@ export class ImageInpaintingNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { 
-        prompt, 
-        negative_prompt, 
-        image, 
-        mask, 
-        num_steps, 
-        strength, 
+      const {
+        prompt,
+        negative_prompt,
+        image,
+        mask,
+        num_steps,
+        strength,
         guidance,
-        seed 
+        seed,
       } = context.inputs;
 
       // Validate required inputs
@@ -131,4 +134,4 @@ export class ImageInpaintingNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

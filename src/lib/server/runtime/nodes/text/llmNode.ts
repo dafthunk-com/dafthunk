@@ -10,7 +10,7 @@ export class LLMNode extends BaseExecutableNode {
     name: "LLM",
     type: "llm",
     description: "Generates text",
-    category: "AI",
+    category: "Text",
     icon: "ai",
     inputs: [
       {
