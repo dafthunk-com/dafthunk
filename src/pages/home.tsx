@@ -79,6 +79,7 @@ export function HomePage() {
       setWorkflows([...workflows, newWorkflow]);
       setNewWorkflowName("");
       setOpen(false);
+      navigate(`/workflow/${newWorkflow.id}`);
     } catch (error) {
       console.error("Error creating workflow:", error);
     }
