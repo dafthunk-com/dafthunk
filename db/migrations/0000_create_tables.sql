@@ -4,6 +4,7 @@ CREATE TABLE `users` (
 	`email` text,
 	`provider` text NOT NULL,
 	`plan` text DEFAULT 'free' NOT NULL,
+	`role` text DEFAULT 'trial' NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );

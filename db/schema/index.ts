@@ -24,7 +24,7 @@ export const users = sqliteTable("users", {
   name: text("name").notNull(),
   email: text("email"),
   provider: text("provider").notNull(),
-  plan: text("plan").$type<PlanType>().notNull().default(Plan.FREE),
+  plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
   role: text("role").$type<RoleType>().notNull().default(Role.USER),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

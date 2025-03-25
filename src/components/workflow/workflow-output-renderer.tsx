@@ -12,7 +12,7 @@ export const formatOutputValue = (value: any, type: string): string => {
   if (value === undefined || value === null) return "";
 
   try {
-    if (type === "binary") {
+    if (type === "binary" || type === "audio" || type === "image") {
       return ""; // Don't display binary data as text
     } else if (type === "json" || type === "array") {
       return JSON.stringify(value, null, 2);
@@ -34,116 +34,116 @@ export function WorkflowOutputRenderer({
   output,
   compact = false,
 }: WorkflowOutputRendererProps) {
-  if (output.type === "binary" && output.value) {
-    if (output.value.data && output.value.mimeType?.startsWith("image/")) {
-      try {
-        const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
-        return (
-          <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
-            <img
-              src={dataUrl}
-              alt={`${output.name} output`}
-              className="w-full rounded-md border border-gray-200"
-              onError={(e) => {
-                console.error("Error loading image:", e);
-                e.currentTarget.style.display = "none";
-                e.currentTarget.nextElementSibling?.classList.remove("hidden");
-              }}
-            />
-            <div className="hidden text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
-              Error displaying image. The data may be corrupted.
-            </div>
-          </div>
-        );
-      } catch (error) {
-        console.error("Error processing image data:", error);
-        return (
-          <div
-            className={
-              compact
-                ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
-                : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
-            }
-          >
-            Error processing image data
-          </div>
-        );
-      }
-    } else if (
-      output.value.data &&
-      output.value.mimeType?.startsWith("audio/")
-    ) {
-      const [audioError, setAudioError] = useState<string | null>(null);
-      const [audioUrl, setAudioUrl] = useState<string | null>(null);
-      const audioRef = useRef<HTMLAudioElement>(null);
-
-      useEffect(() => {
-        try {
-          console.log("Processing audio data:", {
-            dataLength: output.value.data.length,
-            mimeType: output.value.mimeType,
-            sampleData: output.value.data.slice(0, 20),
-          });
-
-          // Create the data URL for the audio
-          const dataUrl = createDataUrl(
-            output.value.data,
-            output.value.mimeType
-          );
-          setAudioUrl(dataUrl);
-
-          // Log the data URL format (first 100 chars)
-          console.log("Audio data URL:", dataUrl.substring(0, 100) + "...");
-        } catch (error) {
-          console.error("Error creating audio data URL:", error);
-          setAudioError("Failed to process audio data");
-        }
-      }, [output.value.data, output.value.mimeType]);
-
-      const handleAudioError = (
-        e: React.SyntheticEvent<HTMLAudioElement, Event>
-      ) => {
-        console.error("Audio playback error:", e);
-        if (audioRef.current) {
-          console.log("Audio element error:", audioRef.current.error);
-        }
-        setAudioError("Error playing audio. The data may be corrupted.");
-      };
-
-      // If we already have an error, show it
-      if (audioError && !audioUrl) {
-        return (
-          <div
-            className={
-              compact
-                ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
-                : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
-            }
-          >
-            {audioError}
-          </div>
-        );
-      }
-
+  if (output.type === "image" && output.value) {
+    try {
+      const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
       return (
         <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
-          {audioUrl && (
-            <audio
-              ref={audioRef}
-              controls
-              src={audioUrl}
-              className="w-full rounded-md"
-              onError={handleAudioError}
-            />
-          )}
-          {audioError && (
-            <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
-              {audioError}
-            </div>
-          )}
+          <img
+            src={dataUrl}
+            alt={`${output.name} output`}
+            className="w-full rounded-md border border-gray-200"
+            onError={(e) => {
+              console.error("Error loading image:", e);
+              e.currentTarget.style.display = "none";
+              e.currentTarget.nextElementSibling?.classList.remove("hidden");
+            }}
+          />
+          <div className="hidden text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
+            Error displaying image. The data may be corrupted.
+          </div>
+        </div>
+      );
+    } catch (error) {
+      console.error("Error processing image data:", error);
+      return (
+        <div
+          className={
+            compact
+              ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
+              : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+          }
+        >
+          Error processing image data
         </div>
       );
     }
+  }
+
+  if (output.type === "audio" && output.value) {
+    const [audioError, setAudioError] = useState<string | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
+
+    useEffect(() => {
+      try {
+        console.log("Processing audio data:", {
+          dataLength: output.value.data.length,
+          mimeType: output.value.mimeType,
+          sampleData: output.value.data.slice(0, 20),
+        });
+
+        // Create the data URL for the audio
+        const dataUrl = createDataUrl(
+          output.value.data,
+          output.value.mimeType
+        );
+        setAudioUrl(dataUrl);
+
+        // Log the data URL format (first 100 chars)
+        console.log("Audio data URL:", dataUrl.substring(0, 100) + "...");
+      } catch (error) {
+        console.error("Error creating audio data URL:", error);
+        setAudioError("Failed to process audio data");
+      }
+    }, [output.value.data, output.value.mimeType]);
+
+    const handleAudioError = (
+      e: React.SyntheticEvent<HTMLAudioElement, Event>
+    ) => {
+      console.error("Audio playback error:", e);
+      if (audioRef.current) {
+        console.log("Audio element error:", audioRef.current.error);
+      }
+      setAudioError("Error playing audio. The data may be corrupted.");
+    };
+
+    // If we already have an error, show it
+    if (audioError && !audioUrl) {
+      return (
+        <div
+          className={
+            compact
+              ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
+              : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+          }
+        >
+          {audioError}
+        </div>
+      );
+    }
+
+    return (
+      <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
+        {audioUrl && (
+          <audio
+            ref={audioRef}
+            controls
+            src={audioUrl}
+            className="w-full rounded-md"
+            onError={handleAudioError}
+          />
+        )}
+        {audioError && (
+          <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
+            {audioError}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (output.type === "binary" && output.value) {
     return (
       <div
         className={
