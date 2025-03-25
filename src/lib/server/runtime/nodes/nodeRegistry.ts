@@ -9,6 +9,7 @@ import { Resnet50Node } from "./image/resnet50Node";
 import { StableDiffusionXLBase10Node } from "./image/stableDiffusionXLBase10Node";
 import { Flux1SchnellNode } from "./image/flux1SchnellNode";
 import { DreamShaper8LCMNode } from "./image/dreamShaper8LCMNode";
+
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -17,6 +18,7 @@ import {
   JsonJsonExtractorNode,
   StringTemplateNode,
 } from "./utility";
+
 import {
   AdditionNode,
   SubtractionNode,
@@ -31,6 +33,7 @@ import {
   WhisperNode,
   UformGen2Qwen500mNode,
 } from "./index";
+
 import { LLaVA157BHFNode } from "./image/llava157BHFNode";
 import { RadioGroupNode } from "./widgets/radioGroupNode";
 import { TextAreaNode } from "./widgets/textAreaNode";
@@ -41,6 +44,8 @@ import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
 import { DetrResnet50Node } from "./image/detrResnet50Node";
 import { MelottsNode } from "./audio/melottsNode";
 import { BgeRerankerBaseNode } from "./text/bgeRerankerBaseNode";
+import { WhisperLargeV3TurboNode } from "./audio/whisperLargeV3TurboNode";
+import { WhisperTinyEnNode } from "./audio/whisperTinyEnNode";
 
 /**
  * Register the mathematical operation nodes
@@ -63,6 +68,8 @@ export function registerNodes(): void {
   registry.registerImplementation(SliderNode);
   registry.registerImplementation(Llama318BInstructFastNode);
   registry.registerImplementation(WhisperNode);
+  registry.registerImplementation(WhisperLargeV3TurboNode);
+  registry.registerImplementation(WhisperTinyEnNode);
   registry.registerImplementation(UformGen2Qwen500mNode);
   registry.registerImplementation(BartLargeCnnNode);
   registry.registerImplementation(M2m10012bNode);

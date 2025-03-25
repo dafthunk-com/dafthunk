@@ -2,15 +2,15 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
- * Speech Recognition node implementation using Whisper
+ * Speech Recognition node implementation using Whisper Tiny English
  */
-export class WhisperNode extends BaseExecutableNode {
+export class WhisperTinyEnNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "whisper",
-    name: "Whisper",
-    type: "speech-recognition",
+    id: "speech-recognition-tiny-en",
+    name: "Speech Recognition (Tiny English)",
+    type: "speech-recognition-tiny-en",
     description:
-      "Transcribes speech from audio files using OpenAI's Whisper model",
+      "Transcribes English speech from audio files using OpenAI's Whisper Tiny English model - optimized for English speech recognition",
     category: "Audio",
     icon: "mic",
     inputs: [
@@ -52,24 +52,24 @@ export class WhisperNode extends BaseExecutableNode {
 
       const { audio } = context.inputs;
 
-      // Validate inputs
+      // Validate required inputs
       if (!audio || !audio.data) {
         throw new Error("Audio input is required");
       }
 
       console.log(
-        `Processing audio file for speech recognition, data length: ${audio.data.length} bytes`
+        `Processing audio file for speech recognition with Whisper Tiny English, data length: ${audio.data.length} bytes`
       );
 
       // Prepare the audio data - convert back to Uint8Array
       const audioData = new Uint8Array(audio.data);
 
-      // Call Cloudflare AI Whisper model
-      const response = await context.env.AI.run("@cf/openai/whisper", {
+      // Call Cloudflare AI Whisper Tiny English model
+      const response = await context.env.AI.run("@cf/openai/whisper-tiny-en", {
         audio: Array.from(audioData),
       });
 
-      console.log("Whisper transcription response:", response);
+      console.log("Whisper Tiny English transcription response:", response);
 
       // Extract the results
       const { text, word_count, words, vtt } = response;
@@ -81,10 +81,10 @@ export class WhisperNode extends BaseExecutableNode {
         vtt,
       });
     } catch (error) {
-      console.error("WhisperNode execution error:", error);
+      console.error("WhisperTinyEnNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-}
+} 
