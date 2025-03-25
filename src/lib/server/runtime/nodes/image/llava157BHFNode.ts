@@ -2,14 +2,14 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
- * Image-to-Text node implementation using LLaVA
+ * Image-to-Text node implementation using LLaVA 1.5 7B HF
  */
-export class LLaVANode extends BaseExecutableNode {
+export class LLaVA157BHFNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "image-to-text",
-    name: "Image to Text",
+    name: "Image to Text (LLaVA 1.5 7B)",
     type: "image-to-text",
-    description: "Generates text descriptions from images using LLaVA model",
+    description: "Generates text descriptions from images using LLaVA 1.5 7B model",
     category: "Image",
     icon: "image",
     inputs: [

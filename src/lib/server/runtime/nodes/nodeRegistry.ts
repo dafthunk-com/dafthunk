@@ -5,6 +5,7 @@ import { TranslationNode } from "./text/translationNode";
 import { ImageTransformationNode } from "./image/imageTransformationNode";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
 import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15InpaintingNode";
+import { StableDiffusionV15Img2ImgNode } from "./image/stableDiffusionV15Img2ImgNode";
 import {
   ImageUrlLoaderNode,
   JsonStringExtractorNode,
@@ -28,7 +29,7 @@ import {
   WhisperNode,
   UFormNode,
 } from "./index";
-import { LLaVANode } from "./image/llavaNode";
+import { LLaVA157BHFNode } from "./image/llava157BHFNode";
 import { RadioGroupNode } from "./widgets/radioGroupNode";
 import { TextAreaNode } from "./widgets/textAreaNode";
 import { InputTextNode } from "./widgets/inputTextNode";
@@ -70,13 +71,14 @@ export function registerNodes(): void {
   registry.registerImplementation(StableDiffusionXLLightningNode);
   registry.registerImplementation(ImageTransformationNode);
   registry.registerImplementation(StableDiffusionV15InpaintingNode);
+  registry.registerImplementation(StableDiffusionV15Img2ImgNode);
   registry.registerImplementation(JsonStringExtractorNode);
   registry.registerImplementation(JsonBooleanExtractorNode);
   registry.registerImplementation(JsonNumberExtractorNode);
   registry.registerImplementation(JsonJsonExtractorNode);
   registry.registerImplementation(StringTemplateNode);
   registry.registerImplementation(MonacoEditorNode);
-  registry.registerImplementation(LLaVANode);
+  registry.registerImplementation(LLaVA157BHFNode);
   registry.registerImplementation(CanvasDoodleNode);
   registry.registerImplementation(WebcamNode);
   registry.registerImplementation(AudioRecorderNode);
