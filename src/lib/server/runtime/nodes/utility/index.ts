@@ -6,3 +6,4 @@ export * from './jsonStringExtractorNode';
 export * from './jsonBooleanExtractorNode';
 export * from './jsonNumberExtractorNode';
 export * from './jsonJsonExtractorNode';
+export * from './stringTemplateNode';
