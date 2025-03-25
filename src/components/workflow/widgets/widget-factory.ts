@@ -1,22 +1,33 @@
 import { Parameter } from "../workflow-node";
-import { RadioOption } from "./radio-group-widget";
 
 export interface SliderWidgetConfig {
-  type: 'slider';
+  type: "slider";
   id: string;
   name: string;
+  value: number;
   min: number;
   max: number;
   step: number;
-  value: number;
 }
 
 export interface RadioGroupWidgetConfig {
+  type: "radio-group";
+  id: string;
+  name: string;
   value: string;
-  options: RadioOption[];
+  options: Array<{ value: string; label: string }>;
 }
 
-export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig;
+export interface TextAreaWidgetConfig {
+  type: "text-area";
+  id: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  rows: number;
+}
+
+export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -24,39 +35,22 @@ export function createWidgetConfig(
   nodeType: string
 ): WidgetConfig | null {
   switch (nodeType) {
-    case "slider": {
-      const minInput = inputs.find((i) => i.id === "min");
-      const maxInput = inputs.find((i) => i.id === "max");
-      const stepInput = inputs.find((i) => i.id === "step");
-      const valueInput = inputs.find((i) => i.id === "value");
-
-      if (!minInput || !maxInput || !stepInput || !valueInput) {
-        console.warn(`Missing required inputs for slider widget in node ${nodeId}`);
-        return null;
-      }
-
+    case "slider":
       return {
-        type: 'slider',
+        type: "slider",
         id: nodeId,
-        name: 'Slider',
-        min: Number(minInput.value) || 0,
-        max: Number(maxInput.value) || 100,
-        step: Number(stepInput.value) || 1,
-        value: Number(valueInput.value) || 0,
+        name: "Slider",
+        value: Number(inputs.find((i) => i.id === "value")?.value) || 0,
+        min: Number(inputs.find((i) => i.id === "min")?.value) || 0,
+        max: Number(inputs.find((i) => i.id === "max")?.value) || 100,
+        step: Number(inputs.find((i) => i.id === "step")?.value) || 1,
       };
-    }
     case "radio-group": {
       const optionsInput = inputs.find((i) => i.id === "options");
-      const valueInput = inputs.find((i) => i.id === "value");
+      let options: Array<{ value: string; label: string }> = [];
 
-      if (!optionsInput) {
-        console.warn(`Missing options input for radio group widget in node ${nodeId}`);
-        return null;
-      }
-
-      // Ensure options is an array and has the correct structure
-      let options: RadioOption[] = [];
-      try {
+      // Handle different possible formats of the options input
+      if (optionsInput?.value) {
         if (Array.isArray(optionsInput.value)) {
           options = optionsInput.value;
         } else if (typeof optionsInput.value === "string") {
@@ -69,18 +63,45 @@ export function createWidgetConfig(
             console.warn("Failed to parse options JSON string");
           }
         }
-      } catch (e) {
-        console.warn("Failed to process radio group options");
       }
 
-      // If we have no valid options, create a default one
+      // Ensure we have at least one default option
       if (options.length === 0) {
-        options = [{ value: "default", label: "Default Option" }];
+        options = [{ value: "option1", label: "Option 1" }];
       }
 
       return {
+        type: "radio-group",
+        id: nodeId,
+        name: "Radio Group",
+        value: (inputs.find((i) => i.id === "value")?.value as string) || options[0].value,
         options,
-        value: (valueInput?.value as string) || options[0].value,
+      };
+    }
+    case "text-area": {
+      const valueInput = inputs.find((i) => i.id === "value");
+      const placeholderInput = inputs.find((i) => i.id === "placeholder");
+      const rowsInput = inputs.find((i) => i.id === "rows");
+
+      // Ensure required inputs are present
+      if (!valueInput || !rowsInput) {
+        console.warn(`Missing required inputs for text area widget in node ${nodeId}`);
+        return null;
+      }
+
+      // Handle placeholder value
+      let placeholder: string | undefined;
+      if (placeholderInput?.value !== undefined) {
+        placeholder = String(placeholderInput.value);
+      }
+
+      return {
+        type: "text-area",
+        id: nodeId,
+        name: "Text Area",
+        value: String(valueInput.value || ""),
+        placeholder,
+        rows: Number(rowsInput.value) || 4,
       };
     }
     default:

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { SliderWidget } from "./widgets/slider-widget";
 import { RadioGroupWidget } from "./widgets/radio-group-widget";
+import { TextAreaWidget } from "./widgets/text-area-widget";
 import {
   Dialog,
   DialogContent,
@@ -130,9 +131,12 @@ export const WorkflowNode = memo(
     // Check if the node is a widget node
     const isSliderNode = data.nodeType === "slider";
     const isRadioGroupNode = data.nodeType === "radio-group";
+    const isTextAreaNode = data.nodeType === "text-area";
 
     // Get widget configuration
-    const widgetConfig = isSliderNode || isRadioGroupNode ? createWidgetConfig(id, data.inputs, data.nodeType || "") : null;
+    const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode 
+      ? createWidgetConfig(id, data.inputs, data.nodeType || "") 
+      : null;
 
     const handleWidgetChange = (value: any) => {
       if (!updateNodeData || !widgetConfig) return;
@@ -230,15 +234,22 @@ export const WorkflowNode = memo(
           {/* Widget */}
           {widgetConfig && (
             <div className="px-3 py-2 border-b border-gray-200">
-              {isSliderNode && 'type' in widgetConfig && (
+              {isSliderNode && 'type' in widgetConfig && widgetConfig.type === 'slider' && (
                 <SliderWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                   compact={true}
                 />
               )}
-              {isRadioGroupNode && 'options' in widgetConfig && (
+              {isRadioGroupNode && 'type' in widgetConfig && widgetConfig.type === 'radio-group' && (
                 <RadioGroupWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                  compact={true}
+                />
+              )}
+              {isTextAreaNode && 'type' in widgetConfig && widgetConfig.type === 'text-area' && (
+                <TextAreaWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                   compact={true}

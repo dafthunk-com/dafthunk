@@ -17,6 +17,7 @@ import {
 import { XCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { SliderWidget } from "./widgets/slider-widget";
 import { RadioGroupWidget } from "./widgets/radio-group-widget";
+import { TextAreaWidget } from "./widgets/text-area-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 
 export function WorkflowNodeInspector({
@@ -124,9 +125,12 @@ export function WorkflowNodeInspector({
   // Check if the node is a widget node
   const isSliderNode = node.data.nodeType === "slider";
   const isRadioGroupNode = node.data.nodeType === "radio-group";
+  const isTextAreaNode = node.data.nodeType === "text-area";
 
   // Get widget configuration
-  const widgetConfig = isSliderNode || isRadioGroupNode ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") : null;
+  const widgetConfig = isSliderNode || isRadioGroupNode || isTextAreaNode 
+    ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "") 
+    : null;
 
   const handleWidgetChange = (value: any) => {
     if (!updateNodeData || !widgetConfig) return;
@@ -169,14 +173,20 @@ export function WorkflowNodeInspector({
           {widgetConfig && (
             <div className="space-y-2">
               <Label>Widget</Label>
-              {isSliderNode && 'type' in widgetConfig && (
+              {isSliderNode && 'type' in widgetConfig && widgetConfig.type === 'slider' && (
                 <SliderWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                 />
               )}
-              {isRadioGroupNode && 'options' in widgetConfig && (
+              {isRadioGroupNode && 'type' in widgetConfig && widgetConfig.type === 'radio-group' && (
                 <RadioGroupWidget
+                  config={widgetConfig}
+                  onChange={handleWidgetChange}
+                />
+              )}
+              {isTextAreaNode && 'type' in widgetConfig && widgetConfig.type === 'text-area' && (
+                <TextAreaWidget
                   config={widgetConfig}
                   onChange={handleWidgetChange}
                 />

@@ -22,6 +22,7 @@ import {
   UFormNode,
 } from "./index";
 import { RadioGroupNode } from "./widgets/radioGroupNode";
+import { TextAreaNode } from "./widgets/textAreaNode";
 
 /**
  * Register the mathematical operation nodes
@@ -38,6 +39,7 @@ export function registerNodes(): void {
   registry.registerImplementation(SquareRootNode);
   registry.registerImplementation(AbsoluteValueNode);
   registry.registerImplementation(RadioGroupNode);
+  registry.registerImplementation(TextAreaNode);
   registry.registerImplementation(SliderNode);
   registry.registerImplementation(LLMNode);
   registry.registerImplementation(TTSNode);
