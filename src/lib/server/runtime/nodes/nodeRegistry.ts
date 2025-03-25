@@ -2,7 +2,6 @@ import { NodeRegistry } from "../workflowTypes";
 import { SummarizationNode } from "./text/summarizationNode";
 import { SentimentNode } from "./text/sentimentNode";
 import { TranslationNode } from "./text/translationNode";
-import { ImageClassificationNode } from "./image/imageClassificationNode";
 import { ImageTransformationNode } from "./image/imageTransformationNode";
 import { ImageGenerationNode } from "./image/imageGenerationNode";
 import { ImageInpaintingNode } from "./image/imageInpaintingNode";
@@ -38,6 +37,7 @@ import { MonacoEditorNode } from "./widgets/monacoEditorNode";
 import { CanvasDoodleNode } from "./widgets/canvasDoodleNode";
 import { WebcamNode } from "./widgets/webcamNode";
 import { AudioRecorderNode } from "./widgets/audioRecorderNode";
+import { DetrResnet50Node } from "./image/detrResnet50Node";
 
 /**
  * Register the mathematical operation nodes
@@ -65,7 +65,7 @@ export function registerNodes(): void {
   registry.registerImplementation(SummarizationNode);
   registry.registerImplementation(TranslationNode);
   registry.registerImplementation(SentimentNode);
-  registry.registerImplementation(ImageClassificationNode);
+  registry.registerImplementation(DetrResnet50Node);
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(ImageGenerationNode);
   registry.registerImplementation(ImageTransformationNode);
