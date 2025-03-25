@@ -35,7 +35,18 @@ export interface InputTextWidgetConfig {
   placeholder?: string;
 }
 
-export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig | InputTextWidgetConfig;
+export interface NumberInputWidgetConfig {
+  type: "number-input";
+  id: string;
+  name: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  placeholder?: string;
+}
+
+export type WidgetConfig = SliderWidgetConfig | RadioGroupWidgetConfig | TextAreaWidgetConfig | InputTextWidgetConfig | NumberInputWidgetConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -133,6 +144,51 @@ export function createWidgetConfig(
         id: nodeId,
         name: "Text Input",
         value: String(valueInput.value || ""),
+        placeholder,
+      };
+    }
+    case "number-input": {
+      const valueInput = inputs.find((i) => i.id === "value");
+      const minInput = inputs.find((i) => i.id === "min");
+      const maxInput = inputs.find((i) => i.id === "max");
+      const stepInput = inputs.find((i) => i.id === "step");
+      const placeholderInput = inputs.find((i) => i.id === "placeholder");
+
+      // Ensure required inputs are present
+      if (!valueInput) {
+        console.warn(`Missing required inputs for number input widget in node ${nodeId}`);
+        return null;
+      }
+
+      // Handle optional inputs
+      let min: number | undefined;
+      if (minInput?.value !== undefined) {
+        min = Number(minInput.value);
+      }
+
+      let max: number | undefined;
+      if (maxInput?.value !== undefined) {
+        max = Number(maxInput.value);
+      }
+
+      let step: number | undefined;
+      if (stepInput?.value !== undefined) {
+        step = Number(stepInput.value);
+      }
+
+      let placeholder: string | undefined;
+      if (placeholderInput?.value !== undefined) {
+        placeholder = String(placeholderInput.value);
+      }
+
+      return {
+        type: "number-input",
+        id: nodeId,
+        name: "Number Input",
+        value: Number(valueInput.value) || 0,
+        min,
+        max,
+        step,
         placeholder,
       };
     }

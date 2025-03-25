@@ -24,6 +24,7 @@ import {
 import { RadioGroupNode } from "./widgets/radioGroupNode";
 import { TextAreaNode } from "./widgets/textAreaNode";
 import { InputTextNode } from "./widgets/inputTextNode";
+import { NumberInputNode } from "./widgets/numberInputNode";
 
 /**
  * Register the mathematical operation nodes
@@ -42,6 +43,7 @@ export function registerNodes(): void {
   registry.registerImplementation(RadioGroupNode);
   registry.registerImplementation(TextAreaNode);
   registry.registerImplementation(InputTextNode);
+  registry.registerImplementation(NumberInputNode);
   registry.registerImplementation(SliderNode);
   registry.registerImplementation(LLMNode);
   registry.registerImplementation(TTSNode);
