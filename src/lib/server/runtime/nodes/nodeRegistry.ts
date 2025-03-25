@@ -1,5 +1,5 @@
 import { NodeRegistry } from "../workflowTypes";
-import { SummarizationNode } from "./text/summarizationNode";
+import { BartLargeCnnNode } from "./text/bartLargeCnnNode";
 import { DistilbertSst2Int8Node } from "./text/distilbertSst2Int8Node";
 import { TranslationNode } from "./text/translationNode";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
@@ -64,7 +64,7 @@ export function registerNodes(): void {
   registry.registerImplementation(TTSNode);
   registry.registerImplementation(WhisperNode);
   registry.registerImplementation(UformGen2Qwen500mNode);
-  registry.registerImplementation(SummarizationNode);
+  registry.registerImplementation(BartLargeCnnNode);
   registry.registerImplementation(TranslationNode);
   registry.registerImplementation(DistilbertSst2Int8Node);
   registry.registerImplementation(DetrResnet50Node);

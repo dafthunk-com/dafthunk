@@ -4,11 +4,11 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 /**
  * Summarization node implementation using bart-large-cnn model
  */
-export class SummarizationNode extends BaseExecutableNode {
+export class BartLargeCnnNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "summarization",
-    name: "Summarization",
-    type: "summarization",
+    id: "bart-large-cnn",
+    name: "BART Large CNN",
+    type: "bart-large-cnn",
     description: "Summarizes text using BART-large-CNN model",
     category: "Text",
     icon: "summarize",
