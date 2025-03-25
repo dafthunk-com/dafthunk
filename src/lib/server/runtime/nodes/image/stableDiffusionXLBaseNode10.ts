@@ -86,28 +86,40 @@ export class StableDiffusionXLBaseNode10 extends BaseExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
+      // Get default values from node type definition
+      const defaultWidth = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "width")?.value as number;
+      const defaultHeight = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "height")?.value as number;
+      const defaultNumSteps = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "num_steps")?.value as number;
+      const defaultGuidance = StableDiffusionXLBaseNode10.nodeType.inputs.find(i => i.name === "guidance")?.value as number;
+
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
         prompt,
+        width: Math.min(Math.max(width ?? defaultWidth, 256), 2048),
+        height: Math.min(Math.max(height ?? defaultHeight, 256), 2048),
+        num_steps: Math.min(num_steps ?? defaultNumSteps, 20),
+        guidance: guidance ?? defaultGuidance,
       };
 
       // Add optional parameters if provided
       if (negative_prompt) inputs.negative_prompt = negative_prompt;
-      if (width) inputs.width = Math.min(Math.max(width, 256), 2048);
-      if (height) inputs.height = Math.min(Math.max(height, 256), 2048);
-      if (num_steps) inputs.num_steps = Math.min(num_steps, 20);
-      if (guidance) inputs.guidance = guidance;
       if (seed) inputs.seed = seed;
 
       // Run the Stable Diffusion XL Base model
-      const result = await context.env.AI.run(
+      const stream = await context.env.AI.run(
         "@cf/stabilityai/stable-diffusion-xl-base-1.0",
         inputs
-      );
+      ) as ReadableStream;
 
-      // The result should be a binary image
+      const response = new Response(stream);
+      const blob = await response.blob();
+      const buffer = await blob.arrayBuffer();
+
       return this.createSuccessResult({
-        image: result,
+        image: {
+          data: Array.from(new Uint8Array(buffer)),
+          mimeType: "image/jpeg",
+        },
       });
     } catch (error) {
       return this.createErrorResult(
