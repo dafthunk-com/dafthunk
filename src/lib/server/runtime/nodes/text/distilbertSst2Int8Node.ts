@@ -4,12 +4,13 @@ import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
  */
-export class SentimentNode extends BaseExecutableNode {
+export class DistilbertSst2Int8Node extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "sentiment",
-    name: "Sentiment Analysis",
-    type: "sentiment",
-    description: "Analyzes the sentiment of text",
+    id: "distilbert-sst-2-int8",
+    name: "Distilbert SST-2 Int8",
+    type: "distilbert-sst-2-int8",
+    description:
+      "Analyzes the sentiment of text using Distilbert SST-2 Int8 model",
     category: "Text",
     icon: "mood",
     inputs: [
