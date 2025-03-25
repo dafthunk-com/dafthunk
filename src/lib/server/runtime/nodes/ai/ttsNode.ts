@@ -29,7 +29,7 @@ export class TTSNode extends BaseExecutableNode {
     outputs: [
       {
         name: "audio",
-        type: "binary",
+        type: "audio",
         description: "The generated audio in MP3 format",
       },
     ],

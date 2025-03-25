@@ -16,7 +16,7 @@ export class WhisperNode extends BaseExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: "binary",
+        type: "audio",
         description: "The audio file to transcribe",
       },
     ],
