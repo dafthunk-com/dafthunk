@@ -68,7 +68,6 @@ export class Flux1SchnellNode extends BaseExecutableNode {
         },
       });
     } catch (error) {
-      console.error("Flux1SchnellNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

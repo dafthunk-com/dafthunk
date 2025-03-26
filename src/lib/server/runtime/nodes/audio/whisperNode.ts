@@ -56,16 +56,10 @@ export class WhisperNode extends BaseExecutableNode {
 
       const { audio } = context.inputs;
 
-      console.log(
-        `Processing audio file for speech recognition, data length: ${audio.data.length} bytes`
-      );
-
       // Call Cloudflare AI Whisper model
       const response = await context.env.AI.run("@cf/openai/whisper", {
         audio: Array.from(audio.data),
       });
-
-      console.log("Whisper transcription response:", response);
 
       // Extract the results
       const output = {
@@ -77,7 +71,6 @@ export class WhisperNode extends BaseExecutableNode {
 
       return this.createSuccessResult(output);
     } catch (error) {
-      console.error("WhisperNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

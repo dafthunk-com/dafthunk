@@ -44,10 +44,6 @@ export class MelottsNode extends BaseExecutableNode {
 
       const { prompt, lang } = context.inputs;
 
-      console.log(
-        `Calling MeloTTS with prompt: "${prompt}" and language: "${lang || "en"}"`
-      );
-
       // Call Cloudflare AI MeloTTS model
       // Request raw binary response instead of JSON
       const response = await context.env.AI.run("@cf/myshell-ai/melotts", {
@@ -59,19 +55,16 @@ export class MelottsNode extends BaseExecutableNode {
       let audioBuffer;
 
       if (response instanceof ReadableStream) {
-        console.log("Received ReadableStream response");
         const newResponse = new Response(response);
         const blob = await newResponse.blob();
         audioBuffer = await blob.arrayBuffer();
       } else if (response instanceof ArrayBuffer) {
-        console.log("Received ArrayBuffer response");
         audioBuffer = response;
       } else if (
         response &&
         typeof response === "object" &&
         "audio" in response
       ) {
-        console.log("Received object with audio property");
         // Handle case where API returns { audio: base64string }
         const audioBase64 = response.audio;
         if (typeof audioBase64 === "string") {
@@ -86,13 +79,8 @@ export class MelottsNode extends BaseExecutableNode {
           throw new Error("Unexpected audio data format");
         }
       } else {
-        console.error("Unexpected response format:", response);
         throw new Error("Unexpected response format from MeloTTS API");
       }
-
-      console.log(
-        `Received audio data of size: ${audioBuffer.byteLength} bytes`
-      );
 
       // Create properly structured audio output
       const output = {
@@ -104,7 +92,6 @@ export class MelottsNode extends BaseExecutableNode {
 
       return this.createSuccessResult(output);
     } catch (error) {
-      console.error("MelottsNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

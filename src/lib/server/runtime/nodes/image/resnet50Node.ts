@@ -49,7 +49,6 @@ export class Resnet50Node extends BaseExecutableNode {
         classifications: result,
       });
     } catch (error) {
-      console.error("Resnet50Node execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

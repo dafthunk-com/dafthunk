@@ -116,18 +116,6 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
       const maskData =
         mask.data instanceof Uint8Array ? mask.data : new Uint8Array(mask.data);
 
-      // Debug logs for input data
-      console.log("Input image data length:", imageData.length);
-      console.log(
-        "First few bytes of image:",
-        Array.from(imageData.slice(0, 10))
-      );
-      console.log("Mask data length:", maskData.length);
-      console.log(
-        "First few bytes of mask:",
-        Array.from(maskData.slice(0, 10))
-      );
-
       // Call Cloudflare AI Stable Diffusion Inpainting model
       const stream = (await context.env.AI.run(
         "@cf/runwayml/stable-diffusion-v1-5-inpainting",
@@ -143,22 +131,11 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
         }
       )) as ReadableStream;
 
-      // Debug log
-      console.log("API call completed, processing response...");
-
       const response = new Response(stream);
       const blob = await response.blob();
-      console.log("Response blob size:", blob.size);
 
       const buffer = await blob.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
-
-      // Debug log
-      console.log("Output image data length:", uint8Array.length);
-      console.log(
-        "First few bytes of output:",
-        Array.from(uint8Array.slice(0, 10))
-      );
 
       if (uint8Array.length === 0) {
         throw new Error("Received empty image data from the API");
@@ -171,7 +148,6 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
         },
       });
     } catch (error) {
-      console.error("StableDiffusionV15InpaintingNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

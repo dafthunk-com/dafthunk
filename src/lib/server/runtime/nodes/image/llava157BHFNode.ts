@@ -77,11 +77,6 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
       const { image, prompt, max_tokens, temperature, top_p, top_k } =
         context.inputs;
 
-      console.log(
-        `Processing image for LLaVA, data length: ${image.data.length} bytes`
-      );
-      console.log(`Prompt: "${prompt}"`);
-
       // Prepare the image data - convert to array of numbers
       const imageData = Array.from(new Uint8Array(image.data));
 
@@ -103,8 +98,6 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         params
       );
 
-      console.log("LLaVA response:", response);
-
       // Extract the description from the response
       const { description } = response;
 
@@ -112,7 +105,6 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         description,
       });
     } catch (error) {
-      console.error("LLaVANode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

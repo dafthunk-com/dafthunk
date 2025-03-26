@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import { NodeRegistry } from "../src/lib/server/runtime/workflowTypes";
-import { registerNodes } from "../src/lib/server/runtime/nodeRegistry";
+import { NodeRegistry } from "../src/lib/server/runtime/runtimeTypes";
+import { registerNodes } from "../src/lib/server/runtime/nodeTypeRegistry";
 
 export const onRequest: PagesFunction = async (context) => {
   try {

@@ -119,17 +119,6 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
       const validatedSteps = Math.min(num_steps ?? defaultNumSteps, 20);
       const validatedGuidance = guidance ?? defaultGuidance;
 
-      // Debug log input parameters
-      console.log("Input parameters:", {
-        prompt,
-        negative_prompt,
-        width: validatedWidth,
-        height: validatedHeight,
-        num_steps: validatedSteps,
-        guidance: validatedGuidance,
-        seed,
-      });
-
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
         prompt,
@@ -143,31 +132,17 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
       if (negative_prompt) inputs.negative_prompt = negative_prompt;
       if (seed) inputs.seed = seed;
 
-      // Debug log
-      console.log("Calling Stable Diffusion XL with inputs:", inputs);
-
       // Run the Stable Diffusion XL Base model
       const stream = (await context.env.AI.run(
         "@cf/stabilityai/stable-diffusion-xl-base-1.0",
         inputs
       )) as ReadableStream;
 
-      // Debug log
-      console.log("API call completed, processing response...");
-
       const response = new Response(stream);
       const blob = await response.blob();
-      console.log("Response blob size:", blob.size);
 
       const buffer = await blob.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
-
-      // Debug log
-      console.log("Output image data length:", uint8Array.length);
-      console.log(
-        "First few bytes of output:",
-        Array.from(uint8Array.slice(0, 10))
-      );
 
       if (uint8Array.length === 0) {
         throw new Error("Received empty image data from the API");
@@ -180,7 +155,6 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
         },
       });
     } catch (error) {
-      console.error("StableDiffusionXLBase10Node execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

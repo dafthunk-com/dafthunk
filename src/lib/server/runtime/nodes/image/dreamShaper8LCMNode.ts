@@ -119,10 +119,6 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
       const validatedNumSteps = Math.min(num_steps ?? defaultNumSteps, 20);
       const validatedGuidance = guidance ?? defaultGuidance;
 
-      console.log(
-        `Generating image with parameters: width=${validatedWidth}, height=${validatedHeight}, steps=${validatedNumSteps}, guidance=${validatedGuidance}`
-      );
-
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
         prompt,
@@ -158,7 +154,6 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
       }
 
       const buffer = await blob.arrayBuffer();
-      console.log(`Generated image size: ${buffer.byteLength} bytes`);
 
       // Create properly structured output with Uint8Array
       const output = {
@@ -170,7 +165,6 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
 
       return this.createSuccessResult(output);
     } catch (error) {
-      console.error("DreamShaper8LCMNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Failed to generate image"
       );

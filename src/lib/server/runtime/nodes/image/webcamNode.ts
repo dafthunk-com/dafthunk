@@ -47,8 +47,6 @@ export class WebcamNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      console.log("Received input:", context.inputs.value); // Debug log
-
       let inputs;
       try {
         if (typeof context.inputs.value !== "string") {

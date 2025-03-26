@@ -56,16 +56,10 @@ export class WhisperTinyEnNode extends BaseExecutableNode {
 
       const { audio } = context.inputs;
 
-      console.log(
-        `Processing audio file for speech recognition with Whisper Tiny English, data length: ${audio.data.length} bytes`
-      );
-
       // Call Cloudflare AI Whisper Tiny English model
       const response = await context.env.AI.run("@cf/openai/whisper-tiny-en", {
         audio: Array.from(audio.data),
       });
-
-      console.log("Whisper Tiny English transcription response:", response);
 
       // Extract the results
       const output = {
@@ -77,7 +71,6 @@ export class WhisperTinyEnNode extends BaseExecutableNode {
 
       return this.createSuccessResult(output);
     } catch (error) {
-      console.error("WhisperTinyEnNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
