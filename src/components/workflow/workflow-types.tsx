@@ -13,6 +13,12 @@ import {
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
 
+// Audio data type
+export interface AudioData {
+  data: Uint8Array;
+  mimeType: string;
+}
+
 // Parameter Types
 export interface WorkflowParameter {
   id: string;

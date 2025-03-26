@@ -205,7 +205,8 @@ export class ImageParameterType extends ParameterType {
 // Audio ParameterType
 export class AudioParameterType extends ParameterType {
   private static readonly VALID_MIME_TYPES = [
-    'audio/mpeg'
+    'audio/mpeg',
+    'audio/webm'
   ];
 
   validate(value: any): { isValid: boolean; error?: string } {

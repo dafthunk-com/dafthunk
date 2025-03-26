@@ -87,11 +87,18 @@ export class AudioRecorderNode extends BaseExecutableNode {
       }
 
       // Create properly structured audio output matching AudioParameterType requirements
+      const audioOutput = {
+        data: bytes,
+        mimeType: "audio/webm"
+      };
+
+      // Validate the output structure
+      if (!audioOutput.data || !audioOutput.mimeType) {
+        throw new Error("Invalid audio output structure");
+      }
+
       return this.createSuccessResult({
-        audio: {
-          data: bytes,
-          mimeType: "audio/mpeg"
-        }
+        audio: audioOutput
       });
     } catch (error) {
       return this.createErrorResult(
