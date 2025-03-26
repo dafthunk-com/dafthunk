@@ -5,7 +5,7 @@ import {
   WorkflowExecutionOptions,
   NodeRegistry,
 } from "./workflowTypes";
-import { registerNodes } from "./nodeRegistry";
+import { registerNodes } from "./nodeTypeRegistry";
 import {
   StartNode,
   ProcessNode,

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowRuntime } from "./workflowRuntime";
 import { Workflow } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
-import { registerNodes } from "./nodeRegistry";
+import { registerNodes } from "./nodeTypeRegistry";
 
 // Mock the validateWorkflow function
 vi.mock("./workflowValidation", () => ({

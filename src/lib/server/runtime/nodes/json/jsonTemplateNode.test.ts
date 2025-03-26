@@ -212,4 +212,4 @@ describe("JsonTemplateNode", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("Invalid or missing variables object");
   });
-}); 
+});

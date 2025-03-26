@@ -7,9 +7,9 @@ import {
   NodeType,
 } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
-import { registerNodes } from "./nodeRegistry";
+import { registerNodes } from "./nodeTypeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
-import { ParameterTypeRegistry } from "./typeRegistry";
+import { ParameterTypeRegistry } from "./parameterTypeRegistry";
 
 // Initialize the node registry
 registerNodes();
