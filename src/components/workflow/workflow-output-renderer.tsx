@@ -36,7 +36,13 @@ export function WorkflowOutputRenderer({
 }: WorkflowOutputRendererProps) {
   if (output.type === "image" && output.value) {
     try {
-      const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
+      // Validate image data structure
+      const imageValue = output.value;
+      if (!imageValue.data || !imageValue.mimeType) {
+        throw new Error("Invalid image data structure");
+      }
+
+      const dataUrl = createDataUrl(imageValue.data, imageValue.mimeType);
       return (
         <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
           <img

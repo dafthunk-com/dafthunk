@@ -109,11 +109,14 @@ export class CanvasDoodleNode extends BaseExecutableNode {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
+      // Create properly structured image output
+      const imageOutput = {
+        data: bytes,
+        mimeType: "image/png"
+      };
+
       return this.createSuccessResult({
-        image: {
-          data: bytes,
-          type: "image/png",
-        },
+        image: imageOutput
       });
     } catch (error) {
       return this.createErrorResult(
