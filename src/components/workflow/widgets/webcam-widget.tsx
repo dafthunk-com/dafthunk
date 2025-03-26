@@ -63,19 +63,25 @@ export function WebcamWidget({
     ctx.drawImage(videoRef.current, 0, 0, config.width, config.height);
     const base64Data = canvas.toDataURL("image/png").split(",")[1];
     setCapturedImage(base64Data);
-    onChange(
-      JSON.stringify({
-        value: base64Data,
-        width: config.width,
-        height: config.height,
-      })
-    );
+
+    // Create properly structured image output
+    const imageOutput = {
+      value: base64Data,
+      width: config.width,
+      height: config.height,
+    };
+
+    onChange(JSON.stringify(imageOutput));
   };
 
   const clearImage = () => {
     setCapturedImage(null);
     onChange(
-      JSON.stringify({ value: "", width: config.width, height: config.height })
+      JSON.stringify({
+        value: "",
+        width: config.width,
+        height: config.height,
+      })
     );
   };
 

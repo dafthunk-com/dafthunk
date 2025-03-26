@@ -87,11 +87,19 @@ export class WebcamNode extends BaseExecutableNode {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
+      // Create properly structured image output
+      const imageOutput = {
+        data: bytes,
+        mimeType: "image/png"
+      };
+
+      // Validate the output structure
+      if (!imageOutput.data || !imageOutput.mimeType) {
+        throw new Error("Invalid image output structure");
+      }
+
       return this.createSuccessResult({
-        image: {
-          data: bytes,
-          type: "image/png",
-        },
+        image: imageOutput
       });
     } catch (error) {
       return this.createErrorResult(
