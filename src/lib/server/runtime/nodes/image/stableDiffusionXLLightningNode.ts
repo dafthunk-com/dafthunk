@@ -79,31 +79,61 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
       const validatedSteps = Math.min(Math.max(num_steps || 20, 1), 20);
       const validatedGuidance = guidance || 7.5;
 
+      // Debug log input parameters
+      console.log("Input parameters:", {
+        prompt,
+        negative_prompt,
+        height: validatedHeight,
+        width: validatedWidth,
+        num_steps: validatedSteps,
+        guidance: validatedGuidance,
+      });
+
+      // Prepare inputs for the model
+      const inputs = {
+        prompt,
+        negative_prompt: negative_prompt || "",
+        height: validatedHeight,
+        width: validatedWidth,
+        num_steps: validatedSteps,
+        guidance: validatedGuidance,
+      };
+
+      // Debug log
+      console.log("Calling SDXL Lightning with inputs:", inputs);
+
       // Call Cloudflare AI SDXL-Lightning model
       const stream = (await context.env.AI.run(
         "@cf/bytedance/stable-diffusion-xl-lightning",
-        {
-          prompt,
-          negative_prompt: negative_prompt || "",
-          height: validatedHeight,
-          width: validatedWidth,
-          num_steps: validatedSteps,
-          guidance: validatedGuidance,
-        }
+        inputs
       )) as ReadableStream;
+
+      // Debug log
+      console.log("API call completed, processing response...");
 
       const response = new Response(stream);
       const blob = await response.blob();
+      console.log("Response blob size:", blob.size);
+
       const buffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      // Debug log
+      console.log("Output image data length:", uint8Array.length);
+      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+
+      if (uint8Array.length === 0) {
+        throw new Error("Received empty image data from the API");
+      }
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(new Uint8Array(buffer)),
+          data: uint8Array,
           mimeType: "image/jpeg",
         },
       });
     } catch (error) {
-      console.error(error);
+      console.error("StableDiffusionXLLightningNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
