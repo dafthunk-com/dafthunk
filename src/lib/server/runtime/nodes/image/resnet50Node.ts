@@ -31,19 +31,15 @@ export class Resnet50Node extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const image = context.inputs.image;
-
-      if (!image) {
-        return this.createErrorResult("Image is required");
-      }
-
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
       }
 
+      const { image } = context.inputs;
+
       // Run the ResNet-50 model for image classification
       const result = await context.env.AI.run("@cf/microsoft/resnet-50", {
-        image: [...image.data],
+        image: Array.from(image.data),
       });
 
       // The result should be an array of classifications
@@ -52,6 +48,7 @@ export class Resnet50Node extends BaseExecutableNode {
         classifications: result,
       });
     } catch (error) {
+      console.error("Resnet50Node execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
