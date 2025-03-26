@@ -77,7 +77,7 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
       } = context.inputs;
 
       if (!prompt) {
-        return this.createErrorResult("Prompt is required");
+        return this.createErrorResult("Prompt is required for image generation");
       }
 
       if (!context.env?.AI) {
@@ -98,13 +98,23 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
         (i) => i.name === "guidance"
       )?.value as number;
 
+      // Validate and prepare inputs
+      const validatedWidth = Math.min(Math.max(width ?? defaultWidth, 256), 2048);
+      const validatedHeight = Math.min(Math.max(height ?? defaultHeight, 256), 2048);
+      const validatedNumSteps = Math.min(num_steps ?? defaultNumSteps, 20);
+      const validatedGuidance = guidance ?? defaultGuidance;
+
+      console.log(
+        `Generating image with parameters: width=${validatedWidth}, height=${validatedHeight}, steps=${validatedNumSteps}, guidance=${validatedGuidance}`
+      );
+
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
         prompt,
-        width: Math.min(Math.max(width ?? defaultWidth, 256), 2048),
-        height: Math.min(Math.max(height ?? defaultHeight, 256), 2048),
-        num_steps: Math.min(num_steps ?? defaultNumSteps, 20),
-        guidance: guidance ?? defaultGuidance,
+        width: validatedWidth,
+        height: validatedHeight,
+        num_steps: validatedNumSteps,
+        guidance: validatedGuidance,
       };
 
       // Add optional parameters if provided
@@ -117,19 +127,33 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
         inputs
       )) as ReadableStream;
 
+      if (!stream) {
+        return this.createErrorResult("Failed to generate image: No response from AI service");
+      }
+
       const response = new Response(stream);
       const blob = await response.blob();
-      const buffer = await blob.arrayBuffer();
+      
+      if (!blob || blob.size === 0) {
+        return this.createErrorResult("Failed to generate image: Empty response");
+      }
 
-      return this.createSuccessResult({
+      const buffer = await blob.arrayBuffer();
+      console.log(`Generated image size: ${buffer.byteLength} bytes`);
+
+      // Create properly structured output with Uint8Array
+      const output = {
         image: {
-          data: Array.from(new Uint8Array(buffer)),
+          data: new Uint8Array(buffer),
           mimeType: "image/jpeg",
         },
-      });
+      };
+
+      return this.createSuccessResult(output);
     } catch (error) {
+      console.error("DreamShaper8LCMNode execution error:", error);
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : "Failed to generate image"
       );
     }
   }
