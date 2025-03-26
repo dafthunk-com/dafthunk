@@ -201,6 +201,14 @@ export class WorkflowRuntime {
     nodeType: NodeType,
     inputs: Record<string, any>
   ): { isValid: boolean; error?: string } {
+    // First check if all required parameters are provided
+    for (const inputDef of nodeType.inputs) {
+      if (inputDef.required && inputs[inputDef.name] === undefined) {
+        return { isValid: false, error: `Required parameter ${inputDef.name} is not provided` };
+      }
+    }
+
+    // Then validate all provided inputs
     for (const [key, value] of Object.entries(inputs)) {
       const inputDef = nodeType.inputs.find((input) => input.name === key);
       if (!inputDef) {

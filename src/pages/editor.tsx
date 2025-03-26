@@ -125,6 +125,7 @@ export function EditorPage() {
             name: input.name,
             value: input.value,
             hidden: input.hidden,
+            required: input.required,
           })),
           outputs: node.outputs.map((output) => ({
             id: output.id || output.name,
@@ -189,6 +190,7 @@ export function EditorPage() {
                 description: input.name,
                 value: input.value,
                 hidden: input.hidden,
+                required: input.required,
               })),
               outputs: node.data.outputs.map((output) => ({
                 name: output.id,

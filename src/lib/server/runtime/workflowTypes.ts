@@ -12,6 +12,7 @@ export interface Parameter {
   description?: string;
   value?: any;
   hidden?: boolean;
+  required?: boolean;
 }
 
 export interface NodeType {

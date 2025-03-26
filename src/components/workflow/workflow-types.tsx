@@ -27,6 +27,7 @@ export interface WorkflowParameter {
   value?: any;
   isConnected?: boolean;
   hidden?: boolean;
+  required?: boolean;
 }
 
 export interface WorkflowNodeData {
