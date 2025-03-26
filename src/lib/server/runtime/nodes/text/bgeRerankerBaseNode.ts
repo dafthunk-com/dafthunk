@@ -18,16 +18,19 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
         name: "query",
         type: "string",
         description: "The query to rank the contexts against",
+        required: true,
       },
       {
         name: "contexts",
         type: "array",
         description: "Array of text passages to rank",
+        required: true,
       },
       {
         name: "topK",
         type: "number",
         description: "Number of top results to return (optional)",
+        hidden: true,
       },
     ],
     outputs: [

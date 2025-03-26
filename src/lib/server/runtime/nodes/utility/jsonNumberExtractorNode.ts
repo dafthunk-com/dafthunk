@@ -15,17 +15,20 @@ export class JsonNumberExtractorNode extends BaseExecutableNode {
         name: "json",
         type: "json",
         description: "The JSON object to extract the number from",
+        required: true,
       },
       {
         name: "path",
         type: "string",
         description:
           'The JSONPath expression (e.g., "$.user.profile.age" or "$.product.price")',
+        required: true,
       },
       {
         name: "defaultValue",
         type: "number",
         description: "Default value if no numeric value is found at the path",
+        hidden: true,
       },
     ],
     outputs: [
@@ -38,6 +41,7 @@ export class JsonNumberExtractorNode extends BaseExecutableNode {
         name: "found",
         type: "boolean",
         description: "Whether a numeric value was found at the specified path",
+        hidden: true,
       },
     ],
   };

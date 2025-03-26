@@ -13,8 +13,8 @@ export class ExponentiationNode extends BaseExecutableNode {
     category: "Math",
     icon: "power",
     inputs: [
-      { name: "base", type: "number" },
-      { name: "exponent", type: "number" },
+      { name: "base", type: "number", required: true },
+      { name: "exponent", type: "number", required: true },
     ],
     outputs: [{ name: "result", type: "number" }],
   };

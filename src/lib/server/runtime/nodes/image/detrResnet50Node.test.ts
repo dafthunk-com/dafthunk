@@ -13,6 +13,7 @@ describe("DetrResnet50Node", () => {
         name: "image",
         type: "image",
         description: "The image to use for object detection",
+        required: true,
       },
     ],
     outputs: [

@@ -13,6 +13,7 @@ describe("M2m10012bNode", () => {
         name: "text",
         type: "string",
         description: "The text to be translated",
+        required: true,
       },
       {
         name: "sourceLang",
@@ -23,6 +24,7 @@ describe("M2m10012bNode", () => {
         name: "targetLang",
         type: "string",
         description: "The language code to translate the text into",
+        required: true,
       },
     ],
     outputs: [

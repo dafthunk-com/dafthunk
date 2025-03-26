@@ -18,6 +18,7 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         name: "audio",
         type: "audio",
         description: "The audio file to transcribe",
+        required: true,
       },
       {
         name: "task",
@@ -33,17 +34,20 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         name: "vad_filter",
         type: "boolean",
         description: "Whether to use voice activity detection",
+        hidden: true,
       },
       {
         name: "initial_prompt",
         type: "string",
         description: "Optional text prompt to guide the transcription",
+        hidden: true,
       },
       {
         name: "prefix",
         type: "string",
         description:
           "Optional prefix to append to the beginning of the transcription",
+        hidden: true,
       },
     ],
     outputs: [
@@ -56,21 +60,25 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         name: "word_count",
         type: "number",
         description: "The number of words in the transcription",
+        hidden: true,
       },
       {
         name: "segments",
         type: "array",
         description: "Detailed transcription segments with timing information",
+        hidden: true,
       },
       {
         name: "vtt",
         type: "string",
         description: "WebVTT format of the transcription",
+        hidden: true,
       },
       {
         name: "transcription_info",
         type: "json",
         description: "Additional information about the transcription",
+        hidden: true,
       },
     ],
   };

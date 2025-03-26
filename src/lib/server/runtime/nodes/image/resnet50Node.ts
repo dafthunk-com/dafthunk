@@ -18,6 +18,7 @@ export class Resnet50Node extends BaseExecutableNode {
         name: "image",
         type: "image",
         description: "The image to classify",
+        required: true,
       },
     ],
     outputs: [

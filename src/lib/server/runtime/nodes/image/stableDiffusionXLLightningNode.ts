@@ -18,29 +18,34 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "A text description of the image you want to generate",
+        required: true,
       },
       {
         name: "negative_prompt",
         type: "string",
         description: "Text describing elements to avoid in the generated image",
+        hidden: true,
       },
       {
         name: "height",
         type: "number",
         description: "The height of the generated image in pixels (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "width",
         type: "number",
         description: "The width of the generated image in pixels (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "num_steps",
         type: "number",
         description: "The number of diffusion steps (1-20)",
         value: 20,
+        hidden: true,
       },
       {
         name: "guidance",
@@ -48,6 +53,7 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
         description:
           "Controls how closely the generated image should adhere to the prompt",
         value: 7.5,
+        hidden: true,
       },
     ],
     outputs: [

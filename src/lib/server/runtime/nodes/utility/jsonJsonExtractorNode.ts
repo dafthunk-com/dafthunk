@@ -16,18 +16,21 @@ export class JsonJsonExtractorNode extends BaseExecutableNode {
         name: "json",
         type: "json",
         description: "The JSON object to extract from",
+        required: true,
       },
       {
         name: "path",
         type: "string",
         description:
           'The JSONPath expression (e.g., "$.user.profile" or "$.store.books[*]")',
+        required: true,
       },
       {
         name: "defaultValue",
         type: "json",
         description:
           "Default value if no JSON object/array is found at the path",
+        hidden: true,
       },
     ],
     outputs: [
@@ -41,6 +44,7 @@ export class JsonJsonExtractorNode extends BaseExecutableNode {
         type: "boolean",
         description:
           "Whether a JSON object or array was found at the specified path",
+        hidden: true,
       },
     ],
   };

@@ -17,6 +17,7 @@ export class M2m10012bNode extends BaseExecutableNode {
         name: "text",
         type: "string",
         description: "The text to be translated",
+        required: true,
       },
       {
         name: "sourceLang",
@@ -29,6 +30,7 @@ export class M2m10012bNode extends BaseExecutableNode {
         type: "string",
         description:
           "The language code to translate the text into (e.g., 'es' for Spanish)",
+        required: true,
       },
     ],
     outputs: [

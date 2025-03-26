@@ -18,29 +18,34 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "Text description of the image to generate",
+        required: true,
       },
       {
         name: "negative_prompt",
         type: "string",
         description: "Text describing elements to avoid in the generated image",
+        hidden: true,
       },
       {
         name: "width",
         type: "number",
         description: "Width of the generated image (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "height",
         type: "number",
         description: "Height of the generated image (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "num_steps",
         type: "number",
         description: "Number of diffusion steps (1-20)",
         value: 20,
+        hidden: true,
       },
       {
         name: "guidance",
@@ -48,11 +53,13 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
         description:
           "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
         value: 7.5,
+        hidden: true,
       },
       {
         name: "seed",
         type: "number",
         description: "Random seed for reproducible results",
+        hidden: true,
       },
     ],
     outputs: [

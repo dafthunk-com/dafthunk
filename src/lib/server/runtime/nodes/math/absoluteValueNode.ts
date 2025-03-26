@@ -12,7 +12,7 @@ export class AbsoluteValueNode extends BaseExecutableNode {
     description: "Calculates the absolute value of a number",
     category: "Math",
     icon: "absolute",
-    inputs: [{ name: "value", type: "number" }],
+    inputs: [{ name: "value", type: "number", required: true }],
     outputs: [{ name: "result", type: "number" }],
   };
 

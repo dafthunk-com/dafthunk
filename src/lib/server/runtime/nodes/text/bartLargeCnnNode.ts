@@ -17,12 +17,14 @@ export class BartLargeCnnNode extends BaseExecutableNode {
         name: "inputText",
         type: "string",
         description: "The text that you want the model to summarize",
+        required: true,
       },
       {
         name: "maxLength",
         type: "number",
         description: "The maximum length of the generated summary in tokens",
         value: 1024,
+        hidden: true,
       },
     ],
     outputs: [

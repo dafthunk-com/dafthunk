@@ -18,18 +18,21 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
         name: "image",
         type: "image",
         description: "The image to generate a description for",
+        required: true,
       },
       {
         name: "prompt",
         type: "string",
         description: "The input text prompt for guiding the model's response",
         value: "Generate a caption for this image",
+        hidden: true,
       },
       {
         name: "max_tokens",
         type: "number",
         description: "The maximum number of tokens to generate in the response",
         value: 512,
+        hidden: true,
       },
       {
         name: "top_p",
@@ -37,6 +40,7 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
         description:
           "Controls the diversity of outputs by limiting to the most probable tokens",
         value: 0.95,
+        hidden: true,
       },
       {
         name: "top_k",
@@ -44,6 +48,7 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
         description:
           "Limits the AI to choose from the top 'k' most probable words",
         value: 40,
+        hidden: true,
       },
       {
         name: "repetition_penalty",
@@ -51,6 +56,7 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
         description:
           "Penalty for repeated tokens; higher values discourage repetition",
         value: 1.0,
+        hidden: true,
       },
     ],
     outputs: [

@@ -16,11 +16,13 @@ export class StringTemplateNode extends BaseExecutableNode {
         type: "string",
         description:
           "The template string with variables in ${variableName} format",
+        required: true,
       },
       {
         name: "variables",
         type: "json",
         description: "JSON object containing variable values to inject",
+        required: true,
       },
     ],
     outputs: [
@@ -34,6 +36,7 @@ export class StringTemplateNode extends BaseExecutableNode {
         type: "array",
         description:
           "Array of variable names that were not found in the variables object",
+        hidden: true,
       },
     ],
   };

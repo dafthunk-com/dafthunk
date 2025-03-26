@@ -18,6 +18,7 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
         name: "text",
         type: "string",
         description: "The text to analyze for sentiment",
+        required: true,
       },
     ],
     outputs: [

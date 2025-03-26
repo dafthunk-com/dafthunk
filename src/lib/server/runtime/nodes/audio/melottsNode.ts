@@ -17,6 +17,7 @@ export class MelottsNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "The text to convert to speech",
+        required: true,
       },
       {
         name: "lang",

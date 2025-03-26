@@ -204,7 +204,10 @@ export class WorkflowRuntime {
     // First check if all required parameters are provided
     for (const inputDef of nodeType.inputs) {
       if (inputDef.required && inputs[inputDef.name] === undefined) {
-        return { isValid: false, error: `Required parameter ${inputDef.name} is not provided` };
+        return {
+          isValid: false,
+          error: `Required parameter ${inputDef.name} is not provided`,
+        };
       }
     }
 

@@ -19,11 +19,13 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
         type: "string",
         description:
           "A text description of what to generate in the masked area",
+        required: true,
       },
       {
         name: "negative_prompt",
         type: "string",
         description: "Text describing elements to avoid in the generated image",
+        hidden: true,
       },
       {
         name: "image",
@@ -40,12 +42,14 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
         type: "number",
         description: "The number of diffusion steps (1-20)",
         value: 20,
+        hidden: true,
       },
       {
         name: "strength",
         type: "number",
         description: "How strongly to apply the transformation (0-1)",
         value: 1,
+        hidden: true,
       },
       {
         name: "guidance",
@@ -53,11 +57,13 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
         description:
           "Controls how closely the generated image should adhere to the prompt",
         value: 7.5,
+        hidden: true,
       },
       {
         name: "seed",
         type: "number",
         description: "Random seed for reproducibility",
+        hidden: true,
       },
     ],
     outputs: [

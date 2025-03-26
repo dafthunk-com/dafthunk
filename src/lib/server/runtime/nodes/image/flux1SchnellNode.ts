@@ -18,12 +18,14 @@ export class Flux1SchnellNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "Text description of the image to generate",
+        required: true,
       },
       {
         name: "steps",
         type: "number",
         description: "Number of diffusion steps (default: 4, max: 8)",
         value: 4,
+        hidden: true,
       },
     ],
     outputs: [

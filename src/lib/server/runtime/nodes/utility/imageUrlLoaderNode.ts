@@ -14,6 +14,7 @@ export class ImageUrlLoaderNode extends BaseExecutableNode {
         name: "url",
         type: "string",
         description: "The URL of the PNG image to load",
+        required: true,
       },
     ],
     outputs: [

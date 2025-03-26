@@ -15,17 +15,20 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
         name: "json",
         type: "json",
         description: "The JSON object to extract the string from",
+        required: true,
       },
       {
         name: "path",
         type: "string",
         description:
           'The JSONPath expression (e.g., "$.user.profile.name" or "$.store.books[0].title")',
+        required: true,
       },
       {
         name: "defaultValue",
         type: "string",
         description: "Default value if no string value is found at the path",
+        hidden: true,
       },
     ],
     outputs: [
@@ -38,6 +41,7 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
         name: "found",
         type: "boolean",
         description: "Whether a string value was found at the specified path",
+        hidden: true,
       },
     ],
   };

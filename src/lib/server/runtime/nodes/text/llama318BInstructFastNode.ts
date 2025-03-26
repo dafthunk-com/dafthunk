@@ -17,16 +17,19 @@ export class Llama318BInstructFastNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "The input text prompt for the LLM",
+        required: true,
       },
       {
         name: "temperature",
         type: "number",
         description: "Controls randomness in the output (0.0 to 1.0)",
+        hidden: true,
       },
       {
         name: "seed",
         type: "number",
         description: "Random seed for deterministic generation",
+        hidden: true,
       },
     ],
     outputs: [

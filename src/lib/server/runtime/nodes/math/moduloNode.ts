@@ -13,8 +13,8 @@ export class ModuloNode extends BaseExecutableNode {
     category: "Math",
     icon: "percent",
     inputs: [
-      { name: "a", type: "number" },
-      { name: "b", type: "number" },
+      { name: "a", type: "number", required: true },
+      { name: "b", type: "number", required: true },
     ],
     outputs: [{ name: "result", type: "number" }],
   };

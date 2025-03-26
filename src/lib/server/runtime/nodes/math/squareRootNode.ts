@@ -12,7 +12,7 @@ export class SquareRootNode extends BaseExecutableNode {
     description: "Calculates the square root of a number",
     category: "Math",
     icon: "square-root",
-    inputs: [{ name: "value", type: "number" }],
+    inputs: [{ name: "value", type: "number", required: true }],
     outputs: [{ name: "result", type: "number" }],
   };
 
