@@ -24,18 +24,21 @@ export class SliderNode extends BaseExecutableNode {
         type: "number",
         description: "Minimum value of the slider",
         hidden: true,
+        value: 0,
       },
       {
         name: "max",
         type: "number",
         description: "Maximum value of the slider",
         hidden: true,
+        value: 100,
       },
       {
         name: "step",
         type: "number",
         description: "Step size for the slider",
         hidden: true,
+        value: 1,
       },
       {
         name: "value",
@@ -55,37 +58,44 @@ export class SliderNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const min = Number(context.inputs.min);
-      const max = Number(context.inputs.max);
-      const step = Number(context.inputs.step);
-      const value = Number(context.inputs.value);
+      // Get default values from nodeType
+      const defaultMin = SliderNode.nodeType.inputs.find(i => i.name === "min")?.value as number;
+      const defaultMax = SliderNode.nodeType.inputs.find(i => i.name === "max")?.value as number;
+      const defaultStep = SliderNode.nodeType.inputs.find(i => i.name === "step")?.value as number;
 
-      // Validate inputs
-      if (isNaN(min)) {
-        return this.createErrorResult("Min value must be a number");
+      // Use provided values or defaults
+      const min = context.inputs.min !== undefined ? Number(context.inputs.min) : defaultMin;
+      const max = context.inputs.max !== undefined ? Number(context.inputs.max) : defaultMax;
+      const step = context.inputs.step !== undefined ? Number(context.inputs.step) : defaultStep;
+      const value = context.inputs.value !== undefined ? Number(context.inputs.value) : undefined;
+
+      // Ensure all inputs are valid numbers
+      if (isNaN(min) || isNaN(max) || isNaN(step)) {
+        return this.createErrorResult("Invalid input parameters: min, max, and step must be numbers");
       }
 
-      if (isNaN(max)) {
-        return this.createErrorResult("Max value must be a number");
-      }
-
-      if (isNaN(step)) {
-        return this.createErrorResult("Step value must be a number");
-      }
-
-      if (step <= 0) {
-        return this.createErrorResult("Step value must be greater than 0");
-      }
-
+      // Validate min/max relationship
       if (min >= max) {
         return this.createErrorResult("Min value must be less than max value");
       }
 
-      // Use the input value as the output, constrained by min/max
-      // If no value is provided, use min as default
-      const outputValue = !isNaN(value)
-        ? Math.min(Math.max(value, min), max)
-        : min;
+      // Validate step
+      if (step <= 0) {
+        return this.createErrorResult("Step value must be greater than 0");
+      }
+
+      // Calculate the constrained value
+      let outputValue: number;
+      
+      if (value === undefined) {
+        outputValue = min;
+      } else {
+        // Round to nearest step
+        const steps = Math.round((value - min) / step);
+        outputValue = min + (steps * step);
+        // Constrain between min and max
+        outputValue = Math.min(Math.max(outputValue, min), max);
+      }
 
       return this.createSuccessResult({
         value: outputValue,
