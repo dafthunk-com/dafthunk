@@ -1,10 +1,13 @@
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
+import { NumberParameterType } from "../../parameterTypes";
 
 /**
  * Image Transformation node implementation using Stable Diffusion v1.5 img2img
  */
 export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
+  private static readonly numberType = new NumberParameterType();
+
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-v1-5-img2img",
     name: "Stable Diffusion v1.5 Img2Img",
@@ -66,47 +69,65 @@ export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, negative_prompt, strength, guidance, num_steps } =
-        context.inputs;
+      const { image, prompt, negative_prompt, strength, guidance, num_steps } = context.inputs;
 
-      // Validate inputs
-      if (!image) {
-        throw new Error("Input image is required");
-      }
-      if (!prompt) {
-        throw new Error("Prompt is required");
+      if (!image || !image.data) {
+        throw new Error("No input image data provided");
       }
 
-      // Ensure numeric parameters are within valid ranges
+      // Ensure numeric parameters are within valid ranges with defaults
       const validatedStrength = Math.min(Math.max(strength || 0.75, 0), 1);
       const validatedGuidance = guidance || 7.5;
-      const validatedSteps = Math.min(Math.max(num_steps || 20, 1), 20);
+      const validatedSteps = Math.floor(Math.min(Math.max(num_steps || 20, 1), 20));
+
+      // Convert image data to Uint8Array if it's not already
+      const imageData = image.data instanceof Uint8Array 
+        ? image.data 
+        : new Uint8Array(image.data);
+
+      // Debug log
+      console.log("Input image data length:", imageData.length);
+      console.log("First few bytes:", Array.from(imageData.slice(0, 10)));
 
       // Call Cloudflare AI Stable Diffusion v1.5 img2img model
       const stream = (await context.env.AI.run(
         "@cf/runwayml/stable-diffusion-v1-5-img2img",
         {
-          prompt,
+          prompt: prompt || "enhance this image",
           negative_prompt: negative_prompt || "",
-          image: image.data,
+          image: Array.from(imageData), // Convert to regular array as required by the API
           strength: validatedStrength,
           guidance: validatedGuidance,
           num_steps: validatedSteps,
         }
       )) as ReadableStream;
 
+      // Debug log
+      console.log("API call completed, processing response...");
+
       const response = new Response(stream);
       const blob = await response.blob();
+      console.log("Response blob size:", blob.size);
+
       const buffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      // Debug log
+      console.log("Output image data length:", uint8Array.length);
+      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+
+      if (uint8Array.length === 0) {
+        throw new Error("Received empty image data from the API");
+      }
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(new Uint8Array(buffer)),
+          data: uint8Array,
           mimeType: "image/png",
         },
       });
     } catch (error) {
-      console.error(error);
+      console.error("StableDiffusionV15Img2ImgNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
