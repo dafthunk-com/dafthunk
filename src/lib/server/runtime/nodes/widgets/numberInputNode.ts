@@ -64,43 +64,7 @@ export class NumberInputNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const value = context.inputs.value as number;
-      const min = context.inputs.min as number | undefined;
-      const max = context.inputs.max as number | undefined;
-      const step = context.inputs.step as number | undefined;
-      const placeholder = context.inputs.placeholder as string | undefined;
-
-      // Validate inputs
-      if (typeof value !== "number" || isNaN(value)) {
-        return this.createErrorResult("Value must be a valid number");
-      }
-
-      if (min !== undefined && (typeof min !== "number" || isNaN(min))) {
-        return this.createErrorResult(
-          "Min must be a valid number or undefined"
-        );
-      }
-
-      if (max !== undefined && (typeof max !== "number" || isNaN(max))) {
-        return this.createErrorResult(
-          "Max must be a valid number or undefined"
-        );
-      }
-
-      if (
-        step !== undefined &&
-        (typeof step !== "number" || isNaN(step) || step <= 0)
-      ) {
-        return this.createErrorResult(
-          "Step must be a positive number or undefined"
-        );
-      }
-
-      if (placeholder !== undefined && typeof placeholder !== "string") {
-        return this.createErrorResult(
-          "Placeholder must be a string or undefined"
-        );
-      }
+      const { value, min, max } = context.inputs;
 
       // Validate value constraints
       if (min !== undefined && value < min) {
@@ -116,7 +80,7 @@ export class NumberInputNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: value,
+        value,
       });
     } catch (error) {
       return this.createErrorResult(

@@ -69,7 +69,11 @@ export class StringTemplateNode extends BaseExecutableNode {
       const { template, variables } = context.inputs;
 
       // Handle invalid template input (null, undefined, non-string)
-      if (template === null || template === undefined || typeof template !== "string") {
+      if (
+        template === null ||
+        template === undefined ||
+        typeof template !== "string"
+      ) {
         return this.createErrorResult("Invalid or missing template string");
       }
 
@@ -85,7 +89,10 @@ export class StringTemplateNode extends BaseExecutableNode {
         return this.createErrorResult("Invalid or missing variables object");
       }
 
-      const { result, missingVariables } = this.replaceVariables(template, variables);
+      const { result, missingVariables } = this.replaceVariables(
+        template,
+        variables
+      );
 
       return this.createSuccessResult({
         result,

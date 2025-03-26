@@ -36,16 +36,9 @@ export class MonacoEditorNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const value = context.inputs.value as string;
+      const { value } = context.inputs;
 
-      console.log(value);
-
-      // Validate inputs
-      if (typeof value !== "string") {
-        return this.createErrorResult("Value must be a string");
-      }
-
-      // Validate JSON
+      // Parse JSON
       try {
         const parsedValue = JSON.parse(value);
         return this.createSuccessResult({
