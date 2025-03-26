@@ -76,17 +76,25 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
         throw new Error("Image input is required");
       }
 
-      console.log(
-        `Processing image for UForm, data length: ${image.data.length} bytes`
-      );
-      console.log(`Prompt: "${prompt || "Generate a caption for this image"}"`);
+      // Convert image data to Uint8Array if it's not already
+      const imageData = image.data instanceof Uint8Array 
+        ? image.data 
+        : new Uint8Array(image.data);
 
-      // Prepare the image data - convert to array of numbers
-      const imageData = Array.from(new Uint8Array(image.data));
+      // Debug log input data
+      console.log("Input parameters:", {
+        imageDataLength: imageData.length,
+        prompt: prompt || "Generate a caption for this image",
+        max_tokens: max_tokens || 512,
+        top_p,
+        top_k,
+        repetition_penalty,
+      });
+      console.log("First few bytes of image:", Array.from(imageData.slice(0, 10)));
 
       // Prepare parameters for the model
       const params: any = {
-        image: imageData,
+        image: Array.from(imageData), // Convert to regular array as required by the API
         prompt: prompt || "Generate a caption for this image",
         max_tokens: max_tokens || 512,
       };
@@ -97,22 +105,38 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
       if (repetition_penalty !== undefined)
         params.repetition_penalty = repetition_penalty;
 
+      // Debug log
+      console.log("Calling UForm with parameters:", {
+        ...params,
+        image: `[Uint8Array of ${params.image.length} bytes]`,
+      });
+
       // Call Cloudflare AI UForm model
       const response = await context.env.AI.run(
         "@cf/unum/uform-gen2-qwen-500m",
         params
       );
 
-      console.log("UForm response:", response);
+      // Debug log
+      console.log("UForm response received:", {
+        responseType: typeof response,
+        hasDescription: 'description' in response,
+      });
 
-      // Extract the description from the response
+      // Extract and validate the description from the response
       const { description } = response;
+
+      if (!description) {
+        throw new Error("No description received from the API");
+      }
+
+      console.log("Generated description:", description);
 
       return this.createSuccessResult({
         description,
       });
     } catch (error) {
-      console.error("UFormNode execution error:", error);
+      console.error("UFormGen2Qwen500mNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
