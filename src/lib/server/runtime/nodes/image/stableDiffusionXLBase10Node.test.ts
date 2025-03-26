@@ -85,7 +85,8 @@ describe("StableDiffusionXLBase10Node", () => {
   });
 
   it("should generate image with minimal required inputs", async () => {
-    const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
+    const mockImageData = new Uint8Array([1, 2, 3, 4]);
+    const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -114,14 +115,15 @@ describe("StableDiffusionXLBase10Node", () => {
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
-        data: [1, 2, 3, 4],
+        data: mockImageData,
         mimeType: "image/jpeg",
       },
     });
   });
 
   it("should generate image with all optional parameters", async () => {
-    const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
+    const mockImageData = new Uint8Array([1, 2, 3, 4]);
+    const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -158,14 +160,15 @@ describe("StableDiffusionXLBase10Node", () => {
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
-        data: [1, 2, 3, 4],
+        data: mockImageData,
         mimeType: "image/jpeg",
       },
     });
   });
 
   it("should clamp width and height values within valid range", async () => {
-    const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
+    const mockImageData = new Uint8Array([1, 2, 3, 4]);
+    const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -196,14 +199,15 @@ describe("StableDiffusionXLBase10Node", () => {
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
-        data: [1, 2, 3, 4],
+        data: mockImageData,
         mimeType: "image/jpeg",
       },
     });
   });
 
   it("should clamp num_steps to maximum value of 20", async () => {
-    const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]));
+    const mockImageData = new Uint8Array([1, 2, 3, 4]);
+    const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -233,7 +237,7 @@ describe("StableDiffusionXLBase10Node", () => {
     expect(result.success).toBe(true);
     expect(result.outputs).toEqual({
       image: {
-        data: [1, 2, 3, 4],
+        data: mockImageData,
         mimeType: "image/jpeg",
       },
     });
@@ -258,5 +262,26 @@ describe("StableDiffusionXLBase10Node", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Generation failed");
+  });
+
+  it("should handle empty image data from API", async () => {
+    const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array(0));
+
+    const node = new StableDiffusionXLBase10Node(mockNode);
+    const result = await node.execute({
+      nodeId: "test-id",
+      workflowId: "test-workflow",
+      inputs: {
+        prompt: "a beautiful sunset over mountains",
+      },
+      env: {
+        AI: {
+          run: mockAIRun,
+        },
+      },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Received empty image data from the API");
   });
 });

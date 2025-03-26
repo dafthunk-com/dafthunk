@@ -100,18 +100,38 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
         (i) => i.name === "guidance"
       )?.value as number;
 
+      // Validate and normalize dimensions
+      const validatedWidth = Math.min(Math.max(width ?? defaultWidth, 256), 2048);
+      const validatedHeight = Math.min(Math.max(height ?? defaultHeight, 256), 2048);
+      const validatedSteps = Math.min(num_steps ?? defaultNumSteps, 20);
+      const validatedGuidance = guidance ?? defaultGuidance;
+
+      // Debug log input parameters
+      console.log("Input parameters:", {
+        prompt,
+        negative_prompt,
+        width: validatedWidth,
+        height: validatedHeight,
+        num_steps: validatedSteps,
+        guidance: validatedGuidance,
+        seed,
+      });
+
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
         prompt,
-        width: Math.min(Math.max(width ?? defaultWidth, 256), 2048),
-        height: Math.min(Math.max(height ?? defaultHeight, 256), 2048),
-        num_steps: Math.min(num_steps ?? defaultNumSteps, 20),
-        guidance: guidance ?? defaultGuidance,
+        width: validatedWidth,
+        height: validatedHeight,
+        num_steps: validatedSteps,
+        guidance: validatedGuidance,
       };
 
       // Add optional parameters if provided
       if (negative_prompt) inputs.negative_prompt = negative_prompt;
       if (seed) inputs.seed = seed;
+
+      // Debug log
+      console.log("Calling Stable Diffusion XL with inputs:", inputs);
 
       // Run the Stable Diffusion XL Base model
       const stream = (await context.env.AI.run(
@@ -119,17 +139,32 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
         inputs
       )) as ReadableStream;
 
+      // Debug log
+      console.log("API call completed, processing response...");
+
       const response = new Response(stream);
       const blob = await response.blob();
+      console.log("Response blob size:", blob.size);
+
       const buffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      // Debug log
+      console.log("Output image data length:", uint8Array.length);
+      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+
+      if (uint8Array.length === 0) {
+        throw new Error("Received empty image data from the API");
+      }
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(new Uint8Array(buffer)),
+          data: uint8Array,
           mimeType: "image/jpeg",
         },
       });
     } catch (error) {
+      console.error("StableDiffusionXLBase10Node execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
