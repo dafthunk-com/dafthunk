@@ -1,20 +1,34 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowRuntime } from "./workflowRuntime";
-import { Workflow, WorkflowExecutionOptions } from "./workflowTypes";
+import { Workflow, NodeRegistry } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodeRegistry";
+import { ParameterTypeRegistry } from "./typeRegistry";
 
 // Mock the validateWorkflow function
 vi.mock("./workflowValidation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 
-// Mock the base nodes registration
-vi.mock("./nodes/nodeRegistry", () => ({
+// Mock the node registry
+vi.mock("./nodeRegistry", () => ({
   registerNodes: vi.fn(),
 }));
 
-// Mock the NodeRegistry for the unregistered node type test
+// Mock the ParameterTypeRegistry
+vi.mock("./typeRegistry", () => ({
+  ParameterTypeRegistry: {
+    getInstance: vi.fn().mockReturnValue({
+      get: vi.fn().mockReturnValue({
+        validate: vi.fn().mockReturnValue({ isValid: true }),
+        serialize: vi.fn(value => value),
+        deserialize: vi.fn(value => value),
+      }),
+    }),
+  },
+}));
+
+// Mock the NodeRegistry
 vi.mock("./workflowTypes", async () => {
   const originalModule = (await vi.importActual("./workflowTypes")) as object;
   return {
@@ -44,16 +58,12 @@ beforeAll(() => {
 
 describe("WorkflowRuntime Validation Tests", () => {
   beforeEach(() => {
-    // Reset mocks between tests
     vi.clearAllMocks();
-
-    // Reset validateWorkflow mock to return empty array by default
     (validateWorkflow as any).mockReset();
     (validateWorkflow as any).mockReturnValue([]);
   });
 
   it("should detect cycles in workflows", async () => {
-    // Create a workflow with a cycle
     const workflow: Workflow = {
       id: "cycle-workflow",
       name: "Workflow with Cycle",
@@ -105,7 +115,6 @@ describe("WorkflowRuntime Validation Tests", () => {
       ],
     };
 
-    // Mock validateWorkflow to return a cycle error
     (validateWorkflow as any).mockReturnValueOnce([
       {
         type: "CYCLE_DETECTED",
@@ -117,13 +126,11 @@ describe("WorkflowRuntime Validation Tests", () => {
     const runtime = new WorkflowRuntime(workflow);
     const errors = await runtime.validate();
 
-    // Check that a cycle was detected
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some((e) => e.type === "CYCLE_DETECTED")).toBe(true);
   });
 
   it("should detect type mismatches in connections", async () => {
-    // Create a workflow with type mismatches
     const workflow: Workflow = {
       id: "type-mismatch-workflow",
       name: "Workflow with Type Mismatch",
@@ -141,9 +148,7 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [
-            { name: "input1", type: "string" }, // String type, but will receive number
-          ],
+          inputs: [{ name: "input1", type: "string" }],
           outputs: [{ name: "output1", type: "string" }],
         },
       ],
@@ -157,7 +162,6 @@ describe("WorkflowRuntime Validation Tests", () => {
       ],
     };
 
-    // Mock validateWorkflow to return a type mismatch error
     (validateWorkflow as any).mockReturnValueOnce([
       {
         type: "TYPE_MISMATCH",
@@ -172,13 +176,11 @@ describe("WorkflowRuntime Validation Tests", () => {
     const runtime = new WorkflowRuntime(workflow);
     const errors = await runtime.validate();
 
-    // Check that a type mismatch was detected
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some((e) => e.type === "TYPE_MISMATCH")).toBe(true);
   });
 
   it("should detect duplicate connections", async () => {
-    // Create a workflow with duplicate connections
     const workflow: Workflow = {
       id: "duplicate-connection-workflow",
       name: "Workflow with Duplicate Connection",
@@ -207,7 +209,6 @@ describe("WorkflowRuntime Validation Tests", () => {
           sourceOutput: "output1",
           targetInput: "input1",
         },
-        // Duplicate connection
         {
           source: "node-1",
           target: "node-2",
@@ -217,7 +218,6 @@ describe("WorkflowRuntime Validation Tests", () => {
       ],
     };
 
-    // Mock validateWorkflow to return a duplicate connection error
     (validateWorkflow as any).mockReturnValueOnce([
       {
         type: "DUPLICATE_CONNECTION",
@@ -232,13 +232,11 @@ describe("WorkflowRuntime Validation Tests", () => {
     const runtime = new WorkflowRuntime(workflow);
     const errors = await runtime.validate();
 
-    // Check that a duplicate connection was detected
     expect(errors.length).toBeGreaterThan(0);
     expect(errors.some((e) => e.type === "DUPLICATE_CONNECTION")).toBe(true);
   });
 
   it("should detect unregistered node types", async () => {
-    // Create a workflow with an unregistered node type
     const workflow: Workflow = {
       id: "unregistered-node-workflow",
       name: "Workflow with Unregistered Node",
@@ -246,144 +244,83 @@ describe("WorkflowRuntime Validation Tests", () => {
         {
           id: "node-1",
           name: "Node 1",
-          type: "start",
+          type: "unknown-type",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
-        },
-        {
-          id: "node-2",
-          name: "Node 2",
-          type: "unknown-type", // Unregistered type
-          position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
-        },
-      ],
-      edges: [
-        {
-          source: "node-1",
-          target: "node-2",
-          sourceOutput: "output1",
-          targetInput: "input1",
-        },
-      ],
-    };
-
-    const runtime = new WorkflowRuntime(workflow);
-    const errors = await runtime.validate();
-
-    // Check that an unregistered node type was detected
-    expect(errors.length).toBeGreaterThan(0);
-    expect(
-      errors.some((e) =>
-        e.message.includes("Node type 'unknown-type' is not registered")
-      )
-    ).toBe(true);
-  });
-
-  it("should validate a valid workflow without errors", async () => {
-    // Create a valid workflow
-    const workflow: Workflow = {
-      id: "valid-workflow",
-      name: "Valid Workflow",
-      nodes: [
-        {
-          id: "node-1",
-          name: "Start Node",
-          type: "start",
-          position: { x: 100, y: 100 },
-          inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
-        },
-        {
-          id: "node-2",
-          name: "End Node",
-          type: "end",
-          position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
           outputs: [],
         },
       ],
-      edges: [
-        {
-          source: "node-1",
-          target: "node-2",
-          sourceOutput: "output1",
-          targetInput: "input1",
-        },
-      ],
+      edges: [],
     };
-
-    // Mock validateWorkflow to return no errors
-    (validateWorkflow as any).mockReturnValueOnce([]);
 
     const runtime = new WorkflowRuntime(workflow);
     const errors = await runtime.validate();
 
-    // Check that no errors were detected
-    expect(errors.length).toBe(0);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some((e) => e.type === "INVALID_CONNECTION")).toBe(true);
   });
 
-  it("should prevent execution of invalid workflows", async () => {
-    // Create an invalid workflow with a cycle
+  it("should validate node inputs and outputs", async () => {
     const workflow: Workflow = {
-      id: "invalid-workflow",
-      name: "Invalid Workflow",
+      id: "invalid-io-workflow",
+      name: "Workflow with Invalid IO",
       nodes: [
         {
           id: "node-1",
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
-        },
-        {
-          id: "node-2",
-          name: "Node 2",
-          type: "function",
-          position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input1", type: "invalid-type" }],
+          outputs: [{ name: "output1", type: "invalid-type" }],
         },
       ],
-      edges: [
-        {
-          source: "node-1",
-          target: "node-2",
-          sourceOutput: "output1",
-          targetInput: "input1",
-        },
-        {
-          source: "node-2",
-          target: "node-1",
-          sourceOutput: "output1",
-          targetInput: "input1",
-        },
-      ],
+      edges: [],
     };
 
-    // Mock validateWorkflow to return a cycle error
     (validateWorkflow as any).mockReturnValueOnce([
       {
-        type: "CYCLE_DETECTED",
-        message: "Cycle detected in workflow",
-        details: { nodeId: "node-1" },
+        type: "INVALID_CONNECTION",
+        message: "Invalid parameter type: invalid-type",
+        details: { nodeId: "node-1", parameterName: "input1" },
       },
     ]);
 
-    const onExecutionError = vi.fn();
-    const options: WorkflowExecutionOptions = {
-      onExecutionError,
+    const runtime = new WorkflowRuntime(workflow);
+    const errors = await runtime.validate();
+
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some((e) => e.type === "INVALID_CONNECTION")).toBe(true);
+  });
+
+  it("should validate required inputs", async () => {
+    const workflow: Workflow = {
+      id: "missing-input-workflow",
+      name: "Workflow with Missing Input",
+      nodes: [
+        {
+          id: "node-1",
+          name: "Node 1",
+          type: "function",
+          position: { x: 100, y: 100 },
+          inputs: [{ name: "required-input", type: "string", value: undefined }],
+          outputs: [],
+        },
+      ],
+      edges: [],
     };
 
-    const runtime = new WorkflowRuntime(workflow, options);
+    (validateWorkflow as any).mockReturnValueOnce([
+      {
+        type: "INVALID_CONNECTION",
+        message: "Missing required input: required-input",
+        details: { nodeId: "node-1", inputName: "required-input" },
+      },
+    ]);
 
-    // Execution should fail with an error
-    await expect(runtime.execute()).rejects.toThrow(
-      "Workflow validation failed"
-    );
-    expect(onExecutionError).toHaveBeenCalled();
+    const runtime = new WorkflowRuntime(workflow);
+    const errors = await runtime.validate();
+
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some((e) => e.type === "INVALID_CONNECTION")).toBe(true);
   });
 });

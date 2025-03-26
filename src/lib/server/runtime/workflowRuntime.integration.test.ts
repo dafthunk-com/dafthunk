@@ -1,103 +1,67 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowRuntime } from "./workflowRuntime";
-import { Workflow, WorkflowExecutionOptions } from "./workflowTypes";
+import { Workflow, WorkflowExecutionOptions, NodeRegistry } from "./workflowTypes";
 import { registerNodes } from "./nodeRegistry";
+import { ParameterTypeRegistry } from "./typeRegistry";
+import { StartNode, ProcessNode, ErrorNode, LongRunningNode } from "./nodes/test/testNodes";
+
+// Mock the ParameterTypeRegistry
+vi.mock("./typeRegistry", () => ({
+  ParameterTypeRegistry: {
+    getInstance: vi.fn().mockReturnValue({
+      get: vi.fn().mockReturnValue({
+        validate: vi.fn().mockReturnValue({ isValid: true }),
+        serialize: vi.fn(value => value),
+        deserialize: vi.fn(value => value),
+      }),
+    }),
+  },
+}));
 
 // Ensure base nodes are registered
 beforeAll(() => {
   registerNodes();
+  // Register test nodes
+  const registry = NodeRegistry.getInstance();
+  registry.registerImplementation(StartNode);
+  registry.registerImplementation(ProcessNode);
+  registry.registerImplementation(ErrorNode);
+  registry.registerImplementation(LongRunningNode);
 });
 
 describe("WorkflowRuntime Integration Tests", () => {
-  it("should execute a simple addition workflow", async () => {
-    const workflow: Workflow = {
-      id: "addition-workflow",
-      name: "Addition Workflow",
-      nodes: [
-        {
-          id: "input-node-1",
-          name: "First Number",
-          type: "addition",
-          position: { x: 100, y: 100 },
-          inputs: [
-            { name: "a", type: "number", value: 5 },
-            { name: "b", type: "number", value: 3 },
-          ],
-          outputs: [{ name: "result", type: "number" }],
-        },
-      ],
-      edges: [],
-    };
-
-    const executedNodes: string[] = [];
-    const nodeOutputs: Record<string, any> = {};
-
-    const options: WorkflowExecutionOptions = {
-      onNodeComplete: (nodeId, outputs) => {
-        executedNodes.push(nodeId);
-        nodeOutputs[nodeId] = outputs;
-      },
-    };
-
-    const runtime = new WorkflowRuntime(workflow, options);
-    await runtime.execute();
-
-    expect(executedNodes).toHaveLength(1);
-    expect(executedNodes[0]).toBe("input-node-1");
-    expect(nodeOutputs["input-node-1"]).toHaveProperty("result", 8);
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("should execute a workflow with multiple mathematical operations", async () => {
+  it("should execute a simple workflow", async () => {
     const workflow: Workflow = {
-      id: "math-workflow",
-      name: "Math Operations Workflow",
+      id: "simple-workflow",
+      name: "Simple Workflow",
       nodes: [
         {
-          id: "addition-node",
-          name: "Addition",
-          type: "addition",
+          id: "start-node",
+          name: "Start Node",
+          type: "start",
           position: { x: 100, y: 100 },
-          inputs: [
-            { name: "a", type: "number", value: 10 },
-            { name: "b", type: "number", value: 5 },
-          ],
-          outputs: [{ name: "result", type: "number" }],
+          inputs: [],
+          outputs: [{ name: "output", type: "string", value: "Hello" }],
         },
         {
-          id: "multiplication-node",
-          name: "Multiplication",
-          type: "multiplication",
+          id: "process-node",
+          name: "Process Node",
+          type: "process",
           position: { x: 300, y: 100 },
-          inputs: [
-            { name: "a", type: "number" },
-            { name: "b", type: "number", value: 2 },
-          ],
-          outputs: [{ name: "result", type: "number" }],
-        },
-        {
-          id: "subtraction-node",
-          name: "Subtraction",
-          type: "subtraction",
-          position: { x: 500, y: 100 },
-          inputs: [
-            { name: "a", type: "number" },
-            { name: "b", type: "number", value: 5 },
-          ],
-          outputs: [{ name: "result", type: "number" }],
+          inputs: [{ name: "input", type: "string" }],
+          outputs: [{ name: "output", type: "string" }],
         },
       ],
       edges: [
         {
-          source: "addition-node",
-          target: "multiplication-node",
-          sourceOutput: "result",
-          targetInput: "a",
-        },
-        {
-          source: "multiplication-node",
-          target: "subtraction-node",
-          sourceOutput: "result",
-          targetInput: "a",
+          source: "start-node",
+          target: "process-node",
+          sourceOutput: "output",
+          targetInput: "input",
         },
       ],
     };
@@ -115,102 +79,145 @@ describe("WorkflowRuntime Integration Tests", () => {
     const runtime = new WorkflowRuntime(workflow, options);
     await runtime.execute();
 
-    // Verify execution order
+    expect(executedNodes).toHaveLength(2);
+    expect(executedNodes[0]).toBe("start-node");
+    expect(executedNodes[1]).toBe("process-node");
+    expect(nodeOutputs["start-node"]).toHaveProperty("output", "Hello from start node");
+  });
+
+  it("should handle node execution errors", async () => {
+    const workflow: Workflow = {
+      id: "error-workflow",
+      name: "Error Workflow",
+      nodes: [
+        {
+          id: "error-node",
+          name: "Error Node",
+          type: "error",
+          position: { x: 100, y: 100 },
+          inputs: [],
+          outputs: [],
+        },
+      ],
+      edges: [],
+    };
+
+    const nodeErrors: Record<string, string> = {};
+
+    const options: WorkflowExecutionOptions = {
+      onNodeError: (nodeId, error) => {
+        nodeErrors[nodeId] = error;
+      },
+    };
+
+    const runtime = new WorkflowRuntime(workflow, options);
+    await runtime.execute();
+
+    expect(nodeErrors["error-node"]).toBeDefined();
+    const state = runtime.getExecutionState();
+    expect(state.errorNodes.has("error-node")).toBe(true);
+  });
+
+  it("should handle workflow abort", async () => {
+    const workflow: Workflow = {
+      id: "abort-workflow",
+      name: "Abort Workflow",
+      nodes: [
+        {
+          id: "long-running-node",
+          name: "Long Running Node",
+          type: "long-running",
+          position: { x: 100, y: 100 },
+          inputs: [],
+          outputs: [],
+        },
+      ],
+      edges: [],
+    };
+
+    const abortController = new AbortController();
+
+    const options: WorkflowExecutionOptions = {
+      abortSignal: abortController.signal,
+    };
+
+    const runtime = new WorkflowRuntime(workflow, options);
+    const executePromise = runtime.execute();
+
+    // Abort the execution
+    abortController.abort();
+
+    const result = await executePromise;
+    expect(result).toBeInstanceOf(Map);
+
+    const state = runtime.getExecutionState();
+    expect(state.aborted).toBe(true);
+  });
+
+  it("should handle parallel node execution", async () => {
+    const workflow: Workflow = {
+      id: "parallel-workflow",
+      name: "Parallel Workflow",
+      nodes: [
+        {
+          id: "start-node",
+          name: "Start Node",
+          type: "start",
+          position: { x: 100, y: 100 },
+          inputs: [],
+          outputs: [
+            { name: "output1", type: "string", value: "Hello 1" },
+            { name: "output2", type: "string", value: "Hello 2" },
+          ],
+        },
+        {
+          id: "process-node-1",
+          name: "Process Node 1",
+          type: "process",
+          position: { x: 300, y: 50 },
+          inputs: [{ name: "input", type: "string" }],
+          outputs: [{ name: "output", type: "string" }],
+        },
+        {
+          id: "process-node-2",
+          name: "Process Node 2",
+          type: "process",
+          position: { x: 300, y: 150 },
+          inputs: [{ name: "input", type: "string" }],
+          outputs: [{ name: "output", type: "string" }],
+        },
+      ],
+      edges: [
+        {
+          source: "start-node",
+          target: "process-node-1",
+          sourceOutput: "output1",
+          targetInput: "input",
+        },
+        {
+          source: "start-node",
+          target: "process-node-2",
+          sourceOutput: "output2",
+          targetInput: "input",
+        },
+      ],
+    };
+
+    const executedNodes: string[] = [];
+
+    const options: WorkflowExecutionOptions = {
+      onNodeComplete: (nodeId) => {
+        executedNodes.push(nodeId);
+      },
+    };
+
+    const runtime = new WorkflowRuntime(workflow, options);
+    await runtime.execute();
+
     expect(executedNodes).toHaveLength(3);
-    expect(executedNodes[0]).toBe("addition-node");
-    expect(executedNodes[1]).toBe("multiplication-node");
-    expect(executedNodes[2]).toBe("subtraction-node");
-
-    // Verify calculations
-    // Addition: 10 + 5 = 15
-    expect(nodeOutputs["addition-node"]).toHaveProperty("result", 15);
-    // Multiplication: 15 * 2 = 30
-    expect(nodeOutputs["multiplication-node"]).toHaveProperty("result", 30);
-    // Subtraction: 30 - 5 = 25
-    expect(nodeOutputs["subtraction-node"]).toHaveProperty("result", 25);
-  });
-
-  it("should handle division by zero error", async () => {
-    const workflow: Workflow = {
-      id: "division-error-workflow",
-      name: "Division Error Workflow",
-      nodes: [
-        {
-          id: "division-node",
-          name: "Division",
-          type: "division",
-          position: { x: 100, y: 100 },
-          inputs: [
-            { name: "a", type: "number", value: 10 },
-            { name: "b", type: "number", value: 0 },
-          ],
-          outputs: [{ name: "result", type: "number" }],
-        },
-      ],
-      edges: [],
-    };
-
-    const nodeErrors: Record<string, string> = {};
-
-    const options: WorkflowExecutionOptions = {
-      onNodeError: (nodeId, error) => {
-        nodeErrors[nodeId] = error;
-      },
-    };
-
-    const runtime = new WorkflowRuntime(workflow, options);
-    const result = await runtime.execute();
-
-    // Check that the error was properly handled
-    expect(nodeErrors["division-node"]).toBe("Division by zero is not allowed");
-    // The runtime should still return a Map of outputs
-    expect(result).toBeInstanceOf(Map);
-    // But the node should be marked as having an error in the execution state
-    const state = runtime.getExecutionState();
-    expect(state.errorNodes.get("division-node")).toBe(
-      "Division by zero is not allowed"
-    );
-  });
-
-  it("should handle invalid number inputs", async () => {
-    const workflow: Workflow = {
-      id: "invalid-input-workflow",
-      name: "Invalid Input Workflow",
-      nodes: [
-        {
-          id: "addition-node",
-          name: "Addition",
-          type: "addition",
-          position: { x: 100, y: 100 },
-          inputs: [
-            { name: "a", type: "number", value: "not a number" },
-            { name: "b", type: "number", value: 5 },
-          ],
-          outputs: [{ name: "result", type: "number" }],
-        },
-      ],
-      edges: [],
-    };
-
-    const nodeErrors: Record<string, string> = {};
-
-    const options: WorkflowExecutionOptions = {
-      onNodeError: (nodeId, error) => {
-        nodeErrors[nodeId] = error;
-      },
-    };
-
-    const runtime = new WorkflowRuntime(workflow, options);
-    const result = await runtime.execute();
-
-    // Check that the error was properly handled
-    expect(nodeErrors["addition-node"]).toBe("Both inputs must be numbers");
-    // The runtime should still return a Map of outputs
-    expect(result).toBeInstanceOf(Map);
-    // But the node should be marked as having an error in the execution state
-    const state = runtime.getExecutionState();
-    expect(state.errorNodes.get("addition-node")).toBe(
-      "Both inputs must be numbers"
-    );
+    expect(executedNodes[0]).toBe("start-node");
+    // Process nodes can execute in any order
+    expect(executedNodes.slice(1)).toContain("process-node-1");
+    expect(executedNodes.slice(1)).toContain("process-node-2");
   });
 });
