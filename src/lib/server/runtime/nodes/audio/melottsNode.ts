@@ -43,11 +43,6 @@ export class MelottsNode extends BaseExecutableNode {
 
       const { prompt, lang } = context.inputs;
 
-      // Validate inputs
-      if (!prompt) {
-        throw new Error("Prompt is required");
-      }
-
       console.log(
         `Calling MeloTTS with prompt: "${prompt}" and language: "${lang || "en"}"`
       );
@@ -98,12 +93,15 @@ export class MelottsNode extends BaseExecutableNode {
         `Received audio data of size: ${audioBuffer.byteLength} bytes`
       );
 
-      return this.createSuccessResult({
+      // Create properly structured audio output
+      const output = {
         audio: {
-          data: Array.from(new Uint8Array(audioBuffer)),
-          mimeType: "audio/mpeg",
-        },
-      });
+          data: new Uint8Array(audioBuffer),
+          mimeType: "audio/mpeg"
+        }
+      };
+
+      return this.createSuccessResult(output);
     } catch (error) {
       console.error("MelottsNode execution error:", error);
       return this.createErrorResult(

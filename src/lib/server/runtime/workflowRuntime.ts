@@ -4,10 +4,12 @@ import {
   NodeRegistry,
   NodeContext,
   WorkflowExecutionOptions,
+  NodeType,
 } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
+import { ParameterTypeRegistry } from "./typeRegistry";
 
 // Initialize the node registry
 registerNodes();
@@ -24,6 +26,7 @@ export class WorkflowRuntime {
   private options: WorkflowExecutionOptions;
   private env?: any;
   private aborted: boolean = false;
+  private typeRegistry: ParameterTypeRegistry;
 
   constructor(
     workflow: Workflow,
@@ -33,6 +36,7 @@ export class WorkflowRuntime {
     this.workflow = workflow;
     this.options = options;
     this.env = env;
+    this.typeRegistry = ParameterTypeRegistry.getInstance();
     this.initializeExecutableNodes();
 
     // Set up abort signal listener if provided
@@ -132,6 +136,135 @@ export class WorkflowRuntime {
   }
 
   /**
+   * Validates and deserializes inputs for a node
+   */
+  private handleNodeInputs(nodeId: string, inputs: Record<string, any>): Record<string, any> {
+    const node = this.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) {
+      throw new Error(`Node ${nodeId} not found`);
+    }
+
+    const nodeType = this.executableNodes.get(nodeId)?.constructor as typeof BaseExecutableNode;
+    if (!nodeType?.nodeType) {
+      throw new Error(`Node type not found for ${nodeId}`);
+    }
+
+    // Deserialize inputs
+    const deserializedInputs = this.deserializeInputs(nodeType.nodeType, inputs);
+    
+    // Validate inputs
+    const validation = this.validateInputs(nodeType.nodeType, deserializedInputs);
+    if (!validation.isValid) {
+      throw new Error(validation.error || 'Invalid input data');
+    }
+    
+    return deserializedInputs;
+  }
+
+  /**
+   * Validates and serializes outputs for a node
+   */
+  private handleNodeOutputs(nodeId: string, outputs: Record<string, any>): Record<string, any> {
+    const nodeType = this.executableNodes.get(nodeId)?.constructor as typeof BaseExecutableNode;
+    if (!nodeType?.nodeType) {
+      throw new Error(`Node type not found for ${nodeId}`);
+    }
+
+    // Validate outputs
+    const validation = this.validateOutputs(nodeType.nodeType, outputs);
+    if (!validation.isValid) {
+      throw new Error(validation.error || 'Invalid output data');
+    }
+
+    // Serialize outputs
+    return this.serializeOutputs(nodeType.nodeType, outputs);
+  }
+
+  /**
+   * Validates inputs against their defined types
+   */
+  private validateInputs(nodeType: NodeType, inputs: Record<string, any>): { isValid: boolean; error?: string } {
+    for (const [key, value] of Object.entries(inputs)) {
+      const inputDef = nodeType.inputs.find(input => input.name === key);
+      if (!inputDef) {
+        return { isValid: false, error: `Unknown input parameter: ${key}` };
+      }
+
+      const type = this.typeRegistry.get(inputDef.type);
+      if (!type) {
+        return { isValid: false, error: `Unknown parameter type: ${inputDef.type}` };
+      }
+
+      const validation = type.validate(value);
+      if (!validation.isValid) {
+        return { isValid: false, error: `Invalid input for ${key}: ${validation.error}` };
+      }
+    }
+    return { isValid: true };
+  }
+
+  /**
+   * Validates outputs against their defined types
+   */
+  private validateOutputs(nodeType: NodeType, outputs: Record<string, any>): { isValid: boolean; error?: string } {
+    for (const [key, value] of Object.entries(outputs)) {
+      const outputDef = nodeType.outputs.find(output => output.name === key);
+      if (!outputDef) {
+        return { isValid: false, error: `Unknown output parameter: ${key}` };
+      }
+
+      const type = this.typeRegistry.get(outputDef.type);
+      if (!type) {
+        return { isValid: false, error: `Unknown parameter type: ${outputDef.type}` };
+      }
+
+      const validation = type.validate(value);
+      if (!validation.isValid) {
+        return { isValid: false, error: `Invalid output for ${key}: ${validation.error}` };
+      }
+    }
+    return { isValid: true };
+  }
+
+  /**
+   * Serializes outputs according to their types
+   */
+  private serializeOutputs(nodeType: NodeType, outputs: Record<string, any>): Record<string, any> {
+    const serialized: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(outputs)) {
+      const outputDef = nodeType.outputs.find(output => output.name === key);
+      if (!outputDef) continue;
+
+      const type = this.typeRegistry.get(outputDef.type);
+      if (!type) continue;
+
+      serialized[key] = type.serialize(value);
+    }
+    
+    return serialized;
+  }
+
+  /**
+   * Deserializes inputs according to their types
+   */
+  private deserializeInputs(nodeType: NodeType, inputs: Record<string, any>): Record<string, any> {
+    const deserialized: Record<string, any> = {};
+    
+    for (const [key, value] of Object.entries(inputs)) {
+      const inputDef = nodeType.inputs.find(input => input.name === key);
+      if (!inputDef) continue;
+
+      const type = this.typeRegistry.get(inputDef.type);
+      if (!type) continue;
+
+      deserialized[key] = type.deserialize(value);
+    }
+    
+    return deserialized;
+  }
+
+  /**
    * Executes a single node
    */
   private async executeNode(nodeId: string): Promise<void> {
@@ -162,7 +295,10 @@ export class WorkflowRuntime {
 
     try {
       // Get input values for the node
-      const inputs = this.getNodeInputs(nodeId);
+      const rawInputs = this.getNodeInputs(nodeId);
+
+      // Handle input validation and deserialization
+      const inputs = this.handleNodeInputs(nodeId, rawInputs);
 
       // Create node context
       const context: NodeContext = {
@@ -185,15 +321,16 @@ export class WorkflowRuntime {
       }
 
       if (result.success) {
+        // Handle output validation and serialization
+        const outputs = this.handleNodeOutputs(nodeId, result.outputs || {});
+        
         // Store the outputs for use by downstream nodes
-        if (result.outputs) {
-          this.nodeOutputs.set(nodeId, result.outputs);
-        }
+        this.nodeOutputs.set(nodeId, outputs);
         this.executedNodes.add(nodeId);
 
         // Notify node complete
-        if (this.options.onNodeComplete && result.outputs) {
-          this.options.onNodeComplete(nodeId, result.outputs);
+        if (this.options.onNodeComplete) {
+          this.options.onNodeComplete(nodeId, outputs);
         }
       } else {
         // Store the error

@@ -82,21 +82,13 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
 
       const { audio, task, language, vad_filter, initial_prompt, prefix } = context.inputs;
 
-      // Validate required inputs
-      if (!audio || !audio.data) {
-        throw new Error("Audio input is required");
-      }
-
       console.log(
         `Processing audio file for speech recognition with Whisper Large V3 Turbo, data length: ${audio.data.length} bytes`
       );
 
-      // Prepare the audio data - convert back to Uint8Array
-      const audioData = new Uint8Array(audio.data);
-
       // Prepare the request parameters
       const params: Record<string, any> = {
-        audio: Array.from(audioData),
+        audio: Array.from(audio.data),
       };
 
       // Add optional parameters if provided
@@ -112,15 +104,15 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
       console.log("Whisper Large V3 Turbo transcription response:", response);
 
       // Extract the results
-      const { text, word_count, segments, vtt, transcription_info } = response;
+      const output = {
+        text: response.text,
+        word_count: response.word_count,
+        segments: response.segments,
+        vtt: response.vtt,
+        transcription_info: response.transcription_info,
+      };
 
-      return this.createSuccessResult({
-        text,
-        word_count,
-        segments,
-        vtt,
-        transcription_info,
-      });
+      return this.createSuccessResult(output);
     } catch (error) {
       console.error("WhisperLargeV3TurboNode execution error:", error);
       return this.createErrorResult(

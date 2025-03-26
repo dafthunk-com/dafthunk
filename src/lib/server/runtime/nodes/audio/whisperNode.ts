@@ -52,34 +52,26 @@ export class WhisperNode extends BaseExecutableNode {
 
       const { audio } = context.inputs;
 
-      // Validate inputs
-      if (!audio || !audio.data) {
-        throw new Error("Audio input is required");
-      }
-
       console.log(
         `Processing audio file for speech recognition, data length: ${audio.data.length} bytes`
       );
 
-      // Prepare the audio data - convert back to Uint8Array
-      const audioData = new Uint8Array(audio.data);
-
       // Call Cloudflare AI Whisper model
       const response = await context.env.AI.run("@cf/openai/whisper", {
-        audio: Array.from(audioData),
+        audio: Array.from(audio.data),
       });
 
       console.log("Whisper transcription response:", response);
 
       // Extract the results
-      const { text, word_count, words, vtt } = response;
+      const output = {
+        text: response.text,
+        word_count: response.word_count,
+        words: response.words,
+        vtt: response.vtt,
+      };
 
-      return this.createSuccessResult({
-        text,
-        word_count,
-        words,
-        vtt,
-      });
+      return this.createSuccessResult(output);
     } catch (error) {
       console.error("WhisperNode execution error:", error);
       return this.createErrorResult(
