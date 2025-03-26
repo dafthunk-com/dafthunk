@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowRuntime } from "./workflowRuntime";
-import { Workflow, NodeRegistry } from "./workflowTypes";
+import { Workflow } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
 import { registerNodes } from "./nodeRegistry";
-import { ParameterTypeRegistry } from "./typeRegistry";
 
 // Mock the validateWorkflow function
 vi.mock("./workflowValidation", () => ({
@@ -13,19 +12,6 @@ vi.mock("./workflowValidation", () => ({
 // Mock the node registry
 vi.mock("./nodeRegistry", () => ({
   registerNodes: vi.fn(),
-}));
-
-// Mock the ParameterTypeRegistry
-vi.mock("./typeRegistry", () => ({
-  ParameterTypeRegistry: {
-    getInstance: vi.fn().mockReturnValue({
-      get: vi.fn().mockReturnValue({
-        validate: vi.fn().mockReturnValue({ isValid: true }),
-        serialize: vi.fn(value => value),
-        deserialize: vi.fn(value => value),
-      }),
-    }),
-  },
 }));
 
 // Mock the NodeRegistry
@@ -302,7 +288,9 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "function",
           position: { x: 100, y: 100 },
-          inputs: [{ name: "required-input", type: "string", value: undefined }],
+          inputs: [
+            { name: "required-input", type: "string", value: undefined },
+          ],
           outputs: [],
         },
       ],

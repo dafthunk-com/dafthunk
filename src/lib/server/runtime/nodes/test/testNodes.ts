@@ -16,7 +16,7 @@ export class StartNode extends BaseExecutableNode {
     outputs: [{ name: "output", type: "string" }],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(_context: NodeContext): Promise<ExecutionResult> {
     return this.createSuccessResult({
       output: "Hello from start node",
     });
@@ -60,7 +60,7 @@ export class ErrorNode extends BaseExecutableNode {
     outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(_context: NodeContext): Promise<ExecutionResult> {
     return this.createErrorResult("Test error");
   }
 }
@@ -80,9 +80,9 @@ export class LongRunningNode extends BaseExecutableNode {
     outputs: [],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(_context: NodeContext): Promise<ExecutionResult> {
     // Simulate a long running operation
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return this.createSuccessResult({});
   }
-} 
+}

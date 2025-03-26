@@ -97,8 +97,8 @@ export class MelottsNode extends BaseExecutableNode {
       const output = {
         audio: {
           data: new Uint8Array(audioBuffer),
-          mimeType: "audio/mpeg"
-        }
+          mimeType: "audio/mpeg",
+        },
       };
 
       return this.createSuccessResult(output);
@@ -109,4 +109,4 @@ export class MelottsNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

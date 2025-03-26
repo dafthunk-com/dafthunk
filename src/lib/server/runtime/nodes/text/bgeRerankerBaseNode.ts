@@ -9,7 +9,8 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
     id: "bge-reranker-base",
     name: "BGE Reranker Base",
     type: "bge-reranker-base",
-    description: "Reranks text passages based on their relevance to a query using BGE Reranker Base model",
+    description:
+      "Reranks text passages based on their relevance to a query using BGE Reranker Base model",
     category: "Text",
     icon: "search",
     inputs: [
@@ -80,4 +81,4 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

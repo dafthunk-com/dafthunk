@@ -41,7 +41,10 @@ export class ParameterTypeRegistry {
     return this.implementations.get(type);
   }
 
-  public validate(type: string, value: any): { isValid: boolean; error?: string } {
+  public validate(
+    type: string,
+    value: any
+  ): { isValid: boolean; error?: string } {
     const implementation = this.get(type);
     if (!implementation) {
       return { isValid: false, error: `Unknown parameter type: ${type}` };
@@ -72,4 +75,4 @@ export class ParameterTypeRegistry {
     }
     return implementation.getDefaultValue();
   }
-} 
+}

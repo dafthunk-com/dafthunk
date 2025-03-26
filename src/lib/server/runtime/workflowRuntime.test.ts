@@ -19,25 +19,11 @@ import {
 } from "./workflowTypes";
 import { validateWorkflow } from "./workflowValidation";
 import { BaseExecutableNode } from "./nodes/baseNode";
-import { ParameterTypeRegistry } from "./typeRegistry";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 
 // Mock the validateWorkflow function
 vi.mock("./workflowValidation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
-}));
-
-// Mock the ParameterTypeRegistry
-vi.mock("./typeRegistry", () => ({
-  ParameterTypeRegistry: {
-    getInstance: vi.fn().mockReturnValue({
-      get: vi.fn().mockReturnValue({
-        validate: vi.fn().mockReturnValue({ isValid: true }),
-        serialize: vi.fn(value => value),
-        deserialize: vi.fn(value => value),
-      }),
-    }),
-  },
 }));
 
 // Mock the NodeRegistry
@@ -230,7 +216,9 @@ describe("WorkflowRuntime", () => {
     expect(mockOptions.onNodeStart).toHaveBeenNthCalledWith(2, "node-2");
     expect(mockOptions.onNodeStart).toHaveBeenNthCalledWith(3, "node-3");
 
-    const nodeCompleteCalls = (mockOptions.onNodeComplete as ReturnType<typeof vi.fn>).mock.calls;
+    const nodeCompleteCalls = (
+      mockOptions.onNodeComplete as ReturnType<typeof vi.fn>
+    ).mock.calls;
     expect(nodeCompleteCalls[0][0]).toBe("node-1");
     expect(nodeCompleteCalls[1][0]).toBe("node-2");
     expect(nodeCompleteCalls[2][0]).toBe("node-3");
@@ -253,8 +241,12 @@ describe("WorkflowRuntime", () => {
     };
 
     const runtime = new WorkflowRuntime(workflowWithUnknownNode, mockOptions);
-    await expect(runtime.execute()).rejects.toThrow("Workflow validation failed: Node type 'unknown-type' is not registered");
-    expect(mockOptions.onExecutionError).toHaveBeenCalledWith("Workflow validation failed: Node type 'unknown-type' is not registered");
+    await expect(runtime.execute()).rejects.toThrow(
+      "Workflow validation failed: Node type 'unknown-type' is not registered"
+    );
+    expect(mockOptions.onExecutionError).toHaveBeenCalledWith(
+      "Workflow validation failed: Node type 'unknown-type' is not registered"
+    );
   });
 
   it("should handle node execution errors", async () => {
@@ -292,7 +284,9 @@ describe("WorkflowRuntime", () => {
     (validateWorkflow as any).mockReturnValueOnce([validationError]);
 
     const runtime = new WorkflowRuntime(mockWorkflow, mockOptions);
-    await expect(runtime.execute()).rejects.toThrow("Workflow validation failed");
+    await expect(runtime.execute()).rejects.toThrow(
+      "Workflow validation failed"
+    );
     expect(mockOptions.onExecutionError).toHaveBeenCalled();
   });
 
@@ -305,13 +299,13 @@ describe("WorkflowRuntime", () => {
 
     const runtime = new WorkflowRuntime(mockWorkflow, options);
     const executePromise = runtime.execute();
-    
+
     // Abort the execution
     abortController.abort();
-    
+
     const result = await executePromise;
     expect(result).toBeInstanceOf(Map);
-    
+
     const state = runtime.getExecutionState();
     expect(state.aborted).toBe(true);
   });

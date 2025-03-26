@@ -90,7 +90,7 @@ export class WebcamNode extends BaseExecutableNode {
       // Create properly structured image output
       const imageOutput = {
         data: bytes,
-        mimeType: "image/png"
+        mimeType: "image/png",
       };
 
       // Validate the output structure
@@ -99,7 +99,7 @@ export class WebcamNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: imageOutput
+        image: imageOutput,
       });
     } catch (error) {
       return this.createErrorResult(

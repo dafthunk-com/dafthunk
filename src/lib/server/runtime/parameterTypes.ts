@@ -144,27 +144,30 @@ export class JsonParameterType extends ParameterType {
 
 // Image ParameterType
 export class ImageParameterType extends ParameterType {
-  private static readonly VALID_MIME_TYPES = [
-    'image/jpeg',
-    'image/png'
-  ];
+  private static readonly VALID_MIME_TYPES = ["image/jpeg", "image/png"];
 
   validate(value: any): { isValid: boolean; error?: string } {
-    if (!value || typeof value !== 'object') {
-      return { isValid: false, error: "Value must be an object with data and mimeType" };
+    if (!value || typeof value !== "object") {
+      return {
+        isValid: false,
+        error: "Value must be an object with data and mimeType",
+      };
     }
-    
+
     if (!(value.data instanceof Uint8Array)) {
       return { isValid: false, error: "Image data must be a Uint8Array" };
     }
-    
-    if (typeof value.mimeType !== 'string' || !ImageParameterType.VALID_MIME_TYPES.includes(value.mimeType)) {
-      return { 
-        isValid: false, 
-        error: `mimeType must be one of: ${ImageParameterType.VALID_MIME_TYPES.join(', ')}` 
+
+    if (
+      typeof value.mimeType !== "string" ||
+      !ImageParameterType.VALID_MIME_TYPES.includes(value.mimeType)
+    ) {
+      return {
+        isValid: false,
+        error: `mimeType must be one of: ${ImageParameterType.VALID_MIME_TYPES.join(", ")}`,
       };
     }
-    
+
     return { isValid: true };
   }
 
@@ -172,12 +175,12 @@ export class ImageParameterType extends ParameterType {
     if (this.validate(value).isValid) {
       return {
         data: value.data,
-        mimeType: value.mimeType
+        mimeType: value.mimeType,
       };
     }
     return {
       data: new Uint8Array(),
-      mimeType: 'image/png'
+      mimeType: "image/png",
     };
   }
 
@@ -185,46 +188,49 @@ export class ImageParameterType extends ParameterType {
     if (this.validate(value).isValid) {
       return {
         data: value.data,
-        mimeType: value.mimeType
+        mimeType: value.mimeType,
       };
     }
     return {
       data: new Uint8Array(),
-      mimeType: 'image/png'
+      mimeType: "image/png",
     };
   }
 
   getDefaultValue(): { data: Uint8Array; mimeType: string } {
     return {
       data: new Uint8Array(),
-      mimeType: 'image/png'
+      mimeType: "image/png",
     };
   }
 }
 
 // Audio ParameterType
 export class AudioParameterType extends ParameterType {
-  private static readonly VALID_MIME_TYPES = [
-    'audio/mpeg',
-    'audio/webm'
-  ];
+  private static readonly VALID_MIME_TYPES = ["audio/mpeg", "audio/webm"];
 
   validate(value: any): { isValid: boolean; error?: string } {
-    if (!value || typeof value !== 'object') {
-      return { isValid: false, error: "Value must be an object with data and mimeType" };
+    if (!value || typeof value !== "object") {
+      return {
+        isValid: false,
+        error: "Value must be an object with data and mimeType",
+      };
     }
-    
+
     if (!(value.data instanceof Uint8Array)) {
       return { isValid: false, error: "Audio data must be a Uint8Array" };
     }
-    
-    if (typeof value.mimeType !== 'string' || !AudioParameterType.VALID_MIME_TYPES.includes(value.mimeType)) {
-      return { 
-        isValid: false, 
-        error: `mimeType must be one of: ${AudioParameterType.VALID_MIME_TYPES.join(', ')}` 
+
+    if (
+      typeof value.mimeType !== "string" ||
+      !AudioParameterType.VALID_MIME_TYPES.includes(value.mimeType)
+    ) {
+      return {
+        isValid: false,
+        error: `mimeType must be one of: ${AudioParameterType.VALID_MIME_TYPES.join(", ")}`,
       };
     }
-    
+
     return { isValid: true };
   }
 
@@ -232,12 +238,12 @@ export class AudioParameterType extends ParameterType {
     if (this.validate(value).isValid) {
       return {
         data: value.data,
-        mimeType: value.mimeType
+        mimeType: value.mimeType,
       };
     }
     return {
       data: new Uint8Array(),
-      mimeType: 'audio/mpeg'
+      mimeType: "audio/mpeg",
     };
   }
 
@@ -245,19 +251,19 @@ export class AudioParameterType extends ParameterType {
     if (this.validate(value).isValid) {
       return {
         data: value.data,
-        mimeType: value.mimeType
+        mimeType: value.mimeType,
       };
     }
     return {
       data: new Uint8Array(),
-      mimeType: 'audio/mpeg'
+      mimeType: "audio/mpeg",
     };
   }
 
   getDefaultValue(): { data: Uint8Array; mimeType: string } {
     return {
       data: new Uint8Array(),
-      mimeType: 'audio/mpeg'
+      mimeType: "audio/mpeg",
     };
   }
-} 
+}

@@ -42,7 +42,8 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
       {
         name: "prefix",
         type: "string",
-        description: "Optional prefix to append to the beginning of the transcription",
+        description:
+          "Optional prefix to append to the beginning of the transcription",
       },
     ],
     outputs: [
@@ -80,7 +81,8 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { audio, task, language, vad_filter, initial_prompt, prefix } = context.inputs;
+      const { audio, task, language, vad_filter, initial_prompt, prefix } =
+        context.inputs;
 
       console.log(
         `Processing audio file for speech recognition with Whisper Large V3 Turbo, data length: ${audio.data.length} bytes`
@@ -99,7 +101,10 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
       if (prefix) params.prefix = prefix;
 
       // Call Cloudflare AI Whisper Large V3 Turbo model
-      const response = await context.env.AI.run("@cf/openai/whisper-large-v3-turbo", params);
+      const response = await context.env.AI.run(
+        "@cf/openai/whisper-large-v3-turbo",
+        params
+      );
 
       console.log("Whisper Large V3 Turbo transcription response:", response);
 
@@ -120,4 +125,4 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

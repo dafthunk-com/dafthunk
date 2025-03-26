@@ -105,16 +105,23 @@ export function WorkflowOutputRenderer({
         console.log("Successfully created audio data URL");
       } catch (error) {
         console.error("Error processing audio data:", error);
-        setAudioError(error instanceof Error ? error.message : "Failed to process audio data");
+        setAudioError(
+          error instanceof Error
+            ? error.message
+            : "Failed to process audio data"
+        );
         setAudioUrl(null);
       }
     }, [output.value]);
 
-    const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    const handleAudioError = (
+      e: React.SyntheticEvent<HTMLAudioElement, Event>
+    ) => {
       console.error("Audio playback error:", e);
       if (audioRef.current) {
         console.log("Audio element error:", audioRef.current.error);
-        const errorMessage = audioRef.current.error?.message || "Unknown audio playback error";
+        const errorMessage =
+          audioRef.current.error?.message || "Unknown audio playback error";
         setAudioError(`Error playing audio: ${errorMessage}`);
       }
     };

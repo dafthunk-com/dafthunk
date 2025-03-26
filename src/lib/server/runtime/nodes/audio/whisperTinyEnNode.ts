@@ -79,4 +79,4 @@ export class WhisperTinyEnNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

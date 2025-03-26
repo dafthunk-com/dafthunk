@@ -1,9 +1,17 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { WorkflowRuntime } from "./workflowRuntime";
-import { Workflow, WorkflowExecutionOptions, NodeRegistry } from "./workflowTypes";
+import {
+  Workflow,
+  WorkflowExecutionOptions,
+  NodeRegistry,
+} from "./workflowTypes";
 import { registerNodes } from "./nodeRegistry";
-import { ParameterTypeRegistry } from "./typeRegistry";
-import { StartNode, ProcessNode, ErrorNode, LongRunningNode } from "./nodes/test/testNodes";
+import {
+  StartNode,
+  ProcessNode,
+  ErrorNode,
+  LongRunningNode,
+} from "./nodes/test/testNodes";
 
 // Mock the ParameterTypeRegistry
 vi.mock("./typeRegistry", () => ({
@@ -11,8 +19,8 @@ vi.mock("./typeRegistry", () => ({
     getInstance: vi.fn().mockReturnValue({
       get: vi.fn().mockReturnValue({
         validate: vi.fn().mockReturnValue({ isValid: true }),
-        serialize: vi.fn(value => value),
-        deserialize: vi.fn(value => value),
+        serialize: vi.fn((value) => value),
+        deserialize: vi.fn((value) => value),
       }),
     }),
   },
@@ -82,7 +90,10 @@ describe("WorkflowRuntime Integration Tests", () => {
     expect(executedNodes).toHaveLength(2);
     expect(executedNodes[0]).toBe("start-node");
     expect(executedNodes[1]).toBe("process-node");
-    expect(nodeOutputs["start-node"]).toHaveProperty("output", "Hello from start node");
+    expect(nodeOutputs["start-node"]).toHaveProperty(
+      "output",
+      "Hello from start node"
+    );
   });
 
   it("should handle node execution errors", async () => {
