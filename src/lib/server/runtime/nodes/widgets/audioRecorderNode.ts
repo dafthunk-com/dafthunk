@@ -86,13 +86,12 @@ export class AudioRecorderNode extends BaseExecutableNode {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
+      // Create properly structured audio output matching AudioParameterType requirements
       return this.createSuccessResult({
         audio: {
           data: bytes,
-          type: "audio/webm",
-          sampleRate,
-          channels,
-        },
+          mimeType: "audio/mpeg"
+        }
       });
     } catch (error) {
       return this.createErrorResult(
