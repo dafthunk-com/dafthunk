@@ -68,18 +68,12 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, max_tokens, temperature, top_p, top_k } =
-        context.inputs;
-
-      // Validate inputs
-      if (!image || !image.data) {
-        throw new Error("Image input is required");
-      }
+      const { image, prompt, max_tokens, temperature, top_p, top_k } = context.inputs;
 
       console.log(
         `Processing image for LLaVA, data length: ${image.data.length} bytes`
       );
-      console.log(`Prompt: "${prompt || "Generate a caption for this image"}"`);
+      console.log(`Prompt: "${prompt}"`);
 
       // Prepare the image data - convert to array of numbers
       const imageData = Array.from(new Uint8Array(image.data));
@@ -87,8 +81,8 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
       // Prepare parameters for the model
       const params: any = {
         image: imageData,
-        prompt: prompt || "Generate a caption for this image",
-        max_tokens: max_tokens || 512,
+        prompt,
+        max_tokens,
       };
 
       // Add optional parameters if provided
