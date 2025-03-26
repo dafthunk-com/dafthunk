@@ -108,7 +108,7 @@ describe("DetrResnet50Node", () => {
   it("should handle errors during execution", async () => {
     const mockAIRun = vi
       .fn()
-      .mockRejectedValue(new Error("image.data is not iterable"));
+      .mockRejectedValue(new Error("Failed to process image"));
 
     const node = new DetrResnet50Node(mockNode);
     const result = await node.execute({
@@ -128,6 +128,6 @@ describe("DetrResnet50Node", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("image.data is not iterable");
+    expect(result.error).toBe("Failed to process image");
   });
 });
