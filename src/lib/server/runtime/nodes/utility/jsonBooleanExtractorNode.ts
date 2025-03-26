@@ -1,6 +1,7 @@
 import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { ParameterType } from "../../parameterTypes";
 
 export class JsonBooleanExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -44,12 +45,7 @@ export class JsonBooleanExtractorNode extends BaseExecutableNode {
 
   public async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const json = context.inputs["json"];
-      const path = context.inputs["path"];
-      const defaultValue =
-        typeof context.inputs["defaultValue"] === "boolean"
-          ? context.inputs["defaultValue"]
-          : false;
+      const { json, path, defaultValue = false } = context.inputs;
 
       if (!json || typeof json !== "object") {
         return this.createErrorResult("Invalid or missing JSON input");

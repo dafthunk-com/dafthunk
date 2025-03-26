@@ -27,7 +27,7 @@ export class ImageUrlLoaderNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const url = context.inputs.url;
+      const { url } = context.inputs;
 
       if (!url || typeof url !== "string") {
         return this.createErrorResult("URL is required and must be a string");

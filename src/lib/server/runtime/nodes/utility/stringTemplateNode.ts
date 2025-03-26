@@ -66,39 +66,26 @@ export class StringTemplateNode extends BaseExecutableNode {
 
   public async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const template = context.inputs["template"];
-      const variables = context.inputs["variables"];
+      const { template, variables } = context.inputs;
 
-      if (
-        template === null ||
-        template === undefined ||
-        typeof template !== "string"
-      ) {
+      // Handle invalid template input (null, undefined, non-string)
+      if (template === null || template === undefined || typeof template !== "string") {
         return this.createErrorResult("Invalid or missing template string");
       }
 
-      // Handle both JSON strings and objects
-      let parsedVariables = variables;
-      if (typeof variables === "string") {
-        try {
-          parsedVariables = JSON.parse(variables);
-        } catch (err) {
-          return this.createErrorResult("Invalid JSON string in variables");
-        }
+      // Handle empty template string
+      if (template === "") {
+        return this.createSuccessResult({
+          result: "",
+          missingVariables: [],
+        });
       }
 
-      if (
-        parsedVariables === null ||
-        parsedVariables === undefined ||
-        typeof parsedVariables !== "object"
-      ) {
+      if (!variables || typeof variables !== "object") {
         return this.createErrorResult("Invalid or missing variables object");
       }
 
-      const { result, missingVariables } = this.replaceVariables(
-        template,
-        parsedVariables
-      );
+      const { result, missingVariables } = this.replaceVariables(template, variables);
 
       return this.createSuccessResult({
         result,

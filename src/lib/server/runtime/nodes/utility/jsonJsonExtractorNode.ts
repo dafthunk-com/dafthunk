@@ -51,11 +51,7 @@ export class JsonJsonExtractorNode extends BaseExecutableNode {
 
   public async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const json = context.inputs["json"];
-      const path = context.inputs["path"];
-      const defaultValue = this.isJsonValue(context.inputs["defaultValue"])
-        ? context.inputs["defaultValue"]
-        : {};
+      const { json, path, defaultValue = {} } = context.inputs;
 
       if (!json || typeof json !== "object") {
         return this.createErrorResult("Invalid or missing JSON input");
