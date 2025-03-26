@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { WorkflowRuntime } from "./workflowRuntime";
 import { Workflow, WorkflowExecutionOptions } from "./workflowTypes";
-import { registerNodes } from "./nodes/nodeRegistry";
+import { registerNodes } from "./nodeRegistry";
 
 // Ensure base nodes are registered
 beforeAll(() => {
