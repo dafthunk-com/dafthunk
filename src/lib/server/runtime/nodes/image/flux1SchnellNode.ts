@@ -37,12 +37,7 @@ export class Flux1SchnellNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const prompt = context.inputs.prompt;
-      const steps = context.inputs.steps as number | undefined;
-
-      if (!prompt) {
-        return this.createErrorResult("Prompt is required");
-      }
+      const { prompt, steps } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
@@ -53,7 +48,7 @@ export class Flux1SchnellNode extends BaseExecutableNode {
         "@cf/black-forest-labs/flux-1-schnell",
         {
           prompt,
-          ...(steps && { steps }),
+          steps,
         }
       );
 
@@ -66,11 +61,12 @@ export class Flux1SchnellNode extends BaseExecutableNode {
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(bytes),
+          data: bytes,
           mimeType: "image/jpeg",
         },
       });
     } catch (error) {
+      console.error("Flux1SchnellNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
