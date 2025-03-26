@@ -1,4 +1,4 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**

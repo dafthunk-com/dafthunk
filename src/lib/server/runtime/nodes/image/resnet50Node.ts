@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
 
 /**
  * ResNet-50 node implementation for image classification

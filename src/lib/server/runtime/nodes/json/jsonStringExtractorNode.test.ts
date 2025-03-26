@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { JsonStringExtractorNode } from "./jsonStringExtractorNode";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../runtimeTypes";
 
 describe("JsonStringExtractorNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({

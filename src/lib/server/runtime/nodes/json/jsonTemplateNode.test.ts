@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { JsonTemplateNode } from "./jsonTemplateNode";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../runtimeTypes";
 
 describe("JsonTemplateNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({
@@ -212,4 +212,4 @@ describe("JsonTemplateNode", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("Invalid or missing variables object");
   });
-});
+}); 

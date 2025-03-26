@@ -3,8 +3,8 @@ import {
   detectCycles,
   validateTypeCompatibility,
   validateWorkflow,
-} from "./workflowValidation";
-import type { Workflow, Node, Edge } from "./workflowTypes";
+} from "./runtimeValidation";
+import type { Workflow, Node, Edge } from "./runtimeTypes";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node

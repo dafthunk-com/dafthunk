@@ -1,6 +1,6 @@
 import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 
 export class JsonNumberExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {

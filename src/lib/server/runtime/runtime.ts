@@ -5,8 +5,8 @@ import {
   NodeContext,
   WorkflowExecutionOptions,
   NodeType,
-} from "./workflowTypes";
-import { validateWorkflow } from "./workflowValidation";
+} from "./runtimeTypes";
+import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodeTypeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { ParameterTypeRegistry } from "./parameterTypeRegistry";
@@ -15,9 +15,9 @@ import { ParameterTypeRegistry } from "./parameterTypeRegistry";
 registerNodes();
 
 /**
- * WorkflowRuntime class that handles the execution of a workflow
+ * Runtime class that handles the execution of a workflow
  */
-export class WorkflowRuntime {
+export class Runtime {
   private workflow: Workflow;
   private nodeOutputs: Map<string, Record<string, any>> = new Map();
   private executedNodes: Set<string> = new Set();

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { StableDiffusionXLBase10Node } from "./stableDiffusionXLBase10Node";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../runtimeTypes";
 
 describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {

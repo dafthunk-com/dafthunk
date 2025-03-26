@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
-import { WorkflowRuntime } from "./workflowRuntime";
-import { Workflow } from "./workflowTypes";
-import { validateWorkflow } from "./workflowValidation";
+import { Runtime } from "./runtime";
+import { Workflow } from "./runtimeTypes";
+import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodeTypeRegistry";
 
 // Mock the validateWorkflow function
@@ -109,7 +109,7 @@ describe("WorkflowRuntime Validation Tests", () => {
       },
     ]);
 
-    const runtime = new WorkflowRuntime(workflow);
+    const runtime = new Runtime(workflow);
     const errors = await runtime.validate();
 
     expect(errors.length).toBeGreaterThan(0);
@@ -159,7 +159,7 @@ describe("WorkflowRuntime Validation Tests", () => {
       },
     ]);
 
-    const runtime = new WorkflowRuntime(workflow);
+    const runtime = new Runtime(workflow);
     const errors = await runtime.validate();
 
     expect(errors.length).toBeGreaterThan(0);
@@ -215,7 +215,7 @@ describe("WorkflowRuntime Validation Tests", () => {
       },
     ]);
 
-    const runtime = new WorkflowRuntime(workflow);
+    const runtime = new Runtime(workflow);
     const errors = await runtime.validate();
 
     expect(errors.length).toBeGreaterThan(0);
@@ -239,7 +239,7 @@ describe("WorkflowRuntime Validation Tests", () => {
       edges: [],
     };
 
-    const runtime = new WorkflowRuntime(workflow);
+    const runtime = new Runtime(workflow);
     const errors = await runtime.validate();
 
     expect(errors.length).toBeGreaterThan(0);
@@ -271,7 +271,7 @@ describe("WorkflowRuntime Validation Tests", () => {
       },
     ]);
 
-    const runtime = new WorkflowRuntime(workflow);
+    const runtime = new Runtime(workflow);
     const errors = await runtime.validate();
 
     expect(errors.length).toBeGreaterThan(0);
@@ -305,7 +305,7 @@ describe("WorkflowRuntime Validation Tests", () => {
       },
     ]);
 
-    const runtime = new WorkflowRuntime(workflow);
+    const runtime = new Runtime(workflow);
     const errors = await runtime.validate();
 
     expect(errors.length).toBeGreaterThan(0);

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
-import { WorkflowRuntime } from "./workflowRuntime";
+import { Runtime } from "./runtime";
 import {
   Workflow,
   WorkflowExecutionOptions,
   NodeRegistry,
-} from "./workflowTypes";
+} from "./runtimeTypes";
 import { registerNodes } from "./nodeTypeRegistry";
 import {
   StartNode,
@@ -84,7 +84,7 @@ describe("WorkflowRuntime Integration Tests", () => {
       },
     };
 
-    const runtime = new WorkflowRuntime(workflow, options);
+    const runtime = new Runtime(workflow, options);
     await runtime.execute();
 
     expect(executedNodes).toHaveLength(2);
@@ -121,7 +121,7 @@ describe("WorkflowRuntime Integration Tests", () => {
       },
     };
 
-    const runtime = new WorkflowRuntime(workflow, options);
+    const runtime = new Runtime(workflow, options);
     await runtime.execute();
 
     expect(nodeErrors["error-node"]).toBeDefined();
@@ -152,7 +152,7 @@ describe("WorkflowRuntime Integration Tests", () => {
       abortSignal: abortController.signal,
     };
 
-    const runtime = new WorkflowRuntime(workflow, options);
+    const runtime = new Runtime(workflow, options);
     const executePromise = runtime.execute();
 
     // Abort the execution
@@ -222,7 +222,7 @@ describe("WorkflowRuntime Integration Tests", () => {
       },
     };
 
-    const runtime = new WorkflowRuntime(workflow, options);
+    const runtime = new Runtime(workflow, options);
     await runtime.execute();
 
     expect(executedNodes).toHaveLength(3);

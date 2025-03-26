@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../runtimeTypes";
 
 // Mock global fetch
 const mockFetch = vi.fn();

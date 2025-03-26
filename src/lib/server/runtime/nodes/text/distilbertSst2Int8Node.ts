@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model

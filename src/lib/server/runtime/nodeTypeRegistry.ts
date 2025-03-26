@@ -1,4 +1,4 @@
-import { NodeRegistry } from "./workflowTypes";
+import { NodeRegistry } from "./runtimeTypes";
 import { BartLargeCnnNode } from "./nodes/text/bartLargeCnnNode";
 import { DistilbertSst2Int8Node } from "./nodes/text/distilbertSst2Int8Node";
 import { M2m10012bNode } from "./nodes/text/m2m10012bNode";

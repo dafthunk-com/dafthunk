@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { DetrResnet50Node } from "./detrResnet50Node";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../runtimeTypes";
 
 describe("DetrResnet50Node", () => {
   const mockNode: Node = {

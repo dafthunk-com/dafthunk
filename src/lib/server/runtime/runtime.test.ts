@@ -7,7 +7,7 @@ import {
   beforeAll,
   afterAll,
 } from "vitest";
-import { WorkflowRuntime } from "./workflowRuntime";
+import { Runtime } from "./runtime";
 import {
   Workflow,
   Node,
@@ -16,8 +16,8 @@ import {
   NodeContext,
   ExecutionResult,
   NodeType,
-} from "./workflowTypes";
-import { validateWorkflow } from "./workflowValidation";
+} from "./runtimeTypes";
+import { validateWorkflow } from "./runtimeValidation";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 
@@ -195,18 +195,18 @@ describe("WorkflowRuntime", () => {
   });
 
   it("should initialize with a workflow and options", () => {
-    const runtime = new WorkflowRuntime(mockWorkflow, mockOptions);
-    expect(runtime).toBeInstanceOf(WorkflowRuntime);
+    const runtime = new Runtime(mockWorkflow, mockOptions);
+    expect(runtime).toBeInstanceOf(Runtime);
   });
 
   it("should validate the workflow before execution", async () => {
-    const runtime = new WorkflowRuntime(mockWorkflow, mockOptions);
+    const runtime = new Runtime(mockWorkflow, mockOptions);
     await runtime.execute();
     expect(validateWorkflow).toHaveBeenCalledWith(mockWorkflow);
   });
 
   it("should execute nodes in the correct order", async () => {
-    const runtime = new WorkflowRuntime(mockWorkflow, mockOptions);
+    const runtime = new Runtime(mockWorkflow, mockOptions);
     await runtime.execute();
 
     expect(mockOptions.onNodeStart).toHaveBeenCalledTimes(3);
@@ -240,7 +240,7 @@ describe("WorkflowRuntime", () => {
       edges: [],
     };
 
-    const runtime = new WorkflowRuntime(workflowWithUnknownNode, mockOptions);
+    const runtime = new Runtime(workflowWithUnknownNode, mockOptions);
     await expect(runtime.execute()).rejects.toThrow(
       "Workflow validation failed: Node type 'unknown-type' is not registered"
     );
@@ -265,7 +265,7 @@ describe("WorkflowRuntime", () => {
       edges: [],
     };
 
-    const runtime = new WorkflowRuntime(workflowWithFailingNode, mockOptions);
+    const runtime = new Runtime(workflowWithFailingNode, mockOptions);
     await runtime.execute();
 
     expect(mockOptions.onNodeError).toHaveBeenCalledWith(
@@ -283,7 +283,7 @@ describe("WorkflowRuntime", () => {
 
     (validateWorkflow as any).mockReturnValueOnce([validationError]);
 
-    const runtime = new WorkflowRuntime(mockWorkflow, mockOptions);
+    const runtime = new Runtime(mockWorkflow, mockOptions);
     await expect(runtime.execute()).rejects.toThrow(
       "Workflow validation failed"
     );
@@ -297,7 +297,7 @@ describe("WorkflowRuntime", () => {
       abortSignal: abortController.signal,
     };
 
-    const runtime = new WorkflowRuntime(mockWorkflow, options);
+    const runtime = new Runtime(mockWorkflow, options);
     const executePromise = runtime.execute();
 
     // Abort the execution
@@ -311,7 +311,7 @@ describe("WorkflowRuntime", () => {
   });
 
   it("should properly handle node inputs and outputs", async () => {
-    const runtime = new WorkflowRuntime(mockWorkflow, mockOptions);
+    const runtime = new Runtime(mockWorkflow, mockOptions);
     await runtime.execute();
 
     const state = runtime.getExecutionState();
