@@ -3,7 +3,6 @@ import { BartLargeCnnNode } from "./nodes/text/bartLargeCnnNode";
 import { DistilbertSst2Int8Node } from "./nodes/text/distilbertSst2Int8Node";
 import { M2m10012bNode } from "./nodes/text/m2m10012bNode";
 import { StableDiffusionXLLightningNode } from "./nodes/image/stableDiffusionXLLightningNode";
-import { StableDiffusionV15InpaintingNode } from "./nodes/image/stableDiffusionV15InpaintingNode";
 import { StableDiffusionV15Img2ImgNode } from "./nodes/image/stableDiffusionV15Img2ImgNode";
 import { Resnet50Node } from "./nodes/image/resnet50Node";
 import { StableDiffusionXLBase10Node } from "./nodes/image/stableDiffusionXLBase10Node";
@@ -74,7 +73,6 @@ export function registerNodes(): void {
   registry.registerImplementation(Resnet50Node);
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(StableDiffusionXLLightningNode);
-  registry.registerImplementation(StableDiffusionV15InpaintingNode);
   registry.registerImplementation(StableDiffusionV15Img2ImgNode);
   registry.registerImplementation(JsonStringExtractorNode);
   registry.registerImplementation(JsonBooleanExtractorNode);
