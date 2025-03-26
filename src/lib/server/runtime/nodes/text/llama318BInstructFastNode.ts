@@ -42,12 +42,6 @@ export class Llama318BInstructFastNode extends BaseExecutableNode {
     try {
       const { prompt, seed, temperature } = context.inputs;
 
-      if (!prompt || typeof prompt !== "string") {
-        return this.createErrorResult(
-          "Prompt is required and must be a string"
-        );
-      }
-
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
       }

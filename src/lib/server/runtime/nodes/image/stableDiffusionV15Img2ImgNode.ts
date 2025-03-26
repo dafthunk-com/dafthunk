@@ -1,13 +1,10 @@
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 import { BaseExecutableNode } from "../baseNode";
-import { NumberParameterType } from "../../parameterTypes";
 
 /**
  * Image Transformation node implementation using Stable Diffusion v1.5 img2img
  */
 export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
-  private static readonly numberType = new NumberParameterType();
-
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-v1-5-img2img",
     name: "Stable Diffusion v1.5 Img2Img",
@@ -69,7 +66,8 @@ export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, negative_prompt, strength, guidance, num_steps } = context.inputs;
+      const { image, prompt, negative_prompt, strength, guidance, num_steps } =
+        context.inputs;
 
       if (!image || !image.data) {
         throw new Error("No input image data provided");
@@ -78,12 +76,15 @@ export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
       // Ensure numeric parameters are within valid ranges with defaults
       const validatedStrength = Math.min(Math.max(strength || 0.75, 0), 1);
       const validatedGuidance = guidance || 7.5;
-      const validatedSteps = Math.floor(Math.min(Math.max(num_steps || 20, 1), 20));
+      const validatedSteps = Math.floor(
+        Math.min(Math.max(num_steps || 20, 1), 20)
+      );
 
       // Convert image data to Uint8Array if it's not already
-      const imageData = image.data instanceof Uint8Array 
-        ? image.data 
-        : new Uint8Array(image.data);
+      const imageData =
+        image.data instanceof Uint8Array
+          ? image.data
+          : new Uint8Array(image.data);
 
       // Debug log
       console.log("Input image data length:", imageData.length);
@@ -114,7 +115,10 @@ export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
 
       // Debug log
       console.log("Output image data length:", uint8Array.length);
-      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+      console.log(
+        "First few bytes of output:",
+        Array.from(uint8Array.slice(0, 10))
+      );
 
       if (uint8Array.length === 0) {
         throw new Error("Received empty image data from the API");

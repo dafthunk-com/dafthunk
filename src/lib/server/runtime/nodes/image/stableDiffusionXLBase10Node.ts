@@ -101,8 +101,14 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
       )?.value as number;
 
       // Validate and normalize dimensions
-      const validatedWidth = Math.min(Math.max(width ?? defaultWidth, 256), 2048);
-      const validatedHeight = Math.min(Math.max(height ?? defaultHeight, 256), 2048);
+      const validatedWidth = Math.min(
+        Math.max(width ?? defaultWidth, 256),
+        2048
+      );
+      const validatedHeight = Math.min(
+        Math.max(height ?? defaultHeight, 256),
+        2048
+      );
       const validatedSteps = Math.min(num_steps ?? defaultNumSteps, 20);
       const validatedGuidance = guidance ?? defaultGuidance;
 
@@ -151,7 +157,10 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
 
       // Debug log
       console.log("Output image data length:", uint8Array.length);
-      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+      console.log(
+        "First few bytes of output:",
+        Array.from(uint8Array.slice(0, 10))
+      );
 
       if (uint8Array.length === 0) {
         throw new Error("Received empty image data from the API");

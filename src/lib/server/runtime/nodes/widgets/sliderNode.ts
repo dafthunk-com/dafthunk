@@ -59,19 +59,39 @@ export class SliderNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       // Get default values from nodeType
-      const defaultMin = SliderNode.nodeType.inputs.find(i => i.name === "min")?.value as number;
-      const defaultMax = SliderNode.nodeType.inputs.find(i => i.name === "max")?.value as number;
-      const defaultStep = SliderNode.nodeType.inputs.find(i => i.name === "step")?.value as number;
+      const defaultMin = SliderNode.nodeType.inputs.find(
+        (i) => i.name === "min"
+      )?.value as number;
+      const defaultMax = SliderNode.nodeType.inputs.find(
+        (i) => i.name === "max"
+      )?.value as number;
+      const defaultStep = SliderNode.nodeType.inputs.find(
+        (i) => i.name === "step"
+      )?.value as number;
 
       // Use provided values or defaults
-      const min = context.inputs.min !== undefined ? Number(context.inputs.min) : defaultMin;
-      const max = context.inputs.max !== undefined ? Number(context.inputs.max) : defaultMax;
-      const step = context.inputs.step !== undefined ? Number(context.inputs.step) : defaultStep;
-      const value = context.inputs.value !== undefined ? Number(context.inputs.value) : undefined;
+      const min =
+        context.inputs.min !== undefined
+          ? Number(context.inputs.min)
+          : defaultMin;
+      const max =
+        context.inputs.max !== undefined
+          ? Number(context.inputs.max)
+          : defaultMax;
+      const step =
+        context.inputs.step !== undefined
+          ? Number(context.inputs.step)
+          : defaultStep;
+      const value =
+        context.inputs.value !== undefined
+          ? Number(context.inputs.value)
+          : undefined;
 
       // Ensure all inputs are valid numbers
       if (isNaN(min) || isNaN(max) || isNaN(step)) {
-        return this.createErrorResult("Invalid input parameters: min, max, and step must be numbers");
+        return this.createErrorResult(
+          "Invalid input parameters: min, max, and step must be numbers"
+        );
       }
 
       // Validate min/max relationship
@@ -86,13 +106,13 @@ export class SliderNode extends BaseExecutableNode {
 
       // Calculate the constrained value
       let outputValue: number;
-      
+
       if (value === undefined) {
         outputValue = min;
       } else {
         // Round to nearest step
         const steps = Math.round((value - min) / step);
-        outputValue = min + (steps * step);
+        outputValue = min + steps * step;
         // Constrain between min and max
         outputValue = Math.min(Math.max(outputValue, min), max);
       }

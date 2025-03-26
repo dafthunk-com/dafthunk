@@ -120,7 +120,10 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
 
       // Debug log
       console.log("Output image data length:", uint8Array.length);
-      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+      console.log(
+        "First few bytes of output:",
+        Array.from(uint8Array.slice(0, 10))
+      );
 
       if (uint8Array.length === 0) {
         throw new Error("Received empty image data from the API");

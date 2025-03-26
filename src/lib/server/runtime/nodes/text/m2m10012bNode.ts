@@ -42,19 +42,7 @@ export class M2m10012bNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const text = context.inputs.text;
-      const sourceLang = context.inputs.sourceLang || "en";
-      const targetLang = context.inputs.targetLang;
-
-      if (!text || typeof text !== "string") {
-        return this.createErrorResult("Text is required and must be a string");
-      }
-
-      if (!targetLang || typeof targetLang !== "string") {
-        return this.createErrorResult(
-          "Target language is required and must be a string"
-        );
-      }
+      const { text, sourceLang = "en", targetLang } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");

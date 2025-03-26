@@ -77,9 +77,10 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
       }
 
       // Convert image data to Uint8Array if it's not already
-      const imageData = image.data instanceof Uint8Array 
-        ? image.data 
-        : new Uint8Array(image.data);
+      const imageData =
+        image.data instanceof Uint8Array
+          ? image.data
+          : new Uint8Array(image.data);
 
       // Debug log input data
       console.log("Input parameters:", {
@@ -90,7 +91,10 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
         top_k,
         repetition_penalty,
       });
-      console.log("First few bytes of image:", Array.from(imageData.slice(0, 10)));
+      console.log(
+        "First few bytes of image:",
+        Array.from(imageData.slice(0, 10))
+      );
 
       // Prepare parameters for the model
       const params: any = {
@@ -120,7 +124,7 @@ export class UformGen2Qwen500mNode extends BaseExecutableNode {
       // Debug log
       console.log("UForm response received:", {
         responseType: typeof response,
-        hasDescription: 'description' in response,
+        hasDescription: "description" in response,
       });
 
       // Extract and validate the description from the response

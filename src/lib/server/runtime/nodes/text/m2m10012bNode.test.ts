@@ -34,34 +34,6 @@ describe("M2m10012bNode", () => {
     ],
   };
 
-  it("should return error if text is not provided", async () => {
-    const node = new M2m10012bNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {},
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.error).toBe("Text is required and must be a string");
-  });
-
-  it("should return error if target language is not provided", async () => {
-    const node = new M2m10012bNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {
-        text: "Hello world",
-      },
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.error).toBe(
-      "Target language is required and must be a string"
-    );
-  });
-
   it("should return error if AI service is not available", async () => {
     const node = new M2m10012bNode(mockNode);
     const result = await node.execute({

@@ -68,7 +68,8 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { image, prompt, max_tokens, temperature, top_p, top_k } = context.inputs;
+      const { image, prompt, max_tokens, temperature, top_p, top_k } =
+        context.inputs;
 
       console.log(
         `Processing image for LLaVA, data length: ${image.data.length} bytes`

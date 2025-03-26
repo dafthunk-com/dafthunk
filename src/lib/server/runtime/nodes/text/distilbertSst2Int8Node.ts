@@ -36,13 +36,7 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const text = context.inputs.text;
-
-      if (!text || typeof text !== "string") {
-        return this.createErrorResult(
-          "Input text is required and must be a string"
-        );
-      }
+      const { text } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");

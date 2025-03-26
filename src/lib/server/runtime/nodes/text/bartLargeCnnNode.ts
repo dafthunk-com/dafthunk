@@ -36,14 +36,7 @@ export class BartLargeCnnNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const inputText = context.inputs.inputText;
-      const maxLength = context.inputs.maxLength;
-
-      if (!inputText || typeof inputText !== "string") {
-        return this.createErrorResult(
-          "Input text is required and must be a string"
-        );
-      }
+      const { inputText, maxLength } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");

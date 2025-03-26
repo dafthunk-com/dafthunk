@@ -103,18 +103,24 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
       const validatedGuidance = guidance || 7.5;
 
       // Convert image and mask data to Uint8Array if they're not already
-      const imageData = image.data instanceof Uint8Array 
-        ? image.data 
-        : new Uint8Array(image.data);
-      const maskData = mask.data instanceof Uint8Array 
-        ? mask.data 
-        : new Uint8Array(mask.data);
+      const imageData =
+        image.data instanceof Uint8Array
+          ? image.data
+          : new Uint8Array(image.data);
+      const maskData =
+        mask.data instanceof Uint8Array ? mask.data : new Uint8Array(mask.data);
 
       // Debug logs for input data
       console.log("Input image data length:", imageData.length);
-      console.log("First few bytes of image:", Array.from(imageData.slice(0, 10)));
+      console.log(
+        "First few bytes of image:",
+        Array.from(imageData.slice(0, 10))
+      );
       console.log("Mask data length:", maskData.length);
-      console.log("First few bytes of mask:", Array.from(maskData.slice(0, 10)));
+      console.log(
+        "First few bytes of mask:",
+        Array.from(maskData.slice(0, 10))
+      );
 
       // Call Cloudflare AI Stable Diffusion Inpainting model
       const stream = (await context.env.AI.run(
@@ -143,7 +149,10 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
 
       // Debug log
       console.log("Output image data length:", uint8Array.length);
-      console.log("First few bytes of output:", Array.from(uint8Array.slice(0, 10)));
+      console.log(
+        "First few bytes of output:",
+        Array.from(uint8Array.slice(0, 10))
+      );
 
       if (uint8Array.length === 0) {
         throw new Error("Received empty image data from the API");

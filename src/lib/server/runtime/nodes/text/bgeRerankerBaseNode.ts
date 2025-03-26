@@ -43,18 +43,6 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
     try {
       const { query, contexts, topK } = context.inputs;
 
-      if (!query || typeof query !== "string") {
-        return this.createErrorResult(
-          "Input query is required and must be a string"
-        );
-      }
-
-      if (!contexts || !Array.isArray(contexts) || contexts.length === 0) {
-        return this.createErrorResult(
-          "Input contexts is required and must be a non-empty array"
-        );
-      }
-
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
       }
