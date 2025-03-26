@@ -2,13 +2,13 @@ import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
-export class JsonJsonExtractorNode extends BaseExecutableNode {
+export class JsonObjectArrayExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "jsonJsonExtractor",
     name: "JSON Object/Array Extractor",
     description:
       "Extract a JSON object or array from a JSON object using JSONPath",
-    category: "Utility",
+    category: "JSON",
     id: "jsonJsonExtractor",
     icon: "braces",
     inputs: [

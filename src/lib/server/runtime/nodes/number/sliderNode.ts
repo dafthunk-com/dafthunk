@@ -16,7 +16,7 @@ export class SliderNode extends BaseExecutableNode {
     type: "slider",
     description:
       "A slider widget for selecting a value constrained by min, max, and step values",
-    category: "Widgets",
+    category: "Number",
     icon: "sliders-horizontal",
     inputs: [
       {

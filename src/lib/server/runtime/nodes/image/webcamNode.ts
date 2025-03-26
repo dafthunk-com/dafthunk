@@ -11,7 +11,7 @@ export class WebcamNode extends BaseExecutableNode {
     name: "Webcam",
     type: "webcam",
     description: "A webcam widget for capturing images",
-    category: "Widgets",
+    category: "Image",
     icon: "camera",
     inputs: [
       {

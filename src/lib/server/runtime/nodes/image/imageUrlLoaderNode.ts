@@ -7,7 +7,7 @@ export class ImageUrlLoaderNode extends BaseExecutableNode {
     name: "Image URL Loader",
     type: "image-url-loader",
     description: "Loads an image from a URL and converts it to a data array",
-    category: "Utility",
+    category: "Image",
     icon: "link",
     inputs: [
       {

@@ -21,7 +21,7 @@ export class RadioGroupNode extends BaseExecutableNode {
     type: "radio-group",
     description:
       "A radio group widget for selecting one option from a list of choices",
-    category: "Widgets",
+    category: "Text",
     icon: "radio",
     inputs: [
       {

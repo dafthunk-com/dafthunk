@@ -12,7 +12,7 @@ export class AudioRecorderNode extends BaseExecutableNode {
     name: "Audio Recorder",
     type: "audio-recorder",
     description: "A widget for recording audio from the microphone",
-    category: "Widgets",
+    category: "Audio",
     icon: "mic",
     inputs: [
       {

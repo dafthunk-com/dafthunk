@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { JsonJsonExtractorNode } from "./jsonJsonExtractorNode";
+import { JsonObjectArrayExtractorNode } from "./jsonObjectArrayExtractorNode";
 import { Node } from "../../workflowTypes";
 
 describe("JsonJsonExtractorNode", () => {
@@ -20,7 +20,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should extract a JSON object from a simple path", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { user: { name: "John", age: 30 } },
@@ -34,7 +34,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should extract a nested JSON object", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { user: { profile: { settings: { theme: "dark" } } } },
@@ -48,7 +48,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should extract an array", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { items: [1, 2, 3] },
@@ -63,7 +63,7 @@ describe("JsonJsonExtractorNode", () => {
 
   it("should return default value when path does not exist", async () => {
     const defaultValue = { empty: true };
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { user: { name: "John" } },
@@ -78,7 +78,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should return default value when value is not a JSON object or array", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { value: "string" },
@@ -93,7 +93,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should handle array paths", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { users: [{ profile: { role: "admin" } }] },
@@ -107,7 +107,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should fail with invalid JSON input", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: null,
@@ -120,7 +120,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should fail with invalid path", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { value: {} },
@@ -133,7 +133,7 @@ describe("JsonJsonExtractorNode", () => {
   });
 
   it("should use empty object as default value when not specified", async () => {
-    const node = new JsonJsonExtractorNode(createNode());
+    const node = new JsonObjectArrayExtractorNode(createNode());
     const result = await node.execute(
       createContext({
         json: { user: { name: "John" } },

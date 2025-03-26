@@ -2,16 +2,16 @@ import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
- * Addition node implementation
+ * Subtraction node implementation
  */
-export class AdditionNode extends BaseExecutableNode {
+export class SubtractionNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "addition",
-    name: "Addition",
-    type: "addition",
-    description: "Adds two numbers together",
-    category: "Math",
-    icon: "plus",
+    id: "subtraction",
+    name: "Subtraction",
+    type: "subtraction",
+    description: "Subtracts one number from another",
+    category: "Number",
+    icon: "minus",
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },
@@ -29,7 +29,7 @@ export class AdditionNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: a + b,
+        result: a - b,
       });
     } catch (error) {
       return this.createErrorResult(

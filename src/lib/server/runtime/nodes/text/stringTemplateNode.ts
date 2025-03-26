@@ -7,7 +7,7 @@ export class StringTemplateNode extends BaseExecutableNode {
     name: "String Template",
     description:
       "Create a string using a template with variable injection using ${variableName} syntax",
-    category: "Utility",
+    category: "Text",
     id: "stringTemplate",
     icon: "quote",
     inputs: [

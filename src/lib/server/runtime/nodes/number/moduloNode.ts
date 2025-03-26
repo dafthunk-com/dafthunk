@@ -2,16 +2,16 @@ import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
- * Multiplication node implementation
+ * Modulo node implementation - calculates remainder after division
  */
-export class MultiplicationNode extends BaseExecutableNode {
+export class ModuloNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "multiplication",
-    name: "Multiplication",
-    type: "multiplication",
-    description: "Multiplies two numbers",
-    category: "Math",
-    icon: "x",
+    id: "modulo",
+    name: "Modulo",
+    type: "modulo",
+    description: "Calculates the remainder after division",
+    category: "Number",
+    icon: "percent",
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },
@@ -28,8 +28,12 @@ export class MultiplicationNode extends BaseExecutableNode {
         return this.createErrorResult("Both inputs must be numbers");
       }
 
+      if (b === 0) {
+        return this.createErrorResult("Modulo by zero is not allowed");
+      }
+
       return this.createSuccessResult({
-        result: a * b,
+        result: a % b,
       });
     } catch (error) {
       return this.createErrorResult(

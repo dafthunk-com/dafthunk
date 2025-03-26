@@ -14,7 +14,7 @@ export class MonacoEditorNode extends BaseExecutableNode {
     name: "JSON Editor",
     type: "monaco-editor",
     description: "A Monaco Editor widget for editing and validating JSON",
-    category: "Widgets",
+    category: "JSON",
     icon: "code",
     inputs: [
       {

@@ -2,25 +2,25 @@ import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
- * InputText node implementation
- * This node provides a text input widget that outputs the entered text value.
+ * TextArea node implementation
+ * This node provides a text area widget that outputs the entered text value.
  *
- * The text input's current value is stored as an input parameter named "value"
+ * The text area's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class InputTextNode extends BaseExecutableNode {
+export class TextAreaNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "input-text",
-    name: "Text Input",
-    type: "input-text",
-    description: "A text input widget for entering single-line text",
-    category: "Widgets",
+    id: "text-area",
+    name: "Text Area",
+    type: "text-area",
+    description: "A text area widget for entering multi-line text",
+    category: "Text",
     icon: "text",
     inputs: [
       {
         name: "value",
         type: "string",
-        description: "Current text value in the input",
+        description: "Current text value in the text area",
         hidden: true,
         value: "", // Default empty string
       },
@@ -36,7 +36,7 @@ export class InputTextNode extends BaseExecutableNode {
       {
         name: "value",
         type: "string",
-        description: "The current text value from the input",
+        description: "The current text value from the text area",
       },
     ],
   };

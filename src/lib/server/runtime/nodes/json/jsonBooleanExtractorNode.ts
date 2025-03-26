@@ -2,53 +2,49 @@ import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
-export class JsonNumberExtractorNode extends BaseExecutableNode {
+export class JsonBooleanExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "jsonNumberExtractor",
-    name: "JSON Number Extractor",
-    description: "Extract a numeric value from a JSON object using JSONPath",
-    category: "Utility",
-    id: "jsonNumberExtractor",
-    icon: "hash",
+    type: "jsonBooleanExtractor",
+    name: "JSON Boolean Extractor",
+    description: "Extract a boolean value from a JSON object using JSONPath",
+    category: "JSON",
+    id: "jsonBooleanExtractor",
+    icon: "toggle",
     inputs: [
       {
         name: "json",
         type: "json",
-        description: "The JSON object to extract the number from",
-        required: true,
+        description: "The JSON object to extract the boolean from",
       },
       {
         name: "path",
         type: "string",
         description:
-          'The JSONPath expression (e.g., "$.user.profile.age" or "$.product.price")',
-        required: true,
+          'The JSONPath expression (e.g., "$.user.profile.isActive" or "$.settings.enabled")',
       },
       {
         name: "defaultValue",
-        type: "number",
-        description: "Default value if no numeric value is found at the path",
-        hidden: true,
+        type: "boolean",
+        description: "Default value if no boolean value is found at the path",
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "number",
-        description: "The extracted numeric value",
+        type: "boolean",
+        description: "The extracted boolean value",
       },
       {
         name: "found",
         type: "boolean",
-        description: "Whether a numeric value was found at the specified path",
-        hidden: true,
+        description: "Whether a boolean value was found at the specified path",
       },
     ],
   };
 
   public async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const { json, path, defaultValue = 0 } = context.inputs;
+      const { json, path, defaultValue = false } = context.inputs;
 
       if (!json || typeof json !== "object") {
         return this.createErrorResult("Invalid or missing JSON input");
@@ -61,14 +57,14 @@ export class JsonNumberExtractorNode extends BaseExecutableNode {
       try {
         const results = JSONPath({ path, json });
 
-        // Get the first result that is a number (including integers and floats)
-        const numberValue = results.find(
-          (value) => typeof value === "number" && !isNaN(value)
+        // Get the first result that is a boolean
+        const booleanValue = results.find(
+          (value) => typeof value === "boolean"
         );
-        const found = typeof numberValue === "number" && !isNaN(numberValue);
+        const found = typeof booleanValue === "boolean";
 
         return this.createSuccessResult({
-          value: found ? numberValue : defaultValue,
+          value: found ? booleanValue : defaultValue,
           found: found,
         });
       } catch (err) {
@@ -80,7 +76,7 @@ export class JsonNumberExtractorNode extends BaseExecutableNode {
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(
-        `Error extracting number: ${error.message}`
+        `Error extracting boolean: ${error.message}`
       );
     }
   }

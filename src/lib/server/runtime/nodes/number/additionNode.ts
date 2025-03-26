@@ -2,16 +2,16 @@ import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
 
 /**
- * Division node implementation
+ * Addition node implementation
  */
-export class DivisionNode extends BaseExecutableNode {
+export class AdditionNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "division",
-    name: "Division",
-    type: "division",
-    description: "Divides one number by another",
-    category: "Math",
-    icon: "divide",
+    id: "addition",
+    name: "Addition",
+    type: "addition",
+    description: "Adds two numbers together",
+    category: "Number",
+    icon: "plus",
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },
@@ -28,12 +28,8 @@ export class DivisionNode extends BaseExecutableNode {
         return this.createErrorResult("Both inputs must be numbers");
       }
 
-      if (b === 0) {
-        return this.createErrorResult("Division by zero is not allowed");
-      }
-
       return this.createSuccessResult({
-        result: a / b,
+        result: a + b,
       });
     } catch (error) {
       return this.createErrorResult(

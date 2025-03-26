@@ -11,7 +11,7 @@ export class CanvasDoodleNode extends BaseExecutableNode {
     name: "Canvas Doodle",
     type: "canvas-doodle",
     description: "A canvas widget for drawing and sketching",
-    category: "Widgets",
+    category: "Image",
     icon: "pencil",
     inputs: [
       {
