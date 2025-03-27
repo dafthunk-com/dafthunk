@@ -31,6 +31,13 @@ export class TextAreaNode extends BaseExecutableNode {
         hidden: true,
         value: undefined, // Allow undefined as default
       },
+      {
+        name: "rows",
+        type: "number",
+        description: "Number of rows to display in the text area",
+        hidden: true,
+        value: 4, // Default number of rows
+      },
     ],
     outputs: [
       {
