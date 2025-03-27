@@ -22,38 +22,44 @@ import { BaseExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 
 // Mock the validateWorkflow function
-vi.mock("./workflowValidation", () => ({
-  validateWorkflow: vi.fn().mockReturnValue([]),
+vi.mock("./runtimeValidation", () => ({
+  validateWorkflow: vi.fn(() => []),
 }));
 
 // Mock the NodeRegistry
-vi.mock("./workflowTypes", async () => {
-  const originalModule = (await vi.importActual("./workflowTypes")) as object;
-  return {
-    ...originalModule,
-    NodeRegistry: {
-      getInstance: vi.fn().mockReturnValue({
-        registerImplementation: vi.fn(),
-        getImplementation: vi.fn(),
-        createExecutableNode: vi.fn((node) => {
-          if (node.type === "unknown-type") {
-            return undefined;
-          }
-          if (node.type === "failing") {
-            return new FailingMockExecutableNode(node);
-          }
-          if (node.type === "start") {
-            return new StartNode(node);
-          }
-          if (node.type === "process") {
-            return new ProcessNode(node);
-          }
-          return new MockExecutableNode(node);
-        }),
+vi.mock("./workflowTypes", () => ({
+  NodeRegistry: {
+    getInstance: vi.fn(() => ({
+      registerImplementation: vi.fn((Implementation) => {
+        if (Implementation?.nodeType?.type) {
+          // Mock registration
+        }
       }),
-    },
-  };
-});
+      createExecutableNode: vi.fn((node) => {
+        switch (node.type) {
+          case "start":
+            return new StartNode(node);
+          case "process":
+            return new ProcessNode(node);
+          case "failing":
+            return new FailingMockExecutableNode(node);
+          case "mock":
+            return new MockExecutableNode(node);
+          case "unknown-type":
+            return undefined;
+          default:
+            return new MockExecutableNode(node);
+        }
+      }),
+      getNodeTypes: vi.fn(() => [
+        StartNode.nodeType,
+        ProcessNode.nodeType,
+        MockExecutableNode.nodeType,
+        FailingMockExecutableNode.nodeType,
+      ]),
+    })),
+  },
+}));
 
 // Create a mock node implementation for testing
 class MockExecutableNode extends BaseExecutableNode {
@@ -64,8 +70,8 @@ class MockExecutableNode extends BaseExecutableNode {
     description: "A mock node for testing",
     category: "Test",
     icon: "test",
-    inputs: [],
-    outputs: [],
+    inputs: [{ name: "input", type: "string" }],
+    outputs: [{ name: "output", type: "string" }],
   };
 
   executeMock: ReturnType<typeof vi.fn>;
@@ -74,7 +80,7 @@ class MockExecutableNode extends BaseExecutableNode {
     super(node);
     this.executeMock = vi.fn().mockResolvedValue({
       success: true,
-      outputs: { result: `Output from ${node.id}` },
+      outputs: { output: `Output from ${node.id}` },
     });
   }
 
@@ -84,13 +90,30 @@ class MockExecutableNode extends BaseExecutableNode {
 }
 
 // Create a mock node implementation that fails
-class FailingMockExecutableNode extends MockExecutableNode {
+class FailingMockExecutableNode extends BaseExecutableNode {
+  static readonly nodeType: NodeType = {
+    id: "failing",
+    name: "Failing Node",
+    type: "failing",
+    description: "A failing node for testing",
+    category: "Test",
+    icon: "test",
+    inputs: [{ name: "input", type: "string" }],
+    outputs: [{ name: "output", type: "string" }],
+  };
+
+  executeMock: ReturnType<typeof vi.fn>;
+
   constructor(node: Node) {
     super(node);
     this.executeMock = vi.fn().mockResolvedValue({
       success: false,
       error: `Error executing node ${node.id}`,
     });
+  }
+
+  async execute(context: NodeContext): Promise<ExecutionResult> {
+    return this.executeMock(context);
   }
 }
 
@@ -100,6 +123,12 @@ let originalConsoleError: typeof console.error;
 beforeAll(() => {
   originalConsoleError = console.error;
   console.error = () => {};
+
+  const registry = NodeRegistry.getInstance();
+  registry.registerImplementation(StartNode);
+  registry.registerImplementation(ProcessNode);
+  registry.registerImplementation(MockExecutableNode);
+  registry.registerImplementation(FailingMockExecutableNode);
 });
 
 afterAll(() => {
@@ -113,32 +142,6 @@ describe("WorkflowRuntime", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    (validateWorkflow as any).mockReset();
-    (validateWorkflow as any).mockReturnValue([]);
-
-    mockCreateExecutableNode = vi.fn((node) => {
-      if (node.type === "unknown-type") {
-        return undefined;
-      }
-      if (node.type === "failing") {
-        return new FailingMockExecutableNode(node);
-      }
-      if (node.type === "start") {
-        return new StartNode(node);
-      }
-      if (node.type === "process") {
-        return new ProcessNode(node);
-      }
-      return new MockExecutableNode(node);
-    });
-
-    (NodeRegistry.getInstance as any).mockReturnValue({
-      registerImplementation: vi.fn(),
-      getImplementation: vi.fn(),
-      createExecutableNode: mockCreateExecutableNode,
-    });
-
     mockWorkflow = {
       id: "test-workflow",
       name: "Test Workflow",
@@ -321,3 +324,4 @@ describe("WorkflowRuntime", () => {
     expect(state.executedNodes).toContain("node-3");
   });
 });
+

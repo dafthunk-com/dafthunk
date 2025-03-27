@@ -5,8 +5,8 @@ import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodeTypeRegistry";
 
 // Mock the validateWorkflow function
-vi.mock("./workflowValidation", () => ({
-  validateWorkflow: vi.fn().mockReturnValue([]),
+vi.mock("./runtimeValidation", () => ({
+  validateWorkflow: vi.fn(() => []),
 }));
 
 // Mock the node registry
