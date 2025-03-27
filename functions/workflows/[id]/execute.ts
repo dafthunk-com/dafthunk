@@ -125,7 +125,7 @@ async function executeWorkflow(
       try {
         await writer.write(data);
       } catch (error) {
-        console.log("Client disconnected:", error);
+        console.error("Client disconnected:", error);
         abortController.abort();
         try {
           await writer.close();
@@ -148,7 +148,6 @@ async function executeWorkflow(
         );
       },
       onNodeComplete: (nodeId, outputs) => {
-        console.log("onNodeComplete", nodeId, outputs);
         if (signal.aborted) return;
         safeWrite(
           createEvent({

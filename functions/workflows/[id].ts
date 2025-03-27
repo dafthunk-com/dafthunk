@@ -71,12 +71,31 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const data = body as any;
     const now = new Date();
 
+    // Validate and sanitize nodes to prevent saving binary data
+    const sanitizedNodes = Array.isArray(data.nodes) 
+      ? data.nodes.map((node: any) => ({
+          ...node,
+          inputs: Array.isArray(node.inputs)
+            ? node.inputs.map((input: any) => ({
+                ...input,
+                value: ['audio', 'image', 'binary'].includes(input.type) ? undefined : input.value
+              }))
+            : [],
+          outputs: Array.isArray(node.outputs)
+            ? node.outputs.map((output: any) => ({
+                ...output,
+                value: ['audio', 'image', 'binary'].includes(output.type) ? undefined : output.value
+              }))
+            : []
+        }))
+      : [];
+
     const [updatedWorkflow] = await db
       .update(workflows)
       .set({
         name: data.name,
         data: {
-          nodes: Array.isArray(data.nodes) ? data.nodes : [],
+          nodes: sanitizedNodes,
           edges: Array.isArray(data.edges) ? data.edges : [],
         },
         updatedAt: now,
