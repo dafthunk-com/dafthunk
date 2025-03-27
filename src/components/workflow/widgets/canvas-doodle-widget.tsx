@@ -35,10 +35,10 @@ export function CanvasDoodleWidget({
     if (!ctx) return;
 
     // Set canvas size with 2x scaling for sharp rendering
-    const dpr = Math.min(window.devicePixelRatio || 1, 2); // Use at most 2x scaling
-    const displayWidth = 172; // Reduced to account for borders and padding
-    const displayHeight = 172; // Reduced to account for borders and padding
-    const scaleFactor = dpr;
+    const dpr = window.devicePixelRatio || 1;
+    const displayWidth = 344; // Doubled from 172 for higher resolution
+    const displayHeight = 344; // Doubled from 172 for higher resolution
+    const scaleFactor = Math.min(dpr, 2); // Cap at 2x for performance
 
     // Set the canvas dimensions for high resolution
     canvas.width = displayWidth * scaleFactor;
@@ -47,9 +47,9 @@ export function CanvasDoodleWidget({
     // Scale the context to counter the increased canvas dimensions
     ctx.scale(scaleFactor, scaleFactor);
 
-    // Set the CSS size
-    canvas.style.width = `${displayWidth}px`;
-    canvas.style.height = `${displayHeight}px`;
+    // Set the CSS size to maintain the same visual size
+    canvas.style.width = `${displayWidth / 2}px`;
+    canvas.style.height = `${displayHeight / 2}px`;
 
     // Fill with white background
     ctx.fillStyle = "white";
@@ -58,13 +58,19 @@ export function CanvasDoodleWidget({
     // Set initial styles with adjusted stroke width for DPR
     ctx.strokeStyle = strokeColor;
     ctx.fillStyle = strokeColor;
-    ctx.lineWidth = strokeWidth * (dpr / 4); // Adjust stroke width for DPR
+    ctx.lineWidth = (strokeWidth * 2) * (scaleFactor / 2); // Increased base stroke width
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
-    // Enable anti-aliasing
+    // Enhanced antialiasing settings
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+    
+    // Additional rendering optimizations
+    ctx.shadowColor = strokeColor;
+    ctx.shadowBlur = 1;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 
     // Load existing drawing if any
     if (config.value) {
@@ -188,8 +194,8 @@ export function CanvasDoodleWidget({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const displayWidth = 172;
-    const displayHeight = 172;
+    const displayWidth = 344;
+    const displayHeight = 344;
     ctx.clearRect(0, 0, displayWidth, displayHeight);
     saveCanvas();
   };

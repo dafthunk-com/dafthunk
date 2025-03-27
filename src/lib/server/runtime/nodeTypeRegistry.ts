@@ -15,6 +15,7 @@ import { JsonBooleanExtractorNode } from "./nodes/json/jsonBooleanExtractorNode"
 import { JsonNumberExtractorNode } from "./nodes/json/jsonNumberExtractorNode";
 import { JsonObjectArrayExtractorNode } from "./nodes/json/jsonObjectArrayExtractorNode";
 import { StringTemplateNode } from "./nodes/text/stringTemplateNode";
+import { SimpleStringTemplateNode } from "./nodes/text/simpleStringTemplateNode";
 import { AdditionNode } from "./nodes/number/additionNode";
 import { SubtractionNode } from "./nodes/number/subtractionNode";
 import { MultiplicationNode } from "./nodes/number/multiplicationNode";
@@ -79,6 +80,7 @@ export function registerNodes(): void {
   registry.registerImplementation(JsonNumberExtractorNode);
   registry.registerImplementation(JsonObjectArrayExtractorNode);
   registry.registerImplementation(StringTemplateNode);
+  registry.registerImplementation(SimpleStringTemplateNode);
   registry.registerImplementation(MonacoEditorNode);
   registry.registerImplementation(LLaVA157BHFNode);
   registry.registerImplementation(CanvasDoodleNode);
