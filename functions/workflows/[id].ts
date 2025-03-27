@@ -71,23 +71,41 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const data = body as any;
     const now = new Date();
 
-    // Validate and sanitize nodes to prevent saving binary data
+    // Validate and sanitize nodes to prevent saving binary data and connected values
     const sanitizedNodes = Array.isArray(data.nodes) 
-      ? data.nodes.map((node: any) => ({
-          ...node,
-          inputs: Array.isArray(node.inputs)
-            ? node.inputs.map((input: any) => ({
-                ...input,
-                value: ['audio', 'image', 'binary'].includes(input.type) ? undefined : input.value
-              }))
-            : [],
-          outputs: Array.isArray(node.outputs)
-            ? node.outputs.map((output: any) => ({
-                ...output,
-                value: ['audio', 'image', 'binary'].includes(output.type) ? undefined : output.value
-              }))
-            : []
-        }))
+      ? data.nodes.map((node: any) => {
+          // Get all edges where this node is the target
+          const incomingEdges = Array.isArray(data.edges) 
+            ? data.edges.filter((edge: any) => edge.target === node.id)
+            : [];
+
+          return {
+            ...node,
+            inputs: Array.isArray(node.inputs)
+              ? node.inputs.map((input: any) => {
+                  // Check if this input is connected to another node
+                  const isConnected = incomingEdges.some(
+                    (edge: any) => edge.targetInput === input.name
+                  );
+
+                  return {
+                    ...input,
+                    // Don't save values for connected parameters or binary types
+                    value: isConnected || ['audio', 'image', 'binary'].includes(input.type) 
+                      ? undefined 
+                      : input.value
+                  };
+                })
+              : [],
+            outputs: Array.isArray(node.outputs)
+              ? node.outputs.map((output: any) => ({
+                  ...output,
+                  // Never save output values
+                  value: undefined
+                }))
+              : []
+          };
+        })
       : [];
 
     const [updatedWorkflow] = await db
