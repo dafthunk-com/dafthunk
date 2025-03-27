@@ -196,8 +196,8 @@ export function EditorPage() {
                 name: output.id,
                 type: output.type,
                 description: output.name,
-                value: output.value,
                 hidden: output.hidden,
+                // we don't save the value here as it's not needed for executing the workflow
               })),
             };
           });
