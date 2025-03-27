@@ -1,5 +1,5 @@
 import { createDataUrl } from "@/lib/utils/binaryUtils";
-import { WorkflowParameter } from "./workflow-types";
+import { WorkflowParameter, AudioData } from "./workflow-types";
 import { useEffect, useRef, useState } from "react";
 
 interface WorkflowOutputRendererProps {
@@ -36,7 +36,13 @@ export function WorkflowOutputRenderer({
 }: WorkflowOutputRendererProps) {
   if (output.type === "image" && output.value) {
     try {
-      const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
+      // Validate image data structure
+      const imageValue = output.value;
+      if (!imageValue.data || !imageValue.mimeType) {
+        throw new Error("Invalid image data structure");
+      }
+
+      const dataUrl = createDataUrl(imageValue.data, imageValue.mimeType);
       return (
         <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
           <img
@@ -77,23 +83,36 @@ export function WorkflowOutputRenderer({
 
     useEffect(() => {
       try {
+        // Validate audio data structure
+        const audioValue = output.value as AudioData;
+        if (!audioValue.data || !audioValue.mimeType) {
+          throw new Error("Invalid audio data structure");
+        }
+
+        // Log audio data details for debugging
         console.log("Processing audio data:", {
-          dataLength: output.value.data.length,
-          mimeType: output.value.mimeType,
-          sampleData: output.value.data.slice(0, 20),
+          dataLength: audioValue.data.length,
+          mimeType: audioValue.mimeType,
+          dataType: audioValue.data.constructor.name,
         });
 
         // Create the data URL for the audio
-        const dataUrl = createDataUrl(output.value.data, output.value.mimeType);
+        const dataUrl = createDataUrl(audioValue.data, audioValue.mimeType);
         setAudioUrl(dataUrl);
+        setAudioError(null);
 
-        // Log the data URL format (first 100 chars)
-        console.log("Audio data URL:", dataUrl.substring(0, 100) + "...");
+        // Log success
+        console.log("Successfully created audio data URL");
       } catch (error) {
-        console.error("Error creating audio data URL:", error);
-        setAudioError("Failed to process audio data");
+        console.error("Error processing audio data:", error);
+        setAudioError(
+          error instanceof Error
+            ? error.message
+            : "Failed to process audio data"
+        );
+        setAudioUrl(null);
       }
-    }, [output.value.data, output.value.mimeType]);
+    }, [output.value]);
 
     const handleAudioError = (
       e: React.SyntheticEvent<HTMLAudioElement, Event>
@@ -101,8 +120,10 @@ export function WorkflowOutputRenderer({
       console.error("Audio playback error:", e);
       if (audioRef.current) {
         console.log("Audio element error:", audioRef.current.error);
+        const errorMessage =
+          audioRef.current.error?.message || "Unknown audio playback error";
+        setAudioError(`Error playing audio: ${errorMessage}`);
       }
-      setAudioError("Error playing audio. The data may be corrupted.");
     };
 
     // If we already have an error, show it

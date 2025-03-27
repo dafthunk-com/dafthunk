@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
 
 /**
  * ResNet-50 node implementation for image classification
@@ -18,6 +18,7 @@ export class Resnet50Node extends BaseExecutableNode {
         name: "image",
         type: "image",
         description: "The image to classify",
+        required: true,
       },
     ],
     outputs: [
@@ -31,19 +32,15 @@ export class Resnet50Node extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const image = context.inputs.image;
-
-      if (!image) {
-        return this.createErrorResult("Image is required");
-      }
-
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
       }
 
+      const { image } = context.inputs;
+
       // Run the ResNet-50 model for image classification
       const result = await context.env.AI.run("@cf/microsoft/resnet-50", {
-        image: [...image.data],
+        image: Array.from(image.data),
       });
 
       // The result should be an array of classifications

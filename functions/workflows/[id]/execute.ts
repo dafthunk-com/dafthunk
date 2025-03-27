@@ -9,10 +9,10 @@ import {
   Edge,
   WorkflowExecutionOptions,
 } from "../../../src/lib/server/api/apiTypes";
-import { WorkflowRuntime } from "../../../src/lib/server/runtime/workflowRuntime";
+import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
-import { NodeRegistry } from "../../../src/lib/server/runtime/workflowTypes";
+import { NodeRegistry } from "../../../src/lib/server/runtime/runtimeTypes";
 import { use } from "react";
 
 // Helper function to create an SSE event
@@ -203,7 +203,7 @@ async function executeWorkflow(
     };
 
     // Create and execute the workflow runtime
-    const runtime = new WorkflowRuntime(workflowGraph, executionOptions, env);
+    const runtime = new Runtime(workflowGraph, executionOptions, env);
 
     // Execute the workflow in the background
     runtime.execute().catch(async (error) => {

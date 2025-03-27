@@ -1,4 +1,4 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
@@ -18,29 +18,34 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "A text description of the image you want to generate",
+        required: true,
       },
       {
         name: "negative_prompt",
         type: "string",
         description: "Text describing elements to avoid in the generated image",
+        hidden: true,
       },
       {
         name: "height",
         type: "number",
         description: "The height of the generated image in pixels (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "width",
         type: "number",
         description: "The width of the generated image in pixels (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "num_steps",
         type: "number",
         description: "The number of diffusion steps (1-20)",
         value: 20,
+        hidden: true,
       },
       {
         name: "guidance",
@@ -48,6 +53,7 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
         description:
           "Controls how closely the generated image should adhere to the prompt",
         value: 7.5,
+        hidden: true,
       },
     ],
     outputs: [
@@ -79,31 +85,39 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
       const validatedSteps = Math.min(Math.max(num_steps || 20, 1), 20);
       const validatedGuidance = guidance || 7.5;
 
+      // Prepare inputs for the model
+      const inputs = {
+        prompt,
+        negative_prompt: negative_prompt || "",
+        height: validatedHeight,
+        width: validatedWidth,
+        num_steps: validatedSteps,
+        guidance: validatedGuidance,
+      };
+
       // Call Cloudflare AI SDXL-Lightning model
       const stream = (await context.env.AI.run(
         "@cf/bytedance/stable-diffusion-xl-lightning",
-        {
-          prompt,
-          negative_prompt: negative_prompt || "",
-          height: validatedHeight,
-          width: validatedWidth,
-          num_steps: validatedSteps,
-          guidance: validatedGuidance,
-        }
+        inputs
       )) as ReadableStream;
 
       const response = new Response(stream);
       const blob = await response.blob();
+
       const buffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      if (uint8Array.length === 0) {
+        throw new Error("Received empty image data from the API");
+      }
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(new Uint8Array(buffer)),
+          data: uint8Array,
           mimeType: "image/jpeg",
         },
       });
     } catch (error) {
-      console.error(error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

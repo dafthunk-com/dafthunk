@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
 
 /**
  * Stable Diffusion XL Base 1.0 node implementation for text-to-image generation
@@ -18,30 +18,35 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "Text description of the image to generate",
+        required: true,
       },
       {
         name: "negative_prompt",
         type: "string",
         description: "Text describing elements to avoid in the generated image",
         value: undefined,
+        hidden: true,
       },
       {
         name: "width",
         type: "number",
         description: "Width of the generated image (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "height",
         type: "number",
         description: "Height of the generated image (256-2048)",
         value: 1024,
+        hidden: true,
       },
       {
         name: "num_steps",
         type: "number",
         description: "Number of diffusion steps (max 20)",
         value: 20,
+        hidden: true,
       },
       {
         name: "guidance",
@@ -49,12 +54,14 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
         description:
           "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
         value: 7.5,
+        hidden: true,
       },
       {
         name: "seed",
         type: "number",
         description: "Random seed for reproducible results",
         value: undefined,
+        hidden: true,
       },
     ],
     outputs: [
@@ -100,13 +107,25 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
         (i) => i.name === "guidance"
       )?.value as number;
 
+      // Validate and normalize dimensions
+      const validatedWidth = Math.min(
+        Math.max(width ?? defaultWidth, 256),
+        2048
+      );
+      const validatedHeight = Math.min(
+        Math.max(height ?? defaultHeight, 256),
+        2048
+      );
+      const validatedSteps = Math.min(num_steps ?? defaultNumSteps, 20);
+      const validatedGuidance = guidance ?? defaultGuidance;
+
       // Prepare the inputs for the model
       const inputs: Record<string, any> = {
         prompt,
-        width: Math.min(Math.max(width ?? defaultWidth, 256), 2048),
-        height: Math.min(Math.max(height ?? defaultHeight, 256), 2048),
-        num_steps: Math.min(num_steps ?? defaultNumSteps, 20),
-        guidance: guidance ?? defaultGuidance,
+        width: validatedWidth,
+        height: validatedHeight,
+        num_steps: validatedSteps,
+        guidance: validatedGuidance,
       };
 
       // Add optional parameters if provided
@@ -121,11 +140,17 @@ export class StableDiffusionXLBase10Node extends BaseExecutableNode {
 
       const response = new Response(stream);
       const blob = await response.blob();
+
       const buffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      if (uint8Array.length === 0) {
+        throw new Error("Received empty image data from the API");
+      }
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(new Uint8Array(buffer)),
+          data: uint8Array,
           mimeType: "image/jpeg",
         },
       });

@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
@@ -18,6 +18,7 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
         name: "text",
         type: "string",
         description: "The text to analyze for sentiment",
+        required: true,
       },
     ],
     outputs: [
@@ -36,13 +37,7 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const text = context.inputs.text;
-
-      if (!text || typeof text !== "string") {
-        return this.createErrorResult(
-          "Input text is required and must be a string"
-        );
-      }
+      const { text } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");

@@ -1,4 +1,4 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
@@ -18,18 +18,21 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         name: "image",
         type: "image",
         description: "The image to generate a description for",
+        required: true,
       },
       {
         name: "prompt",
         type: "string",
         description: "The input text prompt for guiding the model's response",
         value: "Generate a caption for this image",
+        hidden: true,
       },
       {
         name: "max_tokens",
         type: "number",
         description: "The maximum number of tokens to generate in the response",
         value: 512,
+        hidden: true,
       },
       {
         name: "temperature",
@@ -37,6 +40,7 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         description:
           "Controls the randomness of the output; higher values produce more random results",
         value: 0.7,
+        hidden: true,
       },
       {
         name: "top_p",
@@ -44,6 +48,7 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         description:
           "Controls the diversity of outputs by limiting to the most probable tokens",
         value: 0.95,
+        hidden: true,
       },
       {
         name: "top_k",
@@ -51,6 +56,7 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         description:
           "Limits the AI to choose from the top 'k' most probable words",
         value: 40,
+        hidden: true,
       },
     ],
     outputs: [
@@ -71,24 +77,14 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
       const { image, prompt, max_tokens, temperature, top_p, top_k } =
         context.inputs;
 
-      // Validate inputs
-      if (!image || !image.data) {
-        throw new Error("Image input is required");
-      }
-
-      console.log(
-        `Processing image for LLaVA, data length: ${image.data.length} bytes`
-      );
-      console.log(`Prompt: "${prompt || "Generate a caption for this image"}"`);
-
       // Prepare the image data - convert to array of numbers
       const imageData = Array.from(new Uint8Array(image.data));
 
       // Prepare parameters for the model
       const params: any = {
         image: imageData,
-        prompt: prompt || "Generate a caption for this image",
-        max_tokens: max_tokens || 512,
+        prompt,
+        max_tokens,
       };
 
       // Add optional parameters if provided
@@ -102,8 +98,6 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         params
       );
 
-      console.log("LLaVA response:", response);
-
       // Extract the description from the response
       const { description } = response;
 
@@ -111,7 +105,6 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         description,
       });
     } catch (error) {
-      console.error("LLaVANode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );

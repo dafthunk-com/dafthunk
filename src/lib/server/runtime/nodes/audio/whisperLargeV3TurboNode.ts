@@ -1,4 +1,4 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
 
 /**
@@ -18,6 +18,7 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         name: "audio",
         type: "audio",
         description: "The audio file to transcribe",
+        required: true,
       },
       {
         name: "task",
@@ -33,16 +34,20 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         name: "vad_filter",
         type: "boolean",
         description: "Whether to use voice activity detection",
+        hidden: true,
       },
       {
         name: "initial_prompt",
         type: "string",
         description: "Optional text prompt to guide the transcription",
+        hidden: true,
       },
       {
         name: "prefix",
         type: "string",
-        description: "Optional prefix to append to the beginning of the transcription",
+        description:
+          "Optional prefix to append to the beginning of the transcription",
+        hidden: true,
       },
     ],
     outputs: [
@@ -55,21 +60,25 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         name: "word_count",
         type: "number",
         description: "The number of words in the transcription",
+        hidden: true,
       },
       {
         name: "segments",
         type: "array",
         description: "Detailed transcription segments with timing information",
+        hidden: true,
       },
       {
         name: "vtt",
         type: "string",
         description: "WebVTT format of the transcription",
+        hidden: true,
       },
       {
         name: "transcription_info",
         type: "json",
         description: "Additional information about the transcription",
+        hidden: true,
       },
     ],
   };
@@ -80,23 +89,12 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         throw new Error("AI service is not available");
       }
 
-      const { audio, task, language, vad_filter, initial_prompt, prefix } = context.inputs;
-
-      // Validate required inputs
-      if (!audio || !audio.data) {
-        throw new Error("Audio input is required");
-      }
-
-      console.log(
-        `Processing audio file for speech recognition with Whisper Large V3 Turbo, data length: ${audio.data.length} bytes`
-      );
-
-      // Prepare the audio data - convert back to Uint8Array
-      const audioData = new Uint8Array(audio.data);
+      const { audio, task, language, vad_filter, initial_prompt, prefix } =
+        context.inputs;
 
       // Prepare the request parameters
       const params: Record<string, any> = {
-        audio: Array.from(audioData),
+        audio: Array.from(audio.data),
       };
 
       // Add optional parameters if provided
@@ -107,25 +105,25 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
       if (prefix) params.prefix = prefix;
 
       // Call Cloudflare AI Whisper Large V3 Turbo model
-      const response = await context.env.AI.run("@cf/openai/whisper-large-v3-turbo", params);
-
-      console.log("Whisper Large V3 Turbo transcription response:", response);
+      const response = await context.env.AI.run(
+        "@cf/openai/whisper-large-v3-turbo",
+        params
+      );
 
       // Extract the results
-      const { text, word_count, segments, vtt, transcription_info } = response;
+      const output = {
+        text: response.text,
+        word_count: response.word_count,
+        segments: response.segments,
+        vtt: response.vtt,
+        transcription_info: response.transcription_info,
+      };
 
-      return this.createSuccessResult({
-        text,
-        word_count,
-        segments,
-        vtt,
-        transcription_info,
-      });
+      return this.createSuccessResult(output);
     } catch (error) {
-      console.error("WhisperLargeV3TurboNode execution error:", error);
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-} 
+}

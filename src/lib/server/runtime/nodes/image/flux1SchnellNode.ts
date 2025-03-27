@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
 
 /**
  * FLUX.1 schnell node implementation for text-to-image generation
@@ -18,12 +18,14 @@ export class Flux1SchnellNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "Text description of the image to generate",
+        required: true,
       },
       {
         name: "steps",
         type: "number",
         description: "Number of diffusion steps (default: 4, max: 8)",
         value: 4,
+        hidden: true,
       },
     ],
     outputs: [
@@ -37,12 +39,7 @@ export class Flux1SchnellNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const prompt = context.inputs.prompt;
-      const steps = context.inputs.steps as number | undefined;
-
-      if (!prompt) {
-        return this.createErrorResult("Prompt is required");
-      }
+      const { prompt, steps } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
@@ -53,7 +50,7 @@ export class Flux1SchnellNode extends BaseExecutableNode {
         "@cf/black-forest-labs/flux-1-schnell",
         {
           prompt,
-          ...(steps && { steps }),
+          steps,
         }
       );
 
@@ -66,7 +63,7 @@ export class Flux1SchnellNode extends BaseExecutableNode {
 
       return this.createSuccessResult({
         image: {
-          data: Array.from(bytes),
+          data: bytes,
           mimeType: "image/jpeg",
         },
       });

@@ -1,4 +1,4 @@
-import { Node, NodeContext, ExecutionResult, NodeType } from "../workflowTypes";
+import { Node, NodeContext, ExecutionResult, NodeType } from "../runtimeTypes";
 
 /**
  * Base class for all executable nodes

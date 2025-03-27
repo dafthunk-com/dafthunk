@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 
 /**
  * Simplified LLM node implementation with essential parameters
@@ -17,16 +17,19 @@ export class Llama318BInstructFastNode extends BaseExecutableNode {
         name: "prompt",
         type: "string",
         description: "The input text prompt for the LLM",
+        required: true,
       },
       {
         name: "temperature",
         type: "number",
         description: "Controls randomness in the output (0.0 to 1.0)",
+        hidden: true,
       },
       {
         name: "seed",
         type: "number",
         description: "Random seed for deterministic generation",
+        hidden: true,
       },
     ],
     outputs: [
@@ -41,12 +44,6 @@ export class Llama318BInstructFastNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const { prompt, seed, temperature } = context.inputs;
-
-      if (!prompt || typeof prompt !== "string") {
-        return this.createErrorResult(
-          "Prompt is required and must be a string"
-        );
-      }
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");

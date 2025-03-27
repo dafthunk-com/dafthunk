@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 
 /**
  * Text reranking node implementation using BGE Reranker Base model
@@ -9,7 +9,8 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
     id: "bge-reranker-base",
     name: "BGE Reranker Base",
     type: "bge-reranker-base",
-    description: "Reranks text passages based on their relevance to a query using BGE Reranker Base model",
+    description:
+      "Reranks text passages based on their relevance to a query using BGE Reranker Base model",
     category: "Text",
     icon: "search",
     inputs: [
@@ -17,16 +18,19 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
         name: "query",
         type: "string",
         description: "The query to rank the contexts against",
+        required: true,
       },
       {
         name: "contexts",
         type: "array",
         description: "Array of text passages to rank",
+        required: true,
       },
       {
         name: "topK",
         type: "number",
         description: "Number of top results to return (optional)",
+        hidden: true,
       },
     ],
     outputs: [
@@ -41,18 +45,6 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       const { query, contexts, topK } = context.inputs;
-
-      if (!query || typeof query !== "string") {
-        return this.createErrorResult(
-          "Input query is required and must be a string"
-        );
-      }
-
-      if (!contexts || !Array.isArray(contexts) || contexts.length === 0) {
-        return this.createErrorResult(
-          "Input contexts is required and must be a non-empty array"
-        );
-      }
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
@@ -80,4 +72,4 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { DetrResnet50Node } from "./detrResnet50Node";
-import { Node } from "../../workflowTypes";
+import { Node } from "../../runtimeTypes";
 
 describe("DetrResnet50Node", () => {
   const mockNode: Node = {
@@ -13,6 +13,7 @@ describe("DetrResnet50Node", () => {
         name: "image",
         type: "image",
         description: "The image to use for object detection",
+        required: true,
       },
     ],
     outputs: [
@@ -108,7 +109,7 @@ describe("DetrResnet50Node", () => {
   it("should handle errors during execution", async () => {
     const mockAIRun = vi
       .fn()
-      .mockRejectedValue(new Error("image.data is not iterable"));
+      .mockRejectedValue(new Error("Failed to process image"));
 
     const node = new DetrResnet50Node(mockNode);
     const result = await node.execute({
@@ -128,6 +129,6 @@ describe("DetrResnet50Node", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("image.data is not iterable");
+    expect(result.error).toBe("Failed to process image");
   });
 });

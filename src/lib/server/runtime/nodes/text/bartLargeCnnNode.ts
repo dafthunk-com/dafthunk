@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../workflowTypes";
+import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 
 /**
  * Summarization node implementation using bart-large-cnn model
@@ -17,12 +17,14 @@ export class BartLargeCnnNode extends BaseExecutableNode {
         name: "inputText",
         type: "string",
         description: "The text that you want the model to summarize",
+        required: true,
       },
       {
         name: "maxLength",
         type: "number",
         description: "The maximum length of the generated summary in tokens",
         value: 1024,
+        hidden: true,
       },
     ],
     outputs: [
@@ -36,14 +38,7 @@ export class BartLargeCnnNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const inputText = context.inputs.inputText;
-      const maxLength = context.inputs.maxLength;
-
-      if (!inputText || typeof inputText !== "string") {
-        return this.createErrorResult(
-          "Input text is required and must be a string"
-        );
-      }
+      const { inputText, maxLength } = context.inputs;
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");

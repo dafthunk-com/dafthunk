@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../workflowTypes";
+import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
 
 /**
  * DETR-ResNet-50 node implementation for object detection
@@ -18,6 +18,7 @@ export class DetrResnet50Node extends BaseExecutableNode {
         name: "image",
         type: "image",
         description: "The image to use for object detection",
+        required: true,
       },
     ],
     outputs: [
@@ -44,15 +45,15 @@ export class DetrResnet50Node extends BaseExecutableNode {
 
       // Run the DETR-ResNet-50 model for object detection
       const result = await context.env.AI.run("@cf/facebook/detr-resnet-50", {
-        image: [...image.data],
+        image: Array.from(image.data),
       });
 
-      // The result should be an array of detected objects
-      // Each object has score, label, and box properties
-      // The box property contains xmin, ymin, xmax, ymax coordinates
-      return this.createSuccessResult({
+      // Create properly structured output
+      const output = {
         detections: result,
-      });
+      };
+
+      return this.createSuccessResult(output);
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
