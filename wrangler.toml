@@ -26,3 +26,13 @@ binding = "AI"
 # AI binding for production
 [env.production.ai]
 binding = "AI"
+
+# R2 bucket for development
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "workflow-development"
+
+# R2 bucket for production
+[[env.production.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "workflow-production"
