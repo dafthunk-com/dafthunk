@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { File, X, Upload } from "lucide-react";
+import { File, X, Upload, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export interface DocumentConfig {
   value: string;
@@ -41,10 +42,18 @@ export function DocumentWidget({
       reader.onload = (e) => {
         const base64Data = (e.target?.result as string).split(",")[1];
         
+        // Ensure correct mime type for Excel files
+        let mimeType = file.type;
+        if (file.name.endsWith('.xlsx')) {
+          mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        } else if (file.name.endsWith('.xls')) {
+          mimeType = 'application/vnd.ms-excel';
+        }
+        
         // Create properly structured document output
         const documentOutput = {
           value: base64Data,
-          mimeType: file.type,
+          mimeType,
         };
 
         onChange(JSON.stringify(documentOutput));
@@ -69,18 +78,21 @@ export function DocumentWidget({
     <div className="space-y-2">
       {!compact && <Label>Document Upload</Label>}
       <div className="relative w-full mx-auto">
-        <div className="border rounded-lg overflow-hidden bg-white p-4">
+        <div className={cn(
+          "border rounded-lg overflow-hidden bg-white",
+          compact ? "p-2" : "p-4"
+        )}>
           {fileName ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <File className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center space-x-2 min-w-0">
+                <File className="h-4 w-4 flex-shrink-0 text-gray-500" />
                 <span className="text-sm text-gray-700 truncate">{fileName}</span>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={clearDocument}
-                className="h-8 w-8"
+                className="h-6 w-6 flex-shrink-0"
               >
                 <X className="h-4 w-4" />
               </Button>

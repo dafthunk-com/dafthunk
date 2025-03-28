@@ -69,6 +69,7 @@ export class DocumentNode extends BaseExecutableNode {
 
       // Convert base64 directly to binary (value is already pure base64)
       const binaryString = atob(value);
+
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);

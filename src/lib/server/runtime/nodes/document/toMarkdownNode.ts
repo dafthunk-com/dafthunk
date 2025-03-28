@@ -28,51 +28,35 @@ export class ToMarkdownNode extends BaseExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      let documentInput;
-      try {
-        if (typeof context.inputs.document !== "string") {
-          return this.createErrorResult(
-            `Invalid input type: expected string, got ${typeof context.inputs.document}`
-          );
-        }
-        documentInput = JSON.parse(context.inputs.document);
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown parsing error";
+      const documentInput = context.inputs.document;
+
+      // Validate input is an object with the expected structure
+      if (!documentInput || typeof documentInput !== 'object') {
         return this.createErrorResult(
-          `Invalid input format: expected JSON string. Error: ${errorMessage}`
+          `Invalid input: expected document object, got ${typeof documentInput}`
         );
       }
 
-      const { value, mimeType } = documentInput;
-
-      // Validate inputs
-      if (typeof value !== "string") {
-        return this.createErrorResult("Value must be a string");
-      }
-
-      if (typeof mimeType !== "string") {
-        return this.createErrorResult("MIME type must be a string");
+      // Check if we have the required data and mimeType properties
+      if (!('data' in documentInput) || !('mimeType' in documentInput)) {
+        return this.createErrorResult(
+          'Invalid document format: missing data or mimeType'
+        );
       }
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
       }
 
-      // Convert base64 to binary
-      const binaryString = atob(value);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
+      const extension = this.getFileExtension(documentInput.mimeType);
 
       // Create a Blob from the document data
-      const blob = new Blob([bytes], { type: mimeType });
+      const blob = new Blob([documentInput.data.buffer], { type: documentInput.mimeType });
 
       // Call the toMarkdown API
       const result = await context.env.AI.toMarkdown([
         {
-          name: "document",
+          name: `document.${extension}`,
           blob,
         },
       ]);
@@ -88,6 +72,60 @@ export class ToMarkdownNode extends BaseExecutableNode {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
+    }
+  }
+
+
+  private getFileExtension(mimeType: string): string {
+    switch (mimeType) {
+      // PDF Documents
+      case 'application/pdf':
+        return 'pdf';
+      
+      // Images
+      case 'image/jpeg':
+        return 'jpeg';
+      case 'image/jpg':
+        return 'jpg';
+      case 'image/png':
+        return 'png';
+      case 'image/webp':
+        return 'webp';
+      case 'image/svg+xml':
+        return 'svg';
+      
+      // HTML Documents
+      case 'text/html':
+        return 'html';
+      
+      // XML Documents
+      case 'application/xml':
+        return 'xml';
+      
+      // Microsoft Office Documents
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        return 'xlsx';
+      case 'application/vnd.ms-excel.sheet.macroenabled.12':
+        return 'xlsm';
+      case 'application/vnd.ms-excel.sheet.binary.macroenabled.12':
+        return 'xlsb';
+      case 'application/vnd.ms-excel':
+        return 'xls';
+      
+      // Open Document Format
+      case 'application/vnd.oasis.opendocument.spreadsheet':
+        return 'ods';
+      
+      // CSV
+      case 'text/csv':
+        return 'csv';
+      
+      // Apple Documents
+      case 'application/vnd.apple.numbers':
+        return 'numbers';
+      
+      default:
+        throw new Error(`Unsupported mime type: ${mimeType}`);
     }
   }
 } 
