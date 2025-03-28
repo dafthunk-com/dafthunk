@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
-import { Workflow, Node, Edge } from "./runtimeTypes";
+import { Workflow } from "./runtimeTypes";
 import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
 import {
