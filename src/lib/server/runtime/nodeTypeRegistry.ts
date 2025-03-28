@@ -41,6 +41,8 @@ import { MelottsNode } from "./nodes/audio/melottsNode";
 import { BgeRerankerBaseNode } from "./nodes/text/bgeRerankerBaseNode";
 import { WhisperLargeV3TurboNode } from "./nodes/audio/whisperLargeV3TurboNode";
 import { WhisperTinyEnNode } from "./nodes/audio/whisperTinyEnNode";
+import { DocumentNode } from "./nodes/document/documentNode";
+import { ToMarkdownNode } from "./nodes/document/toMarkdownNode";
 
 /**
  * Register the mathematical operation nodes
@@ -90,4 +92,6 @@ export function registerNodes(): void {
   registry.registerImplementation(MelottsNode);
   registry.registerImplementation(WebcamNode);
   registry.registerImplementation(AudioRecorderNode);
+  registry.registerImplementation(DocumentNode);
+  registry.registerImplementation(ToMarkdownNode);
 }

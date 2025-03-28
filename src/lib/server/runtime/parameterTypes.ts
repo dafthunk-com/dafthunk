@@ -267,3 +267,79 @@ export class AudioParameterType extends ParameterType {
     };
   }
 }
+
+// Document ParameterType
+export class DocumentParameterType extends ParameterType {
+  private static readonly VALID_MIME_TYPES = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/svg+xml",
+    "text/html",
+    "application/xml",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+    "application/vnd.oasis.opendocument.spreadsheet",
+    "text/csv",
+    "application/vnd.apple.numbers"
+  ];
+
+  validate(value: any): { isValid: boolean; error?: string } {
+    if (!value || typeof value !== "object") {
+      return {
+        isValid: false,
+        error: "Value must be an object with data and mimeType",
+      };
+    }
+
+    if (!(value.data instanceof Uint8Array)) {
+      return { isValid: false, error: "Document data must be a Uint8Array" };
+    }
+
+    if (
+      typeof value.mimeType !== "string" ||
+      !DocumentParameterType.VALID_MIME_TYPES.includes(value.mimeType)
+    ) {
+      return {
+        isValid: false,
+        error: `mimeType must be one of: ${DocumentParameterType.VALID_MIME_TYPES.join(", ")}`,
+      };
+    }
+
+    return { isValid: true };
+  }
+
+  serialize(value: any): { data: Uint8Array; mimeType: string } {
+    if (this.validate(value).isValid) {
+      return {
+        data: value.data,
+        mimeType: value.mimeType,
+      };
+    }
+    return {
+      data: new Uint8Array(),
+      mimeType: "application/pdf",
+    };
+  }
+
+  deserialize(value: any): { data: Uint8Array; mimeType: string } {
+    if (this.validate(value).isValid) {
+      return {
+        data: value.data,
+        mimeType: value.mimeType,
+      };
+    }
+    return {
+      data: new Uint8Array(),
+      mimeType: "application/pdf",
+    };
+  }
+
+  getDefaultValue(): { data: Uint8Array; mimeType: string } {
+    return {
+      data: new Uint8Array(),
+      mimeType: "application/pdf",
+    };
+  }
+}

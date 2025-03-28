@@ -89,6 +89,7 @@ export interface NodeContext {
   env?: {
     AI?: {
       run: (model: string, options: any) => any;
+      toMarkdown: (documents: { name: string; blob: Blob }[]) => Promise<{ name: string; mimeType: string; tokens: number; data: string }[]>;
     };
     [key: string]: any;
   };

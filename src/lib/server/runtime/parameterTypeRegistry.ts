@@ -8,6 +8,7 @@ import {
   JsonParameterType,
   ImageParameterType,
   AudioParameterType,
+  DocumentParameterType,
 } from "./parameterTypes";
 
 export class ParameterTypeRegistry {
@@ -24,6 +25,7 @@ export class ParameterTypeRegistry {
     this.register("json", new JsonParameterType());
     this.register("image", new ImageParameterType());
     this.register("audio", new AudioParameterType());
+    this.register("document", new DocumentParameterType());
   }
 
   public static getInstance(): ParameterTypeRegistry {

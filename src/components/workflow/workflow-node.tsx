@@ -12,6 +12,7 @@ import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
 import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
 import { WebcamWidget } from "./widgets/webcam-widget";
 import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
+import { DocumentWidget } from "./widgets/document-widget";
 import {
   Dialog,
   DialogContent,
@@ -150,6 +151,7 @@ export const WorkflowNode = memo(
     const isCanvasDoodleNode = data.nodeType === "canvas-doodle";
     const isWebcamNode = data.nodeType === "webcam";
     const isAudioRecorderNode = data.nodeType === "audio-recorder";
+    const isDocumentNode = data.nodeType === "document";
 
     // Get widget configuration
     const widgetConfig =
@@ -161,7 +163,8 @@ export const WorkflowNode = memo(
       isMonacoEditorNode ||
       isCanvasDoodleNode ||
       isWebcamNode ||
-      isAudioRecorderNode
+      isAudioRecorderNode ||
+      isDocumentNode
         ? createWidgetConfig(id, data.inputs, data.nodeType || "")
         : null;
 
@@ -342,6 +345,15 @@ export const WorkflowNode = memo(
                 "type" in widgetConfig &&
                 widgetConfig.type === "audio-recorder" && (
                   <AudioRecorderWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                    compact={true}
+                  />
+                )}
+              {isDocumentNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "document" && (
+                  <DocumentWidget
                     config={widgetConfig}
                     onChange={handleWidgetChange}
                     compact={true}
