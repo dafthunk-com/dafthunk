@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 import { NodeRegistry } from "../src/lib/server/runtime/runtimeRegistries";
 import { registerNodes } from "../src/lib/server/runtime/nodes/nodeTypeRegistry";
-import { ApiParameterRegistry } from "../src/lib/server/api/apiParameterTypeRegistry";
+import { ApiParameterRegistry } from "../src/lib/server/api/apiRegistries";
 
 export const onRequest: PagesFunction = async (context) => {
   try {

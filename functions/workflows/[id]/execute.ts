@@ -12,8 +12,8 @@ import { Workflow } from "../../../src/lib/server/runtime/runtimeTypes";
 import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
-import { NodeRegistry } from "../../../src/lib/server/runtime/runtimeTypes";
-import { ApiParameterRegistry } from "../../../src/lib/server/api/apiParameterTypeRegistry";
+import { NodeRegistry } from "../../../src/lib/server/runtime/runtimeRegistries";
+import { ApiParameterRegistry } from "../../../src/lib/server/api/apiRegistries";
 
 // Helper function to create an SSE event
 function createEvent(event: {
