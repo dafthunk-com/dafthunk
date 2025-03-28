@@ -1,5 +1,10 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  NumberNodeParameter,
+  StringNodeParameter,
+} from "../nodeParameterTypes";
 
 /**
  * NumberInput node implementation
@@ -19,35 +24,35 @@ export class NumberInputNode extends BaseExecutableNode {
     inputs: [
       {
         name: "value",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Current numeric value in the input",
         hidden: true,
-        value: 0, // Default to 0
+        value: new NumberNodeParameter(0), // Default to 0
       },
       {
         name: "min",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Minimum allowed value",
         hidden: true,
         value: undefined, // Optional
       },
       {
         name: "max",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Maximum allowed value",
         hidden: true,
         value: undefined, // Optional
       },
       {
         name: "step",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Step size for increment/decrement",
         hidden: true,
         value: undefined, // Optional
       },
       {
         name: "placeholder",
-        type: "string",
+        type: StringNodeParameter,
         description: "Placeholder text to show when empty",
         hidden: true,
         value: undefined, // Optional
@@ -56,7 +61,7 @@ export class NumberInputNode extends BaseExecutableNode {
     outputs: [
       {
         name: "value",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The current numeric value from the input",
       },
     ],
@@ -80,7 +85,7 @@ export class NumberInputNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        value,
+        value: new NumberNodeParameter(value),
       });
     } catch (error) {
       return this.createErrorResult(

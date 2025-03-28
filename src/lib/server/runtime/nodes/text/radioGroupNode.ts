@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { StringNodeParameter, ArrayNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 export interface RadioOption {
   value: string;
@@ -26,27 +28,27 @@ export class RadioGroupNode extends BaseExecutableNode {
     inputs: [
       {
         name: "options",
-        type: "array",
+        type: ArrayNodeParameter,
         description: "Array of options for the radio group",
         hidden: true,
-        value: [
+        value: new ArrayNodeParameter([
           { value: "option1", label: "Option 1" },
           { value: "option2", label: "Option 2" },
           { value: "option3", label: "Option 3" },
-        ],
+        ]),
       },
       {
         name: "value",
-        type: "string",
+        type: StringNodeParameter,
         description: "Currently selected value",
         hidden: true,
-        value: "option1", // Default to first option
+        value: new StringNodeParameter("option1"), // Default to first option
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "string",
+        type: StringNodeParameter,
         description: "The selected value from the radio group",
       },
     ],
@@ -87,7 +89,7 @@ export class RadioGroupNode extends BaseExecutableNode {
         value && validValues.includes(value) ? value : options[0].value;
 
       return this.createSuccessResult({
-        value: outputValue,
+        value: new StringNodeParameter(outputValue),
       });
     } catch (error) {
       return this.createErrorResult(

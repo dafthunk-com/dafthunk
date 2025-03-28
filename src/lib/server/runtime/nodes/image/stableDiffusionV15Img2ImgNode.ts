@@ -1,5 +1,11 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import {
+  ImageNodeParameter,
+  NumberNodeParameter,
+  StringNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Image Transformation node implementation using Stable Diffusion v1.5 img2img
@@ -16,51 +22,51 @@ export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "A text description of how you want to transform the image",
         required: true,
       },
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The input image to transform",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "Text describing elements to avoid in the transformed image",
         hidden: true,
       },
       {
         name: "strength",
-        type: "number",
+        type: NumberNodeParameter,
         description: "How strongly to apply the transformation (0-1)",
-        value: 0.75,
+        value: new NumberNodeParameter(0.75),
         hidden: true,
       },
       {
         name: "guidance",
-        type: "number",
+        type: NumberNodeParameter,
         description:
           "Controls how closely the transformation should adhere to the prompt",
-        value: 7.5,
+        value: new NumberNodeParameter(7.5),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The number of diffusion steps (1-20)",
-        value: 20,
+        value: new NumberNodeParameter(20),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The transformed image in PNG format",
       },
     ],
@@ -116,10 +122,10 @@ export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: {
+        image: new ImageNodeParameter({
           data: uint8Array,
           mimeType: "image/png",
-        },
+        }),
       });
     } catch (error) {
       return this.createErrorResult(

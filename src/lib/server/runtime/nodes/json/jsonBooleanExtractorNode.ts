@@ -1,6 +1,12 @@
 import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  BooleanNodeParameter,
+  JsonNodeParameter,
+  StringNodeParameter,
+} from "../nodeParameterTypes";
 
 export class JsonBooleanExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -13,30 +19,31 @@ export class JsonBooleanExtractorNode extends BaseExecutableNode {
     inputs: [
       {
         name: "json",
-        type: "json",
+        type: JsonNodeParameter,
         description: "The JSON object to extract the boolean from",
       },
       {
         name: "path",
-        type: "string",
+        type: StringNodeParameter,
         description:
           'The JSONPath expression (e.g., "$.user.profile.isActive" or "$.settings.enabled")',
       },
       {
         name: "defaultValue",
-        type: "boolean",
+        type: BooleanNodeParameter,
         description: "Default value if no boolean value is found at the path",
+        value: new BooleanNodeParameter(false),
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "boolean",
+        type: BooleanNodeParameter,
         description: "The extracted boolean value",
       },
       {
         name: "found",
-        type: "boolean",
+        type: BooleanNodeParameter,
         description: "Whether a boolean value was found at the specified path",
       },
     ],
@@ -64,8 +71,8 @@ export class JsonBooleanExtractorNode extends BaseExecutableNode {
         const found = typeof booleanValue === "boolean";
 
         return this.createSuccessResult({
-          value: found ? booleanValue : defaultValue,
-          found: found,
+          value: new BooleanNodeParameter(found ? booleanValue : defaultValue),
+          found: new BooleanNodeParameter(found),
         });
       } catch (err) {
         const error = err as Error;

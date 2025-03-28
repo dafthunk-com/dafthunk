@@ -1,24 +1,28 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { StringNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 export class SimpleStringTemplateNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "simpleStringTemplate",
     name: "Simple String Template",
-    description: "Create a string using a template with a single variable injection using ${variable} syntax",
+    description:
+      "Create a string using a template with a single variable injection using ${variable} syntax",
     category: "Text",
     id: "simpleStringTemplate",
     icon: "quote",
     inputs: [
       {
         name: "template",
-        type: "string",
-        description: "The template string with a single variable in ${variable} format",
+        type: StringNodeParameter,
+        description:
+          "The template string with a single variable in ${variable} format",
         required: true,
       },
       {
         name: "variable",
-        type: "string",
+        type: StringNodeParameter,
         description: "The value to replace the ${variable} placeholder with",
         required: true,
       },
@@ -26,7 +30,7 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
     outputs: [
       {
         name: "result",
-        type: "string",
+        type: StringNodeParameter,
         description: "The resulting string with the variable replaced",
       },
     ],
@@ -52,7 +56,7 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
       // Handle empty template string
       if (template === "") {
         return this.createSuccessResult({
-          result: "",
+          result: new StringNodeParameter(""),
         });
       }
 
@@ -68,7 +72,7 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
       const result = this.replaceVariable(template, variable);
 
       return this.createSuccessResult({
-        result,
+        result: new StringNodeParameter(result),
       });
     } catch (err) {
       const error = err as Error;
@@ -77,4 +81,4 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

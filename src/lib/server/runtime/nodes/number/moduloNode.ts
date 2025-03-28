@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import { NumberNodeParameter } from "../nodeParameterTypes";
 
 /**
  * Modulo node implementation - calculates remainder after division
@@ -13,10 +15,10 @@ export class ModuloNode extends BaseExecutableNode {
     category: "Number",
     icon: "percent",
     inputs: [
-      { name: "a", type: "number", required: true },
-      { name: "b", type: "number", required: true },
+      { name: "a", type: NumberNodeParameter, required: true },
+      { name: "b", type: NumberNodeParameter, required: true },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [{ name: "result", type: NumberNodeParameter }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -33,7 +35,7 @@ export class ModuloNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: a % b,
+        result: new NumberNodeParameter(a % b),
       });
     } catch (error) {
       return this.createErrorResult(

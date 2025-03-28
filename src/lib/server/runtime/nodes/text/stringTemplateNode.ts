@@ -1,5 +1,11 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  StringNodeParameter,
+  ArrayNodeParameter,
+  JsonNodeParameter,
+} from "../nodeParameterTypes";
 
 export class StringTemplateNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -13,14 +19,14 @@ export class StringTemplateNode extends BaseExecutableNode {
     inputs: [
       {
         name: "template",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "The template string with variables in ${variableName} format",
         required: true,
       },
       {
         name: "variables",
-        type: "json",
+        type: JsonNodeParameter,
         description: "JSON object containing variable values to inject",
         required: true,
       },
@@ -28,12 +34,12 @@ export class StringTemplateNode extends BaseExecutableNode {
     outputs: [
       {
         name: "result",
-        type: "string",
+        type: StringNodeParameter,
         description: "The resulting string with variables replaced",
       },
       {
         name: "missingVariables",
-        type: "array",
+        type: ArrayNodeParameter,
         description:
           "Array of variable names that were not found in the variables object",
         hidden: true,
@@ -83,8 +89,8 @@ export class StringTemplateNode extends BaseExecutableNode {
       // Handle empty template string
       if (template === "") {
         return this.createSuccessResult({
-          result: "",
-          missingVariables: [],
+          result: new StringNodeParameter(""),
+          missingVariables: new ArrayNodeParameter([]),
         });
       }
 
@@ -98,8 +104,8 @@ export class StringTemplateNode extends BaseExecutableNode {
       );
 
       return this.createSuccessResult({
-        result,
-        missingVariables,
+        result: new StringNodeParameter(result),
+        missingVariables: new ArrayNodeParameter(missingVariables),
       });
     } catch (err) {
       const error = err as Error;

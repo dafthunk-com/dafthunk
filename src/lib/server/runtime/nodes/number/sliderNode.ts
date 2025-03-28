@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NumberNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Slider node implementation
@@ -21,28 +23,28 @@ export class SliderNode extends BaseExecutableNode {
     inputs: [
       {
         name: "min",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Minimum value of the slider",
         hidden: true,
-        value: 0,
+        value: new NumberNodeParameter(0),
       },
       {
         name: "max",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Maximum value of the slider",
         hidden: true,
-        value: 100,
+        value: new NumberNodeParameter(100),
       },
       {
         name: "step",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Step size for the slider",
         hidden: true,
-        value: 1,
+        value: new NumberNodeParameter(1),
       },
       {
         name: "value",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Current value of the slider",
         hidden: true,
       },
@@ -50,7 +52,7 @@ export class SliderNode extends BaseExecutableNode {
     outputs: [
       {
         name: "value",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The selected value from the slider",
       },
     ],
@@ -59,15 +61,15 @@ export class SliderNode extends BaseExecutableNode {
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
       // Get default values from nodeType
-      const defaultMin = SliderNode.nodeType.inputs.find(
-        (i) => i.name === "min"
-      )?.value as number;
-      const defaultMax = SliderNode.nodeType.inputs.find(
-        (i) => i.name === "max"
-      )?.value as number;
-      const defaultStep = SliderNode.nodeType.inputs.find(
-        (i) => i.name === "step"
-      )?.value as number;
+      const defaultMin = SliderNode.nodeType.inputs
+        .find((i) => i.name === "min")
+        ?.value?.getValue() as number;
+      const defaultMax = SliderNode.nodeType.inputs
+        .find((i) => i.name === "max")
+        ?.value?.getValue() as number;
+      const defaultStep = SliderNode.nodeType.inputs
+        .find((i) => i.name === "step")
+        ?.value?.getValue() as number;
 
       // Use provided values or defaults
       const min =
@@ -118,7 +120,7 @@ export class SliderNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: outputValue,
+        value: new NumberNodeParameter(outputValue),
       });
     } catch (error) {
       return this.createErrorResult(

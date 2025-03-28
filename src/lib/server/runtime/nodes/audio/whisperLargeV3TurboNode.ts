@@ -1,5 +1,14 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import {
+  ArrayNodeParameter,
+  AudioNodeParameter,
+  BooleanNodeParameter,
+  JsonNodeParameter,
+  NumberNodeParameter,
+} from "../nodeParameterTypes";
+import { StringNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo
@@ -16,35 +25,35 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: "audio",
+        type: AudioNodeParameter,
         description: "The audio file to transcribe",
         required: true,
       },
       {
         name: "task",
-        type: "string",
+        type: StringNodeParameter,
         description: "The task to perform: 'transcribe' or 'translate'",
       },
       {
         name: "language",
-        type: "string",
+        type: StringNodeParameter,
         description: "The language of the audio (e.g., 'en', 'fr', 'es')",
       },
       {
         name: "vad_filter",
-        type: "boolean",
+        type: BooleanNodeParameter,
         description: "Whether to use voice activity detection",
         hidden: true,
       },
       {
         name: "initial_prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "Optional text prompt to guide the transcription",
         hidden: true,
       },
       {
         name: "prefix",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "Optional prefix to append to the beginning of the transcription",
         hidden: true,
@@ -53,30 +62,30 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
     outputs: [
       {
         name: "text",
-        type: "string",
+        type: StringNodeParameter,
         description: "The transcribed text",
       },
       {
         name: "word_count",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The number of words in the transcription",
         hidden: true,
       },
       {
         name: "segments",
-        type: "array",
+        type: ArrayNodeParameter,
         description: "Detailed transcription segments with timing information",
         hidden: true,
       },
       {
         name: "vtt",
-        type: "string",
+        type: StringNodeParameter,
         description: "WebVTT format of the transcription",
         hidden: true,
       },
       {
         name: "transcription_info",
-        type: "json",
+        type: JsonNodeParameter,
         description: "Additional information about the transcription",
         hidden: true,
       },
@@ -119,7 +128,13 @@ export class WhisperLargeV3TurboNode extends BaseExecutableNode {
         transcription_info: response.transcription_info,
       };
 
-      return this.createSuccessResult(output);
+      return this.createSuccessResult({
+        text: new StringNodeParameter(output.text),
+        word_count: new NumberNodeParameter(output.word_count),
+        segments: new ArrayNodeParameter(output.segments),
+        vtt: new StringNodeParameter(output.vtt),
+        transcription_info: new JsonNodeParameter(output.transcription_info),
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
+import { ExecutionResult, NodeContext } from "../../runtimeTypes";
+import { ArrayNodeParameter, ImageNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * ResNet-50 node implementation for image classification
@@ -16,7 +18,7 @@ export class Resnet50Node extends BaseExecutableNode {
     inputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The image to classify",
         required: true,
       },
@@ -24,7 +26,7 @@ export class Resnet50Node extends BaseExecutableNode {
     outputs: [
       {
         name: "classifications",
-        type: "array",
+        type: ArrayNodeParameter,
         description: "Array of predicted classes with confidence scores",
       },
     ],
@@ -46,7 +48,7 @@ export class Resnet50Node extends BaseExecutableNode {
       // The result should be an array of classifications
       // Each classification has score and label properties
       return this.createSuccessResult({
-        classifications: result,
+        classifications: new ArrayNodeParameter(result),
       });
     } catch (error) {
       return this.createErrorResult(

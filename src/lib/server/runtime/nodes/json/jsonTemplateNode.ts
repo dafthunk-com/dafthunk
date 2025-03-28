@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { JsonNodeParameter } from "../nodeParameterTypes";
+import { ArrayNodeParameter } from "../nodeParameterTypes";
 
 export class JsonTemplateNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -119,8 +121,8 @@ export class JsonTemplateNode extends BaseExecutableNode {
       );
 
       return this.createSuccessResult({
-        result,
-        missingVariables,
+        result: new JsonNodeParameter(result),
+        missingVariables: new ArrayNodeParameter(missingVariables),
       });
     } catch (err) {
       const error = err as Error;

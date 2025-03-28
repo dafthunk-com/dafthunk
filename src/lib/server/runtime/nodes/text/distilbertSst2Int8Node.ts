@@ -1,6 +1,10 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
-
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  NumberNodeParameter,
+  StringNodeParameter,
+} from "../nodeParameterTypes";
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
  */
@@ -16,7 +20,7 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
     inputs: [
       {
         name: "text",
-        type: "string",
+        type: StringNodeParameter,
         description: "The text to analyze for sentiment",
         required: true,
       },
@@ -24,12 +28,12 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
     outputs: [
       {
         name: "positive",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Confidence score for positive sentiment",
       },
       {
         name: "negative",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Confidence score for negative sentiment",
       },
     ],
@@ -54,8 +58,8 @@ export class DistilbertSst2Int8Node extends BaseExecutableNode {
       const negative = result[0];
       const positive = result[1];
       return this.createSuccessResult({
-        positive: positive.score,
-        negative: negative.score,
+        positive: new NumberNodeParameter(positive.score),
+        negative: new NumberNodeParameter(negative.score),
       });
     } catch (error) {
       return this.createErrorResult(

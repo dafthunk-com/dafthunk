@@ -4,16 +4,16 @@ import { createDatabase } from "../../../db";
 import { eq, and } from "drizzle-orm";
 import { workflows } from "../../../db/schema";
 import {
-  Workflow,
   Node,
   Edge,
   WorkflowExecutionOptions,
 } from "../../../src/lib/server/api/apiTypes";
+import { Workflow } from "../../../src/lib/server/runtime/runtimeTypes";
 import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
 import { NodeRegistry } from "../../../src/lib/server/runtime/runtimeTypes";
-import { use } from "react";
+import { ApiParameterRegistry } from "../../../src/lib/server/api/apiParameterTypeRegistry";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -71,19 +71,23 @@ async function executeWorkflow(
       });
     }
 
-    // The data field is already parsed by Drizzle ORM
+    const apiParameterRegistry = ApiParameterRegistry.getInstance();
     const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
     const workflowGraph: Workflow = {
       id: workflow.id,
       name: workflow.name,
-      nodes: workflowData.nodes || [],
+      nodes: workflowData.nodes
+        ? apiParameterRegistry.convertApiNodes(workflowData.nodes)
+        : [],
       edges: workflowData.edges || [],
     };
 
     // Check if user is on free plan and workflow contains AI nodes
     if (user.plan === "free") {
       const registry = NodeRegistry.getInstance();
-      const nodeTypes = registry.getNodeTypes();
+      const nodeTypes = apiParameterRegistry.convertNodeTypes(
+        registry.getRuntimeNodeTypes()
+      );
 
       const aiNodeTypes = new Set(
         nodeTypes

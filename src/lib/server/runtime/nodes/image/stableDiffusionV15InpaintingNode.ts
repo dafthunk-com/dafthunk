@@ -1,5 +1,6 @@
 import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import { ImageNodeParameter } from "../nodeParameterTypes";
 
 /**
  * Image Inpainting node implementation using Stable Diffusion v1.5
@@ -142,10 +143,10 @@ export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: {
+        image: new ImageNodeParameter({
           data: uint8Array,
           mimeType: "image/png",
-        },
+        }),
       });
     } catch (error) {
       return this.createErrorResult(

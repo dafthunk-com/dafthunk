@@ -1,6 +1,12 @@
 import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  StringNodeParameter,
+  BooleanNodeParameter,
+  JsonNodeParameter,
+} from "../nodeParameterTypes";
 
 export class JsonStringExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -13,33 +19,34 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
     inputs: [
       {
         name: "json",
-        type: "json",
+        type: JsonNodeParameter,
         description: "The JSON object to extract the string from",
         required: true,
       },
       {
         name: "path",
-        type: "string",
+        type: StringNodeParameter,
         description:
           'The JSONPath expression (e.g., "$.user.profile.name" or "$.store.books[0].title")',
         required: true,
       },
       {
         name: "defaultValue",
-        type: "string",
+        type: StringNodeParameter,
         description: "Default value if no string value is found at the path",
         hidden: true,
+        value: new StringNodeParameter(""),
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "string",
+        type: StringNodeParameter,
         description: "The extracted string value",
       },
       {
         name: "found",
-        type: "boolean",
+        type: BooleanNodeParameter,
         description: "Whether a string value was found at the specified path",
         hidden: true,
       },
@@ -50,16 +57,8 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
     try {
       const { json, path, defaultValue = "" } = context.inputs;
 
-      // If JSON is null or undefined, return default value
-      if (!json) {
-        return this.createSuccessResult({
-          value: defaultValue,
-          found: false,
-        });
-      }
-
-      if (typeof json !== "object") {
-        return this.createErrorResult("Invalid JSON input");
+      if (!json || typeof json !== "object") {
+        return this.createErrorResult("Invalid or missing JSON input");
       }
 
       if (!path || typeof path !== "string") {
@@ -69,21 +68,13 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
       try {
         const results = JSONPath({ path, json });
 
-        // If no results found, return default value
-        if (!results || results.length === 0) {
-          return this.createSuccessResult({
-            value: defaultValue,
-            found: false,
-          });
-        }
-
         // Get the first result that is a string
         const stringValue = results.find((value) => typeof value === "string");
         const found = typeof stringValue === "string";
 
         return this.createSuccessResult({
-          value: found ? stringValue : defaultValue,
-          found: found,
+          value: new StringNodeParameter(found ? stringValue : defaultValue),
+          found: new BooleanNodeParameter(found),
         });
       } catch (err) {
         const error = err as Error;

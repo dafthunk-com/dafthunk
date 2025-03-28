@@ -1,6 +1,13 @@
 import { JSONPath } from "jsonpath-plus";
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  NumberNodeParameter,
+  BooleanNodeParameter,
+  JsonNodeParameter,
+  StringNodeParameter,
+} from "../nodeParameterTypes";
 
 export class JsonNumberExtractorNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -13,33 +20,34 @@ export class JsonNumberExtractorNode extends BaseExecutableNode {
     inputs: [
       {
         name: "json",
-        type: "json",
+        type: JsonNodeParameter,
         description: "The JSON object to extract the number from",
         required: true,
       },
       {
         name: "path",
-        type: "string",
+        type: StringNodeParameter,
         description:
           'The JSONPath expression (e.g., "$.user.profile.age" or "$.product.price")',
         required: true,
       },
       {
         name: "defaultValue",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Default value if no numeric value is found at the path",
         hidden: true,
+        value: new NumberNodeParameter(0),
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The extracted numeric value",
       },
       {
         name: "found",
-        type: "boolean",
+        type: BooleanNodeParameter,
         description: "Whether a numeric value was found at the specified path",
         hidden: true,
       },
@@ -68,8 +76,8 @@ export class JsonNumberExtractorNode extends BaseExecutableNode {
         const found = typeof numberValue === "number" && !isNaN(numberValue);
 
         return this.createSuccessResult({
-          value: found ? numberValue : defaultValue,
-          found: found,
+          value: new NumberNodeParameter(found ? numberValue : defaultValue),
+          found: new BooleanNodeParameter(found),
         });
       } catch (err) {
         const error = err as Error;

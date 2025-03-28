@@ -72,21 +72,25 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const now = new Date();
 
     // Validate and sanitize nodes to prevent saving binary data
-    const sanitizedNodes = Array.isArray(data.nodes) 
+    const sanitizedNodes = Array.isArray(data.nodes)
       ? data.nodes.map((node: any) => ({
           ...node,
           inputs: Array.isArray(node.inputs)
             ? node.inputs.map((input: any) => ({
                 ...input,
-                value: ['audio', 'image', 'binary'].includes(input.type) ? undefined : input.value
+                value: ["audio", "image", "binary"].includes(input.type)
+                  ? undefined
+                  : input.value,
               }))
             : [],
           outputs: Array.isArray(node.outputs)
             ? node.outputs.map((output: any) => ({
                 ...output,
-                value: ['audio', 'image', 'binary'].includes(output.type) ? undefined : output.value
+                value: ["audio", "image", "binary"].includes(output.type)
+                  ? undefined
+                  : output.value,
               }))
-            : []
+            : [],
         }))
       : [];
 

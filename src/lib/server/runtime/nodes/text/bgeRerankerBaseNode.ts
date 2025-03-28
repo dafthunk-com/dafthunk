@@ -1,5 +1,11 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import {
+  ArrayNodeParameter,
+  StringNodeParameter,
+  NumberNodeParameter,
+} from "../nodeParameterTypes";
 
 /**
  * Text reranking node implementation using BGE Reranker Base model
@@ -16,19 +22,19 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
     inputs: [
       {
         name: "query",
-        type: "string",
+        type: StringNodeParameter,
         description: "The query to rank the contexts against",
         required: true,
       },
       {
         name: "contexts",
-        type: "array",
+        type: ArrayNodeParameter,
         description: "Array of text passages to rank",
         required: true,
       },
       {
         name: "topK",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Number of top results to return (optional)",
         hidden: true,
       },
@@ -36,7 +42,7 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
     outputs: [
       {
         name: "rankings",
-        type: "array",
+        type: ArrayNodeParameter,
         description: "Array of ranked results with scores",
       },
     ],
@@ -65,7 +71,9 @@ export class BgeRerankerBaseNode extends BaseExecutableNode {
         text: contexts[item.id],
       }));
 
-      return this.createSuccessResult({ rankings });
+      return this.createSuccessResult({
+        rankings: new ArrayNodeParameter(rankings),
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

@@ -1,5 +1,11 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import {
+  ImageNodeParameter,
+  NumberNodeParameter,
+  StringNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Image Generation node implementation using Stable Diffusion XL Lightning
@@ -16,50 +22,50 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "A text description of the image you want to generate",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "Text describing elements to avoid in the generated image",
         hidden: true,
       },
       {
         name: "height",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The height of the generated image in pixels (256-2048)",
-        value: 1024,
+        value: new NumberNodeParameter(1024),
         hidden: true,
       },
       {
         name: "width",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The width of the generated image in pixels (256-2048)",
-        value: 1024,
+        value: new NumberNodeParameter(1024),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The number of diffusion steps (1-20)",
-        value: 20,
+        value: new NumberNodeParameter(20),
         hidden: true,
       },
       {
         name: "guidance",
-        type: "number",
+        type: NumberNodeParameter,
         description:
           "Controls how closely the generated image should adhere to the prompt",
-        value: 7.5,
+        value: new NumberNodeParameter(7.5),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The generated image in JPEG format",
       },
     ],
@@ -112,10 +118,10 @@ export class StableDiffusionXLLightningNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: {
+        image: new ImageNodeParameter({
           data: uint8Array,
           mimeType: "image/jpeg",
-        },
+        }),
       });
     } catch (error) {
       return this.createErrorResult(

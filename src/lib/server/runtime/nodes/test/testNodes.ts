@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import { StringNodeParameter } from "../nodeParameterTypes";
 
 /**
  * Start node implementation for testing
@@ -13,12 +15,12 @@ export class StartNode extends BaseExecutableNode {
     category: "Test",
     icon: "play",
     inputs: [],
-    outputs: [{ name: "output", type: "string" }],
+    outputs: [{ name: "output", type: StringNodeParameter }],
   };
 
   async execute(_context: NodeContext): Promise<ExecutionResult> {
     return this.createSuccessResult({
-      output: "Hello from start node",
+      output: new StringNodeParameter("Hello from start node"),
     });
   }
 }
@@ -34,13 +36,13 @@ export class ProcessNode extends BaseExecutableNode {
     description: "A process node for testing",
     category: "Test",
     icon: "cog",
-    inputs: [{ name: "input", type: "string" }],
-    outputs: [{ name: "output", type: "string" }],
+    inputs: [{ name: "input", type: StringNodeParameter }],
+    outputs: [{ name: "output", type: StringNodeParameter }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     return this.createSuccessResult({
-      output: `Processed: ${context.inputs.input}`,
+      output: new StringNodeParameter(`Processed: ${context.inputs.input}`),
     });
   }
 }

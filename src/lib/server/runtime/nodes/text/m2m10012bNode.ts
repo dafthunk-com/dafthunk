@@ -1,6 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
-
+import { ExecutionResult, NodeContext } from "../../runtimeTypes";
+import { StringNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 /**
  * Translation node implementation using m2m100-1.2b model
  */
@@ -15,19 +16,19 @@ export class M2m10012bNode extends BaseExecutableNode {
     inputs: [
       {
         name: "text",
-        type: "string",
+        type: StringNodeParameter,
         description: "The text to be translated",
         required: true,
       },
       {
         name: "sourceLang",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "The language code of the source text (e.g., 'en' for English)",
       },
       {
         name: "targetLang",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "The language code to translate the text into (e.g., 'es' for Spanish)",
         required: true,
@@ -36,7 +37,7 @@ export class M2m10012bNode extends BaseExecutableNode {
     outputs: [
       {
         name: "translatedText",
-        type: "string",
+        type: StringNodeParameter,
         description: "The translated text in the target language",
       },
     ],
@@ -57,7 +58,7 @@ export class M2m10012bNode extends BaseExecutableNode {
       });
 
       return this.createSuccessResult({
-        translatedText: result.translated_text,
+        translatedText: new StringNodeParameter(result.translated_text),
       });
     } catch (error) {
       return this.createErrorResult(

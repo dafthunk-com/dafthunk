@@ -4,12 +4,14 @@ import {
   NodeRegistry,
   NodeContext,
   WorkflowExecutionOptions,
-  NodeType,
 } from "./runtimeTypes";
+import { NodeType } from "./nodes/nodeTypes";
 import { validateWorkflow } from "./runtimeValidation";
-import { registerNodes } from "./nodeTypeRegistry";
+import { registerNodes } from "./nodes/nodeTypeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
-import { ParameterTypeRegistry } from "./parameterTypeRegistry";
+import { RuntimeParameterRegistry } from "./runtimeParameterTypeRegistry";
+import { RuntimeParameter } from "./runtimeParameterTypes";
+import { NodeParameter } from "./nodes/nodeParameterTypes";
 
 // Initialize the node registry
 registerNodes();
@@ -19,14 +21,15 @@ registerNodes();
  */
 export class Runtime {
   private workflow: Workflow;
-  private nodeOutputs: Map<string, Record<string, any>> = new Map();
+  private nodeOutputs: Map<string, Record<string, RuntimeParameter>> =
+    new Map();
   private executedNodes: Set<string> = new Set();
   private nodeErrors: Map<string, string> = new Map();
   private executableNodes: Map<string, BaseExecutableNode> = new Map();
   private options: WorkflowExecutionOptions;
   private env?: any;
   private aborted: boolean = false;
-  private typeRegistry: ParameterTypeRegistry;
+  private typeRegistry: RuntimeParameterRegistry;
 
   constructor(
     workflow: Workflow,
@@ -36,7 +39,7 @@ export class Runtime {
     this.workflow = workflow;
     this.options = options;
     this.env = env;
-    this.typeRegistry = ParameterTypeRegistry.getInstance();
+    this.typeRegistry = RuntimeParameterRegistry.getInstance();
     this.initializeExecutableNodes();
 
     // Set up abort signal listener if provided
@@ -85,8 +88,8 @@ export class Runtime {
   /**
    * Gets the input values for a node based on its incoming connections
    */
-  private getNodeInputs(nodeId: string): Record<string, any> {
-    const inputs: Record<string, any> = {};
+  private getNodeInputs(nodeId: string): Record<string, RuntimeParameter> {
+    const inputs: Record<string, RuntimeParameter> = {};
     const node = this.workflow.nodes.find((n) => n.id === nodeId);
 
     if (!node) return inputs;
@@ -109,7 +112,8 @@ export class Runtime {
         sourceNodeOutputs &&
         sourceNodeOutputs[edge.sourceOutput] !== undefined
       ) {
-        inputs[edge.targetInput] = sourceNodeOutputs[edge.sourceOutput];
+        inputs[edge.targetInput] =
+          sourceNodeOutputs[edge.sourceOutput].getValue();
       }
     }
 
@@ -136,11 +140,11 @@ export class Runtime {
   }
 
   /**
-   * Validates and deserializes inputs for a node
+   * Validates and maps inputs for a node
    */
   private handleNodeInputs(
     nodeId: string,
-    inputs: Record<string, any>
+    inputs: Record<string, RuntimeParameter>
   ): Record<string, any> {
     const node = this.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) {
@@ -153,31 +157,27 @@ export class Runtime {
       throw new Error(`Node type not found for ${nodeId}`);
     }
 
-    // Deserialize inputs
-    const deserializedInputs = this.deserializeInputs(
-      nodeType.nodeType,
-      inputs
-    );
-
     // Validate inputs
-    const validation = this.validateInputs(
-      nodeType.nodeType,
-      deserializedInputs
-    );
+    const validation = this.validateInputs(nodeType.nodeType, inputs);
     if (!validation.isValid) {
       throw new Error(validation.error || "Invalid input data");
     }
 
-    return deserializedInputs;
+    const mappedInputs: Record<string, any> = {};
+    for (const [key, value] of Object.entries(inputs)) {
+      mappedInputs[key] = value.getValue();
+    }
+
+    return mappedInputs;
   }
 
   /**
-   * Validates and serializes outputs for a node
+   * Validates and maps outputs for a node
    */
   private handleNodeOutputs(
     nodeId: string,
-    outputs: Record<string, any>
-  ): Record<string, any> {
+    outputs: Record<string, NodeParameter>
+  ): Record<string, RuntimeParameter> {
     const nodeType = this.executableNodes.get(nodeId)
       ?.constructor as typeof BaseExecutableNode;
     if (!nodeType?.nodeType) {
@@ -190,8 +190,22 @@ export class Runtime {
       throw new Error(validation.error || "Invalid output data");
     }
 
-    // Serialize outputs
-    return this.serializeOutputs(nodeType.nodeType, outputs);
+    const mappedOutputs: Record<string, RuntimeParameter> = {};
+    for (const [key, value] of Object.entries(outputs)) {
+      const outputDef = nodeType.nodeType.outputs.find(
+        (output) => output.name === key
+      );
+      if (!outputDef) {
+        throw new Error(`Unknown output parameter: ${key}`);
+      }
+      const RuntimeType = this.typeRegistry.get(outputDef.type);
+      if (!RuntimeType) {
+        throw new Error(`Unknown output type: ${outputDef.type}`);
+      }
+      mappedOutputs[key] = new RuntimeType(value.getValue());
+    }
+
+    return mappedOutputs;
   }
 
   /**
@@ -199,7 +213,7 @@ export class Runtime {
    */
   private validateInputs(
     nodeType: NodeType,
-    inputs: Record<string, any>
+    inputs: Record<string, RuntimeParameter>
   ): { isValid: boolean; error?: string } {
     // First check if all required parameters are provided
     for (const inputDef of nodeType.inputs) {
@@ -213,24 +227,25 @@ export class Runtime {
 
     // Then validate all provided inputs
     for (const [key, value] of Object.entries(inputs)) {
+      // Validate the runtime parameter type
+      const runtimeValidation = value.validate();
+      if (!runtimeValidation.isValid) {
+        return {
+          isValid: false,
+          error: `Invalid input for ${key}: ${runtimeValidation.error}`,
+        };
+      }
+
       const inputDef = nodeType.inputs.find((input) => input.name === key);
       if (!inputDef) {
         return { isValid: false, error: `Unknown input parameter: ${key}` };
       }
 
-      const type = this.typeRegistry.get(inputDef.type);
-      if (!type) {
+      const RuntimeParameter = this.typeRegistry.get(inputDef.type);
+      if (!RuntimeParameter) {
         return {
           isValid: false,
           error: `Unknown parameter type: ${inputDef.type}`,
-        };
-      }
-
-      const validation = type.validate(value);
-      if (!validation.isValid) {
-        return {
-          isValid: false,
-          error: `Invalid input for ${key}: ${validation.error}`,
         };
       }
     }
@@ -242,75 +257,40 @@ export class Runtime {
    */
   private validateOutputs(
     nodeType: NodeType,
-    outputs: Record<string, any>
+    outputs: Record<string, NodeParameter>
   ): { isValid: boolean; error?: string } {
     for (const [key, value] of Object.entries(outputs)) {
+      // Validate the node parameter type
+      const nodeValidation = value.validate();
+      if (!nodeValidation.isValid) {
+        return {
+          isValid: false,
+          error: `Invalid output for ${key}: ${nodeValidation.error}`,
+        };
+      }
+
+      // Validate the runtime parameter type
       const outputDef = nodeType.outputs.find((output) => output.name === key);
       if (!outputDef) {
         return { isValid: false, error: `Unknown output parameter: ${key}` };
       }
-
-      const type = this.typeRegistry.get(outputDef.type);
-      if (!type) {
+      const Type = this.typeRegistry.get(outputDef.type);
+      if (!Type) {
         return {
           isValid: false,
           error: `Unknown parameter type: ${outputDef.type}`,
         };
       }
 
-      const validation = type.validate(value);
-      if (!validation.isValid) {
+      const runtimeValidation = new Type(value.getValue()).validate();
+      if (!runtimeValidation.isValid) {
         return {
           isValid: false,
-          error: `Invalid output for ${key}: ${validation.error}`,
+          error: `Invalid output for ${key}: ${runtimeValidation.error}`,
         };
       }
     }
     return { isValid: true };
-  }
-
-  /**
-   * Serializes outputs according to their types
-   */
-  private serializeOutputs(
-    nodeType: NodeType,
-    outputs: Record<string, any>
-  ): Record<string, any> {
-    const serialized: Record<string, any> = {};
-
-    for (const [key, value] of Object.entries(outputs)) {
-      const outputDef = nodeType.outputs.find((output) => output.name === key);
-      if (!outputDef) continue;
-
-      const type = this.typeRegistry.get(outputDef.type);
-      if (!type) continue;
-
-      serialized[key] = type.serialize(value);
-    }
-
-    return serialized;
-  }
-
-  /**
-   * Deserializes inputs according to their types
-   */
-  private deserializeInputs(
-    nodeType: NodeType,
-    inputs: Record<string, any>
-  ): Record<string, any> {
-    const deserialized: Record<string, any> = {};
-
-    for (const [key, value] of Object.entries(inputs)) {
-      const inputDef = nodeType.inputs.find((input) => input.name === key);
-      if (!inputDef) continue;
-
-      const type = this.typeRegistry.get(inputDef.type);
-      if (!type) continue;
-
-      deserialized[key] = type.deserialize(value);
-    }
-
-    return deserialized;
   }
 
   /**
@@ -346,7 +326,7 @@ export class Runtime {
       // Get input values for the node
       const rawInputs = this.getNodeInputs(nodeId);
 
-      // Handle input validation and deserialization
+      // Handle input validation and mapping
       const inputs = this.handleNodeInputs(nodeId, rawInputs);
 
       // Create node context
@@ -379,7 +359,7 @@ export class Runtime {
 
         // Notify node complete
         if (this.options.onNodeComplete) {
-          this.options.onNodeComplete(nodeId, outputs);
+          this.options.onNodeComplete(nodeId, this.getApiNodeOutputs(outputs));
         }
       } else {
         // Store the error
@@ -469,7 +449,7 @@ export class Runtime {
       // If execution was aborted, exit early
       if (this.aborted) {
         console.log("Workflow execution was aborted");
-        return this.nodeOutputs;
+        return this.getApiOutputs();
       }
 
       // Check if all nodes were executed
@@ -491,7 +471,7 @@ export class Runtime {
         this.options.onExecutionComplete();
       }
 
-      return this.nodeOutputs;
+      return this.getApiOutputs();
     } catch (error) {
       // Don't log aborted executions as errors
       if (!this.aborted) {
@@ -521,8 +501,30 @@ export class Runtime {
     return {
       executedNodes: Array.from(this.executedNodes),
       errorNodes: this.nodeErrors,
-      outputs: this.nodeOutputs,
+      outputs: this.getApiOutputs(),
       aborted: this.aborted,
     };
+  }
+
+  private getApiOutputs(): Map<string, Record<string, any>> {
+    const outputs = new Map<string, Record<string, any>>();
+    for (const [nodeId, nodeOutputs] of this.nodeOutputs.entries()) {
+      const apiOutputs: Record<string, any> = {};
+      for (const [key, value] of Object.entries(nodeOutputs)) {
+        apiOutputs[key] = value.getValue();
+      }
+      outputs.set(nodeId, apiOutputs);
+    }
+    return outputs;
+  }
+
+  private getApiNodeOutputs(
+    output: Record<string, RuntimeParameter>
+  ): Record<string, any> {
+    const apiOutputs: Record<string, any> = {};
+    for (const [key, value] of Object.entries(output)) {
+      apiOutputs[key] = value.getValue();
+    }
+    return apiOutputs;
   }
 }

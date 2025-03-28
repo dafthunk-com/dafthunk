@@ -1,5 +1,11 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
+import { ExecutionResult, NodeContext } from "../../runtimeTypes";
+import {
+  ImageNodeParameter,
+  StringNodeParameter,
+  NumberNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * DreamShaper 8 LCM node implementation for text-to-image generation
@@ -16,48 +22,48 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "Text description of the image to generate",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "Text describing elements to avoid in the generated image",
         hidden: true,
       },
       {
         name: "width",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Width of the generated image (256-2048)",
-        value: 1024,
+        value: new NumberNodeParameter(1024),
         hidden: true,
       },
       {
         name: "height",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Height of the generated image (256-2048)",
-        value: 1024,
+        value: new NumberNodeParameter(1024),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Number of diffusion steps (1-20)",
-        value: 20,
+        value: new NumberNodeParameter(20),
         hidden: true,
       },
       {
         name: "guidance",
-        type: "number",
+        type: NumberNodeParameter,
         description:
           "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
-        value: 7.5,
+        value: new NumberNodeParameter(7.5),
         hidden: true,
       },
       {
         name: "seed",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Random seed for reproducible results",
         hidden: true,
       },
@@ -65,7 +71,7 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
     outputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The generated image in JPEG format",
       },
     ],
@@ -94,18 +100,18 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
       }
 
       // Get default values from node type definition
-      const defaultWidth = DreamShaper8LCMNode.nodeType.inputs.find(
-        (i) => i.name === "width"
-      )?.value as number;
-      const defaultHeight = DreamShaper8LCMNode.nodeType.inputs.find(
-        (i) => i.name === "height"
-      )?.value as number;
-      const defaultNumSteps = DreamShaper8LCMNode.nodeType.inputs.find(
-        (i) => i.name === "num_steps"
-      )?.value as number;
-      const defaultGuidance = DreamShaper8LCMNode.nodeType.inputs.find(
-        (i) => i.name === "guidance"
-      )?.value as number;
+      const defaultWidth = DreamShaper8LCMNode.nodeType.inputs
+        .find((i) => i.name === "width")
+        ?.value?.getValue() as number;
+      const defaultHeight = DreamShaper8LCMNode.nodeType.inputs
+        .find((i) => i.name === "height")
+        ?.value?.getValue() as number;
+      const defaultNumSteps = DreamShaper8LCMNode.nodeType.inputs
+        .find((i) => i.name === "num_steps")
+        ?.value?.getValue() as number;
+      const defaultGuidance = DreamShaper8LCMNode.nodeType.inputs
+        .find((i) => i.name === "guidance")
+        ?.value?.getValue() as number;
 
       // Validate and prepare inputs
       const validatedWidth = Math.min(
@@ -155,15 +161,12 @@ export class DreamShaper8LCMNode extends BaseExecutableNode {
 
       const buffer = await blob.arrayBuffer();
 
-      // Create properly structured output with Uint8Array
-      const output = {
-        image: {
+      return this.createSuccessResult({
+        image: new ImageNodeParameter({
           data: new Uint8Array(buffer),
           mimeType: "image/jpeg",
-        },
-      };
-
-      return this.createSuccessResult(output);
+        }),
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Failed to generate image"

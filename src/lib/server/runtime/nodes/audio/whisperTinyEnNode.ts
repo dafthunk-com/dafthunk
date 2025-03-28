@@ -1,5 +1,12 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import {
+  ArrayNodeParameter,
+  StringNodeParameter,
+  NumberNodeParameter,
+  AudioNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Speech Recognition node implementation using Whisper Tiny English
@@ -16,7 +23,7 @@ export class WhisperTinyEnNode extends BaseExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: "audio",
+        type: AudioNodeParameter,
         description: "The audio file to transcribe",
         required: true,
       },
@@ -24,24 +31,24 @@ export class WhisperTinyEnNode extends BaseExecutableNode {
     outputs: [
       {
         name: "text",
-        type: "string",
+        type: StringNodeParameter,
         description: "The transcribed text",
       },
       {
         name: "word_count",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The number of words in the transcription",
         hidden: true,
       },
       {
         name: "words",
-        type: "array",
+        type: ArrayNodeParameter,
         description: "Detailed word timing information",
         hidden: true,
       },
       {
         name: "vtt",
-        type: "string",
+        type: StringNodeParameter,
         description: "WebVTT format of the transcription",
         hidden: true,
       },
@@ -69,7 +76,12 @@ export class WhisperTinyEnNode extends BaseExecutableNode {
         vtt: response.vtt,
       };
 
-      return this.createSuccessResult(output);
+      return this.createSuccessResult({
+        text: new StringNodeParameter(output.text),
+        word_count: new NumberNodeParameter(output.word_count),
+        words: new ArrayNodeParameter(output.words),
+        vtt: new StringNodeParameter(output.vtt),
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

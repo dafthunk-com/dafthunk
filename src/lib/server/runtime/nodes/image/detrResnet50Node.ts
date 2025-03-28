@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext, NodeType } from "../../runtimeTypes";
+import { ExecutionResult, NodeContext } from "../../runtimeTypes";
+import { ArrayNodeParameter, ImageNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * DETR-ResNet-50 node implementation for object detection
@@ -16,7 +18,7 @@ export class DetrResnet50Node extends BaseExecutableNode {
     inputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The image to use for object detection",
         required: true,
       },
@@ -24,7 +26,7 @@ export class DetrResnet50Node extends BaseExecutableNode {
     outputs: [
       {
         name: "detections",
-        type: "array",
+        type: ArrayNodeParameter,
         description:
           "Array of detected objects with scores, labels, and bounding boxes",
       },
@@ -48,12 +50,9 @@ export class DetrResnet50Node extends BaseExecutableNode {
         image: Array.from(image.data),
       });
 
-      // Create properly structured output
-      const output = {
-        detections: result,
-      };
-
-      return this.createSuccessResult(output);
+      return this.createSuccessResult({
+        detections: new ArrayNodeParameter(result),
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

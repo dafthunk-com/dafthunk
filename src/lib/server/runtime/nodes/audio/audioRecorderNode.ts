@@ -1,5 +1,11 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import {
+  AudioNodeParameter,
+  StringNodeParameter,
+  NumberNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * AudioRecorder node implementation
@@ -17,30 +23,30 @@ export class AudioRecorderNode extends BaseExecutableNode {
     inputs: [
       {
         name: "value",
-        type: "string",
+        type: StringNodeParameter,
         description: "Current audio recording as base64",
         hidden: true,
-        value: "", // Default empty string
+        value: new StringNodeParameter(""), // Default empty string
       },
       {
         name: "sampleRate",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Audio sample rate in Hz",
         hidden: true,
-        value: 44100,
+        value: new NumberNodeParameter(44100),
       },
       {
         name: "channels",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Number of audio channels",
         hidden: true,
-        value: 1,
+        value: new NumberNodeParameter(1),
       },
     ],
     outputs: [
       {
         name: "audio",
-        type: "audio",
+        type: AudioNodeParameter,
         description: "The recorded audio as a base64 encoded audio file",
       },
     ],
@@ -98,7 +104,7 @@ export class AudioRecorderNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        audio: audioOutput,
+        audio: new AudioNodeParameter(audioOutput),
       });
     } catch (error) {
       return this.createErrorResult(

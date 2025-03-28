@@ -1,5 +1,11 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import {
+  ImageNodeParameter,
+  StringNodeParameter,
+  NumberNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Image-to-Text node implementation using LLaVA 1.5 7B HF
@@ -16,53 +22,53 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
     inputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The image to generate a description for",
         required: true,
       },
       {
         name: "prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "The input text prompt for guiding the model's response",
-        value: "Generate a caption for this image",
+        value: new StringNodeParameter("Generate a caption for this image"),
         hidden: true,
       },
       {
         name: "max_tokens",
-        type: "number",
+        type: NumberNodeParameter,
         description: "The maximum number of tokens to generate in the response",
-        value: 512,
+        value: new NumberNodeParameter(512),
         hidden: true,
       },
       {
         name: "temperature",
-        type: "number",
+        type: NumberNodeParameter,
         description:
           "Controls the randomness of the output; higher values produce more random results",
-        value: 0.7,
+        value: new NumberNodeParameter(0.7),
         hidden: true,
       },
       {
         name: "top_p",
-        type: "number",
+        type: NumberNodeParameter,
         description:
           "Controls the diversity of outputs by limiting to the most probable tokens",
-        value: 0.95,
+        value: new NumberNodeParameter(0.95),
         hidden: true,
       },
       {
         name: "top_k",
-        type: "number",
+        type: NumberNodeParameter,
         description:
           "Limits the AI to choose from the top 'k' most probable words",
-        value: 40,
+        value: new NumberNodeParameter(40),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "description",
-        type: "string",
+        type: StringNodeParameter,
         description: "The generated text description of the image",
       },
     ],
@@ -98,11 +104,8 @@ export class LLaVA157BHFNode extends BaseExecutableNode {
         params
       );
 
-      // Extract the description from the response
-      const { description } = response;
-
       return this.createSuccessResult({
-        description,
+        description: new StringNodeParameter(response.description),
       });
     } catch (error) {
       return this.createErrorResult(

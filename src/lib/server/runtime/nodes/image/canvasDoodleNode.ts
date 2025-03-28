@@ -1,5 +1,11 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import {
+  ImageNodeParameter,
+  StringNodeParameter,
+  NumberNodeParameter,
+} from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * CanvasDoodle node implementation
@@ -16,44 +22,44 @@ export class CanvasDoodleNode extends BaseExecutableNode {
     inputs: [
       {
         name: "value",
-        type: "string",
+        type: StringNodeParameter,
         description: "Current canvas drawing as base64 image",
         hidden: true,
-        value: "", // Default empty string
+        value: new StringNodeParameter(""), // Default empty string
       },
       {
         name: "width",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Canvas width in pixels",
         hidden: true,
-        value: 300,
+        value: new NumberNodeParameter(300),
       },
       {
         name: "height",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Canvas height in pixels",
         hidden: true,
-        value: 300,
+        value: new NumberNodeParameter(300),
       },
       {
         name: "strokeColor",
-        type: "string",
+        type: StringNodeParameter,
         description: "Color of the drawing stroke",
         hidden: true,
-        value: "#000000",
+        value: new StringNodeParameter("#000000"),
       },
       {
         name: "strokeWidth",
-        type: "number",
+        type: NumberNodeParameter,
         description: "Width of the drawing stroke",
         hidden: true,
-        value: 2,
+        value: new NumberNodeParameter(2),
       },
     ],
     outputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageNodeParameter,
         description: "The canvas drawing as a base64 encoded image",
       },
     ],
@@ -114,7 +120,7 @@ export class CanvasDoodleNode extends BaseExecutableNode {
       };
 
       return this.createSuccessResult({
-        image: imageOutput,
+        image: new ImageNodeParameter(imageOutput),
       });
     } catch (error) {
       return this.createErrorResult(

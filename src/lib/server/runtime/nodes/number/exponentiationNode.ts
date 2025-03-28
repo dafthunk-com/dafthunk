@@ -1,5 +1,7 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeType } from "../nodeTypes";
+import { NumberNodeParameter } from "../nodeParameterTypes";
 
 /**
  * Exponentiation node implementation - raises base to an exponent
@@ -13,10 +15,10 @@ export class ExponentiationNode extends BaseExecutableNode {
     category: "Number",
     icon: "power",
     inputs: [
-      { name: "base", type: "number", required: true },
-      { name: "exponent", type: "number", required: true },
+      { name: "base", type: NumberNodeParameter, required: true },
+      { name: "exponent", type: NumberNodeParameter, required: true },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [{ name: "result", type: NumberNodeParameter }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -29,7 +31,7 @@ export class ExponentiationNode extends BaseExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: Math.pow(base, exponent),
+        result: new NumberNodeParameter(Math.pow(base, exponent)),
       });
     } catch (error) {
       return this.createErrorResult(

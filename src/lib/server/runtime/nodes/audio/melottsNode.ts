@@ -1,5 +1,7 @@
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { BaseExecutableNode } from "../baseNode";
+import { AudioNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 /**
  * Text-to-Speech node implementation using MeloTTS
@@ -15,22 +17,22 @@ export class MelottsNode extends BaseExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: "string",
+        type: StringNodeParameter,
         description: "The text to convert to speech",
         required: true,
       },
       {
         name: "lang",
-        type: "string",
+        type: StringNodeParameter,
         description:
           "The speech language (e.g., 'en' for English, 'fr' for French)",
-        value: "en",
+        value: new StringNodeParameter("en"),
       },
     ],
     outputs: [
       {
         name: "audio",
-        type: "audio",
+        type: AudioNodeParameter,
         description: "The generated audio in MP3 format",
       },
     ],
@@ -83,14 +85,14 @@ export class MelottsNode extends BaseExecutableNode {
       }
 
       // Create properly structured audio output
-      const output = {
-        audio: {
-          data: new Uint8Array(audioBuffer),
-          mimeType: "audio/mpeg",
-        },
+      const audioOutput = {
+        data: new Uint8Array(audioBuffer),
+        mimeType: "audio/mpeg",
       };
 
-      return this.createSuccessResult(output);
+      return this.createSuccessResult({
+        audio: new AudioNodeParameter(audioOutput),
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

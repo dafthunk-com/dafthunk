@@ -1,4 +1,6 @@
-import { Node, NodeContext, ExecutionResult, NodeType } from "../runtimeTypes";
+import { Node, NodeContext, ExecutionResult } from "../runtimeTypes";
+import { NodeType } from "./nodeTypes";
+import { NodeParameter } from "./nodeParameterTypes";
 
 /**
  * Base class for all executable nodes
@@ -13,7 +15,9 @@ export abstract class BaseExecutableNode {
 
   public abstract execute(context: NodeContext): Promise<ExecutionResult>;
 
-  protected createSuccessResult(outputs: Record<string, any>): ExecutionResult {
+  protected createSuccessResult(
+    outputs: Record<string, NodeParameter>
+  ): ExecutionResult {
     return {
       nodeId: this.node.id,
       success: true,
