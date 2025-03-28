@@ -41,7 +41,8 @@ import { MelottsNode } from "./audio/melottsNode";
 import { BgeRerankerBaseNode } from "./text/bgeRerankerBaseNode";
 import { WhisperLargeV3TurboNode } from "./audio/whisperLargeV3TurboNode";
 import { WhisperTinyEnNode } from "./audio/whisperTinyEnNode";
-
+import { StableDiffusionV15InpaintingNode } from "./image/stableDiffusionV15InpaintingNode";
+import { JsonTemplateNode } from "./json/jsonTemplateNode";
 /**
  * Register the mathematical operation nodes
  */
@@ -75,10 +76,12 @@ export function registerNodes(): void {
   registry.registerImplementation(ImageUrlLoaderNode);
   registry.registerImplementation(StableDiffusionXLLightningNode);
   registry.registerImplementation(StableDiffusionV15Img2ImgNode);
+  registry.registerImplementation(StableDiffusionV15InpaintingNode);
   registry.registerImplementation(JsonStringExtractorNode);
   registry.registerImplementation(JsonBooleanExtractorNode);
   registry.registerImplementation(JsonNumberExtractorNode);
   registry.registerImplementation(JsonObjectArrayExtractorNode);
+  registry.registerImplementation(JsonTemplateNode);
   registry.registerImplementation(StringTemplateNode);
   registry.registerImplementation(SimpleStringTemplateNode);
   registry.registerImplementation(MonacoEditorNode);

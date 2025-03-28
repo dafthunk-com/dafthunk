@@ -277,7 +277,9 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
+          // @ts-expect-error
           inputs: [{ name: "input1", type: "invalid-type" }],
+          // @ts-expect-error
           outputs: [{ name: "output1", type: "invalid-type" }],
         },
       ],

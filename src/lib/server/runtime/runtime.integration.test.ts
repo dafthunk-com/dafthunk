@@ -184,8 +184,16 @@ describe("WorkflowRuntime Integration Tests", () => {
           position: { x: 100, y: 100 },
           inputs: [],
           outputs: [
-            { name: "output1", type: "string", value: "Hello 1" },
-            { name: "output2", type: "string", value: "Hello 2" },
+            {
+              name: "output1",
+              type: StringRuntimeParameter,
+              value: new StringRuntimeParameter("Hello 1"),
+            },
+            {
+              name: "output2",
+              type: StringRuntimeParameter,
+              value: new StringRuntimeParameter("Hello 2"),
+            },
           ],
         },
         {
@@ -193,16 +201,16 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Process Node 1",
           type: "process",
           position: { x: 300, y: 50 },
-          inputs: [{ name: "input", type: "string" }],
-          outputs: [{ name: "output", type: "string" }],
+          inputs: [{ name: "input", type: StringRuntimeParameter }],
+          outputs: [{ name: "output", type: StringRuntimeParameter }],
         },
         {
           id: "process-node-2",
           name: "Process Node 2",
           type: "process",
           position: { x: 300, y: 150 },
-          inputs: [{ name: "input", type: "string" }],
-          outputs: [{ name: "output", type: "string" }],
+          inputs: [{ name: "input", type: StringRuntimeParameter }],
+          outputs: [{ name: "output", type: StringRuntimeParameter }],
         },
       ],
       edges: [

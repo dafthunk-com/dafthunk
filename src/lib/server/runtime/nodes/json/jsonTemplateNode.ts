@@ -1,7 +1,8 @@
 import { BaseExecutableNode } from "../baseNode";
-import { NodeContext, ExecutionResult, NodeType } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../runtimeTypes";
 import { JsonNodeParameter } from "../nodeParameterTypes";
 import { ArrayNodeParameter } from "../nodeParameterTypes";
+import { NodeType } from "../nodeTypes";
 
 export class JsonTemplateNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -15,14 +16,14 @@ export class JsonTemplateNode extends BaseExecutableNode {
     inputs: [
       {
         name: "template",
-        type: "json",
+        type: JsonNodeParameter,
         description:
           "The JSON template object with variables in ${variableName} format",
         required: true,
       },
       {
         name: "variables",
-        type: "json",
+        type: JsonNodeParameter,
         description: "JSON object containing variable values to inject",
         required: true,
       },
@@ -30,12 +31,12 @@ export class JsonTemplateNode extends BaseExecutableNode {
     outputs: [
       {
         name: "result",
-        type: "json",
+        type: JsonNodeParameter,
         description: "The resulting JSON object with variables replaced",
       },
       {
         name: "missingVariables",
-        type: "array",
+        type: ArrayNodeParameter,
         description:
           "Array of variable names that were not found in the variables object",
         hidden: true,
