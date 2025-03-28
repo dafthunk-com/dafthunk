@@ -29,10 +29,7 @@ export function TextAreaWidget({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
-        className={cn(
-          "min-h-[80px] resize-y",
-          compact ? "text-sm" : ""
-        )}
+        className={cn("min-h-[80px] resize-y", compact ? "text-sm" : "")}
       />
     </div>
   );

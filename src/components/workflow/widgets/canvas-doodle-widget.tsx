@@ -58,14 +58,14 @@ export function CanvasDoodleWidget({
     // Set initial styles with adjusted stroke width for DPR
     ctx.strokeStyle = strokeColor;
     ctx.fillStyle = strokeColor;
-    ctx.lineWidth = (strokeWidth * 2) * (scaleFactor / 2); // Increased base stroke width
+    ctx.lineWidth = strokeWidth * 2 * (scaleFactor / 2); // Increased base stroke width
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
     // Enhanced antialiasing settings
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    
+
     // Additional rendering optimizations
     ctx.shadowColor = strokeColor;
     ctx.shadowBlur = 1;

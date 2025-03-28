@@ -135,4 +135,4 @@ describe("SimpleStringTemplateNode", () => {
     expect(result.success).toBe(true);
     expect(result.outputs?.result).toBe("Hello, World!");
   });
-}); 
+});

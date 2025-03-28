@@ -323,4 +323,3 @@ describe("WorkflowRuntime", () => {
     expect(state.executedNodes).toContain("node-3");
   });
 });
-

@@ -72,10 +72,10 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
     const now = new Date();
 
     // Validate and sanitize nodes to prevent saving binary data and connected values
-    const sanitizedNodes = Array.isArray(data.nodes) 
+    const sanitizedNodes = Array.isArray(data.nodes)
       ? data.nodes.map((node: any) => {
           // Get all edges where this node is the target
-          const incomingEdges = Array.isArray(data.edges) 
+          const incomingEdges = Array.isArray(data.edges)
             ? data.edges.filter((edge: any) => edge.target === node.id)
             : [];
 
@@ -91,9 +91,11 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
                   return {
                     ...input,
                     // Don't save values for connected parameters or binary types
-                    value: isConnected || ['audio', 'image', 'binary'].includes(input.type) 
-                      ? undefined 
-                      : input.value
+                    value:
+                      isConnected ||
+                      ["audio", "image", "binary"].includes(input.type)
+                        ? undefined
+                        : input.value,
                   };
                 })
               : [],
@@ -101,9 +103,9 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
               ? node.outputs.map((output: any) => ({
                   ...output,
                   // Never save output values
-                  value: undefined
+                  value: undefined,
                 }))
-              : []
+              : [],
           };
         })
       : [];

@@ -5,7 +5,8 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "simpleStringTemplate",
     name: "Simple String Template",
-    description: "Create a string using a template with a single variable injection using ${variable} syntax",
+    description:
+      "Create a string using a template with a single variable injection using ${variable} syntax",
     category: "Text",
     id: "simpleStringTemplate",
     icon: "quote",
@@ -13,7 +14,8 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
       {
         name: "template",
         type: "string",
-        description: "The template string with a single variable in ${variable} format",
+        description:
+          "The template string with a single variable in ${variable} format",
         required: true,
       },
       {
@@ -77,4 +79,4 @@ export class SimpleStringTemplateNode extends BaseExecutableNode {
       );
     }
   }
-} 
+}

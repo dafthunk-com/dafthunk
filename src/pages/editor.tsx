@@ -180,8 +180,10 @@ export function EditorPage() {
           // Convert ReactFlow nodes back to workflow nodes
           const workflowNodes = nodes.map((node) => {
             // Get all edges where this node is the target
-            const incomingEdges = edges.filter(edge => edge.target === node.id);
-            
+            const incomingEdges = edges.filter(
+              (edge) => edge.target === node.id
+            );
+
             return {
               id: node.id,
               name: node.data.name,
@@ -189,8 +191,10 @@ export function EditorPage() {
               position: node.position,
               inputs: node.data.inputs.map((input) => {
                 // Check if this input is connected to another node
-                const isConnected = incomingEdges.some(edge => edge.targetHandle === input.id);
-                
+                const isConnected = incomingEdges.some(
+                  (edge) => edge.targetHandle === input.id
+                );
+
                 return {
                   name: input.id,
                   type: input.type,

@@ -282,7 +282,7 @@ export class DocumentParameterType extends ParameterType {
     "application/vnd.ms-excel",
     "application/vnd.oasis.opendocument.spreadsheet",
     "text/csv",
-    "application/vnd.apple.numbers"
+    "application/vnd.apple.numbers",
   ];
 
   validate(value: any): { isValid: boolean; error?: string } {

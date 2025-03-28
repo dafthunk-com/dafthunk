@@ -6,7 +6,8 @@ export class ToMarkdownNode extends BaseExecutableNode {
     id: "to-markdown",
     name: "To Markdown",
     type: "text",
-    description: "Converts various document formats to Markdown using Cloudflare Workers AI",
+    description:
+      "Converts various document formats to Markdown using Cloudflare Workers AI",
     category: "Text",
     icon: "file-text",
     inputs: [
@@ -31,16 +32,16 @@ export class ToMarkdownNode extends BaseExecutableNode {
       const documentInput = context.inputs.document;
 
       // Validate input is an object with the expected structure
-      if (!documentInput || typeof documentInput !== 'object') {
+      if (!documentInput || typeof documentInput !== "object") {
         return this.createErrorResult(
           `Invalid input: expected document object, got ${typeof documentInput}`
         );
       }
 
       // Check if we have the required data and mimeType properties
-      if (!('data' in documentInput) || !('mimeType' in documentInput)) {
+      if (!("data" in documentInput) || !("mimeType" in documentInput)) {
         return this.createErrorResult(
-          'Invalid document format: missing data or mimeType'
+          "Invalid document format: missing data or mimeType"
         );
       }
 
@@ -51,7 +52,9 @@ export class ToMarkdownNode extends BaseExecutableNode {
       const extension = this.getFileExtension(documentInput.mimeType);
 
       // Create a Blob from the document data
-      const blob = new Blob([documentInput.data.buffer], { type: documentInput.mimeType });
+      const blob = new Blob([documentInput.data.buffer], {
+        type: documentInput.mimeType,
+      });
 
       // Call the toMarkdown API
       const result = await context.env.AI.toMarkdown([
@@ -75,57 +78,56 @@ export class ToMarkdownNode extends BaseExecutableNode {
     }
   }
 
-
   private getFileExtension(mimeType: string): string {
     switch (mimeType) {
       // PDF Documents
-      case 'application/pdf':
-        return 'pdf';
-      
+      case "application/pdf":
+        return "pdf";
+
       // Images
-      case 'image/jpeg':
-        return 'jpeg';
-      case 'image/jpg':
-        return 'jpg';
-      case 'image/png':
-        return 'png';
-      case 'image/webp':
-        return 'webp';
-      case 'image/svg+xml':
-        return 'svg';
-      
+      case "image/jpeg":
+        return "jpeg";
+      case "image/jpg":
+        return "jpg";
+      case "image/png":
+        return "png";
+      case "image/webp":
+        return "webp";
+      case "image/svg+xml":
+        return "svg";
+
       // HTML Documents
-      case 'text/html':
-        return 'html';
-      
+      case "text/html":
+        return "html";
+
       // XML Documents
-      case 'application/xml':
-        return 'xml';
-      
+      case "application/xml":
+        return "xml";
+
       // Microsoft Office Documents
-      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-        return 'xlsx';
-      case 'application/vnd.ms-excel.sheet.macroenabled.12':
-        return 'xlsm';
-      case 'application/vnd.ms-excel.sheet.binary.macroenabled.12':
-        return 'xlsb';
-      case 'application/vnd.ms-excel':
-        return 'xls';
-      
+      case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+        return "xlsx";
+      case "application/vnd.ms-excel.sheet.macroenabled.12":
+        return "xlsm";
+      case "application/vnd.ms-excel.sheet.binary.macroenabled.12":
+        return "xlsb";
+      case "application/vnd.ms-excel":
+        return "xls";
+
       // Open Document Format
-      case 'application/vnd.oasis.opendocument.spreadsheet':
-        return 'ods';
-      
+      case "application/vnd.oasis.opendocument.spreadsheet":
+        return "ods";
+
       // CSV
-      case 'text/csv':
-        return 'csv';
-      
+      case "text/csv":
+        return "csv";
+
       // Apple Documents
-      case 'application/vnd.apple.numbers':
-        return 'numbers';
-      
+      case "application/vnd.apple.numbers":
+        return "numbers";
+
       default:
         throw new Error(`Unsupported mime type: ${mimeType}`);
     }
   }
-} 
+}
