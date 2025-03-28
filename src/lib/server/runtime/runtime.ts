@@ -113,7 +113,9 @@ export class Runtime {
         sourceNodeOutputs[edge.sourceOutput] !== undefined
       ) {
         const sourceOutput = sourceNodeOutputs[edge.sourceOutput];
-        const targetInput = node.inputs.find((input) => input.name === edge.targetInput);
+        const targetInput = node.inputs.find(
+          (input) => input.name === edge.targetInput
+        );
         if (targetInput) {
           inputs[edge.targetInput] = sourceOutput;
         }
