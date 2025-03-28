@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
-import { Workflow } from "./runtimeTypes";
+import { Workflow, Node, Edge } from "./runtimeTypes";
 import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
 import {
@@ -8,7 +8,7 @@ import {
   NumberRuntimeParameter,
 } from "./runtimeParameterTypes";
 // Mock the validateWorkflow function
-vi.mock("./workflowValidation", () => ({
+vi.mock("./runtimeValidation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 

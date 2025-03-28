@@ -23,13 +23,13 @@ import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 import { StringRuntimeParameter } from "./runtimeParameterTypes";
 
 // Mock the validateWorkflow function
-vi.mock("./workflowValidation", () => ({
+vi.mock("./runtimeValidation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 
 // Mock the NodeRegistry
-vi.mock("./workflowTypes", async () => {
-  const originalModule = (await vi.importActual("./workflowTypes")) as object;
+vi.mock("./runtimeTypes", async () => {
+  const originalModule = (await vi.importActual("./runtimeTypes")) as object;
   return {
     ...originalModule,
     NodeRegistry: {

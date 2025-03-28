@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi, afterAll } from "vitest";
 import { Runtime } from "./runtime";
 import {
   Workflow,
@@ -27,16 +27,12 @@ vi.mock("./typeRegistry", () => ({
   },
 }));
 
-// Ensure base nodes are registered
-beforeAll(() => {
-  registerNodes();
-  // Register test nodes
-  const registry = NodeRegistry.getInstance();
-  registry.registerImplementation(StartNode);
-  registry.registerImplementation(ProcessNode);
-  registry.registerImplementation(ErrorNode);
-  registry.registerImplementation(LongRunningNode);
-});
+// Register test nodes
+const registry = NodeRegistry.getInstance();
+registry.registerImplementation(StartNode);
+registry.registerImplementation(ProcessNode);
+registry.registerImplementation(ErrorNode);
+registry.registerImplementation(LongRunningNode);
 
 describe("WorkflowRuntime Integration Tests", () => {
   beforeEach(() => {

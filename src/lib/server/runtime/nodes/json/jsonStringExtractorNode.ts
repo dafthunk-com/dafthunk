@@ -57,8 +57,15 @@ export class JsonStringExtractorNode extends BaseExecutableNode {
     try {
       const { json, path, defaultValue = "" } = context.inputs;
 
-      if (!json || typeof json !== "object") {
-        return this.createErrorResult("Invalid or missing JSON input");
+      if (json === null) {
+        return this.createSuccessResult({
+          value: new StringNodeParameter(defaultValue),
+          found: new BooleanNodeParameter(false),
+        });
+      }
+
+      if (typeof json !== "object") {
+        return this.createErrorResult("Invalid JSON input");
       }
 
       if (!path || typeof path !== "string") {

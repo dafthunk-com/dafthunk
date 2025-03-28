@@ -112,8 +112,11 @@ export class Runtime {
         sourceNodeOutputs &&
         sourceNodeOutputs[edge.sourceOutput] !== undefined
       ) {
-        inputs[edge.targetInput] =
-          sourceNodeOutputs[edge.sourceOutput].getValue();
+        const sourceOutput = sourceNodeOutputs[edge.sourceOutput];
+        const targetInput = node.inputs.find((input) => input.name === edge.targetInput);
+        if (targetInput) {
+          inputs[edge.targetInput] = sourceOutput;
+        }
       }
     }
 
@@ -127,6 +130,11 @@ export class Runtime {
     const incomingEdges = this.workflow.edges.filter(
       (edge) => edge.target === nodeId
     );
+
+    // If there are no incoming edges, the node is ready
+    if (incomingEdges.length === 0) {
+      return true;
+    }
 
     // If any source node has an error, this node can't execute
     for (const edge of incomingEdges) {
