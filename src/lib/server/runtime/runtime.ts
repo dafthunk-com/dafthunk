@@ -9,7 +9,7 @@ import { NodeType } from "./nodes/nodeTypes";
 import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
-import { RuntimeParameterRegistry } from "./runtimeParameterTypeRegistry";
+import { RuntimeParameterRegistry } from "./runtimeRegistries";
 import { RuntimeParameter } from "./runtimeTypes";
 import { NodeParameter } from "./nodes/nodeParameterTypes";
 

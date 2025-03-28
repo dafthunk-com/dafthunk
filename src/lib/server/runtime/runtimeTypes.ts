@@ -2,7 +2,7 @@
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { NodeType as NodeTypeDefinition } from "./nodes/nodeTypes";
 import { NodeParameter } from "./nodes/nodeParameterTypes";
-import { RuntimeParameterRegistry } from "./runtimeParameterTypeRegistry";
+import { RuntimeParameterRegistry } from "./runtimeRegistries";
 
 export interface Position {
   x: number;
