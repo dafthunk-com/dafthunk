@@ -138,7 +138,6 @@ afterAll(() => {
 describe("WorkflowRuntime", () => {
   let mockWorkflow: Workflow;
   let mockOptions: Required<WorkflowExecutionOptions>;
-  let mockCreateExecutableNode: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();

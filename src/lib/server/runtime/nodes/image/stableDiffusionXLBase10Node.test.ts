@@ -105,6 +105,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -148,6 +149,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -189,6 +191,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -227,6 +230,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -263,6 +267,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -284,6 +289,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });

@@ -82,6 +82,7 @@ describe("DetrResnet50Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -124,6 +125,7 @@ describe("DetrResnet50Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });

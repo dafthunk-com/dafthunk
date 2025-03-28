@@ -68,6 +68,7 @@ describe("M2m10012bNode", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -99,6 +100,7 @@ describe("M2m10012bNode", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });
@@ -130,6 +132,7 @@ describe("M2m10012bNode", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: vi.fn().mockResolvedValue([]),
         },
       },
     });

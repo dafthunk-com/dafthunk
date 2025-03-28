@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { File, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface DocumentConfig {
+export interface DocumentConfig {
   value: string;
   mimeType: string;
 }
@@ -20,7 +20,13 @@ export function DocumentWidget({
   compact = false,
 }: DocumentWidgetProps) {
   const [error, setError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(() => {
+    // Initialize fileName from config if it exists and has a value
+    if (config?.value) {
+      return "Uploaded Document";
+    }
+    return null;
+  });
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
