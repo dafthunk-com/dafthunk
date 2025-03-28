@@ -1,8 +1,5 @@
 // Types for workflows
-import { BaseExecutableNode } from "./nodes/baseNode";
-import { NodeType as NodeTypeDefinition } from "./nodes/nodeTypes";
 import { NodeParameter } from "./nodes/nodeParameterTypes";
-import { RuntimeParameterRegistry } from "./runtimeRegistries";
 
 export interface Position {
   x: number;
@@ -97,78 +94,6 @@ export interface NodeContext {
   };
 }
 
-// This interface represents concrete (non-abstract) node implementations
-export interface NodeImplementationConstructor {
-  new (node: Node): BaseExecutableNode;
-  readonly nodeType: NodeTypeDefinition;
-}
-
-export class NodeRegistry {
-  private static instance: NodeRegistry;
-  private implementations: Map<string, NodeImplementationConstructor> =
-    new Map();
-  private parameterRegistry: RuntimeParameterRegistry =
-    RuntimeParameterRegistry.getInstance();
-
-  public static getInstance(): NodeRegistry {
-    if (!NodeRegistry.instance) {
-      NodeRegistry.instance = new NodeRegistry();
-    }
-    return NodeRegistry.instance;
-  }
-
-  public registerImplementation(
-    Implementation: NodeImplementationConstructor
-  ): void {
-    if (!Implementation?.nodeType?.type) {
-      throw new Error("NodeType is not defined");
-    }
-    this.implementations.set(Implementation.nodeType.type, Implementation);
-  }
-
-  public createExecutableNode(node: Node): BaseExecutableNode | undefined {
-    const Implementation = this.implementations.get(node.type);
-    if (!Implementation) {
-      return undefined;
-    }
-    return new Implementation(node);
-  }
-
-  public getRuntimeNodeTypes(): NodeType[] {
-    return Array.from(this.implementations.values()).map((implementation) => {
-      const inputs = implementation.nodeType.inputs.map((input) => {
-        const Type = this.parameterRegistry.get(input.type);
-        if (!Type) {
-          throw new Error(`Unknown parameter type: ${input.type}`);
-        }
-        const value = input.value ? new Type(input.value) : undefined;
-        return {
-          ...input,
-          type: Type,
-          value,
-        };
-      });
-      const outputs = implementation.nodeType.outputs.map((output) => {
-        const Type = this.parameterRegistry.get(output.type);
-        if (!Type) {
-          throw new Error(`Unknown parameter type: ${output.type}`);
-        }
-        const value = output.value ? new Type(output.value) : undefined;
-        return {
-          ...output,
-          type: Type,
-          value,
-        };
-      });
-      return {
-        ...implementation.nodeType,
-        inputs,
-        outputs,
-      };
-    });
-  }
-}
-
 export interface WorkflowExecutionOptions {
   onNodeStart?: (nodeId: string) => void;
   onNodeComplete?: (nodeId: string, outputs: Record<string, any>) => void;
@@ -176,21 +101,22 @@ export interface WorkflowExecutionOptions {
   onExecutionComplete?: () => void;
   onExecutionError?: (error: string) => void;
   abortSignal?: AbortSignal;
-}export interface RuntimeParameterConstructor {
-  new(value: any): RuntimeParameter;
+}
+export interface RuntimeParameterConstructor {
+  new (value: any): RuntimeParameter;
 }
 
 export abstract class RuntimeParameter {
-  constructor(protected readonly value: any) { }
+  constructor(protected readonly value: any) {}
 
-  abstract validate(): { isValid: boolean; error?: string; };
+  abstract validate(): { isValid: boolean; error?: string };
   public getValue(): any {
     return this.value;
   }
 }
 
 export class StringRuntimeParameter extends RuntimeParameter {
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "string") {
       return { isValid: false, error: "Value must be a string" };
     }
@@ -199,7 +125,7 @@ export class StringRuntimeParameter extends RuntimeParameter {
 }
 
 export class NumberRuntimeParameter extends RuntimeParameter {
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "number" || isNaN(this.value)) {
       return { isValid: false, error: "Value must be a valid number" };
     }
@@ -208,7 +134,7 @@ export class NumberRuntimeParameter extends RuntimeParameter {
 }
 
 export class BooleanRuntimeParameter extends RuntimeParameter {
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "boolean") {
       return { isValid: false, error: "Value must be a boolean" };
     }
@@ -217,7 +143,7 @@ export class BooleanRuntimeParameter extends RuntimeParameter {
 }
 
 export class ArrayRuntimeParameter extends RuntimeParameter {
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (!Array.isArray(this.value)) {
       return { isValid: false, error: "Value must be an array" };
     }
@@ -226,7 +152,7 @@ export class ArrayRuntimeParameter extends RuntimeParameter {
 }
 
 export class BinaryRuntimeParameter extends RuntimeParameter {
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (!(this.value instanceof Uint8Array)) {
       return { isValid: false, error: "Value must be a Uint8Array" };
     }
@@ -235,7 +161,7 @@ export class BinaryRuntimeParameter extends RuntimeParameter {
 }
 
 export class JsonRuntimeParameter extends RuntimeParameter {
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     try {
       if (typeof this.value !== "object" || this.value === null) {
         return { isValid: false, error: "Value must be a JSON object" };
@@ -250,7 +176,7 @@ export class JsonRuntimeParameter extends RuntimeParameter {
 export class ImageRuntimeParameter extends RuntimeParameter {
   private static readonly VALID_MIME_TYPES = ["image/jpeg", "image/png"];
 
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
@@ -262,8 +188,10 @@ export class ImageRuntimeParameter extends RuntimeParameter {
       return { isValid: false, error: "Image data must be a Uint8Array" };
     }
 
-    if (typeof this.value.mimeType !== "string" ||
-      !ImageRuntimeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+    if (
+      typeof this.value.mimeType !== "string" ||
+      !ImageRuntimeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+    ) {
       return {
         isValid: false,
         error: `mimeType must be one of: ${ImageRuntimeParameter.VALID_MIME_TYPES.join(", ")}`,
@@ -277,7 +205,7 @@ export class ImageRuntimeParameter extends RuntimeParameter {
 export class AudioRuntimeParameter extends RuntimeParameter {
   private static readonly VALID_MIME_TYPES = ["audio/mpeg", "audio/webm"];
 
-  validate(): { isValid: boolean; error?: string; } {
+  validate(): { isValid: boolean; error?: string } {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
@@ -289,8 +217,10 @@ export class AudioRuntimeParameter extends RuntimeParameter {
       return { isValid: false, error: "Audio data must be a Uint8Array" };
     }
 
-    if (typeof this.value.mimeType !== "string" ||
-      !AudioRuntimeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+    if (
+      typeof this.value.mimeType !== "string" ||
+      !AudioRuntimeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+    ) {
       return {
         isValid: false,
         error: `mimeType must be one of: ${AudioRuntimeParameter.VALID_MIME_TYPES.join(", ")}`,
@@ -300,4 +230,3 @@ export class AudioRuntimeParameter extends RuntimeParameter {
     return { isValid: true };
   }
 }
-

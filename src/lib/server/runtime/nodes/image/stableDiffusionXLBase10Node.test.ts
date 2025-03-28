@@ -4,7 +4,7 @@ import { Node } from "../../runtimeTypes";
 import {
   StringRuntimeParameter,
   NumberRuntimeParameter,
-  ImageRuntimeParameter
+  ImageRuntimeParameter,
 } from "../../runtimeTypes";
 import { ImageNodeParameter } from "../nodeParameterTypes";
 

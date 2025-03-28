@@ -1,10 +1,10 @@
 import {
   Workflow,
   ValidationError,
-  NodeRegistry,
   NodeContext,
   WorkflowExecutionOptions,
 } from "./runtimeTypes";
+import { NodeRegistry } from "./runtimeRegistries";
 import { NodeType } from "./nodes/nodeTypes";
 import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";

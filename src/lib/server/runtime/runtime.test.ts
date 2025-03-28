@@ -12,49 +12,58 @@ import { NodeType } from "./nodes/nodeTypes";
 import {
   Workflow,
   Node,
-  NodeRegistry,
   WorkflowExecutionOptions,
   NodeContext,
   ExecutionResult,
+  StringRuntimeParameter,
 } from "./runtimeTypes";
+import { NodeRegistry } from "./runtimeRegistries";
 import { validateWorkflow } from "./runtimeValidation";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
-import { StringRuntimeParameter } from "./runtimeTypes";
+import { StringNodeParameter } from "./nodes/nodeParameterTypes";
 
 // Mock the validateWorkflow function
 vi.mock("./runtimeValidation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 
-// Mock the NodeRegistry
-vi.mock("./runtimeTypes", async () => {
-  const originalModule = (await vi.importActual("./runtimeTypes")) as object;
-  return {
-    ...originalModule,
-    NodeRegistry: {
-      getInstance: vi.fn().mockReturnValue({
-        registerImplementation: vi.fn(),
-        getImplementation: vi.fn(),
-        createExecutableNode: vi.fn((node) => {
-          if (node.type === "unknown-type") {
-            return undefined;
-          }
-          if (node.type === "failing") {
-            return new FailingMockExecutableNode(node);
-          }
-          if (node.type === "start") {
-            return new StartNode(node);
-          }
-          if (node.type === "process") {
-            return new ProcessNode(node);
-          }
-          return new MockExecutableNode(node);
-        }),
+// Mock the NodeRegistry and RuntimeParameterRegistry
+vi.mock("./runtimeRegistries", () => ({
+  NodeRegistry: {
+    getInstance: vi.fn().mockReturnValue({
+      registerImplementation: vi.fn(),
+      getImplementation: vi.fn(),
+      createExecutableNode: vi.fn((node) => {
+        if (node.type === "unknown-type") {
+          return undefined;
+        }
+        if (node.type === "failing") {
+          return new FailingMockExecutableNode(node);
+        }
+        if (node.type === "start") {
+          return new StartNode(node);
+        }
+        if (node.type === "process") {
+          return new ProcessNode(node);
+        }
+        return new MockExecutableNode(node);
       }),
-    },
-  };
-});
+    }),
+  },
+  RuntimeParameterRegistry: {
+    getInstance: vi.fn().mockReturnValue({
+      register: vi.fn(),
+      get: vi.fn().mockImplementation((type) => {
+        if (type === StringNodeParameter) {
+          return StringRuntimeParameter;
+        }
+        return undefined;
+      }),
+      validate: vi.fn().mockReturnValue({ isValid: true }),
+    }),
+  },
+}));
 
 // Create a mock node implementation for testing
 class MockExecutableNode extends BaseExecutableNode {
@@ -152,7 +161,7 @@ describe("WorkflowRuntime", () => {
           inputs: [],
           outputs: [
             {
-              name: "output1",
+              name: "output",
               type: StringRuntimeParameter,
               value: new StringRuntimeParameter("Hello"),
             },
@@ -163,15 +172,15 @@ describe("WorkflowRuntime", () => {
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: StringRuntimeParameter }],
-          outputs: [{ name: "output1", type: StringRuntimeParameter }],
+          inputs: [{ name: "input", type: StringRuntimeParameter }],
+          outputs: [{ name: "output", type: StringRuntimeParameter }],
         },
         {
           id: "node-3",
           name: "End Node",
           type: "process",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: StringRuntimeParameter }],
+          inputs: [{ name: "input", type: StringRuntimeParameter }],
           outputs: [],
         },
       ],
@@ -179,14 +188,14 @@ describe("WorkflowRuntime", () => {
         {
           source: "node-1",
           target: "node-2",
-          sourceOutput: "output1",
-          targetInput: "input1",
+          sourceOutput: "output",
+          targetInput: "input",
         },
         {
           source: "node-2",
           target: "node-3",
-          sourceOutput: "output1",
-          targetInput: "input1",
+          sourceOutput: "output",
+          targetInput: "input",
         },
       ],
     };

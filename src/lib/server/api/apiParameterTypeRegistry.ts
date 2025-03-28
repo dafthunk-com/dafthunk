@@ -7,7 +7,7 @@ import {
   JsonRuntimeParameter,
   ImageRuntimeParameter,
   AudioRuntimeParameter,
-  RuntimeParameterConstructor
+  RuntimeParameterConstructor,
 } from "../runtime/runtimeTypes";
 import {
   NodeType as RuntimeNodeType,

@@ -1,5 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
-import { NodeRegistry } from "../src/lib/server/runtime/runtimeTypes";
+import { NodeRegistry } from "../src/lib/server/runtime/runtimeRegistries";
 import { registerNodes } from "../src/lib/server/runtime/nodes/nodeTypeRegistry";
 import { ApiParameterRegistry } from "../src/lib/server/api/apiParameterTypeRegistry";
 

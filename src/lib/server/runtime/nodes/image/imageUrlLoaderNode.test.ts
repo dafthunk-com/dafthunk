@@ -3,7 +3,7 @@ import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
 import { Node } from "../../runtimeTypes";
 import {
   StringRuntimeParameter,
-  ImageRuntimeParameter
+  ImageRuntimeParameter,
 } from "../../runtimeTypes";
 import { ImageNodeParameter } from "../nodeParameterTypes";
 // Mock global fetch

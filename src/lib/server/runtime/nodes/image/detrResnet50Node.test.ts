@@ -3,7 +3,7 @@ import { DetrResnet50Node } from "./detrResnet50Node";
 import { Node } from "../../runtimeTypes";
 import {
   ImageRuntimeParameter,
-  ArrayRuntimeParameter
+  ArrayRuntimeParameter,
 } from "../../runtimeTypes";
 
 describe("DetrResnet50Node", () => {

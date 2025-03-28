@@ -7,7 +7,9 @@ import {
   BinaryRuntimeParameter,
   JsonRuntimeParameter,
   ImageRuntimeParameter,
-  AudioRuntimeParameter
+  AudioRuntimeParameter,
+  Node,
+  NodeType,
 } from "./runtimeTypes";
 import {
   NodeParameter,
@@ -20,6 +22,8 @@ import {
   JsonNodeParameter,
   AudioNodeParameter,
 } from "./nodes/nodeParameterTypes";
+import { BaseExecutableNode } from "./nodes/baseNode";
+import { NodeType as NodeTypeDefinition } from "./nodes/nodeTypes";
 
 export class RuntimeParameterRegistry {
   private static instance: RuntimeParameterRegistry;
@@ -69,5 +73,75 @@ export class RuntimeParameterRegistry {
       return { isValid: false, error: `Unknown parameter type: ${type}` };
     }
     return new Implementation(value).validate();
+  }
+}
+export interface NodeImplementationConstructor {
+  new (node: Node): BaseExecutableNode;
+  readonly nodeType: NodeTypeDefinition;
+}
+
+export class NodeRegistry {
+  private static instance: NodeRegistry;
+  private implementations: Map<string, NodeImplementationConstructor> =
+    new Map();
+  private parameterRegistry: RuntimeParameterRegistry =
+    RuntimeParameterRegistry.getInstance();
+
+  public static getInstance(): NodeRegistry {
+    if (!NodeRegistry.instance) {
+      NodeRegistry.instance = new NodeRegistry();
+    }
+    return NodeRegistry.instance;
+  }
+
+  public registerImplementation(
+    Implementation: NodeImplementationConstructor
+  ): void {
+    if (!Implementation?.nodeType?.type) {
+      throw new Error("NodeType is not defined");
+    }
+    this.implementations.set(Implementation.nodeType.type, Implementation);
+  }
+
+  public createExecutableNode(node: Node): BaseExecutableNode | undefined {
+    const Implementation = this.implementations.get(node.type);
+    if (!Implementation) {
+      return undefined;
+    }
+    return new Implementation(node);
+  }
+
+  public getRuntimeNodeTypes(): NodeType[] {
+    return Array.from(this.implementations.values()).map((implementation) => {
+      const inputs = implementation.nodeType.inputs.map((input) => {
+        const Type = this.parameterRegistry.get(input.type);
+        if (!Type) {
+          throw new Error(`Unknown parameter type: ${input.type}`);
+        }
+        const value = input.value ? new Type(input.value) : undefined;
+        return {
+          ...input,
+          type: Type,
+          value,
+        };
+      });
+      const outputs = implementation.nodeType.outputs.map((output) => {
+        const Type = this.parameterRegistry.get(output.type);
+        if (!Type) {
+          throw new Error(`Unknown parameter type: ${output.type}`);
+        }
+        const value = output.value ? new Type(output.value) : undefined;
+        return {
+          ...output,
+          type: Type,
+          value,
+        };
+      });
+      return {
+        ...implementation.nodeType,
+        inputs,
+        outputs,
+      };
+    });
   }
 }

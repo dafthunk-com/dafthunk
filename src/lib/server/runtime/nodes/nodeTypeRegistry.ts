@@ -1,4 +1,4 @@
-import { NodeRegistry } from "../runtimeTypes";
+import { NodeRegistry } from "../runtimeRegistries";
 import { BartLargeCnnNode } from "./text/bartLargeCnnNode";
 import { DistilbertSst2Int8Node } from "./text/distilbertSst2Int8Node";
 import { M2m10012bNode } from "./text/m2m10012bNode";
