@@ -10,7 +10,7 @@ import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { RuntimeParameterRegistry } from "./runtimeParameterTypeRegistry";
-import { RuntimeParameter } from "./runtimeParameterTypes";
+import { RuntimeParameter } from "./runtimeTypes";
 import { NodeParameter } from "./nodes/nodeParameterTypes";
 
 // Initialize the node registry

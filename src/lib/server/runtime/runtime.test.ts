@@ -20,7 +20,7 @@ import {
 import { validateWorkflow } from "./runtimeValidation";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
-import { StringRuntimeParameter } from "./runtimeParameterTypes";
+import { StringRuntimeParameter } from "./runtimeTypes";
 
 // Mock the validateWorkflow function
 vi.mock("./runtimeValidation", () => ({

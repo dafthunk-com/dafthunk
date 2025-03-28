@@ -11,7 +11,7 @@ import {
   ErrorNode,
   LongRunningNode,
 } from "./nodes/test/testNodes";
-import { StringRuntimeParameter } from "./runtimeParameterTypes";
+import { StringRuntimeParameter } from "./runtimeTypes";
 
 // Mock the ParameterTypeRegistry
 vi.mock("./typeRegistry", () => ({

@@ -3,8 +3,8 @@ import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
 import { Node } from "../../runtimeTypes";
 import {
   StringRuntimeParameter,
-  ImageRuntimeParameter,
-} from "../../runtimeParameterTypes";
+  ImageRuntimeParameter
+} from "../../runtimeTypes";
 import { ImageNodeParameter } from "../nodeParameterTypes";
 // Mock global fetch
 const mockFetch = vi.fn();

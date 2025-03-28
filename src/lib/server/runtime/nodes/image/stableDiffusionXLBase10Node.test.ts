@@ -4,8 +4,8 @@ import { Node } from "../../runtimeTypes";
 import {
   StringRuntimeParameter,
   NumberRuntimeParameter,
-  ImageRuntimeParameter,
-} from "../../runtimeParameterTypes";
+  ImageRuntimeParameter
+} from "../../runtimeTypes";
 import { ImageNodeParameter } from "../nodeParameterTypes";
 
 describe("StableDiffusionXLBase10Node", () => {

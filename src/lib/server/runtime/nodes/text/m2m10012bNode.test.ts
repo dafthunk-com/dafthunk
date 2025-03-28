@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { M2m10012bNode } from "./m2m10012bNode";
 import { Node } from "../../runtimeTypes";
-import { StringRuntimeParameter } from "../../runtimeParameterTypes";
+import { StringRuntimeParameter } from "../../runtimeTypes";
 
 describe("M2m10012bNode", () => {
   const mockNode: Node = {

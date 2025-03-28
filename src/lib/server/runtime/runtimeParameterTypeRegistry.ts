@@ -7,8 +7,8 @@ import {
   BinaryRuntimeParameter,
   JsonRuntimeParameter,
   ImageRuntimeParameter,
-  AudioRuntimeParameter,
-} from "./runtimeParameterTypes";
+  AudioRuntimeParameter
+} from "./runtimeTypes";
 import {
   NodeParameter,
   StringNodeParameter,

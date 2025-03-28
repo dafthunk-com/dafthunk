@@ -3,8 +3,8 @@ import { DetrResnet50Node } from "./detrResnet50Node";
 import { Node } from "../../runtimeTypes";
 import {
   ImageRuntimeParameter,
-  ArrayRuntimeParameter,
-} from "../../runtimeParameterTypes";
+  ArrayRuntimeParameter
+} from "../../runtimeTypes";
 
 describe("DetrResnet50Node", () => {
   const mockNode: Node = {

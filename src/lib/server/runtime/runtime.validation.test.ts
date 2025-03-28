@@ -5,8 +5,8 @@ import { validateWorkflow } from "./runtimeValidation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
 import {
   StringRuntimeParameter,
-  NumberRuntimeParameter,
-} from "./runtimeParameterTypes";
+  NumberRuntimeParameter
+} from "./runtimeTypes";
 // Mock the validateWorkflow function
 vi.mock("./runtimeValidation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
