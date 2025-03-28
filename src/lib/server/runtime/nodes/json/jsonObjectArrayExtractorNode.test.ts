@@ -29,8 +29,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual({ name: "John", age: 30 });
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toEqual({ name: "John", age: 30 });
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should extract a nested JSON object", async () => {
@@ -43,8 +43,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual({ theme: "dark" });
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toEqual({ theme: "dark" });
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should extract an array", async () => {
@@ -57,8 +57,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual([1, 2, 3]);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toEqual([1, 2, 3]);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -73,8 +73,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual(defaultValue);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toEqual(defaultValue);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should return default value when value is not a JSON object or array", async () => {
@@ -88,8 +88,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual({ empty: true });
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toEqual({ empty: true });
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -102,8 +102,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual({ role: "admin" });
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toEqual({ role: "admin" });
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should fail with invalid JSON input", async () => {
@@ -142,7 +142,7 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toEqual({});
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toEqual({});
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 });

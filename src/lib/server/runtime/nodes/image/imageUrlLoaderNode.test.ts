@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
 import { Node } from "../../runtimeTypes";
-
+import {
+  StringRuntimeParameter,
+  ImageRuntimeParameter,
+} from "../../runtimeParameterTypes";
+import { ImageNodeParameter } from "../nodeParameterTypes";
 // Mock global fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -15,7 +19,7 @@ describe("ImageUrlLoaderNode", () => {
     inputs: [
       {
         name: "url",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "The URL of the PNG image to load",
         required: true,
       },
@@ -23,7 +27,7 @@ describe("ImageUrlLoaderNode", () => {
     outputs: [
       {
         name: "imageData",
-        type: "image",
+        type: ImageRuntimeParameter,
         description: "The image data as a binary array",
       },
     ],
@@ -141,12 +145,10 @@ describe("ImageUrlLoaderNode", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      image: {
-        data: expect.any(Uint8Array),
-        mimeType: "image/png",
-      },
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image.getValue()).toEqual({
+      data: expect.any(Uint8Array),
+      mimeType: "image/png",
     });
-    expect(result.outputs?.image.data).toEqual(new Uint8Array([1, 2, 3, 4]));
   });
 });

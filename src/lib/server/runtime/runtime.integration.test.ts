@@ -12,6 +12,7 @@ import {
   ErrorNode,
   LongRunningNode,
 } from "./nodes/test/testNodes";
+import { StringRuntimeParameter } from "./runtimeParameterTypes";
 
 // Mock the ParameterTypeRegistry
 vi.mock("./typeRegistry", () => ({
@@ -53,15 +54,21 @@ describe("WorkflowRuntime Integration Tests", () => {
           type: "start",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output", type: "string", value: "Hello" }],
+          outputs: [
+            {
+              name: "output",
+              type: StringRuntimeParameter,
+              value: new StringRuntimeParameter("Hello"),
+            },
+          ],
         },
         {
           id: "process-node",
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input", type: "string" }],
-          outputs: [{ name: "output", type: "string" }],
+          inputs: [{ name: "input", type: StringRuntimeParameter }],
+          outputs: [{ name: "output", type: StringRuntimeParameter }],
         },
       ],
       edges: [

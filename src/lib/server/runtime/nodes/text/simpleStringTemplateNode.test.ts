@@ -29,7 +29,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("Hello, John!");
+    expect(result.outputs?.result.getValue()).toBe("Hello, John!");
   });
 
   it("should replace multiple occurrences of the same variable", async () => {
@@ -42,7 +42,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("John John John");
+    expect(result.outputs?.result.getValue()).toBe("John John John");
   });
 
   it("should handle empty template", async () => {
@@ -55,7 +55,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("");
+    expect(result.outputs?.result.getValue()).toBe("");
   });
 
   it("should handle empty variable", async () => {
@@ -68,7 +68,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("Hello, !");
+    expect(result.outputs?.result.getValue()).toBe("Hello, !");
   });
 
   it("should handle special characters in template", async () => {
@@ -81,7 +81,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("Line 1\nLine 2\tTabbed");
+    expect(result.outputs?.result.getValue()).toBe("Line 1\nLine 2\tTabbed");
   });
 
   it("should handle special characters in variable", async () => {
@@ -94,7 +94,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("Hello, John\nDoe\tSmith!");
+    expect(result.outputs?.result.getValue()).toBe("Hello, John\nDoe\tSmith!");
   });
 
   it("should fail with invalid template input", async () => {
@@ -133,6 +133,6 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toBe("Hello, World!");
+    expect(result.outputs?.result.getValue()).toBe("Hello, World!");
   });
 });

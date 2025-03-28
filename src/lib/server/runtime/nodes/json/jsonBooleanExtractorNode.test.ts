@@ -29,8 +29,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(true);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(true);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should extract a nested boolean value", async () => {
@@ -43,8 +43,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(false);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(false);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -58,8 +58,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(true);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe(true);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should return default value when value is not a boolean", async () => {
@@ -73,8 +73,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(false);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe(false);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -87,8 +87,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(true);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(true);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should fail with invalid JSON input", async () => {
@@ -127,7 +127,7 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(false);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe(false);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 });

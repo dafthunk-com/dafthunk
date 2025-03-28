@@ -1,6 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { StableDiffusionXLBase10Node } from "./stableDiffusionXLBase10Node";
 import { Node } from "../../runtimeTypes";
+import {
+  StringRuntimeParameter,
+  NumberRuntimeParameter,
+  ImageRuntimeParameter,
+} from "../../runtimeParameterTypes";
+import { ImageNodeParameter } from "../nodeParameterTypes";
 
 describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {
@@ -11,47 +17,47 @@ describe("StableDiffusionXLBase10Node", () => {
     inputs: [
       {
         name: "prompt",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "Text description of the image to generate",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "Text describing elements to avoid in the generated image",
         hidden: true,
       },
       {
         name: "width",
-        type: "number",
+        type: NumberRuntimeParameter,
         description: "Width of the generated image (256-2048)",
-        value: 1024,
+        value: new NumberRuntimeParameter(1024),
         hidden: true,
       },
       {
         name: "height",
-        type: "number",
+        type: NumberRuntimeParameter,
         description: "Height of the generated image (256-2048)",
-        value: 1024,
+        value: new NumberRuntimeParameter(1024),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: "number",
+        type: NumberRuntimeParameter,
         description: "Number of diffusion steps (max 20)",
-        value: 20,
+        value: new NumberRuntimeParameter(20),
         hidden: true,
       },
       {
         name: "guidance",
-        type: "number",
+        type: NumberRuntimeParameter,
         description: "Controls how closely the image follows the prompt",
-        value: 7.5,
+        value: new NumberRuntimeParameter(7.5),
         hidden: true,
       },
       {
         name: "seed",
-        type: "number",
+        type: NumberRuntimeParameter,
         description: "Random seed for reproducible results",
         hidden: true,
       },
@@ -59,7 +65,7 @@ describe("StableDiffusionXLBase10Node", () => {
     outputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageRuntimeParameter,
         description: "The generated image",
       },
     ],
@@ -120,11 +126,10 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      image: {
-        data: mockImageData,
-        mimeType: "image/jpeg",
-      },
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image.getValue()).toEqual({
+      data: mockImageData,
+      mimeType: "image/jpeg",
     });
   });
 
@@ -165,11 +170,10 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      image: {
-        data: mockImageData,
-        mimeType: "image/jpeg",
-      },
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image.getValue()).toEqual({
+      data: mockImageData,
+      mimeType: "image/jpeg",
     });
   });
 
@@ -204,11 +208,10 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      image: {
-        data: mockImageData,
-        mimeType: "image/jpeg",
-      },
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image.getValue()).toEqual({
+      data: mockImageData,
+      mimeType: "image/jpeg",
     });
   });
 
@@ -242,11 +245,10 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      image: {
-        data: mockImageData,
-        mimeType: "image/jpeg",
-      },
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image.getValue()).toEqual({
+      data: mockImageData,
+      mimeType: "image/jpeg",
     });
   });
 

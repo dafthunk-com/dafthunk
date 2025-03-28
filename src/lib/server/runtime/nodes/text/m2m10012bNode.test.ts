@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { M2m10012bNode } from "./m2m10012bNode";
 import { Node } from "../../runtimeTypes";
+import { StringRuntimeParameter } from "../../runtimeParameterTypes";
 
 describe("M2m10012bNode", () => {
   const mockNode: Node = {
@@ -11,18 +12,18 @@ describe("M2m10012bNode", () => {
     inputs: [
       {
         name: "text",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "The text to be translated",
         required: true,
       },
       {
         name: "sourceLang",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "The language code of the source text",
       },
       {
         name: "targetLang",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "The language code to translate the text into",
         required: true,
       },
@@ -30,7 +31,7 @@ describe("M2m10012bNode", () => {
     outputs: [
       {
         name: "translatedText",
-        type: "string",
+        type: StringRuntimeParameter,
         description: "The translated text in the target language",
       },
     ],
@@ -78,9 +79,7 @@ describe("M2m10012bNode", () => {
       target_lang: "es",
     });
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      translatedText: "Hola mundo",
-    });
+    expect(result.outputs?.translatedText.getValue()).toBe("Hola mundo");
   });
 
   it("should use default source language if not provided", async () => {
@@ -109,9 +108,7 @@ describe("M2m10012bNode", () => {
       target_lang: "es",
     });
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      translatedText: "Hola mundo",
-    });
+    expect(result.outputs?.translatedText.getValue()).toBe("Hola mundo");
   });
 
   it("should handle errors during execution", async () => {

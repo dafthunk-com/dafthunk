@@ -36,11 +36,11 @@ describe("JsonTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toEqual({
+    expect(result.outputs?.result.getValue()).toEqual({
       name: "John Doe",
       age: "30",
     });
-    expect(result.outputs?.missingVariables).toEqual([]);
+    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
   });
 
   it("should handle nested JSON objects", async () => {
@@ -69,7 +69,7 @@ describe("JsonTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toEqual({
+    expect(result.outputs?.result.getValue()).toEqual({
       user: {
         name: "John Doe",
         contact: {
@@ -81,7 +81,7 @@ describe("JsonTemplateNode", () => {
         theme: "dark",
       },
     });
-    expect(result.outputs?.missingVariables).toEqual([]);
+    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
   });
 
   it("should handle arrays with template variables", async () => {
@@ -104,13 +104,13 @@ describe("JsonTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toEqual({
+    expect(result.outputs?.result.getValue()).toEqual({
       items: [
         { name: "Apple", price: "1.99" },
         { name: "Banana", price: "0.99" },
       ],
     });
-    expect(result.outputs?.missingVariables).toEqual([]);
+    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
   });
 
   it("should report missing variables", async () => {
@@ -128,11 +128,14 @@ describe("JsonTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toEqual({
+    expect(result.outputs?.result.getValue()).toEqual({
       name: "John ${lastName}",
       email: "${email}",
     });
-    expect(result.outputs?.missingVariables).toEqual(["lastName", "email"]);
+    expect(result.outputs?.missingVariables.getValue()).toEqual([
+      "lastName",
+      "email",
+    ]);
   });
 
   it("should handle null and undefined values", async () => {
@@ -153,12 +156,12 @@ describe("JsonTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toEqual({
+    expect(result.outputs?.result.getValue()).toEqual({
       name: "",
       age: "",
       email: "test@example.com",
     });
-    expect(result.outputs?.missingVariables).toEqual([]);
+    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
   });
 
   it("should handle non-string values in template", async () => {
@@ -178,13 +181,13 @@ describe("JsonTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result).toEqual({
+    expect(result.outputs?.result.getValue()).toEqual({
       name: "John Doe",
       age: 25,
       isActive: true,
       scores: [1, 2, 3],
     });
-    expect(result.outputs?.missingVariables).toEqual([]);
+    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
   });
 
   it("should handle invalid template input", async () => {

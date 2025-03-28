@@ -8,6 +8,7 @@ import {
   afterAll,
 } from "vitest";
 import { Runtime } from "./runtime";
+import { NodeType } from "./nodes/nodeTypes";
 import {
   Workflow,
   Node,
@@ -15,11 +16,11 @@ import {
   WorkflowExecutionOptions,
   NodeContext,
   ExecutionResult,
-  NodeType,
 } from "./runtimeTypes";
 import { validateWorkflow } from "./runtimeValidation";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
+import { StringRuntimeParameter } from "./runtimeParameterTypes";
 
 // Mock the validateWorkflow function
 vi.mock("./workflowValidation", () => ({
@@ -149,22 +150,28 @@ describe("WorkflowRuntime", () => {
           type: "start",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          outputs: [
+            {
+              name: "output1",
+              type: StringRuntimeParameter,
+              value: new StringRuntimeParameter("Hello"),
+            },
+          ],
         },
         {
           id: "node-2",
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input1", type: StringRuntimeParameter }],
+          outputs: [{ name: "output1", type: StringRuntimeParameter }],
         },
         {
           id: "node-3",
           name: "End Node",
           type: "process",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
+          inputs: [{ name: "input1", type: StringRuntimeParameter }],
           outputs: [],
         },
       ],

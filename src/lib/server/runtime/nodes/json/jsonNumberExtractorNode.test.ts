@@ -29,8 +29,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(30);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(30);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should extract a float value", async () => {
@@ -43,8 +43,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(99.99);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(99.99);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should extract a nested number value", async () => {
@@ -57,8 +57,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(1.5);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(1.5);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -72,8 +72,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(25);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe(25);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should return default value when value is not a number", async () => {
@@ -87,8 +87,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(0);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe(0);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -101,8 +101,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(90);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(90);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should fail with invalid JSON input", async () => {
@@ -141,8 +141,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(0);
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe(0);
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should handle negative numbers", async () => {
@@ -155,7 +155,7 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe(-5.5);
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe(-5.5);
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 });

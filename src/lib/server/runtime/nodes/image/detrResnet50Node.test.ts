@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { DetrResnet50Node } from "./detrResnet50Node";
 import { Node } from "../../runtimeTypes";
+import {
+  ImageRuntimeParameter,
+  ArrayRuntimeParameter,
+} from "../../runtimeParameterTypes";
 
 describe("DetrResnet50Node", () => {
   const mockNode: Node = {
@@ -11,7 +15,7 @@ describe("DetrResnet50Node", () => {
     inputs: [
       {
         name: "image",
-        type: "image",
+        type: ImageRuntimeParameter,
         description: "The image to use for object detection",
         required: true,
       },
@@ -19,7 +23,7 @@ describe("DetrResnet50Node", () => {
     outputs: [
       {
         name: "detections",
-        type: "array",
+        type: ArrayRuntimeParameter,
         description:
           "Array of detected objects with scores, labels, and bounding boxes",
       },
@@ -90,20 +94,18 @@ describe("DetrResnet50Node", () => {
       image: [1, 2, 3],
     });
     expect(result.success).toBe(true);
-    expect(result.outputs).toEqual({
-      detections: [
-        {
-          score: 0.95,
-          label: "person",
-          box: {
-            xmin: 10,
-            ymin: 20,
-            xmax: 100,
-            ymax: 200,
-          },
+    expect(result.outputs?.detections.getValue()).toEqual([
+      {
+        score: 0.95,
+        label: "person",
+        box: {
+          xmin: 10,
+          ymin: 20,
+          xmax: 100,
+          ymax: 200,
         },
-      ],
-    });
+      },
+    ]);
   });
 
   it("should handle errors during execution", async () => {

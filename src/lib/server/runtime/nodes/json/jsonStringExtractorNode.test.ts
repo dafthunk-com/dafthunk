@@ -29,8 +29,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("John Doe");
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe("John Doe");
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should extract a nested string value", async () => {
@@ -43,8 +43,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("john@example.com");
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe("john@example.com");
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -58,8 +58,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("no-email");
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe("no-email");
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should return default value when value is not a string", async () => {
@@ -73,8 +73,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("not-a-string");
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe("not-a-string");
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -87,8 +87,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("Jane");
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe("Jane");
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should fail with invalid path", async () => {
@@ -114,8 +114,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("");
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe("");
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 
   it("should handle empty string values", async () => {
@@ -128,8 +128,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("");
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe("");
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should handle string values with special characters", async () => {
@@ -142,8 +142,8 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("Hello\nWorld! 🌍");
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value.getValue()).toBe("Hello\nWorld! 🌍");
+    expect(result.outputs?.found.getValue()).toBe(true);
   });
 
   it("should return empty string and found=false when JSON input is null", async () => {
@@ -156,7 +156,7 @@ describe("JsonStringExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value).toBe("");
-    expect(result.outputs?.found).toBe(false);
+    expect(result.outputs?.value.getValue()).toBe("");
+    expect(result.outputs?.found.getValue()).toBe(false);
   });
 });
