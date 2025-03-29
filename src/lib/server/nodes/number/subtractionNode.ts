@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberValue } from "../types";
+import { NumberParameter } from "../types";
 
 /**
  * Subtraction node implementation
@@ -15,10 +15,10 @@ export class SubtractionNode extends ExecutableNode {
     category: "Number",
     icon: "minus",
     inputs: [
-      { name: "a", type: NumberValue, required: true },
-      { name: "b", type: NumberValue, required: true },
+      { name: "a", type: NumberParameter, required: true },
+      { name: "b", type: NumberParameter, required: true },
     ],
-    outputs: [{ name: "result", type: NumberValue }],
+    outputs: [{ name: "result", type: NumberParameter }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -31,7 +31,7 @@ export class SubtractionNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: new NumberValue(a - b),
+        result: new NumberParameter(a - b),
       });
     } catch (error) {
       return this.createErrorResult(

@@ -2,7 +2,12 @@ import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberValue, BooleanValue, JsonValue, StringValue } from "../types";
+import {
+  NumberParameter,
+  BooleanParameter,
+  JsonParameter,
+  StringParameter,
+} from "../types";
 
 export class JsonNumberExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -15,34 +20,34 @@ export class JsonNumberExtractorNode extends ExecutableNode {
     inputs: [
       {
         name: "json",
-        type: JsonValue,
+        type: JsonParameter,
         description: "The JSON object to extract the number from",
         required: true,
       },
       {
         name: "path",
-        type: StringValue,
+        type: StringParameter,
         description:
           'The JSONPath expression (e.g., "$.user.profile.age" or "$.product.price")',
         required: true,
       },
       {
         name: "defaultValue",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Default value if no numeric value is found at the path",
         hidden: true,
-        value: new NumberValue(0),
+        value: new NumberParameter(0),
       },
     ],
     outputs: [
       {
         name: "value",
-        type: NumberValue,
+        type: NumberParameter,
         description: "The extracted numeric value",
       },
       {
         name: "found",
-        type: BooleanValue,
+        type: BooleanParameter,
         description: "Whether a numeric value was found at the specified path",
         hidden: true,
       },
@@ -71,8 +76,8 @@ export class JsonNumberExtractorNode extends ExecutableNode {
         const found = typeof numberValue === "number" && !isNaN(numberValue);
 
         return this.createSuccessResult({
-          value: new NumberValue(found ? numberValue : defaultValue),
-          found: new BooleanValue(found),
+          value: new NumberParameter(found ? numberValue : defaultValue),
+          found: new BooleanParameter(found),
         });
       } catch (err) {
         const error = err as Error;

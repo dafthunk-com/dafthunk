@@ -1,5 +1,5 @@
 // Types for workflows
-import { Value } from "../nodes/types";
+import { ParameterType } from "../nodes/types";
 
 export interface Position {
   x: number;
@@ -78,7 +78,7 @@ export interface ExecutionResult {
   nodeId: string;
   success: boolean;
   error?: string;
-  outputs?: Record<string, Value>;
+  outputs?: Record<string, ParameterType>;
 }
 
 export interface NodeContext {
@@ -102,6 +102,7 @@ export interface WorkflowExecutionOptions {
   onExecutionError?: (error: string) => void;
   abortSignal?: AbortSignal;
 }
+
 export interface RuntimeParameterConstructor {
   new (value: any): RuntimeParameter;
 }

@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { JsonValue } from "../types";
-import { ArrayValue } from "../types";
+import { JsonParameter } from "../types";
+import { ArrayParameter } from "../types";
 import { NodeType } from "../types";
 
 export class JsonTemplateNode extends ExecutableNode {
@@ -16,14 +16,14 @@ export class JsonTemplateNode extends ExecutableNode {
     inputs: [
       {
         name: "template",
-        type: JsonValue,
+        type: JsonParameter,
         description:
           "The JSON template object with variables in ${variableName} format",
         required: true,
       },
       {
         name: "variables",
-        type: JsonValue,
+        type: JsonParameter,
         description: "JSON object containing variable values to inject",
         required: true,
       },
@@ -31,12 +31,12 @@ export class JsonTemplateNode extends ExecutableNode {
     outputs: [
       {
         name: "result",
-        type: JsonValue,
+        type: JsonParameter,
         description: "The resulting JSON object with variables replaced",
       },
       {
         name: "missingVariables",
-        type: ArrayValue,
+        type: ArrayParameter,
         description:
           "Array of variable names that were not found in the variables object",
         hidden: true,
@@ -122,8 +122,8 @@ export class JsonTemplateNode extends ExecutableNode {
       );
 
       return this.createSuccessResult({
-        result: new JsonValue(result),
-        missingVariables: new ArrayValue(missingVariables),
+        result: new JsonParameter(result),
+        missingVariables: new ArrayParameter(missingVariables),
       });
     } catch (err) {
       const error = err as Error;

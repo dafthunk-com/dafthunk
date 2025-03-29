@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../runtime/types";
-import { ImageValue, StringValue } from "../types";
+import { ImageParameter, StringParameter } from "../types";
 import { NodeType } from "../types";
 
 export class ImageUrlLoaderNode extends ExecutableNode {
@@ -14,7 +14,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     inputs: [
       {
         name: "url",
-        type: StringValue,
+        type: StringParameter,
         description: "The URL of the PNG image to load",
         required: true,
       },
@@ -22,7 +22,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     outputs: [
       {
         name: "image",
-        type: ImageValue,
+        type: ImageParameter,
         description: "The image data as a binary array",
       },
     ],
@@ -68,7 +68,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
         const imageData = new Uint8Array(arrayBuffer);
 
         return this.createSuccessResult({
-          image: new ImageValue({
+          image: new ImageParameter({
             data: imageData,
             mimeType: "image/png",
           }),

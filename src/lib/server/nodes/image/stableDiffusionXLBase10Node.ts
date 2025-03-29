@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../runtime/types";
-import { ImageValue, StringValue, NumberValue } from "../types";
+import { ImageParameter, StringParameter, NumberParameter } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,49 +18,49 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringValue,
+        type: StringParameter,
         description: "Text description of the image to generate",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: StringValue,
+        type: StringParameter,
         description: "Text describing elements to avoid in the generated image",
         value: undefined,
         hidden: true,
       },
       {
         name: "width",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Width of the generated image (256-2048)",
-        value: new NumberValue(1024),
+        value: new NumberParameter(1024),
         hidden: true,
       },
       {
         name: "height",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Height of the generated image (256-2048)",
-        value: new NumberValue(1024),
+        value: new NumberParameter(1024),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Number of diffusion steps (max 20)",
-        value: new NumberValue(20),
+        value: new NumberParameter(20),
         hidden: true,
       },
       {
         name: "guidance",
-        type: NumberValue,
+        type: NumberParameter,
         description:
           "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
-        value: new NumberValue(7.5),
+        value: new NumberParameter(7.5),
         hidden: true,
       },
       {
         name: "seed",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Random seed for reproducible results",
         value: undefined,
         hidden: true,
@@ -69,7 +69,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
     outputs: [
       {
         name: "image",
-        type: ImageValue,
+        type: ImageParameter,
         description: "The generated image",
       },
     ],
@@ -151,7 +151,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: new ImageValue({
+        image: new ImageParameter({
           data: uint8Array,
           mimeType: "image/jpeg",
         }),

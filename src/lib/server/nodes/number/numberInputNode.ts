@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberValue, StringValue } from "../types";
+import { NumberParameter, StringParameter } from "../types";
 
 /**
  * NumberInput node implementation
@@ -21,35 +21,35 @@ export class NumberInputNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Current numeric value in the input",
         hidden: true,
-        value: new NumberValue(0), // Default to 0
+        value: new NumberParameter(0), // Default to 0
       },
       {
         name: "min",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Minimum allowed value",
         hidden: true,
         value: undefined, // Optional
       },
       {
         name: "max",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Maximum allowed value",
         hidden: true,
         value: undefined, // Optional
       },
       {
         name: "step",
-        type: NumberValue,
+        type: NumberParameter,
         description: "Step size for increment/decrement",
         hidden: true,
         value: undefined, // Optional
       },
       {
         name: "placeholder",
-        type: StringValue,
+        type: StringParameter,
         description: "Placeholder text to show when empty",
         hidden: true,
         value: undefined, // Optional
@@ -58,7 +58,7 @@ export class NumberInputNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: NumberValue,
+        type: NumberParameter,
         description: "The current numeric value from the input",
       },
     ],
@@ -82,7 +82,7 @@ export class NumberInputNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: new NumberValue(value),
+        value: new NumberParameter(value),
       });
     } catch (error) {
       return this.createErrorResult(

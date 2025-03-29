@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { StringValue } from "../types";
+import { StringParameter } from "../types";
 import { NodeType } from "../types";
 
 export class SimpleStringTemplateNode extends ExecutableNode {
@@ -15,14 +15,14 @@ export class SimpleStringTemplateNode extends ExecutableNode {
     inputs: [
       {
         name: "template",
-        type: StringValue,
+        type: StringParameter,
         description:
           "The template string with a single variable in ${variable} format",
         required: true,
       },
       {
         name: "variable",
-        type: StringValue,
+        type: StringParameter,
         description: "The value to replace the ${variable} placeholder with",
         required: true,
       },
@@ -30,7 +30,7 @@ export class SimpleStringTemplateNode extends ExecutableNode {
     outputs: [
       {
         name: "result",
-        type: StringValue,
+        type: StringParameter,
         description: "The resulting string with the variable replaced",
       },
     ],
@@ -56,7 +56,7 @@ export class SimpleStringTemplateNode extends ExecutableNode {
       // Handle empty template string
       if (template === "") {
         return this.createSuccessResult({
-          result: new StringValue(""),
+          result: new StringParameter(""),
         });
       }
 
@@ -72,7 +72,7 @@ export class SimpleStringTemplateNode extends ExecutableNode {
       const result = this.replaceVariable(template, variable);
 
       return this.createSuccessResult({
-        result: new StringValue(result),
+        result: new StringParameter(result),
       });
     } catch (err) {
       const error = err as Error;

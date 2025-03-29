@@ -1,6 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
-import { AudioValue, StringValue } from "../types";
+import { AudioParameter, StringParameter } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -17,22 +17,22 @@ export class MelottsNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringValue,
+        type: StringParameter,
         description: "The text to convert to speech",
         required: true,
       },
       {
         name: "lang",
-        type: StringValue,
+        type: StringParameter,
         description:
           "The speech language (e.g., 'en' for English, 'fr' for French)",
-        value: new StringValue("en"),
+        value: new StringParameter("en"),
       },
     ],
     outputs: [
       {
         name: "audio",
-        type: AudioValue,
+        type: AudioParameter,
         description: "The generated audio in MP3 format",
       },
     ],
@@ -91,7 +91,7 @@ export class MelottsNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        audio: new AudioValue(audioOutput),
+        audio: new AudioParameter(audioOutput),
       });
     } catch (error) {
       return this.createErrorResult(

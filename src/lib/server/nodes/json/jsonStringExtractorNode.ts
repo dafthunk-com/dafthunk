@@ -2,7 +2,7 @@ import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { StringValue, BooleanValue, JsonValue } from "../types";
+import { StringParameter, BooleanParameter, JsonParameter } from "../types";
 
 export class JsonStringExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -15,34 +15,34 @@ export class JsonStringExtractorNode extends ExecutableNode {
     inputs: [
       {
         name: "json",
-        type: JsonValue,
+        type: JsonParameter,
         description: "The JSON object to extract the string from",
         required: true,
       },
       {
         name: "path",
-        type: StringValue,
+        type: StringParameter,
         description:
           'The JSONPath expression (e.g., "$.user.profile.name" or "$.store.books[0].title")',
         required: true,
       },
       {
         name: "defaultValue",
-        type: StringValue,
+        type: StringParameter,
         description: "Default value if no string value is found at the path",
         hidden: true,
-        value: new StringValue(""),
+        value: new StringParameter(""),
       },
     ],
     outputs: [
       {
         name: "value",
-        type: StringValue,
+        type: StringParameter,
         description: "The extracted string value",
       },
       {
         name: "found",
-        type: BooleanValue,
+        type: BooleanParameter,
         description: "Whether a string value was found at the specified path",
         hidden: true,
       },
@@ -55,8 +55,8 @@ export class JsonStringExtractorNode extends ExecutableNode {
 
       if (json === null) {
         return this.createSuccessResult({
-          value: new StringValue(defaultValue),
-          found: new BooleanValue(false),
+          value: new StringParameter(defaultValue),
+          found: new BooleanParameter(false),
         });
       }
 
@@ -76,8 +76,8 @@ export class JsonStringExtractorNode extends ExecutableNode {
         const found = typeof stringValue === "string";
 
         return this.createSuccessResult({
-          value: new StringValue(found ? stringValue : defaultValue),
-          found: new BooleanValue(found),
+          value: new StringParameter(found ? stringValue : defaultValue),
+          found: new BooleanParameter(found),
         });
       } catch (err) {
         const error = err as Error;

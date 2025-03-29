@@ -12,15 +12,15 @@ import {
   NodeType,
 } from "./types";
 import {
-  Value,
-  StringValue,
-  NumberValue,
-  BooleanValue,
-  ArrayValue,
-  BinaryValue,
-  ImageValue,
-  JsonValue,
-  AudioValue,
+  ParameterType as NodeParameterType,
+  StringParameter as NodeStringParameter,
+  NumberParameter as NodeNumberParameter,
+  BooleanParameter as NodeBooleanParameter,
+  ArrayParameter as NodeArrayParameter,
+  BinaryParameter as NodeBinaryParameter,
+  ImageParameter as NodeImageParameter,
+  JsonParameter as NodeJsonParameter,
+  AudioParameter as NodeAudioParameter,
 } from "../nodes/types";
 import { ExecutableNode } from "../nodes/types";
 import { NodeType as NodeTypeDefinition } from "../nodes/types";
@@ -71,19 +71,21 @@ import { TextAreaNode } from "../nodes/text/textAreaNode";
 
 export class RuntimeParameterRegistry {
   private static instance: RuntimeParameterRegistry;
-  private implementations: Map<typeof Value, RuntimeParameterConstructor> =
-    new Map();
+  private implementations: Map<
+    typeof NodeParameterType,
+    RuntimeParameterConstructor
+  > = new Map();
 
   private constructor() {
     // Register built-in types
-    this.register(StringValue, StringRuntimeParameter);
-    this.register(NumberValue, NumberRuntimeParameter);
-    this.register(BooleanValue, BooleanRuntimeParameter);
-    this.register(ArrayValue, ArrayRuntimeParameter);
-    this.register(BinaryValue, BinaryRuntimeParameter);
-    this.register(JsonValue, JsonRuntimeParameter);
-    this.register(ImageValue, ImageRuntimeParameter);
-    this.register(AudioValue, AudioRuntimeParameter);
+    this.register(NodeStringParameter, StringRuntimeParameter);
+    this.register(NodeNumberParameter, NumberRuntimeParameter);
+    this.register(NodeBooleanParameter, BooleanRuntimeParameter);
+    this.register(NodeArrayParameter, ArrayRuntimeParameter);
+    this.register(NodeBinaryParameter, BinaryRuntimeParameter);
+    this.register(NodeJsonParameter, JsonRuntimeParameter);
+    this.register(NodeImageParameter, ImageRuntimeParameter);
+    this.register(NodeAudioParameter, AudioRuntimeParameter);
   }
 
   public static getInstance(): RuntimeParameterRegistry {
@@ -94,18 +96,20 @@ export class RuntimeParameterRegistry {
   }
 
   public register(
-    type: typeof Value,
+    type: typeof NodeParameterType,
     implementation: RuntimeParameterConstructor
   ): void {
     this.implementations.set(type, implementation);
   }
 
-  public get(type: typeof Value): RuntimeParameterConstructor | undefined {
+  public get(
+    type: typeof NodeParameterType
+  ): RuntimeParameterConstructor | undefined {
     return this.implementations.get(type);
   }
 
   public validate(
-    type: typeof Value,
+    type: typeof NodeParameterType,
     value: any
   ): { isValid: boolean; error?: string } {
     const Implementation = this.get(type);

@@ -21,7 +21,7 @@ import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
 import { StartNode, ProcessNode } from "../nodes/test/testNodes";
-import { StringValue } from "../nodes/types";
+import { StringParameter } from "../nodes/types";
 
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({
@@ -55,7 +55,7 @@ vi.mock("./registries", () => ({
     getInstance: vi.fn().mockReturnValue({
       register: vi.fn(),
       get: vi.fn().mockImplementation((type) => {
-        if (type === StringValue) {
+        if (type === StringParameter) {
           return StringRuntimeParameter;
         }
         return undefined;
