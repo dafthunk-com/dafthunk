@@ -24,6 +24,50 @@ import {
 } from "../nodes/types";
 import { ExecutableNode } from "../nodes/types";
 import { NodeType as NodeTypeDefinition } from "../nodes/types";
+import { AudioRecorderNode } from "../nodes/audio/audioRecorderNode";
+import { MelottsNode } from "../nodes/audio/melottsNode";
+import { WhisperLargeV3TurboNode } from "../nodes/audio/whisperLargeV3TurboNode";
+import { WhisperNode } from "../nodes/audio/whisperNode";
+import { WhisperTinyEnNode } from "../nodes/audio/whisperTinyEnNode";
+import { CanvasDoodleNode } from "../nodes/image/canvasDoodleNode";
+import { DetrResnet50Node } from "../nodes/image/detrResnet50Node";
+import { DreamShaper8LCMNode } from "../nodes/image/dreamShaper8LCMNode";
+import { Flux1SchnellNode } from "../nodes/image/flux1SchnellNode";
+import { ImageUrlLoaderNode } from "../nodes/image/imageUrlLoaderNode";
+import { LLaVA157BHFNode } from "../nodes/image/llava157BHFNode";
+import { Resnet50Node } from "../nodes/image/resnet50Node";
+import { StableDiffusionV15Img2ImgNode } from "../nodes/image/stableDiffusionV15Img2ImgNode";
+import { StableDiffusionV15InpaintingNode } from "../nodes/image/stableDiffusionV15InpaintingNode";
+import { StableDiffusionXLBase10Node } from "../nodes/image/stableDiffusionXLBase10Node";
+import { StableDiffusionXLLightningNode } from "../nodes/image/stableDiffusionXLLightningNode";
+import { UformGen2Qwen500mNode } from "../nodes/image/uformGen2Qwen500mNode";
+import { WebcamNode } from "../nodes/image/webcamNode";
+import { JsonBooleanExtractorNode } from "../nodes/json/jsonBooleanExtractorNode";
+import { JsonNumberExtractorNode } from "../nodes/json/jsonNumberExtractorNode";
+import { JsonObjectArrayExtractorNode } from "../nodes/json/jsonObjectArrayExtractorNode";
+import { JsonStringExtractorNode } from "../nodes/json/jsonStringExtractorNode";
+import { JsonTemplateNode } from "../nodes/json/jsonTemplateNode";
+import { MonacoEditorNode } from "../nodes/json/monacoEditorNode";
+import { AbsoluteValueNode } from "../nodes/number/absoluteValueNode";
+import { AdditionNode } from "../nodes/number/additionNode";
+import { DivisionNode } from "../nodes/number/divisionNode";
+import { ExponentiationNode } from "../nodes/number/exponentiationNode";
+import { ModuloNode } from "../nodes/number/moduloNode";
+import { MultiplicationNode } from "../nodes/number/multiplicationNode";
+import { NumberInputNode } from "../nodes/number/numberInputNode";
+import { SliderNode } from "../nodes/number/sliderNode";
+import { SquareRootNode } from "../nodes/number/squareRootNode";
+import { SubtractionNode } from "../nodes/number/subtractionNode";
+import { BartLargeCnnNode } from "../nodes/text/bartLargeCnnNode";
+import { BgeRerankerBaseNode } from "../nodes/text/bgeRerankerBaseNode";
+import { DistilbertSst2Int8Node } from "../nodes/text/distilbertSst2Int8Node";
+import { InputTextNode } from "../nodes/text/inputTextNode";
+import { Llama318BInstructFastNode } from "../nodes/text/llama318BInstructFastNode";
+import { M2m10012bNode } from "../nodes/text/m2m10012bNode";
+import { RadioGroupNode } from "../nodes/text/radioGroupNode";
+import { SimpleStringTemplateNode } from "../nodes/text/simpleStringTemplateNode";
+import { StringTemplateNode } from "../nodes/text/stringTemplateNode";
+import { TextAreaNode } from "../nodes/text/textAreaNode";
 
 export class RuntimeParameterRegistry {
   private static instance: RuntimeParameterRegistry;
@@ -144,4 +188,55 @@ export class NodeRegistry {
       };
     });
   }
+}
+/**
+ * Register the mathematical operation nodes
+ */
+export function registerNodes(): void {
+  const registry = NodeRegistry.getInstance();
+
+  registry.registerImplementation(AdditionNode);
+  registry.registerImplementation(SubtractionNode);
+  registry.registerImplementation(MultiplicationNode);
+  registry.registerImplementation(DivisionNode);
+  registry.registerImplementation(ModuloNode);
+  registry.registerImplementation(ExponentiationNode);
+  registry.registerImplementation(SquareRootNode);
+  registry.registerImplementation(AbsoluteValueNode);
+  registry.registerImplementation(RadioGroupNode);
+  registry.registerImplementation(TextAreaNode);
+  registry.registerImplementation(InputTextNode);
+  registry.registerImplementation(NumberInputNode);
+  registry.registerImplementation(SliderNode);
+  registry.registerImplementation(Llama318BInstructFastNode);
+  registry.registerImplementation(WhisperNode);
+  registry.registerImplementation(WhisperLargeV3TurboNode);
+  registry.registerImplementation(WhisperTinyEnNode);
+  registry.registerImplementation(UformGen2Qwen500mNode);
+  registry.registerImplementation(BartLargeCnnNode);
+  registry.registerImplementation(M2m10012bNode);
+  registry.registerImplementation(DistilbertSst2Int8Node);
+  registry.registerImplementation(BgeRerankerBaseNode);
+  registry.registerImplementation(DetrResnet50Node);
+  registry.registerImplementation(Resnet50Node);
+  registry.registerImplementation(ImageUrlLoaderNode);
+  registry.registerImplementation(StableDiffusionXLLightningNode);
+  registry.registerImplementation(StableDiffusionV15Img2ImgNode);
+  registry.registerImplementation(StableDiffusionV15InpaintingNode);
+  registry.registerImplementation(JsonStringExtractorNode);
+  registry.registerImplementation(JsonBooleanExtractorNode);
+  registry.registerImplementation(JsonNumberExtractorNode);
+  registry.registerImplementation(JsonObjectArrayExtractorNode);
+  registry.registerImplementation(JsonTemplateNode);
+  registry.registerImplementation(StringTemplateNode);
+  registry.registerImplementation(SimpleStringTemplateNode);
+  registry.registerImplementation(MonacoEditorNode);
+  registry.registerImplementation(LLaVA157BHFNode);
+  registry.registerImplementation(CanvasDoodleNode);
+  registry.registerImplementation(StableDiffusionXLBase10Node);
+  registry.registerImplementation(Flux1SchnellNode);
+  registry.registerImplementation(DreamShaper8LCMNode);
+  registry.registerImplementation(MelottsNode);
+  registry.registerImplementation(WebcamNode);
+  registry.registerImplementation(AudioRecorderNode);
 }

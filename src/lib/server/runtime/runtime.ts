@@ -7,14 +7,10 @@ import {
 import { NodeRegistry } from "./registries";
 import { NodeType } from "../nodes/types";
 import { validateWorkflow } from "./validation";
-import { registerNodes } from "../nodes/registries";
 import { ExecutableNode } from "../nodes/types";
 import { RuntimeParameterRegistry } from "./registries";
 import { RuntimeParameter } from "./types";
 import { NodeParameter } from "../nodes/types";
-
-// Initialize the node registry
-registerNodes();
 
 /**
  * Runtime class that handles the execution of a workflow
