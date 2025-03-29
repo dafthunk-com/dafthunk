@@ -6,7 +6,6 @@ import {
 import { NodeType as ApiNodeType, Node as ApiNode } from "./types";
 import {
   ParameterTypeMapping,
-  defaultTypeMappings,
   getApiType,
   getRuntimeType,
   convertNodeTypes,
@@ -14,13 +13,31 @@ import {
   convertApiNodes,
 } from "./mappers";
 
+import {
+  StringParameter as StringRuntimeParameter,
+  NumberParameter as NumberRuntimeParameter,
+  BooleanParameter as BooleanRuntimeParameter,
+  ArrayParameter as ArrayRuntimeParameter,
+  BinaryParameter as BinaryRuntimeParameter,
+  JsonParameter as JsonRuntimeParameter,
+  ImageParameter as ImageRuntimeParameter,
+  AudioParameter as AudioRuntimeParameter,
+} from "../runtime/types";
+
 export class ApiParameterRegistry {
   private static instance: ApiParameterRegistry;
   private typeMappings: ParameterTypeMapping[] = [];
 
   private constructor() {
     // Register built-in types
-    this.typeMappings = [...defaultTypeMappings];
+    this.register(StringRuntimeParameter, "string");
+    this.register(NumberRuntimeParameter, "number");
+    this.register(BooleanRuntimeParameter, "boolean");
+    this.register(ArrayRuntimeParameter, "array");
+    this.register(BinaryRuntimeParameter, "binary");
+    this.register(JsonRuntimeParameter, "json");
+    this.register(ImageRuntimeParameter, "image");
+    this.register(AudioRuntimeParameter, "audio");
   }
 
   public static getInstance(): ApiParameterRegistry {

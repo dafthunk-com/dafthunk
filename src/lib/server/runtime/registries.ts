@@ -119,6 +119,7 @@ export class RuntimeParameterRegistry {
     return new Implementation(value).validate();
   }
 }
+
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
   readonly nodeType: NodeTypeDefinition;

@@ -1,14 +1,4 @@
-import {
-  StringParameter as StringRuntimeParameter,
-  NumberParameter as NumberRuntimeParameter,
-  BooleanParameter as BooleanRuntimeParameter,
-  ArrayParameter as ArrayRuntimeParameter,
-  BinaryParameter as BinaryRuntimeParameter,
-  JsonParameter as JsonRuntimeParameter,
-  ImageParameter as ImageRuntimeParameter,
-  AudioParameter as AudioRuntimeParameter,
-  ParameterConstructor as RuntimeParameterConstructor,
-} from "../runtime/types";
+import { ParameterConstructor as RuntimeParameterConstructor } from "../runtime/types";
 
 import {
   NodeType as RuntimeNodeType,
@@ -21,17 +11,6 @@ export type ParameterTypeMapping = {
   runtimeType: RuntimeParameterConstructor;
   apiType: string;
 };
-
-export const defaultTypeMappings: ParameterTypeMapping[] = [
-  { runtimeType: StringRuntimeParameter, apiType: "string" },
-  { runtimeType: NumberRuntimeParameter, apiType: "number" },
-  { runtimeType: BooleanRuntimeParameter, apiType: "boolean" },
-  { runtimeType: ArrayRuntimeParameter, apiType: "array" },
-  { runtimeType: BinaryRuntimeParameter, apiType: "binary" },
-  { runtimeType: JsonRuntimeParameter, apiType: "json" },
-  { runtimeType: ImageRuntimeParameter, apiType: "image" },
-  { runtimeType: AudioRuntimeParameter, apiType: "audio" },
-];
 
 export function getApiType(
   runtimeType: RuntimeParameterConstructor,
