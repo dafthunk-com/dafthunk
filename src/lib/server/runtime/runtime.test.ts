@@ -19,7 +19,7 @@ import {
 } from "./types";
 import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
-import { BaseExecutableNode } from "./nodes/baseNode";
+import { ExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 import { StringNodeParameter } from "./nodes/nodeParameterTypes";
 
@@ -66,7 +66,7 @@ vi.mock("./registries", () => ({
 }));
 
 // Create a mock node implementation for testing
-class MockExecutableNode extends BaseExecutableNode {
+class MockExecutableNode extends ExecutableNode {
   static readonly nodeType: NodeType = {
     id: "mock",
     name: "Mock Node",

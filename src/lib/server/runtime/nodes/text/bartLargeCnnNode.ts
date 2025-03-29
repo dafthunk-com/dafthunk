@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -8,7 +8,7 @@ import {
 /**
  * Summarization node implementation using bart-large-cnn model
  */
-export class BartLargeCnnNode extends BaseExecutableNode {
+export class BartLargeCnnNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "bart-large-cnn",
     name: "BART Large CNN",

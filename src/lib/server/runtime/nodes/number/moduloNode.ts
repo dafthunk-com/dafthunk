@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { NumberNodeParameter } from "../nodeParameterTypes";
@@ -6,7 +6,7 @@ import { NumberNodeParameter } from "../nodeParameterTypes";
 /**
  * Modulo node implementation - calculates remainder after division
  */
-export class ModuloNode extends BaseExecutableNode {
+export class ModuloNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "modulo",
     name: "Modulo",

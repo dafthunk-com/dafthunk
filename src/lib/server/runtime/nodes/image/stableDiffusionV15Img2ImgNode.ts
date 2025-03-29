@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import {
   ImageNodeParameter,
   NumberNodeParameter,
@@ -10,7 +10,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Image Transformation node implementation using Stable Diffusion v1.5 img2img
  */
-export class StableDiffusionV15Img2ImgNode extends BaseExecutableNode {
+export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-v1-5-img2img",
     name: "Stable Diffusion v1.5 Img2Img",

@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { NumberNodeParameter } from "../nodeParameterTypes";
@@ -6,7 +6,7 @@ import { NumberNodeParameter } from "../nodeParameterTypes";
 /**
  * Square Root node implementation
  */
-export class SquareRootNode extends BaseExecutableNode {
+export class SquareRootNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "square-root",
     name: "Square Root",

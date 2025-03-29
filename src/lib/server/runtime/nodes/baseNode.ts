@@ -5,7 +5,7 @@ import { NodeParameter } from "./nodeParameterTypes";
 /**
  * Base class for all executable nodes
  */
-export abstract class BaseExecutableNode {
+export abstract class ExecutableNode {
   public readonly node: Node;
   public static readonly nodeType: NodeType;
 

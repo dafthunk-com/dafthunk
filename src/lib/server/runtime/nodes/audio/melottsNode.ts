@@ -1,12 +1,12 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { AudioNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 
 /**
  * Text-to-Speech node implementation using MeloTTS
  */
-export class MelottsNode extends BaseExecutableNode {
+export class MelottsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "melotts",
     name: "MeloTTS",

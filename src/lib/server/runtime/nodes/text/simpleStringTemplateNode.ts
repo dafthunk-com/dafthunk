@@ -1,9 +1,9 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { StringNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 
-export class SimpleStringTemplateNode extends BaseExecutableNode {
+export class SimpleStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "simpleStringTemplate",
     name: "Simple String Template",

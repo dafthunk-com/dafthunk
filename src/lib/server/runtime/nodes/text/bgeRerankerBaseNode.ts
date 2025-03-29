@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -10,7 +10,7 @@ import {
 /**
  * Text reranking node implementation using BGE Reranker Base model
  */
-export class BgeRerankerBaseNode extends BaseExecutableNode {
+export class BgeRerankerBaseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "bge-reranker-base",
     name: "BGE Reranker Base",

@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { StringNodeParameter } from "../nodeParameterTypes";
@@ -9,7 +9,7 @@ import { StringNodeParameter } from "../nodeParameterTypes";
  * The text input's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class InputTextNode extends BaseExecutableNode {
+export class InputTextNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "input-text",
     name: "Text Input",

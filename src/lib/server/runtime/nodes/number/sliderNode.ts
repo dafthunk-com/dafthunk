@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NumberNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
@@ -11,7 +11,7 @@ import { NodeType } from "../nodeTypes";
  * The slider's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class SliderNode extends BaseExecutableNode {
+export class SliderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "slider",
     name: "Slider",

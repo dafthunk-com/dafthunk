@@ -1,9 +1,9 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import { ImageNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 
-export class ImageUrlLoaderNode extends BaseExecutableNode {
+export class ImageUrlLoaderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "image-url-loader",
     name: "Image URL Loader",

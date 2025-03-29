@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import {
   ArrayNodeParameter,
   StringNodeParameter,
@@ -11,7 +11,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Speech Recognition node implementation using Whisper
  */
-export class WhisperNode extends BaseExecutableNode {
+export class WhisperNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "whisper",
     name: "Whisper",

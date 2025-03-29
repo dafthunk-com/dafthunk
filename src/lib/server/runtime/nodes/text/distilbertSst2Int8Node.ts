@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -8,7 +8,7 @@ import {
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
  */
-export class DistilbertSst2Int8Node extends BaseExecutableNode {
+export class DistilbertSst2Int8Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "distilbert-sst-2-int8",
     name: "Distilbert SST-2 Int8",

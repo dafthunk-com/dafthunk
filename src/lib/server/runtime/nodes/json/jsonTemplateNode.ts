@@ -1,10 +1,10 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { JsonNodeParameter } from "../nodeParameterTypes";
 import { ArrayNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 
-export class JsonTemplateNode extends BaseExecutableNode {
+export class JsonTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "jsonTemplate",
     name: "JSON Template",

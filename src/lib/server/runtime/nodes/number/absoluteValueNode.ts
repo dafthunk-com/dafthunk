@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { NumberNodeParameter } from "../nodeParameterTypes";
@@ -6,7 +6,7 @@ import { NumberNodeParameter } from "../nodeParameterTypes";
 /**
  * Absolute Value node implementation
  */
-export class AbsoluteValueNode extends BaseExecutableNode {
+export class AbsoluteValueNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "absolute-value",
     name: "Absolute Value",

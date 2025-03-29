@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import {
   AudioNodeParameter,
@@ -12,7 +12,7 @@ import { NodeType } from "../nodeTypes";
  * This node provides an audio recorder widget that allows users to record audio from their microphone
  * and outputs the recording as a base64 encoded audio file.
  */
-export class AudioRecorderNode extends BaseExecutableNode {
+export class AudioRecorderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "audio-recorder",
     name: "Audio Recorder",

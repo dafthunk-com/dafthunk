@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import {
   ImageNodeParameter,
@@ -11,7 +11,7 @@ import { NodeType } from "../nodeTypes";
  * CanvasDoodle node implementation
  * This node provides a canvas widget that allows users to draw and outputs the drawing as a base64 image.
  */
-export class CanvasDoodleNode extends BaseExecutableNode {
+export class CanvasDoodleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "canvas-doodle",
     name: "Canvas Doodle",

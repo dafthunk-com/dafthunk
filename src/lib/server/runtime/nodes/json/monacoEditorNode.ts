@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { JsonNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
@@ -10,7 +10,7 @@ import { JsonNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
  * The editor's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class MonacoEditorNode extends BaseExecutableNode {
+export class MonacoEditorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "monaco-editor",
     name: "JSON Editor",

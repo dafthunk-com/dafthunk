@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { StringNodeParameter } from "../nodeParameterTypes";
@@ -6,7 +6,7 @@ import { StringNodeParameter } from "../nodeParameterTypes";
 /**
  * Start node implementation for testing
  */
-export class StartNode extends BaseExecutableNode {
+export class StartNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "start",
     name: "Start",
@@ -28,7 +28,7 @@ export class StartNode extends BaseExecutableNode {
 /**
  * Process node implementation for testing
  */
-export class ProcessNode extends BaseExecutableNode {
+export class ProcessNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "process",
     name: "Process",
@@ -50,7 +50,7 @@ export class ProcessNode extends BaseExecutableNode {
 /**
  * Error node implementation for testing
  */
-export class ErrorNode extends BaseExecutableNode {
+export class ErrorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "error",
     name: "Error",
@@ -70,7 +70,7 @@ export class ErrorNode extends BaseExecutableNode {
 /**
  * Long running node implementation for testing
  */
-export class LongRunningNode extends BaseExecutableNode {
+export class LongRunningNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "long-running",
     name: "Long Running",

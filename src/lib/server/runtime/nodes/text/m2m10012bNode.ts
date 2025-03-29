@@ -1,11 +1,11 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import { StringNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 /**
  * Translation node implementation using m2m100-1.2b model
  */
-export class M2m10012bNode extends BaseExecutableNode {
+export class M2m10012bNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "m2m100-1.2b",
     name: "M2M100 1.2B",

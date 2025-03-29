@@ -22,7 +22,7 @@ import {
   JsonNodeParameter,
   AudioNodeParameter,
 } from "./nodes/nodeParameterTypes";
-import { BaseExecutableNode } from "./nodes/baseNode";
+import { ExecutableNode } from "./nodes/baseNode";
 import { NodeType as NodeTypeDefinition } from "./nodes/nodeTypes";
 
 export class RuntimeParameterRegistry {
@@ -76,7 +76,7 @@ export class RuntimeParameterRegistry {
   }
 }
 export interface NodeImplementationConstructor {
-  new (node: Node): BaseExecutableNode;
+  new (node: Node): ExecutableNode;
   readonly nodeType: NodeTypeDefinition;
 }
 
@@ -103,7 +103,7 @@ export class NodeRegistry {
     this.implementations.set(Implementation.nodeType.type, Implementation);
   }
 
-  public createExecutableNode(node: Node): BaseExecutableNode | undefined {
+  public createExecutableNode(node: Node): ExecutableNode | undefined {
     const Implementation = this.implementations.get(node.type);
     if (!Implementation) {
       return undefined;

@@ -1,11 +1,11 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { NumberNodeParameter } from "../nodeParameterTypes";
 /**
  * Addition node implementation
  */
-export class AdditionNode extends BaseExecutableNode {
+export class AdditionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "addition",
     name: "Addition",

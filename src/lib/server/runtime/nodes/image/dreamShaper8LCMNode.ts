@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import {
   ImageNodeParameter,
@@ -10,7 +10,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * DreamShaper 8 LCM node implementation for text-to-image generation
  */
-export class DreamShaper8LCMNode extends BaseExecutableNode {
+export class DreamShaper8LCMNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "dreamshaper-8-lcm",
     name: "DreamShaper 8 LCM",

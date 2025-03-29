@@ -8,7 +8,7 @@ import { NodeRegistry } from "./registries";
 import { NodeType } from "./nodes/nodeTypes";
 import { validateWorkflow } from "./validation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
-import { BaseExecutableNode } from "./nodes/baseNode";
+import { ExecutableNode } from "./nodes/baseNode";
 import { RuntimeParameterRegistry } from "./registries";
 import { RuntimeParameter } from "./types";
 import { NodeParameter } from "./nodes/nodeParameterTypes";
@@ -25,7 +25,7 @@ export class Runtime {
     new Map();
   private executedNodes: Set<string> = new Set();
   private nodeErrors: Map<string, string> = new Map();
-  private executableNodes: Map<string, BaseExecutableNode> = new Map();
+  private executableNodes: Map<string, ExecutableNode> = new Map();
   private options: WorkflowExecutionOptions;
   private env?: any;
   private aborted: boolean = false;
@@ -162,7 +162,7 @@ export class Runtime {
     }
 
     const nodeType = this.executableNodes.get(nodeId)
-      ?.constructor as typeof BaseExecutableNode;
+      ?.constructor as typeof ExecutableNode;
     if (!nodeType?.nodeType) {
       throw new Error(`Node type not found for ${nodeId}`);
     }
@@ -189,7 +189,7 @@ export class Runtime {
     outputs: Record<string, NodeParameter>
   ): Record<string, RuntimeParameter> {
     const nodeType = this.executableNodes.get(nodeId)
-      ?.constructor as typeof BaseExecutableNode;
+      ?.constructor as typeof ExecutableNode;
     if (!nodeType?.nodeType) {
       throw new Error(`Node type not found for ${nodeId}`);
     }

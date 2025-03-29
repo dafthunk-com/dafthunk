@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeType } from "../nodeTypes";
 import {
   StringNodeParameter,
@@ -10,7 +10,7 @@ import {
 /**
  * Image-to-Text node implementation using UForm-Gen2
  */
-export class UformGen2Qwen500mNode extends BaseExecutableNode {
+export class UformGen2Qwen500mNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "uform-gen2-qwen-500m",
     name: "UForm Gen2 Qwen 500M",

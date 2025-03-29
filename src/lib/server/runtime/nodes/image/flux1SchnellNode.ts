@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import {
   ImageNodeParameter,
@@ -9,7 +9,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * FLUX.1 schnell node implementation for text-to-image generation
  */
-export class Flux1SchnellNode extends BaseExecutableNode {
+export class Flux1SchnellNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "flux-1-schnell",
     name: "FLUX.1 Schnell",

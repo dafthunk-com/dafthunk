@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import {
   ImageNodeParameter,
@@ -11,7 +11,7 @@ import { NodeType } from "../nodeTypes";
  * Webcam node implementation
  * This node provides a webcam widget that allows users to capture images and outputs them as base64 images.
  */
-export class WebcamNode extends BaseExecutableNode {
+export class WebcamNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "webcam",
     name: "Webcam",

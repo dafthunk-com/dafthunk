@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import { ArrayNodeParameter, ImageNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
@@ -6,7 +6,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * DETR-ResNet-50 node implementation for object detection
  */
-export class DetrResnet50Node extends BaseExecutableNode {
+export class DetrResnet50Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "detr-resnet-50",
     name: "DETR-ResNet-50",

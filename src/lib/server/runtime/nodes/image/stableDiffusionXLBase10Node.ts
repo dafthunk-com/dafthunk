@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import {
   ImageNodeParameter,
@@ -10,7 +10,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Stable Diffusion XL Base 1.0 node implementation for text-to-image generation
  */
-export class StableDiffusionXLBase10Node extends BaseExecutableNode {
+export class StableDiffusionXLBase10Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-base",
     name: "Stable Diffusion XL Base",

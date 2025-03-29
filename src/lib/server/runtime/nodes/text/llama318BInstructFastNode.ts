@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -8,7 +8,7 @@ import {
 /**
  * Simplified LLM node implementation with essential parameters
  */
-export class Llama318BInstructFastNode extends BaseExecutableNode {
+export class Llama318BInstructFastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "llama-3.1-8b-instruct-fast",
     name: "llama-3.1-8b-instruct-fast",

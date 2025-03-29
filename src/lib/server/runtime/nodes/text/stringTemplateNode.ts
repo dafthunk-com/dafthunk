@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -7,7 +7,7 @@ import {
   JsonNodeParameter,
 } from "../nodeParameterTypes";
 
-export class StringTemplateNode extends BaseExecutableNode {
+export class StringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "stringTemplate",
     name: "String Template",

@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -13,7 +13,7 @@ import {
  * The number input's current value is stored as an input parameter named "value"
  * and passed directly to the output. It supports optional min, max, and step constraints.
  */
-export class NumberInputNode extends BaseExecutableNode {
+export class NumberInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "number-input",
     name: "Number Input",

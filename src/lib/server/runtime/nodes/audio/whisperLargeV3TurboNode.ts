@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import {
   ArrayNodeParameter,
   AudioNodeParameter,
@@ -13,7 +13,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo
  */
-export class WhisperLargeV3TurboNode extends BaseExecutableNode {
+export class WhisperLargeV3TurboNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "speech-recognition-large-v3-turbo",
     name: "Speech Recognition (Large V3 Turbo)",

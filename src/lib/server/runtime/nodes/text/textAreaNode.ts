@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { StringNodeParameter } from "../nodeParameterTypes";
@@ -10,7 +10,7 @@ import { StringNodeParameter } from "../nodeParameterTypes";
  * The text area's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class TextAreaNode extends BaseExecutableNode {
+export class TextAreaNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "text-area",
     name: "Text Area",

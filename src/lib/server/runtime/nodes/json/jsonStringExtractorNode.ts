@@ -1,5 +1,5 @@
 import { JSONPath } from "jsonpath-plus";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {
@@ -8,7 +8,7 @@ import {
   JsonNodeParameter,
 } from "../nodeParameterTypes";
 
-export class JsonStringExtractorNode extends BaseExecutableNode {
+export class JsonStringExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "jsonStringExtractor",
     name: "JSON String Extractor",

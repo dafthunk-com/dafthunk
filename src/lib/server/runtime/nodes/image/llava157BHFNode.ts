@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import {
   ImageNodeParameter,
   StringNodeParameter,
@@ -10,7 +10,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Image-to-Text node implementation using LLaVA 1.5 7B HF
  */
-export class LLaVA157BHFNode extends BaseExecutableNode {
+export class LLaVA157BHFNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "image-to-text",
     name: "Image to Text (LLaVA 1.5 7B)",

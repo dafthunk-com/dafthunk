@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import { ArrayNodeParameter, ImageNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
@@ -6,7 +6,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * ResNet-50 node implementation for image classification
  */
-export class Resnet50Node extends BaseExecutableNode {
+export class Resnet50Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "resnet-50",
     name: "ResNet-50",

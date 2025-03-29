@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import {
   ImageNodeParameter,
   NumberNodeParameter,
@@ -9,7 +9,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Image Inpainting node implementation using Stable Diffusion v1.5
  */
-export class StableDiffusionV15InpaintingNode extends BaseExecutableNode {
+export class StableDiffusionV15InpaintingNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-v1-5-inpainting",
     name: "Stable Diffusion v1.5 Inpainting",

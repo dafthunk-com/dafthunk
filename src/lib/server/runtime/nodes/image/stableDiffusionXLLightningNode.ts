@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import {
   ImageNodeParameter,
   NumberNodeParameter,
@@ -10,7 +10,7 @@ import { NodeType } from "../nodeTypes";
 /**
  * Image Generation node implementation using Stable Diffusion XL Lightning
  */
-export class StableDiffusionXLLightningNode extends BaseExecutableNode {
+export class StableDiffusionXLLightningNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-lightning",
     name: "Stable Diffusion XL Lightning",

@@ -1,4 +1,4 @@
-import { BaseExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../baseNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import { NumberNodeParameter } from "../nodeParameterTypes";
@@ -6,7 +6,7 @@ import { NumberNodeParameter } from "../nodeParameterTypes";
 /**
  * Exponentiation node implementation - raises base to an exponent
  */
-export class ExponentiationNode extends BaseExecutableNode {
+export class ExponentiationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "exponentiation",
     name: "Exponentiation",
