@@ -1,11 +1,11 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import {
   ImageNodeParameter,
   NumberNodeParameter,
   StringNodeParameter,
-} from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+} from "../types";
+import { NodeType } from "../types";
 
 /**
  * Image Generation node implementation using Stable Diffusion XL Lightning

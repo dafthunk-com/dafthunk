@@ -1,8 +1,8 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../types";
-import { JsonNodeParameter } from "../nodeTypes";
-import { ArrayNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { JsonNodeParameter } from "../types";
+import { ArrayNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 export class JsonTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

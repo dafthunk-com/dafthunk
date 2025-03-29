@@ -1,11 +1,11 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../types";
 import {
   ImageNodeParameter,
   StringNodeParameter,
   NumberNodeParameter,
-} from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+} from "../types";
+import { NodeType } from "../types";
 
 /**
  * Webcam node implementation

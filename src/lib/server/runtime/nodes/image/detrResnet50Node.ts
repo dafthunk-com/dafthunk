@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../types";
-import { ArrayNodeParameter, ImageNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { ArrayNodeParameter, ImageNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 /**
  * DETR-ResNet-50 node implementation for object detection

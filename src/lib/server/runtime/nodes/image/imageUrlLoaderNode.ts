@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../types";
-import { ImageNodeParameter, StringNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { ImageNodeParameter, StringNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 export class ImageUrlLoaderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

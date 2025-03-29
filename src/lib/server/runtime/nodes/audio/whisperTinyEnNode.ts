@@ -1,12 +1,12 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import {
   ArrayNodeParameter,
   StringNodeParameter,
   NumberNodeParameter,
   AudioNodeParameter,
-} from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+} from "../types";
+import { NodeType } from "../types";
 
 /**
  * Speech Recognition node implementation using Whisper Tiny English

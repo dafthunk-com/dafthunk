@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../types";
-import { StringNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { StringNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 export class SimpleStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

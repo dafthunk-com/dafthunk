@@ -1,11 +1,11 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { ExecutableNode } from "../types";
+import { NodeType } from "../types";
 import {
   StringNodeParameter,
   ImageNodeParameter,
   NumberNodeParameter,
-} from "../nodeTypes";
+} from "../types";
 
 /**
  * Image-to-Text node implementation using UForm-Gen2

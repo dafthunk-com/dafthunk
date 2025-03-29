@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../types";
-import { NodeType } from "../nodeTypes";
-import { JsonNodeParameter, StringNodeParameter } from "../nodeTypes";
+import { NodeType } from "../types";
+import { JsonNodeParameter, StringNodeParameter } from "../types";
 
 /**
  * Monaco Editor node implementation

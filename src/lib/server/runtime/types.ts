@@ -1,5 +1,5 @@
 // Types for workflows
-import { NodeParameter } from "./nodes/nodeTypes";
+import { NodeParameter } from "./nodes/types";
 
 export interface Position {
   x: number;

@@ -1,11 +1,11 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../types";
 import {
   ImageNodeParameter,
   StringNodeParameter,
   NumberNodeParameter,
-} from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+} from "../types";
+import { NodeType } from "../types";
 /**
  * FLUX.1 schnell node implementation for text-to-image generation
  */

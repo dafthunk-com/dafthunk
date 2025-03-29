@@ -1,14 +1,14 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import {
   ArrayNodeParameter,
   AudioNodeParameter,
   BooleanNodeParameter,
   JsonNodeParameter,
   NumberNodeParameter,
-} from "../nodeTypes";
-import { StringNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+} from "../types";
+import { StringNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo

@@ -8,7 +8,7 @@ import {
   afterAll,
 } from "vitest";
 import { Runtime } from "./runtime";
-import { NodeType } from "./nodes/nodeTypes";
+import { NodeType } from "./nodes/types";
 import {
   Workflow,
   Node,
@@ -19,9 +19,9 @@ import {
 } from "./types";
 import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
-import { ExecutableNode } from "./nodes/nodeTypes";
+import { ExecutableNode } from "./nodes/types";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
-import { StringNodeParameter } from "./nodes/nodeTypes";
+import { StringNodeParameter } from "./nodes/types";
 
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({

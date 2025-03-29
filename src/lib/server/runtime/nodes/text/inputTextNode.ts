@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../types";
-import { NodeType } from "../nodeTypes";
-import { StringNodeParameter } from "../nodeTypes";
+import { NodeType } from "../types";
+import { StringNodeParameter } from "../types";
 /**
  * InputText node implementation
  * This node provides a text input widget that outputs the entered text value.

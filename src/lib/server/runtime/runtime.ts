@@ -5,13 +5,13 @@ import {
   WorkflowExecutionOptions,
 } from "./types";
 import { NodeRegistry } from "./registries";
-import { NodeType } from "./nodes/nodeTypes";
+import { NodeType } from "./nodes/types";
 import { validateWorkflow } from "./validation";
-import { registerNodes } from "./nodes/nodeTypeRegistry";
-import { ExecutableNode } from "./nodes/nodeTypes";
+import { registerNodes } from "./nodes/registries";
+import { ExecutableNode } from "./nodes/types";
 import { RuntimeParameterRegistry } from "./registries";
 import { RuntimeParameter } from "./types";
-import { NodeParameter } from "./nodes/nodeTypes";
+import { NodeParameter } from "./nodes/types";
 
 // Initialize the node registry
 registerNodes();

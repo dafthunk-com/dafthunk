@@ -1,7 +1,7 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../nodeTypes";
-import { AudioNodeParameter, StringNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { ExecutableNode } from "../types";
+import { AudioNodeParameter, StringNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 /**
  * Text-to-Speech node implementation using MeloTTS

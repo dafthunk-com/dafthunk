@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../types";
-import { StringNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { StringNodeParameter } from "../types";
+import { NodeType } from "../types";
 /**
  * Translation node implementation using m2m100-1.2b model
  */

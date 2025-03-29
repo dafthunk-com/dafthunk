@@ -1,11 +1,11 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import {
   ImageNodeParameter,
   StringNodeParameter,
   NumberNodeParameter,
-} from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+} from "../types";
+import { NodeType } from "../types";
 
 /**
  * Image-to-Text node implementation using LLaVA 1.5 7B HF

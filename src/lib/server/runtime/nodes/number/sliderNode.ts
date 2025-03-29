@@ -1,7 +1,7 @@
-import { ExecutableNode } from "../nodeTypes";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../types";
-import { NumberNodeParameter } from "../nodeTypes";
-import { NodeType } from "../nodeTypes";
+import { NumberNodeParameter } from "../types";
+import { NodeType } from "../types";
 
 /**
  * Slider node implementation
