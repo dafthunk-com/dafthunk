@@ -8,11 +8,11 @@ import {
   ImageRuntimeParameter,
   AudioRuntimeParameter,
   RuntimeParameterConstructor,
-} from "../runtime/runtimeTypes";
+} from "../runtime/types";
 import {
   NodeType as RuntimeNodeType,
   Node as RuntimeNode,
-} from "../runtime/runtimeTypes";
+} from "../runtime/types";
 import { NodeType as ApiNodeType, Node as ApiNode } from "./types";
 
 export type ParameterTypeMapping = {
@@ -35,9 +35,8 @@ export function getApiType(
   runtimeType: RuntimeParameterConstructor,
   typeMappings: ParameterTypeMapping[]
 ): string | undefined {
-  return typeMappings.find(
-    (mapping) => mapping.runtimeType === runtimeType
-  )?.apiType;
+  return typeMappings.find((mapping) => mapping.runtimeType === runtimeType)
+    ?.apiType;
 }
 
 export function getRuntimeType(
@@ -127,4 +126,4 @@ export function convertApiNodes(
       outputs,
     };
   });
-} 
+}

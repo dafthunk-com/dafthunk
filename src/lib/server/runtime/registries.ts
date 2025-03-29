@@ -10,7 +10,7 @@ import {
   AudioRuntimeParameter,
   Node,
   NodeType,
-} from "./runtimeTypes";
+} from "./types";
 import {
   NodeParameter,
   StringNodeParameter,

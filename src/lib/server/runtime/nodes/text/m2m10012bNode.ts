@@ -1,5 +1,5 @@
 import { BaseExecutableNode } from "../baseNode";
-import { ExecutionResult, NodeContext } from "../../runtimeTypes";
+import { ExecutionResult, NodeContext } from "../../types";
 import { StringNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 /**

@@ -3,9 +3,9 @@ import {
   detectCycles,
   validateTypeCompatibility,
   validateWorkflow,
-} from "./runtimeValidation";
-import type { Workflow, Node, Edge } from "./runtimeTypes";
-import { StringRuntimeParameter, NumberRuntimeParameter } from "./runtimeTypes";
+} from "./validation";
+import type { Workflow, Node, Edge } from "./types";
+import { StringRuntimeParameter, NumberRuntimeParameter } from "./types";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node

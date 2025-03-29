@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SimpleStringTemplateNode } from "./simpleStringTemplateNode";
-import { Node } from "../../runtimeTypes";
+import { Node } from "../../types";
 
 describe("SimpleStringTemplateNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({

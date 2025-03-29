@@ -1,4 +1,4 @@
-import { NodeContext, ExecutionResult } from "../../runtimeTypes";
+import { NodeContext, ExecutionResult } from "../../types";
 import { BaseExecutableNode } from "../baseNode";
 import {
   ArrayNodeParameter,

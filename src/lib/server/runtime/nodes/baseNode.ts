@@ -1,4 +1,4 @@
-import { Node, NodeContext, ExecutionResult } from "../runtimeTypes";
+import { Node, NodeContext, ExecutionResult } from "../types";
 import { NodeType } from "./nodeTypes";
 import { NodeParameter } from "./nodeParameterTypes";
 

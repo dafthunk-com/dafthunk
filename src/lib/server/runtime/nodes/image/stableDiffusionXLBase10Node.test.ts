@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { StableDiffusionXLBase10Node } from "./stableDiffusionXLBase10Node";
-import { Node } from "../../runtimeTypes";
+import { Node } from "../../types";
 import {
   StringRuntimeParameter,
   NumberRuntimeParameter,
   ImageRuntimeParameter,
-} from "../../runtimeTypes";
+} from "../../types";
 import { ImageNodeParameter } from "../nodeParameterTypes";
 
 describe("StableDiffusionXLBase10Node", () => {

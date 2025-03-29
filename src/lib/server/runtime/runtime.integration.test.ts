@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
-import { Workflow, WorkflowExecutionOptions } from "./runtimeTypes";
-import { NodeRegistry } from "./runtimeRegistries";
+import { Workflow, WorkflowExecutionOptions } from "./types";
+import { NodeRegistry } from "./registries";
 import {
   StartNode,
   ProcessNode,
   ErrorNode,
   LongRunningNode,
 } from "./nodes/test/testNodes";
-import { StringRuntimeParameter } from "./runtimeTypes";
+import { StringRuntimeParameter } from "./types";
 
 // Mock the ParameterTypeRegistry
 vi.mock("./typeRegistry", () => ({

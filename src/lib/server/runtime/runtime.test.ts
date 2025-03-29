@@ -16,20 +16,20 @@ import {
   NodeContext,
   ExecutionResult,
   StringRuntimeParameter,
-} from "./runtimeTypes";
-import { NodeRegistry } from "./runtimeRegistries";
-import { validateWorkflow } from "./runtimeValidation";
+} from "./types";
+import { NodeRegistry } from "./registries";
+import { validateWorkflow } from "./validation";
 import { BaseExecutableNode } from "./nodes/baseNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 import { StringNodeParameter } from "./nodes/nodeParameterTypes";
 
 // Mock the validateWorkflow function
-vi.mock("./runtimeValidation", () => ({
+vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 
 // Mock the NodeRegistry and RuntimeParameterRegistry
-vi.mock("./runtimeRegistries", () => ({
+vi.mock("./registries", () => ({
   NodeRegistry: {
     getInstance: vi.fn().mockReturnValue({
       registerImplementation: vi.fn(),

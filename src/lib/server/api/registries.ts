@@ -1,10 +1,8 @@
-import {
-  RuntimeParameterConstructor,
-} from "../runtime/runtimeTypes";
+import { RuntimeParameterConstructor } from "../runtime/types";
 import {
   NodeType as RuntimeNodeType,
   Node as RuntimeNode,
-} from "../runtime/runtimeTypes";
+} from "../runtime/types";
 import { NodeType as ApiNodeType, Node as ApiNode } from "./types";
 import {
   ParameterTypeMapping,

@@ -3,14 +3,14 @@ import {
   ValidationError,
   NodeContext,
   WorkflowExecutionOptions,
-} from "./runtimeTypes";
-import { NodeRegistry } from "./runtimeRegistries";
+} from "./types";
+import { NodeRegistry } from "./registries";
 import { NodeType } from "./nodes/nodeTypes";
-import { validateWorkflow } from "./runtimeValidation";
+import { validateWorkflow } from "./validation";
 import { registerNodes } from "./nodes/nodeTypeRegistry";
 import { BaseExecutableNode } from "./nodes/baseNode";
-import { RuntimeParameterRegistry } from "./runtimeRegistries";
-import { RuntimeParameter } from "./runtimeTypes";
+import { RuntimeParameterRegistry } from "./registries";
+import { RuntimeParameter } from "./types";
 import { NodeParameter } from "./nodes/nodeParameterTypes";
 
 // Initialize the node registry

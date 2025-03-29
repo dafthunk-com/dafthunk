@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { StringTemplateNode } from "./stringTemplateNode";
-import { Node } from "../../runtimeTypes";
+import { Node } from "../../types";
 
 describe("StringTemplateNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({

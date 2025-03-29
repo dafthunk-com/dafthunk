@@ -1,4 +1,4 @@
-import { Workflow, ValidationError } from "./runtimeTypes";
+import { Workflow, ValidationError } from "./types";
 
 /**
  * Checks if there are any cycles in the workflow using DFS

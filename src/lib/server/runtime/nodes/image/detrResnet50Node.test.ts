@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { DetrResnet50Node } from "./detrResnet50Node";
-import { Node } from "../../runtimeTypes";
-import {
-  ImageRuntimeParameter,
-  ArrayRuntimeParameter,
-} from "../../runtimeTypes";
+import { Node } from "../../types";
+import { ImageRuntimeParameter, ArrayRuntimeParameter } from "../../types";
 
 describe("DetrResnet50Node", () => {
   const mockNode: Node = {
