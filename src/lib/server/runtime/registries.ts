@@ -21,9 +21,9 @@ import {
   ImageNodeParameter,
   JsonNodeParameter,
   AudioNodeParameter,
-} from "./nodes/types";
-import { ExecutableNode } from "./nodes/types";
-import { NodeType as NodeTypeDefinition } from "./nodes/types";
+} from "../nodes/types";
+import { ExecutableNode } from "../nodes/types";
+import { NodeType as NodeTypeDefinition } from "../nodes/types";
 
 export class RuntimeParameterRegistry {
   private static instance: RuntimeParameterRegistry;

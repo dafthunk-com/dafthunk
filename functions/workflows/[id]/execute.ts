@@ -7,13 +7,13 @@ import {
   Node,
   Edge,
   WorkflowExecutionOptions,
-} from "../../../src/lib/server/api/apiTypes";
-import { Workflow } from "../../../src/lib/server/runtime/runtimeTypes";
+} from "../../../src/lib/server/api/types";
+import { Workflow } from "../../../src/lib/server/runtime/types";
 import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
-import { NodeRegistry } from "../../../src/lib/server/runtime/runtimeRegistries";
-import { ApiParameterRegistry } from "../../../src/lib/server/api/apiRegistries";
+import { NodeRegistry } from "../../../src/lib/server/runtime/registries";
+import { ApiParameterRegistry } from "../../../src/lib/server/api/registries";
 
 // Helper function to create an SSE event
 function createEvent(event: {

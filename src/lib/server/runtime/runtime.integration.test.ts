@@ -7,7 +7,7 @@ import {
   ProcessNode,
   ErrorNode,
   LongRunningNode,
-} from "./nodes/test/testNodes";
+} from "../nodes/test/testNodes";
 import { StringRuntimeParameter } from "./types";
 
 // Mock the ParameterTypeRegistry
