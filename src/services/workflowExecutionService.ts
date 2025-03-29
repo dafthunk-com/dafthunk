@@ -3,7 +3,7 @@ import {
   Workflow,
   ExecutionResult,
   ExecutionState,
-} from "@/lib/server/api/apiTypes";
+} from "@/lib/server/api/types";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {

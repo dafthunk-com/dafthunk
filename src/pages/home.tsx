@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { Workflow } from "@/lib/server/api/apiTypes";
+import { Workflow } from "@/lib/server/api/types";
 import {
   Dialog,
   DialogContent,
