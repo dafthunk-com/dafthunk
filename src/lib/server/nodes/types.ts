@@ -5,7 +5,7 @@ export interface Parameter {
   name: string;
   type: ValueConstructor;
   description?: string;
-  value?: ParameterType;
+  value?: ParameterValue;
   hidden?: boolean;
   required?: boolean;
 }
@@ -35,7 +35,7 @@ export abstract class ExecutableNode {
   public abstract execute(context: NodeContext): Promise<ExecutionResult>;
 
   protected createSuccessResult(
-    outputs: Record<string, ParameterType>
+    outputs: Record<string, ParameterValue>
   ): ExecutionResult {
     return {
       nodeId: this.node.id,
@@ -54,10 +54,10 @@ export abstract class ExecutableNode {
 }
 
 export interface ValueConstructor {
-  new (value: any): ParameterType;
+  new (value: any): ParameterValue;
 }
 
-export abstract class ParameterType {
+export abstract class ParameterValue {
   constructor(protected readonly value: any) {}
 
   abstract validate(): { isValid: boolean; error?: string };
@@ -67,7 +67,7 @@ export abstract class ParameterType {
   }
 }
 
-export class StringParameter extends ParameterType {
+export class StringParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "string") {
       return { isValid: false, error: "Value must be a string" };
@@ -76,7 +76,7 @@ export class StringParameter extends ParameterType {
   }
 }
 
-export class NumberParameter extends ParameterType {
+export class NumberParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "number" || isNaN(this.value)) {
       return { isValid: false, error: "Value must be a valid number" };
@@ -85,7 +85,7 @@ export class NumberParameter extends ParameterType {
   }
 }
 
-export class BooleanParameter extends ParameterType {
+export class BooleanParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "boolean") {
       return { isValid: false, error: "Value must be a boolean" };
@@ -94,7 +94,7 @@ export class BooleanParameter extends ParameterType {
   }
 }
 
-export class ArrayParameter extends ParameterType {
+export class ArrayParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (!Array.isArray(this.value)) {
       return { isValid: false, error: "Value must be an array" };
@@ -103,7 +103,7 @@ export class ArrayParameter extends ParameterType {
   }
 }
 
-export class BinaryParameter extends ParameterType {
+export class BinaryParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (!(this.value instanceof Uint8Array)) {
       return { isValid: false, error: "Value must be a Uint8Array" };
@@ -112,7 +112,7 @@ export class BinaryParameter extends ParameterType {
   }
 }
 
-export class JsonParameter extends ParameterType {
+export class JsonParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     try {
       if (typeof this.value !== "object" || this.value === null) {
@@ -125,7 +125,7 @@ export class JsonParameter extends ParameterType {
   }
 }
 
-export class ImageParameter extends ParameterType {
+export class ImageParameter extends ParameterValue {
   private static readonly VALID_MIME_TYPES = ["image/jpeg", "image/png"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -154,7 +154,7 @@ export class ImageParameter extends ParameterType {
   }
 }
 
-export class AudioParameter extends ParameterType {
+export class AudioParameter extends ParameterValue {
   private static readonly VALID_MIME_TYPES = ["audio/mpeg", "audio/webm"];
 
   validate(): { isValid: boolean; error?: string } {

@@ -1,5 +1,5 @@
 // Types for workflows
-import { ParameterType } from "../nodes/types";
+import { ParameterValue as NodeParameterValue } from "../nodes/types";
 
 export interface Position {
   x: number;
@@ -8,9 +8,9 @@ export interface Position {
 
 export interface Parameter {
   name: string;
-  type: RuntimeParameterConstructor;
+  type: ParameterConstructor;
   description?: string;
-  value?: RuntimeParameter;
+  value?: ParameterValue;
   hidden?: boolean;
   required?: boolean;
 }
@@ -78,7 +78,7 @@ export interface ExecutionResult {
   nodeId: string;
   success: boolean;
   error?: string;
-  outputs?: Record<string, ParameterType>;
+  outputs?: Record<string, NodeParameterValue>;
 }
 
 export interface NodeContext {
@@ -103,11 +103,11 @@ export interface WorkflowExecutionOptions {
   abortSignal?: AbortSignal;
 }
 
-export interface RuntimeParameterConstructor {
-  new (value: any): RuntimeParameter;
+export interface ParameterConstructor {
+  new (value: any): ParameterValue;
 }
 
-export abstract class RuntimeParameter {
+export abstract class ParameterValue {
   constructor(protected readonly value: any) {}
 
   abstract validate(): { isValid: boolean; error?: string };
@@ -116,7 +116,7 @@ export abstract class RuntimeParameter {
   }
 }
 
-export class StringRuntimeParameter extends RuntimeParameter {
+export class StringParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "string") {
       return { isValid: false, error: "Value must be a string" };
@@ -125,7 +125,7 @@ export class StringRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class NumberRuntimeParameter extends RuntimeParameter {
+export class NumberParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "number" || isNaN(this.value)) {
       return { isValid: false, error: "Value must be a valid number" };
@@ -134,7 +134,7 @@ export class NumberRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class BooleanRuntimeParameter extends RuntimeParameter {
+export class BooleanParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "boolean") {
       return { isValid: false, error: "Value must be a boolean" };
@@ -143,7 +143,7 @@ export class BooleanRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class ArrayRuntimeParameter extends RuntimeParameter {
+export class ArrayParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (!Array.isArray(this.value)) {
       return { isValid: false, error: "Value must be an array" };
@@ -152,7 +152,7 @@ export class ArrayRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class BinaryRuntimeParameter extends RuntimeParameter {
+export class BinaryParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (!(this.value instanceof Uint8Array)) {
       return { isValid: false, error: "Value must be a Uint8Array" };
@@ -161,7 +161,7 @@ export class BinaryRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class JsonRuntimeParameter extends RuntimeParameter {
+export class JsonParameter extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     try {
       if (typeof this.value !== "object" || this.value === null) {
@@ -174,7 +174,7 @@ export class JsonRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class ImageRuntimeParameter extends RuntimeParameter {
+export class ImageParameter extends ParameterValue {
   private static readonly VALID_MIME_TYPES = ["image/jpeg", "image/png"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -191,11 +191,11 @@ export class ImageRuntimeParameter extends RuntimeParameter {
 
     if (
       typeof this.value.mimeType !== "string" ||
-      !ImageRuntimeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+      !ImageParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
     ) {
       return {
         isValid: false,
-        error: `mimeType must be one of: ${ImageRuntimeParameter.VALID_MIME_TYPES.join(", ")}`,
+        error: `mimeType must be one of: ${ImageParameter.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 
@@ -203,7 +203,7 @@ export class ImageRuntimeParameter extends RuntimeParameter {
   }
 }
 
-export class AudioRuntimeParameter extends RuntimeParameter {
+export class AudioParameter extends ParameterValue {
   private static readonly VALID_MIME_TYPES = ["audio/mpeg", "audio/webm"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -220,11 +220,11 @@ export class AudioRuntimeParameter extends RuntimeParameter {
 
     if (
       typeof this.value.mimeType !== "string" ||
-      !AudioRuntimeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+      !AudioParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
     ) {
       return {
         isValid: false,
-        error: `mimeType must be one of: ${AudioRuntimeParameter.VALID_MIME_TYPES.join(", ")}`,
+        error: `mimeType must be one of: ${AudioParameter.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 

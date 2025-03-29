@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { StableDiffusionXLBase10Node } from "./stableDiffusionXLBase10Node";
 import { Node } from "../../runtime/types";
 import {
-  StringRuntimeParameter,
-  NumberRuntimeParameter,
-  ImageRuntimeParameter,
+  StringParameter as StringRuntimeParameter,
+  NumberParameter as NumberRuntimeParameter,
+  ImageParameter as ImageRuntimeParameter,
 } from "../../runtime/types";
-import { ImageParameter } from "../types";
+import { ImageParameter as ImageNodeParameter } from "../types";
 
 describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {
@@ -126,7 +126,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",
@@ -170,7 +170,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",
@@ -208,7 +208,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",
@@ -245,7 +245,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",

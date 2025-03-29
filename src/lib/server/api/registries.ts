@@ -1,4 +1,4 @@
-import { RuntimeParameterConstructor } from "../runtime/types";
+import { ParameterConstructor } from "../runtime/types";
 import {
   NodeType as RuntimeNodeType,
   Node as RuntimeNode,
@@ -30,22 +30,15 @@ export class ApiParameterRegistry {
     return ApiParameterRegistry.instance;
   }
 
-  public register(
-    runtimeType: RuntimeParameterConstructor,
-    apiType: string
-  ): void {
+  public register(runtimeType: ParameterConstructor, apiType: string): void {
     this.typeMappings.push({ runtimeType, apiType });
   }
 
-  public getApiType(
-    runtimeType: RuntimeParameterConstructor
-  ): string | undefined {
+  public getApiType(runtimeType: ParameterConstructor): string | undefined {
     return getApiType(runtimeType, this.typeMappings);
   }
 
-  public getRuntimeType(
-    apiType: string
-  ): RuntimeParameterConstructor | undefined {
+  public getRuntimeType(apiType: string): ParameterConstructor | undefined {
     return getRuntimeType(apiType, this.typeMappings);
   }
 

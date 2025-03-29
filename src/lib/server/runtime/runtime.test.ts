@@ -15,7 +15,7 @@ import {
   WorkflowExecutionOptions,
   NodeContext,
   ExecutionResult,
-  StringRuntimeParameter,
+  StringParameter as StringRuntimeParameter,
 } from "./types";
 import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";

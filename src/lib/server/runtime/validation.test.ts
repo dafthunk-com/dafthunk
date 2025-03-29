@@ -5,7 +5,7 @@ import {
   validateWorkflow,
 } from "./validation";
 import type { Workflow, Node, Edge } from "./types";
-import { StringRuntimeParameter, NumberRuntimeParameter } from "./types";
+import { StringParameter, NumberParameter } from "./types";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node
@@ -80,11 +80,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: StringRuntimeParameter }],
+            outputs: [{ name: "out1", type: StringParameter }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: StringRuntimeParameter }],
+            inputs: [{ name: "in1", type: StringParameter }],
           },
         ],
         edges: [createEdge("1", "2", "out1", "in1")],
@@ -101,11 +101,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: StringRuntimeParameter }],
+            outputs: [{ name: "out1", type: StringParameter }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: NumberRuntimeParameter }],
+            inputs: [{ name: "in1", type: NumberParameter }],
           },
         ],
         edges: [createEdge("1", "2", "out1", "in1")],
@@ -169,11 +169,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: StringRuntimeParameter }],
+            outputs: [{ name: "out1", type: StringParameter }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: StringRuntimeParameter }],
+            inputs: [{ name: "in1", type: StringParameter }],
           },
         ],
         edges: [createEdge("1", "2", "out1", "in1")],
@@ -190,11 +190,11 @@ describe("workflowValidation", () => {
         nodes: [
           {
             ...createNode("1"),
-            outputs: [{ name: "out1", type: StringRuntimeParameter }],
+            outputs: [{ name: "out1", type: StringParameter }],
           },
           {
             ...createNode("2"),
-            inputs: [{ name: "in1", type: NumberRuntimeParameter }],
+            inputs: [{ name: "in1", type: NumberParameter }],
           },
         ],
         edges: [

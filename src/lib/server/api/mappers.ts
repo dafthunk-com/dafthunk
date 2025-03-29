@@ -1,18 +1,20 @@
 import {
-  StringRuntimeParameter,
-  NumberRuntimeParameter,
-  BooleanRuntimeParameter,
-  ArrayRuntimeParameter,
-  BinaryRuntimeParameter,
-  JsonRuntimeParameter,
-  ImageRuntimeParameter,
-  AudioRuntimeParameter,
-  RuntimeParameterConstructor,
+  StringParameter as StringRuntimeParameter,
+  NumberParameter as NumberRuntimeParameter,
+  BooleanParameter as BooleanRuntimeParameter,
+  ArrayParameter as ArrayRuntimeParameter,
+  BinaryParameter as BinaryRuntimeParameter,
+  JsonParameter as JsonRuntimeParameter,
+  ImageParameter as ImageRuntimeParameter,
+  AudioParameter as AudioRuntimeParameter,
+  ParameterConstructor as RuntimeParameterConstructor,
 } from "../runtime/types";
+
 import {
   NodeType as RuntimeNodeType,
   Node as RuntimeNode,
 } from "../runtime/types";
+
 import { NodeType as ApiNodeType, Node as ApiNode } from "./types";
 
 export type ParameterTypeMapping = {

@@ -1,18 +1,18 @@
 import {
-  RuntimeParameterConstructor,
-  StringRuntimeParameter,
-  NumberRuntimeParameter,
-  BooleanRuntimeParameter,
-  ArrayRuntimeParameter,
-  BinaryRuntimeParameter,
-  JsonRuntimeParameter,
-  ImageRuntimeParameter,
-  AudioRuntimeParameter,
+  ParameterConstructor as RuntimeParameterConstructor,
+  StringParameter as RuntimeStringParameter,
+  NumberParameter as RuntimeNumberParameter,
+  BooleanParameter as RuntimeBooleanParameter,
+  ArrayParameter as RuntimeArrayParameter,
+  BinaryParameter as RuntimeBinaryParameter,
+  JsonParameter as RuntimeJsonParameter,
+  ImageParameter as RuntimeImageParameter,
+  AudioParameter as RuntimeAudioParameter,
   Node,
   NodeType,
 } from "./types";
 import {
-  ParameterType as NodeParameterType,
+  ParameterValue as NodeParameterType,
   StringParameter as NodeStringParameter,
   NumberParameter as NodeNumberParameter,
   BooleanParameter as NodeBooleanParameter,
@@ -78,14 +78,14 @@ export class RuntimeParameterRegistry {
 
   private constructor() {
     // Register built-in types
-    this.register(NodeStringParameter, StringRuntimeParameter);
-    this.register(NodeNumberParameter, NumberRuntimeParameter);
-    this.register(NodeBooleanParameter, BooleanRuntimeParameter);
-    this.register(NodeArrayParameter, ArrayRuntimeParameter);
-    this.register(NodeBinaryParameter, BinaryRuntimeParameter);
-    this.register(NodeJsonParameter, JsonRuntimeParameter);
-    this.register(NodeImageParameter, ImageRuntimeParameter);
-    this.register(NodeAudioParameter, AudioRuntimeParameter);
+    this.register(NodeStringParameter, RuntimeStringParameter);
+    this.register(NodeNumberParameter, RuntimeNumberParameter);
+    this.register(NodeBooleanParameter, RuntimeBooleanParameter);
+    this.register(NodeArrayParameter, RuntimeArrayParameter);
+    this.register(NodeBinaryParameter, RuntimeBinaryParameter);
+    this.register(NodeJsonParameter, RuntimeJsonParameter);
+    this.register(NodeImageParameter, RuntimeImageParameter);
+    this.register(NodeAudioParameter, RuntimeAudioParameter);
   }
 
   public static getInstance(): RuntimeParameterRegistry {

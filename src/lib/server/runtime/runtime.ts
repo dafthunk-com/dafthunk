@@ -9,15 +9,15 @@ import { NodeType } from "../nodes/types";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
 import { RuntimeParameterRegistry } from "./registries";
-import { RuntimeParameter } from "./types";
-import { ParameterType } from "../nodes/types";
+import { ParameterValue as RuntimeParameterValue } from "./types";
+import { ParameterValue as NodeParameterValue } from "../nodes/types";
 
 /**
  * Runtime class that handles the execution of a workflow
  */
 export class Runtime {
   private workflow: Workflow;
-  private nodeOutputs: Map<string, Record<string, RuntimeParameter>> =
+  private nodeOutputs: Map<string, Record<string, RuntimeParameterValue>> =
     new Map();
   private executedNodes: Set<string> = new Set();
   private nodeErrors: Map<string, string> = new Map();
@@ -84,8 +84,8 @@ export class Runtime {
   /**
    * Gets the input values for a node based on its incoming connections
    */
-  private getNodeInputs(nodeId: string): Record<string, RuntimeParameter> {
-    const inputs: Record<string, RuntimeParameter> = {};
+  private getNodeInputs(nodeId: string): Record<string, RuntimeParameterValue> {
+    const inputs: Record<string, RuntimeParameterValue> = {};
     const node = this.workflow.nodes.find((n) => n.id === nodeId);
 
     if (!node) return inputs;
@@ -150,7 +150,7 @@ export class Runtime {
    */
   private handleNodeInputs(
     nodeId: string,
-    inputs: Record<string, RuntimeParameter>
+    inputs: Record<string, RuntimeParameterValue>
   ): Record<string, any> {
     const node = this.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) {
@@ -182,8 +182,8 @@ export class Runtime {
    */
   private handleNodeOutputs(
     nodeId: string,
-    outputs: Record<string, ParameterType>
-  ): Record<string, RuntimeParameter> {
+    outputs: Record<string, NodeParameterValue>
+  ): Record<string, RuntimeParameterValue> {
     const nodeType = this.executableNodes.get(nodeId)
       ?.constructor as typeof ExecutableNode;
     if (!nodeType?.nodeType) {
@@ -196,7 +196,7 @@ export class Runtime {
       throw new Error(validation.error || "Invalid output data");
     }
 
-    const mappedOutputs: Record<string, RuntimeParameter> = {};
+    const mappedOutputs: Record<string, RuntimeParameterValue> = {};
     for (const [key, value] of Object.entries(outputs)) {
       const outputDef = nodeType.nodeType.outputs.find(
         (output) => output.name === key
@@ -219,7 +219,7 @@ export class Runtime {
    */
   private validateInputs(
     nodeType: NodeType,
-    inputs: Record<string, RuntimeParameter>
+    inputs: Record<string, RuntimeParameterValue>
   ): { isValid: boolean; error?: string } {
     // First check if all required parameters are provided
     for (const inputDef of nodeType.inputs) {
@@ -263,7 +263,7 @@ export class Runtime {
    */
   private validateOutputs(
     nodeType: NodeType,
-    outputs: Record<string, ParameterType>
+    outputs: Record<string, NodeParameterValue>
   ): { isValid: boolean; error?: string } {
     for (const [key, value] of Object.entries(outputs)) {
       // Validate the node parameter type
@@ -525,7 +525,7 @@ export class Runtime {
   }
 
   private getApiNodeOutputs(
-    output: Record<string, RuntimeParameter>
+    output: Record<string, RuntimeParameterValue>
   ): Record<string, any> {
     const apiOutputs: Record<string, any> = {};
     for (const [key, value] of Object.entries(output)) {

@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
 import { Node } from "../../runtime/types";
 import {
-  StringRuntimeParameter,
-  ImageRuntimeParameter,
+  StringParameter as StringRuntimeParameter,
+  ImageParameter as ImageRuntimeParameter,
 } from "../../runtime/types";
-import { ImageParameter } from "../types";
+import { ImageParameter as ImageNodeParameter } from "../types";
 // Mock global fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -145,7 +145,7 @@ describe("ImageUrlLoaderNode", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
     expect(result.outputs?.image.getValue()).toEqual({
       data: expect.any(Uint8Array),
       mimeType: "image/png",
