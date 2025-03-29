@@ -5,7 +5,7 @@ import {
   ArrayNodeParameter,
   StringNodeParameter,
   NumberNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 
 /**
  * Text reranking node implementation using BGE Reranker Base model

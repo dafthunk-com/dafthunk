@@ -5,7 +5,7 @@ import {
   StringNodeParameter,
   ImageNodeParameter,
   NumberNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 
 /**
  * Image-to-Text node implementation using UForm-Gen2

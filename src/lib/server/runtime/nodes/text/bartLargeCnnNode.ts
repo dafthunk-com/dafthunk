@@ -1,10 +1,7 @@
 import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
-import {
-  NumberNodeParameter,
-  StringNodeParameter,
-} from "../nodeParameterTypes";
+import { NumberNodeParameter, StringNodeParameter } from "../nodeTypes";
 /**
  * Summarization node implementation using bart-large-cnn model
  */

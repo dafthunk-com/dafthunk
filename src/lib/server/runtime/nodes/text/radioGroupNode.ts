@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
-import { StringNodeParameter, ArrayNodeParameter } from "../nodeParameterTypes";
+import { StringNodeParameter, ArrayNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 export interface RadioOption {

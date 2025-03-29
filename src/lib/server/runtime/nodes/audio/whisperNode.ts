@@ -5,7 +5,7 @@ import {
   StringNodeParameter,
   NumberNodeParameter,
   AudioNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 /**

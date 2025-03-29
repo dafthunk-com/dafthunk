@@ -11,7 +11,7 @@ import { registerNodes } from "./nodes/nodeTypeRegistry";
 import { ExecutableNode } from "./nodes/nodeTypes";
 import { RuntimeParameterRegistry } from "./registries";
 import { RuntimeParameter } from "./types";
-import { NodeParameter } from "./nodes/nodeParameterTypes";
+import { NodeParameter } from "./nodes/nodeTypes";
 
 // Initialize the node registry
 registerNodes();

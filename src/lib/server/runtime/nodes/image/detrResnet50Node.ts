@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../nodeTypes";
 import { ExecutionResult, NodeContext } from "../../types";
-import { ArrayNodeParameter, ImageNodeParameter } from "../nodeParameterTypes";
+import { ArrayNodeParameter, ImageNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 /**

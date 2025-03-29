@@ -6,8 +6,8 @@ import {
   BooleanNodeParameter,
   JsonNodeParameter,
   NumberNodeParameter,
-} from "../nodeParameterTypes";
-import { StringNodeParameter } from "../nodeParameterTypes";
+} from "../nodeTypes";
+import { StringNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 /**

@@ -4,7 +4,7 @@ import {
   ImageNodeParameter,
   StringNodeParameter,
   NumberNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 /**
  * FLUX.1 schnell node implementation for text-to-image generation

@@ -21,7 +21,7 @@ import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "./nodes/nodeTypes";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
-import { StringNodeParameter } from "./nodes/nodeParameterTypes";
+import { StringNodeParameter } from "./nodes/nodeTypes";
 
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({

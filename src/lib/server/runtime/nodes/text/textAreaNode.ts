@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
-import { StringNodeParameter } from "../nodeParameterTypes";
+import { StringNodeParameter } from "../nodeTypes";
 
 /**
  * TextArea node implementation

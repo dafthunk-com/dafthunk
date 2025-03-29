@@ -5,7 +5,7 @@ import {
   StringNodeParameter,
   ArrayNodeParameter,
   JsonNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 
 export class StringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -7,7 +7,7 @@ import {
   BooleanNodeParameter,
   JsonNodeParameter,
   StringNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 
 export class JsonNumberExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

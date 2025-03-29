@@ -4,7 +4,7 @@ import {
   ImageNodeParameter,
   NumberNodeParameter,
   StringNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 /**
  * Image Inpainting node implementation using Stable Diffusion v1.5

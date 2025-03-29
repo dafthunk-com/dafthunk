@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
-import { JsonNodeParameter } from "../nodeParameterTypes";
-import { ArrayNodeParameter } from "../nodeParameterTypes";
+import { JsonNodeParameter } from "../nodeTypes";
+import { ArrayNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 export class JsonTemplateNode extends ExecutableNode {

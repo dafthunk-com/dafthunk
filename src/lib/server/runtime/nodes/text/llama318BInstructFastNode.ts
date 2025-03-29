@@ -1,10 +1,7 @@
 import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
-import {
-  StringNodeParameter,
-  NumberNodeParameter,
-} from "../nodeParameterTypes";
+import { StringNodeParameter, NumberNodeParameter } from "../nodeTypes";
 /**
  * Simplified LLM node implementation with essential parameters
  */

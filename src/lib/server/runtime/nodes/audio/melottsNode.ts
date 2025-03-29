@@ -1,6 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../types";
 import { ExecutableNode } from "../nodeTypes";
-import { AudioNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
+import { AudioNodeParameter, StringNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 /**

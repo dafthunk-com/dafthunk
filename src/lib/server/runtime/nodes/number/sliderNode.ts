@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
-import { NumberNodeParameter } from "../nodeParameterTypes";
+import { NumberNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 /**

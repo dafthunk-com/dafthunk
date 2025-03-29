@@ -4,7 +4,7 @@ import {
   ImageNodeParameter,
   NumberNodeParameter,
   StringNodeParameter,
-} from "../nodeParameterTypes";
+} from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 
 /**

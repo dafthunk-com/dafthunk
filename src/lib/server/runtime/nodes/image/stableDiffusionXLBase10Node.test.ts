@@ -6,7 +6,7 @@ import {
   NumberRuntimeParameter,
   ImageRuntimeParameter,
 } from "../../types";
-import { ImageNodeParameter } from "../nodeParameterTypes";
+import { ImageNodeParameter } from "../nodeTypes";
 
 describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {

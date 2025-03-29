@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../nodeTypes";
 import { ExecutionResult, NodeContext } from "../../types";
-import { StringNodeParameter } from "../nodeParameterTypes";
+import { StringNodeParameter } from "../nodeTypes";
 import { NodeType } from "../nodeTypes";
 /**
  * Translation node implementation using m2m100-1.2b model

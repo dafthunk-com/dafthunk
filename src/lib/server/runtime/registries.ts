@@ -21,7 +21,7 @@ import {
   ImageNodeParameter,
   JsonNodeParameter,
   AudioNodeParameter,
-} from "./nodes/nodeParameterTypes";
+} from "./nodes/nodeTypes";
 import { ExecutableNode } from "./nodes/nodeTypes";
 import { NodeType as NodeTypeDefinition } from "./nodes/nodeTypes";
 
