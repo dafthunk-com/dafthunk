@@ -4,14 +4,6 @@ import {
   Node as RuntimeNode,
 } from "../runtime/types";
 import { NodeType as ApiNodeType, Node as ApiNode } from "./types";
-import {
-  ParameterTypeMapping,
-  getApiType,
-  getRuntimeType,
-  convertNodeTypes,
-  convertApiNodeTypes,
-  convertApiNodes,
-} from "./mappers";
 
 import {
   StringParameter as StringRuntimeParameter,
@@ -23,6 +15,11 @@ import {
   ImageParameter as ImageRuntimeParameter,
   AudioParameter as AudioRuntimeParameter,
 } from "../runtime/types";
+
+export type ParameterTypeMapping = {
+  runtimeType: ParameterConstructor;
+  apiType: string;
+};
 
 export class ApiParameterRegistry {
   private static instance: ApiParameterRegistry;
@@ -52,22 +49,85 @@ export class ApiParameterRegistry {
   }
 
   public getApiType(runtimeType: ParameterConstructor): string | undefined {
-    return getApiType(runtimeType, this.typeMappings);
+    return this.typeMappings.find(
+      (mapping) => mapping.runtimeType === runtimeType
+    )?.apiType;
   }
 
   public getRuntimeType(apiType: string): ParameterConstructor | undefined {
-    return getRuntimeType(apiType, this.typeMappings);
+    return this.typeMappings.find((mapping) => mapping.apiType === apiType)
+      ?.runtimeType;
   }
 
   public convertNodeTypes(nodeTypes: RuntimeNodeType[]): ApiNodeType[] {
-    return convertNodeTypes(nodeTypes, this.typeMappings);
+    return nodeTypes.map((type) => {
+      const inputs = type.inputs.map((input) => {
+        const apiType = this.getApiType(input.type);
+        if (!apiType) {
+          throw new Error(`Unknown parameter type: ${input.type}`);
+        }
+        const value = input.value ? new input.type(input.value) : undefined;
+        return { ...input, type: apiType, value };
+      });
+      const outputs = type.outputs.map((output) => {
+        const apiType = this.getApiType(output.type);
+        if (!apiType) {
+          throw new Error(`Unknown parameter type: ${output.type}`);
+        }
+        const value = output.value ? new output.type(output.value) : undefined;
+        return { ...output, type: apiType, value };
+      });
+      return { ...type, inputs, outputs };
+    });
   }
 
   public convertApiNodeTypes(nodeTypes: ApiNodeType[]): RuntimeNodeType[] {
-    return convertApiNodeTypes(nodeTypes, this.typeMappings);
+    return nodeTypes.map((type) => {
+      const inputs = type.inputs.map((input) => {
+        const runtimeType = this.getRuntimeType(input.type);
+        if (!runtimeType) {
+          throw new Error(`Unknown API type: ${input.type}`);
+        }
+        const value = input.value ? new runtimeType(input.value) : undefined;
+        return { ...input, type: runtimeType, value };
+      });
+      const outputs = type.outputs.map((output) => {
+        const runtimeType = this.getRuntimeType(output.type);
+        if (!runtimeType) {
+          throw new Error(`Unknown API type: ${output.type}`);
+        }
+        const value = output.value ? new runtimeType(output.value) : undefined;
+        return { ...output, type: runtimeType, value };
+      });
+      return { ...type, inputs, outputs };
+    });
   }
 
   public convertApiNodes(nodes: ApiNode[]): RuntimeNode[] {
-    return convertApiNodes(nodes, this.typeMappings);
+    return nodes.map((node) => {
+      const inputs = node.inputs.map((input) => {
+        const runtimeType = this.getRuntimeType(input.type);
+        if (!runtimeType) {
+          throw new Error(`Unknown API type: ${input.type}`);
+        }
+        const value = input.value ? new runtimeType(input.value) : undefined;
+        return { ...input, type: runtimeType, value };
+      });
+
+      const outputs = node.outputs.map((output) => {
+        const runtimeType = this.getRuntimeType(output.type);
+        if (!runtimeType) {
+          throw new Error(`Unknown API type: ${output.type}`);
+        }
+        const value = output.value ? new runtimeType(output.value) : undefined;
+        return { ...output, type: runtimeType, value };
+      });
+
+      return {
+        ...node,
+        inputs,
+        outputs,
+      };
+    });
   }
 }
