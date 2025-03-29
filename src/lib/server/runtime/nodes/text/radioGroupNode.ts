@@ -1,4 +1,4 @@
-import { ExecutableNode } from "../executableNode";
+import { ExecutableNode } from "../nodeTypes";
 import { NodeContext, ExecutionResult } from "../../types";
 import { StringNodeParameter, ArrayNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";

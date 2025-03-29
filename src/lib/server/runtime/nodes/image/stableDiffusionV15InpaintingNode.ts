@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../executableNode";
+import { ExecutableNode } from "../nodeTypes";
 import {
   ImageNodeParameter,
   NumberNodeParameter,

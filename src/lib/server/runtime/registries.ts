@@ -22,7 +22,7 @@ import {
   JsonNodeParameter,
   AudioNodeParameter,
 } from "./nodes/nodeParameterTypes";
-import { ExecutableNode } from "./nodes/executableNode";
+import { ExecutableNode } from "./nodes/nodeTypes";
 import { NodeType as NodeTypeDefinition } from "./nodes/nodeTypes";
 
 export class RuntimeParameterRegistry {
