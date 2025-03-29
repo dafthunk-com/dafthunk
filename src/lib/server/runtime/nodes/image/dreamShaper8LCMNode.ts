@@ -1,4 +1,4 @@
-import { ExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../executableNode";
 import { ExecutionResult, NodeContext } from "../../types";
 import {
   ImageNodeParameter,

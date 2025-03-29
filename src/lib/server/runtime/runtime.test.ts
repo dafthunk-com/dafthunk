@@ -19,7 +19,7 @@ import {
 } from "./types";
 import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
-import { ExecutableNode } from "./nodes/baseNode";
+import { ExecutableNode } from "./nodes/executableNode";
 import { StartNode, ProcessNode } from "./nodes/test/testNodes";
 import { StringNodeParameter } from "./nodes/nodeParameterTypes";
 

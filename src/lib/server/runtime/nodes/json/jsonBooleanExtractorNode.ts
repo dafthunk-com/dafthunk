@@ -1,5 +1,5 @@
 import { JSONPath } from "jsonpath-plus";
-import { ExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../executableNode";
 import { NodeContext, ExecutionResult } from "../../types";
 import { NodeType } from "../nodeTypes";
 import {

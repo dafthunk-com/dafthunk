@@ -1,5 +1,5 @@
 import { NodeContext, ExecutionResult } from "../../types";
-import { ExecutableNode } from "../baseNode";
+import { ExecutableNode } from "../executableNode";
 import { AudioNodeParameter, StringNodeParameter } from "../nodeParameterTypes";
 import { NodeType } from "../nodeTypes";
 
