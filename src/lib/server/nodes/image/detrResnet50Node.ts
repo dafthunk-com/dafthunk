@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../runtime/types";
-import { ArrayNodeParameter, ImageNodeParameter } from "../types";
+import { ArrayValue, ImageValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,7 +18,7 @@ export class DetrResnet50Node extends ExecutableNode {
     inputs: [
       {
         name: "image",
-        type: ImageNodeParameter,
+        type: ImageValue,
         description: "The image to use for object detection",
         required: true,
       },
@@ -26,7 +26,7 @@ export class DetrResnet50Node extends ExecutableNode {
     outputs: [
       {
         name: "detections",
-        type: ArrayNodeParameter,
+        type: ArrayValue,
         description:
           "Array of detected objects with scores, labels, and bounding boxes",
       },
@@ -51,7 +51,7 @@ export class DetrResnet50Node extends ExecutableNode {
       });
 
       return this.createSuccessResult({
-        detections: new ArrayNodeParameter(result),
+        detections: new ArrayValue(result),
       });
     } catch (error) {
       return this.createErrorResult(

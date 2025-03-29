@@ -1,5 +1,5 @@
 // Types for workflows
-import { NodeParameter } from "../nodes/types";
+import { Value } from "../nodes/types";
 
 export interface Position {
   x: number;
@@ -78,7 +78,7 @@ export interface ExecutionResult {
   nodeId: string;
   success: boolean;
   error?: string;
-  outputs?: Record<string, NodeParameter>;
+  outputs?: Record<string, Value>;
 }
 
 export interface NodeContext {

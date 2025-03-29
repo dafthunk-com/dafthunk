@@ -1,10 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
-import {
-  ImageNodeParameter,
-  NumberNodeParameter,
-  StringNodeParameter,
-} from "../types";
+import { ImageValue, NumberValue, StringValue } from "../types";
 import { NodeType } from "../types";
 /**
  * Image Inpainting node implementation using Stable Diffusion v1.5
@@ -21,52 +17,52 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringNodeParameter,
+        type: StringValue,
         description:
           "A text description of what to generate in the masked area",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Text describing elements to avoid in the generated image",
         hidden: true,
       },
       {
         name: "image",
-        type: ImageNodeParameter,
+        type: ImageValue,
         description: "The input image to inpaint",
       },
       {
         name: "mask",
-        type: ImageNodeParameter,
+        type: ImageValue,
         description: "The mask image where white areas (255) will be inpainted",
       },
       {
         name: "num_steps",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "The number of diffusion steps (1-20)",
-        value: new NumberNodeParameter(20),
+        value: new NumberValue(20),
         hidden: true,
       },
       {
         name: "strength",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "How strongly to apply the transformation (0-1)",
-        value: new NumberNodeParameter(1),
+        value: new NumberValue(1),
         hidden: true,
       },
       {
         name: "guidance",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description:
           "Controls how closely the generated image should adhere to the prompt",
-        value: new NumberNodeParameter(7.5),
+        value: new NumberValue(7.5),
         hidden: true,
       },
       {
         name: "seed",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "Random seed for reproducibility",
         hidden: true,
       },
@@ -74,7 +70,7 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
     outputs: [
       {
         name: "image",
-        type: ImageNodeParameter,
+        type: ImageValue,
         description: "The inpainted image in PNG format",
       },
     ],
@@ -147,7 +143,7 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: new ImageNodeParameter({
+        image: new ImageValue({
           data: uint8Array,
           mimeType: "image/png",
         }),

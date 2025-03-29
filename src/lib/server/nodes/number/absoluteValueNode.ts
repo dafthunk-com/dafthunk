@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberNodeParameter } from "../types";
+import { NumberValue } from "../types";
 
 /**
  * Absolute Value node implementation
@@ -14,8 +14,8 @@ export class AbsoluteValueNode extends ExecutableNode {
     description: "Calculates the absolute value of a number",
     category: "Number",
     icon: "absolute",
-    inputs: [{ name: "value", type: NumberNodeParameter, required: true }],
-    outputs: [{ name: "result", type: NumberNodeParameter }],
+    inputs: [{ name: "value", type: NumberValue, required: true }],
+    outputs: [{ name: "result", type: NumberValue }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -27,7 +27,7 @@ export class AbsoluteValueNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: new NumberNodeParameter(Math.abs(value)),
+        result: new NumberValue(Math.abs(value)),
       });
     } catch (error) {
       return this.createErrorResult(

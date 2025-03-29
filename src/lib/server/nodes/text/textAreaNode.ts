@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { StringNodeParameter } from "../types";
+import { StringValue } from "../types";
 
 /**
  * TextArea node implementation
@@ -21,14 +21,14 @@ export class TextAreaNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Current text value in the text area",
         hidden: true,
-        value: new StringNodeParameter(""), // Default empty string
+        value: new StringValue(""), // Default empty string
       },
       {
         name: "placeholder",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Placeholder text to show when empty",
         hidden: true,
         value: undefined, // Allow undefined as default
@@ -37,7 +37,7 @@ export class TextAreaNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "The current text value from the text area",
       },
     ],
@@ -60,7 +60,7 @@ export class TextAreaNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: new StringNodeParameter(value),
+        value: new StringValue(value),
       });
     } catch (error) {
       return this.createErrorResult(

@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberNodeParameter } from "../types";
+import { NumberValue } from "../types";
 
 /**
  * Square Root node implementation
@@ -14,8 +14,8 @@ export class SquareRootNode extends ExecutableNode {
     description: "Calculates the square root of a number",
     category: "Number",
     icon: "square-root",
-    inputs: [{ name: "value", type: NumberNodeParameter, required: true }],
-    outputs: [{ name: "result", type: NumberNodeParameter }],
+    inputs: [{ name: "value", type: NumberValue, required: true }],
+    outputs: [{ name: "result", type: NumberValue }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -33,7 +33,7 @@ export class SquareRootNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: new NumberNodeParameter(Math.sqrt(value)),
+        result: new NumberValue(Math.sqrt(value)),
       });
     } catch (error) {
       return this.createErrorResult(

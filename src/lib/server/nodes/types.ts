@@ -3,9 +3,9 @@ import { Node, NodeContext, ExecutionResult } from "../runtime/types";
 
 export interface Parameter {
   name: string;
-  type: NodeParameterConstructor;
+  type: ValueConstructor;
   description?: string;
-  value?: NodeParameter;
+  value?: Value;
   hidden?: boolean;
   required?: boolean;
 }
@@ -35,7 +35,7 @@ export abstract class ExecutableNode {
   public abstract execute(context: NodeContext): Promise<ExecutionResult>;
 
   protected createSuccessResult(
-    outputs: Record<string, NodeParameter>
+    outputs: Record<string, Value>
   ): ExecutionResult {
     return {
       nodeId: this.node.id,
@@ -52,11 +52,12 @@ export abstract class ExecutableNode {
     };
   }
 }
-export interface NodeParameterConstructor {
-  new (value: any): NodeParameter;
+
+export interface ValueConstructor {
+  new (value: any): Value;
 }
 
-export abstract class NodeParameter {
+export abstract class Value {
   constructor(protected readonly value: any) {}
 
   abstract validate(): { isValid: boolean; error?: string };
@@ -66,7 +67,7 @@ export abstract class NodeParameter {
   }
 }
 
-export class StringNodeParameter extends NodeParameter {
+export class StringValue extends Value {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "string") {
       return { isValid: false, error: "Value must be a string" };
@@ -75,7 +76,7 @@ export class StringNodeParameter extends NodeParameter {
   }
 }
 
-export class NumberNodeParameter extends NodeParameter {
+export class NumberValue extends Value {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "number" || isNaN(this.value)) {
       return { isValid: false, error: "Value must be a valid number" };
@@ -84,7 +85,7 @@ export class NumberNodeParameter extends NodeParameter {
   }
 }
 
-export class BooleanNodeParameter extends NodeParameter {
+export class BooleanValue extends Value {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "boolean") {
       return { isValid: false, error: "Value must be a boolean" };
@@ -93,7 +94,7 @@ export class BooleanNodeParameter extends NodeParameter {
   }
 }
 
-export class ArrayNodeParameter extends NodeParameter {
+export class ArrayValue extends Value {
   validate(): { isValid: boolean; error?: string } {
     if (!Array.isArray(this.value)) {
       return { isValid: false, error: "Value must be an array" };
@@ -102,7 +103,7 @@ export class ArrayNodeParameter extends NodeParameter {
   }
 }
 
-export class BinaryNodeParameter extends NodeParameter {
+export class BinaryValue extends Value {
   validate(): { isValid: boolean; error?: string } {
     if (!(this.value instanceof Uint8Array)) {
       return { isValid: false, error: "Value must be a Uint8Array" };
@@ -111,7 +112,7 @@ export class BinaryNodeParameter extends NodeParameter {
   }
 }
 
-export class JsonNodeParameter extends NodeParameter {
+export class JsonValue extends Value {
   validate(): { isValid: boolean; error?: string } {
     try {
       if (typeof this.value !== "object" || this.value === null) {
@@ -124,7 +125,7 @@ export class JsonNodeParameter extends NodeParameter {
   }
 }
 
-export class ImageNodeParameter extends NodeParameter {
+export class ImageValue extends Value {
   private static readonly VALID_MIME_TYPES = ["image/jpeg", "image/png"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -141,11 +142,11 @@ export class ImageNodeParameter extends NodeParameter {
 
     if (
       typeof this.value.mimeType !== "string" ||
-      !ImageNodeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+      !ImageValue.VALID_MIME_TYPES.includes(this.value.mimeType)
     ) {
       return {
         isValid: false,
-        error: `mimeType must be one of: ${ImageNodeParameter.VALID_MIME_TYPES.join(", ")}`,
+        error: `mimeType must be one of: ${ImageValue.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 
@@ -153,7 +154,7 @@ export class ImageNodeParameter extends NodeParameter {
   }
 }
 
-export class AudioNodeParameter extends NodeParameter {
+export class AudioValue extends Value {
   private static readonly VALID_MIME_TYPES = ["audio/mpeg", "audio/webm"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -170,11 +171,11 @@ export class AudioNodeParameter extends NodeParameter {
 
     if (
       typeof this.value.mimeType !== "string" ||
-      !AudioNodeParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+      !AudioValue.VALID_MIME_TYPES.includes(this.value.mimeType)
     ) {
       return {
         isValid: false,
-        error: `mimeType must be one of: ${AudioNodeParameter.VALID_MIME_TYPES.join(", ")}`,
+        error: `mimeType must be one of: ${AudioValue.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 

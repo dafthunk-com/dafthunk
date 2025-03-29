@@ -1,10 +1,6 @@
 import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../runtime/types";
-import {
-  ImageNodeParameter,
-  StringNodeParameter,
-  NumberNodeParameter,
-} from "../types";
+import { ImageValue, StringValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 /**
  * FLUX.1 schnell node implementation for text-to-image generation
@@ -21,22 +17,22 @@ export class Flux1SchnellNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Text description of the image to generate",
         required: true,
       },
       {
         name: "steps",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "Number of diffusion steps (default: 4, max: 8)",
-        value: new NumberNodeParameter(4),
+        value: new NumberValue(4),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "image",
-        type: ImageNodeParameter,
+        type: ImageValue,
         description: "The generated image in base64 format",
       },
     ],
@@ -67,7 +63,7 @@ export class Flux1SchnellNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: new ImageNodeParameter({
+        image: new ImageValue({
           data: bytes,
           mimeType: "image/jpeg",
         }),

@@ -6,7 +6,7 @@ import {
   NumberRuntimeParameter,
   ImageRuntimeParameter,
 } from "../../runtime/types";
-import { ImageNodeParameter } from "../types";
+import { ImageValue } from "../types";
 
 describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {
@@ -126,7 +126,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageValue);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",
@@ -170,7 +170,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageValue);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",
@@ -208,7 +208,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageValue);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",
@@ -245,7 +245,7 @@ describe("StableDiffusionXLBase10Node", () => {
       }
     );
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
+    expect(result.outputs?.image).toBeInstanceOf(ImageValue);
     expect(result.outputs?.image.getValue()).toEqual({
       data: mockImageData,
       mimeType: "image/jpeg",

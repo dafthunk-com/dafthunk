@@ -10,7 +10,7 @@ import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
 import { RuntimeParameterRegistry } from "./registries";
 import { RuntimeParameter } from "./types";
-import { NodeParameter } from "../nodes/types";
+import { Value } from "../nodes/types";
 
 /**
  * Runtime class that handles the execution of a workflow
@@ -182,7 +182,7 @@ export class Runtime {
    */
   private handleNodeOutputs(
     nodeId: string,
-    outputs: Record<string, NodeParameter>
+    outputs: Record<string, Value>
   ): Record<string, RuntimeParameter> {
     const nodeType = this.executableNodes.get(nodeId)
       ?.constructor as typeof ExecutableNode;
@@ -263,7 +263,7 @@ export class Runtime {
    */
   private validateOutputs(
     nodeType: NodeType,
-    outputs: Record<string, NodeParameter>
+    outputs: Record<string, Value>
   ): { isValid: boolean; error?: string } {
     for (const [key, value] of Object.entries(outputs)) {
       // Validate the node parameter type

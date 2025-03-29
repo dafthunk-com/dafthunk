@@ -2,11 +2,7 @@ import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import {
-  JsonNodeParameter,
-  BooleanNodeParameter,
-  StringNodeParameter,
-} from "../types";
+import { JsonValue, BooleanValue, StringValue } from "../types";
 
 export class JsonObjectArrayExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -20,20 +16,20 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
     inputs: [
       {
         name: "json",
-        type: JsonNodeParameter,
+        type: JsonValue,
         description: "The JSON object to extract from",
         required: true,
       },
       {
         name: "path",
-        type: StringNodeParameter,
+        type: StringValue,
         description:
           'The JSONPath expression (e.g., "$.user.profile" or "$.store.books[*]")',
         required: true,
       },
       {
         name: "defaultValue",
-        type: JsonNodeParameter,
+        type: JsonValue,
         description:
           "Default value if no JSON object/array is found at the path",
         hidden: true,
@@ -42,12 +38,12 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: JsonNodeParameter,
+        type: JsonValue,
         description: "The extracted JSON value (object or array)",
       },
       {
         name: "found",
-        type: BooleanNodeParameter,
+        type: BooleanValue,
         description:
           "Whether a JSON object or array was found at the specified path",
         hidden: true,
@@ -79,8 +75,8 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
         const found = this.isJsonValue(jsonValue);
 
         return this.createSuccessResult({
-          value: new JsonNodeParameter(found ? jsonValue : defaultValue),
-          found: new BooleanNodeParameter(found),
+          value: new JsonValue(found ? jsonValue : defaultValue),
+          found: new BooleanValue(found),
         });
       } catch (err) {
         const error = err as Error;

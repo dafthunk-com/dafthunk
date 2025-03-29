@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { StringNodeParameter, NumberNodeParameter } from "../types";
+import { StringValue, NumberValue } from "../types";
 /**
  * Simplified LLM node implementation with essential parameters
  */
@@ -16,20 +16,20 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "The input text prompt for the LLM",
         required: true,
       },
       {
         name: "temperature",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "Controls randomness in the output (0.0 to 1.0)",
         hidden: true,
-        value: new NumberNodeParameter(0.7), // Default temperature
+        value: new NumberValue(0.7), // Default temperature
       },
       {
         name: "seed",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "Random seed for deterministic generation",
         hidden: true,
         value: undefined, // Optional
@@ -38,7 +38,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     outputs: [
       {
         name: "response",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Generated text response",
       },
     ],
@@ -62,7 +62,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
       );
 
       return this.createSuccessResult({
-        response: new StringNodeParameter(result.response),
+        response: new StringValue(result.response),
       });
     } catch (error) {
       console.error(error);

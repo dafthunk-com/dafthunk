@@ -1,11 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
-import {
-  ArrayNodeParameter,
-  StringNodeParameter,
-  NumberNodeParameter,
-  AudioNodeParameter,
-} from "../types";
+import { ArrayValue, StringValue, NumberValue, AudioValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -23,7 +18,7 @@ export class WhisperTinyEnNode extends ExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: AudioNodeParameter,
+        type: AudioValue,
         description: "The audio file to transcribe",
         required: true,
       },
@@ -31,24 +26,24 @@ export class WhisperTinyEnNode extends ExecutableNode {
     outputs: [
       {
         name: "text",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "The transcribed text",
       },
       {
         name: "word_count",
-        type: NumberNodeParameter,
+        type: NumberValue,
         description: "The number of words in the transcription",
         hidden: true,
       },
       {
         name: "words",
-        type: ArrayNodeParameter,
+        type: ArrayValue,
         description: "Detailed word timing information",
         hidden: true,
       },
       {
         name: "vtt",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "WebVTT format of the transcription",
         hidden: true,
       },
@@ -77,10 +72,10 @@ export class WhisperTinyEnNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        text: new StringNodeParameter(output.text),
-        word_count: new NumberNodeParameter(output.word_count),
-        words: new ArrayNodeParameter(output.words),
-        vtt: new StringNodeParameter(output.vtt),
+        text: new StringValue(output.text),
+        word_count: new NumberValue(output.word_count),
+        words: new ArrayValue(output.words),
+        vtt: new StringValue(output.vtt),
       });
     } catch (error) {
       return this.createErrorResult(

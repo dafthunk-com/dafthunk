@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { StringNodeParameter } from "../types";
+import { StringValue } from "../types";
 /**
  * InputText node implementation
  * This node provides a text input widget that outputs the entered text value.
@@ -20,14 +20,14 @@ export class InputTextNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Current text value in the input",
         hidden: true,
-        value: new StringNodeParameter(""), // Default empty string
+        value: new StringValue(""), // Default empty string
       },
       {
         name: "placeholder",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "Placeholder text to show when empty",
         hidden: true,
         value: undefined, // Allow undefined as default
@@ -36,7 +36,7 @@ export class InputTextNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: StringNodeParameter,
+        type: StringValue,
         description: "The current text value from the input",
       },
     ],
@@ -59,7 +59,7 @@ export class InputTextNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: new StringNodeParameter(value),
+        value: new StringValue(value),
       });
     } catch (error) {
       return this.createErrorResult(
