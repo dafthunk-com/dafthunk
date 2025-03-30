@@ -1,4 +1,4 @@
-import { ParameterConstructor } from "../runtime/types";
+import { ParameterValueConstructor } from "../runtime/types";
 import {
   NodeType as RuntimeNodeType,
   Node as RuntimeNode,
@@ -16,14 +16,14 @@ import {
   AudioValue as AudioRuntimeParameter,
 } from "../runtime/types";
 
-export type ParameterTypeMapping = {
-  runtimeType: ParameterConstructor;
+export type ParameterValueMapping = {
+  runtimeType: ParameterValueConstructor;
   apiType: string;
 };
 
 export class ApiParameterRegistry {
   private static instance: ApiParameterRegistry;
-  private typeMappings: ParameterTypeMapping[] = [];
+  private typeMappings: ParameterValueMapping[] = [];
 
   private constructor() {
     // Register built-in types
@@ -44,17 +44,24 @@ export class ApiParameterRegistry {
     return ApiParameterRegistry.instance;
   }
 
-  public register(runtimeType: ParameterConstructor, apiType: string): void {
+  public register(
+    runtimeType: ParameterValueConstructor,
+    apiType: string
+  ): void {
     this.typeMappings.push({ runtimeType, apiType });
   }
 
-  public getApiType(runtimeType: ParameterConstructor): string | undefined {
+  public getApiType(
+    runtimeType: ParameterValueConstructor
+  ): string | undefined {
     return this.typeMappings.find(
       (mapping) => mapping.runtimeType === runtimeType
     )?.apiType;
   }
 
-  public getRuntimeType(apiType: string): ParameterConstructor | undefined {
+  public getRuntimeType(
+    apiType: string
+  ): ParameterValueConstructor | undefined {
     return this.typeMappings.find((mapping) => mapping.apiType === apiType)
       ?.runtimeType;
   }

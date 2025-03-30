@@ -1,5 +1,5 @@
 import {
-  ParameterConstructor as RuntimeParameterConstructor,
+  ParameterValueConstructor as RuntimeParameterValueConstructor,
   StringValue as RuntimeStringParameter,
   NumberValue as RuntimeNumberParameter,
   BooleanValue as RuntimeBooleanParameter,
@@ -73,7 +73,7 @@ export class RuntimeParameterRegistry {
   private static instance: RuntimeParameterRegistry;
   private implementations: Map<
     typeof NodeParameterValue,
-    RuntimeParameterConstructor
+    RuntimeParameterValueConstructor
   > = new Map();
 
   private constructor() {
@@ -97,14 +97,14 @@ export class RuntimeParameterRegistry {
 
   public register(
     type: typeof NodeParameterValue,
-    implementation: RuntimeParameterConstructor
+    implementation: RuntimeParameterValueConstructor
   ): void {
     this.implementations.set(type, implementation);
   }
 
   public get(
     type: typeof NodeParameterValue
-  ): RuntimeParameterConstructor | undefined {
+  ): RuntimeParameterValueConstructor | undefined {
     return this.implementations.get(type);
   }
 

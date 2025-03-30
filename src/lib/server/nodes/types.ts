@@ -3,7 +3,7 @@ import { Node, NodeContext, ExecutionResult } from "../runtime/types";
 
 export interface Parameter {
   name: string;
-  type: ValueConstructor;
+  type: ParameterValueConstructor;
   description?: string;
   value?: ParameterValue;
   hidden?: boolean;
@@ -53,7 +53,7 @@ export abstract class ExecutableNode {
   }
 }
 
-export interface ValueConstructor {
+export interface ParameterValueConstructor {
   new (value: any): ParameterValue;
 }
 

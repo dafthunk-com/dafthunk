@@ -8,7 +8,7 @@ export interface Position {
 
 export interface Parameter {
   name: string;
-  type: ParameterConstructor;
+  type: ParameterValueConstructor;
   description?: string;
   value?: ParameterValue;
   hidden?: boolean;
@@ -103,7 +103,7 @@ export interface WorkflowExecutionOptions {
   abortSignal?: AbortSignal;
 }
 
-export interface ParameterConstructor {
+export interface ParameterValueConstructor {
   new (value: any): ParameterValue;
 }
 
