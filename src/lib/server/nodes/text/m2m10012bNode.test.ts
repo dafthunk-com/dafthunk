@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { M2m10012bNode } from "./m2m10012bNode";
 import { Node } from "../../runtime/types";
-import { StringParameter } from "../../runtime/types";
+import { StringValue } from "../../runtime/types";
 
 describe("M2m10012bNode", () => {
   const mockNode: Node = {
@@ -12,18 +12,18 @@ describe("M2m10012bNode", () => {
     inputs: [
       {
         name: "text",
-        type: StringParameter,
+        type: StringValue,
         description: "The text to be translated",
         required: true,
       },
       {
         name: "sourceLang",
-        type: StringParameter,
+        type: StringValue,
         description: "The language code of the source text",
       },
       {
         name: "targetLang",
-        type: StringParameter,
+        type: StringValue,
         description: "The language code to translate the text into",
         required: true,
       },
@@ -31,7 +31,7 @@ describe("M2m10012bNode", () => {
     outputs: [
       {
         name: "translatedText",
-        type: StringParameter,
+        type: StringValue,
         description: "The translated text in the target language",
       },
     ],

@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { ImageParameter, StringParameter, NumberParameter } from "../types";
+import { ImageValue, StringValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,30 +18,30 @@ export class WebcamNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringParameter,
+        type: StringValue,
         description: "Current captured image as base64",
         hidden: true,
-        value: new StringParameter(""), // Default empty string
+        value: new StringValue(""), // Default empty string
       },
       {
         name: "width",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Image width in pixels",
         hidden: true,
-        value: new NumberParameter(640),
+        value: new NumberValue(640),
       },
       {
         name: "height",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Image height in pixels",
         hidden: true,
-        value: new NumberParameter(480),
+        value: new NumberValue(480),
       },
     ],
     outputs: [
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The captured image as a base64 encoded image",
       },
     ],
@@ -99,7 +99,7 @@ export class WebcamNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: new ImageParameter(imageOutput),
+        image: new ImageValue(imageOutput),
       });
     } catch (error) {
       return this.createErrorResult(

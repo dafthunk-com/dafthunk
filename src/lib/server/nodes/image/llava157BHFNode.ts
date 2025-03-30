@@ -1,6 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
-import { ImageParameter, StringParameter, NumberParameter } from "../types";
+import { ImageValue, StringValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,53 +18,53 @@ export class LLaVA157BHFNode extends ExecutableNode {
     inputs: [
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The image to generate a description for",
         required: true,
       },
       {
         name: "prompt",
-        type: StringParameter,
+        type: StringValue,
         description: "The input text prompt for guiding the model's response",
-        value: new StringParameter("Generate a caption for this image"),
+        value: new StringValue("Generate a caption for this image"),
         hidden: true,
       },
       {
         name: "max_tokens",
-        type: NumberParameter,
+        type: NumberValue,
         description: "The maximum number of tokens to generate in the response",
-        value: new NumberParameter(512),
+        value: new NumberValue(512),
         hidden: true,
       },
       {
         name: "temperature",
-        type: NumberParameter,
+        type: NumberValue,
         description:
           "Controls the randomness of the output; higher values produce more random results",
-        value: new NumberParameter(0.7),
+        value: new NumberValue(0.7),
         hidden: true,
       },
       {
         name: "top_p",
-        type: NumberParameter,
+        type: NumberValue,
         description:
           "Controls the diversity of outputs by limiting to the most probable tokens",
-        value: new NumberParameter(0.95),
+        value: new NumberValue(0.95),
         hidden: true,
       },
       {
         name: "top_k",
-        type: NumberParameter,
+        type: NumberValue,
         description:
           "Limits the AI to choose from the top 'k' most probable words",
-        value: new NumberParameter(40),
+        value: new NumberValue(40),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "description",
-        type: StringParameter,
+        type: StringValue,
         description: "The generated text description of the image",
       },
     ],
@@ -101,7 +101,7 @@ export class LLaVA157BHFNode extends ExecutableNode {
       );
 
       return this.createSuccessResult({
-        description: new StringParameter(response.description),
+        description: new StringValue(response.description),
       });
     } catch (error) {
       return this.createErrorResult(

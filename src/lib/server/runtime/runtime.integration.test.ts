@@ -8,7 +8,7 @@ import {
   ErrorNode,
   LongRunningNode,
 } from "../nodes/test/testNodes";
-import { StringParameter } from "./types";
+import { StringValue } from "./types";
 
 // Mock the ParameterTypeRegistry
 vi.mock("./typeRegistry", () => ({
@@ -49,8 +49,8 @@ describe("WorkflowRuntime Integration Tests", () => {
           outputs: [
             {
               name: "output",
-              type: StringParameter,
-              value: new StringParameter("Hello"),
+              type: StringValue,
+              value: new StringValue("Hello"),
             },
           ],
         },
@@ -59,8 +59,8 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input", type: StringParameter }],
-          outputs: [{ name: "output", type: StringParameter }],
+          inputs: [{ name: "input", type: StringValue }],
+          outputs: [{ name: "output", type: StringValue }],
         },
       ],
       edges: [
@@ -178,13 +178,13 @@ describe("WorkflowRuntime Integration Tests", () => {
           outputs: [
             {
               name: "output1",
-              type: StringParameter,
-              value: new StringParameter("Hello 1"),
+              type: StringValue,
+              value: new StringValue("Hello 1"),
             },
             {
               name: "output2",
-              type: StringParameter,
-              value: new StringParameter("Hello 2"),
+              type: StringValue,
+              value: new StringValue("Hello 2"),
             },
           ],
         },
@@ -193,16 +193,16 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Process Node 1",
           type: "process",
           position: { x: 300, y: 50 },
-          inputs: [{ name: "input", type: StringParameter }],
-          outputs: [{ name: "output", type: StringParameter }],
+          inputs: [{ name: "input", type: StringValue }],
+          outputs: [{ name: "output", type: StringValue }],
         },
         {
           id: "process-node-2",
           name: "Process Node 2",
           type: "process",
           position: { x: 300, y: 150 },
-          inputs: [{ name: "input", type: StringParameter }],
-          outputs: [{ name: "output", type: StringParameter }],
+          inputs: [{ name: "input", type: StringValue }],
+          outputs: [{ name: "output", type: StringValue }],
         },
       ],
       edges: [

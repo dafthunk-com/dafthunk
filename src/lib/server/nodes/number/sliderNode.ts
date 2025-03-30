@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { NumberParameter } from "../types";
+import { NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -23,28 +23,28 @@ export class SliderNode extends ExecutableNode {
     inputs: [
       {
         name: "min",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Minimum value of the slider",
         hidden: true,
-        value: new NumberParameter(0),
+        value: new NumberValue(0),
       },
       {
         name: "max",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Maximum value of the slider",
         hidden: true,
-        value: new NumberParameter(100),
+        value: new NumberValue(100),
       },
       {
         name: "step",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Step size for the slider",
         hidden: true,
-        value: new NumberParameter(1),
+        value: new NumberValue(1),
       },
       {
         name: "value",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Current value of the slider",
         hidden: true,
       },
@@ -52,7 +52,7 @@ export class SliderNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: NumberParameter,
+        type: NumberValue,
         description: "The selected value from the slider",
       },
     ],
@@ -120,7 +120,7 @@ export class SliderNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: new NumberParameter(outputValue),
+        value: new NumberValue(outputValue),
       });
     } catch (error) {
       return this.createErrorResult(

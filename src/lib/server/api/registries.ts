@@ -6,14 +6,14 @@ import {
 import { NodeType as ApiNodeType, Node as ApiNode } from "./types";
 
 import {
-  StringParameter as StringRuntimeParameter,
-  NumberParameter as NumberRuntimeParameter,
-  BooleanParameter as BooleanRuntimeParameter,
-  ArrayParameter as ArrayRuntimeParameter,
-  BinaryParameter as BinaryRuntimeParameter,
-  JsonParameter as JsonRuntimeParameter,
-  ImageParameter as ImageRuntimeParameter,
-  AudioParameter as AudioRuntimeParameter,
+  StringValue as StringRuntimeParameter,
+  NumberValue as NumberRuntimeParameter,
+  BooleanValue as BooleanRuntimeParameter,
+  ArrayValue as ArrayRuntimeParameter,
+  BinaryValue as BinaryRuntimeParameter,
+  JsonValue as JsonRuntimeParameter,
+  ImageValue as ImageRuntimeParameter,
+  AudioValue as AudioRuntimeParameter,
 } from "../runtime/types";
 
 export type ParameterTypeMapping = {

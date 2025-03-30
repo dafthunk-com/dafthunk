@@ -1,11 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
-import {
-  ArrayParameter,
-  StringParameter,
-  NumberParameter,
-  AudioParameter,
-} from "../types";
+import { ArrayValue, StringValue, NumberValue, AudioValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -23,7 +18,7 @@ export class WhisperNode extends ExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: AudioParameter,
+        type: AudioValue,
         description: "The audio file to transcribe",
         required: true,
       },
@@ -31,24 +26,24 @@ export class WhisperNode extends ExecutableNode {
     outputs: [
       {
         name: "text",
-        type: StringParameter,
+        type: StringValue,
         description: "The transcribed text",
       },
       {
         name: "word_count",
-        type: NumberParameter,
+        type: NumberValue,
         description: "The number of words in the transcription",
         hidden: true,
       },
       {
         name: "words",
-        type: ArrayParameter,
+        type: ArrayValue,
         description: "Detailed word timing information",
         hidden: true,
       },
       {
         name: "vtt",
-        type: StringParameter,
+        type: StringValue,
         description: "WebVTT format of the transcription",
         hidden: true,
       },
@@ -77,10 +72,10 @@ export class WhisperNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        text: new StringParameter(output.text),
-        word_count: new NumberParameter(output.word_count),
-        words: new ArrayParameter(output.words),
-        vtt: new StringParameter(output.vtt),
+        text: new StringValue(output.text),
+        word_count: new NumberValue(output.word_count),
+        words: new ArrayValue(output.words),
+        vtt: new StringValue(output.vtt),
       });
     } catch (error) {
       return this.createErrorResult(

@@ -85,7 +85,7 @@ export function validateTypeCompatibility(
     if (sourceParam.type !== targetParam.type) {
       return {
         type: "TYPE_MISMATCH",
-        message: `Type mismatch: ${sourceParam.type.name.toLowerCase().replace("parameter", "")} -> ${targetParam.type.name.toLowerCase().replace("parameter", "")}`,
+        message: `Type mismatch: ${sourceParam.type.name.toLowerCase().replace("value", "")} -> ${targetParam.type.name.toLowerCase().replace("value", "")}`,
         details: {
           connectionSource: connection.source,
           connectionTarget: connection.target,

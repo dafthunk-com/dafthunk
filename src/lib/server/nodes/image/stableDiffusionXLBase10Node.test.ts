@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { StableDiffusionXLBase10Node } from "./stableDiffusionXLBase10Node";
 import { Node } from "../../runtime/types";
 import {
-  StringParameter as StringRuntimeParameter,
-  NumberParameter as NumberRuntimeParameter,
-  ImageParameter as ImageRuntimeParameter,
+  StringValue as StringRuntimeParameter,
+  NumberValue as NumberRuntimeParameter,
+  ImageValue as ImageRuntimeParameter,
 } from "../../runtime/types";
-import { ImageParameter as ImageNodeParameter } from "../types";
+import { ImageValue as ImageNodeParameter } from "../types";
 
 describe("StableDiffusionXLBase10Node", () => {
   const mockNode: Node = {

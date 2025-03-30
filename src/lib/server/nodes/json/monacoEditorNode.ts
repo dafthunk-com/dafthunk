@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { JsonParameter, StringParameter } from "../types";
+import { JsonValue, StringValue } from "../types";
 
 /**
  * Monaco Editor node implementation
@@ -21,16 +21,16 @@ export class MonacoEditorNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringParameter,
+        type: StringValue,
         description: "Current JSON value in the editor",
         hidden: true,
-        value: new StringParameter("{}"),
+        value: new StringValue("{}"),
       },
     ],
     outputs: [
       {
         name: "value",
-        type: JsonParameter,
+        type: JsonValue,
         description: "The current JSON value from the editor",
       },
     ],
@@ -44,7 +44,7 @@ export class MonacoEditorNode extends ExecutableNode {
       try {
         const parsedValue = JSON.parse(value);
         return this.createSuccessResult({
-          value: new JsonParameter(parsedValue),
+          value: new JsonValue(parsedValue),
         });
       } catch (error) {
         return this.createErrorResult(

@@ -3,7 +3,7 @@ import { Runtime } from "./runtime";
 import { Workflow } from "./types";
 import { validateWorkflow } from "./validation";
 import { registerNodes } from "./registries";
-import { StringParameter, NumberParameter } from "./types";
+import { StringValue, NumberValue } from "./types";
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
@@ -59,12 +59,12 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [{ name: "input1", type: StringParameter }],
+          inputs: [{ name: "input1", type: StringValue }],
           outputs: [
             {
               name: "output1",
-              type: StringParameter,
-              value: new StringParameter("Hello"),
+              type: StringValue,
+              value: new StringValue("Hello"),
             },
           ],
         },
@@ -73,16 +73,16 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: StringParameter }],
-          outputs: [{ name: "output1", type: StringParameter }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
         {
           id: "node-3",
           name: "Node 3",
           type: "function",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: StringParameter }],
-          outputs: [{ name: "output1", type: StringParameter }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
       ],
       edges: [
@@ -136,8 +136,8 @@ describe("WorkflowRuntime Validation Tests", () => {
           outputs: [
             {
               name: "output1",
-              type: NumberParameter,
-              value: new NumberParameter(42),
+              type: NumberValue,
+              value: new NumberValue(42),
             },
           ],
         },
@@ -146,8 +146,8 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: StringParameter }],
-          outputs: [{ name: "output1", type: StringParameter }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
       ],
       edges: [
@@ -192,8 +192,8 @@ describe("WorkflowRuntime Validation Tests", () => {
           outputs: [
             {
               name: "output1",
-              type: StringParameter,
-              value: new StringParameter("Hello"),
+              type: StringValue,
+              value: new StringValue("Hello"),
             },
           ],
         },
@@ -202,8 +202,8 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: StringParameter }],
-          outputs: [{ name: "output1", type: StringParameter }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
       ],
       edges: [
@@ -311,7 +311,7 @@ describe("WorkflowRuntime Validation Tests", () => {
           inputs: [
             {
               name: "required-input",
-              type: StringParameter,
+              type: StringValue,
               value: undefined,
             },
           ],

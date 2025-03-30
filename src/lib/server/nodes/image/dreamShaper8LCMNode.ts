@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { ExecutionResult, NodeContext } from "../../runtime/types";
-import { ImageParameter, StringParameter, NumberParameter } from "../types";
+import { ImageValue, StringValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,48 +18,48 @@ export class DreamShaper8LCMNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringParameter,
+        type: StringValue,
         description: "Text description of the image to generate",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: StringParameter,
+        type: StringValue,
         description: "Text describing elements to avoid in the generated image",
         hidden: true,
       },
       {
         name: "width",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Width of the generated image (256-2048)",
-        value: new NumberParameter(1024),
+        value: new NumberValue(1024),
         hidden: true,
       },
       {
         name: "height",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Height of the generated image (256-2048)",
-        value: new NumberParameter(1024),
+        value: new NumberValue(1024),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Number of diffusion steps (1-20)",
-        value: new NumberParameter(20),
+        value: new NumberValue(20),
         hidden: true,
       },
       {
         name: "guidance",
-        type: NumberParameter,
+        type: NumberValue,
         description:
           "Controls how closely the image follows the prompt (higher = more prompt-aligned)",
-        value: new NumberParameter(7.5),
+        value: new NumberValue(7.5),
         hidden: true,
       },
       {
         name: "seed",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Random seed for reproducible results",
         hidden: true,
       },
@@ -67,7 +67,7 @@ export class DreamShaper8LCMNode extends ExecutableNode {
     outputs: [
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The generated image in JPEG format",
       },
     ],
@@ -158,7 +158,7 @@ export class DreamShaper8LCMNode extends ExecutableNode {
       const buffer = await blob.arrayBuffer();
 
       return this.createSuccessResult({
-        image: new ImageParameter({
+        image: new ImageValue({
           data: new Uint8Array(buffer),
           mimeType: "image/jpeg",
         }),

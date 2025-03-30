@@ -67,7 +67,7 @@ export abstract class ParameterValue {
   }
 }
 
-export class StringParameter extends ParameterValue {
+export class StringValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "string") {
       return { isValid: false, error: "Value must be a string" };
@@ -76,7 +76,7 @@ export class StringParameter extends ParameterValue {
   }
 }
 
-export class NumberParameter extends ParameterValue {
+export class NumberValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "number" || isNaN(this.value)) {
       return { isValid: false, error: "Value must be a valid number" };
@@ -85,7 +85,7 @@ export class NumberParameter extends ParameterValue {
   }
 }
 
-export class BooleanParameter extends ParameterValue {
+export class BooleanValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (typeof this.value !== "boolean") {
       return { isValid: false, error: "Value must be a boolean" };
@@ -94,7 +94,7 @@ export class BooleanParameter extends ParameterValue {
   }
 }
 
-export class ArrayParameter extends ParameterValue {
+export class ArrayValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (!Array.isArray(this.value)) {
       return { isValid: false, error: "Value must be an array" };
@@ -103,7 +103,7 @@ export class ArrayParameter extends ParameterValue {
   }
 }
 
-export class BinaryParameter extends ParameterValue {
+export class BinaryValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     if (!(this.value instanceof Uint8Array)) {
       return { isValid: false, error: "Value must be a Uint8Array" };
@@ -112,7 +112,7 @@ export class BinaryParameter extends ParameterValue {
   }
 }
 
-export class JsonParameter extends ParameterValue {
+export class JsonValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     try {
       if (typeof this.value !== "object" || this.value === null) {
@@ -125,7 +125,7 @@ export class JsonParameter extends ParameterValue {
   }
 }
 
-export class ImageParameter extends ParameterValue {
+export class ImageValue extends ParameterValue {
   private static readonly VALID_MIME_TYPES = ["image/jpeg", "image/png"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -142,11 +142,11 @@ export class ImageParameter extends ParameterValue {
 
     if (
       typeof this.value.mimeType !== "string" ||
-      !ImageParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+      !ImageValue.VALID_MIME_TYPES.includes(this.value.mimeType)
     ) {
       return {
         isValid: false,
-        error: `mimeType must be one of: ${ImageParameter.VALID_MIME_TYPES.join(", ")}`,
+        error: `mimeType must be one of: ${ImageValue.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 
@@ -154,7 +154,7 @@ export class ImageParameter extends ParameterValue {
   }
 }
 
-export class AudioParameter extends ParameterValue {
+export class AudioValue extends ParameterValue {
   private static readonly VALID_MIME_TYPES = ["audio/mpeg", "audio/webm"];
 
   validate(): { isValid: boolean; error?: string } {
@@ -171,11 +171,11 @@ export class AudioParameter extends ParameterValue {
 
     if (
       typeof this.value.mimeType !== "string" ||
-      !AudioParameter.VALID_MIME_TYPES.includes(this.value.mimeType)
+      !AudioValue.VALID_MIME_TYPES.includes(this.value.mimeType)
     ) {
       return {
         isValid: false,
-        error: `mimeType must be one of: ${AudioParameter.VALID_MIME_TYPES.join(", ")}`,
+        error: `mimeType must be one of: ${AudioValue.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 

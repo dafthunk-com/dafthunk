@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberParameter, StringParameter } from "../types";
+import { NumberValue, StringValue } from "../types";
 /**
  * Summarization node implementation using bart-large-cnn model
  */
@@ -16,22 +16,22 @@ export class BartLargeCnnNode extends ExecutableNode {
     inputs: [
       {
         name: "inputText",
-        type: StringParameter,
+        type: StringValue,
         description: "The text that you want the model to summarize",
         required: true,
       },
       {
         name: "maxLength",
-        type: NumberParameter,
+        type: NumberValue,
         description: "The maximum length of the generated summary in tokens",
-        value: new NumberParameter(1024),
+        value: new NumberValue(1024),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "summary",
-        type: StringParameter,
+        type: StringValue,
         description: "The summarized version of the input text",
       },
     ],
@@ -51,7 +51,7 @@ export class BartLargeCnnNode extends ExecutableNode {
       });
 
       return this.createSuccessResult({
-        summary: new StringParameter(result.summary),
+        summary: new StringValue(result.summary),
       });
     } catch (error) {
       return this.createErrorResult(

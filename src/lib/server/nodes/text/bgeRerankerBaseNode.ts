@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { ArrayParameter, StringParameter, NumberParameter } from "../types";
+import { ArrayValue, StringValue, NumberValue } from "../types";
 
 /**
  * Text reranking node implementation using BGE Reranker Base model
@@ -18,19 +18,19 @@ export class BgeRerankerBaseNode extends ExecutableNode {
     inputs: [
       {
         name: "query",
-        type: StringParameter,
+        type: StringValue,
         description: "The query to rank the contexts against",
         required: true,
       },
       {
         name: "contexts",
-        type: ArrayParameter,
+        type: ArrayValue,
         description: "Array of text passages to rank",
         required: true,
       },
       {
         name: "topK",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Number of top results to return (optional)",
         hidden: true,
       },
@@ -38,7 +38,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
     outputs: [
       {
         name: "rankings",
-        type: ArrayParameter,
+        type: ArrayValue,
         description: "Array of ranked results with scores",
       },
     ],
@@ -68,7 +68,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
       }));
 
       return this.createSuccessResult({
-        rankings: new ArrayParameter(rankings),
+        rankings: new ArrayValue(rankings),
       });
     } catch (error) {
       return this.createErrorResult(

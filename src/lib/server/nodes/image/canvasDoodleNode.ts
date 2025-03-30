@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { ImageParameter, StringParameter, NumberParameter } from "../types";
+import { ImageValue, StringValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,44 +18,44 @@ export class CanvasDoodleNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringParameter,
+        type: StringValue,
         description: "Current canvas drawing as base64 image",
         hidden: true,
-        value: new StringParameter(""), // Default empty string
+        value: new StringValue(""), // Default empty string
       },
       {
         name: "width",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Canvas width in pixels",
         hidden: true,
-        value: new NumberParameter(300),
+        value: new NumberValue(300),
       },
       {
         name: "height",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Canvas height in pixels",
         hidden: true,
-        value: new NumberParameter(300),
+        value: new NumberValue(300),
       },
       {
         name: "strokeColor",
-        type: StringParameter,
+        type: StringValue,
         description: "Color of the drawing stroke",
         hidden: true,
-        value: new StringParameter("#000000"),
+        value: new StringValue("#000000"),
       },
       {
         name: "strokeWidth",
-        type: NumberParameter,
+        type: NumberValue,
         description: "Width of the drawing stroke",
         hidden: true,
-        value: new NumberParameter(2),
+        value: new NumberValue(2),
       },
     ],
     outputs: [
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The canvas drawing as a base64 encoded image",
       },
     ],
@@ -116,7 +116,7 @@ export class CanvasDoodleNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        image: new ImageParameter(imageOutput),
+        image: new ImageValue(imageOutput),
       });
     } catch (error) {
       return this.createErrorResult(

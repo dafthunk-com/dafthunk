@@ -1,13 +1,13 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
 import {
-  ArrayParameter,
-  AudioParameter,
-  BooleanParameter,
-  JsonParameter,
-  NumberParameter,
+  ArrayValue,
+  AudioValue,
+  BooleanValue,
+  JsonValue,
+  NumberValue,
 } from "../types";
-import { StringParameter } from "../types";
+import { StringValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -25,35 +25,35 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: AudioParameter,
+        type: AudioValue,
         description: "The audio file to transcribe",
         required: true,
       },
       {
         name: "task",
-        type: StringParameter,
+        type: StringValue,
         description: "The task to perform: 'transcribe' or 'translate'",
       },
       {
         name: "language",
-        type: StringParameter,
+        type: StringValue,
         description: "The language of the audio (e.g., 'en', 'fr', 'es')",
       },
       {
         name: "vad_filter",
-        type: BooleanParameter,
+        type: BooleanValue,
         description: "Whether to use voice activity detection",
         hidden: true,
       },
       {
         name: "initial_prompt",
-        type: StringParameter,
+        type: StringValue,
         description: "Optional text prompt to guide the transcription",
         hidden: true,
       },
       {
         name: "prefix",
-        type: StringParameter,
+        type: StringValue,
         description:
           "Optional prefix to append to the beginning of the transcription",
         hidden: true,
@@ -62,30 +62,30 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
     outputs: [
       {
         name: "text",
-        type: StringParameter,
+        type: StringValue,
         description: "The transcribed text",
       },
       {
         name: "word_count",
-        type: NumberParameter,
+        type: NumberValue,
         description: "The number of words in the transcription",
         hidden: true,
       },
       {
         name: "segments",
-        type: ArrayParameter,
+        type: ArrayValue,
         description: "Detailed transcription segments with timing information",
         hidden: true,
       },
       {
         name: "vtt",
-        type: StringParameter,
+        type: StringValue,
         description: "WebVTT format of the transcription",
         hidden: true,
       },
       {
         name: "transcription_info",
-        type: JsonParameter,
+        type: JsonValue,
         description: "Additional information about the transcription",
         hidden: true,
       },
@@ -129,11 +129,11 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        text: new StringParameter(output.text),
-        word_count: new NumberParameter(output.word_count),
-        segments: new ArrayParameter(output.segments),
-        vtt: new StringParameter(output.vtt),
-        transcription_info: new JsonParameter(output.transcription_info),
+        text: new StringValue(output.text),
+        word_count: new NumberValue(output.word_count),
+        segments: new ArrayValue(output.segments),
+        vtt: new StringValue(output.vtt),
+        transcription_info: new JsonValue(output.transcription_info),
       });
     } catch (error) {
       return this.createErrorResult(

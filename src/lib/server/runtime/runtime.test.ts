@@ -15,13 +15,13 @@ import {
   WorkflowExecutionOptions,
   NodeContext,
   ExecutionResult,
-  StringParameter as StringRuntimeParameter,
+  StringValue as StringRuntimeParameter,
 } from "./types";
 import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
 import { StartNode, ProcessNode } from "../nodes/test/testNodes";
-import { StringParameter } from "../nodes/types";
+import { StringValue } from "../nodes/types";
 
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({
@@ -55,7 +55,7 @@ vi.mock("./registries", () => ({
     getInstance: vi.fn().mockReturnValue({
       register: vi.fn(),
       get: vi.fn().mockImplementation((type) => {
-        if (type === StringParameter) {
+        if (type === StringValue) {
           return StringRuntimeParameter;
         }
         return undefined;

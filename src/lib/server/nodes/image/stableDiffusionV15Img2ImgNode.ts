@@ -1,6 +1,6 @@
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { ExecutableNode } from "../types";
-import { ImageParameter, NumberParameter, StringParameter } from "../types";
+import { ImageValue, NumberValue, StringValue } from "../types";
 import { NodeType } from "../types";
 
 /**
@@ -18,51 +18,51 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringParameter,
+        type: StringValue,
         description:
           "A text description of how you want to transform the image",
         required: true,
       },
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The input image to transform",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: StringParameter,
+        type: StringValue,
         description:
           "Text describing elements to avoid in the transformed image",
         hidden: true,
       },
       {
         name: "strength",
-        type: NumberParameter,
+        type: NumberValue,
         description: "How strongly to apply the transformation (0-1)",
-        value: new NumberParameter(0.75),
+        value: new NumberValue(0.75),
         hidden: true,
       },
       {
         name: "guidance",
-        type: NumberParameter,
+        type: NumberValue,
         description:
           "Controls how closely the transformation should adhere to the prompt",
-        value: new NumberParameter(7.5),
+        value: new NumberValue(7.5),
         hidden: true,
       },
       {
         name: "num_steps",
-        type: NumberParameter,
+        type: NumberValue,
         description: "The number of diffusion steps (1-20)",
-        value: new NumberParameter(20),
+        value: new NumberValue(20),
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The transformed image in PNG format",
       },
     ],
@@ -118,7 +118,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        image: new ImageParameter({
+        image: new ImageValue({
           data: uint8Array,
           mimeType: "image/png",
         }),

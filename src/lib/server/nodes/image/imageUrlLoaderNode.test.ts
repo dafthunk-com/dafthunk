@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
 import { Node } from "../../runtime/types";
 import {
-  StringParameter as StringRuntimeParameter,
-  ImageParameter as ImageRuntimeParameter,
+  StringValue as StringRuntimeParameter,
+  ImageValue as ImageRuntimeParameter,
 } from "../../runtime/types";
-import { ImageParameter as ImageNodeParameter } from "../types";
+import { ImageValue as ImageNodeParameter } from "../types";
 // Mock global fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

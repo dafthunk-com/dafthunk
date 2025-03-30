@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { DetrResnet50Node } from "./detrResnet50Node";
 import { Node } from "../../runtime/types";
-import { ImageParameter, ArrayParameter } from "../../runtime/types";
+import { ImageValue, ArrayValue } from "../../runtime/types";
 
 describe("DetrResnet50Node", () => {
   const mockNode: Node = {
@@ -12,7 +12,7 @@ describe("DetrResnet50Node", () => {
     inputs: [
       {
         name: "image",
-        type: ImageParameter,
+        type: ImageValue,
         description: "The image to use for object detection",
         required: true,
       },
@@ -20,7 +20,7 @@ describe("DetrResnet50Node", () => {
     outputs: [
       {
         name: "detections",
-        type: ArrayParameter,
+        type: ArrayValue,
         description:
           "Array of detected objects with scores, labels, and bounding boxes",
       },

@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { StringParameter } from "../types";
+import { StringValue } from "../types";
 
 /**
  * Start node implementation for testing
@@ -15,12 +15,12 @@ export class StartNode extends ExecutableNode {
     category: "Test",
     icon: "play",
     inputs: [],
-    outputs: [{ name: "output", type: StringParameter }],
+    outputs: [{ name: "output", type: StringValue }],
   };
 
   async execute(_context: NodeContext): Promise<ExecutionResult> {
     return this.createSuccessResult({
-      output: new StringParameter("Hello from start node"),
+      output: new StringValue("Hello from start node"),
     });
   }
 }
@@ -36,13 +36,13 @@ export class ProcessNode extends ExecutableNode {
     description: "A process node for testing",
     category: "Test",
     icon: "cog",
-    inputs: [{ name: "input", type: StringParameter }],
-    outputs: [{ name: "output", type: StringParameter }],
+    inputs: [{ name: "input", type: StringValue }],
+    outputs: [{ name: "output", type: StringValue }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     return this.createSuccessResult({
-      output: new StringParameter(`Processed: ${context.inputs.input}`),
+      output: new StringValue(`Processed: ${context.inputs.input}`),
     });
   }
 }

@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
-import { NumberParameter } from "../types";
+import { NumberValue } from "../types";
 
 /**
  * Multiplication node implementation
@@ -15,10 +15,10 @@ export class MultiplicationNode extends ExecutableNode {
     category: "Number",
     icon: "x",
     inputs: [
-      { name: "a", type: NumberParameter, required: true },
-      { name: "b", type: NumberParameter, required: true },
+      { name: "a", type: NumberValue, required: true },
+      { name: "b", type: NumberValue, required: true },
     ],
-    outputs: [{ name: "result", type: NumberParameter }],
+    outputs: [{ name: "result", type: NumberValue }],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
@@ -31,7 +31,7 @@ export class MultiplicationNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: new NumberParameter(a * b),
+        result: new NumberValue(a * b),
       });
     } catch (error) {
       return this.createErrorResult(
