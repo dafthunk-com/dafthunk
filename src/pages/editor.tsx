@@ -179,25 +179,38 @@ export function EditorPage() {
 
           // Convert ReactFlow nodes back to workflow nodes
           const workflowNodes = nodes.map((node) => {
+            // Get all edges where this node is the target
+            const incomingEdges = edges.filter(
+              (edge) => edge.target === node.id
+            );
+
             return {
               id: node.id,
               name: node.data.name,
               type: node.data.nodeType || "default",
               position: node.position,
-              inputs: node.data.inputs.map((input) => ({
-                name: input.id,
-                type: input.type,
-                description: input.name,
-                value: input.value,
-                hidden: input.hidden,
-                required: input.required,
-              })),
+              inputs: node.data.inputs.map((input) => {
+                // Check if this input is connected to another node
+                const isConnected = incomingEdges.some(
+                  (edge) => edge.targetHandle === input.id
+                );
+
+                return {
+                  name: input.id,
+                  type: input.type,
+                  description: input.name,
+                  // Only save the value if the input is not connected
+                  value: isConnected ? undefined : input.value,
+                  hidden: input.hidden,
+                  required: input.required,
+                };
+              }),
               outputs: node.data.outputs.map((output) => ({
                 name: output.id,
                 type: output.type,
                 description: output.name,
-                value: output.value,
                 hidden: output.hidden,
+                // Don't save the value here as it's not needed for executing the workflow
               })),
             };
           });

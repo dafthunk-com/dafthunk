@@ -350,7 +350,7 @@ export const WorkflowNode = memo(
                     compact={true}
                   />
                 )}
-                {isDocumentNode &&
+              {isDocumentNode &&
                 "type" in widgetConfig &&
                 widgetConfig.type === "document" && (
                   <DocumentWidget

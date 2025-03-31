@@ -3,6 +3,7 @@ import { MelottsNode } from "../nodes/audio/melottsNode";
 import { WhisperLargeV3TurboNode } from "../nodes/audio/whisperLargeV3TurboNode";
 import { WhisperNode } from "../nodes/audio/whisperNode";
 import { WhisperTinyEnNode } from "../nodes/audio/whisperTinyEnNode";
+import { DocumentNode } from "../nodes/document/documentNode";
 import { CanvasDoodleNode } from "../nodes/image/canvasDoodleNode";
 import { DetrResnet50Node } from "../nodes/image/detrResnet50Node";
 import { DreamShaper8LCMNode } from "../nodes/image/dreamShaper8LCMNode";
@@ -45,6 +46,7 @@ import { TextAreaNode } from "../nodes/text/textAreaNode";
 import { ExecutableNode, NodeType as NodeTypeDefinition } from "../nodes/types";
 import { ParameterRegistry } from "./parameterRegistry";
 import { Node, NodeType } from "./types";
+import { ToMarkdownNode } from "../nodes/document/toMarkdownNode";
 
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
@@ -103,6 +105,8 @@ export class NodeRegistry {
     this.registerImplementation(MelottsNode);
     this.registerImplementation(WebcamNode);
     this.registerImplementation(AudioRecorderNode);
+    this.registerImplementation(ToMarkdownNode);
+    this.registerImplementation(DocumentNode);
   }
 
   public static getInstance(): NodeRegistry {

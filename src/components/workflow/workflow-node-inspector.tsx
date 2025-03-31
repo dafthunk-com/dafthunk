@@ -268,7 +268,7 @@ export function WorkflowNodeInspector({
                     onChange={handleWidgetChange}
                   />
                 )}
-                {isDocumentNode &&
+              {isDocumentNode &&
                 "type" in widgetConfig &&
                 widgetConfig.type === "document" && (
                   <DocumentWidget

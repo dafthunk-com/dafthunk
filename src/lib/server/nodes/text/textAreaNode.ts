@@ -1,4 +1,4 @@
-import { ExecutableNode } from "../types";
+import { ExecutableNode, NumberValue } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
 import { StringValue } from "../types";
@@ -32,6 +32,13 @@ export class TextAreaNode extends ExecutableNode {
         description: "Placeholder text to show when empty",
         hidden: true,
         value: undefined, // Allow undefined as default
+      },
+      {
+        name: "rows",
+        type: NumberValue,
+        description: "Number of rows in the text area",
+        hidden: true,
+        value: new NumberValue(4), // Default 4 rows
       },
     ],
     outputs: [

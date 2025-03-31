@@ -14,6 +14,7 @@ import {
   JsonValue as JsonRuntimeParameter,
   ImageValue as ImageRuntimeParameter,
   AudioValue as AudioRuntimeParameter,
+  DocumentValue as DocumentRuntimeParameter,
 } from "../runtime/types";
 
 export type ParameterValueMapping = {
@@ -35,6 +36,7 @@ export class ParameterRegistry {
     this.register(JsonRuntimeParameter, "json");
     this.register(ImageRuntimeParameter, "image");
     this.register(AudioRuntimeParameter, "audio");
+    this.register(DocumentRuntimeParameter, "document");
   }
 
   public static getInstance(): ParameterRegistry {

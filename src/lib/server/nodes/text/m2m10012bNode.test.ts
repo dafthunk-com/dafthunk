@@ -56,7 +56,7 @@ describe("M2m10012bNode", () => {
     const mockAIRun = vi.fn().mockResolvedValue({
       translated_text: "Hola mundo",
     });
-
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
     const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
@@ -69,6 +69,7 @@ describe("M2m10012bNode", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -86,6 +87,7 @@ describe("M2m10012bNode", () => {
     const mockAIRun = vi.fn().mockResolvedValue({
       translated_text: "Hola mundo",
     });
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
 
     const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
@@ -98,6 +100,7 @@ describe("M2m10012bNode", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -115,7 +118,7 @@ describe("M2m10012bNode", () => {
     const mockAIRun = vi
       .fn()
       .mockRejectedValue(new Error("Translation failed"));
-
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
     const node = new M2m10012bNode(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
@@ -127,6 +130,7 @@ describe("M2m10012bNode", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });

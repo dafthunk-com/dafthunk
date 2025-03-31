@@ -89,6 +89,11 @@ export interface NodeContext {
   env?: {
     AI?: {
       run: (model: string, options: any) => any;
+      toMarkdown: (
+        documents: { name: string; blob: Blob }[]
+      ) => Promise<
+        { name: string; mimeType: string; tokens: number; data: string }[]
+      >;
     };
     [key: string]: any;
   };
@@ -225,6 +230,48 @@ export class AudioValue extends ParameterValue {
       return {
         isValid: false,
         error: `mimeType must be one of: ${AudioValue.VALID_MIME_TYPES.join(", ")}`,
+      };
+    }
+
+    return { isValid: true };
+  }
+}
+
+export class DocumentValue extends ParameterValue {
+  private static readonly VALID_MIME_TYPES = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/svg+xml",
+    "text/html",
+    "application/xml",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+    "application/vnd.oasis.opendocument.spreadsheet",
+    "text/csv",
+    "application/vnd.apple.numbers",
+  ];
+
+  validate(): { isValid: boolean; error?: string } {
+    if (!this.value || typeof this.value !== "object") {
+      return {
+        isValid: false,
+        error: "Value must be an object with data and mimeType",
+      };
+    }
+
+    if (!(this.value.data instanceof Uint8Array)) {
+      return { isValid: false, error: "Document data must be a Uint8Array" };
+    }
+
+    if (
+      typeof this.value.mimeType !== "string" ||
+      !DocumentValue.VALID_MIME_TYPES.includes(this.value.mimeType)
+    ) {
+      return {
+        isValid: false,
+        error: `mimeType must be one of: ${DocumentValue.VALID_MIME_TYPES.join(", ")}`,
       };
     }
 
