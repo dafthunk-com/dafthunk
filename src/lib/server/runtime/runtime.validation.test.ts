@@ -1,17 +1,12 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
-import { Workflow } from "./runtimeTypes";
-import { validateWorkflow } from "./runtimeValidation";
-import { registerNodes } from "./nodeTypeRegistry";
-
+import { Workflow } from "./types";
+import { validateWorkflow } from "./validation";
+import { StringValue, NumberValue } from "./types";
+import { NodeRegistry } from "./nodeRegistry";
 // Mock the validateWorkflow function
-vi.mock("./workflowValidation", () => ({
+vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
-}));
-
-// Mock the node registry
-vi.mock("./nodeRegistry", () => ({
-  registerNodes: vi.fn(),
 }));
 
 // Mock the NodeRegistry
@@ -39,7 +34,7 @@ vi.mock("./workflowTypes", async () => {
 
 // Ensure base nodes are registered
 beforeAll(() => {
-  registerNodes();
+  NodeRegistry.getInstance();
 });
 
 describe("WorkflowRuntime Validation Tests", () => {
@@ -59,24 +54,30 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [
+            {
+              name: "output1",
+              type: StringValue,
+              value: new StringValue("Hello"),
+            },
+          ],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
         {
           id: "node-3",
           name: "Node 3",
           type: "function",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
       ],
       edges: [
@@ -127,15 +128,21 @@ describe("WorkflowRuntime Validation Tests", () => {
           type: "start",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output1", type: "number", value: 42 }],
+          outputs: [
+            {
+              name: "output1",
+              type: NumberValue,
+              value: new NumberValue(42),
+            },
+          ],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
       ],
       edges: [
@@ -177,15 +184,21 @@ describe("WorkflowRuntime Validation Tests", () => {
           type: "start",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          outputs: [
+            {
+              name: "output1",
+              type: StringValue,
+              value: new StringValue("Hello"),
+            },
+          ],
         },
         {
           id: "node-2",
           name: "Node 2",
           type: "function",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input1", type: StringValue }],
+          outputs: [{ name: "output1", type: StringValue }],
         },
       ],
       edges: [
@@ -256,7 +269,9 @@ describe("WorkflowRuntime Validation Tests", () => {
           name: "Node 1",
           type: "start",
           position: { x: 100, y: 100 },
+          // @ts-expect-error
           inputs: [{ name: "input1", type: "invalid-type" }],
+          // @ts-expect-error
           outputs: [{ name: "output1", type: "invalid-type" }],
         },
       ],
@@ -289,7 +304,11 @@ describe("WorkflowRuntime Validation Tests", () => {
           type: "function",
           position: { x: 100, y: 100 },
           inputs: [
-            { name: "required-input", type: "string", value: undefined },
+            {
+              name: "required-input",
+              type: StringValue,
+              value: undefined,
+            },
           ],
           outputs: [],
         },

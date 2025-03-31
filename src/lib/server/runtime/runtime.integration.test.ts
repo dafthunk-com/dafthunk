@@ -1,17 +1,14 @@
-import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
-import {
-  Workflow,
-  WorkflowExecutionOptions,
-  NodeRegistry,
-} from "./runtimeTypes";
-import { registerNodes } from "./nodeTypeRegistry";
+import { Workflow, WorkflowExecutionOptions } from "./types";
+import { NodeRegistry } from "./nodeRegistry";
 import {
   StartNode,
   ProcessNode,
   ErrorNode,
   LongRunningNode,
-} from "./nodes/test/testNodes";
+} from "../nodes/test/testNodes";
+import { StringValue } from "./types";
 
 // Mock the ParameterTypeRegistry
 vi.mock("./typeRegistry", () => ({
@@ -26,16 +23,12 @@ vi.mock("./typeRegistry", () => ({
   },
 }));
 
-// Ensure base nodes are registered
-beforeAll(() => {
-  registerNodes();
-  // Register test nodes
-  const registry = NodeRegistry.getInstance();
-  registry.registerImplementation(StartNode);
-  registry.registerImplementation(ProcessNode);
-  registry.registerImplementation(ErrorNode);
-  registry.registerImplementation(LongRunningNode);
-});
+// Register test nodes
+const registry = NodeRegistry.getInstance();
+registry.registerImplementation(StartNode);
+registry.registerImplementation(ProcessNode);
+registry.registerImplementation(ErrorNode);
+registry.registerImplementation(LongRunningNode);
 
 describe("WorkflowRuntime Integration Tests", () => {
   beforeEach(() => {
@@ -53,15 +46,21 @@ describe("WorkflowRuntime Integration Tests", () => {
           type: "start",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output", type: "string", value: "Hello" }],
+          outputs: [
+            {
+              name: "output",
+              type: StringValue,
+              value: new StringValue("Hello"),
+            },
+          ],
         },
         {
           id: "process-node",
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input", type: "string" }],
-          outputs: [{ name: "output", type: "string" }],
+          inputs: [{ name: "input", type: StringValue }],
+          outputs: [{ name: "output", type: StringValue }],
         },
       ],
       edges: [
@@ -177,8 +176,16 @@ describe("WorkflowRuntime Integration Tests", () => {
           position: { x: 100, y: 100 },
           inputs: [],
           outputs: [
-            { name: "output1", type: "string", value: "Hello 1" },
-            { name: "output2", type: "string", value: "Hello 2" },
+            {
+              name: "output1",
+              type: StringValue,
+              value: new StringValue("Hello 1"),
+            },
+            {
+              name: "output2",
+              type: StringValue,
+              value: new StringValue("Hello 2"),
+            },
           ],
         },
         {
@@ -186,16 +193,16 @@ describe("WorkflowRuntime Integration Tests", () => {
           name: "Process Node 1",
           type: "process",
           position: { x: 300, y: 50 },
-          inputs: [{ name: "input", type: "string" }],
-          outputs: [{ name: "output", type: "string" }],
+          inputs: [{ name: "input", type: StringValue }],
+          outputs: [{ name: "output", type: StringValue }],
         },
         {
           id: "process-node-2",
           name: "Process Node 2",
           type: "process",
           position: { x: 300, y: 150 },
-          inputs: [{ name: "input", type: "string" }],
-          outputs: [{ name: "output", type: "string" }],
+          inputs: [{ name: "input", type: StringValue }],
+          outputs: [{ name: "output", type: StringValue }],
         },
       ],
       edges: [

@@ -8,55 +8,68 @@ import {
   afterAll,
 } from "vitest";
 import { Runtime } from "./runtime";
+import { NodeType } from "../nodes/types";
 import {
   Workflow,
   Node,
-  NodeRegistry,
   WorkflowExecutionOptions,
   NodeContext,
   ExecutionResult,
-  NodeType,
-} from "./runtimeTypes";
-import { validateWorkflow } from "./runtimeValidation";
-import { BaseExecutableNode } from "./nodes/baseNode";
-import { StartNode, ProcessNode } from "./nodes/test/testNodes";
+  StringValue as RuntimeStringValue,
+} from "./types";
+import { NodeRegistry } from "./nodeRegistry";
+import { validateWorkflow } from "./validation";
+import { ExecutableNode } from "../nodes/types";
+import { StartNode, ProcessNode } from "../nodes/test/testNodes";
+import { StringValue as NodeStringValue } from "../nodes/types";
 
 // Mock the validateWorkflow function
-vi.mock("./workflowValidation", () => ({
+vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 
-// Mock the NodeRegistry
-vi.mock("./workflowTypes", async () => {
-  const originalModule = (await vi.importActual("./workflowTypes")) as object;
-  return {
-    ...originalModule,
-    NodeRegistry: {
-      getInstance: vi.fn().mockReturnValue({
-        registerImplementation: vi.fn(),
-        getImplementation: vi.fn(),
-        createExecutableNode: vi.fn((node) => {
-          if (node.type === "unknown-type") {
-            return undefined;
-          }
-          if (node.type === "failing") {
-            return new FailingMockExecutableNode(node);
-          }
-          if (node.type === "start") {
-            return new StartNode(node);
-          }
-          if (node.type === "process") {
-            return new ProcessNode(node);
-          }
-          return new MockExecutableNode(node);
-        }),
+// Mock the NodeRegistry and ParameterRegistry
+vi.mock("./nodeRegistry", () => ({
+  NodeRegistry: {
+    getInstance: vi.fn().mockReturnValue({
+      registerImplementation: vi.fn(),
+      getImplementation: vi.fn(),
+      createExecutableNode: vi.fn((node) => {
+        if (node.type === "unknown-type") {
+          return undefined;
+        }
+        if (node.type === "failing") {
+          return new FailingMockExecutableNode(node);
+        }
+        if (node.type === "start") {
+          return new StartNode(node);
+        }
+        if (node.type === "process") {
+          return new ProcessNode(node);
+        }
+        return new MockExecutableNode(node);
       }),
-    },
-  };
-});
+    }),
+  },
+}));
+
+vi.mock("./parameterRegistry", () => ({
+  ParameterRegistry: {
+    getInstance: vi.fn().mockReturnValue({
+      register: vi.fn(),
+      get: vi.fn().mockImplementation((type) => {
+        if (type === NodeStringValue) {
+          return RuntimeStringValue;
+        }
+        return undefined;
+      }),
+      validate: vi.fn().mockReturnValue({ isValid: true }),
+    }),
+  },
+}));
 
 // Create a mock node implementation for testing
-class MockExecutableNode extends BaseExecutableNode {
+class MockExecutableNode extends ExecutableNode {
   static readonly nodeType: NodeType = {
     id: "mock",
     name: "Mock Node",
@@ -149,22 +162,28 @@ describe("WorkflowRuntime", () => {
           type: "start",
           position: { x: 100, y: 100 },
           inputs: [],
-          outputs: [{ name: "output1", type: "string", value: "Hello" }],
+          outputs: [
+            {
+              name: "output",
+              type: RuntimeStringValue,
+              value: new RuntimeStringValue("Hello"),
+            },
+          ],
         },
         {
           id: "node-2",
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
-          outputs: [{ name: "output1", type: "string" }],
+          inputs: [{ name: "input", type: RuntimeStringValue }],
+          outputs: [{ name: "output", type: RuntimeStringValue }],
         },
         {
           id: "node-3",
           name: "End Node",
           type: "process",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input1", type: "string" }],
+          inputs: [{ name: "input", type: RuntimeStringValue }],
           outputs: [],
         },
       ],
@@ -172,14 +191,14 @@ describe("WorkflowRuntime", () => {
         {
           source: "node-1",
           target: "node-2",
-          sourceOutput: "output1",
-          targetInput: "input1",
+          sourceOutput: "output",
+          targetInput: "input",
         },
         {
           source: "node-2",
           target: "node-3",
-          sourceOutput: "output1",
-          targetInput: "input1",
+          sourceOutput: "output",
+          targetInput: "input",
         },
       ],
     };

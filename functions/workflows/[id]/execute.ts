@@ -4,16 +4,16 @@ import { createDatabase } from "../../../db";
 import { eq, and } from "drizzle-orm";
 import { workflows } from "../../../db/schema";
 import {
-  Workflow,
   Node,
   Edge,
   WorkflowExecutionOptions,
-} from "../../../src/lib/server/api/apiTypes";
+} from "../../../src/lib/server/api/types";
+import { Workflow } from "../../../src/lib/server/runtime/types";
 import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
-import { NodeRegistry } from "../../../src/lib/server/runtime/runtimeTypes";
-import { use } from "react";
+import { NodeRegistry } from "../../../src/lib/server/runtime/nodeRegistry";
+import { ParameterRegistry } from "../../../src/lib/server/api/parameterRegistry";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -71,19 +71,23 @@ async function executeWorkflow(
       });
     }
 
-    // The data field is already parsed by Drizzle ORM
+    const parameterRegistry = ParameterRegistry.getInstance();
     const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
     const workflowGraph: Workflow = {
       id: workflow.id,
       name: workflow.name,
-      nodes: workflowData.nodes || [],
+      nodes: workflowData.nodes
+        ? parameterRegistry.convertApiNodes(workflowData.nodes)
+        : [],
       edges: workflowData.edges || [],
     };
 
     // Check if user is on free plan and workflow contains AI nodes
     if (user.plan === "free") {
       const registry = NodeRegistry.getInstance();
-      const nodeTypes = registry.getNodeTypes();
+      const nodeTypes = parameterRegistry.convertNodeTypes(
+        registry.getNodeTypes()
+      );
 
       const aiNodeTypes = new Set(
         nodeTypes
