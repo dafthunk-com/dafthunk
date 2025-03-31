@@ -21,8 +21,8 @@ export type ParameterValueMapping = {
   apiType: string;
 };
 
-export class ApiParameterRegistry {
-  private static instance: ApiParameterRegistry;
+export class ParameterRegistry {
+  private static instance: ParameterRegistry;
   private typeMappings: ParameterValueMapping[] = [];
 
   private constructor() {
@@ -37,11 +37,11 @@ export class ApiParameterRegistry {
     this.register(AudioRuntimeParameter, "audio");
   }
 
-  public static getInstance(): ApiParameterRegistry {
-    if (!ApiParameterRegistry.instance) {
-      ApiParameterRegistry.instance = new ApiParameterRegistry();
+  public static getInstance(): ParameterRegistry {
+    if (!ParameterRegistry.instance) {
+      ParameterRegistry.instance = new ParameterRegistry();
     }
-    return ApiParameterRegistry.instance;
+    return ParameterRegistry.instance;
   }
 
   public register(

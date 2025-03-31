@@ -13,7 +13,7 @@ import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
 import { NodeRegistry } from "../../../src/lib/server/runtime/registries";
-import { ApiParameterRegistry } from "../../../src/lib/server/api/registries";
+import { ParameterRegistry } from "../../../src/lib/server/api/registries";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -71,13 +71,13 @@ async function executeWorkflow(
       });
     }
 
-    const apiParameterRegistry = ApiParameterRegistry.getInstance();
+    const parameterRegistry = ParameterRegistry.getInstance();
     const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
     const workflowGraph: Workflow = {
       id: workflow.id,
       name: workflow.name,
       nodes: workflowData.nodes
-        ? apiParameterRegistry.convertApiNodes(workflowData.nodes)
+        ? parameterRegistry.convertApiNodes(workflowData.nodes)
         : [],
       edges: workflowData.edges || [],
     };
@@ -85,7 +85,7 @@ async function executeWorkflow(
     // Check if user is on free plan and workflow contains AI nodes
     if (user.plan === "free") {
       const registry = NodeRegistry.getInstance();
-      const nodeTypes = apiParameterRegistry.convertNodeTypes(
+      const nodeTypes = parameterRegistry.convertNodeTypes(
         registry.getRuntimeNodeTypes()
       );
 
