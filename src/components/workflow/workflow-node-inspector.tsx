@@ -25,6 +25,7 @@ import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
 import { WebcamWidget } from "./widgets/webcam-widget";
 import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
+import { DocumentWidget } from "./widgets/document-widget";
 
 export function WorkflowNodeInspector({
   node,
@@ -138,7 +139,7 @@ export function WorkflowNodeInspector({
   const isCanvasDoodleNode = node.data.nodeType === "canvas-doodle";
   const isWebcamNode = node.data.nodeType === "webcam";
   const isAudioRecorderNode = node.data.nodeType === "audio-recorder";
-
+  const isDocumentNode = node.data.nodeType === "document";
   // Get widget configuration
   const widgetConfig =
     isSliderNode ||
@@ -149,7 +150,8 @@ export function WorkflowNodeInspector({
     isMonacoEditorNode ||
     isCanvasDoodleNode ||
     isWebcamNode ||
-    isAudioRecorderNode
+    isAudioRecorderNode ||
+    isDocumentNode
       ? createWidgetConfig(node.id, localInputs, node.data.nodeType || "")
       : null;
 
@@ -262,6 +264,14 @@ export function WorkflowNodeInspector({
                 "type" in widgetConfig &&
                 widgetConfig.type === "audio-recorder" && (
                   <AudioRecorderWidget
+                    config={widgetConfig}
+                    onChange={handleWidgetChange}
+                  />
+                )}
+                {isDocumentNode &&
+                "type" in widgetConfig &&
+                widgetConfig.type === "document" && (
+                  <DocumentWidget
                     config={widgetConfig}
                     onChange={handleWidgetChange}
                   />

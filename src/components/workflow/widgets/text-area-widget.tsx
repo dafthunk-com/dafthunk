@@ -1,9 +1,11 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface TextAreaWidgetConfig {
   value: string;
   placeholder?: string;
+  rows?: number;
 }
 
 interface TextAreaWidgetProps {
@@ -17,7 +19,7 @@ export function TextAreaWidget({
   onChange,
   compact = false,
 }: TextAreaWidgetProps) {
-  const { value, placeholder } = config;
+  const { value, placeholder, rows = 4 } = config;
 
   return (
     <div className="space-y-2">
@@ -26,8 +28,8 @@ export function TextAreaWidget({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={4}
-        className={compact ? "text-sm" : ""}
+        rows={rows}
+        className={cn("min-h-[80px] resize-y", compact ? "text-sm" : "")}
       />
     </div>
   );

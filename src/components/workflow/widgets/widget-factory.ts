@@ -76,6 +76,12 @@ interface AudioRecorderConfig {
   channels: number;
 }
 
+interface DocumentConfig {
+  type: "document";
+  value: string;
+  mimeType: string;
+}
+
 export type WidgetType =
   | "slider"
   | "radio-group"
@@ -85,7 +91,8 @@ export type WidgetType =
   | "monaco-editor"
   | "canvas-doodle"
   | "webcam"
-  | "audio-recorder";
+  | "audio-recorder"
+  | "document";
 
 export type WidgetConfig =
   | SliderWidgetConfig
@@ -96,7 +103,8 @@ export type WidgetConfig =
   | MonacoEditorWidgetConfig
   | CanvasDoodleConfig
   | WebcamConfig
-  | AudioRecorderConfig;
+  | AudioRecorderConfig
+  | DocumentConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -309,6 +317,16 @@ export function createWidgetConfig(
         value: value || "",
         sampleRate: sampleRate || 44100,
         channels: channels || 1,
+      };
+    }
+    case "document": {
+      const value = inputs.find((i) => i.id === "value")?.value as string;
+      const mimeType = inputs.find((i) => i.id === "mimeType")?.value as string;
+
+      return {
+        type: "document",
+        value: value || "",
+        mimeType: mimeType || "application/pdf",
       };
     }
     default:
