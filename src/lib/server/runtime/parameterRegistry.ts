@@ -8,6 +8,7 @@ import {
   JsonValue as RuntimeJsonParameter,
   ImageValue as RuntimeImageParameter,
   AudioValue as RuntimeAudioParameter,
+  DocumentValue as RuntimeDocumentParameter,
 } from "./types";
 import {
   ParameterValue as NodeParameterValue,
@@ -19,6 +20,7 @@ import {
   ImageValue as NodeImageValue,
   JsonValue as NodeJsonValue,
   AudioValue as NodeAudioValue,
+  DocumentValue as NodeDocumentValue,
 } from "../nodes/types";
 
 export class ParameterRegistry {
@@ -38,6 +40,7 @@ export class ParameterRegistry {
     this.register(NodeJsonValue, RuntimeJsonParameter);
     this.register(NodeImageValue, RuntimeImageParameter);
     this.register(NodeAudioValue, RuntimeAudioParameter);
+    this.register(NodeDocumentValue, RuntimeDocumentParameter);
   }
 
   public static getInstance(): ParameterRegistry {

@@ -27,6 +27,20 @@ describe("DetrResnet50Node", () => {
     ],
   };
 
+  const mockAIRun = vi.fn().mockResolvedValue([
+    {
+      score: 0.95,
+      label: "person",
+      box: {
+        xmin: 10,
+        ymin: 20,
+        xmax: 100,
+        ymax: 200,
+      },
+    },
+  ]);
+  const mockToMarkdown = vi.fn().mockResolvedValue([]);
+
   it("should return error if image is not provided", async () => {
     const node = new DetrResnet50Node(mockNode);
     const result = await node.execute({
@@ -57,19 +71,6 @@ describe("DetrResnet50Node", () => {
   });
 
   it("should process image and return detections", async () => {
-    const mockAIRun = vi.fn().mockResolvedValue([
-      {
-        score: 0.95,
-        label: "person",
-        box: {
-          xmin: 10,
-          ymin: 20,
-          xmax: 100,
-          ymax: 200,
-        },
-      },
-    ]);
-
     const node = new DetrResnet50Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
@@ -83,6 +84,7 @@ describe("DetrResnet50Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -123,6 +125,7 @@ describe("DetrResnet50Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });

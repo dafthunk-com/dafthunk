@@ -100,6 +100,7 @@ describe("StableDiffusionXLBase10Node", () => {
   it("should generate image with minimal required inputs", async () => {
     const mockImageData = new Uint8Array([1, 2, 3, 4]);
     const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -111,6 +112,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -136,7 +138,7 @@ describe("StableDiffusionXLBase10Node", () => {
   it("should generate image with all optional parameters", async () => {
     const mockImageData = new Uint8Array([1, 2, 3, 4]);
     const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
-
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
       nodeId: "test-id",
@@ -153,6 +155,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -180,6 +183,7 @@ describe("StableDiffusionXLBase10Node", () => {
   it("should clamp width and height values within valid range", async () => {
     const mockImageData = new Uint8Array([1, 2, 3, 4]);
     const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -193,6 +197,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -218,6 +223,7 @@ describe("StableDiffusionXLBase10Node", () => {
   it("should clamp num_steps to maximum value of 20", async () => {
     const mockImageData = new Uint8Array([1, 2, 3, 4]);
     const mockAIRun = vi.fn().mockResolvedValue(mockImageData);
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -230,6 +236,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -254,6 +261,7 @@ describe("StableDiffusionXLBase10Node", () => {
 
   it("should handle errors during execution", async () => {
     const mockAIRun = vi.fn().mockRejectedValue(new Error("Generation failed"));
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -265,6 +273,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
@@ -275,6 +284,7 @@ describe("StableDiffusionXLBase10Node", () => {
 
   it("should handle empty image data from API", async () => {
     const mockAIRun = vi.fn().mockResolvedValue(new Uint8Array(0));
+    const mockToMarkdown = vi.fn().mockResolvedValue([]);
 
     const node = new StableDiffusionXLBase10Node(mockNode);
     const result = await node.execute({
@@ -286,6 +296,7 @@ describe("StableDiffusionXLBase10Node", () => {
       env: {
         AI: {
           run: mockAIRun,
+          toMarkdown: mockToMarkdown,
         },
       },
     });
