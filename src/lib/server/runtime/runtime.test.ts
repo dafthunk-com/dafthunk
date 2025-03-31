@@ -15,20 +15,20 @@ import {
   WorkflowExecutionOptions,
   NodeContext,
   ExecutionResult,
-  StringValue as StringRuntimeParameter,
+  StringValue as RuntimeStringValue,
 } from "./types";
 import { NodeRegistry } from "./registries";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
 import { StartNode, ProcessNode } from "../nodes/test/testNodes";
-import { StringValue } from "../nodes/types";
+import { StringValue as NodeStringValue } from "../nodes/types";
 
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
 }));
 
-// Mock the NodeRegistry and RuntimeParameterRegistry
+// Mock the NodeRegistry and ParameterRegistry
 vi.mock("./registries", () => ({
   NodeRegistry: {
     getInstance: vi.fn().mockReturnValue({
@@ -51,12 +51,12 @@ vi.mock("./registries", () => ({
       }),
     }),
   },
-  RuntimeParameterRegistry: {
+  ParameterRegistry: {
     getInstance: vi.fn().mockReturnValue({
       register: vi.fn(),
       get: vi.fn().mockImplementation((type) => {
-        if (type === StringValue) {
-          return StringRuntimeParameter;
+        if (type === NodeStringValue) {
+          return RuntimeStringValue;
         }
         return undefined;
       }),
@@ -162,8 +162,8 @@ describe("WorkflowRuntime", () => {
           outputs: [
             {
               name: "output",
-              type: StringRuntimeParameter,
-              value: new StringRuntimeParameter("Hello"),
+              type: RuntimeStringValue,
+              value: new RuntimeStringValue("Hello"),
             },
           ],
         },
@@ -172,15 +172,15 @@ describe("WorkflowRuntime", () => {
           name: "Process Node",
           type: "process",
           position: { x: 300, y: 100 },
-          inputs: [{ name: "input", type: StringRuntimeParameter }],
-          outputs: [{ name: "output", type: StringRuntimeParameter }],
+          inputs: [{ name: "input", type: RuntimeStringValue }],
+          outputs: [{ name: "output", type: RuntimeStringValue }],
         },
         {
           id: "node-3",
           name: "End Node",
           type: "process",
           position: { x: 500, y: 100 },
-          inputs: [{ name: "input", type: StringRuntimeParameter }],
+          inputs: [{ name: "input", type: RuntimeStringValue }],
           outputs: [],
         },
       ],

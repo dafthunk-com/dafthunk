@@ -8,7 +8,7 @@ import { NodeRegistry } from "./registries";
 import { NodeType } from "../nodes/types";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
-import { RuntimeParameterRegistry } from "./registries";
+import { ParameterRegistry } from "./registries";
 import { ParameterValue as RuntimeParameterValue } from "./types";
 import { ParameterValue as NodeParameterValue } from "../nodes/types";
 
@@ -25,7 +25,7 @@ export class Runtime {
   private options: WorkflowExecutionOptions;
   private env?: any;
   private aborted: boolean = false;
-  private typeRegistry: RuntimeParameterRegistry;
+  private typeRegistry: ParameterRegistry;
 
   constructor(
     workflow: Workflow,
@@ -35,7 +35,7 @@ export class Runtime {
     this.workflow = workflow;
     this.options = options;
     this.env = env;
-    this.typeRegistry = RuntimeParameterRegistry.getInstance();
+    this.typeRegistry = ParameterRegistry.getInstance();
     this.initializeExecutableNodes();
 
     // Set up abort signal listener if provided

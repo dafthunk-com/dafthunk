@@ -69,8 +69,8 @@ import { SimpleStringTemplateNode } from "../nodes/text/simpleStringTemplateNode
 import { StringTemplateNode } from "../nodes/text/stringTemplateNode";
 import { TextAreaNode } from "../nodes/text/textAreaNode";
 
-export class RuntimeParameterRegistry {
-  private static instance: RuntimeParameterRegistry;
+export class ParameterRegistry {
+  private static instance: ParameterRegistry;
   private implementations: Map<
     typeof NodeParameterValue,
     RuntimeParameterValueConstructor
@@ -88,11 +88,11 @@ export class RuntimeParameterRegistry {
     this.register(NodeAudioValue, RuntimeAudioParameter);
   }
 
-  public static getInstance(): RuntimeParameterRegistry {
-    if (!RuntimeParameterRegistry.instance) {
-      RuntimeParameterRegistry.instance = new RuntimeParameterRegistry();
+  public static getInstance(): ParameterRegistry {
+    if (!ParameterRegistry.instance) {
+      ParameterRegistry.instance = new ParameterRegistry();
     }
-    return RuntimeParameterRegistry.instance;
+    return ParameterRegistry.instance;
   }
 
   public register(
@@ -129,8 +129,8 @@ export class NodeRegistry {
   private static instance: NodeRegistry;
   private implementations: Map<string, NodeImplementationConstructor> =
     new Map();
-  private parameterRegistry: RuntimeParameterRegistry =
-    RuntimeParameterRegistry.getInstance();
+  private parameterRegistry: ParameterRegistry =
+    ParameterRegistry.getInstance();
 
   public static getInstance(): NodeRegistry {
     if (!NodeRegistry.instance) {
@@ -190,6 +190,7 @@ export class NodeRegistry {
     });
   }
 }
+
 /**
  * Register the mathematical operation nodes
  */
