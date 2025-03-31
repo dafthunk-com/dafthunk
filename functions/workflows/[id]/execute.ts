@@ -12,8 +12,8 @@ import { Workflow } from "../../../src/lib/server/runtime/types";
 import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
-import { NodeRegistry } from "../../../src/lib/server/runtime/registries";
-import { ParameterRegistry } from "../../../src/lib/server/api/registries";
+import { NodeRegistry } from "../../../src/lib/server/runtime/nodeRegistry";
+import { ParameterRegistry } from "../../../src/lib/server/api/parameterRegistry";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -86,7 +86,7 @@ async function executeWorkflow(
     if (user.plan === "free") {
       const registry = NodeRegistry.getInstance();
       const nodeTypes = parameterRegistry.convertNodeTypes(
-        registry.getRuntimeNodeTypes()
+        registry.getNodeTypes()
       );
 
       const aiNodeTypes = new Set(

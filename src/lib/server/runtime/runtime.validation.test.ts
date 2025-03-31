@@ -3,15 +3,10 @@ import { Runtime } from "./runtime";
 import { Workflow } from "./types";
 import { validateWorkflow } from "./validation";
 import { StringValue, NumberValue } from "./types";
-import { NodeRegistry } from "./registries";
+import { NodeRegistry } from "./nodeRegistry";
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
-}));
-
-// Mock the node registry
-vi.mock("./nodeRegistry", () => ({
-  registerNodes: vi.fn(),
 }));
 
 // Mock the NodeRegistry

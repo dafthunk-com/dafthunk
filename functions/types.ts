@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import { NodeRegistry } from "../src/lib/server/runtime/registries";
-import { ParameterRegistry } from "../src/lib/server/api/registries";
+import { NodeRegistry } from "../src/lib/server/runtime/nodeRegistry";
+import { ParameterRegistry } from "../src/lib/server/api/parameterRegistry";
 
 export const onRequest: PagesFunction = async (context) => {
   try {
@@ -11,7 +11,7 @@ export const onRequest: PagesFunction = async (context) => {
     const registry = NodeRegistry.getInstance();
     const parameterRegistry = ParameterRegistry.getInstance();
     const nodeTypes = parameterRegistry.convertNodeTypes(
-      registry.getRuntimeNodeTypes()
+      registry.getNodeTypes()
     );
 
     return new Response(JSON.stringify(nodeTypes), {

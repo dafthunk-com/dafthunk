@@ -17,7 +17,7 @@ import {
   ExecutionResult,
   StringValue as RuntimeStringValue,
 } from "./types";
-import { NodeRegistry } from "./registries";
+import { NodeRegistry } from "./nodeRegistry";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
 import { StartNode, ProcessNode } from "../nodes/test/testNodes";
@@ -29,7 +29,7 @@ vi.mock("./validation", () => ({
 }));
 
 // Mock the NodeRegistry and ParameterRegistry
-vi.mock("./registries", () => ({
+vi.mock("./nodeRegistry", () => ({
   NodeRegistry: {
     getInstance: vi.fn().mockReturnValue({
       registerImplementation: vi.fn(),
@@ -51,6 +51,9 @@ vi.mock("./registries", () => ({
       }),
     }),
   },
+}));
+
+vi.mock("./parameterRegistry", () => ({
   ParameterRegistry: {
     getInstance: vi.fn().mockReturnValue({
       register: vi.fn(),

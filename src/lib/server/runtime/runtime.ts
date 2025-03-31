@@ -4,11 +4,11 @@ import {
   NodeContext,
   WorkflowExecutionOptions,
 } from "./types";
-import { NodeRegistry } from "./registries";
+import { NodeRegistry } from "./nodeRegistry";
 import { NodeType } from "../nodes/types";
 import { validateWorkflow } from "./validation";
 import { ExecutableNode } from "../nodes/types";
-import { ParameterRegistry } from "./registries";
+import { ParameterRegistry } from "./parameterRegistry";
 import { ParameterValue as RuntimeParameterValue } from "./types";
 import { ParameterValue as NodeParameterValue } from "../nodes/types";
 

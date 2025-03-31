@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
 import { Workflow, WorkflowExecutionOptions } from "./types";
-import { NodeRegistry } from "./registries";
+import { NodeRegistry } from "./nodeRegistry";
 import {
   StartNode,
   ProcessNode,
