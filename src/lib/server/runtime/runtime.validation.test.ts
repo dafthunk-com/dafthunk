@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import { Runtime } from "./runtime";
 import { Workflow } from "./types";
 import { validateWorkflow } from "./validation";
-import { registerNodes } from "./registries";
 import { StringValue, NumberValue } from "./types";
+import { NodeRegistry } from "./registries";
 // Mock the validateWorkflow function
 vi.mock("./validation", () => ({
   validateWorkflow: vi.fn().mockReturnValue([]),
@@ -39,7 +39,7 @@ vi.mock("./workflowTypes", async () => {
 
 // Ensure base nodes are registered
 beforeAll(() => {
-  registerNodes();
+  NodeRegistry.getInstance();
 });
 
 describe("WorkflowRuntime Validation Tests", () => {

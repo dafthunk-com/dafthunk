@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { onRequest } from "./types";
+import { NodeRegistry } from "../src/lib/server/runtime/registries";
 
 // Define the type for our node type responses
 interface NodeType {

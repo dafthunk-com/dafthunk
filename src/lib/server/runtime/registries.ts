@@ -132,6 +132,53 @@ export class NodeRegistry {
   private parameterRegistry: ParameterRegistry =
     ParameterRegistry.getInstance();
 
+  private constructor() {
+    this.registerImplementation(AdditionNode);
+    this.registerImplementation(SubtractionNode);
+    this.registerImplementation(MultiplicationNode);
+    this.registerImplementation(DivisionNode);
+    this.registerImplementation(ModuloNode);
+    this.registerImplementation(ExponentiationNode);
+    this.registerImplementation(SquareRootNode);
+    this.registerImplementation(AbsoluteValueNode);
+    this.registerImplementation(RadioGroupNode);
+    this.registerImplementation(TextAreaNode);
+    this.registerImplementation(InputTextNode);
+    this.registerImplementation(NumberInputNode);
+    this.registerImplementation(SliderNode);
+    this.registerImplementation(Llama318BInstructFastNode);
+    this.registerImplementation(WhisperNode);
+    this.registerImplementation(WhisperLargeV3TurboNode);
+    this.registerImplementation(WhisperTinyEnNode);
+    this.registerImplementation(UformGen2Qwen500mNode);
+    this.registerImplementation(BartLargeCnnNode);
+    this.registerImplementation(M2m10012bNode);
+    this.registerImplementation(DistilbertSst2Int8Node);
+    this.registerImplementation(BgeRerankerBaseNode);
+    this.registerImplementation(DetrResnet50Node);
+    this.registerImplementation(Resnet50Node);
+    this.registerImplementation(ImageUrlLoaderNode);
+    this.registerImplementation(StableDiffusionXLLightningNode);
+    this.registerImplementation(StableDiffusionV15Img2ImgNode);
+    this.registerImplementation(StableDiffusionV15InpaintingNode);
+    this.registerImplementation(JsonStringExtractorNode);
+    this.registerImplementation(JsonBooleanExtractorNode);
+    this.registerImplementation(JsonNumberExtractorNode);
+    this.registerImplementation(JsonObjectArrayExtractorNode);
+    this.registerImplementation(JsonTemplateNode);
+    this.registerImplementation(StringTemplateNode);
+    this.registerImplementation(SimpleStringTemplateNode);
+    this.registerImplementation(MonacoEditorNode);
+    this.registerImplementation(LLaVA157BHFNode);
+    this.registerImplementation(CanvasDoodleNode);
+    this.registerImplementation(StableDiffusionXLBase10Node);
+    this.registerImplementation(Flux1SchnellNode);
+    this.registerImplementation(DreamShaper8LCMNode);
+    this.registerImplementation(MelottsNode);
+    this.registerImplementation(WebcamNode);
+    this.registerImplementation(AudioRecorderNode);
+  }
+
   public static getInstance(): NodeRegistry {
     if (!NodeRegistry.instance) {
       NodeRegistry.instance = new NodeRegistry();
@@ -189,56 +236,4 @@ export class NodeRegistry {
       };
     });
   }
-}
-
-/**
- * Register the mathematical operation nodes
- */
-export function registerNodes(): void {
-  const registry = NodeRegistry.getInstance();
-
-  registry.registerImplementation(AdditionNode);
-  registry.registerImplementation(SubtractionNode);
-  registry.registerImplementation(MultiplicationNode);
-  registry.registerImplementation(DivisionNode);
-  registry.registerImplementation(ModuloNode);
-  registry.registerImplementation(ExponentiationNode);
-  registry.registerImplementation(SquareRootNode);
-  registry.registerImplementation(AbsoluteValueNode);
-  registry.registerImplementation(RadioGroupNode);
-  registry.registerImplementation(TextAreaNode);
-  registry.registerImplementation(InputTextNode);
-  registry.registerImplementation(NumberInputNode);
-  registry.registerImplementation(SliderNode);
-  registry.registerImplementation(Llama318BInstructFastNode);
-  registry.registerImplementation(WhisperNode);
-  registry.registerImplementation(WhisperLargeV3TurboNode);
-  registry.registerImplementation(WhisperTinyEnNode);
-  registry.registerImplementation(UformGen2Qwen500mNode);
-  registry.registerImplementation(BartLargeCnnNode);
-  registry.registerImplementation(M2m10012bNode);
-  registry.registerImplementation(DistilbertSst2Int8Node);
-  registry.registerImplementation(BgeRerankerBaseNode);
-  registry.registerImplementation(DetrResnet50Node);
-  registry.registerImplementation(Resnet50Node);
-  registry.registerImplementation(ImageUrlLoaderNode);
-  registry.registerImplementation(StableDiffusionXLLightningNode);
-  registry.registerImplementation(StableDiffusionV15Img2ImgNode);
-  registry.registerImplementation(StableDiffusionV15InpaintingNode);
-  registry.registerImplementation(JsonStringExtractorNode);
-  registry.registerImplementation(JsonBooleanExtractorNode);
-  registry.registerImplementation(JsonNumberExtractorNode);
-  registry.registerImplementation(JsonObjectArrayExtractorNode);
-  registry.registerImplementation(JsonTemplateNode);
-  registry.registerImplementation(StringTemplateNode);
-  registry.registerImplementation(SimpleStringTemplateNode);
-  registry.registerImplementation(MonacoEditorNode);
-  registry.registerImplementation(LLaVA157BHFNode);
-  registry.registerImplementation(CanvasDoodleNode);
-  registry.registerImplementation(StableDiffusionXLBase10Node);
-  registry.registerImplementation(Flux1SchnellNode);
-  registry.registerImplementation(DreamShaper8LCMNode);
-  registry.registerImplementation(MelottsNode);
-  registry.registerImplementation(WebcamNode);
-  registry.registerImplementation(AudioRecorderNode);
 }
