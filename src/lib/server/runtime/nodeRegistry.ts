@@ -38,6 +38,7 @@ import { BgeRerankerBaseNode } from "../nodes/text/bgeRerankerBaseNode";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbertSst2Int8Node";
 import { InputTextNode } from "../nodes/text/inputTextNode";
 import { Llama318BInstructFastNode } from "../nodes/text/llama318BInstructFastNode";
+import { Llama3370BInstructFastNode } from "../nodes/text/llama3370BInstructFastNode";
 import { M2m10012bNode } from "../nodes/text/m2m10012bNode";
 import { RadioGroupNode } from "../nodes/text/radioGroupNode";
 import { SimpleStringTemplateNode } from "../nodes/text/simpleStringTemplateNode";
@@ -75,6 +76,7 @@ export class NodeRegistry {
     this.registerImplementation(NumberInputNode);
     this.registerImplementation(SliderNode);
     this.registerImplementation(Llama318BInstructFastNode);
+    this.registerImplementation(Llama3370BInstructFastNode);
     this.registerImplementation(WhisperNode);
     this.registerImplementation(WhisperLargeV3TurboNode);
     this.registerImplementation(WhisperTinyEnNode);
