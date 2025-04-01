@@ -278,3 +278,24 @@ export class DocumentValue extends ParameterValue {
     return { isValid: true };
   }
 }
+
+export class ObjectReferenceValue extends ParameterValue {
+  validate(): { isValid: boolean; error?: string } {
+    if (!this.value || typeof this.value !== "object") {
+      return {
+        isValid: false,
+        error: "Value must be an object with id and mimeType",
+      };
+    }
+
+    if (typeof this.value.id !== "string") {
+      return { isValid: false, error: "id must be a string" };
+    }
+
+    if (typeof this.value.mimeType !== "string") {
+      return { isValid: false, error: "mimeType must be a string" };
+    }
+
+    return { isValid: true };
+  }
+}
