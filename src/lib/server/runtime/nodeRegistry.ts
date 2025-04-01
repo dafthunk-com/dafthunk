@@ -35,6 +35,7 @@ import { SquareRootNode } from "../nodes/number/squareRootNode";
 import { SubtractionNode } from "../nodes/number/subtractionNode";
 import { BartLargeCnnNode } from "../nodes/text/bartLargeCnnNode";
 import { BgeRerankerBaseNode } from "../nodes/text/bgeRerankerBaseNode";
+import { DeepseekR1Node } from "../nodes/text/deepseekR1Node";
 import { DistilbertSst2Int8Node } from "../nodes/text/distilbertSst2Int8Node";
 import { InputTextNode } from "../nodes/text/inputTextNode";
 import { Llama318BInstructFastNode } from "../nodes/text/llama318BInstructFastNode";
@@ -77,6 +78,7 @@ export class NodeRegistry {
     this.registerImplementation(SliderNode);
     this.registerImplementation(Llama318BInstructFastNode);
     this.registerImplementation(Llama3370BInstructFastNode);
+    this.registerImplementation(DeepseekR1Node);
     this.registerImplementation(WhisperNode);
     this.registerImplementation(WhisperLargeV3TurboNode);
     this.registerImplementation(WhisperTinyEnNode);
