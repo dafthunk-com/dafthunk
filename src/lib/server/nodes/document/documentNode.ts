@@ -17,82 +17,64 @@ export class DocumentNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringValue,
-        description: "Current document data as base64",
+        type: DocumentValue,
+        description: "Current document as a document reference",
         hidden: true,
-        value: new StringValue(""), // Default empty string
-      },
-      {
-        name: "mimeType",
-        type: StringValue,
-        description: "Document MIME type",
-        hidden: true,
-        value: new StringValue("application/pdf"), // Default PDF
+        value: new DocumentValue(null),
       },
     ],
     outputs: [
       {
         name: "document",
         type: DocumentValue,
-        description: "The uploaded document as binary data",
+        description: "The uploaded document as a document reference",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      const value = context.inputs.value;
-
-      // Validate input
-      if (typeof value !== "string") {
-        return this.createErrorResult("Value must be a string");
+      // Get the raw value from the RuntimeParameterValue
+      const value = context.inputs.value?.getValue?.() ?? context.inputs.value;
+      
+      // If no value is provided, return null
+      if (!value) {
+        return this.createSuccessResult({
+          document: new DocumentValue(null),
+        });
       }
 
-      // Parse the JSON string from the widget
-      let documentData: { value: string; mimeType: string };
-      try {
-        documentData = JSON.parse(value);
-      } catch (error) {
-        return this.createErrorResult("Invalid document data format");
+      // Handle string input (for backward compatibility)
+      if (typeof value === 'string') {
+        try {
+          // Try to parse the string as JSON
+          const parsedValue = JSON.parse(value);
+          if (parsedValue && typeof parsedValue === 'object') {
+            return this.createSuccessResult({
+              document: new DocumentValue(parsedValue),
+            });
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
       }
 
-      // Validate parsed data
-      if (!documentData.value || typeof documentData.value !== "string") {
-        return this.createErrorResult("Document value must be a string");
-      }
-
-      if (!documentData.mimeType || typeof documentData.mimeType !== "string") {
-        return this.createErrorResult("MIME type must be a string");
-      }
-
-      // Convert base64 to binary
-      const binaryString = atob(documentData.value);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      // Create document output
-      const documentOutput = {
-        data: bytes,
-        mimeType: documentData.mimeType,
-      };
-
-      // Validate using DocumentValue
-      const documentValue = new DocumentValue(documentOutput);
-      const validation = documentValue.validate();
-      if (!validation.isValid) {
+      // Check if the value is an object
+      if (typeof value !== 'object') {
         return this.createErrorResult(
-          validation.error || "Invalid document data"
+          `Invalid input type: expected object, got ${typeof value}`
         );
       }
 
+      // Pass the value directly to the DocumentValue constructor
+      // The DocumentValue class will validate the value format
       return this.createSuccessResult({
-        document: documentValue,
+        document: new DocumentValue(value),
       });
     } catch (error) {
+      // Return a clean error message without logging
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : "Unknown error in DocumentNode"
       );
     }
   }

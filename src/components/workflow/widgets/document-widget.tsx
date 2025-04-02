@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { File, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { uploadBinaryData } from "@/lib/utils/binaryUtils";
+import { uploadBinaryData, isObjectReference } from "@/lib/utils/binaryUtils";
 
 export interface DocumentConfig {
   value: any; // Now stores an object reference
@@ -23,12 +23,19 @@ export function DocumentWidget({
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(() => {
     // Initialize fileName from config if it exists and has a value
-    if (config?.value && typeof config.value === "object" && config.value.id) {
+    if (config?.value && isObjectReference(config.value)) {
       return "Uploaded Document";
     }
     return null;
   });
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [documentReference, setDocumentReference] = useState<any>(() => {
+    // Initialize document reference from config if it exists
+    if (config?.value && isObjectReference(config.value)) {
+      return config.value;
+    }
+    return null;
+  });
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -55,13 +62,19 @@ export function DocumentWidget({
 
       // Upload the document to the objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
-
-      // Pass the object reference to the parent
+      
+      // Update state and pass the reference to parent
+      setDocumentReference(reference);
+      
+      // Pass the reference directly to the parent
+      // The DocumentValue class will validate the format
+      console.log("Uploading document with reference:", reference);
       onChange(reference);
 
       setIsUploading(false);
     } catch (err) {
       setFileName(null);
+      setDocumentReference(null);
       setIsUploading(false);
       setError(err instanceof Error ? err.message : "Failed to upload file");
     }
@@ -69,6 +82,7 @@ export function DocumentWidget({
 
   const clearDocument = () => {
     setFileName(null);
+    setDocumentReference(null);
     onChange(null);
   };
 

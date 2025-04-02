@@ -385,44 +385,9 @@ export class Runtime {
           return { isValid: false, error: `Unknown input parameter: ${key}` };
         }
 
-        // For binary types, validate the mimeType matches
-        const inputTypeName = inputDef.type.name;
-        
-        // Check if this is a binary type based on the type name
-        if (inputTypeName.includes('Binary') || 
-            inputTypeName.includes('Image') || 
-            inputTypeName.includes('Audio') || 
-            inputTypeName.includes('Document')) {
-          
-          let expectedMimeType: string | string[];
-          
-          if (inputTypeName.includes('Image')) {
-            expectedMimeType = 'image/';
-          } else if (inputTypeName.includes('Audio')) {
-            expectedMimeType = 'audio/';
-          } else if (inputTypeName.includes('Document')) {
-            expectedMimeType = ['application/', 'text/'];
-          } else {
-            expectedMimeType = 'application/';
-          }
-          
-          if (Array.isArray(expectedMimeType)) {
-            if (!expectedMimeType.some(prefix => rawValue.mimeType.startsWith(prefix))) {
-              return {
-                isValid: false,
-                error: `Invalid mimeType for ${key}: expected ${expectedMimeType.join(' or ')} but got ${rawValue.mimeType}`,
-              };
-            }
-          } else if (!rawValue.mimeType.startsWith(expectedMimeType)) {
-            return {
-              isValid: false,
-              error: `Invalid mimeType for ${key}: expected ${expectedMimeType} but got ${rawValue.mimeType}`,
-            };
-          }
-        }
-        
-        // If we get here, the object reference is valid
-        continue;
+        // For binary types, the mimeType validation is already handled by the respective value classes
+        // in types.ts, so we don't need to do it here
+        return { isValid: true };
       }
 
       // For non-object-reference values, validate using the runtime parameter type
@@ -446,6 +411,8 @@ export class Runtime {
           error: `Unknown parameter type: ${inputDef.type}`,
         };
       }
+
+      return { isValid: true };
     }
     return { isValid: true };
   }
