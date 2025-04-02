@@ -4,7 +4,7 @@ import { Camera, X } from "lucide-react";
 import { uploadBinaryData, createObjectUrl } from "@/lib/utils/binaryUtils";
 
 interface WebcamConfig {
-  value: any; // Now stores an object reference
+  value: any; // Stores an object reference with id and mimeType or null
 }
 
 interface WebcamWidgetProps {
@@ -20,7 +20,7 @@ export function WebcamWidget({
 }: WebcamWidgetProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageReference, setImageReference] = useState<{
+    const [imageReference, setImageReference] = useState<{
     id: string;
     mimeType: string;
   } | null>(
@@ -76,8 +76,6 @@ export function WebcamWidget({
 
       // Draw the video frame to the canvas
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // Convert canvas to blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (b) => {
@@ -85,7 +83,7 @@ export function WebcamWidget({
             else reject(new Error("Failed to create image blob"));
           },
           "image/jpeg",
-          0.9
+          1.0
         );
       });
 
@@ -93,12 +91,16 @@ export function WebcamWidget({
       const arrayBuffer = await blob.arrayBuffer();
 
       // Upload to objects endpoint
-      const reference = await uploadBinaryData(arrayBuffer, "image/jpeg");
+      const reference = await uploadBinaryData(arrayBuffer, "image/png");
+      
+      if (!reference || typeof reference.id !== "string" || typeof reference.mimeType !== "string") {
+        throw new Error("Invalid reference from uploadBinaryData");
+      }
 
       // Update state and pass the reference to parent
       setImageReference(reference);
       onChange(reference);
-
+      
       // Stop the webcam after successful capture
       stopWebcam();
       setIsUploading(false);

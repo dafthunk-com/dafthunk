@@ -90,12 +90,7 @@ export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
 
                   return {
                     ...input,
-                    // Don't save values for connected parameters or binary types
-                    value:
-                      isConnected ||
-                      ["audio", "image", "binary"].includes(input.type)
-                        ? undefined
-                        : input.value,
+                    value: isConnected ? undefined : input.value,
                   };
                 })
               : [],
