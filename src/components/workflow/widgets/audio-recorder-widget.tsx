@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Mic, Square, Trash2 } from "lucide-react";
+import { uploadBinaryData, createObjectUrl } from "@/lib/utils/binaryUtils";
 
 interface AudioRecorderConfig {
-  value: string;
-  sampleRate: number;
-  channels: number;
+  value: any; // Now stores an object reference
 }
 
 interface AudioRecorderWidgetProps {
   config: AudioRecorderConfig;
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   compact?: boolean;
 }
 
@@ -23,7 +22,10 @@ export function AudioRecorderWidget({
   const audioChunksRef = useRef<Blob[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioReference, setAudioReference] = useState<{ id: string; mimeType: string } | null>(
+    config?.value && typeof config.value === 'object' && config.value.id ? config.value : null
+  );
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   useEffect(() => {
     return () => {
@@ -53,24 +55,30 @@ export function AudioRecorderWidget({
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
-        });
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = () => {
-          const base64Data = reader.result as string;
-          const base64String = base64Data.split(",")[1];
-          setAudioUrl(base64Data);
-          onChange(
-            JSON.stringify({
-              value: base64String,
-              sampleRate: config.sampleRate,
-              channels: config.channels,
-            })
-          );
-        };
+      mediaRecorder.onstop = async () => {
+        try {
+          setIsUploading(true);
+          
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: "audio/webm",
+          });
+          
+          // Convert blob to array buffer
+          const arrayBuffer = await audioBlob.arrayBuffer();
+          
+          // Upload to objects endpoint
+          const reference = await uploadBinaryData(arrayBuffer, "audio/webm");
+          
+          // Update state and pass the reference to parent
+          setAudioReference(reference);
+          onChange(reference);
+          
+          setIsUploading(false);
+          setError(null);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to upload audio");
+          setIsUploading(false);
+        }
       };
 
       mediaRecorder.start();
@@ -97,14 +105,8 @@ export function AudioRecorderWidget({
   };
 
   const clearRecording = () => {
-    setAudioUrl(null);
-    onChange(
-      JSON.stringify({
-        value: "",
-        sampleRate: config.sampleRate,
-        channels: config.channels,
-      })
-    );
+    setAudioReference(null);
+    onChange(null);
   };
 
   return (
@@ -112,11 +114,12 @@ export function AudioRecorderWidget({
       {!compact && <Label>Audio Recorder</Label>}
       <div className="relative w-full mx-auto">
         <div className="absolute top-2 right-2 z-10 flex gap-2">
-          {audioUrl ? (
+          {audioReference ? (
             <button
               onClick={clearRecording}
               className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
               aria-label="Clear recording"
+              disabled={isUploading}
             >
               <Trash2 className="h-3 w-3" />
             </button>
@@ -125,6 +128,7 @@ export function AudioRecorderWidget({
               onClick={stopRecording}
               className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-red-600 hover:text-red-900 transition-colors"
               aria-label="Stop recording"
+              disabled={isUploading}
             >
               <Square className="h-3 w-3" />
             </button>
@@ -133,6 +137,7 @@ export function AudioRecorderWidget({
               onClick={startRecording}
               className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
               aria-label="Start recording"
+              disabled={isUploading}
             >
               <Mic className="h-3 w-3" />
             </button>
@@ -140,8 +145,12 @@ export function AudioRecorderWidget({
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">
           <div className="relative h-24 bg-gray-100">
-            {audioUrl ? (
-              <audio src={audioUrl} controls className="w-full h-full" />
+            {audioReference ? (
+              <audio 
+                src={createObjectUrl(audioReference)} 
+                controls 
+                className="w-full h-full" 
+              />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 {isRecording ? (
@@ -159,6 +168,11 @@ export function AudioRecorderWidget({
             {error && (
               <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-600 text-sm">
                 {error}
+              </div>
+            )}
+            {isUploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
+                <span>Uploading...</span>
               </div>
             )}
           </div>

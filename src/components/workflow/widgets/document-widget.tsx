@@ -3,15 +3,15 @@ import { Label } from "@/components/ui/label";
 import { File, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { uploadBinaryData } from "@/lib/utils/binaryUtils";
 
 export interface DocumentConfig {
-  value: string;
-  mimeType: string;
+  value: any; // Now stores an object reference
 }
 
 interface DocumentWidgetProps {
   config: DocumentConfig;
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   compact?: boolean;
 }
 
@@ -23,11 +23,12 @@ export function DocumentWidget({
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(() => {
     // Initialize fileName from config if it exists and has a value
-    if (config?.value) {
+    if (config?.value && typeof config.value === 'object' && config.value.id) {
       return "Uploaded Document";
     }
     return null;
   });
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -37,44 +38,38 @@ export function DocumentWidget({
 
     try {
       setError(null);
+      setIsUploading(true);
       setFileName(file.name);
 
-      // Read file as base64
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64Data = (e.target?.result as string).split(",")[1];
+      // Ensure correct mime type for Excel files
+      let mimeType = file.type;
+      if (file.name.endsWith(".xlsx")) {
+        mimeType =
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      } else if (file.name.endsWith(".xls")) {
+        mimeType = "application/vnd.ms-excel";
+      }
 
-        // Ensure correct mime type for Excel files
-        let mimeType = file.type;
-        if (file.name.endsWith(".xlsx")) {
-          mimeType =
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        } else if (file.name.endsWith(".xls")) {
-          mimeType = "application/vnd.ms-excel";
-        }
-
-        // Create properly structured document output
-        const documentOutput = {
-          value: base64Data,
-          mimeType,
-        };
-
-        onChange(JSON.stringify(documentOutput));
-      };
-      reader.readAsDataURL(file);
+      // Read the file as an array buffer
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Upload the document to the objects endpoint
+      const reference = await uploadBinaryData(arrayBuffer, mimeType);
+      
+      // Pass the object reference to the parent
+      onChange(reference);
+      
+      setIsUploading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to read file");
+      setFileName(null);
+      setIsUploading(false);
+      setError(err instanceof Error ? err.message : "Failed to upload file");
     }
   };
 
   const clearDocument = () => {
     setFileName(null);
-    onChange(
-      JSON.stringify({
-        value: "",
-        mimeType: "application/pdf",
-      })
-    );
+    onChange(null);
   };
 
   return (
@@ -100,6 +95,7 @@ export function DocumentWidget({
                 size="icon"
                 onClick={clearDocument}
                 className="h-6 w-6 flex-shrink-0"
+                disabled={isUploading}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -110,15 +106,19 @@ export function DocumentWidget({
               <div className="text-sm text-gray-500 text-center">
                 <label
                   htmlFor="document-upload"
-                  className="cursor-pointer text-blue-500 hover:text-blue-600"
+                  className={cn(
+                    "cursor-pointer text-blue-500 hover:text-blue-600",
+                    isUploading && "opacity-50 pointer-events-none"
+                  )}
                 >
-                  Click to upload
+                  {isUploading ? "Uploading..." : "Click to upload"}
                 </label>
                 <input
                   id="document-upload"
                   type="file"
                   className="hidden"
                   onChange={handleFileChange}
+                  disabled={isUploading}
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.html,.xml,.png,.jpg,.jpeg,.webp,.svg"
                 />
               </div>

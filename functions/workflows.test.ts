@@ -1,8 +1,9 @@
+/// <reference types="@cloudflare/workers-types" />
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { onRequest } from "./workflows";
 import { createDatabase } from "../db";
 import { workflows } from "../db/schema";
-import type { Env } from "../db";
+import type { Env } from "../src/lib/server/api/env";
 
 // Mock the database
 vi.mock("../db", () => ({
@@ -64,6 +65,7 @@ describe("workflows function", () => {
     mockContext = {
       env: {
         DB: {} as D1Database,
+        JWT_SECRET: "test-secret",
       },
       request: new Request("https://example.com/api/workflows"),
     };

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Environment that includes R2 storage (optional)
 interface ObjectsEnv {
   JWT_SECRET: string;
-  OBJECTS?: R2Bucket;
+  BUCKET?: R2Bucket;
   DB: D1Database;
 }
 
@@ -60,11 +60,11 @@ export const onRequest = withAuth<ObjectsEnv>(async (request, env, user) => {
       const id = uuidv4();
       
       // Try to use R2 if available, otherwise use in-memory storage
-      if (env.OBJECTS) {
+      if (env.BUCKET) {
         try {
           // Store in R2
           console.log(`Storing object ${id} in R2 (${data.byteLength} bytes)`);
-          await env.OBJECTS.put(`objects/${id}`, data, {
+          await env.BUCKET.put(`objects/${id}`, data, {
             httpMetadata: {
               contentType: mimeType,
               cacheControl: 'public, max-age=31536000',
@@ -129,9 +129,9 @@ export const onRequest = withAuth<ObjectsEnv>(async (request, env, user) => {
       let data: Uint8Array | null = null;
       
       // Try to get from R2 if available
-      if (env.OBJECTS) {
+      if (env.BUCKET) {
         try {
-          const object = await env.OBJECTS.get(`objects/${objectId}`);
+          const object = await env.BUCKET.get(`objects/${objectId}`);
           if (object) {
             const arrayBuffer = await object.arrayBuffer();
             data = new Uint8Array(arrayBuffer);

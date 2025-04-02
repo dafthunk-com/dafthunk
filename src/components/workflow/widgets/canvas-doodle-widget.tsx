@@ -2,18 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eraser } from "lucide-react";
+import { uploadBinaryData, createObjectUrl, isObjectReference } from "@/lib/utils/binaryUtils";
 
 interface CanvasDoodleConfig {
-  value: string;
-  width: number;
-  height: number;
+  value: any; // Now stores an object reference
   strokeColor: string;
   strokeWidth: number;
 }
 
 interface CanvasDoodleWidgetProps {
   config: CanvasDoodleConfig;
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   compact?: boolean;
 }
 
@@ -24,7 +23,11 @@ export function CanvasDoodleWidget({
 }: CanvasDoodleWidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { strokeColor, strokeWidth } = config;
+  const [imageReference, setImageReference] = useState<{ id: string; mimeType: string } | null>(
+    config?.value && isObjectReference(config.value) ? config.value : null
+  );
 
   // Initialize canvas and load existing drawing
   useEffect(() => {
@@ -73,25 +76,19 @@ export function CanvasDoodleWidget({
     ctx.shadowOffsetY = 0;
 
     // Load existing drawing if any
-    if (config.value) {
-      try {
-        const parsedConfig = JSON.parse(config.value);
-        if (parsedConfig.value) {
-          const img = new Image();
-          img.onload = () => {
-            // First fill with white background
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, displayWidth, displayHeight);
-            // Then draw the image
-            ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
-          };
-          img.src = `data:image/png;base64,${parsedConfig.value}`;
-        }
-      } catch (error) {
-        console.error("Error loading existing drawing:", error);
-      }
+    if (imageReference) {
+      // Load from object reference
+      const img = new Image();
+      img.onload = () => {
+        // First fill with white background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, displayWidth, displayHeight);
+        // Then draw the image
+        ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+      };
+      img.src = createObjectUrl(imageReference);
     }
-  }, [config.value, strokeColor, strokeWidth]);
+  }, [imageReference, strokeColor, strokeWidth]);
 
   // Get canvas coordinates
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -108,39 +105,35 @@ export function CanvasDoodleWidget({
   };
 
   // Save canvas state
-  const saveCanvas = () => {
+  const saveCanvas = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Ensure white background before saving
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Get base64 data and remove the data URL prefix
-    const fullDataUrl = canvas.toDataURL("image/png", 1.0);
-    const base64Data = fullDataUrl.replace(/^data:image\/\w+;base64,/, "");
-
-    // Create node inputs object with explicit type conversion
-    const nodeInputs = {
-      value: base64Data,
-      width: Number(canvas.width),
-      height: Number(canvas.height),
-      strokeColor: String(config.strokeColor || "#000000"),
-      strokeWidth: Number(config.strokeWidth || 2),
-    };
-
     try {
-      // Convert to JSON string
-      const jsonString = JSON.stringify(nodeInputs);
-      console.log("Canvas data:", {
-        inputObject: nodeInputs,
-        jsonString,
-        width: canvas.width,
-        height: canvas.height,
+      setIsUploading(true);
+      
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Failed to create image blob"));
+        }, "image/png", 1.0);
       });
-      onChange(jsonString);
+      
+      // Convert blob to array buffer
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      // Upload to objects endpoint
+      const reference = await uploadBinaryData(arrayBuffer, "image/png");
+      
+      // Update state and pass the reference to parent
+      setImageReference(reference);
+      onChange(reference);
+      
+      setIsUploading(false);
     } catch (error) {
-      console.error("Error stringifying canvas data:", error);
+      console.error("Error saving canvas:", error);
+      setIsUploading(false);
     }
   };
 
@@ -196,8 +189,12 @@ export function CanvasDoodleWidget({
 
     const displayWidth = 344;
     const displayHeight = 344;
-    ctx.clearRect(0, 0, displayWidth, displayHeight);
-    saveCanvas();
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
+    
+    // Clear the reference
+    setImageReference(null);
+    onChange(null);
   };
 
   return (
@@ -210,6 +207,7 @@ export function CanvasDoodleWidget({
             size="icon"
             onClick={handleClear}
             className="h-6 w-6 bg-white/90 hover:bg-white"
+            disabled={isUploading}
           >
             <Eraser className="h-3 w-3" />
           </Button>
@@ -223,6 +221,11 @@ export function CanvasDoodleWidget({
             onMouseLeave={stopDrawing}
             className="touch-none cursor-crosshair"
           />
+          {isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-sm">
+              Uploading...
+            </div>
+          )}
         </div>
       </div>
     </div>

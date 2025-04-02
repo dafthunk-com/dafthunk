@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Camera, X } from "lucide-react";
+import { uploadBinaryData, createObjectUrl } from "@/lib/utils/binaryUtils";
 
 interface WebcamConfig {
-  value: string;
-  width: number;
-  height: number;
+  value: any; // Now stores an object reference
 }
 
 interface WebcamWidgetProps {
   config: WebcamConfig;
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   compact?: boolean;
 }
 
@@ -21,22 +20,22 @@ export function WebcamWidget({
 }: WebcamWidgetProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [imageReference, setImageReference] = useState<{ id: string; mimeType: string } | null>(
+    config?.value && typeof config.value === 'object' && config.value.id ? config.value : null
+  );
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!capturedImage) {
+    if (!imageReference) {
       startWebcam();
     }
     return () => stopWebcam();
-  }, [capturedImage]);
+  }, [imageReference]);
 
   const startWebcam = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: config.width },
-          height: { ideal: config.height },
-        },
+        video: true,
       });
       if (videoRef.current) videoRef.current.srcObject = stream;
       setError(null);
@@ -53,36 +52,56 @@ export function WebcamWidget({
     }
   };
 
-  const captureImage = () => {
+  const captureImage = async () => {
     if (!videoRef.current) return;
-    const canvas = document.createElement("canvas");
-    canvas.width = config.width;
-    canvas.height = config.height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(videoRef.current, 0, 0, config.width, config.height);
-    const base64Data = canvas.toDataURL("image/png").split(",")[1];
-    setCapturedImage(base64Data);
 
-    // Create properly structured image output
-    const imageOutput = {
-      value: base64Data,
-      width: config.width,
-      height: config.height,
-    };
+    try {
+      setIsUploading(true);
+      setError(null);
 
-    onChange(JSON.stringify(imageOutput));
+      const canvas = document.createElement("canvas");
+      const video = videoRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
+      
+      // Draw the video frame to the canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Failed to create image blob"));
+        }, "image/jpeg", 0.9);
+      });
+      
+      // Convert blob to array buffer
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      // Upload to objects endpoint
+      const reference = await uploadBinaryData(arrayBuffer, "image/jpeg");
+      
+      // Update state and pass the reference to parent
+      setImageReference(reference);
+      onChange(reference);
+      
+      // Stop the webcam after successful capture
+      stopWebcam();
+      setIsUploading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to capture image");
+      setIsUploading(false);
+    }
   };
 
   const clearImage = () => {
-    setCapturedImage(null);
-    onChange(
-      JSON.stringify({
-        value: "",
-        width: config.width,
-        height: config.height,
-      })
-    );
+    setImageReference(null);
+    onChange(null);
   };
 
   return (
@@ -90,7 +109,7 @@ export function WebcamWidget({
       {!compact && <Label>Webcam Capture</Label>}
       <div className="relative w-full mx-auto">
         <div className="absolute top-2 right-2 z-10">
-          {capturedImage ? (
+          {imageReference ? (
             <button
               onClick={clearImage}
               className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
@@ -103,6 +122,7 @@ export function WebcamWidget({
               onClick={captureImage}
               className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
               aria-label="Capture image"
+              disabled={isUploading}
             >
               <Camera className="h-3 w-3" />
             </button>
@@ -110,9 +130,9 @@ export function WebcamWidget({
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">
           <div className="relative aspect-video bg-gray-100">
-            {capturedImage ? (
+            {imageReference ? (
               <img
-                src={`data:image/png;base64,${capturedImage}`}
+                src={createObjectUrl(imageReference)}
                 alt="Captured"
                 className="w-full h-full object-cover"
               />
@@ -127,6 +147,11 @@ export function WebcamWidget({
             {error && (
               <div className="absolute inset-0 flex items-center justify-center bg-red-50 text-red-600 text-sm">
                 {error}
+              </div>
+            )}
+            {isUploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
+                <span>Uploading...</span>
               </div>
             )}
           </div>

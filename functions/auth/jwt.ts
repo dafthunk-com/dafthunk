@@ -1,12 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
+import { Env as BaseEnv } from "../../../src/lib/server/api/env";
 
-// Define the environment variables interface
-export interface Env {
-  JWT_SECRET: string;
-  DB?: D1Database;
-  OBJECTS?: R2Bucket;
-  [key: string]: any;
-}
+// Re-export the consolidated Env interface
+export type Env = BaseEnv;
 
 // Define the JWT payload structure
 export interface JWTPayload {

@@ -15,7 +15,7 @@ import { ExecutableNode } from "../nodes/types";
 import { ParameterRegistry } from "./parameterRegistry";
 import { ParameterValue as RuntimeParameterValue } from "./types";
 import { ParameterValue as NodeParameterValue } from "../nodes/types";
-import { ObjectStore, ObjectReference } from "./store";
+import { ObjectStore } from "./store";
 
 /**
  * Runtime class that handles the execution of a workflow
@@ -239,12 +239,23 @@ export class Runtime {
       throw new Error(`Node type not found for ${nodeId}`);
     }
 
-    // Validate outputs
-    const validation = this.validateOutputs(nodeType.nodeType, outputs);
-    if (!validation.isValid) {
-      throw new Error(validation.error || "Invalid output data");
+    // First validate the node output values themselves are valid
+    // This makes sure the node outputs match their declared types
+    for (const [key, value] of Object.entries(outputs)) {
+      // Validate the node parameter type
+      const nodeValidation = value.validate();
+      if (!nodeValidation.isValid) {
+        throw new Error(`Invalid output for ${key}: ${nodeValidation.error}`);
+      }
+      
+      // Check the output is defined in the node type
+      const outputDef = nodeType.nodeType.outputs.find((output) => output.name === key);
+      if (!outputDef) {
+        throw new Error(`Unknown output parameter: ${key}`);
+      }
     }
 
+    // Convert node outputs to runtime outputs
     const mappedOutputs: Record<string, RuntimeParameterValue> = {};
     
     for (const [key, value] of Object.entries(outputs)) {
@@ -284,12 +295,13 @@ export class Runtime {
           } else if (typeof nodeValue === "object" && nodeValue.data instanceof Uint8Array) {
             // { data, mimeType } format (ImageValue, AudioValue, DocumentValue)
             data = nodeValue.data;
-            mimeType = nodeValue.mimeType;
+            mimeType = nodeValue.mimeType || "application/octet-stream";
           } else if (typeof nodeValue === "object" && typeof nodeValue.id === "string" && typeof nodeValue.mimeType === "string") {
             // Already a reference - just use it directly
             mappedOutputs[key] = new RuntimeType(nodeValue);
             continue;
           } else {
+            console.error("Invalid binary data format:", nodeValue);
             throw new Error(`Invalid binary data format for output ${key}`);
           }
           
@@ -298,11 +310,26 @@ export class Runtime {
           mappedOutputs[key] = new RuntimeType(reference);
           
         } catch (error) {
+          console.error("Binary data handling error:", error, {
+            nodeId,
+            outputKey: key,
+            valueType: typeof value.getValue(), 
+            value: value.getValue()
+          });
           throw new Error(`Failed to store binary data for output ${key}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else {
         // For non-binary types, just use the value
         mappedOutputs[key] = new RuntimeType(value.getValue());
+      }
+    }
+
+    // Now validate the runtime parameter types
+    // This ensures the output values match the runtime's expected format
+    for (const [key, value] of Object.entries(mappedOutputs)) {
+      const runtimeValidation = value.validate();
+      if (!runtimeValidation.isValid) {
+        throw new Error(`Invalid runtime output for ${key}: ${runtimeValidation.error}`);
       }
     }
 
@@ -347,47 +374,6 @@ export class Runtime {
         return {
           isValid: false,
           error: `Unknown parameter type: ${inputDef.type}`,
-        };
-      }
-    }
-    return { isValid: true };
-  }
-
-  /**
-   * Validates outputs against their defined types
-   */
-  private validateOutputs(
-    nodeType: NodeType,
-    outputs: Record<string, NodeParameterValue>
-  ): { isValid: boolean; error?: string } {
-    for (const [key, value] of Object.entries(outputs)) {
-      // Validate the node parameter type
-      const nodeValidation = value.validate();
-      if (!nodeValidation.isValid) {
-        return {
-          isValid: false,
-          error: `Invalid output for ${key}: ${nodeValidation.error}`,
-        };
-      }
-
-      // Validate the runtime parameter type
-      const outputDef = nodeType.outputs.find((output) => output.name === key);
-      if (!outputDef) {
-        return { isValid: false, error: `Unknown output parameter: ${key}` };
-      }
-      const Type = this.typeRegistry.get(outputDef.type);
-      if (!Type) {
-        return {
-          isValid: false,
-          error: `Unknown parameter type: ${outputDef.type}`,
-        };
-      }
-
-      const runtimeValidation = new Type(value.getValue()).validate();
-      if (!runtimeValidation.isValid) {
-        return {
-          isValid: false,
-          error: `Invalid output for ${key}: ${runtimeValidation.error}`,
         };
       }
     }
@@ -607,24 +593,62 @@ export class Runtime {
     };
   }
 
+  /**
+   * Gets all node outputs in a format safe for API consumers
+   * For binary types, ensures only object references are returned, never raw binary data
+   */
   private getApiOutputs(): Map<string, Record<string, any>> {
     const outputs = new Map<string, Record<string, any>>();
     for (const [nodeId, nodeOutputs] of this.nodeOutputs.entries()) {
-      const apiOutputs: Record<string, any> = {};
-      for (const [key, value] of Object.entries(nodeOutputs)) {
-        apiOutputs[key] = value.getValue();
-      }
-      outputs.set(nodeId, apiOutputs);
+      outputs.set(nodeId, this.getApiNodeOutputs(nodeOutputs));
     }
     return outputs;
   }
 
+  /**
+   * Gets a node's outputs in a format safe for API consumers
+   * For binary types, ensures only object references are returned, never raw binary data
+   */
   private getApiNodeOutputs(
     output: Record<string, RuntimeParameterValue>
   ): Record<string, any> {
     const apiOutputs: Record<string, any> = {};
     for (const [key, value] of Object.entries(output)) {
-      apiOutputs[key] = value.getValue();
+      const rawValue = value.getValue();
+      
+      // Ensure binary types are always returned as object references
+      if (
+        value instanceof BinaryValue ||
+        value instanceof ImageValue ||
+        value instanceof AudioValue ||
+        value instanceof DocumentValue
+      ) {
+        // Check if this is already a reference object
+        if (typeof rawValue === 'object' && 
+            typeof rawValue.id === 'string' && 
+            typeof rawValue.mimeType === 'string') {
+          // It's already a reference, use it directly
+          apiOutputs[key] = {
+            id: rawValue.id,
+            mimeType: rawValue.mimeType
+          };
+        } else if (typeof rawValue === 'object' && rawValue.data instanceof Uint8Array) {
+          // This should never happen - we should have converted to a reference already
+          // But if it does, log a warning and return a placeholder
+          console.error(`Unexpected binary data found in ${key} when preparing API output. Binary data should have been converted to a reference.`);
+          apiOutputs[key] = {
+            id: 'error-missing-reference',
+            mimeType: rawValue.mimeType || 'application/octet-stream'
+          };
+        } else {
+          // Unhandled case - this should never happen
+          console.error(`Unhandled binary value type for ${key}:`, rawValue);
+          apiOutputs[key] = null;
+        }
+      } else {
+        // For non-binary types, return the value directly
+        apiOutputs[key] = rawValue;
+      }
     }
     return apiOutputs;
   }

@@ -166,15 +166,22 @@ export class BinaryValue extends ParameterValue {
       };
     }
 
-    if (typeof this.value.id !== "string") {
-      return { isValid: false, error: "id must be a string" };
+    // For binary data that has already been converted to an object reference
+    if (typeof this.value.id === "string") {
+      if (typeof this.value.mimeType !== "string") {
+        return { isValid: false, error: "mimeType must be a string" };
+      }
+      return { isValid: true };
+    }
+    
+    // For compatibility with direct binary data during validation
+    // This won't happen in normal operation since runtime converts to references
+    if (this.value.data instanceof Uint8Array && typeof this.value.mimeType === "string") {
+      console.warn("Binary data received direct Uint8Array format - should be converted to reference");
+      return { isValid: true };
     }
 
-    if (typeof this.value.mimeType !== "string") {
-      return { isValid: false, error: "mimeType must be a string" };
-    }
-
-    return { isValid: true };
+    return { isValid: false, error: "Invalid binary value format" };
   }
 }
 
@@ -198,25 +205,42 @@ export class ImageValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object reference with id and mimeType",
+        error: "Value must be an object with data and mimeType or an object reference",
       };
     }
 
-    if (typeof this.value.id !== "string") {
-      return { isValid: false, error: "id must be a string" };
+    // For object references (most common in runtime after conversion)
+    if (typeof this.value.id === "string") {
+      if (typeof this.value.mimeType !== "string") {
+        return { isValid: false, error: "mimeType must be a string" };
+      }
+      
+      if (!ImageValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+        return {
+          isValid: false,
+          error: `mimeType must be one of: ${ImageValue.VALID_MIME_TYPES.join(", ")}`,
+        };
+      }
+      
+      return { isValid: true };
+    }
+    
+    // For compatibility with direct binary data (for validation during conversion)
+    if (this.value.data instanceof Uint8Array && typeof this.value.mimeType === "string") {
+      if (!ImageValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+        return {
+          isValid: false,
+          error: `mimeType must be one of: ${ImageValue.VALID_MIME_TYPES.join(", ")}`,
+        };
+      }
+      console.warn("Image data received direct Uint8Array format - should be converted to reference");
+      return { isValid: true };
     }
 
-    if (
-      typeof this.value.mimeType !== "string" ||
-      !ImageValue.VALID_MIME_TYPES.includes(this.value.mimeType)
-    ) {
-      return {
-        isValid: false,
-        error: `mimeType must be one of: ${ImageValue.VALID_MIME_TYPES.join(", ")}`,
-      };
-    }
-
-    return { isValid: true };
+    return { 
+      isValid: false, 
+      error: "Image value must contain either an object reference (id, mimeType) or binary data (data, mimeType)" 
+    };
   }
 }
 
@@ -227,25 +251,42 @@ export class AudioValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object reference with id and mimeType",
+        error: "Value must be an object with data and mimeType or an object reference",
       };
     }
 
-    if (typeof this.value.id !== "string") {
-      return { isValid: false, error: "id must be a string" };
+    // For object references (most common in runtime after conversion)
+    if (typeof this.value.id === "string") {
+      if (typeof this.value.mimeType !== "string") {
+        return { isValid: false, error: "mimeType must be a string" };
+      }
+      
+      if (!AudioValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+        return {
+          isValid: false,
+          error: `mimeType must be one of: ${AudioValue.VALID_MIME_TYPES.join(", ")}`,
+        };
+      }
+      
+      return { isValid: true };
+    }
+    
+    // For compatibility with direct binary data (for validation during conversion)
+    if (this.value.data instanceof Uint8Array && typeof this.value.mimeType === "string") {
+      if (!AudioValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+        return {
+          isValid: false,
+          error: `mimeType must be one of: ${AudioValue.VALID_MIME_TYPES.join(", ")}`,
+        };
+      }
+      console.warn("Audio data received direct Uint8Array format - should be converted to reference");
+      return { isValid: true };
     }
 
-    if (
-      typeof this.value.mimeType !== "string" ||
-      !AudioValue.VALID_MIME_TYPES.includes(this.value.mimeType)
-    ) {
-      return {
-        isValid: false,
-        error: `mimeType must be one of: ${AudioValue.VALID_MIME_TYPES.join(", ")}`,
-      };
-    }
-
-    return { isValid: true };
+    return { 
+      isValid: false, 
+      error: "Audio value must contain either an object reference (id, mimeType) or binary data (data, mimeType)" 
+    };
   }
 }
 
@@ -269,24 +310,41 @@ export class DocumentValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object reference with id and mimeType",
+        error: "Value must be an object with data and mimeType or an object reference",
       };
     }
 
-    if (typeof this.value.id !== "string") {
-      return { isValid: false, error: "id must be a string" };
+    // For object references (most common in runtime after conversion)
+    if (typeof this.value.id === "string") {
+      if (typeof this.value.mimeType !== "string") {
+        return { isValid: false, error: "mimeType must be a string" };
+      }
+      
+      if (!DocumentValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+        return {
+          isValid: false,
+          error: `mimeType must be one of: ${DocumentValue.VALID_MIME_TYPES.join(", ")}`,
+        };
+      }
+      
+      return { isValid: true };
+    }
+    
+    // For compatibility with direct binary data (for validation during conversion)
+    if (this.value.data instanceof Uint8Array && typeof this.value.mimeType === "string") {
+      if (!DocumentValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
+        return {
+          isValid: false,
+          error: `mimeType must be one of: ${DocumentValue.VALID_MIME_TYPES.join(", ")}`,
+        };
+      }
+      console.warn("Document data received direct Uint8Array format - should be converted to reference");
+      return { isValid: true };
     }
 
-    if (
-      typeof this.value.mimeType !== "string" ||
-      !DocumentValue.VALID_MIME_TYPES.includes(this.value.mimeType)
-    ) {
-      return {
-        isValid: false,
-        error: `mimeType must be one of: ${DocumentValue.VALID_MIME_TYPES.join(", ")}`,
-      };
-    }
-
-    return { isValid: true };
+    return { 
+      isValid: false, 
+      error: "Document value must contain either an object reference (id, mimeType) or binary data (data, mimeType)" 
+    };
   }
 }
