@@ -73,20 +73,6 @@ export class CanvasDoodleNode extends ExecutableNode {
         });
       }
 
-      // Handle string input (for backward compatibility)
-      if (typeof value === 'string') {
-        try {
-          // Try to parse the string as JSON
-          const parsedValue = JSON.parse(value);
-          if (parsedValue && typeof parsedValue === 'object' && parsedValue.id && parsedValue.mimeType) {
-            return this.createSuccessResult({
-              image: new ImageValue(parsedValue),
-            });
-          }
-        } catch (e) {
-          // Ignore parsing errors
-        }
-      }
 
       // Check if the value is an object
       if (typeof value !== 'object') {
@@ -95,30 +81,11 @@ export class CanvasDoodleNode extends ExecutableNode {
         );
       }
 
-      // Check if the value is an object reference with id and mimeType
-      if (value.id && value.mimeType) {
-        return this.createSuccessResult({
-          image: new ImageValue(value),
-        });
-      }
-
-      // Check if the value is a data object with data and mimeType
-      if (value.data && value.mimeType) {
-        // Convert the data object to an object reference
-        // In a real implementation, you would store the data in the object store
-        // and get a reference back
-        return this.createSuccessResult({
-          image: new ImageValue({
-            id: "temp-" + Date.now(),
-            mimeType: value.mimeType,
-          }),
-        });
-      }
-
-      // If we get here, the value is not in a recognized format
-      return this.createErrorResult(
-        `Unrecognized input format: expected object with id and mimeType or data and mimeType`
-      );
+      // Pass the value directly to the ImageValue constructor
+      // The ImageValue class will validate the value format
+      return this.createSuccessResult({
+        image: new ImageValue(value),
+      });
     } catch (error) {
       // Return a clean error message without logging
       return this.createErrorResult(

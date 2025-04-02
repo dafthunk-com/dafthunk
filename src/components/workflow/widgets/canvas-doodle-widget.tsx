@@ -140,13 +140,10 @@ export function CanvasDoodleWidget({
       // Update state and pass the reference to parent
       setImageReference(reference);
       
-      // Ensure we're passing a proper object reference
-      const objectReference = {
-        id: reference.id,
-        mimeType: reference.mimeType
-      };
-      
-      onChange(objectReference);
+      // Pass the reference directly to the parent
+      // The ImageValue class will validate the format
+      console.log("Saving canvas with reference:", reference);
+      onChange(reference);
 
       setIsUploading(false);
     } catch (error) {
@@ -194,7 +191,6 @@ export function CanvasDoodleWidget({
 
     ctx.closePath();
     setIsDrawing(false);
-    // Removed automatic save after drawing
   };
 
   // Clear canvas
@@ -207,11 +203,22 @@ export function CanvasDoodleWidget({
 
     const displayWidth = 344;
     const displayHeight = 344;
+    
+    // Clear the canvas with white background
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
-    // Clear the reference
+    // Reset drawing styles
+    ctx.strokeStyle = strokeColor;
+    ctx.fillStyle = strokeColor;
+    ctx.lineWidth = strokeWidth * 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    // Clear the reference and notify parent
     setImageReference(null);
+    
+    // Make sure to call onChange with null to clear the value
     onChange(null);
   };
 
@@ -219,35 +226,48 @@ export function CanvasDoodleWidget({
     <div className="space-y-2">
       {!compact && <Label>Canvas Doodle</Label>}
       <div className="relative w-full mx-auto">
-        <div className="absolute top-2 right-2 z-10 flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleClear}
-            className="h-6 w-6 bg-white/90 hover:bg-white"
-            disabled={isUploading}
-          >
-            <Eraser className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={saveCanvas}
-            className="h-6 w-6 bg-white/90 hover:bg-white"
-            disabled={isUploading}
-          >
-            <Save className="h-3 w-3" />
-          </Button>
+        <div className="absolute top-2 right-2 z-10">
+          {imageReference ? (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleClear}
+              className="h-6 w-6 bg-white/90 hover:bg-white"
+              disabled={isUploading}
+            >
+              <Eraser className="h-3 w-3" />
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={saveCanvas}
+              className="h-6 w-6 bg-white/90 hover:bg-white"
+              disabled={isUploading}
+            >
+              <Save className="h-3 w-3" />
+            </Button>
+          )}
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">
-          <canvas
-            ref={canvasRef}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-            className="touch-none cursor-crosshair"
-          />
+          {imageReference ? (
+            <div className="relative aspect-square">
+              <img
+                src={createObjectUrl(imageReference)}
+                alt="Doodle"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              className="touch-none cursor-crosshair aspect-square"
+            />
+          )}
           {isUploading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-sm">
               Uploading...

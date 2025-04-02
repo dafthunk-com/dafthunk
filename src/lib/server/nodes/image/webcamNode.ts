@@ -49,117 +49,30 @@ export class WebcamNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      // CRITICAL: Look up this node's definition in the workflow to get the saved input value
-      // console.log("WebcamNode execute - Context:", {
-      //   nodeId: context.nodeId,
-      //   workflowId: context.workflowId,
-      //   inputKeys: Object.keys(context.inputs)
-      // });
+      // Get the raw value from the RuntimeParameterValue
+      const value = context.inputs.value?.getValue?.() ?? context.inputs.value;
       
-      // Get the raw input value
-      const value = context.inputs.value;
-      
-      // console.log(`WebcamNode execute - Input value from context:`, value);
-      
-      // If no value is provided, or value is invalid, return empty data
+      // If no value is provided, return an empty image
       if (!value) {
-        // console.log("WebcamNode execute - No value provided, returning empty image data");
-        
-        // Return an empty image data object with valid format
-        const emptyImageData = {
-          data: new Uint8Array(0),
-          mimeType: "image/png"
-        };
-        
-        const emptyImageValue = new ImageValue(emptyImageData);
-        // console.log(`WebcamNode execute - Empty ImageValue validation: ${JSON.stringify(emptyImageValue.validate())}`);
-        
         return this.createSuccessResult({
-          image: emptyImageValue,
+          image: new ImageValue({ data: new Uint8Array(0), mimeType: "image/png" }),
         });
       }
 
-      // If the value is an object reference with id and mimeType
-      if (typeof value === 'object' && value.id !== undefined && value.mimeType) {
-        // console.log(`WebcamNode execute - Object reference detected: ${JSON.stringify(value)}`);
-        
-        // Handle empty string id (special case for cleared image)
-        if (value.id === "") {
-          // console.log("WebcamNode execute - Empty reference (cleared image) detected");
-          // Return an empty image data object
-          const emptyImageData = {
-            data: new Uint8Array(0),
-            mimeType: "image/png"
-          };
-          
-          const emptyImageValue = new ImageValue(emptyImageData);
-          // console.log(`WebcamNode execute - Empty ImageValue validation: ${JSON.stringify(emptyImageValue.validate())}`);
-          
-          return this.createSuccessResult({
-            image: emptyImageValue,
-          });
-        }
-        
-        // Validate mimeType
-        if (!value.mimeType.startsWith("image/")) {
-          // console.log(`WebcamNode execute - Invalid mimeType: ${value.mimeType}`);
-          throw new Error(`Invalid mimeType for image: ${value.mimeType}`);
-        }
-        
-        // Create an ImageValue from the object reference
-        // console.log(`WebcamNode execute - Creating ImageValue from reference: ${JSON.stringify(value)}`);
-        const imageValue = new ImageValue(value);
-        // console.log(`WebcamNode execute - Created ImageValue from object reference`);
-        
-        // Validate the ImageValue
-        const validation = imageValue.validate();
-        // console.log(`WebcamNode execute - ImageValue validation: ${JSON.stringify(validation)}`);
-        
-        if (!validation.isValid) {
-          // console.log(`WebcamNode execute - ImageValue validation failed: ${validation.error}`);
-          throw new Error(validation.error || "Invalid image data");
-        }
-        
-        // console.log("WebcamNode execute - Returning valid ImageValue with object reference");
-        return this.createSuccessResult({
-          image: imageValue,
-        });
+      // Check if the value is an object
+      if (typeof value !== 'object') {
+        return this.createErrorResult(
+          `Invalid input type: expected object, got ${typeof value}`
+        );
       }
-      
-      // If the value is a data object with mimeType
-      if (typeof value === 'object' && value.data !== undefined && value.mimeType) {
-        // console.log(`WebcamNode execute - Data object detected with mimeType: ${value.mimeType}`);
-        
-        // Validate mimeType
-        if (!value.mimeType.startsWith("image/")) {
-          // console.log(`WebcamNode execute - Invalid mimeType in data object: ${value.mimeType}`);
-          throw new Error(`Invalid mimeType for image: ${value.mimeType}`);
-        }
-        
-        // Create an ImageValue from the data object
-        const imageValue = new ImageValue(value);
-        // console.log("WebcamNode execute - Created ImageValue from data object");
-        
-        // Validate the ImageValue
-        const validation = imageValue.validate();
-        // console.log(`WebcamNode execute - ImageValue validation: ${JSON.stringify(validation)}`);
-        
-        if (!validation.isValid) {
-          // console.log(`WebcamNode execute - ImageValue validation failed: ${validation.error}`);
-          throw new Error(validation.error || "Invalid image data");
-        }
-        
-        // console.log("WebcamNode execute - Returning valid ImageValue from data object");
-        return this.createSuccessResult({
-          image: imageValue,
-        });
-      }
-      
-      // If we get here, the value is not in a recognized format
-      // console.log(`WebcamNode execute - Unrecognized input format: ${JSON.stringify(value)}`);
-      throw new Error("Unrecognized input format for webcam node");
+
+      // Pass the value directly to the ImageValue constructor
+      // The ImageValue class will validate the value format
+      return this.createSuccessResult({
+        image: new ImageValue(value),
+      });
     } catch (error) {
-      // console.log(`WebcamNode execute - Error: ${error}`);
+      // Return a clean error message without logging
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error in WebcamNode"
       );
