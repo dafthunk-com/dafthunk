@@ -218,8 +218,15 @@ export class Runtime {
           );
         }
       } else {
-        // For non-binary types, just get the value
-        mappedInputs[key] = value.getValue();
+        // For non-binary types, check if it's an object reference
+        const rawValue = value.getValue();
+        if (typeof rawValue === 'object' && rawValue !== null && 'id' in rawValue && 'mimeType' in rawValue) {
+          // This is an object reference, pass it through
+          mappedInputs[key] = rawValue;
+        } else {
+          // For other non-binary types, just get the value
+          mappedInputs[key] = rawValue;
+        }
       }
     }
 
@@ -367,7 +374,58 @@ export class Runtime {
 
     // Then validate all provided inputs
     for (const [key, value] of Object.entries(inputs)) {
-      // Validate the runtime parameter type
+      // Get the raw value first
+      const rawValue = value.getValue();
+      
+      // Check if this is an object reference
+      if (typeof rawValue === 'object' && rawValue !== null && 'id' in rawValue && 'mimeType' in rawValue) {
+        // This is an object reference, validate based on the input type
+        const inputDef = nodeType.inputs.find((input) => input.name === key);
+        if (!inputDef) {
+          return { isValid: false, error: `Unknown input parameter: ${key}` };
+        }
+
+        // For binary types, validate the mimeType matches
+        const inputTypeName = inputDef.type.name;
+        
+        // Check if this is a binary type based on the type name
+        if (inputTypeName.includes('Binary') || 
+            inputTypeName.includes('Image') || 
+            inputTypeName.includes('Audio') || 
+            inputTypeName.includes('Document')) {
+          
+          let expectedMimeType: string | string[];
+          
+          if (inputTypeName.includes('Image')) {
+            expectedMimeType = 'image/';
+          } else if (inputTypeName.includes('Audio')) {
+            expectedMimeType = 'audio/';
+          } else if (inputTypeName.includes('Document')) {
+            expectedMimeType = ['application/', 'text/'];
+          } else {
+            expectedMimeType = 'application/';
+          }
+          
+          if (Array.isArray(expectedMimeType)) {
+            if (!expectedMimeType.some(prefix => rawValue.mimeType.startsWith(prefix))) {
+              return {
+                isValid: false,
+                error: `Invalid mimeType for ${key}: expected ${expectedMimeType.join(' or ')} but got ${rawValue.mimeType}`,
+              };
+            }
+          } else if (!rawValue.mimeType.startsWith(expectedMimeType)) {
+            return {
+              isValid: false,
+              error: `Invalid mimeType for ${key}: expected ${expectedMimeType} but got ${rawValue.mimeType}`,
+            };
+          }
+        }
+        
+        // If we get here, the object reference is valid
+        continue;
+      }
+
+      // For non-object-reference values, validate using the runtime parameter type
       const runtimeValidation = value.validate();
       if (!runtimeValidation.isValid) {
         return {

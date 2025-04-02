@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eraser } from "lucide-react";
+import { Eraser, Save } from "lucide-react";
 import {
   uploadBinaryData,
   createObjectUrl,
@@ -136,10 +136,17 @@ export function CanvasDoodleWidget({
 
       // Upload to objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, "image/png");
-
+      
       // Update state and pass the reference to parent
       setImageReference(reference);
-      onChange(reference);
+      
+      // Ensure we're passing a proper object reference
+      const objectReference = {
+        id: reference.id,
+        mimeType: reference.mimeType
+      };
+      
+      onChange(objectReference);
 
       setIsUploading(false);
     } catch (error) {
@@ -187,7 +194,7 @@ export function CanvasDoodleWidget({
 
     ctx.closePath();
     setIsDrawing(false);
-    saveCanvas();
+    // Removed automatic save after drawing
   };
 
   // Clear canvas
@@ -212,7 +219,7 @@ export function CanvasDoodleWidget({
     <div className="space-y-2">
       {!compact && <Label>Canvas Doodle</Label>}
       <div className="relative w-full mx-auto">
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 right-2 z-10 flex gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -221,6 +228,15 @@ export function CanvasDoodleWidget({
             disabled={isUploading}
           >
             <Eraser className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={saveCanvas}
+            className="h-6 w-6 bg-white/90 hover:bg-white"
+            disabled={isUploading}
+          >
+            <Save className="h-3 w-3" />
           </Button>
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">

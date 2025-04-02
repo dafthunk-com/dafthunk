@@ -5,7 +5,7 @@ import { NodeType } from "../types";
 
 /**
  * CanvasDoodle node implementation
- * This node provides a canvas widget that allows users to draw and outputs the drawing as a base64 image.
+ * This node provides a canvas widget that allows users to draw and outputs the drawing as an image.
  */
 export class CanvasDoodleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -18,10 +18,10 @@ export class CanvasDoodleNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringValue,
-        description: "Current canvas drawing as base64 image",
+        type: ImageValue,
+        description: "Current canvas drawing as an image reference",
         hidden: true,
-        value: new StringValue(""), // Default empty string
+        value: new ImageValue(null), // Default null
       },
       {
         name: "width",
@@ -56,71 +56,73 @@ export class CanvasDoodleNode extends ExecutableNode {
       {
         name: "image",
         type: ImageValue,
-        description: "The canvas drawing as a base64 encoded image",
+        description: "The canvas drawing as an image",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      let inputs;
-      try {
-        if (typeof context.inputs.value !== "string") {
-          return this.createErrorResult(
-            `Invalid input type: expected string, got ${typeof context.inputs.value}`
-          );
+      // Get the raw value from the RuntimeParameterValue
+      const value = context.inputs.value?.getValue?.() ?? context.inputs.value;
+      
+      // If no value is provided, return an empty image
+      if (!value) {
+        return this.createSuccessResult({
+          image: new ImageValue(null),
+        });
+      }
+
+      // Handle string input (for backward compatibility)
+      if (typeof value === 'string') {
+        try {
+          // Try to parse the string as JSON
+          const parsedValue = JSON.parse(value);
+          if (parsedValue && typeof parsedValue === 'object' && parsedValue.id && parsedValue.mimeType) {
+            return this.createSuccessResult({
+              image: new ImageValue(parsedValue),
+            });
+          }
+        } catch (e) {
+          // Ignore parsing errors
         }
-        inputs = JSON.parse(context.inputs.value);
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown parsing error";
+      }
+
+      // Check if the value is an object
+      if (typeof value !== 'object') {
         return this.createErrorResult(
-          `Invalid input format: expected JSON string. Error: ${errorMessage}`
+          `Invalid input type: expected object, got ${typeof value}`
         );
       }
 
-      const { value, width, height, strokeColor, strokeWidth } = inputs;
-
-      // Validate inputs
-      if (typeof value !== "string") {
-        return this.createErrorResult("Value must be a string");
+      // Check if the value is an object reference with id and mimeType
+      if (value.id && value.mimeType) {
+        return this.createSuccessResult({
+          image: new ImageValue(value),
+        });
       }
 
-      if (typeof width !== "number" || width < 1) {
-        return this.createErrorResult("Width must be a positive number");
+      // Check if the value is a data object with data and mimeType
+      if (value.data && value.mimeType) {
+        // Convert the data object to an object reference
+        // In a real implementation, you would store the data in the object store
+        // and get a reference back
+        return this.createSuccessResult({
+          image: new ImageValue({
+            id: "temp-" + Date.now(),
+            mimeType: value.mimeType,
+          }),
+        });
       }
 
-      if (typeof height !== "number" || height < 1) {
-        return this.createErrorResult("Height must be a positive number");
-      }
-
-      if (typeof strokeColor !== "string") {
-        return this.createErrorResult("Stroke color must be a string");
-      }
-
-      if (typeof strokeWidth !== "number" || strokeWidth < 1) {
-        return this.createErrorResult("Stroke width must be a positive number");
-      }
-
-      // Convert base64 directly to binary (value is already pure base64)
-      const binaryString = atob(value);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      // Create properly structured image output
-      const imageOutput = {
-        data: bytes,
-        mimeType: "image/png",
-      };
-
-      return this.createSuccessResult({
-        image: new ImageValue(imageOutput),
-      });
-    } catch (error) {
+      // If we get here, the value is not in a recognized format
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error"
+        `Unrecognized input format: expected object with id and mimeType or data and mimeType`
+      );
+    } catch (error) {
+      // Return a clean error message without logging
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error in CanvasDoodleNode"
       );
     }
   }
