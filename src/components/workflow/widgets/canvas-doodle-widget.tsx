@@ -195,6 +195,13 @@ export function CanvasDoodleWidget({
 
   // Clear canvas
   const handleClear = () => {
+    // First, clear the image reference state
+    setImageReference(null);
+    
+    // Then notify the parent component
+    onChange(null);
+    
+    // Finally, reset the canvas
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -214,12 +221,6 @@ export function CanvasDoodleWidget({
     ctx.lineWidth = strokeWidth * 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-
-    // Clear the reference and notify parent
-    setImageReference(null);
-    
-    // Make sure to call onChange with null to clear the value
-    onChange(null);
   };
 
   return (
