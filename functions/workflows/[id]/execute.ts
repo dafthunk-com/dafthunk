@@ -216,8 +216,13 @@ async function executeWorkflow(
     } else {
       throw new Error("R2 bucket not available");
     }
-    
-    const runtime = new Runtime(workflowGraph, executionOptions, env, objectStore);
+
+    const runtime = new Runtime(
+      workflowGraph,
+      executionOptions,
+      env,
+      objectStore
+    );
 
     // Execute the workflow in the background
     runtime.execute().catch(async (error) => {

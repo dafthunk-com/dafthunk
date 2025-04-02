@@ -12,7 +12,12 @@ export const formatOutputValue = (value: any, type: string): string => {
   if (value === undefined || value === null) return "";
 
   try {
-    if (type === "binary" || type === "audio" || type === "image" || type === "document") {
+    if (
+      type === "binary" ||
+      type === "audio" ||
+      type === "image" ||
+      type === "document"
+    ) {
       return ""; // Don't display binary data as text
     } else if (type === "json" || type === "array") {
       return JSON.stringify(value, null, 2);
@@ -164,15 +169,15 @@ export function WorkflowOutputRenderer({
         const objectUrl = createObjectUrl(output.value);
         const isPDF = output.value.mimeType === "application/pdf";
         const isImage = output.value.mimeType.startsWith("image/");
-        
+
         if (isPDF) {
           return (
             <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-gray-500">PDF Document</span>
-                <a 
-                  href={objectUrl} 
-                  target="_blank" 
+                <a
+                  href={objectUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-500 hover:underline"
                 >
@@ -190,9 +195,9 @@ export function WorkflowOutputRenderer({
             <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-gray-500">Document (Image)</span>
-                <a 
-                  href={objectUrl} 
-                  target="_blank" 
+                <a
+                  href={objectUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-blue-500 hover:underline"
                 >
@@ -210,24 +215,26 @@ export function WorkflowOutputRenderer({
           // For other document types, just show a link
           return (
             <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
-              <a 
-                href={objectUrl} 
-                target="_blank" 
+              <a
+                href={objectUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-blue-500 hover:underline flex items-center"
               >
-                View Document ({output.value.mimeType.split('/')[1]})
+                View Document ({output.value.mimeType.split("/")[1]})
               </a>
             </div>
           );
         }
       } else {
         return (
-          <div className={
-            compact
-              ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
-              : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
-          }>
+          <div
+            className={
+              compact
+                ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
+                : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+            }
+          >
             Invalid document reference format
           </div>
         );
@@ -235,11 +242,13 @@ export function WorkflowOutputRenderer({
     } catch (error) {
       console.error("Error processing document data:", error);
       return (
-        <div className={
-          compact
-            ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
-            : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
-        }>
+        <div
+          className={
+            compact
+              ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
+              : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+          }
+        >
           Error processing document data
         </div>
       );
@@ -249,17 +258,19 @@ export function WorkflowOutputRenderer({
   if (output.type === "binary" && output.value) {
     if (isObjectReference(output.value)) {
       return (
-        <div className={
-          compact
-            ? "text-xs text-gray-500 p-1 mt-1 flex justify-between items-center"
-            : "relative w-full p-2 flex items-center justify-between rounded-lg border border-border bg-muted"
-        }>
+        <div
+          className={
+            compact
+              ? "text-xs text-gray-500 p-1 mt-1 flex justify-between items-center"
+              : "relative w-full p-2 flex items-center justify-between rounded-lg border border-border bg-muted"
+          }
+        >
           <p className={compact ? "" : "text-sm text-muted-foreground"}>
             Binary data ({output.value.mimeType})
           </p>
-          <a 
-            href={createObjectUrl(output.value)} 
-            target="_blank" 
+          <a
+            href={createObjectUrl(output.value)}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-500 hover:underline"
           >
@@ -269,11 +280,13 @@ export function WorkflowOutputRenderer({
       );
     } else {
       return (
-        <div className={
-          compact
-            ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
-            : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
-        }>
+        <div
+          className={
+            compact
+              ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
+              : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+          }
+        >
           Invalid binary reference format
         </div>
       );

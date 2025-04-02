@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eraser } from "lucide-react";
-import { uploadBinaryData, createObjectUrl, isObjectReference } from "@/lib/utils/binaryUtils";
+import {
+  uploadBinaryData,
+  createObjectUrl,
+  isObjectReference,
+} from "@/lib/utils/binaryUtils";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference
@@ -25,7 +29,10 @@ export function CanvasDoodleWidget({
   const [isDrawing, setIsDrawing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const { strokeColor, strokeWidth } = config;
-  const [imageReference, setImageReference] = useState<{ id: string; mimeType: string } | null>(
+  const [imageReference, setImageReference] = useState<{
+    id: string;
+    mimeType: string;
+  } | null>(
     config?.value && isObjectReference(config.value) ? config.value : null
   );
 
@@ -111,25 +118,29 @@ export function CanvasDoodleWidget({
 
     try {
       setIsUploading(true);
-      
+
       // Convert canvas to blob
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => {
-          if (b) resolve(b);
-          else reject(new Error("Failed to create image blob"));
-        }, "image/png", 1.0);
+        canvas.toBlob(
+          (b) => {
+            if (b) resolve(b);
+            else reject(new Error("Failed to create image blob"));
+          },
+          "image/png",
+          1.0
+        );
       });
-      
+
       // Convert blob to array buffer
       const arrayBuffer = await blob.arrayBuffer();
-      
+
       // Upload to objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, "image/png");
-      
+
       // Update state and pass the reference to parent
       setImageReference(reference);
       onChange(reference);
-      
+
       setIsUploading(false);
     } catch (error) {
       console.error("Error saving canvas:", error);
@@ -191,7 +202,7 @@ export function CanvasDoodleWidget({
     const displayHeight = 344;
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, displayWidth, displayHeight);
-    
+
     // Clear the reference
     setImageReference(null);
     onChange(null);

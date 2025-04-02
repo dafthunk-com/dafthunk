@@ -1,8 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { Env as BaseEnv } from "../../../src/lib/server/api/env";
-
-// Re-export the consolidated Env interface
-export type Env = BaseEnv;
+import { Env } from "../../src/lib/server/api/env";
 
 // Define the JWT payload structure
 export interface JWTPayload {

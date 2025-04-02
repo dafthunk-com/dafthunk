@@ -19,7 +19,7 @@ import { ObjectStore } from "./store";
 
 /**
  * Runtime class that handles the execution of a workflow
- * 
+ *
  * Binary data handling:
  * - Binary data (audio, images, documents, raw binary) is stored in the ObjectStore
  * - References to this data are passed between nodes in the format {id: string, mimeType: string}
@@ -186,22 +186,22 @@ export class Runtime {
     }
 
     const mappedInputs: Record<string, any> = {};
-    
+
     // Handle each input parameter
     for (const [key, value] of Object.entries(inputs)) {
       // Check if this is a binary type that needs to be loaded from the store
       if (
         this.objectStore &&
         (value instanceof BinaryValue ||
-         value instanceof ImageValue ||
-         value instanceof AudioValue ||
-         value instanceof DocumentValue)
+          value instanceof ImageValue ||
+          value instanceof AudioValue ||
+          value instanceof DocumentValue)
       ) {
         // Load the binary data from the store
         try {
           const objectRef = value.getValue();
           const data = await this.objectStore.read(objectRef);
-          
+
           // For node types that expect raw binary data
           if (value instanceof BinaryValue) {
             mappedInputs[key] = data;
@@ -209,11 +209,13 @@ export class Runtime {
             // For types that expect { data, mimeType } format
             mappedInputs[key] = {
               data,
-              mimeType: objectRef.mimeType
+              mimeType: objectRef.mimeType,
             };
           }
         } catch (error) {
-          throw new Error(`Failed to load binary data for input ${key}: ${error instanceof Error ? error.message : String(error)}`);
+          throw new Error(
+            `Failed to load binary data for input ${key}: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       } else {
         // For non-binary types, just get the value
@@ -247,9 +249,11 @@ export class Runtime {
       if (!nodeValidation.isValid) {
         throw new Error(`Invalid output for ${key}: ${nodeValidation.error}`);
       }
-      
+
       // Check the output is defined in the node type
-      const outputDef = nodeType.nodeType.outputs.find((output) => output.name === key);
+      const outputDef = nodeType.nodeType.outputs.find(
+        (output) => output.name === key
+      );
       if (!outputDef) {
         throw new Error(`Unknown output parameter: ${key}`);
       }
@@ -257,7 +261,7 @@ export class Runtime {
 
     // Convert node outputs to runtime outputs
     const mappedOutputs: Record<string, RuntimeParameterValue> = {};
-    
+
     for (const [key, value] of Object.entries(outputs)) {
       const outputDef = nodeType.nodeType.outputs.find(
         (output) => output.name === key
@@ -265,38 +269,43 @@ export class Runtime {
       if (!outputDef) {
         throw new Error(`Unknown output parameter: ${key}`);
       }
-      
+
       const RuntimeType = this.typeRegistry.get(outputDef.type);
       if (!RuntimeType) {
         throw new Error(`Unknown output type: ${outputDef.type}`);
       }
-      
+
       // For binary types, store the data and create a reference
       if (
-        this.objectStore && 
-        (
-          RuntimeType === BinaryValue ||
+        this.objectStore &&
+        (RuntimeType === BinaryValue ||
           RuntimeType === ImageValue ||
           RuntimeType === AudioValue ||
-          RuntimeType === DocumentValue
-        )
+          RuntimeType === DocumentValue)
       ) {
         try {
           const nodeValue = value.getValue();
-          
+
           // Handle different formats based on the type
           let data: Uint8Array;
           let mimeType: string;
-          
+
           if (nodeValue instanceof Uint8Array) {
             // Direct binary data (BinaryValue)
             data = nodeValue;
             mimeType = "application/octet-stream";
-          } else if (typeof nodeValue === "object" && nodeValue.data instanceof Uint8Array) {
+          } else if (
+            typeof nodeValue === "object" &&
+            nodeValue.data instanceof Uint8Array
+          ) {
             // { data, mimeType } format (ImageValue, AudioValue, DocumentValue)
             data = nodeValue.data;
             mimeType = nodeValue.mimeType || "application/octet-stream";
-          } else if (typeof nodeValue === "object" && typeof nodeValue.id === "string" && typeof nodeValue.mimeType === "string") {
+          } else if (
+            typeof nodeValue === "object" &&
+            typeof nodeValue.id === "string" &&
+            typeof nodeValue.mimeType === "string"
+          ) {
             // Already a reference - just use it directly
             mappedOutputs[key] = new RuntimeType(nodeValue);
             continue;
@@ -304,19 +313,20 @@ export class Runtime {
             console.error("Invalid binary data format:", nodeValue);
             throw new Error(`Invalid binary data format for output ${key}`);
           }
-          
+
           // Store the data and get a reference
           const reference = await this.objectStore.write(data, mimeType);
           mappedOutputs[key] = new RuntimeType(reference);
-          
         } catch (error) {
           console.error("Binary data handling error:", error, {
             nodeId,
             outputKey: key,
-            valueType: typeof value.getValue(), 
-            value: value.getValue()
+            valueType: typeof value.getValue(),
+            value: value.getValue(),
           });
-          throw new Error(`Failed to store binary data for output ${key}: ${error instanceof Error ? error.message : String(error)}`);
+          throw new Error(
+            `Failed to store binary data for output ${key}: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       } else {
         // For non-binary types, just use the value
@@ -329,7 +339,9 @@ export class Runtime {
     for (const [key, value] of Object.entries(mappedOutputs)) {
       const runtimeValidation = value.validate();
       if (!runtimeValidation.isValid) {
-        throw new Error(`Invalid runtime output for ${key}: ${runtimeValidation.error}`);
+        throw new Error(
+          `Invalid runtime output for ${key}: ${runtimeValidation.error}`
+        );
       }
     }
 
@@ -438,7 +450,10 @@ export class Runtime {
 
       if (result.success) {
         // Handle output validation and serialization
-        const outputs = await this.handleNodeOutputs(nodeId, result.outputs || {});
+        const outputs = await this.handleNodeOutputs(
+          nodeId,
+          result.outputs || {}
+        );
 
         // Store the outputs for use by downstream nodes
         this.nodeOutputs.set(nodeId, outputs);
@@ -615,7 +630,7 @@ export class Runtime {
     const apiOutputs: Record<string, any> = {};
     for (const [key, value] of Object.entries(output)) {
       const rawValue = value.getValue();
-      
+
       // Ensure binary types are always returned as object references
       if (
         value instanceof BinaryValue ||
@@ -624,21 +639,28 @@ export class Runtime {
         value instanceof DocumentValue
       ) {
         // Check if this is already a reference object
-        if (typeof rawValue === 'object' && 
-            typeof rawValue.id === 'string' && 
-            typeof rawValue.mimeType === 'string') {
+        if (
+          typeof rawValue === "object" &&
+          typeof rawValue.id === "string" &&
+          typeof rawValue.mimeType === "string"
+        ) {
           // It's already a reference, use it directly
           apiOutputs[key] = {
             id: rawValue.id,
-            mimeType: rawValue.mimeType
+            mimeType: rawValue.mimeType,
           };
-        } else if (typeof rawValue === 'object' && rawValue.data instanceof Uint8Array) {
+        } else if (
+          typeof rawValue === "object" &&
+          rawValue.data instanceof Uint8Array
+        ) {
           // This should never happen - we should have converted to a reference already
           // But if it does, log a warning and return a placeholder
-          console.error(`Unexpected binary data found in ${key} when preparing API output. Binary data should have been converted to a reference.`);
+          console.error(
+            `Unexpected binary data found in ${key} when preparing API output. Binary data should have been converted to a reference.`
+          );
           apiOutputs[key] = {
-            id: 'error-missing-reference',
-            mimeType: rawValue.mimeType || 'application/octet-stream'
+            id: "error-missing-reference",
+            mimeType: rawValue.mimeType || "application/octet-stream",
           };
         } else {
           // Unhandled case - this should never happen

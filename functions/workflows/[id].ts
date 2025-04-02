@@ -3,7 +3,7 @@
 import { createDatabase } from "../../db";
 import { eq, and } from "drizzle-orm";
 import { workflows } from "../../db/schema";
-import { Node, Edge } from "../../src/lib/server/api/apiTypes";
+import { Node, Edge } from "../../src/lib/server/api/types";
 import { withAuth } from "../auth/middleware";
 import { JWTPayload } from "../auth/jwt";
 

@@ -112,21 +112,26 @@ export const createDataUrl = (
 
 /**
  * Creates a URL to an object stored in R2 via the /objects endpoint
- * 
+ *
  * @param objectReference - The object reference with id and mimeType
  * @returns A URL to the object that can be used in img src, audio src, etc.
  */
-export const createObjectUrl = (objectReference: { id: string; mimeType: string }): string => {
+export const createObjectUrl = (objectReference: {
+  id: string;
+  mimeType: string;
+}): string => {
   try {
     if (!objectReference || !objectReference.id || !objectReference.mimeType) {
       throw new Error("Invalid object reference: must include id and mimeType");
     }
-    
+
     // Create URL with the object ID and mimeType as query parameters
     const url = `/objects?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
-    
-    console.log(`Created object URL for ${objectReference.mimeType} object: ${url}`);
-    
+
+    console.log(
+      `Created object URL for ${objectReference.mimeType} object: ${url}`
+    );
+
     return url;
   } catch (error) {
     console.error("Error creating object URL:", error);
@@ -136,22 +141,22 @@ export const createObjectUrl = (objectReference: { id: string; mimeType: string 
 
 /**
  * Determines if a value is an object reference
- * 
+ *
  * @param value - The value to check
  * @returns True if the value appears to be an object reference
  */
 export const isObjectReference = (value: any): boolean => {
   return (
     value &&
-    typeof value === 'object' &&
-    typeof value.id === 'string' &&
-    typeof value.mimeType === 'string'
+    typeof value === "object" &&
+    typeof value.id === "string" &&
+    typeof value.mimeType === "string"
   );
 };
 
 /**
  * Uploads binary data to the object store and returns an object reference
- * 
+ *
  * @param data - Binary data as Uint8Array, ArrayBuffer, or base64 string
  * @param mimeType - The MIME type of the data
  * @returns A promise that resolves to an object reference {id, mimeType}
@@ -162,10 +167,10 @@ export const uploadBinaryData = async (
 ): Promise<{ id: string; mimeType: string }> => {
   try {
     console.log(`Uploading binary data of type ${mimeType}`);
-    
+
     // Convert data to Blob based on its type
     let blob: Blob;
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       // If data is a base64 string, convert it to a Blob
       const byteCharacters = atob(data);
       const byteNumbers = new Array(byteCharacters.length);
@@ -181,33 +186,41 @@ export const uploadBinaryData = async (
     } else {
       throw new Error("Unsupported data type for upload");
     }
-    
+
     // Create form data
     const formData = new FormData();
-    formData.append('file', blob);
-    
+    formData.append("file", blob);
+
     // Upload to objects endpoint
-    const response = await fetch('/objects', {
-      method: 'POST',
+    const response = await fetch("/objects", {
+      method: "POST",
       body: formData,
       headers: {
         // Don't set Content-Type here as the browser will set it correctly with the boundary
       },
     });
-    
+
     if (!response.ok) {
-      throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Upload failed: ${response.status} ${response.statusText}`
+      );
     }
-    
+
     const result = await response.json();
-    if (!result.reference || !result.reference.id || !result.reference.mimeType) {
-      throw new Error('Invalid response from server');
+    if (
+      !result.reference ||
+      !result.reference.id ||
+      !result.reference.mimeType
+    ) {
+      throw new Error("Invalid response from server");
     }
-    
-    console.log(`Successfully uploaded object. Received reference: ${result.reference.id}`);
+
+    console.log(
+      `Successfully uploaded object. Received reference: ${result.reference.id}`
+    );
     return result.reference;
   } catch (error) {
-    console.error('Error uploading binary data:', error);
+    console.error("Error uploading binary data:", error);
     throw error;
   }
 };

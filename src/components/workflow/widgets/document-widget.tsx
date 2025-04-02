@@ -23,7 +23,7 @@ export function DocumentWidget({
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(() => {
     // Initialize fileName from config if it exists and has a value
-    if (config?.value && typeof config.value === 'object' && config.value.id) {
+    if (config?.value && typeof config.value === "object" && config.value.id) {
       return "Uploaded Document";
     }
     return null;
@@ -52,13 +52,13 @@ export function DocumentWidget({
 
       // Read the file as an array buffer
       const arrayBuffer = await file.arrayBuffer();
-      
+
       // Upload the document to the objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      
+
       // Pass the object reference to the parent
       onChange(reference);
-      
+
       setIsUploading(false);
     } catch (err) {
       setFileName(null);

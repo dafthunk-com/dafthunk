@@ -20,8 +20,13 @@ export function WebcamWidget({
 }: WebcamWidgetProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageReference, setImageReference] = useState<{ id: string; mimeType: string } | null>(
-    config?.value && typeof config.value === 'object' && config.value.id ? config.value : null
+  const [imageReference, setImageReference] = useState<{
+    id: string;
+    mimeType: string;
+  } | null>(
+    config?.value && typeof config.value === "object" && config.value.id
+      ? config.value
+      : null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
@@ -63,33 +68,37 @@ export function WebcamWidget({
       const video = videoRef.current;
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         throw new Error("Could not get canvas context");
       }
-      
+
       // Draw the video frame to the canvas
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
+
       // Convert canvas to blob
       const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => {
-          if (b) resolve(b);
-          else reject(new Error("Failed to create image blob"));
-        }, "image/jpeg", 0.9);
+        canvas.toBlob(
+          (b) => {
+            if (b) resolve(b);
+            else reject(new Error("Failed to create image blob"));
+          },
+          "image/jpeg",
+          0.9
+        );
       });
-      
+
       // Convert blob to array buffer
       const arrayBuffer = await blob.arrayBuffer();
-      
+
       // Upload to objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, "image/jpeg");
-      
+
       // Update state and pass the reference to parent
       setImageReference(reference);
       onChange(reference);
-      
+
       // Stop the webcam after successful capture
       stopWebcam();
       setIsUploading(false);

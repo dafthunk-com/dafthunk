@@ -1,7 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, extractJWTFromHeader, verifyJWT, JWTPayload } from "./jwt";
+import { extractJWTFromHeader, verifyJWT, JWTPayload } from "./jwt";
 import { isMockAuthEnabled, MOCK_USER } from "./mock";
 import { ensureMockUserInDatabase } from "./mock";
+import { Env } from "../../src/lib/server/api/env";
 
 // Parse cookies from the request
 export function parseCookies(request: Request): Record<string, string> {
@@ -44,7 +45,7 @@ export async function verifyAuth(
         provider: "mock",
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 3600,
-      },
+      } as JWTPayload,
     };
   }
 

@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, createJWT, getSecureCookieOptions } from "./jwt";
+import { Env } from "../../src/lib/server/api/env";
+import { createJWT, getSecureCookieOptions } from "./jwt";
 import { getProviderConfig } from "./providers";
 import { createDatabase } from "../../db";
 import { users } from "../../db/schema";
@@ -157,7 +158,7 @@ async function saveUserToDatabase(
   env: Env
 ): Promise<void> {
   try {
-    const db = createDatabase(env.DB);
+    const db = createDatabase(env.DB as D1Database);
 
     // Check if user already exists
     const existingUser = await db
@@ -335,7 +336,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     await saveUserToDatabase(userId, userName, userEmail, provider, env);
 
     // Fetch the complete user data
-    const db = createDatabase(env.DB);
+    const db = createDatabase(env.DB as D1Database);
     const user = await db
       .select()
       .from(users)

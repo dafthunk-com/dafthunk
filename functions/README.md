@@ -397,8 +397,8 @@ The request should be a `multipart/form-data` with a file field:
 Content-Type: multipart/form-data
 ```
 
-| Field | Type | Description |
-| ----- | ---- | ----------- |
+| Field | Type | Description               |
+| ----- | ---- | ------------------------- |
 | file  | File | The binary file to upload |
 
 #### Response
@@ -433,9 +433,9 @@ Retrieves a binary object by its reference ID.
 
 #### Query Parameters
 
-| Parameter | Type   | Description               |
-| --------- | ------ | ------------------------- |
-| id        | string | The ID of the object      |
+| Parameter | Type   | Description                 |
+| --------- | ------ | --------------------------- |
+| id        | string | The ID of the object        |
 | mimeType  | string | The MIME type of the object |
 
 #### Response

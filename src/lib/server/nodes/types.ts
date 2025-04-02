@@ -107,14 +107,17 @@ export class BinaryValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
     // Accept both Uint8Array (for in-memory processing) and reference objects (for stored data)
     if (
-      !(this.value instanceof Uint8Array) && 
-      !(typeof this.value === "object" && 
-        typeof this.value.id === "string" && 
-        typeof this.value.mimeType === "string")
+      !(this.value instanceof Uint8Array) &&
+      !(
+        typeof this.value === "object" &&
+        typeof this.value.id === "string" &&
+        typeof this.value.mimeType === "string"
+      )
     ) {
-      return { 
-        isValid: false, 
-        error: "Value must be a Uint8Array or an object reference with id and mimeType" 
+      return {
+        isValid: false,
+        error:
+          "Value must be a Uint8Array or an object reference with id and mimeType",
       };
     }
     return { isValid: true };
@@ -141,7 +144,8 @@ export class ImageValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object with data and mimeType or an object reference",
+        error:
+          "Value must be an object with data and mimeType or an object reference",
       };
     }
 
@@ -158,10 +162,10 @@ export class ImageValue extends ParameterValue {
       }
       return { isValid: true };
     }
-    
+
     // Or an object reference with id and mimeType
     if (
-      typeof this.value.id === "string" && 
+      typeof this.value.id === "string" &&
       typeof this.value.mimeType === "string"
     ) {
       if (!ImageValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
@@ -173,9 +177,9 @@ export class ImageValue extends ParameterValue {
       return { isValid: true };
     }
 
-    return { 
-      isValid: false, 
-      error: "Value must contain either data and mimeType or id and mimeType" 
+    return {
+      isValid: false,
+      error: "Value must contain either data and mimeType or id and mimeType",
     };
   }
 }
@@ -187,7 +191,8 @@ export class AudioValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object with data and mimeType or an object reference",
+        error:
+          "Value must be an object with data and mimeType or an object reference",
       };
     }
 
@@ -204,10 +209,10 @@ export class AudioValue extends ParameterValue {
       }
       return { isValid: true };
     }
-    
+
     // Or an object reference with id and mimeType
     if (
-      typeof this.value.id === "string" && 
+      typeof this.value.id === "string" &&
       typeof this.value.mimeType === "string"
     ) {
       if (!AudioValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
@@ -219,9 +224,9 @@ export class AudioValue extends ParameterValue {
       return { isValid: true };
     }
 
-    return { 
-      isValid: false, 
-      error: "Value must contain either data and mimeType or id and mimeType" 
+    return {
+      isValid: false,
+      error: "Value must contain either data and mimeType or id and mimeType",
     };
   }
 }
@@ -246,7 +251,8 @@ export class DocumentValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object with data and mimeType or an object reference",
+        error:
+          "Value must be an object with data and mimeType or an object reference",
       };
     }
 
@@ -263,10 +269,10 @@ export class DocumentValue extends ParameterValue {
       }
       return { isValid: true };
     }
-    
+
     // Or an object reference with id and mimeType
     if (
-      typeof this.value.id === "string" && 
+      typeof this.value.id === "string" &&
       typeof this.value.mimeType === "string"
     ) {
       if (!DocumentValue.VALID_MIME_TYPES.includes(this.value.mimeType)) {
@@ -278,9 +284,9 @@ export class DocumentValue extends ParameterValue {
       return { isValid: true };
     }
 
-    return { 
-      isValid: false, 
-      error: "Value must contain either data and mimeType or id and mimeType" 
+    return {
+      isValid: false,
+      error: "Value must contain either data and mimeType or id and mimeType",
     };
   }
 }

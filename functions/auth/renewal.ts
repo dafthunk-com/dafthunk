@@ -1,8 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, createJWT, getSecureCookieOptions, JWTPayload } from "./jwt";
+import { createJWT, getSecureCookieOptions } from "./jwt";
 import { verifyAuth } from "./middleware";
-import { isMockAuthEnabled, MOCK_USER } from "./mock";
-
+import { Env } from "../../src/lib/server/api/env";
 /**
  * Token renewal endpoint
  *

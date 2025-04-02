@@ -2,7 +2,6 @@ import { drizzle } from "drizzle-orm/d1";
 import { type DrizzleD1Database } from "drizzle-orm/d1";
 import type { D1Database } from "@cloudflare/workers-types";
 import * as schema from "./schema";
-import { Env } from "../src/lib/server/api/env";
 
 export type Database = DrizzleD1Database<typeof schema>;
 

@@ -22,8 +22,13 @@ export function AudioRecorderWidget({
   const audioChunksRef = useRef<Blob[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [audioReference, setAudioReference] = useState<{ id: string; mimeType: string } | null>(
-    config?.value && typeof config.value === 'object' && config.value.id ? config.value : null
+  const [audioReference, setAudioReference] = useState<{
+    id: string;
+    mimeType: string;
+  } | null>(
+    config?.value && typeof config.value === "object" && config.value.id
+      ? config.value
+      : null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
@@ -58,25 +63,27 @@ export function AudioRecorderWidget({
       mediaRecorder.onstop = async () => {
         try {
           setIsUploading(true);
-          
+
           const audioBlob = new Blob(audioChunksRef.current, {
             type: "audio/webm",
           });
-          
+
           // Convert blob to array buffer
           const arrayBuffer = await audioBlob.arrayBuffer();
-          
+
           // Upload to objects endpoint
           const reference = await uploadBinaryData(arrayBuffer, "audio/webm");
-          
+
           // Update state and pass the reference to parent
           setAudioReference(reference);
           onChange(reference);
-          
+
           setIsUploading(false);
           setError(null);
         } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to upload audio");
+          setError(
+            err instanceof Error ? err.message : "Failed to upload audio"
+          );
           setIsUploading(false);
         }
       };
@@ -146,10 +153,10 @@ export function AudioRecorderWidget({
         <div className="border rounded-lg overflow-hidden bg-white">
           <div className="relative h-24 bg-gray-100">
             {audioReference ? (
-              <audio 
-                src={createObjectUrl(audioReference)} 
-                controls 
-                className="w-full h-full" 
+              <audio
+                src={createObjectUrl(audioReference)}
+                controls
+                className="w-full h-full"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">

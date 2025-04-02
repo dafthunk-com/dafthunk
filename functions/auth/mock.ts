@@ -1,5 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env } from "./jwt";
+import { Env } from "../../src/lib/server/api/env";
 import { createDatabase } from "../../db";
 import { users } from "../../db/schema";
 import { eq } from "drizzle-orm";
@@ -31,7 +31,7 @@ export const ensureMockUserInDatabase = async (env: Env): Promise<void> => {
   }
 
   try {
-    const db = createDatabase(env.DB);
+    const db = createDatabase(env.DB as D1Database);
 
     // Check if mock user already exists
     const existingUser = await db

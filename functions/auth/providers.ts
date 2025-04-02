@@ -1,4 +1,4 @@
-import { Env } from "./jwt";
+import { Env } from "../../src/lib/server/api/env";
 
 // Define the OAuth2 provider configuration interface
 export interface OAuthProviderConfig {
