@@ -14,6 +14,7 @@ import { withAuth } from "../../auth/middleware";
 import { JWTPayload, Env } from "../../auth/jwt";
 import { NodeRegistry } from "../../../src/lib/server/runtime/nodeRegistry";
 import { ParameterRegistry } from "../../../src/lib/server/api/parameterRegistry";
+import { ObjectStore } from "../../../src/lib/server/runtime/store";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -206,7 +207,13 @@ async function executeWorkflow(
     };
 
     // Create and execute the workflow runtime
-    const runtime = new Runtime(workflowGraph, executionOptions, env);
+    let objectStore;
+    if (env.OBJECTS) {
+      // Initialize object store if R2 bucket is available
+      objectStore = new ObjectStore(env.OBJECTS as any);
+    }
+    
+    const runtime = new Runtime(workflowGraph, executionOptions, env, objectStore);
 
     // Execute the workflow in the background
     runtime.execute().catch(async (error) => {

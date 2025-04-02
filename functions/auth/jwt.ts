@@ -3,6 +3,8 @@ import { SignJWT, jwtVerify } from "jose";
 // Define the environment variables interface
 export interface Env {
   JWT_SECRET: string;
+  DB?: D1Database;
+  OBJECTS?: R2Bucket;
   [key: string]: any;
 }
 

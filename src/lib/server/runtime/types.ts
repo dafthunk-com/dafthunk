@@ -159,9 +159,21 @@ export class ArrayValue extends ParameterValue {
 
 export class BinaryValue extends ParameterValue {
   validate(): { isValid: boolean; error?: string } {
-    if (!(this.value instanceof Uint8Array)) {
-      return { isValid: false, error: "Value must be a Uint8Array" };
+    if (!this.value || typeof this.value !== "object") {
+      return {
+        isValid: false,
+        error: "Value must be an object reference with id and mimeType",
+      };
     }
+
+    if (typeof this.value.id !== "string") {
+      return { isValid: false, error: "id must be a string" };
+    }
+
+    if (typeof this.value.mimeType !== "string") {
+      return { isValid: false, error: "mimeType must be a string" };
+    }
+
     return { isValid: true };
   }
 }
@@ -186,12 +198,12 @@ export class ImageValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object with data and mimeType",
+        error: "Value must be an object reference with id and mimeType",
       };
     }
 
-    if (!(this.value.data instanceof Uint8Array)) {
-      return { isValid: false, error: "Image data must be a Uint8Array" };
+    if (typeof this.value.id !== "string") {
+      return { isValid: false, error: "id must be a string" };
     }
 
     if (
@@ -215,12 +227,12 @@ export class AudioValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object with data and mimeType",
+        error: "Value must be an object reference with id and mimeType",
       };
     }
 
-    if (!(this.value.data instanceof Uint8Array)) {
-      return { isValid: false, error: "Audio data must be a Uint8Array" };
+    if (typeof this.value.id !== "string") {
+      return { isValid: false, error: "id must be a string" };
     }
 
     if (
@@ -257,12 +269,12 @@ export class DocumentValue extends ParameterValue {
     if (!this.value || typeof this.value !== "object") {
       return {
         isValid: false,
-        error: "Value must be an object with data and mimeType",
+        error: "Value must be an object reference with id and mimeType",
       };
     }
 
-    if (!(this.value.data instanceof Uint8Array)) {
-      return { isValid: false, error: "Document data must be a Uint8Array" };
+    if (typeof this.value.id !== "string") {
+      return { isValid: false, error: "id must be a string" };
     }
 
     if (
@@ -273,27 +285,6 @@ export class DocumentValue extends ParameterValue {
         isValid: false,
         error: `mimeType must be one of: ${DocumentValue.VALID_MIME_TYPES.join(", ")}`,
       };
-    }
-
-    return { isValid: true };
-  }
-}
-
-export class ObjectReferenceValue extends ParameterValue {
-  validate(): { isValid: boolean; error?: string } {
-    if (!this.value || typeof this.value !== "object") {
-      return {
-        isValid: false,
-        error: "Value must be an object with id and mimeType",
-      };
-    }
-
-    if (typeof this.value.id !== "string") {
-      return { isValid: false, error: "id must be a string" };
-    }
-
-    if (typeof this.value.mimeType !== "string") {
-      return { isValid: false, error: "mimeType must be a string" };
     }
 
     return { isValid: true };

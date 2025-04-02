@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { R2Bucket } from '@cloudflare/workers-types';
-import { ObjectReferenceValue } from './types';
 
 export interface StoreObject {
   id: string;
@@ -8,6 +7,11 @@ export interface StoreObject {
   mimeType: string;
   size: number;
   createdAt: Date;
+}
+
+export interface ObjectReference {
+  id: string;
+  mimeType: string;
 }
 
 export class ObjectStore {
@@ -20,7 +24,7 @@ export class ObjectStore {
   /**
    * Write a binary object to storage and return a reference
    */
-  async write(data: Uint8Array, mimeType: string): Promise<ObjectReferenceValue> {
+  async write(data: Uint8Array, mimeType: string): Promise<ObjectReference> {
     const id = uuidv4();
     const key = `objects/${id}`;
 
@@ -35,19 +39,19 @@ export class ObjectStore {
       },
     });
 
-    return new ObjectReferenceValue({
+    return {
       id,
       mimeType,
-    });
+    };
   }
 
   /**
    * Read an object from storage using its reference
    */
-  async read(reference: ObjectReferenceValue): Promise<Uint8Array> {
-    const object = await this.readObject(reference.getValue().id);
+  async read(reference: ObjectReference): Promise<Uint8Array> {
+    const object = await this.readObject(reference.id);
     if (!object) {
-      throw new Error(`Object not found: ${reference.getValue().id}`);
+      throw new Error(`Object not found: ${reference.id}`);
     }
     return object.data;
   }
@@ -55,8 +59,8 @@ export class ObjectStore {
   /**
    * Delete an object from storage using its reference
    */
-  async delete(reference: ObjectReferenceValue): Promise<void> {
-    await this.deleteObject(reference.getValue().id);
+  async delete(reference: ObjectReference): Promise<void> {
+    await this.deleteObject(reference.id);
   }
 
   /**
