@@ -34,47 +34,42 @@ export class DocumentNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      // Get the raw value from the RuntimeParameterValue
-      const value = context.inputs.value?.getValue?.() ?? context.inputs.value;
-      
-      // If no value is provided, return null
+      const { value } = context.inputs;
+
+      // If no value is provided, fail
       if (!value) {
-        return this.createSuccessResult({
-          document: new DocumentValue(null),
-        });
-      }
-
-      // Handle string input (for backward compatibility)
-      if (typeof value === 'string') {
-        try {
-          // Try to parse the string as JSON
-          const parsedValue = JSON.parse(value);
-          if (parsedValue && typeof parsedValue === 'object') {
-            return this.createSuccessResult({
-              document: new DocumentValue(parsedValue),
-            });
-          }
-        } catch (e) {
-          // Ignore parsing errors
-        }
-      }
-
-      // Check if the value is an object
-      if (typeof value !== 'object') {
         return this.createErrorResult(
-          `Invalid input type: expected object, got ${typeof value}`
+          "No document data provided"
         );
       }
 
-      // Pass the value directly to the DocumentValue constructor
-      // The DocumentValue class will validate the value format
-      return this.createSuccessResult({
-        document: new DocumentValue(value),
-      });
-    } catch (error) {
-      // Return a clean error message without logging
+      // If value is already a DocumentValue, check if it contains data
+      if (value instanceof DocumentValue) {
+        if (!value.getValue()) {
+          return this.createErrorResult(
+            "Document value is empty"
+          );
+        }
+        return this.createSuccessResult({
+          document: value,
+        });
+      }
+
+      // Handle raw input values
+      if (typeof value === "object") {
+        // Convert raw object to DocumentValue
+        return this.createSuccessResult({
+          document: new DocumentValue(value),
+        });
+      }
+
+      // If we get here, the input is invalid
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error in DocumentNode"
+        "Invalid input: expected a document value object"
+      );
+    } catch (error) {
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   }

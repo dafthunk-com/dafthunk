@@ -21,7 +21,7 @@ export class WebcamNode extends ExecutableNode {
         type: ImageValue,
         description: "Current captured image as an image reference",
         hidden: true,
-        value: new ImageValue({ data: new Uint8Array(0), mimeType: "image/png" }),
+        value: new ImageValue(null),
       },
       {
         name: "width",
@@ -49,32 +49,42 @@ export class WebcamNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      // Get the raw value from the RuntimeParameterValue
-      const value = context.inputs.value?.getValue?.() ?? context.inputs.value;
-      
-      // If no value is provided, return an empty image
-      if (!value) {
-        return this.createSuccessResult({
-          image: new ImageValue({ data: new Uint8Array(0), mimeType: "image/png" }),
-        });
-      }
+      const { value } = context.inputs;
 
-      // Check if the value is an object
-      if (typeof value !== 'object') {
+      // If no value is provided, fail
+      if (!value) {
         return this.createErrorResult(
-          `Invalid input type: expected object, got ${typeof value}`
+          "No image data provided"
         );
       }
 
-      // Pass the value directly to the ImageValue constructor
-      // The ImageValue class will validate the value format
-      return this.createSuccessResult({
-        image: new ImageValue(value),
-      });
-    } catch (error) {
-      // Return a clean error message without logging
+      // If value is already an ImageValue, check if it contains data
+      if (value instanceof ImageValue) {
+        if (!value.getValue()) {
+          return this.createErrorResult(
+            "Image value is empty"
+          );
+        }
+        return this.createSuccessResult({
+          image: value,
+        });
+      }
+
+      // Handle raw input values
+      if (typeof value === "object") {
+        // Convert raw object to ImageValue
+        return this.createSuccessResult({
+          image: new ImageValue(value),
+        });
+      }
+
+      // If we get here, the input is invalid
       return this.createErrorResult(
-        error instanceof Error ? error.message : "Unknown error in WebcamNode"
+        "Invalid input: expected an image value object"
+      );
+    } catch (error) {
+      return this.createErrorResult(
+        error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
