@@ -20,7 +20,7 @@ export function WebcamWidget({
 }: WebcamWidgetProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
-    const [imageReference, setImageReference] = useState<{
+  const [imageReference, setImageReference] = useState<{
     id: string;
     mimeType: string;
   } | null>(
@@ -92,15 +92,19 @@ export function WebcamWidget({
 
       // Upload to objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, "image/png");
-      
-      if (!reference || typeof reference.id !== "string" || typeof reference.mimeType !== "string") {
+
+      if (
+        !reference ||
+        typeof reference.id !== "string" ||
+        typeof reference.mimeType !== "string"
+      ) {
         throw new Error("Invalid reference from uploadBinaryData");
       }
 
       // Update state and pass the reference to parent
       setImageReference(reference);
       onChange(reference);
-      
+
       // Stop the webcam after successful capture
       stopWebcam();
       setIsUploading(false);

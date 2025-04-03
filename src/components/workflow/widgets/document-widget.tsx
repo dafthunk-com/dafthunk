@@ -55,7 +55,7 @@ export function DocumentWidget({
 
       // Upload the document to the objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
-      
+
       // Pass the reference directly to the parent
       // The DocumentValue class will validate the format
       console.log("Uploading document with reference:", reference);

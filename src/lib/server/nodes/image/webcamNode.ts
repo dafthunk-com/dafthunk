@@ -53,17 +53,13 @@ export class WebcamNode extends ExecutableNode {
 
       // If no value is provided, fail
       if (!value) {
-        return this.createErrorResult(
-          "No image data provided"
-        );
+        return this.createErrorResult("No image data provided");
       }
 
       // If value is already an ImageValue, check if it contains data
       if (value instanceof ImageValue) {
         if (!value.getValue()) {
-          return this.createErrorResult(
-            "Image value is empty"
-          );
+          return this.createErrorResult("Image value is empty");
         }
         return this.createSuccessResult({
           image: value,

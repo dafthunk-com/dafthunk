@@ -54,17 +54,13 @@ export class AudioRecorderNode extends ExecutableNode {
 
       // If no value is provided, fail
       if (!value) {
-        return this.createErrorResult(
-          "No audio data provided"
-        );
+        return this.createErrorResult("No audio data provided");
       }
 
       // If value is already an AudioValue, check if it contains data
       if (value instanceof AudioValue) {
         if (!value.getValue()) {
-          return this.createErrorResult(
-            "Audio value is empty"
-          );
+          return this.createErrorResult("Audio value is empty");
         }
         return this.createSuccessResult({
           audio: value,

@@ -38,17 +38,13 @@ export class DocumentNode extends ExecutableNode {
 
       // If no value is provided, fail
       if (!value) {
-        return this.createErrorResult(
-          "No document data provided"
-        );
+        return this.createErrorResult("No document data provided");
       }
 
       // If value is already a DocumentValue, check if it contains data
       if (value instanceof DocumentValue) {
         if (!value.getValue()) {
-          return this.createErrorResult(
-            "Document value is empty"
-          );
+          return this.createErrorResult("Document value is empty");
         }
         return this.createSuccessResult({
           document: value,

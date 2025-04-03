@@ -136,10 +136,10 @@ export function CanvasDoodleWidget({
 
       // Upload to objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, "image/png");
-      
+
       // Update state and pass the reference to parent
       setImageReference(reference);
-      
+
       // Pass the reference directly to the parent
       // The ImageValue class will validate the format
       console.log("Saving canvas with reference:", reference);
@@ -197,10 +197,10 @@ export function CanvasDoodleWidget({
   const handleClear = () => {
     // First, clear the image reference state
     setImageReference(null);
-    
+
     // Then notify the parent component
     onChange(null);
-    
+
     // Finally, reset the canvas
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -210,7 +210,7 @@ export function CanvasDoodleWidget({
 
     const displayWidth = 344;
     const displayHeight = 344;
-    
+
     // Clear the canvas with white background
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, displayWidth, displayHeight);

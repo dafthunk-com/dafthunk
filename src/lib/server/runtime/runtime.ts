@@ -220,7 +220,12 @@ export class Runtime {
       } else {
         // For non-binary types, check if it's an object reference
         const rawValue = value.getValue();
-        if (typeof rawValue === 'object' && rawValue !== null && 'id' in rawValue && 'mimeType' in rawValue) {
+        if (
+          typeof rawValue === "object" &&
+          rawValue !== null &&
+          "id" in rawValue &&
+          "mimeType" in rawValue
+        ) {
           // This is an object reference, pass it through
           mappedInputs[key] = rawValue;
         } else {
@@ -376,9 +381,14 @@ export class Runtime {
     for (const [key, value] of Object.entries(inputs)) {
       // Get the raw value first
       const rawValue = value.getValue();
-      
+
       // Check if this is an object reference
-      if (typeof rawValue === 'object' && rawValue !== null && 'id' in rawValue && 'mimeType' in rawValue) {
+      if (
+        typeof rawValue === "object" &&
+        rawValue !== null &&
+        "id" in rawValue &&
+        "mimeType" in rawValue
+      ) {
         // This is an object reference, validate based on the input type
         const inputDef = nodeType.inputs.find((input) => input.name === key);
         if (!inputDef) {
