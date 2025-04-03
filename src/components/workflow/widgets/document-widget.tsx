@@ -29,13 +29,6 @@ export function DocumentWidget({
     return null;
   });
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [documentReference, setDocumentReference] = useState<any>(() => {
-    // Initialize document reference from config if it exists
-    if (config?.value && isObjectReference(config.value)) {
-      return config.value;
-    }
-    return null;
-  });
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -63,9 +56,6 @@ export function DocumentWidget({
       // Upload the document to the objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, mimeType);
       
-      // Update state and pass the reference to parent
-      setDocumentReference(reference);
-      
       // Pass the reference directly to the parent
       // The DocumentValue class will validate the format
       console.log("Uploading document with reference:", reference);
@@ -74,7 +64,6 @@ export function DocumentWidget({
       setIsUploading(false);
     } catch (err) {
       setFileName(null);
-      setDocumentReference(null);
       setIsUploading(false);
       setError(err instanceof Error ? err.message : "Failed to upload file");
     }
@@ -82,7 +71,6 @@ export function DocumentWidget({
 
   const clearDocument = () => {
     setFileName(null);
-    setDocumentReference(null);
     onChange(null);
   };
 

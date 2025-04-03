@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { ImageValue, StringValue, NumberValue } from "../types";
+import { ImageValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**

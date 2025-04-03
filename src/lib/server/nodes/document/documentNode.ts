@@ -1,4 +1,4 @@
-import { ExecutableNode, DocumentValue, StringValue } from "../types";
+import { ExecutableNode, DocumentValue } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
 import { NodeType } from "../types";
 
