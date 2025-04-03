@@ -31,6 +31,7 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/simple-oauth2": "^5.0.7",
+    "@types/uuid": "^10.0.0",
     "babel-plugin-react-compiler": "19.0.0-beta-40c6c23-20250301",
     "drizzle-orm": "^0.39.3",
     "eslint-plugin-react-compiler": "19.0.0-beta-40c6c23-20250301",
@@ -43,7 +44,8 @@
     "react-error-boundary": "^5.0.0",
     "react-router-dom": "^7.2.0",
     "reactflow": "^11.11.4",
-    "simple-oauth2": "^5.1.0"
+    "simple-oauth2": "^5.1.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",

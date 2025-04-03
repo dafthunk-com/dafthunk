@@ -113,6 +113,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
         throw new Error("Received empty image data from the API");
       }
 
+      // Return the image data and MIME type - the runtime will handle storage
       return this.createSuccessResult({
         image: new ImageValue({
           data: uint8Array,

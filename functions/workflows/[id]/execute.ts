@@ -11,9 +11,11 @@ import {
 import { Workflow } from "../../../src/lib/server/runtime/types";
 import { Runtime } from "../../../src/lib/server/runtime/runtime";
 import { withAuth } from "../../auth/middleware";
-import { JWTPayload, Env } from "../../auth/jwt";
+import { JWTPayload } from "../../auth/jwt";
+import { Env } from "../../../src/lib/server/api/env";
 import { NodeRegistry } from "../../../src/lib/server/runtime/nodeRegistry";
 import { ParameterRegistry } from "../../../src/lib/server/api/parameterRegistry";
+import { ObjectStore } from "../../../src/lib/server/runtime/store";
 
 // Helper function to create an SSE event
 function createEvent(event: {
@@ -55,7 +57,8 @@ async function executeWorkflow(
       return new Response("Workflow ID is required", { status: 400 });
     }
 
-    const db = createDatabase(env.DB);
+    // Cast DB to D1Database to satisfy TypeScript
+    const db = createDatabase(env.DB as D1Database);
     const [workflow] = await db
       .select()
       .from(workflows)
@@ -206,7 +209,20 @@ async function executeWorkflow(
     };
 
     // Create and execute the workflow runtime
-    const runtime = new Runtime(workflowGraph, executionOptions, env);
+    let objectStore;
+    if (env.BUCKET) {
+      // Initialize object store if R2 bucket is available
+      objectStore = new ObjectStore(env.BUCKET as any);
+    } else {
+      throw new Error("R2 bucket not available");
+    }
+
+    const runtime = new Runtime(
+      workflowGraph,
+      executionOptions,
+      env,
+      objectStore
+    );
 
     // Execute the workflow in the background
     runtime.execute().catch(async (error) => {

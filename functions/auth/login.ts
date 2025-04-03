@@ -1,5 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env } from "./jwt";
+import { Env } from "../../src/lib/server/api/env";
 import {
   generateAuthorizationUrl,
   generateState,

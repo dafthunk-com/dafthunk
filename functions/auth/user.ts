@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, JWTPayload } from "./jwt";
+import { Env } from "../../src/lib/server/api/env";
+import { JWTPayload } from "./jwt";
 import { withAuth } from "./middleware";
 
 // Handler for the user endpoint

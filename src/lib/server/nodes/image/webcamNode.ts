@@ -1,11 +1,11 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { ImageValue, StringValue, NumberValue } from "../types";
+import { ImageValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
  * Webcam node implementation
- * This node provides a webcam widget that allows users to capture images and outputs them as base64 images.
+ * This node provides a webcam widget that allows users to capture images and outputs them as an image reference.
  */
 export class WebcamNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -18,10 +18,10 @@ export class WebcamNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringValue,
-        description: "Current captured image as base64",
+        type: ImageValue,
+        description: "Current captured image as an image reference",
         hidden: true,
-        value: new StringValue(""), // Default empty string
+        value: new ImageValue(null),
       },
       {
         name: "width",
@@ -42,65 +42,46 @@ export class WebcamNode extends ExecutableNode {
       {
         name: "image",
         type: ImageValue,
-        description: "The captured image as a base64 encoded image",
+        description: "The captured image as an image reference",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      let inputs;
-      try {
-        if (typeof context.inputs.value !== "string") {
-          return this.createErrorResult(
-            `Invalid input type: expected string, got ${typeof context.inputs.value}`
-          );
-        }
-        inputs = JSON.parse(context.inputs.value);
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown parsing error";
+      const { value } = context.inputs;
+
+      // If no value is provided, fail
+      if (!value) {
         return this.createErrorResult(
-          `Invalid input format: expected JSON string. Error: ${errorMessage}`
+          "No image data provided"
         );
       }
 
-      const { value, width, height } = inputs;
-
-      // Validate inputs
-      if (typeof value !== "string") {
-        return this.createErrorResult("Value must be a string");
+      // If value is already an ImageValue, check if it contains data
+      if (value instanceof ImageValue) {
+        if (!value.getValue()) {
+          return this.createErrorResult(
+            "Image value is empty"
+          );
+        }
+        return this.createSuccessResult({
+          image: value,
+        });
       }
 
-      if (typeof width !== "number" || width < 1) {
-        return this.createErrorResult("Width must be a positive number");
+      // Handle raw input values
+      if (typeof value === "object") {
+        // Convert raw object to ImageValue
+        return this.createSuccessResult({
+          image: new ImageValue(value),
+        });
       }
 
-      if (typeof height !== "number" || height < 1) {
-        return this.createErrorResult("Height must be a positive number");
-      }
-
-      // Convert base64 directly to binary (value is already pure base64)
-      const binaryString = atob(value);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      // Create properly structured image output
-      const imageOutput = {
-        data: bytes,
-        mimeType: "image/png",
-      };
-
-      // Validate the output structure
-      if (!imageOutput.data || !imageOutput.mimeType) {
-        throw new Error("Invalid image output structure");
-      }
-
-      return this.createSuccessResult({
-        image: new ImageValue(imageOutput),
-      });
+      // If we get here, the input is invalid
+      return this.createErrorResult(
+        "Invalid input: expected an image value object"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

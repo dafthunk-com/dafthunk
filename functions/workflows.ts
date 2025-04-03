@@ -4,16 +4,10 @@ import { createDatabase } from "../db";
 import { eq } from "drizzle-orm";
 import { workflows, type NewWorkflow } from "../db/schema";
 import { withAuth } from "./auth/middleware";
-import { JWTPayload } from "./auth/jwt";
+import { Env } from "../src/lib/server/api/env";
 
-// Extended environment type that includes both DB and JWT_SECRET
-interface WorkflowEnv {
-  DB: D1Database;
-  JWT_SECRET: string;
-}
-
-export const onRequest = withAuth<WorkflowEnv>(async (request, env, user) => {
-  const db = createDatabase(env.DB);
+export const onRequest = withAuth<Env>(async (request, env, user) => {
+  const db = createDatabase(env.DB as D1Database);
 
   if (request.method === "GET") {
     const allWorkflows = await db

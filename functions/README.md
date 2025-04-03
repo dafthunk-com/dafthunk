@@ -376,3 +376,70 @@ data: {"type":"execution-complete","timestamp":"2024-02-10T10:00:01Z"}
 | ----------- | ------------------ |
 | 404         | Workflow not found |
 | 500         | Execution error    |
+
+## Objects
+
+Objects API allows managing binary data like images, audio files, documents and other binary files used in workflows.
+
+### Upload Object
+
+```http
+POST /api/objects
+```
+
+Uploads a binary file and returns a reference that can be used in workflows.
+
+#### Request
+
+The request should be a `multipart/form-data` with a file field:
+
+```
+Content-Type: multipart/form-data
+```
+
+| Field | Type | Description               |
+| ----- | ---- | ------------------------- |
+| file  | File | The binary file to upload |
+
+#### Response
+
+```typescript
+{
+  "reference": {
+    "id": string,
+    "mimeType": string
+  }
+}
+```
+
+Example Response:
+
+```json
+{
+  "reference": {
+    "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+    "mimeType": "image/jpeg"
+  }
+}
+```
+
+### Get Object
+
+```http
+GET /api/objects?id={id}&mimeType={mimeType}
+```
+
+Retrieves a binary object by its reference ID.
+
+#### Query Parameters
+
+| Parameter | Type   | Description                 |
+| --------- | ------ | --------------------------- |
+| id        | string | The ID of the object        |
+| mimeType  | string | The MIME type of the object |
+
+#### Response
+
+The binary data with the appropriate content type header.
+
+## Workflow Execution

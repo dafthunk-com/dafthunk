@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eraser } from "lucide-react";
+import { Eraser, Save } from "lucide-react";
+import {
+  uploadBinaryData,
+  createObjectUrl,
+  isObjectReference,
+} from "@/lib/utils/binaryUtils";
 
 interface CanvasDoodleConfig {
-  value: string;
-  width: number;
-  height: number;
+  value: any; // Now stores an object reference
   strokeColor: string;
   strokeWidth: number;
 }
 
 interface CanvasDoodleWidgetProps {
   config: CanvasDoodleConfig;
-  onChange: (value: string) => void;
+  onChange: (value: any) => void;
   compact?: boolean;
 }
 
@@ -24,7 +27,14 @@ export function CanvasDoodleWidget({
 }: CanvasDoodleWidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { strokeColor, strokeWidth } = config;
+  const [imageReference, setImageReference] = useState<{
+    id: string;
+    mimeType: string;
+  } | null>(
+    config?.value && isObjectReference(config.value) ? config.value : null
+  );
 
   // Initialize canvas and load existing drawing
   useEffect(() => {
@@ -73,25 +83,19 @@ export function CanvasDoodleWidget({
     ctx.shadowOffsetY = 0;
 
     // Load existing drawing if any
-    if (config.value) {
-      try {
-        const parsedConfig = JSON.parse(config.value);
-        if (parsedConfig.value) {
-          const img = new Image();
-          img.onload = () => {
-            // First fill with white background
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, displayWidth, displayHeight);
-            // Then draw the image
-            ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
-          };
-          img.src = `data:image/png;base64,${parsedConfig.value}`;
-        }
-      } catch (error) {
-        console.error("Error loading existing drawing:", error);
-      }
+    if (imageReference) {
+      // Load from object reference
+      const img = new Image();
+      img.onload = () => {
+        // First fill with white background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, displayWidth, displayHeight);
+        // Then draw the image
+        ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+      };
+      img.src = createObjectUrl(imageReference);
     }
-  }, [config.value, strokeColor, strokeWidth]);
+  }, [imageReference, strokeColor, strokeWidth]);
 
   // Get canvas coordinates
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -108,39 +112,43 @@ export function CanvasDoodleWidget({
   };
 
   // Save canvas state
-  const saveCanvas = () => {
+  const saveCanvas = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Ensure white background before saving
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Get base64 data and remove the data URL prefix
-    const fullDataUrl = canvas.toDataURL("image/png", 1.0);
-    const base64Data = fullDataUrl.replace(/^data:image\/\w+;base64,/, "");
-
-    // Create node inputs object with explicit type conversion
-    const nodeInputs = {
-      value: base64Data,
-      width: Number(canvas.width),
-      height: Number(canvas.height),
-      strokeColor: String(config.strokeColor || "#000000"),
-      strokeWidth: Number(config.strokeWidth || 2),
-    };
-
     try {
-      // Convert to JSON string
-      const jsonString = JSON.stringify(nodeInputs);
-      console.log("Canvas data:", {
-        inputObject: nodeInputs,
-        jsonString,
-        width: canvas.width,
-        height: canvas.height,
+      setIsUploading(true);
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => {
+            if (b) resolve(b);
+            else reject(new Error("Failed to create image blob"));
+          },
+          "image/png",
+          1.0
+        );
       });
-      onChange(jsonString);
+
+      // Convert blob to array buffer
+      const arrayBuffer = await blob.arrayBuffer();
+
+      // Upload to objects endpoint
+      const reference = await uploadBinaryData(arrayBuffer, "image/png");
+      
+      // Update state and pass the reference to parent
+      setImageReference(reference);
+      
+      // Pass the reference directly to the parent
+      // The ImageValue class will validate the format
+      console.log("Saving canvas with reference:", reference);
+      onChange(reference);
+
+      setIsUploading(false);
     } catch (error) {
-      console.error("Error stringifying canvas data:", error);
+      console.error("Error saving canvas:", error);
+      setIsUploading(false);
     }
   };
 
@@ -183,11 +191,17 @@ export function CanvasDoodleWidget({
 
     ctx.closePath();
     setIsDrawing(false);
-    saveCanvas();
   };
 
   // Clear canvas
   const handleClear = () => {
+    // First, clear the image reference state
+    setImageReference(null);
+    
+    // Then notify the parent component
+    onChange(null);
+    
+    // Finally, reset the canvas
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -196,8 +210,17 @@ export function CanvasDoodleWidget({
 
     const displayWidth = 344;
     const displayHeight = 344;
-    ctx.clearRect(0, 0, displayWidth, displayHeight);
-    saveCanvas();
+    
+    // Clear the canvas with white background
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
+
+    // Reset drawing styles
+    ctx.strokeStyle = strokeColor;
+    ctx.fillStyle = strokeColor;
+    ctx.lineWidth = strokeWidth * 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
   };
 
   return (
@@ -205,24 +228,52 @@ export function CanvasDoodleWidget({
       {!compact && <Label>Canvas Doodle</Label>}
       <div className="relative w-full mx-auto">
         <div className="absolute top-2 right-2 z-10">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleClear}
-            className="h-6 w-6 bg-white/90 hover:bg-white"
-          >
-            <Eraser className="h-3 w-3" />
-          </Button>
+          {imageReference ? (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleClear}
+              className="h-6 w-6 bg-white/90 hover:bg-white"
+              disabled={isUploading}
+            >
+              <Eraser className="h-3 w-3" />
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={saveCanvas}
+              className="h-6 w-6 bg-white/90 hover:bg-white"
+              disabled={isUploading}
+            >
+              <Save className="h-3 w-3" />
+            </Button>
+          )}
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">
-          <canvas
-            ref={canvasRef}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-            className="touch-none cursor-crosshair"
-          />
+          {imageReference ? (
+            <div className="relative aspect-square">
+              <img
+                src={createObjectUrl(imageReference)}
+                alt="Doodle"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          ) : (
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              className="touch-none cursor-crosshair aspect-square"
+            />
+          )}
+          {isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-sm">
+              Uploading...
+            </div>
+          )}
         </div>
       </div>
     </div>

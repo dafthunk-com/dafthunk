@@ -1,12 +1,12 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { AudioValue, StringValue, NumberValue } from "../types";
+import { AudioValue, NumberValue } from "../types";
 import { NodeType } from "../types";
 
 /**
  * AudioRecorder node implementation
  * This node provides an audio recorder widget that allows users to record audio from their microphone
- * and outputs the recording as a base64 encoded audio file.
+ * and outputs the recording as an audio reference.
  */
 export class AudioRecorderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -19,10 +19,10 @@ export class AudioRecorderNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: StringValue,
-        description: "Current audio recording as base64",
+        type: AudioValue,
+        description: "Current audio recording as a reference",
         hidden: true,
-        value: new StringValue(""), // Default empty string
+        value: new AudioValue(null),
       },
       {
         name: "sampleRate",
@@ -43,65 +43,46 @@ export class AudioRecorderNode extends ExecutableNode {
       {
         name: "audio",
         type: AudioValue,
-        description: "The recorded audio as a base64 encoded audio file",
+        description: "The recorded audio as a reference",
       },
     ],
   };
 
   async execute(context: NodeContext): Promise<ExecutionResult> {
     try {
-      let inputs;
-      try {
-        if (typeof context.inputs.value !== "string") {
-          return this.createErrorResult(
-            `Invalid input type: expected string, got ${typeof context.inputs.value}`
-          );
-        }
-        inputs = JSON.parse(context.inputs.value);
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown parsing error";
+      const { value } = context.inputs;
+
+      // If no value is provided, fail
+      if (!value) {
         return this.createErrorResult(
-          `Invalid input format: expected JSON string. Error: ${errorMessage}`
+          "No audio data provided"
         );
       }
 
-      const { value, sampleRate, channels } = inputs;
-
-      // Validate inputs
-      if (typeof value !== "string") {
-        return this.createErrorResult("Value must be a string");
+      // If value is already an AudioValue, check if it contains data
+      if (value instanceof AudioValue) {
+        if (!value.getValue()) {
+          return this.createErrorResult(
+            "Audio value is empty"
+          );
+        }
+        return this.createSuccessResult({
+          audio: value,
+        });
       }
 
-      if (typeof sampleRate !== "number" || sampleRate < 1) {
-        return this.createErrorResult("Sample rate must be a positive number");
+      // Handle raw input values
+      if (typeof value === "object") {
+        // Convert raw object to AudioValue
+        return this.createSuccessResult({
+          audio: new AudioValue(value),
+        });
       }
 
-      if (typeof channels !== "number" || channels < 1) {
-        return this.createErrorResult("Channels must be a positive number");
-      }
-
-      // Convert base64 directly to binary (value is already pure base64)
-      const binaryString = atob(value);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      // Create properly structured audio output matching AudioParameterType requirements
-      const audioOutput = {
-        data: bytes,
-        mimeType: "audio/webm",
-      };
-
-      // Validate the output structure
-      if (!audioOutput.data || !audioOutput.mimeType) {
-        throw new Error("Invalid audio output structure");
-      }
-
-      return this.createSuccessResult({
-        audio: new AudioValue(audioOutput),
-      });
+      // If we get here, the input is invalid
+      return this.createErrorResult(
+        "Invalid input: expected an audio value object"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

@@ -1,5 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Env, JWTPayload } from "./jwt";
+import { Env } from "../../src/lib/server/api/env";
+import { JWTPayload } from "./jwt";
 import { withAuth } from "./middleware";
 import { isMockAuthEnabled, MOCK_USER, createMockResponse } from "./mock";
 
@@ -50,7 +51,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       provider: "mock",
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
-    });
+    } as JWTPayload);
   }
   return withAuth<Env>(protectedHandler)(context);
 };

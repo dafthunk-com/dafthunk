@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 import { NodeRegistry } from "../src/lib/server/runtime/nodeRegistry";
 import { ParameterRegistry } from "../src/lib/server/api/parameterRegistry";
+import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 
 export const onRequest: PagesFunction = async (context) => {
   try {

@@ -9,10 +9,5 @@ export function createDatabase(d1: D1Database): Database {
   return drizzle(d1, { schema });
 }
 
-// Helper types for Cloudflare environment bindings
-export interface Env {
-  DB: D1Database;
-}
-
 // Re-export schema
 export * from "./schema";

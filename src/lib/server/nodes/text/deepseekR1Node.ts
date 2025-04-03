@@ -4,14 +4,14 @@ import { NodeType } from "../types";
 import { StringValue, NumberValue } from "../types";
 
 /**
- * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters
+ * DeepSeek R1 Distill Qwen 32B Node implementation with comprehensive parameters
  */
-export class Llama3370BInstructFastNode extends ExecutableNode {
+export class DeepseekR1Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "llama-3.3-70b-instruct-fp8-fast",
-    name: "llama-3.3-70b-instruct-fp8-fast",
+    id: "deepseek-r1-distill-qwen-32b",
+    name: "deepseek-r1-distill-qwen-32b",
     type: "llm",
-    description: "Generates text using Llama 3.3 70B model with fp8 precision",
+    description: "Generates text using DeepSeek R1 Distill Qwen 32B model",
     category: "Text",
     icon: "ai",
     inputs: [
@@ -20,6 +20,12 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         type: StringValue,
         description: "The input text prompt for the LLM",
         required: true,
+      },
+      {
+        name: "messages",
+        type: StringValue,
+        description: "JSON string of conversation messages",
+        required: false,
       },
       {
         name: "temperature",
@@ -77,6 +83,13 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         hidden: true,
         value: new NumberValue(0.0),
       },
+      {
+        name: "stream",
+        type: NumberValue,
+        description: "Whether to stream the response",
+        hidden: true,
+        value: new NumberValue(0),
+      },
     ],
     outputs: [
       {
@@ -106,6 +119,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         repetition_penalty,
         frequency_penalty,
         presence_penalty,
+        stream,
       } = context.inputs;
 
       if (!context.env?.AI) {
@@ -121,7 +135,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         repetition_penalty,
         frequency_penalty,
         presence_penalty,
-        stream: false,
+        stream: Boolean(stream),
       };
 
       // If messages are provided, use them, otherwise use prompt
@@ -132,7 +146,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       }
 
       const result = await context.env.AI.run(
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
         params
       );
 

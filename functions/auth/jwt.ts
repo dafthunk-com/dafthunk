@@ -1,10 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-
-// Define the environment variables interface
-export interface Env {
-  JWT_SECRET: string;
-  [key: string]: any;
-}
+import { Env } from "../../src/lib/server/api/env";
 
 // Define the JWT payload structure
 export interface JWTPayload {
