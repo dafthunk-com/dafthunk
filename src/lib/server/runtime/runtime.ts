@@ -18,6 +18,53 @@ import { ParameterValue as NodeParameterValue } from "../nodes/types";
 import { ObjectStore } from "./store";
 
 /**
+ * Handles binary data operations for the runtime
+ */
+class BinaryDataHandler {
+  constructor(private objectStore?: ObjectStore) {}
+
+  async loadBinaryData(value: BinaryValue | ImageValue | AudioValue | DocumentValue): Promise<any> {
+    if (!this.objectStore) return value.getValue();
+
+    const objectRef = value.getValue();
+    const data = await this.objectStore.read(objectRef);
+
+    if (value instanceof BinaryValue) {
+      return data;
+    }
+
+    return {
+      data,
+      mimeType: objectRef.mimeType,
+    };
+  }
+
+  async storeBinaryData(value: any, RuntimeType: typeof BinaryValue | typeof ImageValue | typeof AudioValue | typeof DocumentValue): Promise<RuntimeParameterValue> {
+    if (!this.objectStore) {
+      throw new Error("ObjectStore not available for binary data operations");
+    }
+
+    let data: Uint8Array;
+    let mimeType: string;
+
+    if (value instanceof Uint8Array) {
+      data = value;
+      mimeType = "application/octet-stream";
+    } else if (typeof value === "object" && value.data instanceof Uint8Array) {
+      data = value.data;
+      mimeType = value.mimeType || "application/octet-stream";
+    } else if (typeof value === "object" && typeof value.id === "string" && typeof value.mimeType === "string") {
+      return new RuntimeType(value);
+    } else {
+      throw new Error(`Invalid binary data format: ${JSON.stringify(value)}`);
+    }
+
+    const reference = await this.objectStore.write(data, mimeType);
+    return new RuntimeType(reference);
+  }
+}
+
+/**
  * Runtime class that handles the execution of a workflow
  *
  * Binary data handling:
@@ -37,7 +84,7 @@ export class Runtime {
   private env?: any;
   private aborted: boolean = false;
   private typeRegistry: ParameterRegistry;
-  private objectStore?: ObjectStore;
+  private binaryHandler: BinaryDataHandler;
 
   constructor(
     workflow: Workflow,
@@ -48,7 +95,7 @@ export class Runtime {
     this.workflow = workflow;
     this.options = options;
     this.env = env;
-    this.objectStore = objectStore;
+    this.binaryHandler = new BinaryDataHandler(objectStore);
     this.typeRegistry = ParameterRegistry.getInstance();
     this.initializeExecutableNodes();
 
@@ -191,27 +238,14 @@ export class Runtime {
     for (const [key, value] of Object.entries(inputs)) {
       // Check if this is a binary type that needs to be loaded from the store
       if (
-        this.objectStore &&
-        (value instanceof BinaryValue ||
-          value instanceof ImageValue ||
-          value instanceof AudioValue ||
-          value instanceof DocumentValue)
+        value instanceof BinaryValue ||
+        value instanceof ImageValue ||
+        value instanceof AudioValue ||
+        value instanceof DocumentValue
       ) {
         // Load the binary data from the store
         try {
-          const objectRef = value.getValue();
-          const data = await this.objectStore.read(objectRef);
-
-          // For node types that expect raw binary data
-          if (value instanceof BinaryValue) {
-            mappedInputs[key] = data;
-          } else {
-            // For types that expect { data, mimeType } format
-            mappedInputs[key] = {
-              data,
-              mimeType: objectRef.mimeType,
-            };
-          }
+          mappedInputs[key] = await this.binaryHandler.loadBinaryData(value);
         } catch (error) {
           throw new Error(
             `Failed to load binary data for input ${key}: ${error instanceof Error ? error.message : String(error)}`
@@ -289,46 +323,14 @@ export class Runtime {
 
       // For binary types, store the data and create a reference
       if (
-        this.objectStore &&
-        (RuntimeType === BinaryValue ||
-          RuntimeType === ImageValue ||
-          RuntimeType === AudioValue ||
-          RuntimeType === DocumentValue)
+        RuntimeType === BinaryValue ||
+        RuntimeType === ImageValue ||
+        RuntimeType === AudioValue ||
+        RuntimeType === DocumentValue
       ) {
         try {
           const nodeValue = value.getValue();
-
-          // Handle different formats based on the type
-          let data: Uint8Array;
-          let mimeType: string;
-
-          if (nodeValue instanceof Uint8Array) {
-            // Direct binary data (BinaryValue)
-            data = nodeValue;
-            mimeType = "application/octet-stream";
-          } else if (
-            typeof nodeValue === "object" &&
-            nodeValue.data instanceof Uint8Array
-          ) {
-            // { data, mimeType } format (ImageValue, AudioValue, DocumentValue)
-            data = nodeValue.data;
-            mimeType = nodeValue.mimeType || "application/octet-stream";
-          } else if (
-            typeof nodeValue === "object" &&
-            typeof nodeValue.id === "string" &&
-            typeof nodeValue.mimeType === "string"
-          ) {
-            // Already a reference - just use it directly
-            mappedOutputs[key] = new RuntimeType(nodeValue);
-            continue;
-          } else {
-            console.error("Invalid binary data format:", nodeValue);
-            throw new Error(`Invalid binary data format for output ${key}`);
-          }
-
-          // Store the data and get a reference
-          const reference = await this.objectStore.write(data, mimeType);
-          mappedOutputs[key] = new RuntimeType(reference);
+          mappedOutputs[key] = await this.binaryHandler.storeBinaryData(nodeValue, RuntimeType);
         } catch (error) {
           console.error("Binary data handling error:", error, {
             nodeId,
