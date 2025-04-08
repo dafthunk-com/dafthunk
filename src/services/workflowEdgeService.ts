@@ -32,15 +32,8 @@ export const workflowEdgeService = {
       return "invalid";
     }
 
-    // Check if connection already exists
-    const connectionExists = edges.some(
-      (edge) =>
-        edge.source === connection.source &&
-        edge.target === connection.target &&
-        edge.sourceHandle === connection.sourceHandle &&
-        edge.targetHandle === connection.targetHandle
-    );
-
-    return connectionExists ? "invalid" : "valid";
+    // We no longer need to check if a connection already exists to the same target input
+    // since we'll be replacing it with the new connection
+    return "valid";
   },
 };
