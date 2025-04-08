@@ -5,6 +5,9 @@ export interface User {
   name: string;
   email: string;
   provider: string;
+  plan?: string;
+  role?: string;
+  avatarUrl?: string;
 }
 
 export interface TokenInfo {
