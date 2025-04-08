@@ -117,7 +117,7 @@ To reset the development database when things have gone spectacularly wrong:
 
 ```bash
 export CI=true
-npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS node_types; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types; DROP TABLE IF EXISTS users; "
+npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users; "
 npx wrangler d1 migrations apply workflow-development --local
 ```
 

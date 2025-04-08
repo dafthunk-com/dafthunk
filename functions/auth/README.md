@@ -2,13 +2,14 @@
 
 ## Overview
 
-This implementation provides a stateless authentication system using OAuth2 providers (GitHub) with the Authorization Code flow. The system leverages JSON Web Tokens (JWT) to maintain a stateless session on the server side.
+This implementation provides a stateless authentication system using OAuth2 providers (GitHub, Google) with the Authorization Code flow. The system leverages JSON Web Tokens (JWT) to maintain a stateless session on the server side.
 
 ## Features
 
-- **OAuth2 Integration:** Authentication through OAuth2 providers.
+- **Multi-Provider OAuth2 Integration:** Authentication through multiple OAuth2 providers (GitHub, Google).
 - **Stateless Authentication:** Uses JWTs to avoid server-side session storage.
 - **Enhanced Security:** Implements strong security measures including secure cookies and CSRF mitigation.
+- **User Identity Management:** Supports linking multiple OAuth accounts to a single user identity via email.
 
 ## Implementation Details
 
@@ -26,6 +27,37 @@ functions/auth/
 └── README.md          # Documentation
 ```
 
+### User Database Schema
+
+The user table uses UUIDs as primary keys and supports multiple OAuth providers:
+
+```typescript
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(), // UUID
+  name: text("name").notNull(),
+  email: text("email").unique(), // Unique constraint on email
+  provider: text("provider").$type<ProviderType>().notNull(),
+  // Provider-specific IDs
+  githubId: text("github_id"),
+  googleId: text("google_id"),
+  // Add more provider IDs as needed
+  plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
+  role: text("role").$type<RoleType>().notNull().default(Role.USER),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+```
+
+This schema allows:
+- Using UUIDs as primary keys instead of provider-specific IDs
+- Storing provider-specific IDs in dedicated fields
+- Linking multiple OAuth accounts to a single user via email
+- Maintaining a unique constraint on email addresses
+
 ### Authentication Flow
 
 1. **User Login**
@@ -42,13 +74,20 @@ functions/auth/
    - The backend exchanges the code for an access token.
    - The backend fetches user information from the provider's API.
 
-3. **JWT Creation and Storage**
+3. **User Identity Management**
+
+   - The backend checks if a user with the provider-specific ID already exists.
+   - If not, it checks if a user with the same email already exists.
+   - If a user is found, it updates the user record with the new provider-specific ID.
+   - If no user is found, it creates a new user with a UUID.
+
+4. **JWT Creation and Storage**
 
    - The backend generates a JWT containing user information.
    - The JWT is signed with a secret key.
    - The signed JWT is sent to the frontend via a secure, HTTP-only cookie.
 
-4. **Authenticated API Calls**
+5. **Authenticated API Calls**
    - The frontend includes the JWT in the Authorization header or cookie for authenticated API requests.
    - The backend verifies the JWT on each request without maintaining session state.
 
@@ -59,7 +98,7 @@ functions/auth/
 - **Method:** `GET`
 - **Description:** Initiates the OAuth2 flow by redirecting the user to the provider's authorization URL.
 - **Query Parameters:**
-  - `provider`: The OAuth2 provider (e.g., `github`).
+  - `provider`: The OAuth2 provider (e.g., `github`, `google`).
 - **Response:**
   - Redirects the user directly to the OAuth provider's authorization URL.
   - Sets a secure cookie with the state parameter for CSRF protection.
@@ -159,6 +198,8 @@ The following environment variables are required:
 - `JWT_SECRET`: Secret key for signing JWTs.
 - `GITHUB_CLIENT_ID`: GitHub OAuth2 client ID.
 - `GITHUB_CLIENT_SECRET`: GitHub OAuth2 client secret.
+- `GOOGLE_CLIENT_ID`: Google OAuth2 client ID.
+- `GOOGLE_CLIENT_SECRET`: Google OAuth2 client secret.
 
 ## Usage
 
@@ -170,7 +211,7 @@ The following environment variables are required:
 
 ```typescript
 // Example of initiating the OAuth2 flow
-function loginWithProvider(provider: "github") {
+function loginWithProvider(provider: "github" | "google") {
   // Direct navigation to the login endpoint, which will redirect to the provider
   window.location.href = `/auth/login?provider=${provider}`;
 }

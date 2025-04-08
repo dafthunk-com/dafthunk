@@ -8,6 +8,12 @@ export interface Env {
   // Authentication
   JWT_SECRET: string;
 
+  // OAuth Providers
+  GITHUB_CLIENT_ID: string;
+  GITHUB_CLIENT_SECRET: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
+
   // Database
   DB?: D1Database;
 

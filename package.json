@@ -61,6 +61,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "concurrently": "^9.1.2",
+    "dotenv": "^16.4.7",
     "drizzle-kit": "^0.30.4",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.2",

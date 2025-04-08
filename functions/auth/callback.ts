@@ -4,6 +4,7 @@ import { createJWT, getSecureCookieOptions } from "./jwt";
 import { getProviderConfig } from "./providers";
 import { createDatabase } from "../../db";
 import { users } from "../../db/schema";
+import { ProviderType } from "../../db/schema";
 import { eq } from "drizzle-orm";
 
 // Parse cookies from the request
@@ -151,56 +152,89 @@ async function fetchUserInfo(
 
 // Save or update user in the database
 async function saveUserToDatabase(
-  userId: string,
+  providerUserId: string,
   userName: string,
   userEmail: string | undefined,
-  provider: string,
+  avatarUrl: string | undefined,
+  providerName: string,
   env: Env
-): Promise<void> {
+): Promise<string> {
   try {
     const db = createDatabase(env.DB as D1Database);
-
-    // Check if user already exists
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .get();
+    
+    let existingUser: typeof users.$inferSelect | undefined = undefined;
+    
+    // 1. Try finding by the specific provider ID first
+    if (providerName === "github") {
+      existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.githubId, providerUserId))
+        .get();
+    } else if (providerName === "google") {
+      existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.googleId, providerUserId))
+        .get();
+    }
+    
+    // 2. If not found by provider ID, try finding by email (if email is available)
+    if (!existingUser && userEmail) {
+      existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, userEmail))
+        .get();
+    }
 
     if (existingUser) {
-      // Update existing user
+      // 3. Update existing user
+      const updateData: Partial<typeof users.$inferInsert> = {
+        name: userName,
+        email: userEmail,
+        avatarUrl: avatarUrl,
+        updatedAt: new Date(),
+        githubId: providerName === "github" ? providerUserId : null,
+        googleId: providerName === "google" ? providerUserId : null,
+      };
+      
       await db
         .update(users)
-        .set({
-          name: userName,
-          email: userEmail,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, userId))
+        .set(updateData)
+        .where(eq(users.id, existingUser.id))
         .run();
 
-      console.log(`Updated existing user in database: ${userId}`);
+      console.log(`Updated existing user in database: ${existingUser.id}, Avatar URL: ${avatarUrl}`);
+      return existingUser.id;
     } else {
-      // Insert new user
+      // 4. Insert new user
+      const uuid = crypto.randomUUID();
+      const insertData: typeof users.$inferInsert = {
+        id: uuid,
+        name: userName,
+        email: userEmail,
+        avatarUrl: avatarUrl,
+        provider: providerName as ProviderType,
+        plan: "trial",
+        role: "user",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        githubId: providerName === "github" ? providerUserId : null,
+        googleId: providerName === "google" ? providerUserId : null,
+      };
+      
       await db
         .insert(users)
-        .values({
-          id: userId,
-          name: userName,
-          email: userEmail,
-          provider: provider,
-          plan: "trial",
-          role: "user",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
+        .values(insertData)
         .run();
 
-      console.log(`Saved new user to database: ${userId}`);
+      console.log(`Saved new user to database: ${uuid}, Avatar URL: ${avatarUrl}`);
+      return uuid;
     }
   } catch (error) {
     console.error("Error saving user to database:", error);
-    throw error; // Let the caller handle the error
+    throw error;
   }
 }
 
@@ -209,29 +243,17 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
-    const provider = url.searchParams.get("provider");
+    const providerName = url.searchParams.get("provider");
 
     console.log(
-      `Callback received - code: ${code?.substring(0, 10)}..., state: ${state}, provider: ${provider}`
+      `Callback received - code: ${code?.substring(0, 10)}..., state: ${state}, provider: ${providerName}`
     );
 
     // Validate required parameters
-    if (!code || !state) {
+    if (!code || !state || !providerName) {
       return new Response(
         JSON.stringify({
-          error: "Missing required parameters: code and state are required",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    if (!provider) {
-      return new Response(
-        JSON.stringify({
-          error: "Missing required parameter: provider is required",
+          error: "Missing required parameters: code, state, and provider are required",
         }),
         {
           status: 400,
@@ -255,13 +277,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Get the redirect URI - must match exactly what was used in the authorization request
-    const redirectUri = `${url.origin}/auth/callback?provider=${provider}`;
+    const redirectUri = `${url.origin}/auth/callback?provider=${providerName}`;
 
     // Exchange the authorization code for an access token
     const tokenResponse = await exchangeCodeForToken(
       code,
       redirectUri,
-      provider,
+      providerName,
       env
     );
     if (!tokenResponse) {
@@ -282,7 +304,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     // Fetch user information
     const userInfo = await fetchUserInfo(
       tokenResponse.access_token,
-      provider,
+      providerName,
       env
     );
     if (!userInfo) {
@@ -296,7 +318,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Get the provider configuration
-    const config = getProviderConfig(provider, env);
+    const config = getProviderConfig(providerName, env);
     if (!config) {
       return new Response(JSON.stringify({ error: "Invalid provider" }), {
         status: 400,
@@ -305,13 +327,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Extract user information
-    const userId = userInfo[config.userIdField]?.toString();
+    const providerUserId = userInfo[config.userIdField]?.toString();
     const userName = userInfo[config.userNameField];
     const userEmail = config.userEmailField
       ? userInfo[config.userEmailField]
       : undefined;
+    const avatarUrl = config.userAvatarField ? userInfo[config.userAvatarField] : undefined;
 
-    if (!userId || !userName) {
+    if (!providerUserId || !userName) {
       console.error(
         "Failed to extract user information:",
         JSON.stringify(userInfo)
@@ -320,7 +343,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         JSON.stringify({
           error: "Failed to extract user information",
           details: {
-            userId: !!userId,
+            providerUserId: !!providerUserId,
             userName: !!userName,
             fields: Object.keys(userInfo),
           },
@@ -333,33 +356,42 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Save user to database
-    await saveUserToDatabase(userId, userName, userEmail, provider, env);
+    const savedUserId = await saveUserToDatabase(
+      providerUserId,
+      userName,
+      userEmail,
+      avatarUrl,
+      providerName,
+      env
+    );
 
-    // Fetch the complete user data
+    // Fetch the complete user data needed for JWT
     const db = createDatabase(env.DB as D1Database);
     const user = await db
-      .select()
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+        plan: users.plan,
+        role: users.role,
+      })
       .from(users)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, savedUserId))
       .get();
 
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch user data" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Failed to fetch final user data" }), { status: 500 });
     }
 
-    // Create a JWT
+    // Create JWT with avatarUrl, without provider IDs
     const jwt = await createJWT(
       {
         sub: user.id,
         name: user.name,
         email: user.email || undefined,
-        provider: user.provider,
+        provider: providerName,
+        avatarUrl: user.avatarUrl || undefined,
         plan: user.plan,
         role: user.role,
       },
@@ -367,7 +399,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     );
 
     // Set the JWT in a cookie and redirect to the frontend
-    const cookieOptions = getSecureCookieOptions();
+    const cookieOptions = getSecureCookieOptions(3600); // Match JWT expiration (1 hour)
     const frontendUrl = `${url.origin}/`;
 
     return new Response(null, {

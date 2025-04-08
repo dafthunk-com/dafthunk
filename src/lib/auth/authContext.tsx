@@ -7,13 +7,14 @@ import {
   useRef,
   useCallback,
 } from "react";
+// User type now matches the JWT payload (includes avatarUrl, excludes provider IDs)
 import { authService, User, RenewalResponse } from "@/services/authService";
 
 interface AuthContextType {
-  user: User | null;
+  user: User | null; // User reflects JWT payload
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (provider: "github") => Promise<void>;
+  login: (provider: "github" | "google") => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -171,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [renewToken]);
 
-  const login = async (provider: "github") => {
+  const login = async (provider: "github" | "google") => {
     try {
       setIsLoading(true);
       await authService.loginWithProvider(provider);

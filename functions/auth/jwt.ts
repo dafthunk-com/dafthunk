@@ -3,12 +3,13 @@ import { Env } from "../../src/lib/server/api/env";
 
 // Define the JWT payload structure
 export interface JWTPayload {
-  sub: string; // Subject (user ID)
+  sub: string; // Subject (user ID - UUID)
   name: string; // User's name
   email?: string; // User's email (optional)
-  provider: string; // OAuth provider (e.g., 'github')
+  provider: string; // OAuth provider used for this login session
+  avatarUrl?: string; // Added optional avatar URL
   plan: string; // User's subscription plan
-  role: string; // User's role (e.g., 'user', 'admin')
+  role: string; // User's role
   iat: number; // Issued at timestamp
   exp: number; // Expiration timestamp
 }
@@ -18,14 +19,21 @@ export async function createJWT(
   payload: Omit<JWTPayload, "iat" | "exp">,
   env: Env
 ): Promise<string> {
-  // Get the JWT secret from environment variables
   const secret = new TextEncoder().encode(env.JWT_SECRET);
+  const expirationTime = Math.floor(Date.now() / 1000) + 3600; // 1 hour
 
-  // Set token expiration (60 seconds from now)
-  const expirationTime = Math.floor(Date.now() / 1000) + 60;
+  // Explicitly construct the payload for signing, ensuring optional fields are handled
+  const jwtPayload: Partial<JWTPayload> = {
+    sub: payload.sub,
+    name: payload.name,
+    provider: payload.provider,
+    plan: payload.plan,
+    role: payload.role,
+    ...(payload.email && { email: payload.email }),
+    ...(payload.avatarUrl && { avatarUrl: payload.avatarUrl }), // Include avatarUrl if present
+  };
 
-  // Create and sign the JWT
-  const token = await new SignJWT({ ...payload })
+  const token = await new SignJWT(jwtPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expirationTime)
@@ -43,7 +51,7 @@ export async function verifyJWT(
     const secret = new TextEncoder().encode(env.JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
 
-    // Validate that the payload has the required fields
+    // Basic validation (check required fields)
     if (
       typeof payload.sub !== "string" ||
       typeof payload.name !== "string" ||
@@ -53,16 +61,19 @@ export async function verifyJWT(
       typeof payload.iat !== "number" ||
       typeof payload.exp !== "number"
     ) {
+      console.error("JWT payload validation failed (basic fields)");
       return null;
     }
 
+    // Return the validated payload, including optional fields
     return {
       sub: payload.sub,
       name: payload.name,
       email: payload.email as string | undefined,
-      provider: payload.provider as string,
-      plan: payload.plan as string,
-      role: payload.role as string,
+      provider: payload.provider,
+      avatarUrl: payload.avatarUrl as string | undefined, // Extract avatarUrl
+      plan: payload.plan,
+      role: payload.role,
       iat: payload.iat,
       exp: payload.exp,
     };

@@ -11,7 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getGitHubAvatarUrl, getInitials } from "@/lib/utils/userUtils";
+import { getAvatarUrl, getInitials } from "@/lib/utils/userUtils";
 
 export function UserProfile() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -24,12 +24,14 @@ export function UserProfile() {
     await logout();
   };
 
+  const avatarSrc = getAvatarUrl(user);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={getGitHubAvatarUrl(user)} alt={user.name} />
+            {avatarSrc && <AvatarImage src={avatarSrc} alt={user.name} />}
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
         </Button>
@@ -39,7 +41,7 @@ export function UserProfile() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {user.email || "No email provided"}
             </p>
           </div>
         </DropdownMenuLabel>

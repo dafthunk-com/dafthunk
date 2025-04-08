@@ -1,13 +1,13 @@
 import { API_BASE_URL } from "@/config/api";
 
 export interface User {
-  id: string;
+  id: string; // UUID (from JWT sub)
   name: string;
-  email: string;
-  provider: string;
-  plan?: string;
-  role?: string;
-  avatarUrl?: string;
+  email: string | null; // Email can be null
+  provider: string; // Provider used for the current login session (from JWT)
+  avatarUrl?: string | null; // Optional avatar URL (from JWT)
+  plan?: string; // Plan (from JWT)
+  role?: string; // Role (from JWT)
 }
 
 export interface TokenInfo {
@@ -57,7 +57,7 @@ export const authService = {
   },
 
   // Login with a provider
-  async loginWithProvider(provider: "github"): Promise<void> {
+  async loginWithProvider(provider: "github" | "google"): Promise<void> {
     try {
       // Fetch the authorization URL from the server
       const response = await fetch(

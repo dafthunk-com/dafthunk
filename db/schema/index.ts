@@ -19,11 +19,25 @@ export const Role = {
 
 export type RoleType = (typeof Role)[keyof typeof Role];
 
+// Define providers
+export const Provider = {
+  GITHUB: "github",
+  GOOGLE: "google",
+  // Add more providers as needed
+} as const;
+
+export type ProviderType = (typeof Provider)[keyof typeof Provider];
+
 export const users = sqliteTable("users", {
-  id: text("id").primaryKey(),
+  id: text("id").primaryKey(), // UUID
   name: text("name").notNull(),
-  email: text("email"),
-  provider: text("provider").notNull(),
+  email: text("email").unique(), // Unique constraint on email
+  provider: text("provider").$type<ProviderType>().notNull(),
+  // Provider-specific IDs
+  githubId: text("github_id"),
+  googleId: text("google_id"),
+  // Add more provider IDs as needed
+  avatarUrl: text("avatar_url"),
   plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
   role: text("role").$type<RoleType>().notNull().default(Role.USER),
   createdAt: integer("created_at", { mode: "timestamp" })

@@ -11,6 +11,7 @@ export interface OAuthProviderConfig {
   userIdField: string;
   userNameField: string;
   userEmailField?: string;
+  userAvatarField?: string;
   // Additional headers for API requests
   headers?: Record<string, string>;
 }
@@ -32,9 +33,25 @@ export function getProviderConfig(
         userIdField: "id",
         userNameField: "login",
         userEmailField: "email",
-        // GitHub API requires a User-Agent header
+        userAvatarField: "avatar_url",
         headers: {
           "User-Agent": "OAuth-Client",
+          Accept: "application/json",
+        },
+      };
+    case "google":
+      return {
+        authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+        tokenUrl: "https://oauth2.googleapis.com/token",
+        userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        scope: "openid email profile",
+        userIdField: "id",
+        userNameField: "name",
+        userEmailField: "email",
+        userAvatarField: "picture",
+        headers: {
           Accept: "application/json",
         },
       };
