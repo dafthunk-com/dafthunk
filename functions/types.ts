@@ -5,9 +5,6 @@ import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 
 export const onRequest: PagesFunction = async (context) => {
   try {
-    // Register all node types
-    NodeRegistry.getInstance();
-
     // Get the registry instance with all registered node types
     const registry = NodeRegistry.getInstance();
     const parameterRegistry = ParameterRegistry.getInstance();

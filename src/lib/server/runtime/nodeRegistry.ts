@@ -126,7 +126,7 @@ export class NodeRegistry {
     if (!Implementation?.nodeType?.type) {
       throw new Error("NodeType is not defined");
     }
-    this.implementations.set(Implementation.nodeType.type, Implementation);
+    this.implementations.set(Implementation.nodeType.id, Implementation);
   }
 
   public createExecutableNode(node: Node): ExecutableNode | undefined {

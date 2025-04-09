@@ -21,7 +21,7 @@ export const workflowNodeService = {
   createNode(template: NodeType, position: XYPosition): Node {
     return {
       id: `node-${Date.now()}`,
-      type: template.type,
+      type: template.id,
       name: template.name,
       position,
       inputs: template.inputs.map((input) => ({

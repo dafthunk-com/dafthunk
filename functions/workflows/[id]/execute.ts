@@ -95,7 +95,7 @@ async function executeWorkflow(
       const aiNodeTypes = new Set(
         nodeTypes
           .filter((type) => type.category === "AI")
-          .map((type) => type.type)
+          .map((type) => type.id)
       );
 
       const hasAINodes = workflowGraph.nodes.some((node) =>

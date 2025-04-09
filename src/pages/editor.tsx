@@ -74,7 +74,7 @@ export function EditorPage() {
         // Convert NodeType to NodeTemplate
         const templates: NodeTemplate[] = types.map((type) => ({
           id: type.id,
-          type: type.type,
+          type: type.id,
           name: type.name,
           description: type.description,
           category: type.category,
