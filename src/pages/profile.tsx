@@ -103,18 +103,18 @@ export function ProfilePage() {
                   </div>
                   
                   <div className="flex items-center">
-                    <Crown className="h-4 w-4 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Subscription Plan</p>
-                      <p className="text-sm text-gray-500">{formatPlanName(user.plan)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center">
                     <UserCog className="h-4 w-4 mr-2 text-gray-500" />
                     <div>
                       <p className="text-sm font-medium">Role</p>
                       <p className="text-sm text-gray-500">{formatRoleName(user.role)}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Crown className="h-4 w-4 mr-2" />
+                    <div>
+                      <p className="text-sm font-medium">Subscription Plan</p>
+                      <p className="text-sm text-gray-500">{formatPlanName(user.plan)}</p>
                     </div>
                   </div>
                 </div>
