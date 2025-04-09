@@ -10,7 +10,6 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-lightning",
     name: "Stable Diffusion XL Lightning",
-    type: "image-generation",
     description:
       "Generates images from text descriptions using Stable Diffusion XL Lightning",
     category: "Image",

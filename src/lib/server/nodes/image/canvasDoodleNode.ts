@@ -11,7 +11,6 @@ export class CanvasDoodleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "canvas-doodle",
     name: "Canvas Doodle",
-    type: "canvas-doodle",
     description: "A canvas widget for drawing and sketching",
     category: "Image",
     icon: "pencil",

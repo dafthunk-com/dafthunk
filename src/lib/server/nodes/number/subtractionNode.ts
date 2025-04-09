@@ -10,7 +10,6 @@ export class SubtractionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "subtraction",
     name: "Subtraction",
-    type: "subtraction",
     description: "Subtracts one number from another",
     category: "Number",
     icon: "minus",

@@ -11,7 +11,6 @@ export class WebcamNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "webcam",
     name: "Webcam",
-    type: "webcam",
     description: "A webcam widget for capturing images",
     category: "Image",
     icon: "camera",

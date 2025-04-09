@@ -5,7 +5,6 @@ import { NodeType } from "../types";
 
 export class SimpleStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "simpleStringTemplate",
     name: "Simple String Template",
     description:
       "Create a string using a template with a single variable injection using ${variable} syntax",

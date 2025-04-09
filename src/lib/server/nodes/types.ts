@@ -13,7 +13,6 @@ export interface Parameter {
 export interface NodeType {
   id: string;
   name: string;
-  type: string;
   description: string;
   category: string;
   icon: string;

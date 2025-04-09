@@ -10,7 +10,6 @@ export class ExponentiationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "exponentiation",
     name: "Exponentiation",
-    type: "exponentiation",
     description: "Raises a base to an exponent",
     category: "Number",
     icon: "power",

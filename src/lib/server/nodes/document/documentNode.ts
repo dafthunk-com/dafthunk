@@ -10,7 +10,6 @@ export class DocumentNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "document",
     name: "Document",
-    type: "document",
     description: "A document widget for uploading files",
     category: "Document",
     icon: "file",

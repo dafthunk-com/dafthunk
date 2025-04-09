@@ -10,7 +10,6 @@ export class DivisionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "division",
     name: "Division",
-    type: "division",
     description: "Divides one number by another",
     category: "Number",
     icon: "divide",

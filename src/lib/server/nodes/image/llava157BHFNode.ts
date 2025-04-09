@@ -10,7 +10,6 @@ export class LLaVA157BHFNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "image-to-text",
     name: "Image to Text (LLaVA 1.5 7B)",
-    type: "image-to-text",
     description:
       "Generates text descriptions from images using LLaVA 1.5 7B model",
     category: "Image",

@@ -10,7 +10,6 @@ export class AbsoluteValueNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "absolute-value",
     name: "Absolute Value",
-    type: "absolute-value",
     description: "Calculates the absolute value of a number",
     category: "Number",
     icon: "absolute",

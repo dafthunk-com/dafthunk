@@ -10,7 +10,6 @@ export class MultiplicationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "multiplication",
     name: "Multiplication",
-    type: "multiplication",
     description: "Multiplies two numbers",
     category: "Number",
     icon: "x",

@@ -10,7 +10,6 @@ export class DeepseekR1Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "deepseek-r1-distill-qwen-32b",
     name: "deepseek-r1-distill-qwen-32b",
-    type: "llm",
     description: "Generates text using DeepSeek R1 Distill Qwen 32B model",
     category: "Text",
     icon: "ai",

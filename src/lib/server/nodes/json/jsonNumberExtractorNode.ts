@@ -6,7 +6,6 @@ import { NumberValue, BooleanValue, JsonValue, StringValue } from "../types";
 
 export class JsonNumberExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "jsonNumberExtractor",
     name: "JSON Number Extractor",
     description: "Extract a numeric value from a JSON object using JSONPath",
     category: "JSON",

@@ -73,7 +73,6 @@ class MockExecutableNode extends ExecutableNode {
   static readonly nodeType: NodeType = {
     id: "mock",
     name: "Mock Node",
-    type: "mock",
     description: "A mock node for testing",
     category: "Test",
     icon: "test",

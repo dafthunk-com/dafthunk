@@ -10,7 +10,6 @@ export class DreamShaper8LCMNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "dreamshaper-8-lcm",
     name: "DreamShaper 8 LCM",
-    type: "dreamshaper-8-lcm",
     description:
       "Generates images from text descriptions using the DreamShaper 8 LCM model",
     category: "Image",

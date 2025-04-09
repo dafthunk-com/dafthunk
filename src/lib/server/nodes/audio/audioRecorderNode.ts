@@ -12,7 +12,6 @@ export class AudioRecorderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "audio-recorder",
     name: "Audio Recorder",
-    type: "audio-recorder",
     description: "A widget for recording audio from the microphone",
     category: "Audio",
     icon: "mic",

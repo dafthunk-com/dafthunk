@@ -10,7 +10,6 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-base",
     name: "Stable Diffusion XL Base",
-    type: "stable-diffusion-xl-base",
     description:
       "Generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0",
     category: "Image",

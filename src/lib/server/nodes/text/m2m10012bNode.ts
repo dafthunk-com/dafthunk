@@ -9,7 +9,6 @@ export class M2m10012bNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "m2m100-1.2b",
     name: "M2M100 1.2B",
-    type: "m2m100-1.2b",
     description: "Translates text between languages using M2M100 1.2B model",
     category: "Text",
     icon: "language",

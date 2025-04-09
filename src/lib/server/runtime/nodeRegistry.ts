@@ -123,7 +123,7 @@ export class NodeRegistry {
   public registerImplementation(
     Implementation: NodeImplementationConstructor
   ): void {
-    if (!Implementation?.nodeType?.type) {
+    if (!Implementation?.nodeType?.id) {
       throw new Error("NodeType is not defined");
     }
     this.implementations.set(Implementation.nodeType.id, Implementation);
@@ -165,6 +165,7 @@ export class NodeRegistry {
       });
       return {
         ...implementation.nodeType,
+        type: implementation.nodeType.id,
         inputs,
         outputs,
       };

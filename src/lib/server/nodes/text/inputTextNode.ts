@@ -13,7 +13,6 @@ export class InputTextNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "input-text",
     name: "Text Input",
-    type: "input-text",
     description: "A text input widget for entering single-line text",
     category: "Text",
     icon: "text",

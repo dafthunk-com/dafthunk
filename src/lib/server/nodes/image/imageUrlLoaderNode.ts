@@ -7,7 +7,6 @@ export class ImageUrlLoaderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "image-url-loader",
     name: "Image URL Loader",
-    type: "image-url-loader",
     description: "Loads an image from a URL and converts it to a data array",
     category: "Image",
     icon: "link",

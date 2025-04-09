@@ -10,7 +10,6 @@ export class ToMarkdownNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "to-markdown",
     name: "To Markdown",
-    type: "text",
     description:
       "Converts various document formats to Markdown using Cloudflare Workers AI",
     category: "Document",

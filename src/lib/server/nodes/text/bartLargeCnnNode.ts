@@ -9,7 +9,6 @@ export class BartLargeCnnNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "bart-large-cnn",
     name: "BART Large CNN",
-    type: "bart-large-cnn",
     description: "Summarizes text using BART-large-CNN model",
     category: "Text",
     icon: "summarize",

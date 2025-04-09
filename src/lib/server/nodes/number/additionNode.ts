@@ -9,7 +9,6 @@ export class AdditionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "addition",
     name: "Addition",
-    type: "addition",
     description: "Adds two numbers together",
     category: "Number",
     icon: "plus",

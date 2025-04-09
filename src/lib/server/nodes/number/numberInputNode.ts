@@ -14,7 +14,6 @@ export class NumberInputNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "number-input",
     name: "Number Input",
-    type: "number-input",
     description: "A number input widget for entering numeric values",
     category: "Number",
     icon: "number",

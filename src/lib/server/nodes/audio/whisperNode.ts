@@ -10,7 +10,6 @@ export class WhisperNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "whisper",
     name: "Whisper",
-    type: "speech-recognition",
     description:
       "Transcribes speech from audio files using OpenAI's Whisper model",
     category: "Audio",

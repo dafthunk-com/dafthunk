@@ -10,7 +10,6 @@ export class Resnet50Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "resnet-50",
     name: "ResNet-50",
-    type: "resnet-50",
     description:
       "Classifies images using the ResNet-50 model trained on ImageNet",
     category: "Image",

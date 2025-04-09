@@ -5,13 +5,12 @@ import { NodeType } from "../types";
 import { JsonValue, BooleanValue, StringValue } from "../types";
 
 export class JsonObjectArrayExtractorNode extends ExecutableNode {
-  public static readonly nodeType: NodeType = {
-    type: "jsonJsonExtractor",
+  public static readonly nodeType: NodeType = {    
+    id: "jsonJsonExtractor",
     name: "JSON Object/Array Extractor",
     description:
       "Extract a JSON object or array from a JSON object using JSONPath",
     category: "JSON",
-    id: "jsonJsonExtractor",
     icon: "braces",
     inputs: [
       {

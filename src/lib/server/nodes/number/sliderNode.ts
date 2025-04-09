@@ -15,7 +15,6 @@ export class SliderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "slider",
     name: "Slider",
-    type: "slider",
     description:
       "A slider widget for selecting a value constrained by min, max, and step values",
     category: "Number",

@@ -6,7 +6,6 @@ import { NodeType } from "../types";
 
 export class JsonTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "jsonTemplate",
     name: "JSON Template",
     description:
       "Create a JSON object using a template with variable injection using ${variableName} syntax",

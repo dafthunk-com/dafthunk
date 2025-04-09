@@ -9,7 +9,6 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "distilbert-sst-2-int8",
     name: "Distilbert SST-2 Int8",
-    type: "distilbert-sst-2-int8",
     description:
       "Analyzes the sentiment of text using Distilbert SST-2 Int8 model",
     category: "Text",

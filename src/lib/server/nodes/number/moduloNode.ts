@@ -10,7 +10,6 @@ export class ModuloNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "modulo",
     name: "Modulo",
-    type: "modulo",
     description: "Calculates the remainder after division",
     category: "Number",
     icon: "percent",

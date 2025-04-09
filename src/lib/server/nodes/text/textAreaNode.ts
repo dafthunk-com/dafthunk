@@ -14,7 +14,6 @@ export class TextAreaNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "text-area",
     name: "Text Area",
-    type: "text-area",
     description: "A text area widget for entering multi-line text",
     category: "Text",
     icon: "text",

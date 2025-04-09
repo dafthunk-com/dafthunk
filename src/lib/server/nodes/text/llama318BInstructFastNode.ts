@@ -9,7 +9,6 @@ export class Llama318BInstructFastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "llama-3.1-8b-instruct-fast",
     name: "llama-3.1-8b-instruct-fast",
-    type: "llm",
     description: "Generates text",
     category: "Text",
     icon: "ai",

@@ -10,7 +10,6 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "uform-gen2-qwen-500m",
     name: "UForm Gen2 Qwen 500M",
-    type: "uform-gen2-qwen-500m",
     description:
       "Generates text descriptions from images using UForm-Gen2 model (smaller and faster than LLaVA)",
     category: "Image",

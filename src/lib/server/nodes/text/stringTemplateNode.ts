@@ -5,7 +5,6 @@ import { StringValue, ArrayValue, JsonValue } from "../types";
 
 export class StringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "stringTemplate",
     name: "String Template",
     description:
       "Create a string using a template with variable injection using ${variableName} syntax",

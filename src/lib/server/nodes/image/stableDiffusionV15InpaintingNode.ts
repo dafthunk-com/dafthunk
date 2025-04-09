@@ -9,7 +9,6 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-v1-5-inpainting",
     name: "Stable Diffusion v1.5 Inpainting",
-    type: "stable-diffusion-v1-5-inpainting",
     description:
       "Generates images by inpainting masked areas using Stable Diffusion v1.5",
     category: "Image",

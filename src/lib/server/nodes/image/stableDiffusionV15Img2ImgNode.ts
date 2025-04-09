@@ -10,7 +10,6 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-v1-5-img2img",
     name: "Stable Diffusion v1.5 Img2Img",
-    type: "stable-diffusion-v1-5-img2img",
     description:
       "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
     category: "Image",

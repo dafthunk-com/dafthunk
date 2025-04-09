@@ -10,7 +10,6 @@ export class WhisperTinyEnNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "speech-recognition-tiny-en",
     name: "Speech Recognition (Tiny English)",
-    type: "speech-recognition-tiny-en",
     description:
       "Transcribes English speech from audio files using OpenAI's Whisper Tiny English model - optimized for English speech recognition",
     category: "Audio",

@@ -20,7 +20,6 @@ export class RadioGroupNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "radio-group",
     name: "Radio Group",
-    type: "radio-group",
     description:
       "A radio group widget for selecting one option from a list of choices",
     category: "Text",

@@ -10,7 +10,6 @@ export class SquareRootNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "square-root",
     name: "Square Root",
-    type: "square-root",
     description: "Calculates the square root of a number",
     category: "Number",
     icon: "square-root",
