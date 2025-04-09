@@ -8,6 +8,8 @@ export interface User {
   avatarUrl?: string | null; // Optional avatar URL (from JWT)
   plan?: string; // Plan (from JWT)
   role?: string; // Role (from JWT)
+  githubId?: string | null; // GitHub ID (from JWT)
+  googleId?: string | null; // Google ID (from JWT)
 }
 
 export interface TokenInfo {

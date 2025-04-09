@@ -161,9 +161,9 @@ async function saveUserToDatabase(
 ): Promise<string> {
   try {
     const db = createDatabase(env.DB as D1Database);
-    
+
     let existingUser: typeof users.$inferSelect | undefined = undefined;
-    
+
     // 1. Try finding by the specific provider ID first
     if (providerName === "github") {
       existingUser = await db
@@ -178,7 +178,7 @@ async function saveUserToDatabase(
         .where(eq(users.googleId, providerUserId))
         .get();
     }
-    
+
     // 2. If not found by provider ID, try finding by email (if email is available)
     if (!existingUser && userEmail) {
       existingUser = await db
@@ -198,14 +198,16 @@ async function saveUserToDatabase(
         githubId: providerName === "github" ? providerUserId : null,
         googleId: providerName === "google" ? providerUserId : null,
       };
-      
+
       await db
         .update(users)
         .set(updateData)
         .where(eq(users.id, existingUser.id))
         .run();
 
-      console.log(`Updated existing user in database: ${existingUser.id}, Avatar URL: ${avatarUrl}`);
+      console.log(
+        `Updated existing user in database: ${existingUser.id}, Avatar URL: ${avatarUrl}`
+      );
       return existingUser.id;
     } else {
       // 4. Insert new user
@@ -223,13 +225,12 @@ async function saveUserToDatabase(
         githubId: providerName === "github" ? providerUserId : null,
         googleId: providerName === "google" ? providerUserId : null,
       };
-      
-      await db
-        .insert(users)
-        .values(insertData)
-        .run();
 
-      console.log(`Saved new user to database: ${uuid}, Avatar URL: ${avatarUrl}`);
+      await db.insert(users).values(insertData).run();
+
+      console.log(
+        `Saved new user to database: ${uuid}, Avatar URL: ${avatarUrl}`
+      );
       return uuid;
     }
   } catch (error) {
@@ -253,7 +254,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     if (!code || !state || !providerName) {
       return new Response(
         JSON.stringify({
-          error: "Missing required parameters: code, state, and provider are required",
+          error:
+            "Missing required parameters: code, state, and provider are required",
         }),
         {
           status: 400,
@@ -332,7 +334,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const userEmail = config.userEmailField
       ? userInfo[config.userEmailField]
       : undefined;
-    const avatarUrl = config.userAvatarField ? userInfo[config.userAvatarField] : undefined;
+    const avatarUrl = config.userAvatarField
+      ? userInfo[config.userAvatarField]
+      : undefined;
 
     if (!providerUserId || !userName) {
       console.error(
@@ -381,7 +385,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       .get();
 
     if (!user) {
-      return new Response(JSON.stringify({ error: "Failed to fetch final user data" }), { status: 500 });
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch final user data" }),
+        { status: 500 }
+      );
     }
 
     // Create JWT with avatarUrl, without provider IDs

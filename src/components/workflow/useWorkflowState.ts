@@ -168,15 +168,19 @@ export function useWorkflowState({
         setEdges((eds) => {
           // Remove any existing edge with the same target input
           const filteredEdges = eds.filter(
-            (edge) => !(edge.target === connection.target && edge.targetHandle === connection.targetHandle)
+            (edge) =>
+              !(
+                edge.target === connection.target &&
+                edge.targetHandle === connection.targetHandle
+              )
           );
-          
+
           // Update all existing edges to have zIndex 0
           const updatedEdges = filteredEdges.map((edge) => ({
             ...edge,
             zIndex: 0,
           }));
-          
+
           // Add the new edge
           return addEdge(newEdge, updatedEdges);
         });

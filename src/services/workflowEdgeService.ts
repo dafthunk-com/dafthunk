@@ -32,8 +32,19 @@ export const workflowEdgeService = {
       return "invalid";
     }
 
-    // We no longer need to check if a connection already exists to the same target input
-    // since we'll be replacing it with the new connection
+    // Check if the connection would create a cycle
+    const sourceNode = connection.source;
+    const targetNode = connection.target;
+    
+    // Simple cycle detection: check if target node is already connected to source node
+    const existingEdge = edges.find(
+      edge => edge.source === targetNode && edge.target === sourceNode
+    );
+    
+    if (existingEdge) {
+      return "invalid"; // Prevent cycles
+    }
+
     return "valid";
   },
 };

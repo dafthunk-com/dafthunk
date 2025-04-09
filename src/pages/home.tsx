@@ -164,23 +164,21 @@ export function HomePage() {
             alt="Dafthunk – Short for Dope as F*** Thunk."
             className="h-32 mb-8"
           />
-          <h1 className="text-2xl font-bold">
-            Workflows No One Asked For
-          </h1>
+          <h1 className="text-2xl font-bold">Workflows No One Asked For</h1>
           <p className="text-gray-500 text-lg mt-2 mb-14">
             Break it, fix it, prompt it, automatic, automatic, ...
           </p>
           <div className="flex flex-col space-y-4 w-full max-w-xs">
-            <Button 
-              onClick={() => handleLoginClick("google")} 
+            <Button
+              onClick={() => handleLoginClick("google")}
               className="w-full flex items-center justify-center"
               variant="outline"
             >
               <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
               Sign in with Google
             </Button>
-            <Button 
-              onClick={() => handleLoginClick("github")} 
+            <Button
+              onClick={() => handleLoginClick("github")}
               className="w-full flex items-center justify-center"
               variant="outline"
             >

@@ -23,7 +23,9 @@ import { ObjectStore } from "./store";
 class BinaryDataHandler {
   constructor(private objectStore?: ObjectStore) {}
 
-  async loadBinaryData(value: BinaryValue | ImageValue | AudioValue | DocumentValue): Promise<any> {
+  async loadBinaryData(
+    value: BinaryValue | ImageValue | AudioValue | DocumentValue
+  ): Promise<any> {
     if (!this.objectStore) return value.getValue();
 
     const objectRef = value.getValue();
@@ -39,7 +41,14 @@ class BinaryDataHandler {
     };
   }
 
-  async storeBinaryData(value: any, RuntimeType: typeof BinaryValue | typeof ImageValue | typeof AudioValue | typeof DocumentValue): Promise<RuntimeParameterValue> {
+  async storeBinaryData(
+    value: any,
+    RuntimeType:
+      | typeof BinaryValue
+      | typeof ImageValue
+      | typeof AudioValue
+      | typeof DocumentValue
+  ): Promise<RuntimeParameterValue> {
     if (!this.objectStore) {
       throw new Error("ObjectStore not available for binary data operations");
     }
@@ -53,7 +62,11 @@ class BinaryDataHandler {
     } else if (typeof value === "object" && value.data instanceof Uint8Array) {
       data = value.data;
       mimeType = value.mimeType || "application/octet-stream";
-    } else if (typeof value === "object" && typeof value.id === "string" && typeof value.mimeType === "string") {
+    } else if (
+      typeof value === "object" &&
+      typeof value.id === "string" &&
+      typeof value.mimeType === "string"
+    ) {
       return new RuntimeType(value);
     } else {
       throw new Error(`Invalid binary data format: ${JSON.stringify(value)}`);
@@ -330,7 +343,10 @@ export class Runtime {
       ) {
         try {
           const nodeValue = value.getValue();
-          mappedOutputs[key] = await this.binaryHandler.storeBinaryData(nodeValue, RuntimeType);
+          mappedOutputs[key] = await this.binaryHandler.storeBinaryData(
+            nodeValue,
+            RuntimeType
+          );
         } catch (error) {
           console.error("Binary data handling error:", error, {
             nodeId,

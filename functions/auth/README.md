@@ -53,6 +53,7 @@ export const users = sqliteTable("users", {
 ```
 
 This schema allows:
+
 - Using UUIDs as primary keys instead of provider-specific IDs
 - Storing provider-specific IDs in dedicated fields
 - Linking multiple OAuth accounts to a single user via email
