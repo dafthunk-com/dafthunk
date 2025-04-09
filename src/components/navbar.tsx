@@ -21,15 +21,6 @@ export function NavBar({ className }: NavBarProps) {
         </Link>
       </div>
       <div className="flex items-center gap-4">
-        <Link
-          to="https://github.com/dafthunk-com/dafthunk"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-foreground hover:text-foreground/80 transition-colors"
-          aria-label="GitHub Repository"
-        >
-          <Github className="h-5 w-5" />
-        </Link>
         <UserProfile />
       </div>
     </nav>
