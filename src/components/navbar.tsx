@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { UserProfile } from "./user-profile";
 import { cn } from "@/lib/utils";
-import { Github } from "lucide-react";
 
 interface NavBarProps {
   className?: string;
