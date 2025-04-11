@@ -1,3 +1,4 @@
+WEB_HOST=http://localhost:3000
 CLOUDFLARE_ENV=development
 
 JWT_SECRET=CHANGE_ME
