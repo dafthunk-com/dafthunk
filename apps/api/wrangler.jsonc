@@ -33,6 +33,14 @@
   "ai": {
     "binding": "AI",
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "workflow-development",
+      "database_id": "a89e76fb-ac20-49fc-a797-6a0f08a1dfd7",
+      "migrations_dir": "./db/migrations",
+    },
+  ],
   "r2_buckets": [
     {
       "binding": "BUCKET",
@@ -44,7 +52,33 @@
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
-  // "vars": { "MY_VARIABLE": "production_value" },
+  "vars": { "WEB_HOST": "http://localhost:3000" },
+  "env": {
+    "production": {
+      "vars": {
+        "WEB_HOST": "https://dafthunk.com",
+      },
+
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "workflow-production",
+          "database_id": "9c1418f1-4099-4e42-9143-6d4ee2069f60",
+          "preview_database_id": "9c1418f1-4099-4e42-9143-6d4ee2069f60",
+          "migrations_dir": "./db/migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "BUCKET",
+          "bucket_name": "workflow-production",
+        },
+      ],
+      "ai": {
+        "binding": "AI",
+      },
+    },
+  },
   /**
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
