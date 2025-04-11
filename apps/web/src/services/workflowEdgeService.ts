@@ -35,12 +35,12 @@ export const workflowEdgeService = {
     // Check if the connection would create a cycle
     const sourceNode = connection.source;
     const targetNode = connection.target;
-    
+
     // Simple cycle detection: check if target node is already connected to source node
     const existingEdge = edges.find(
-      edge => edge.source === targetNode && edge.target === sourceNode
+      (edge) => edge.source === targetNode && edge.target === sourceNode
     );
-    
+
     if (existingEdge) {
       return "invalid"; // Prevent cycles
     }

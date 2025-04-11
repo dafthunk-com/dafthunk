@@ -1,0 +1,36 @@
+{
+  "name": "@dafthunk/api",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "start": "wrangler dev",
+    "test": "vitest run",
+    "lint": "pnpm run format:check && eslint .",
+    "integration": "ts-node -P integration/tsconfig.json integration/execute.integration.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250404.0",
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.14.0",
+    "eslint": "^9.19.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.5.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.4",
+    "typescript-eslint": "^8.22.0",
+    "vitest": "^3.1.1",
+    "wrangler": "^4.7.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.21.4"
+    }
+  },
+  "dependencies": {
+    "jsonpath-plus": "^10.3.0",
+    "uuid": "^11.1.0"
+  }
+}

@@ -1,0 +1,5 @@
+packages:
+  - apps/web
+  - apps/api
+  # Include all packages in the packages directory
+  - packages/*
