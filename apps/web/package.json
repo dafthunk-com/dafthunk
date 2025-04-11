@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "pnpm run format:check && eslint .",
     "test": "vitest run",
     "dev": "concurrently \"vite build --watch\" \"wrangler pages dev ./dist --live-reload --ai --port 3000\"",
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",

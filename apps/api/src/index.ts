@@ -62,12 +62,12 @@ interface InstanceStatus {
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
-    let url = new URL(req.url);
+    const url = new URL(req.url);
 
     if (req.method === "GET") {
-      let id = url.searchParams.get("instanceId");
+      const id = url.searchParams.get("instanceId");
       if (id && url.pathname === "/") {
-        let instance = await env.EXECUTE.get(id);
+        const instance = await env.EXECUTE.get(id);
         return Response.json(
           {
             status: await instance.status(),
@@ -89,7 +89,7 @@ export default {
     } else if (req.method === "POST") {
       if (url.pathname === "/") {
         const body = await req.json();
-        let instance = await env.EXECUTE.create({
+        const instance = await env.EXECUTE.create({
           params: body,
         });
         return Response.json({
@@ -98,7 +98,7 @@ export default {
         });
       } else if (url.pathname === "/stream") {
         const body = await req.json();
-        let instance = await env.EXECUTE.create({
+        const instance = await env.EXECUTE.create({
           params: body,
         });
 
@@ -134,7 +134,7 @@ export default {
       } else if (url.pathname === "/workflows/execute") {
         // New endpoint for backwards compatibility
         const body = await req.json();
-        let instance = await env.EXECUTE.create({
+        const instance = await env.EXECUTE.create({
           params: body,
         });
 
@@ -144,15 +144,12 @@ export default {
         const stream = new ReadableStream({
           async start(controller) {
             const encoder = new TextEncoder();
-            let executionState: ExecutionState = "executing";
 
             while (true) {
               const status = (await instance.status()) as InstanceStatus;
 
               // Map status to new API format
               if (status.status === "running") {
-                executionState = "executing";
-
                 // Check if the output is available to detect node completions
                 if (
                   status.__LOCAL_DEV_STEP_OUTPUTS &&
@@ -246,8 +243,6 @@ export default {
                   }
                 }
               } else if (status.status === "complete") {
-                executionState = "completed";
-
                 // Process final state
                 if (status.output) {
                   // Send node completion events for any remaining nodes
@@ -310,8 +305,6 @@ export default {
                 controller.close();
                 break;
               } else if (status.status === "errored") {
-                executionState = "error";
-
                 // Send workflow error event
                 if (
                   status.output &&
