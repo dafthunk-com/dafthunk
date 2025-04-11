@@ -52,13 +52,9 @@
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
-  "vars": { "WEB_HOST": "http://localhost:3000" },
+  "vars": { "WEB_HOST": "https://www.dafthunk.com" },
   "env": {
     "production": {
-      "vars": {
-        "WEB_HOST": "https://www.dafthunk.com",
-      },
-
       "d1_databases": [
         {
           "binding": "DB",
