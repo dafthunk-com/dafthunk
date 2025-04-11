@@ -9,9 +9,13 @@
     "lint": "pnpm run format:check && eslint .",
     "integration": "ts-node -P integration/tsconfig.json integration/execute.integration.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:prod:migrate": "wrangler d1 migrations apply DB --remote --env production",
+    "db:prod:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types; DROP TABLE IF EXISTS users;\" && wrangler d1 migrations apply DB --remote --env production"
   },
   "devDependencies": {
+    "@dafthunk/runtime": "workspace:*",
     "@cloudflare/workers-types": "^4.20250404.0",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.14.0",
@@ -31,10 +35,5 @@
     "jose": "^6.0.8",
     "jsonpath-plus": "^10.3.0",
     "uuid": "^11.1.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "esbuild": "0.21.4"
-    }
   }
 }

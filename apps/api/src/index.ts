@@ -13,7 +13,11 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference, ObjectStore } from "./lib/old/runtime/store";
-import { Edge, Node, WorkflowExecutionOptions } from "./lib/old/api/types";
+import {
+  Edge,
+  Node,
+  WorkflowExecutionOptions,
+} from "@dafthunk/runtime/api/types";
 import { ParameterRegistry } from "./lib/old/api/parameterRegistry";
 import { Workflow as RuntimeWorkflow } from "./lib/old/runtime/types";
 import { NodeRegistry } from "./lib/old/runtime/nodeRegistry";

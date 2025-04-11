@@ -12,10 +12,10 @@
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
     "deploy": "pnpm run build && wrangler pages deploy ./dist",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "db:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types; DROP TABLE IF EXISTS users;\" && wrangler d1 migrations apply DB --remote --env production"
+    "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@dafthunk/runtime": "workspace:*",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
