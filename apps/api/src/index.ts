@@ -49,6 +49,11 @@ const app = new Hono<{
   Variables: { jwtPayload?: CustomJWTPayload };
 }>();
 
+const urlToTopLevelDomain = (url: string) => {
+  const parsedUrl = new URL(url);
+  return parsedUrl.hostname.split(".").slice(-2).join(".");
+};
+
 app.use("*", (c, next) =>
   cors({
     origin: c.env.WEB_HOST,
@@ -131,7 +136,7 @@ app.get(
       httpOnly: true,
       secure: c.env.CLOUDFLARE_ENV !== "development",
       sameSite: "Lax",
-      domain: new URL(c.env.WEB_HOST).hostname.replace("www.", ""),
+      domain: urlToTopLevelDomain(c.env.WEB_HOST),
       maxAge: JWT_SECRET_TOKEN_DURATION,
       path: "/",
     });
@@ -177,7 +182,7 @@ app.get(
       httpOnly: true,
       secure: c.env.CLOUDFLARE_ENV !== "development",
       sameSite: "Lax",
-      domain: new URL(c.env.WEB_HOST).hostname.replace("www.", ""),
+      domain: urlToTopLevelDomain(c.env.WEB_HOST),
       maxAge: JWT_SECRET_TOKEN_DURATION,
       path: "/",
     });
