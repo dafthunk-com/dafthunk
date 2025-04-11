@@ -4,11 +4,12 @@ import { workflows } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { jwt } from "hono/jwt";
-import { setCookie } from "hono/cookie";
+import { setCookie, deleteCookie } from "hono/cookie";
 import {
   createJWT,
   CustomJWTPayload,
   JWT_SECRET_TOKEN_DURATION,
+  JWT_SECRET_TOKEN_NAME,
 } from "./lib/auth";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
@@ -50,7 +51,7 @@ const app = new Hono<{
 
 app.use("*", (c, next) =>
   cors({
-    origin: [c.env.WEB_HOST, "https://github.com"],
+    origin: [c.env.WEB_HOST],
     allowHeaders: [
       "X-Custom-Header",
       "Authorization",
@@ -72,7 +73,7 @@ app.use("*", (c, next) =>
 const jwtAuthMiddleware = (c: any, next: any) => {
   const middleware = jwt({
     secret: c.env.JWT_SECRET,
-    cookie: "auth_token",
+    cookie: JWT_SECRET_TOKEN_NAME,
   });
   return middleware(c, next);
 };
@@ -84,6 +85,11 @@ app.get("/auth/protected", jwtAuthMiddleware, async (c) => {
 app.get("/auth/user", jwtAuthMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   return c.json({ user });
+});
+
+app.get("/auth/logout", (c) => {
+  deleteCookie(c, JWT_SECRET_TOKEN_NAME);
+  return c.redirect(c.env.WEB_HOST);
 });
 
 app.get(
@@ -121,7 +127,7 @@ app.get(
       c.env.JWT_SECRET
     );
 
-    setCookie(c, "auth_token", jwtToken, {
+    setCookie(c, JWT_SECRET_TOKEN_NAME, jwtToken, {
       httpOnly: true,
       secure: c.env.CLOUDFLARE_ENV !== "development",
       sameSite: "Strict",
@@ -166,7 +172,7 @@ app.get(
       c.env.JWT_SECRET
     );
 
-    setCookie(c, "auth_token", jwtToken, {
+    setCookie(c, JWT_SECRET_TOKEN_NAME, jwtToken, {
       httpOnly: true,
       secure: c.env.CLOUDFLARE_ENV !== "development",
       sameSite: "Strict",
