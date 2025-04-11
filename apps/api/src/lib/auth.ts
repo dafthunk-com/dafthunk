@@ -1,4 +1,3 @@
-import { Env } from "../index";
 import { SignJWT, JWTPayload } from "jose";
 
 export const JWT_SECRET_TOKEN_NAME = "auth_token";

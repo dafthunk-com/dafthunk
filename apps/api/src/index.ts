@@ -247,7 +247,7 @@ app.get("/workflows", jwtAuthMiddleware, async (c) => {
 app.post("/workflows", jwtAuthMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
 
-  let data = await c.req.json();
+  const data = await c.req.json();
   const now = new Date();
 
   const newWorkflowData: NewWorkflow = {
