@@ -58,7 +58,7 @@ app.use("*", (c, next) =>
       "X-Requested-With",
       "Content-Type",
       "Accept",
-      ...(c.env.CLOUDFLARE_ENV === "production"
+      ...(c.env.CLOUDFLARE_ENV !== "development"
         ? ["Upgrade-Insecure-Requests"]
         : []),
     ],
