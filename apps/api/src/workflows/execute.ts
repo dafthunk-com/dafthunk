@@ -8,7 +8,7 @@ import { NonRetryableError } from "cloudflare:workflows";
 import { Env } from "../index";
 import { Workflow as RuntimeWorkflow, NodeContext } from "../lib/runtime/types";
 import { validateWorkflow } from "../lib/runtime/validation";
-import { NodeRegistry } from "../nodes/nodeRegistry";
+import { NodeRegistry } from "../lib/nodes/nodeRegistry";
 import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
 import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
 import { ObjectStore } from "../lib/runtime/store";

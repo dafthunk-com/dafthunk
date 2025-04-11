@@ -19,6 +19,7 @@ import { Workflow as RuntimeWorkflow } from "./lib/old/runtime/types";
 import { NodeRegistry } from "./lib/old/runtime/nodeRegistry";
 import { Runtime } from "./lib/old/runtime/runtime";
 import { createEvent } from "./lib/sse";
+import { cors } from "hono/cors";
 
 export { ExecuteWorkflow } from "./workflows/execute";
 
@@ -43,6 +44,27 @@ const app = new Hono<{
   Variables: { jwtPayload?: CustomJWTPayload };
 }>();
 
+app.use("*", (c, next) =>
+  cors({
+    origin: c.env.WEB_HOST,
+    allowHeaders: [
+      "X-Custom-Header",
+      "Authorization",
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      ...(c.env.CLOUDFLARE_ENV === "production"
+        ? ["Upgrade-Insecure-Requests"]
+        : []),
+    ],
+    allowMethods: ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
+    exposeHeaders: ["Content-Length", "X-Content-Type-Options"],
+    maxAge: 600,
+    credentials: true,
+  })(c, next)
+);
+
 const jwtAuthMiddleware = (c: any, next: any) => {
   const middleware = jwt({
     secret: c.env.JWT_SECRET,
@@ -51,8 +73,17 @@ const jwtAuthMiddleware = (c: any, next: any) => {
   return middleware(c, next);
 };
 
+app.get("/auth/protected", jwtAuthMiddleware, async (c) => {
+  return c.json({ success: true });
+});
+
+app.get("/auth/user", jwtAuthMiddleware, async (c) => {
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  return c.json({ user });
+});
+
 app.get(
-  "/auth/github",
+  "/auth/login/github",
   // Middleware
   (c, next) => {
     const githubAuthHandler = githubAuth({
@@ -60,6 +91,7 @@ app.get(
       client_secret: c.env.GITHUB_CLIENT_SECRET,
       scope: ["read:user", "user:email"],
       oauthApp: true,
+      // redirect_uri: `${c.env.WEB_HOST}/auth/callback/github`,
     });
     return githubAuthHandler(c, next);
   },
@@ -98,7 +130,7 @@ app.get(
 );
 
 app.get(
-  "/auth/google",
+  "/auth/login/google",
   // Middleware
   (c, next) => {
     const googleAuthHandler = googleAuth({
