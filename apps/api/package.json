@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "deploy": "wrangler deploy",
-    "start": "wrangler dev",
+    "dev": "wrangler dev --live-reload --port 3001",
     "test": "vitest run",
     "lint": "pnpm run format:check && eslint .",
     "integration": "ts-node -P integration/tsconfig.json integration/execute.integration.ts",
@@ -21,16 +21,20 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.0.4",
     "typescript-eslint": "^8.22.0",
-    "vitest": "^3.1.1",
+    "vitest": "~3.0.1",
     "wrangler": "^4.7.1"
+  },
+  "dependencies": {
+    "@hono/oauth-providers": "^0.7.1",
+    "drizzle-orm": "^0.39.3",
+    "hono": "^4.7.6",
+    "jose": "^6.0.8",
+    "jsonpath-plus": "^10.3.0",
+    "uuid": "^11.1.0"
   },
   "pnpm": {
     "overrides": {
       "esbuild": "0.21.4"
     }
-  },
-  "dependencies": {
-    "jsonpath-plus": "^10.3.0",
-    "uuid": "^11.1.0"
   }
 }
