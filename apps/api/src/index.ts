@@ -28,6 +28,8 @@ export interface Env {
   BUCKET: R2Bucket;
   AI: Ai;
 
+  WEB_HOST: string;
+
   CLOUDFLARE_ENV: string;
   JWT_SECRET: string;
   GITHUB_CLIENT_ID: string;
@@ -91,7 +93,7 @@ app.get(
       maxAge: JWT_SECRET_TOKEN_DURATION,
       path: "/",
     });
-    return c.redirect("/");
+    return c.redirect(c.env.WEB_HOST);
   }
 );
 
@@ -136,7 +138,7 @@ app.get(
       maxAge: JWT_SECRET_TOKEN_DURATION,
       path: "/",
     });
-    return c.redirect("/");
+    return c.redirect(c.env.WEB_HOST);
   }
 );
 
