@@ -50,7 +50,7 @@ const app = new Hono<{
 
 app.use("*", (c, next) =>
   cors({
-    origin: c.env.WEB_HOST,
+    origin: [c.env.WEB_HOST, "https://github.com"],
     allowHeaders: [
       "X-Custom-Header",
       "Authorization",
