@@ -131,7 +131,7 @@ app.get(
       httpOnly: true,
       secure: c.env.CLOUDFLARE_ENV !== "development",
       sameSite: "Lax",
-      domain: new URL(c.env.WEB_HOST).hostname,
+      domain: new URL(c.env.WEB_HOST).hostname.replace("www.", ""),
       maxAge: JWT_SECRET_TOKEN_DURATION,
       path: "/",
     });
@@ -176,7 +176,8 @@ app.get(
     setCookie(c, JWT_SECRET_TOKEN_NAME, jwtToken, {
       httpOnly: true,
       secure: c.env.CLOUDFLARE_ENV !== "development",
-      sameSite: "Strict",
+      sameSite: "Lax",
+      domain: new URL(c.env.WEB_HOST).hostname.replace("www.", ""),
       maxAge: JWT_SECRET_TOKEN_DURATION,
       path: "/",
     });
