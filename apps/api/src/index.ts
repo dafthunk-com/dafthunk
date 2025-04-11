@@ -95,7 +95,6 @@ app.get(
       client_secret: c.env.GITHUB_CLIENT_SECRET,
       scope: ["read:user", "user:email"],
       oauthApp: true,
-      // redirect_uri: `${c.env.WEB_HOST}/auth/callback/github`,
     });
     return githubAuthHandler(c, next);
   },
