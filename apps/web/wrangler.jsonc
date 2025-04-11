@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dafthunk-web",
+  "compatibility_date": "2024-02-23",
+
+  // Pages configuration
+  "pages_build_output_dir": "dist",
+}

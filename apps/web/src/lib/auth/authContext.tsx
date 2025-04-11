@@ -5,10 +5,9 @@ import {
   useEffect,
   ReactNode,
   useRef,
-  useCallback,
 } from "react";
 // User type now matches the JWT payload (includes avatarUrl, excludes provider IDs)
-import { authService, User, RenewalResponse } from "@/services/authService";
+import { authService, User } from "@/services/authService";
 
 interface AuthContextType {
   user: User | null; // User reflects JWT payload
@@ -25,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const renewalTimerRef = useRef<number | null>(null);
   const isAuthenticatedRef = useRef<boolean>(false); // Add a ref to track authentication state
 
   // Update the ref whenever isAuthenticated changes
@@ -53,77 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshUser();
   };
 
-  // Function to schedule token renewal
-  const scheduleTokenRenewal = (timeUntilRenewal: number) => {
-    // Clear any existing timer
-    if (renewalTimerRef.current !== null) {
-      window.clearTimeout(renewalTimerRef.current);
-    }
-
-    // Schedule the renewal
-    renewalTimerRef.current = window.setTimeout(renewToken, timeUntilRenewal);
-    console.log(
-      `Token renewal scheduled in ${Math.round(timeUntilRenewal / 1000)} seconds`
-    );
-  };
-
-  // Function to renew the token
-  const renewToken = useCallback(async () => {
-    try {
-      // Use the ref instead of the state to check authentication
-      if (!isAuthenticatedRef.current) {
-        console.log("Token renewal skipped - not authenticated (ref value)");
-        return;
-      }
-
-      console.log("Attempting token renewal at", new Date().toISOString());
-      const renewalResponse = await authService.renewToken();
-
-      if (renewalResponse) {
-        console.log(
-          "Renewal response received:",
-          JSON.stringify(renewalResponse)
-        );
-        console.log(
-          `Token renewal ${renewalResponse.renewed ? "successful" : "not needed"}`
-        );
-        console.log(
-          `Token expires in ${renewalResponse.tokenInfo.expiresIn} seconds`
-        );
-
-        // Calculate when to schedule the next renewal (after 30 seconds)
-        const timeUntilNextRenewal =
-          calculateTimeUntilNextRenewal(renewalResponse);
-
-        console.log(
-          `Next renewal scheduled in ${Math.round(timeUntilNextRenewal / 1000)} seconds`
-        );
-
-        // Schedule the next renewal
-        scheduleTokenRenewal(timeUntilNextRenewal);
-      } else {
-        // If renewal failed, try again in 10 seconds
-        console.warn("Token renewal failed, retrying in 10 seconds");
-        scheduleTokenRenewal(10 * 1000);
-      }
-    } catch (error) {
-      console.error("Error during token renewal:", error);
-      // If there was an error, try again in 10 seconds
-      console.warn("Error occurred, retrying in 10 seconds");
-      scheduleTokenRenewal(10 * 1000);
-    }
-  }, []); // Empty dependency array since we're using refs
-
-  // Calculate when to schedule the next renewal (after 30 seconds)
-  const calculateTimeUntilNextRenewal = (_: RenewalResponse): number => {
-    // For testing purposes, we're using a fixed renewal interval of 30 seconds
-    // This is half of the token lifetime of 60 seconds
-    const renewalInterval = 30 * 1000; // 30 seconds in milliseconds
-
-    // Ensure we don't schedule in the past
-    return Math.max(renewalInterval, 1000); // Minimum 1 second
-  };
-
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
@@ -142,12 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // Directly update the ref to ensure it's set before calling renewToken
           isAuthenticatedRef.current = userAuthenticated;
-
-          if (userAuthenticated) {
-            console.log("Starting token renewal process");
-            // Start the token renewal process immediately
-            setTimeout(() => renewToken(), 100); // Small delay to ensure state updates have propagated
-          }
         } else {
           setIsAuthenticated(false);
           setUser(null);
@@ -162,15 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     initAuth();
-
-    // Cleanup function to clear the timer when component unmounts
-    return () => {
-      if (renewalTimerRef.current !== null) {
-        window.clearTimeout(renewalTimerRef.current);
-        console.log("Token renewal timer cleared on unmount");
-      }
-    };
-  }, [renewToken]);
+  }, []);
 
   const login = async (provider: "github" | "google") => {
     try {
@@ -184,12 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    // Clear the renewal timer when logging out
-    if (renewalTimerRef.current !== null) {
-      window.clearTimeout(renewalTimerRef.current);
-      renewalTimerRef.current = null;
-    }
-
     // Reset the authentication ref
     isAuthenticatedRef.current = false;
 

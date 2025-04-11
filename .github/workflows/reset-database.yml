@@ -33,4 +33,4 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CI: true
         run: |
-          pnpm --filter '@dafthunk/web' db:reset
+          pnpm --filter '@dafthunk/api' db:prod:reset

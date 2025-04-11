@@ -1,4 +1,4 @@
-import { Workflow as RuntimeWorkflow } from "../src/runtime/types";
+import { Workflow as RuntimeWorkflow } from "../src/lib/runtime/types";
 
 // Create a simple math workflow
 function createMathWorkflow(): RuntimeWorkflow {
