@@ -28,7 +28,7 @@ export const authService = {
       });
       return response.ok;
     } catch (error) {
-      console.error("Authentication check failed:", error);
+      console.log("Authentication check failed");
       return false;
     }
   },
