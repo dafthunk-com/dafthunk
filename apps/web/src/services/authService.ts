@@ -59,6 +59,19 @@ export const authService = {
 
   // Logout the user
   async logout(): Promise<void> {
-    window.location.href = `${API_BASE_URL}/auth/logout`;
+    try {
+      // Make a fetch request to the logout endpoint
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: "GET",
+        credentials: "include", // Important for cookies
+      });
+
+      // The server will redirect, but we'll handle the redirect client-side
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if the request fails, redirect to home
+      window.location.href = "/";
+    }
   },
 };
