@@ -56,7 +56,7 @@
   "env": {
     "production": {
       "vars": {
-        "WEB_HOST": "https://dafthunk.com",
+        "WEB_HOST": "https://www.dafthunk.com",
       },
 
       "d1_databases": [
