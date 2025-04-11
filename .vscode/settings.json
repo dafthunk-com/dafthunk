@@ -1,7 +1,5 @@
 {
-  "eslint.workingDirectories": [
-    {
-      "mode": "auto"
-    }
-  ]
+  "files.associations": {
+    "wrangler.json": "jsonc"
+  }
 }

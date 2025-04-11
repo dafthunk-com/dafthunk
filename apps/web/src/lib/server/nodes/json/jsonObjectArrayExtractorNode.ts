@@ -5,7 +5,7 @@ import { NodeType } from "../types";
 import { JsonValue, BooleanValue, StringValue } from "../types";
 
 export class JsonObjectArrayExtractorNode extends ExecutableNode {
-  public static readonly nodeType: NodeType = {    
+  public static readonly nodeType: NodeType = {
     id: "jsonJsonExtractor",
     name: "JSON Object/Array Extractor",
     description:
