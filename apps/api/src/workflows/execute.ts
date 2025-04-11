@@ -6,12 +6,12 @@ import {
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 import { Env } from "../index";
-import { Workflow as RuntimeWorkflow, NodeContext } from "../runtime/types";
-import { validateWorkflow } from "../runtime/validation";
+import { Workflow as RuntimeWorkflow, NodeContext } from "../lib/runtime/types";
+import { validateWorkflow } from "../lib/runtime/validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
-import { ParameterRegistry } from "../runtime/parameterRegistry";
-import { BinaryDataHandler } from "../runtime/binaryDataHandler";
-import { ObjectStore } from "../runtime/store";
+import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
+import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
+import { ObjectStore } from "../lib/runtime/store";
 
 type Params = {
   workflow: RuntimeWorkflow;
