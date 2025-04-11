@@ -51,7 +51,7 @@ const app = new Hono<{
 
 app.use("*", (c, next) =>
   cors({
-    origin: [c.env.WEB_HOST],
+    origin: c.env.WEB_HOST,
     allowHeaders: [
       "X-Custom-Header",
       "Authorization",
@@ -284,7 +284,7 @@ app.get("/workflows", jwtAuthMiddleware, async (c) => {
     })
     .from(workflows)
     .where(eq(workflows.userId, user.sub));
-  return c.json(allWorkflows);
+  return c.json({ workflows: allWorkflows });
 });
 
 app.post("/workflows", jwtAuthMiddleware, async (c) => {

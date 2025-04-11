@@ -54,43 +54,11 @@ export const authService = {
 
   // Login with a provider
   async loginWithProvider(provider: "github" | "google"): Promise<void> {
-    try {
-      // Fetch the authorization URL from the server
-      const response = await fetch(`${API_BASE_URL}/auth/login/${provider}`, {
-        method: "GET",
-        credentials: "include", // Important for cookies
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Redirect to the authorization URL returned by the server
-        if (data.authorizationUrl) {
-          window.location.href = data.authorizationUrl;
-        } else {
-          console.error("No authorization URL returned from server");
-        }
-      } else {
-        console.error(
-          "Failed to get authorization URL:",
-          await response.text()
-        );
-      }
-    } catch (error) {
-      console.error("Login initialization failed:", error);
-    }
+    window.location.href = `${API_BASE_URL}/auth/login/${provider}`;
   },
 
   // Logout the user
   async logout(): Promise<void> {
-    try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include", // Important for cookies
-      });
-      // Redirect to home page or login page after logout
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    window.location.href = `${API_BASE_URL}/auth/logout`;
   },
 };
