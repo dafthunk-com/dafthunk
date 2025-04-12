@@ -3,7 +3,7 @@ import {
   Workflow,
   ExecutionResult,
   ExecutionState,
-} from "@dafthunk/runtime/api/types";
+} from "../../../api/src/lib/old/api/types";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {

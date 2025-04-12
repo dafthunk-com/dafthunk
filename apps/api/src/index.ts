@@ -18,7 +18,7 @@ import {
   Edge,
   Node,
   WorkflowExecutionOptions,
-} from "@dafthunk/runtime/api/types";
+} from "./lib/old/api/types";
 import { ParameterRegistry } from "./lib/old/api/parameterRegistry";
 import { Workflow as RuntimeWorkflow } from "./lib/old/runtime/types";
 import { NodeRegistry } from "./lib/old/runtime/nodeRegistry";
@@ -366,7 +366,18 @@ app.post("/objects", jwtAuthMiddleware, async (c) => {
 });
 
 app.get("/types", jwtAuthMiddleware, (c) => {
-  return c.json(NodeRegistry.getInstance().getNodeTypes());
+  try {
+    // Get the registry instance with all registered node types
+    const registry = NodeRegistry.getInstance();
+    const parameterRegistry = ParameterRegistry.getInstance();
+    const nodeTypes = parameterRegistry.convertNodeTypes(
+      registry.getNodeTypes()
+    );
+    return c.json(nodeTypes);
+  } catch (error) {
+    console.error("Error in types function:", error);
+    return c.json({ error: "Unknown error occurred" }, 500);
+  }
 });
 
 app.get("/workflows", jwtAuthMiddleware, async (c) => {

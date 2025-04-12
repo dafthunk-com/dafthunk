@@ -30,6 +30,6 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../apps/api/src/lib/old/api/types.ts"],
   "exclude": ["node_modules", "dist"]
 }

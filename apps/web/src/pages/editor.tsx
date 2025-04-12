@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow } from "@dafthunk/runtime/api/types";
+import { Workflow } from "../../../api/src/lib/old/api/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
