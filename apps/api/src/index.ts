@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createDatabase, type NewWorkflow } from "../db";
+import { createDatabase, type NewWorkflow, type NewUser, users } from "../db";
 import { workflows } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import { githubAuth } from "@hono/oauth-providers/github";
@@ -25,6 +25,7 @@ import { NodeRegistry } from "./lib/old/runtime/nodeRegistry";
 import { Runtime } from "./lib/old/runtime/runtime";
 import { createEvent } from "./lib/sse";
 import { cors } from "hono/cors";
+import { Plan, Provider, Role } from "../db/schema";
 
 export { ExecuteWorkflow } from "./workflows/execute";
 
@@ -97,6 +98,59 @@ app.get("/auth/logout", (c) => {
   return c.redirect(c.env.WEB_HOST);
 });
 
+// Helper function to save or update a user in the database
+async function saveUserToDatabase(
+  db: ReturnType<typeof createDatabase>,
+  userData: {
+    id: string;
+    name: string;
+    email?: string;
+    provider: string;
+    githubId?: string;
+    googleId?: string;
+    avatarUrl?: string;
+    plan?: string;
+    role?: string;
+  }
+): Promise<void> {
+  // Check if user already exists
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userData.id))
+    .get();
+
+  if (existingUser) {
+    // Update existing user
+    await db
+      .update(users)
+      .set({
+        name: userData.name,
+        email: userData.email,
+        githubId: userData.githubId,
+        googleId: userData.googleId,
+        avatarUrl: userData.avatarUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userData.id));
+  } else {
+    // Create new user
+    const newUser: NewUser = {
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      provider: userData.provider as any,
+      githubId: userData.githubId,
+      googleId: userData.googleId,
+      avatarUrl: userData.avatarUrl,
+      plan: (userData.plan as any) || Plan.TRIAL,
+      role: (userData.role as any) || Role.USER,
+    };
+
+    await db.insert(users).values(newUser);
+  }
+}
+
 app.get(
   "/auth/login/github",
   // Middleware
@@ -119,13 +173,31 @@ app.get(
       return c.json({ error: "No user data received from GitHub" }, 400);
     }
 
+    const userId = user.id?.toString() || "";
+    const userName = user.name || user.login || "";
+    const userEmail = user.email;
+    const avatarUrl = user.avatar_url;
+
+    // Save user to database
+    const db = createDatabase(c.env.DB);
+    await saveUserToDatabase(db, {
+      id: userId,
+      name: userName,
+      email: userEmail ?? undefined,
+      provider: Provider.GITHUB,
+      githubId: userId,
+      avatarUrl,
+      plan: Plan.FREE,
+      role: Role.USER,
+    });
+
     const jwtToken = await createJWT(
       {
-        sub: user.id?.toString() || "",
-        name: user.name || user.login || "",
-        email: user.email ?? undefined,
+        sub: userId,
+        name: userName,
+        email: userEmail ?? undefined,
         provider: "github",
-        avatarUrl: user.avatar_url,
+        avatarUrl,
         plan: "free", // Default plan
         role: "user", // Default role
       },
@@ -165,13 +237,32 @@ app.get(
       return c.json({ error: "No user data received from Google" }, 400);
     }
 
+    const userId = user.id?.toString() || "";
+    const userName = user.name || "";
+    // Use type assertion to handle the email field
+    const userEmail = user.email as string | undefined;
+    const avatarUrl = user.picture;
+
+    // Save user to database
+    const db = createDatabase(c.env.DB);
+    await saveUserToDatabase(db, {
+      id: userId,
+      name: userName,
+      email: userEmail,
+      provider: Provider.GOOGLE,
+      googleId: userId,
+      avatarUrl,
+      plan: Plan.FREE,
+      role: Role.USER,
+    });
+
     const jwtToken = await createJWT(
       {
-        sub: user.id?.toString() || "",
-        name: user.name || "",
-        email: user.email || undefined,
+        sub: userId,
+        name: userName,
+        email: userEmail,
         provider: "google",
-        avatarUrl: user.picture || undefined,
+        avatarUrl: avatarUrl || undefined,
         plan: "free", // Default plan
         role: "user", // Default role
       },
