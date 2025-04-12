@@ -14,6 +14,7 @@ import {
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
+import { API_BASE_URL } from "@/config/api";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
@@ -320,7 +321,7 @@ export function EditorPage() {
       );
 
       // Create EventSource for SSE connection
-      const eventSource = new EventSource(`/workflows/${workflowId}/execute`);
+      const eventSource = new EventSource(`${API_BASE_URL}/workflows/${workflowId}/execute`, { withCredentials: true });
 
       // Set up event listeners for different event types
       eventSource.addEventListener("node-start", (event) => {
@@ -393,7 +394,7 @@ export function EditorPage() {
         console.error("SSE connection error:", error);
         // Check if the error is due to a 403 response (AI nodes in free plan)
         if (eventSource.readyState === EventSource.CLOSED) {
-          fetch(`/workflows/${workflowId}/execute`)
+          fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, { credentials: 'include' })
             .then((response) => {
               if (response.status === 403) {
                 return response.json();

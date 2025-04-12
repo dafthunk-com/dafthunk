@@ -373,6 +373,7 @@ app.get("/types", jwtAuthMiddleware, (c) => {
     const nodeTypes = parameterRegistry.convertNodeTypes(
       registry.getNodeTypes()
     );
+
     return c.json(nodeTypes);
   } catch (error) {
     console.error("Error in types function:", error);
@@ -568,7 +569,7 @@ app.delete("/workflows/:id", jwtAuthMiddleware, async (c) => {
   );
 });
 
-app.post("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
+app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
