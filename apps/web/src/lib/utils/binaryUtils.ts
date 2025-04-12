@@ -128,7 +128,7 @@ export const createObjectUrl = (objectReference: {
     }
 
     // Create URL with the object ID and mimeType as query parameters
-    const url = `/objects?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
+    const url = `${API_BASE_URL}/objects?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
 
     console.log(
       `Created object URL for ${objectReference.mimeType} object: ${url}`
