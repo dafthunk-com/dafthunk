@@ -2,6 +2,8 @@
  * Utility functions for handling binary data in workflow nodes
  */
 
+import { API_BASE_URL } from "@/config/api";
+
 /**
  * Converts a Uint8Array to a base64 string
  * Used for displaying binary data like images in the UI
@@ -192,9 +194,10 @@ export const uploadBinaryData = async (
     formData.append("file", blob);
 
     // Upload to objects endpoint
-    const response = await fetch("/objects", {
+    const response = await fetch(`${API_BASE_URL}/objects`, {
       method: "POST",
       body: formData,
+      credentials: "include",
       headers: {
         // Don't set Content-Type here as the browser will set it correctly with the boundary
       },
