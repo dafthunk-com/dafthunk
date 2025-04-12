@@ -94,7 +94,10 @@ app.get("/auth/user", jwtAuthMiddleware, async (c) => {
 });
 
 app.get("/auth/logout", (c) => {
-  deleteCookie(c, JWT_SECRET_TOKEN_NAME);
+  deleteCookie(c, JWT_SECRET_TOKEN_NAME, {
+    domain: urlToTopLevelDomain(c.env.WEB_HOST),
+    path: "/",
+  });
   return c.redirect(c.env.WEB_HOST);
 });
 
