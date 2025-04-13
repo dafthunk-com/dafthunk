@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from "react";
 import { Handle, Position } from "reactflow";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { SliderWidget } from "./widgets/slider-widget";

@@ -4,7 +4,7 @@ import {
   getSmoothStepPath,
   ConnectionLineComponentProps,
 } from "reactflow";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { WorkflowEdgeData } from "./workflow-types";
 
 interface WorkflowEdgeProps extends EdgeProps<WorkflowEdgeData> {

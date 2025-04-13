@@ -6,7 +6,7 @@ import {
   uploadBinaryData,
   createObjectUrl,
   isObjectReference,
-} from "@/lib/utils/binaryUtils";
+} from "@/services/workflowObjectService";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference

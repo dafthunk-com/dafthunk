@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
-import { useAuth } from "@/lib/auth/authContext";
+import { useAuth } from "@/components/auth/authContext";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Tooltip,

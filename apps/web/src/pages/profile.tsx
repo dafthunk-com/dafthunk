@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAuth } from "@/lib/auth/authContext";
+import { useAuth } from "@/components/auth/authContext";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Crown, KeyRound, UserCog } from "lucide-react";
-import { getAvatarUrl, getInitials } from "@/lib/utils/userUtils";
+import { getAvatarUrl, getInitials } from "@/utils/userUtils";
 
 // Helper function to format provider name
 const formatProviderName = (provider: string) => {

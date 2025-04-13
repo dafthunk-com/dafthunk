@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "./authContext";
+import { useAuth } from "@/components/auth/authContext";
 import { Spinner } from "@/components/ui/spinner";
 
 interface ProtectedRouteProps {

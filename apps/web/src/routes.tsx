@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { HomePage } from "./pages/home";
 import { EditorPage, editorLoader } from "./pages/editor";
 import { ProfilePage } from "./pages/profile";
-import { ProtectedRoute } from "./lib/auth/protected-route";
+import { ProtectedRoute } from "./components/auth/protected-route";
 import { Layout } from "./components/layout";
 import { ErrorBoundary } from "./components/error-boundary";
 

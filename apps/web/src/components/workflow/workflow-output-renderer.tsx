@@ -1,4 +1,4 @@
-import { createObjectUrl, isObjectReference } from "@/lib/utils/binaryUtils";
+import { createObjectUrl, isObjectReference } from "@/services/workflowObjectService";
 import { WorkflowParameter } from "./workflow-types";
 import { useEffect, useRef, useState } from "react";
 

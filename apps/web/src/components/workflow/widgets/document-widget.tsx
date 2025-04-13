@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { File, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { uploadBinaryData, isObjectReference } from "@/lib/utils/binaryUtils";
+import { cn } from "@/utils/utils";
+import { uploadBinaryData, isObjectReference } from "@/services/workflowObjectService";
 
 export interface DocumentConfig {
   value: any; // Now stores an object reference

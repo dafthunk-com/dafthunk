@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { UserProfile } from "./user-profile";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 
 interface NavBarProps {
   className?: string;

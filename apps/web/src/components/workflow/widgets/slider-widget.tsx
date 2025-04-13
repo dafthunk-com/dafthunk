@@ -1,5 +1,5 @@
 import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { SliderWidgetProps } from "./types";
 
 export function SliderWidget({
