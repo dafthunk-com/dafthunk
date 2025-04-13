@@ -164,7 +164,7 @@ export function HomePage() {
             alt="Dafthunk – Short for Dope as F*** Thunk."
             className="h-32 mb-8"
           />
-          <h1 className="text-2xl font-bold">Workflows No One Asked For</h1>
+          <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
           <p className="text-gray-500 text-lg mt-2 mb-14">
             Break it, fix it, prompt it, automatic, automatic, ...
           </p>
@@ -208,20 +208,10 @@ export function HomePage() {
             className="h-32 mb-8"
           />
           <h1 className="text-2xl font-bold">
-            <Link
-              target="_blank"
-              to="https://www.youtube.com/watch?v=K0HSD_i2DvA"
-            >
-              Workflows No One Asked For
-            </Link>
+            Workflows no one asked for
           </h1>
           <p className="text-gray-500 text-lg mt-2 mb-14">
-            <Link
-              target="_blank"
-              to="https://www.youtube.com/watch?v=D8K90hX4PrE"
-            >
-              Break it, fix it, prompt it, automatic, automatic, ...
-            </Link>
+            Break it, fix it, prompt it, automatic, automatic, ...
           </p>
         </div>
       );
