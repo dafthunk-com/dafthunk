@@ -386,7 +386,6 @@ app.get("/types", jwtAuthMiddleware, (c) => {
 
 app.get("/workflows", jwtAuthMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
-
   const db = createDatabase(c.env.DB);
   const allWorkflows = await db
     .select({
