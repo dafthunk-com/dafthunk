@@ -1,4 +1,4 @@
-import { useAuth } from "@/components/auth/authContext";
+import { useAuth } from "@/components/authContext.tsx";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

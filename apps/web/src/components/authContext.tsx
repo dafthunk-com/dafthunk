@@ -7,7 +7,7 @@ import {
   useRef,
 } from "react";
 // User type now matches the JWT payload (includes avatarUrl, excludes provider IDs)
-import { authService, User } from "@/services/authService";
+import { authService, User } from "@/services/authService.ts";
 
 interface AuthContextType {
   user: User | null; // User reflects JWT payload

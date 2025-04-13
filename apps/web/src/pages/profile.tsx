@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAuth } from "@/components/auth/authContext";
+import { useAuth } from "@/components/authContext.tsx";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/spinner";
 import {
