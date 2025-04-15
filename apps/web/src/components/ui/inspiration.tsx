@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lightbulb, X } from "lucide-react";
+import { Music, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface InspirationVideoProps {
@@ -52,7 +52,7 @@ export function Inspiration({ className }: InspirationProps) {
           className="absolute bottom-6 left-6 z-50 rounded-full shadow-lg h-10 w-10 p-0 bg-amber-500 hover:bg-amber-600"
           title="Show Inspiration"
         >
-          <Lightbulb className="w-6 h-6" />
+          <Music className="w-6 h-6" />
         </Button>
       )}
 
