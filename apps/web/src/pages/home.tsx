@@ -207,9 +207,7 @@ export function HomePage() {
             alt="Dafthunk – Short for Dope as F*** Thunk."
             className="h-32 mb-8"
           />
-          <h1 className="text-2xl font-bold">
-            Workflows no one asked for
-          </h1>
+          <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
           <p className="text-gray-500 text-lg mt-2 mb-14">
             Break it, fix it, prompt it, automatic, automatic, ...
           </p>

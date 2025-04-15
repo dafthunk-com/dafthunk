@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Mic, Square, Trash2 } from "lucide-react";
-import { uploadBinaryData, createObjectUrl } from "@/services/workflowObjectService";
+import {
+  uploadBinaryData,
+  createObjectUrl,
+} from "@/services/workflowObjectService";
 import { isObjectReference } from "@/services/workflowObjectService";
 
 interface AudioRecorderConfig {

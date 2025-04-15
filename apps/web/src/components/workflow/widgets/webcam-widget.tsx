@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Camera, X } from "lucide-react";
-import { uploadBinaryData, createObjectUrl } from "@/services/workflowObjectService";
+import {
+  uploadBinaryData,
+  createObjectUrl,
+} from "@/services/workflowObjectService";
 
 interface WebcamConfig {
   value: any; // Stores an object reference with id and mimeType or null

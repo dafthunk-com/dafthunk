@@ -1,0 +1,3 @@
+# Ignore empty directories
+src/**/*
+!src/**/*.ts 

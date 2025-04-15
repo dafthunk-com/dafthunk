@@ -3,7 +3,10 @@ import { Label } from "@/components/ui/label";
 import { File, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
-import { uploadBinaryData, isObjectReference } from "@/services/workflowObjectService";
+import {
+  uploadBinaryData,
+  isObjectReference,
+} from "@/services/workflowObjectService";
 
 export interface DocumentConfig {
   value: any; // Now stores an object reference

@@ -21,7 +21,9 @@ export function WorkflowNodeSelector({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [activeElement, setActiveElement] = useState<"search" | "categories" | "nodes">("search");
+  const [activeElement, setActiveElement] = useState<
+    "search" | "categories" | "nodes"
+  >("search");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -64,7 +66,10 @@ export function WorkflowNodeSelector({
 
   // Update category button refs when categories change
   useEffect(() => {
-    categoryButtonsRef.current = categoryButtonsRef.current.slice(0, categories.length + 1); // +1 for "All" button
+    categoryButtonsRef.current = categoryButtonsRef.current.slice(
+      0,
+      categories.length + 1
+    ); // +1 for "All" button
   }, [categories]);
 
   // Handle keyboard navigation
@@ -90,7 +95,10 @@ export function WorkflowNodeSelector({
             nodeRefs.current[0]?.focus();
           }
         } else if (activeElement === "nodes") {
-          const nextIndex = focusedIndex < filteredTemplates.length - 1 ? focusedIndex + 1 : focusedIndex;
+          const nextIndex =
+            focusedIndex < filteredTemplates.length - 1
+              ? focusedIndex + 1
+              : focusedIndex;
           setFocusedIndex(nextIndex);
           nodeRefs.current[nextIndex]?.focus();
         }
@@ -132,7 +140,10 @@ export function WorkflowNodeSelector({
   };
 
   // Handle category button keydown
-  const handleCategoryKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+  const handleCategoryKeyDown = (
+    e: KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) => {
     if (e.key === "ArrowRight" && index < categories.length) {
       e.preventDefault();
       categoryButtonsRef.current[index + 1]?.focus();
@@ -159,7 +170,10 @@ export function WorkflowNodeSelector({
   };
 
   // Handle node keydown
-  const handleNodeKeyDown = (e: KeyboardEvent<HTMLDivElement>, index: number) => {
+  const handleNodeKeyDown = (
+    e: KeyboardEvent<HTMLDivElement>,
+    index: number
+  ) => {
     if (e.key === "ArrowDown" && index < filteredTemplates.length - 1) {
       e.preventDefault();
       const nextIndex = index + 1;
@@ -198,7 +212,7 @@ export function WorkflowNodeSelector({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-[600px] h-[80vh] flex flex-col p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
@@ -232,9 +246,7 @@ export function WorkflowNodeSelector({
                 }}
                 className={cn(
                   "border rounded-md px-3 py-1.5 text-sm transition-colors",
-                  selectedCategory === null
-                    ? "bg-accent"
-                    : "hover:bg-accent/50"
+                  selectedCategory === null ? "bg-accent" : "hover:bg-accent/50"
                 )}
                 onClick={() => setSelectedCategory(null)}
                 onKeyDown={(e) => handleCategoryKeyDown(e, 0)}
@@ -287,7 +299,9 @@ export function WorkflowNodeSelector({
                   setActiveElement("nodes");
                   setFocusedIndex(index);
                 }}
-                tabIndex={focusedIndex === index && activeElement === "nodes" ? 0 : -1}
+                tabIndex={
+                  focusedIndex === index && activeElement === "nodes" ? 0 : -1
+                }
                 onFocus={() => {
                   setActiveElement("nodes");
                   setFocusedIndex(index);
