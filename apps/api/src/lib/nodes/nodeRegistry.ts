@@ -8,9 +8,10 @@ import { NumberInputNode } from "./number/numberInputNode";
 import { SliderNode } from "./number/sliderNode";
 import { SquareRootNode } from "./number/squareRootNode";
 import { SubtractionNode } from "./number/subtractionNode";
-import { ExecutableNode, NodeType } from "./types";
+import { ExecutableNode } from "./types";
 import { Node } from "../runtime/types";
 import { StableDiffusionXLLightningNode } from "./image/stableDiffusionXLLightningNode";
+import { NodeType } from "../api/types";
 
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
@@ -60,7 +61,7 @@ export class NodeRegistry {
     return new Implementation(node);
   }
 
-  public getNodeTypes(): NodeType[] {
+  public getApiNodeTypes(): NodeType[] {
     return Array.from(this.implementations.values()).map(
       (implementation) => implementation.nodeType
     );

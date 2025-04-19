@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../../runtime/types";
-import { NodeType } from "../types";
+import { NodeType } from "../../api/types";
 
 /**
  * Absolute Value node implementation
