@@ -18,6 +18,7 @@ import { Node as ApiNode, Edge as ApiEdge } from "./lib/api/types";
 import { NodeRegistry } from "./lib/nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
+import { createEvent } from "./lib/sse";
 
 export { ExecuteWorkflow } from "./workflows/execute";
 import { ExecuteWorkflowParams } from "./workflows/execute";
@@ -570,14 +571,9 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
     .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
   if (!workflow) {
-    return new Response(JSON.stringify({ error: "Workflow not found" }), {
-      status: 404,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    return c.json({ error: "Workflow not found" }, 404);
   }
+
   const workflowData = workflow.data as {
     nodes: ApiNode[];
     edges: ApiEdge[];
@@ -585,174 +581,181 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
 
   // Check if user is on free plan and workflow contains AI nodes
   if (user.plan === "free") {
-    const aiNodeTypes = new Set(
-      workflowData.nodes
-        .filter((node) => node.type === "AI")
-        .map((node) => node.id)
-    );
-
-    const hasAINodes = workflowData.nodes.some((node) =>
-      aiNodeTypes.has(node.type)
+    const hasAINodes = workflowData.nodes.some(
+      (node) =>
+        node.type === "AI Text to Image" ||
+        node.type === "AI Chat Completion" ||
+        node.type === "AI Vision"
     );
 
     if (hasAINodes) {
-      return new Response(
-        JSON.stringify({
+      return c.json(
+        {
           error:
             "AI nodes are not available in the free plan. Please upgrade to use AI features.",
-        }),
-        {
-          status: 403,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
+        },
+        403
       );
     }
   }
 
-  let instance = await c.env.EXECUTE.create({
-    params: {
-      workflow: {
-        id: workflow.id,
-        name: workflow.name,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
+  let instance: Awaited<ReturnType<typeof c.env.EXECUTE.create>>;
+  try {
+    instance = await c.env.EXECUTE.create({
+      params: {
+        workflow: {
+          id: workflow.id,
+          name: workflow.name,
+          nodes: workflowData.nodes,
+          edges: workflowData.edges,
+        },
       },
+    });
+  } catch (error) {
+    console.error("Error creating workflow instance:", error);
+    return c.json({ error: "Failed to start workflow execution" }, 500);
+  }
+
+  let intervalId: ReturnType<typeof setInterval> | null = null;
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const sentNodeEvents = new Set<string>();
+      const pollInterval = 1000;
+
+      const pollStatus = async () => {
+        try {
+          const status = await instance.status();
+
+          if (status.output) {
+            const output = status.output as any;
+            if (output.executedNodes) {
+              for (const nodeId of output.executedNodes) {
+                if (!sentNodeEvents.has(nodeId)) {
+                  if (output.nodeOutputs && output.nodeOutputs[nodeId]) {
+                    controller.enqueue(
+                      createEvent({
+                        type: "node-complete",
+                        nodeId,
+                        data: { outputs: output.nodeOutputs[nodeId] },
+                        timestamp: Date.now(),
+                      })
+                    );
+                    sentNodeEvents.add(nodeId);
+                  }
+                }
+              }
+            }
+            if (output.errors) {
+              for (const nodeId in output.errors) {
+                if (!sentNodeEvents.has(nodeId)) {
+                  controller.enqueue(
+                    createEvent({
+                      type: "node-error",
+                      nodeId,
+                      error: output.errors[nodeId],
+                      timestamp: Date.now(),
+                    })
+                  );
+                  sentNodeEvents.add(nodeId);
+                }
+              }
+            }
+          }
+
+          if (
+            status.status === "complete" ||
+            status.status === "errored" ||
+            status.status === "terminated"
+          ) {
+            if (intervalId) clearInterval(intervalId);
+
+            if (status.status === "complete") {
+              controller.enqueue(
+                createEvent({
+                  type: "execution-complete",
+                  timestamp: Date.now(),
+                })
+              );
+            } else {
+              controller.enqueue(
+                createEvent({
+                  type: "execution-error",
+                  error:
+                    status.error ||
+                    (status.status === "terminated"
+                      ? "Workflow terminated by user"
+                      : "Unknown execution error"),
+                  timestamp: Date.now(),
+                })
+              );
+            }
+            controller.close();
+
+            // Dispose the instance stub
+            instance.terminate();
+          } else if (
+            status.status === "queued" ||
+            status.status === "running" ||
+            status.status === "paused" ||
+            status.status === "waiting" ||
+            status.status === "waitingForPause"
+          ) {
+          } else {
+            console.warn("Unknown workflow instance status:", status.status);
+            if (intervalId) clearInterval(intervalId);
+            controller.enqueue(
+              createEvent({
+                type: "execution-error",
+                error: `Unknown workflow state: ${status.status}`,
+                timestamp: Date.now(),
+              })
+            );
+            controller.close();
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+          if (intervalId) clearInterval(intervalId);
+          try {
+            controller.enqueue(
+              createEvent({
+                type: "execution-error",
+                error:
+                  error instanceof Error ? error.message : "Polling failed",
+                timestamp: Date.now(),
+              })
+            );
+            controller.close();
+          } catch (e) {}
+        }
+      };
+
+      // Start polling
+      intervalId = setInterval(pollStatus, pollInterval);
+
+      // Initial poll right away
+      await pollStatus();
+    },
+    cancel(reason) {
+      console.log("Stream cancelled:", reason);
+      // Cleanup polling interval when the stream is cancelled
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null; // Prevent further calls
+        console.log("Polling stopped due to stream cancellation.");
+        // Dispose the instance
+        instance.terminate();
+      }
     },
   });
 
-  return c.json({
-    id: instance.id,
+  return c.body(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
   });
-
-  // // Create a TransformStream for SSE with Uint8Array chunks
-  // const { readable, writable } = new TransformStream<Uint8Array>();
-  // const writer = writable.getWriter();
-
-  // // Create an AbortController to handle client disconnections
-  // const abortController = new AbortController();
-  // const { signal } = abortController;
-
-  // // Safe write function to detect client disconnections
-  // async function safeWrite(data: Uint8Array): Promise<void> {
-  //   try {
-  //     await writer.write(data);
-  //   } catch (error) {
-  //     console.error("Client disconnected:", error);
-  //     abortController.abort();
-  //     try {
-  //       await writer.close();
-  //     } catch (e) {
-  //       // Ignore errors on close after disconnection
-  //     }
-  //   }
-  // }
-
-  // // Create execution options that emit SSE events
-  // const executionOptions: WorkflowExecutionOptions = {
-  //   onNodeStart: (nodeId) => {
-  //     if (signal.aborted) return;
-  //     safeWrite(
-  //       createEvent({
-  //         type: "node-start",
-  //         nodeId,
-  //         timestamp: Date.now(),
-  //       })
-  //     );
-  //   },
-  //   onNodeComplete: (nodeId, outputs) => {
-  //     if (signal.aborted) return;
-  //     safeWrite(
-  //       createEvent({
-  //         type: "node-complete",
-  //         nodeId,
-  //         data: { outputs },
-  //         timestamp: Date.now(),
-  //       })
-  //     );
-  //   },
-  //   onNodeError: (nodeId, error) => {
-  //     if (signal.aborted) return;
-  //     safeWrite(
-  //       createEvent({
-  //         type: "node-error",
-  //         nodeId,
-  //         error,
-  //         timestamp: Date.now(),
-  //       })
-  //     );
-  //   },
-  //   onExecutionComplete: async () => {
-  //     if (signal.aborted) return;
-  //     try {
-  //       await safeWrite(
-  //         createEvent({
-  //           type: "execution-complete",
-  //           timestamp: Date.now(),
-  //         })
-  //       );
-  //       await writer.close();
-  //     } catch (error) {
-  //       console.log("Error closing writer on execution complete:", error);
-  //     }
-  //   },
-  //   onExecutionError: async (error) => {
-  //     if (signal.aborted) return;
-  //     try {
-  //       await safeWrite(
-  //         createEvent({
-  //           type: "execution-error",
-  //           error,
-  //           timestamp: Date.now(),
-  //         })
-  //       );
-  //       await writer.close();
-  //     } catch (e) {
-  //       console.log("Error closing writer on execution error:", e);
-  //     }
-  //   },
-  //   abortSignal: signal, // Pass the abort signal to the runtime
-  // };
-
-  // // Create and execute the workflow runtime
-  // const objectStore = new ObjectStore(c.env.BUCKET as any);
-
-  // const runtime = new Runtime(
-  //   workflowGraph,
-  //   executionOptions,
-  //   c.env,
-  //   objectStore
-  // );
-
-  // // Execute the workflow in the background
-  // runtime.execute().catch(async (error) => {
-  //   console.error("Runtime execution error:", error);
-  //   // The error will be handled by the onExecutionError callback
-  //   if (!signal.aborted) {
-  //     try {
-  //       await safeWrite(
-  //         createEvent({
-  //           type: "execution-error",
-  //           error: error instanceof Error ? error.message : "Unknown error",
-  //           timestamp: Date.now(),
-  //         })
-  //       );
-  //       await writer.close();
-  //     } catch (e) {
-  //       // Ignore errors on close after error
-  //     }
-  //   }
-  // });
-
-  // return c.body(readable, {
-  //   headers: {
-  //     "Content-Type": "text/event-stream",
-  //     "Cache-Control": "no-cache",
-  //     Connection: "keep-alive",
-  //   },
-  // });
 });
 
 export default {
