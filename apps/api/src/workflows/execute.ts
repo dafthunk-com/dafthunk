@@ -14,11 +14,14 @@ import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
 import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
 import { ObjectStore } from "../lib/runtime/store";
 
-type Params = {
+export type ExecuteWorkflowParams = {
   workflow: ApiWorkflow;
 };
 
-export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
+export class ExecuteWorkflow extends WorkflowEntrypoint<
+  Env,
+  ExecuteWorkflowParams
+> {
   private static readonly defaultConfig: WorkflowStepConfig = {
     retries: {
       limit: 0,
@@ -28,7 +31,7 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
     timeout: "10 minutes",
   };
 
-  async run(event: WorkflowEvent<Params>, step: WorkflowStep) {
+  async run(event: WorkflowEvent<ExecuteWorkflowParams>, step: WorkflowStep) {
     try {
       // Step 1: Validate the workflow and initialize data
       const initState = await step.do(
@@ -56,8 +59,6 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
           async () => this.executeNode(state, nodeId)
         );
       }
-
-      console.log(state.nodeOutputs);
 
       return {
         workflowId: state.workflow.id,

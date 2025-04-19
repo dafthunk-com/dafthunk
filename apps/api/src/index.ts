@@ -14,16 +14,17 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./lib/runtime/store";
-import { Edge, Node } from "./lib/api/types";
+import { Node as ApiNode, Edge as ApiEdge } from "./lib/api/types";
 import { NodeRegistry } from "./lib/nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
 
 export { ExecuteWorkflow } from "./workflows/execute";
+import { ExecuteWorkflowParams } from "./workflows/execute";
 
 export interface Env {
   DB: D1Database;
-  EXECUTE: Workflow;
+  EXECUTE: Workflow<ExecuteWorkflowParams>;
   BUCKET: R2Bucket;
   AI: Ai;
 
@@ -438,7 +439,7 @@ app.get("/workflows/:id", jwtAuthMiddleware, async (c) => {
     return c.text("Workflow not found", 404);
   }
 
-  const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
+  const workflowData = workflow.data as { nodes: ApiNode[]; edges: ApiEdge[] };
 
   return c.json({
     id: workflow.id,
@@ -517,8 +518,8 @@ app.put("/workflows/:id", jwtAuthMiddleware, async (c) => {
     .returning();
 
   const workflowData = updatedWorkflow.data as {
-    nodes: Node[];
-    edges: Edge[];
+    nodes: ApiNode[];
+    edges: ApiEdge[];
   };
 
   return c.json({
@@ -577,46 +578,54 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
       },
     });
   }
+  const workflowData = workflow.data as {
+    nodes: ApiNode[];
+    edges: ApiEdge[];
+  };
+
+  // Check if user is on free plan and workflow contains AI nodes
+  if (user.plan === "free") {
+    const aiNodeTypes = new Set(
+      workflowData.nodes
+        .filter((node) => node.type === "AI")
+        .map((node) => node.id)
+    );
+
+    const hasAINodes = workflowData.nodes.some((node) =>
+      aiNodeTypes.has(node.type)
+    );
+
+    if (hasAINodes) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "AI nodes are not available in the free plan. Please upgrade to use AI features.",
+        }),
+        {
+          status: 403,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
+    }
+  }
 
   let instance = await c.env.EXECUTE.create({
-    params: workflow.data,
+    params: {
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      },
+    },
   });
 
   return c.json({
     id: instance.id,
   });
-
-  // // Check if user is on free plan and workflow contains AI nodes
-  // if (user.plan === "free") {
-  //   const registry = NodeRegistry.getInstance();
-  //   const nodeTypes = parameterRegistry.convertNodeTypes(
-  //     registry.getNodeTypes()
-  //   );
-
-  //   const aiNodeTypes = new Set(
-  //     nodeTypes.filter((type) => type.category === "AI").map((type) => type.id)
-  //   );
-
-  //   const hasAINodes = workflowGraph.nodes.some((node) =>
-  //     aiNodeTypes.has(node.type)
-  //   );
-
-  //   if (hasAINodes) {
-  //     return new Response(
-  //       JSON.stringify({
-  //         error:
-  //           "AI nodes are not available in the free plan. Please upgrade to use AI features.",
-  //       }),
-  //       {
-  //         status: 403,
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           "Access-Control-Allow-Origin": "*",
-  //         },
-  //       }
-  //     );
-  //   }
-  // }
 
   // // Create a TransformStream for SSE with Uint8Array chunks
   // const { readable, writable } = new TransformStream<Uint8Array>();
