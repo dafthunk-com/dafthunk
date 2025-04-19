@@ -17,7 +17,6 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250404.0",
-    "@dafthunk/runtime": "workspace:*",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.14.0",
     "eslint": "^9.19.0",

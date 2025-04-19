@@ -6,7 +6,7 @@
   "preinstall": "npx only-allow pnpm",
   "scripts": {
     "dev": "pnpm --parallel dev",
-    "format": "pnpm --parallel --filter=!./packages format",
+    "format": "pnpm --parallel format",
     "lint": "pnpm --parallel lint",
     "test": "pnpm --parallel test",
     "build": "pnpm --parallel --filter '@dafthunk/web' build",

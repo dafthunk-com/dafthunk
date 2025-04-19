@@ -13,8 +13,8 @@ import {
 } from "./lib/auth";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
-import { ObjectReference} from "./lib/runtime/store";
-import { Edge, Node} from "./lib/api/types";
+import { ObjectReference } from "./lib/runtime/store";
+import { Edge, Node } from "./lib/api/types";
 import { NodeRegistry } from "./lib/nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
@@ -559,36 +559,32 @@ app.delete("/workflows/:id", jwtAuthMiddleware, async (c) => {
 });
 
 app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
-  throw new Error("Not implemented");
-  // const user = c.get("jwtPayload") as CustomJWTPayload;
-  // const id = c.req.param("id");
-  // const db = createDatabase(c.env.DB);
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const id = c.req.param("id");
+  const db = createDatabase(c.env.DB);
 
-  // const [workflow] = await db
-  //   .select()
-  //   .from(workflows)
-  //   .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
+  const [workflow] = await db
+    .select()
+    .from(workflows)
+    .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
-  // if (!workflow) {
-  //   return new Response(JSON.stringify({ error: "Workflow not found" }), {
-  //     status: 404,
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       "Access-Control-Allow-Origin": "*",
-  //     },
-  //   });
-  // }
+  if (!workflow) {
+    return new Response(JSON.stringify({ error: "Workflow not found" }), {
+      status: 404,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }
 
-  // const parameterRegistry = ParameterRegistry.getInstance();
-  // const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
-  // const workflowGraph: RuntimeWorkflow = {
-  //   id: workflow.id,
-  //   name: workflow.name,
-  //   nodes: workflowData.nodes
-  //     ? parameterRegistry.convertApiNodes(workflowData.nodes)
-  //     : [],
-  //   edges: workflowData.edges || [],
-  // };
+  let instance = await c.env.EXECUTE.create({
+    params: workflow.data,
+  });
+
+  return c.json({
+    id: instance.id,
+  });
 
   // // Check if user is on free plan and workflow contains AI nodes
   // if (user.plan === "free") {

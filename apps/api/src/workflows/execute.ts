@@ -6,15 +6,16 @@ import {
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 import { Env } from "../index";
-import { Workflow as RuntimeWorkflow, NodeContext } from "../lib/runtime/types";
+import { Workflow as ApiWorkflow } from "../lib/api/types";
 import { validateWorkflow } from "../lib/runtime/validation";
 import { NodeRegistry } from "../lib/nodes/nodeRegistry";
+import { NodeContext } from "../lib/nodes/types";
 import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
 import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
 import { ObjectStore } from "../lib/runtime/store";
 
 type Params = {
-  workflow: RuntimeWorkflow;
+  workflow: ApiWorkflow;
 };
 
 export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
@@ -56,6 +57,8 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
         );
       }
 
+      console.log(state.nodeOutputs);
+
       return {
         workflowId: state.workflow.id,
         nodeOutputs: Object.fromEntries(state.nodeOutputs),
@@ -75,7 +78,7 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
     }
   }
 
-  private async validateWorkflow(workflow: RuntimeWorkflow) {
+  private async validateWorkflow(workflow: ApiWorkflow) {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new Error(
@@ -169,7 +172,7 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<Env, Params> {
    * Creates a topological sorting of nodes (execution order)
    * Nodes with no dependencies come first, then nodes whose dependencies are satisfied
    */
-  private topologicalSort(workflow: RuntimeWorkflow): string[] {
+  private topologicalSort(workflow: ApiWorkflow): string[] {
     const sorted: string[] = [];
     const visited: Set<string> = new Set();
     const temporary: Set<string> = new Set();
