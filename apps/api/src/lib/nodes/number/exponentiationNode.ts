@@ -1,5 +1,5 @@
 import { ExecutableNode } from "../types";
-import { NodeContext, ExecutionResult } from "../../runtime/types";
+import { NodeContext, ExecutionResult } from "../types";
 import { NodeType } from "../../api/types";
 
 /**

@@ -1,5 +1,5 @@
 // Types for workflows
-import { Node, NodeType, ExecutionResult } from "../api/types";
+import { Node, NodeType } from "../api/types";
 
 export type ParameterType =
   | {
@@ -20,6 +20,14 @@ export type ParameterType =
         data: Uint8Array;
         mimeType: string;
       };
+    }
+  | {
+      type: "array";
+      value?: Array<any>;
+    }
+  | {
+      type: "json";
+      value?: Record<string, any>;
     };
 
 export type ParameterValue = ParameterType["value"];
@@ -39,6 +47,13 @@ export interface NodeContext {
   env: {
     AI: Ai;
   };
+}
+
+export interface ExecutionResult {
+  nodeId: string;
+  success: boolean;
+  error?: string;
+  outputs?: Record<string, ParameterValue>;
 }
 
 /**

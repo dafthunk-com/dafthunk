@@ -1,5 +1,4 @@
 // Types for workflows
-import { ParameterValue as NodeParameterValue } from "../nodes/types";
 import { ObjectReference } from "../runtime/store";
 
 export type ParameterType =
@@ -18,18 +17,32 @@ export type ParameterType =
   | {
       type: "image";
       value?: ObjectReference;
+    }
+  | {
+      type: "array";
+      value?: Array<any>;
+    }
+  | {
+      type: "json";
+      value?: Record<string, any>;
     };
 
 export type ParameterValue = ParameterType["value"];
 
 export type Parameter = {
   name: string;
+  description?: string;
+  hidden?: boolean;
   required?: boolean;
 } & ParameterType;
 
 export interface NodeType {
   id: string;
+  name: string;
   type: string;
+  description?: string;
+  category: string;
+  icon: string;
   inputs: Parameter[];
   outputs: Parameter[];
 }
@@ -79,13 +92,6 @@ export interface ExecutionEvent {
   nodeId: string;
   timestamp: number;
   error?: string;
-}
-
-export interface ExecutionResult {
-  nodeId: string;
-  success: boolean;
-  error?: string;
-  outputs?: Record<string, NodeParameterValue>;
 }
 
 export interface WorkflowExecutionOptions {
