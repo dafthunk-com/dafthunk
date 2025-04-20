@@ -1,6 +1,5 @@
 import { NodeContext, ExecutionResult } from "../types";
 import { ExecutableNode } from "../types";
-import { ArrayValue, StringValue, NumberValue, AudioValue } from "../types";
 import { NodeType } from "../../api/types";
 
 /**
@@ -10,6 +9,7 @@ export class WhisperTinyEnNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "speech-recognition-tiny-en",
     name: "Speech Recognition (Tiny English)",
+    type: "speech-recognition-tiny-en",
     description:
       "Transcribes English speech from audio files using OpenAI's Whisper Tiny English model - optimized for English speech recognition",
     category: "Audio",
@@ -17,7 +17,7 @@ export class WhisperTinyEnNode extends ExecutableNode {
     inputs: [
       {
         name: "audio",
-        type: AudioValue,
+        type: "audio",
         description: "The audio file to transcribe",
         required: true,
       },
@@ -25,24 +25,24 @@ export class WhisperTinyEnNode extends ExecutableNode {
     outputs: [
       {
         name: "text",
-        type: StringValue,
+        type: "string",
         description: "The transcribed text",
       },
       {
         name: "word_count",
-        type: NumberValue,
+        type: "number",
         description: "The number of words in the transcription",
         hidden: true,
       },
       {
         name: "words",
-        type: ArrayValue,
+        type: "array",
         description: "Detailed word timing information",
         hidden: true,
       },
       {
         name: "vtt",
-        type: StringValue,
+        type: "string",
         description: "WebVTT format of the transcription",
         hidden: true,
       },
@@ -71,10 +71,10 @@ export class WhisperTinyEnNode extends ExecutableNode {
       };
 
       return this.createSuccessResult({
-        text: new StringValue(output.text),
-        word_count: new NumberValue(output.word_count),
-        words: new ArrayValue(output.words),
-        vtt: new StringValue(output.vtt),
+        text: output.text,
+        word_count: output.word_count,
+        words: output.words,
+        vtt: output.vtt,
       });
     } catch (error) {
       return this.createErrorResult(

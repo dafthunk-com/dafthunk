@@ -701,6 +701,7 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
             status.status === "waiting" ||
             status.status === "waitingForPause"
           ) {
+            // Do nothing
           } else {
             console.warn("Unknown workflow instance status:", status.status);
             if (intervalId) clearInterval(intervalId);
@@ -726,7 +727,9 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
               })
             );
             controller.close();
-          } catch (e) {}
+          } catch (_) {
+            // Ignore
+          }
         }
       };
 

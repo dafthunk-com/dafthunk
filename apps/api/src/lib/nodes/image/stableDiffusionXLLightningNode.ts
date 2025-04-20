@@ -1,6 +1,5 @@
 import { NodeContext, ExecutionResult } from "../types";
 import { ExecutableNode } from "../types";
-import { ImageValue, NumberValue, StringValue } from "../types";
 import { NodeType } from "../../api/types";
 
 /**
@@ -10,6 +9,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-lightning",
     name: "Stable Diffusion XL Lightning",
+    type: "stable-diffusion-xl-lightning",
     description:
       "Generates images from text descriptions using Stable Diffusion XL Lightning",
     category: "Image",
@@ -17,50 +17,50 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
     inputs: [
       {
         name: "prompt",
-        type: StringValue,
+        type: "string",
         description: "A text description of the image you want to generate",
         required: true,
       },
       {
         name: "negative_prompt",
-        type: StringValue,
+        type: "string",
         description: "Text describing elements to avoid in the generated image",
         hidden: true,
       },
       {
         name: "height",
-        type: NumberValue,
+        type: "number",
         description: "The height of the generated image in pixels (256-2048)",
-        value: new NumberValue(1024),
+        value: 1024,
         hidden: true,
       },
       {
         name: "width",
-        type: NumberValue,
+        type: "number",
         description: "The width of the generated image in pixels (256-2048)",
-        value: new NumberValue(1024),
+        value: 1024,
         hidden: true,
       },
       {
         name: "num_steps",
-        type: NumberValue,
+        type: "number",
         description: "The number of diffusion steps (1-20)",
-        value: new NumberValue(20),
+        value: 20,
         hidden: true,
       },
       {
         name: "guidance",
-        type: NumberValue,
+        type: "number",
         description:
           "Controls how closely the generated image should adhere to the prompt",
-        value: new NumberValue(7.5),
+        value: 7.5,
         hidden: true,
       },
     ],
     outputs: [
       {
         name: "image",
-        type: ImageValue,
+        type: "image",
         description: "The generated image in JPEG format",
       },
     ],
@@ -114,10 +114,10 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
 
       // Return the image data and MIME type - the runtime will handle storage
       return this.createSuccessResult({
-        image: new ImageValue({
+        image: {
           data: uint8Array,
           mimeType: "image/jpeg",
-        }),
+        },
       });
     } catch (error) {
       return this.createErrorResult(

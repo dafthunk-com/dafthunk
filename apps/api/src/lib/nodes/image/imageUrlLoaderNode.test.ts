@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ImageUrlLoaderNode } from "./imageUrlLoaderNode";
-import { Node } from "../../runtime/types";
-import {
-  StringValue as StringRuntimeParameter,
-  ImageValue as ImageRuntimeParameter,
-} from "../../runtime/types";
-import { ImageValue as ImageNodeParameter } from "../types";
+import { Node } from "../../api/types";
+import { NodeContext } from "../types";
 // Mock global fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -15,23 +11,38 @@ describe("ImageUrlLoaderNode", () => {
     id: "test-id",
     name: "Test Image URL Loader",
     type: "image-url-loader",
-    position: { x: 0, y: 0 },
     inputs: [
       {
         name: "url",
-        type: StringRuntimeParameter,
+        type: "string",
         description: "The URL of the PNG image to load",
         required: true,
       },
     ],
     outputs: [
       {
-        name: "imageData",
-        type: ImageRuntimeParameter,
+        name: "image",
+        type: "image",
         description: "The image data as a binary array",
       },
     ],
   };
+
+  const mockContext = (inputs: Record<string, any>): NodeContext => ({
+    nodeId: "test-id",
+    workflowId: "test-workflow",
+    inputs,
+    env: {
+      AI: {
+        run: vi.fn(),
+        toMarkdown: vi.fn(),
+        aiGatewayLogId: "test-log-id",
+        gateway: vi.fn().mockReturnValue({}),
+        autorag: vi.fn().mockReturnValue({}),
+        models: vi.fn().mockResolvedValue([]),
+      },
+    },
+  });
 
   beforeEach(() => {
     mockFetch.mockReset();
@@ -39,11 +50,7 @@ describe("ImageUrlLoaderNode", () => {
 
   it("should return error if URL is not provided", async () => {
     const node = new ImageUrlLoaderNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {},
-    });
+    const result = await node.execute(mockContext({}));
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("URL is required and must be a string");
@@ -51,13 +58,7 @@ describe("ImageUrlLoaderNode", () => {
 
   it("should return error if URL is invalid", async () => {
     const node = new ImageUrlLoaderNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {
-        url: "not-a-valid-url",
-      },
-    });
+    const result = await node.execute(mockContext({ url: "not-a-valid-url" }));
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Invalid URL format");
@@ -67,13 +68,9 @@ describe("ImageUrlLoaderNode", () => {
     mockFetch.mockRejectedValue(new Error("Network error"));
 
     const node = new ImageUrlLoaderNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {
-        url: "https://example.com/image.png",
-      },
-    });
+    const result = await node.execute(
+      mockContext({ url: "https://example.com/image.png" })
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Error fetching image: Network error");
@@ -87,13 +84,9 @@ describe("ImageUrlLoaderNode", () => {
     });
 
     const node = new ImageUrlLoaderNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {
-        url: "https://example.com/image.png",
-      },
-    });
+    const result = await node.execute(
+      mockContext({ url: "https://example.com/image.png" })
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("Failed to fetch image: 404 Not Found");
@@ -108,13 +101,9 @@ describe("ImageUrlLoaderNode", () => {
     });
 
     const node = new ImageUrlLoaderNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {
-        url: "https://example.com/image.png",
-      },
-    });
+    const result = await node.execute(
+      mockContext({ url: "https://example.com/image.png" })
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe(
@@ -136,17 +125,12 @@ describe("ImageUrlLoaderNode", () => {
     });
 
     const node = new ImageUrlLoaderNode(mockNode);
-    const result = await node.execute({
-      nodeId: "test-id",
-      workflowId: "test-workflow",
-      inputs: {
-        url: "https://example.com/image.png",
-      },
-    });
+    const result = await node.execute(
+      mockContext({ url: "https://example.com/image.png" })
+    );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.image).toBeInstanceOf(ImageNodeParameter);
-    expect(result.outputs?.image.getValue()).toEqual({
+    expect(result.outputs?.image).toEqual({
       data: expect.any(Uint8Array),
       mimeType: "image/png",
     });

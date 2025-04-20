@@ -11,36 +11,36 @@ export class AudioRecorderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "audio-recorder",
     name: "Audio Recorder",
+    type: "audio-recorder",
     description: "A widget for recording audio from the microphone",
     category: "Audio",
     icon: "mic",
     inputs: [
       {
         name: "value",
-        type: AudioValue,
+        type: "audio",
         description: "Current audio recording as a reference",
         hidden: true,
-        value: new AudioValue(null),
       },
       {
         name: "sampleRate",
-        type: NumberValue,
+        type: "number",
         description: "Audio sample rate in Hz",
         hidden: true,
-        value: new NumberValue(44100),
+        value: 44100,
       },
       {
         name: "channels",
-        type: NumberValue,
+        type: "number",
         description: "Number of audio channels",
         hidden: true,
-        value: new NumberValue(1),
+        value: 1,
       },
     ],
     outputs: [
       {
         name: "audio",
-        type: AudioValue,
+        type: "audio",
         description: "The recorded audio as a reference",
       },
     ],
@@ -55,28 +55,9 @@ export class AudioRecorderNode extends ExecutableNode {
         return this.createErrorResult("No audio data provided");
       }
 
-      // If value is already an AudioValue, check if it contains data
-      if (value instanceof AudioValue) {
-        if (!value.getValue()) {
-          return this.createErrorResult("Audio value is empty");
-        }
-        return this.createSuccessResult({
-          audio: value,
-        });
-      }
-
-      // Handle raw input values
-      if (typeof value === "object") {
-        // Convert raw object to AudioValue
-        return this.createSuccessResult({
-          audio: new AudioValue(value),
-        });
-      }
-
-      // If we get here, the input is invalid
-      return this.createErrorResult(
-        "Invalid input: expected an audio value object"
-      );
+      return this.createSuccessResult({
+        audio: value,
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

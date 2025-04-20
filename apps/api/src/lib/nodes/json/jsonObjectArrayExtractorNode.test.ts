@@ -1,22 +1,33 @@
 import { describe, it, expect } from "vitest";
+import { Node } from "../../api/types";
 import { JsonObjectArrayExtractorNode } from "./jsonObjectArrayExtractorNode";
-import { Node } from "../../runtime/types";
+import { NodeContext } from "../types";
+import { vi } from "vitest";
 
 describe("JsonJsonExtractorNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({
     id: "test-node",
     type: "jsonJsonExtractor",
     name: "Test Node",
-    position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
     ...inputs,
   });
 
-  const createContext = (inputs: Record<string, any> = {}) => ({
+  const createContext = (inputs: Record<string, any> = {}): NodeContext => ({
     nodeId: "test-node",
     workflowId: "test-workflow",
     inputs,
+    env: {
+      AI: {
+        run: vi.fn(),
+        toMarkdown: vi.fn(),
+        aiGatewayLogId: "test-log-id",
+        gateway: vi.fn().mockReturnValue({}),
+        autorag: vi.fn().mockReturnValue({}),
+        models: vi.fn().mockResolvedValue([]),
+      },
+    },
   });
 
   it("should extract a JSON object from a simple path", async () => {
@@ -29,8 +40,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual({ name: "John", age: 30 });
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toEqual({ name: "John", age: 30 });
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should extract a nested JSON object", async () => {
@@ -43,8 +54,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual({ theme: "dark" });
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toEqual({ theme: "dark" });
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should extract an array", async () => {
@@ -57,8 +68,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual([1, 2, 3]);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toEqual([1, 2, 3]);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -73,8 +84,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual(defaultValue);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toEqual(defaultValue);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should return default value when value is not a JSON object or array", async () => {
@@ -88,8 +99,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual({ empty: true });
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toEqual({ empty: true });
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -102,8 +113,8 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual({ role: "admin" });
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toEqual({ role: "admin" });
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should fail with invalid JSON input", async () => {
@@ -142,7 +153,7 @@ describe("JsonJsonExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toEqual({});
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toEqual({});
+    expect(result.outputs?.found).toBe(false);
   });
 });

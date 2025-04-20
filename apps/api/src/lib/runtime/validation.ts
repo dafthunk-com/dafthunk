@@ -1,4 +1,4 @@
-import { Workflow, ValidationError } from "./types";
+import { Workflow, ValidationError, Parameter, Edge } from "../api/types";
 
 /**
  * Checks if there are any cycles in the workflow using DFS
@@ -12,7 +12,7 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
     recursionStack.add(nodeId);
 
     const outgoingConnections = workflow.edges.filter(
-      (conn) => conn.source === nodeId
+      (conn: Edge) => conn.source === nodeId
     );
     for (const connection of outgoingConnections) {
       if (!visited.has(connection.target)) {
@@ -65,10 +65,10 @@ export function validateTypeCompatibility(
     }
 
     const sourceParam = sourceNode.outputs.find(
-      (o) => o.name === connection.sourceOutput
+      (o: Parameter) => o.name === connection.sourceOutput
     );
     const targetParam = targetNode.inputs.find(
-      (i) => i.name === connection.targetInput
+      (i: Parameter) => i.name === connection.targetInput
     );
 
     if (!sourceParam || !targetParam) {

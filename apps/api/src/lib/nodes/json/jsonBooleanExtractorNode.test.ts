@@ -1,22 +1,33 @@
 import { describe, it, expect } from "vitest";
+import { Node } from "../../api/types";
 import { JsonBooleanExtractorNode } from "./jsonBooleanExtractorNode";
-import { Node } from "../../runtime/types";
+import { NodeContext } from "../types";
+import { vi } from "vitest";
 
 describe("JsonBooleanExtractorNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({
     id: "test-node",
     type: "jsonBooleanExtractor",
     name: "Test Node",
-    position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
     ...inputs,
   });
 
-  const createContext = (inputs: Record<string, any> = {}) => ({
+  const createContext = (inputs: Record<string, any> = {}): NodeContext => ({
     nodeId: "test-node",
     workflowId: "test-workflow",
     inputs,
+    env: {
+      AI: {
+        run: vi.fn(),
+        toMarkdown: vi.fn(),
+        aiGatewayLogId: "test-log-id",
+        gateway: vi.fn().mockReturnValue({}),
+        autorag: vi.fn().mockReturnValue({}),
+        models: vi.fn().mockResolvedValue([]),
+      },
+    },
   });
 
   it("should extract a boolean value from a simple path", async () => {
@@ -29,8 +40,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(true);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should extract a nested boolean value", async () => {
@@ -43,8 +54,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(false);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -58,8 +69,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(true);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should return default value when value is not a boolean", async () => {
@@ -73,8 +84,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(false);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -87,8 +98,8 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(true);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should fail with invalid JSON input", async () => {
@@ -127,7 +138,7 @@ describe("JsonBooleanExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(false);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.found).toBe(false);
   });
 });

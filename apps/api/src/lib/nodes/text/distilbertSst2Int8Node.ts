@@ -1,7 +1,7 @@
 import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../types";
 import { NodeType } from "../../api/types";
-import { NumberValue, StringValue } from "../types";
+
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
  */
@@ -9,6 +9,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "distilbert-sst-2-int8",
     name: "Distilbert SST-2 Int8",
+    type: "distilbert-sst-2-int8",
     description:
       "Analyzes the sentiment of text using Distilbert SST-2 Int8 model",
     category: "Text",
@@ -16,7 +17,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
     inputs: [
       {
         name: "text",
-        type: StringValue,
+        type: "string",
         description: "The text to analyze for sentiment",
         required: true,
       },
@@ -24,12 +25,12 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
     outputs: [
       {
         name: "positive",
-        type: NumberValue,
+        type: "number",
         description: "Confidence score for positive sentiment",
       },
       {
         name: "negative",
-        type: NumberValue,
+        type: "number",
         description: "Confidence score for negative sentiment",
       },
     ],
@@ -54,8 +55,8 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
       const negative = result[0];
       const positive = result[1];
       return this.createSuccessResult({
-        positive: new NumberValue(positive.score),
-        negative: new NumberValue(negative.score),
+        positive: positive.score,
+        negative: negative.score,
       });
     } catch (error) {
       return this.createErrorResult(

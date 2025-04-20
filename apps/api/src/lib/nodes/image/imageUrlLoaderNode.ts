@@ -38,7 +38,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
       // Validate URL format
       try {
         new URL(url);
-      } catch (error) {
+      } catch (_) {
         return this.createErrorResult("Invalid URL format");
       }
 

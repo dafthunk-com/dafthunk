@@ -50,7 +50,7 @@ export class DetrResnet50Node extends ExecutableNode {
       });
 
       return this.createSuccessResult({
-        detections: new ArrayValue(result),
+        detections: result,
       });
     } catch (error) {
       return this.createErrorResult(

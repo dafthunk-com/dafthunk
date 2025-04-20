@@ -68,28 +68,9 @@ export class CanvasDoodleNode extends ExecutableNode {
         return this.createErrorResult("No image data provided");
       }
 
-      // If value is already an ImageValue, check if it contains data
-      if (value instanceof ImageValue) {
-        if (!value.getValue()) {
-          return this.createErrorResult("Image value is empty");
-        }
-        return this.createSuccessResult({
-          image: value,
-        });
-      }
-
-      // Handle raw input values
-      if (typeof value === "object") {
-        // Convert raw object to ImageValue
-        return this.createSuccessResult({
-          image: new ImageValue(value),
-        });
-      }
-
-      // If we get here, the input is invalid
-      return this.createErrorResult(
-        "Invalid input: expected an image value object"
-      );
+      return this.createSuccessResult({
+        image: value,
+      });
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"

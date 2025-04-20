@@ -1,6 +1,45 @@
 // Types for workflows
 import { Node, NodeType } from "../api/types";
 
+export type ImageParameter = {
+  data: Uint8Array;
+  mimeType:
+    | "image/jpeg"
+    | "image/png"
+    | "image/webp"
+    | "image/svg+xml"
+    | "image/gif"
+    | "image/tiff";
+};
+
+export type AudioParameter = {
+  data: Uint8Array;
+  mimeType:
+    | "audio/wav"
+    | "audio/mp3"
+    | "audio/m4a"
+    | "audio/ogg"
+    | "audio/mpeg"
+    | "audio/mp4";
+};
+
+export type DocumentParameter = {
+  data: Uint8Array;
+  mimeType:
+    | "application/pdf"
+    | "image/jpeg"
+    | "image/png"
+    | "image/webp"
+    | "image/svg+xml"
+    | "text/html"
+    | "application/xml"
+    | "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    | "application/vnd.ms-excel"
+    | "application/vnd.oasis.opendocument.spreadsheet"
+    | "text/csv"
+    | "application/vnd.apple.numbers";
+};
+
 export type ParameterType =
   | {
       type: "string";
@@ -16,10 +55,7 @@ export type ParameterType =
     }
   | {
       type: "image";
-      value?: {
-        data: Uint8Array;
-        mimeType: string;
-      };
+      value?: ImageParameter;
     }
   | {
       type: "array";
@@ -28,6 +64,14 @@ export type ParameterType =
   | {
       type: "json";
       value?: Record<string, any>;
+    }
+  | {
+      type: "document";
+      value?: DocumentParameter;
+    }
+  | {
+      type: "audio";
+      value?: AudioParameter;
     };
 
 export type ParameterValue = ParameterType["value"];

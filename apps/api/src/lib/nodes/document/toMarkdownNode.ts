@@ -1,4 +1,4 @@
-import { ExecutableNode, DocumentValue, StringValue } from "../types";
+import { ExecutableNode } from "../types";
 import { NodeContext, ExecutionResult } from "../types";
 import { NodeType } from "../../api/types";
 
@@ -10,6 +10,7 @@ export class ToMarkdownNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "to-markdown",
     name: "To Markdown",
+    type: "to-markdown",
     description:
       "Converts various document formats to Markdown using Cloudflare Workers AI",
     category: "Document",
@@ -17,7 +18,7 @@ export class ToMarkdownNode extends ExecutableNode {
     inputs: [
       {
         name: "document",
-        type: DocumentValue,
+        type: "document",
         description: "The document to convert to Markdown",
         required: true,
       },
@@ -25,7 +26,7 @@ export class ToMarkdownNode extends ExecutableNode {
     outputs: [
       {
         name: "markdown",
-        type: StringValue,
+        type: "string",
         description: "The converted document in Markdown format",
       },
     ],
@@ -37,15 +38,6 @@ export class ToMarkdownNode extends ExecutableNode {
         data: Uint8Array;
         mimeType: string;
       };
-
-      // Validate using DocumentValue
-      const documentValue = new DocumentValue(documentInput);
-      const validation = documentValue.validate();
-      if (!validation.isValid) {
-        return this.createErrorResult(
-          validation.error || "Invalid document data"
-        );
-      }
 
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
@@ -71,7 +63,7 @@ export class ToMarkdownNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        markdown: new StringValue(result[0].data),
+        markdown: result[0].data,
       });
     } catch (error) {
       return this.createErrorResult(

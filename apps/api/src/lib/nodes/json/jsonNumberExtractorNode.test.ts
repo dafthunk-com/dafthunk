@@ -1,22 +1,33 @@
 import { describe, it, expect } from "vitest";
+import { Node } from "../../api/types";
 import { JsonNumberExtractorNode } from "./jsonNumberExtractorNode";
-import { Node } from "../../runtime/types";
+import { NodeContext } from "../types";
+import { vi } from "vitest";
 
 describe("JsonNumberExtractorNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({
     id: "test-node",
     type: "jsonNumberExtractor",
     name: "Test Node",
-    position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
     ...inputs,
   });
 
-  const createContext = (inputs: Record<string, any> = {}) => ({
+  const createContext = (inputs: Record<string, any> = {}): NodeContext => ({
     nodeId: "test-node",
     workflowId: "test-workflow",
     inputs,
+    env: {
+      AI: {
+        run: vi.fn(),
+        toMarkdown: vi.fn(),
+        aiGatewayLogId: "test-log-id",
+        gateway: vi.fn().mockReturnValue({}),
+        autorag: vi.fn().mockReturnValue({}),
+        models: vi.fn().mockResolvedValue([]),
+      },
+    },
   });
 
   it("should extract an integer value from a simple path", async () => {
@@ -29,8 +40,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(30);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(30);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should extract a float value", async () => {
@@ -43,8 +54,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(99.99);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(99.99);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should extract a nested number value", async () => {
@@ -57,8 +68,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(1.5);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(1.5);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should return default value when path does not exist", async () => {
@@ -72,8 +83,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(25);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toBe(25);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should return default value when value is not a number", async () => {
@@ -87,8 +98,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(0);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toBe(0);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should handle array paths", async () => {
@@ -101,8 +112,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(90);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(90);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should fail with invalid JSON input", async () => {
@@ -141,8 +152,8 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(0);
-    expect(result.outputs?.found.getValue()).toBe(false);
+    expect(result.outputs?.value).toBe(0);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should handle negative numbers", async () => {
@@ -155,7 +166,7 @@ describe("JsonNumberExtractorNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.value.getValue()).toBe(-5.5);
-    expect(result.outputs?.found.getValue()).toBe(true);
+    expect(result.outputs?.value).toBe(-5.5);
+    expect(result.outputs?.found).toBe(true);
   });
 });

@@ -25,6 +25,14 @@ export type ParameterType =
   | {
       type: "json";
       value?: Record<string, any>;
+    }
+  | {
+      type: "document";
+      value?: ObjectReference;
+    }
+  | {
+      type: "audio";
+      value?: ObjectReference;
     };
 
 export type ParameterValue = ParameterType["value"];

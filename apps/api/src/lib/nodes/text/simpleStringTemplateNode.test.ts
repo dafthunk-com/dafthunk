@@ -1,22 +1,33 @@
 import { describe, it, expect } from "vitest";
+import { Node } from "../../api/types";
 import { SimpleStringTemplateNode } from "./simpleStringTemplateNode";
-import { Node } from "../../runtime/types";
+import { NodeContext } from "../types";
+import { vi } from "vitest";
 
 describe("SimpleStringTemplateNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({
     id: "test-node",
     type: "simpleStringTemplate",
     name: "Test Node",
-    position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
     ...inputs,
   });
 
-  const createContext = (inputs: Record<string, any> = {}) => ({
+  const createContext = (inputs: Record<string, any> = {}): NodeContext => ({
     nodeId: "test-node",
     workflowId: "test-workflow",
     inputs,
+    env: {
+      AI: {
+        run: vi.fn(),
+        toMarkdown: vi.fn(),
+        aiGatewayLogId: "test-log-id",
+        gateway: vi.fn().mockReturnValue({}),
+        autorag: vi.fn().mockReturnValue({}),
+        models: vi.fn().mockResolvedValue([]),
+      },
+    },
   });
 
   it("should replace a single variable in template", async () => {
@@ -29,7 +40,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Hello, John!");
+    expect(result.outputs?.result).toBe("Hello, John!");
   });
 
   it("should replace multiple occurrences of the same variable", async () => {
@@ -42,7 +53,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("John John John");
+    expect(result.outputs?.result).toBe("John John John");
   });
 
   it("should handle empty template", async () => {
@@ -55,7 +66,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("");
+    expect(result.outputs?.result).toBe("");
   });
 
   it("should handle empty variable", async () => {
@@ -68,7 +79,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Hello, !");
+    expect(result.outputs?.result).toBe("Hello, !");
   });
 
   it("should handle special characters in template", async () => {
@@ -81,7 +92,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Line 1\nLine 2\tTabbed");
+    expect(result.outputs?.result).toBe("Line 1\nLine 2\tTabbed");
   });
 
   it("should handle special characters in variable", async () => {
@@ -94,7 +105,7 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Hello, John\nDoe\tSmith!");
+    expect(result.outputs?.result).toBe("Hello, John\nDoe\tSmith!");
   });
 
   it("should fail with invalid template input", async () => {
@@ -133,6 +144,6 @@ describe("SimpleStringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Hello, World!");
+    expect(result.outputs?.result).toBe("Hello, World!");
   });
 });

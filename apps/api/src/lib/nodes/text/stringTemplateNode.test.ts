@@ -1,22 +1,33 @@
 import { describe, it, expect } from "vitest";
+import { Node } from "../../api/types";
 import { StringTemplateNode } from "./stringTemplateNode";
-import { Node } from "../../runtime/types";
+import { NodeContext } from "../types";
+import { vi } from "vitest";
 
 describe("StringTemplateNode", () => {
   const createNode = (inputs: Record<string, any> = {}): Node => ({
     id: "test-node",
     type: "stringTemplate",
     name: "Test Node",
-    position: { x: 0, y: 0 },
     inputs: [],
     outputs: [],
     ...inputs,
   });
 
-  const createContext = (inputs: Record<string, any> = {}) => ({
+  const createContext = (inputs: Record<string, any> = {}): NodeContext => ({
     nodeId: "test-node",
     workflowId: "test-workflow",
     inputs,
+    env: {
+      AI: {
+        run: vi.fn(),
+        toMarkdown: vi.fn(),
+        aiGatewayLogId: "test-log-id",
+        gateway: vi.fn().mockReturnValue({}),
+        autorag: vi.fn().mockReturnValue({}),
+        models: vi.fn().mockResolvedValue([]),
+      },
+    },
   });
 
   it("should replace a single variable in template", async () => {
@@ -29,8 +40,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Hello, John!");
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("Hello, John!");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should replace multiple variables in template", async () => {
@@ -43,10 +54,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe(
-      "Hi, John! You are 30 years old."
-    );
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("Hi, John! You are 30 years old.");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should handle missing variables", async () => {
@@ -59,10 +68,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe(
-      "Hello, John! Your age is ${age}."
-    );
-    expect(result.outputs?.missingVariables.getValue()).toEqual(["age"]);
+    expect(result.outputs?.result).toBe("Hello, John! Your age is ${age}.");
+    expect(result.outputs?.missingVariables).toEqual(["age"]);
   });
 
   it("should handle repeated variables", async () => {
@@ -75,8 +82,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("John John John");
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("John John John");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should handle non-string variable values", async () => {
@@ -89,10 +96,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe(
-      "Age: 30, Active: true, Score: 99.9"
-    );
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("Age: 30, Active: true, Score: 99.9");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should handle null and undefined values", async () => {
@@ -105,8 +110,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Null: , Undefined: ");
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("Null: , Undefined: ");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should handle template with no variables", async () => {
@@ -119,8 +124,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("Hello, World!");
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("Hello, World!");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should handle empty template", async () => {
@@ -133,8 +138,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("");
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should fail with invalid template input", async () => {
@@ -173,8 +178,8 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe("works!");
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("works!");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 
   it("should handle special characters in template", async () => {
@@ -187,9 +192,7 @@ describe("StringTemplateNode", () => {
     );
 
     expect(result.success).toBe(true);
-    expect(result.outputs?.result.getValue()).toBe(
-      "Line 1\nLine 2\tTabbed value"
-    );
-    expect(result.outputs?.missingVariables.getValue()).toEqual([]);
+    expect(result.outputs?.result).toBe("Line 1\nLine 2\tTabbed value");
+    expect(result.outputs?.missingVariables).toEqual([]);
   });
 });
