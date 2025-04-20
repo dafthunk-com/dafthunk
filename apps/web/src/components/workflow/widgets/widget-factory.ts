@@ -136,7 +136,7 @@ export function createWidgetConfig(
             if (Array.isArray(parsed)) {
               options = parsed;
             }
-          } catch (e) {
+          } catch (_) {
             console.warn("Failed to parse options JSON string");
           }
         }

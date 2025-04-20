@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { ExecutionResult, NodeContext } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 /**
  * Translation node implementation using m2m100-1.2b model
  */

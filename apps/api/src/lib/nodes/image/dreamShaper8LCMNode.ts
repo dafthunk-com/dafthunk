@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { ExecutionResult, NodeContext } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 /**
  * DreamShaper 8 LCM node implementation for text-to-image generation

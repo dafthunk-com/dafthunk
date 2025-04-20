@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { ExecutionResult, NodeContext } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 /**
  * FLUX.1 schnell node implementation for text-to-image generation
  */

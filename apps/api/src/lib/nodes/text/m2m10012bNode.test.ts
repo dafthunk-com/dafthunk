@@ -7,6 +7,7 @@ describe("M2m10012bNode", () => {
     id: "test-id",
     name: "Test Translation",
     type: "m2m100-1.2b",
+    position: { x: 0, y: 0 },
     inputs: [
       {
         name: "text",

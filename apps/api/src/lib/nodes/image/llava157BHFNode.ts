@@ -1,6 +1,6 @@
-import { NodeContext, ExecutionResult } from "../types";
+import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 /**
  * Image-to-Text node implementation using LLaVA 1.5 7B HF

@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { ExecutionResult, NodeContext } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 export class ImageUrlLoaderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

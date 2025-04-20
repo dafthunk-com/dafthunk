@@ -8,7 +8,7 @@
     "dev": "pnpm --parallel dev",
     "format": "pnpm --parallel format",
     "lint": "pnpm --parallel lint",
-    "test": "pnpm --parallel test",
+    "test": "pnpm --parallel --filter '@dafthunk/api' test",
     "build": "pnpm --parallel --filter '@dafthunk/web' build",
     "start": "pnpm --parallel start"
   },

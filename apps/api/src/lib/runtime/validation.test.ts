@@ -18,6 +18,7 @@ describe("workflowValidation", () => {
     type: "test",
     inputs,
     outputs,
+    position: { x: 0, y: 0 },
   });
 
   // Helper function to create a basic edge

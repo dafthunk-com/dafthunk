@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { ExecutionResult, NodeContext } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 /**
  * Stable Diffusion XL Base 1.0 node implementation for text-to-image generation

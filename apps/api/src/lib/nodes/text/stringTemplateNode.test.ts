@@ -11,6 +11,7 @@ describe("StringTemplateNode", () => {
     name: "Test Node",
     inputs: [],
     outputs: [],
+    position: { x: 0, y: 0 },
     ...inputs,
   });
 

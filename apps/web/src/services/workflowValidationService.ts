@@ -1,4 +1,4 @@
-import { Workflow } from "../../../api/src/lib/old/api/types";
+import { Workflow } from "../../../api/src/lib/api/types";
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
 
 export const workflowValidationService = {

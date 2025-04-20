@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { NodeContext, ExecutionResult } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 /**
  * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters

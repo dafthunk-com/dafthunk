@@ -1,5 +1,5 @@
 // Types for workflows
-import { Node, NodeType } from "../api/types";
+import { ExecutionResult, Node, NodeType } from "../api/types";
 
 export type ImageParameter = {
   data: Uint8Array;
@@ -91,13 +91,6 @@ export interface NodeContext {
   env: {
     AI: Ai;
   };
-}
-
-export interface ExecutionResult {
-  nodeId: string;
-  success: boolean;
-  error?: string;
-  outputs?: Record<string, ParameterValue>;
 }
 
 /**

@@ -8,6 +8,7 @@ describe("StableDiffusionXLBase10Node", () => {
     id: "test-id",
     name: "Test Stable Diffusion XL",
     type: "stable-diffusion-xl-base",
+    position: { x: 0, y: 0 },
     inputs: [
       {
         name: "prompt",

@@ -1,9 +1,9 @@
 import {
   Node,
   Workflow,
-  ExecutionResult,
   ExecutionState,
-} from "../../../api/src/lib/old/api/types";
+  ExecutionResult,
+} from "../../../api/src/lib/api/types";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {

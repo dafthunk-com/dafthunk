@@ -29,7 +29,7 @@ export function MonacoEditorWidget({
       const parsed = JSON.parse(value);
       const formatted = JSON.stringify(parsed, null, 2);
       onChange(formatted);
-    } catch (error) {
+    } catch (_) {
       // If invalid JSON, just pass through the raw value
       onChange(value);
     }

@@ -55,11 +55,17 @@ export interface NodeType {
   outputs: Parameter[];
 }
 
+export interface Position {
+  x: number;
+  y: number;
+}
+
 export interface Node {
   id: string;
   name: string;
   type: string;
   description?: string;
+  position: Position;
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string;
@@ -91,6 +97,13 @@ export interface ValidationError {
     connectionSource?: string;
     connectionTarget?: string;
   };
+}
+
+export interface ExecutionResult {
+  nodeId: string;
+  success: boolean;
+  error?: string;
+  outputs?: Record<string, ParameterValue>;
 }
 
 export type ExecutionState = "idle" | "executing" | "completed" | "error";

@@ -1,7 +1,7 @@
 import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
-import { NodeContext, ExecutionResult } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 export class JsonObjectArrayExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

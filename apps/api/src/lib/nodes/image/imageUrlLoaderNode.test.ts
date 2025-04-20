@@ -11,6 +11,7 @@ describe("ImageUrlLoaderNode", () => {
     id: "test-id",
     name: "Test Image URL Loader",
     type: "image-url-loader",
+    position: { x: 0, y: 0 },
     inputs: [
       {
         name: "url",

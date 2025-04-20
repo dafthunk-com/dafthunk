@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow } from "../../../api/src/lib/old/api/types";
+import { Workflow } from "../../../api/src/lib/api/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
@@ -94,7 +94,7 @@ export function EditorPage() {
         }));
         setNodeTemplates(templates);
         setTemplatesError(null);
-      } catch (err) {
+      } catch (_) {
         setTemplatesError(
           "Failed to load node templates. Please try again later."
         );
@@ -239,7 +239,7 @@ export function EditorPage() {
           }
 
           await workflowService.save(id, workflowToSave);
-        } catch (err) {
+        } catch (_) {
           // Error handling without logging
         } finally {
           setIsSaving(false);
@@ -374,7 +374,7 @@ export function EditorPage() {
         try {
           const data = JSON.parse(event.data);
           callbacks.onError(data.error || "Unknown execution error");
-        } catch (error) {
+        } catch (_) {
           callbacks.onError("Failed to parse execution error");
         } finally {
           eventSource.close();
@@ -385,7 +385,7 @@ export function EditorPage() {
         try {
           const data = JSON.parse(event.data);
           callbacks.onError(data.error || "Workflow validation error");
-        } catch (error) {
+        } catch (_) {
           callbacks.onError("Failed to parse validation error");
         } finally {
           eventSource.close();

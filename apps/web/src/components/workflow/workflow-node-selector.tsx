@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { WorkflowNodeSelectorProps } from "./workflow-types";
 import { cn } from "@/utils/utils";

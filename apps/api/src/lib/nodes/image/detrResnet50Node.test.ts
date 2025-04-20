@@ -8,6 +8,7 @@ describe("DetrResnet50Node", () => {
     id: "test-id",
     name: "Test DETR-ResNet-50",
     type: "detr-resnet-50",
+    position: { x: 0, y: 0 },
     inputs: [
       {
         name: "image",

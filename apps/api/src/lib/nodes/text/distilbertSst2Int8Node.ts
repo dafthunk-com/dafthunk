@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
-import { NodeContext, ExecutionResult } from "../types";
-import { NodeType } from "../../api/types";
+import { NodeContext } from "../types";
+import { NodeType, ExecutionResult } from "../../api/types";
 
 /**
  * Sentiment classification node implementation using distilbert-sst-2-int8 model
