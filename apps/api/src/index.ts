@@ -14,7 +14,7 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./lib/runtime/store";
-import { Node as ApiNode, Edge as ApiEdge } from "./lib/api/types";
+import { Node, Edge } from "./lib/api/types";
 import { NodeRegistry } from "./lib/nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
@@ -366,7 +366,7 @@ app.get("/types", jwtAuthMiddleware, (c) => {
   try {
     // Get the registry instance with all registered node types
     const registry = NodeRegistry.getInstance();
-    return c.json(registry.getApiNodeTypes());
+    return c.json(registry.getNodeTypes());
   } catch (error) {
     console.error("Error in types function:", error);
     return c.json({ error: "Unknown error occurred" }, 500);
@@ -440,7 +440,7 @@ app.get("/workflows/:id", jwtAuthMiddleware, async (c) => {
     return c.text("Workflow not found", 404);
   }
 
-  const workflowData = workflow.data as { nodes: ApiNode[]; edges: ApiEdge[] };
+  const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
 
   return c.json({
     id: workflow.id,
@@ -519,8 +519,8 @@ app.put("/workflows/:id", jwtAuthMiddleware, async (c) => {
     .returning();
 
   const workflowData = updatedWorkflow.data as {
-    nodes: ApiNode[];
-    edges: ApiEdge[];
+    nodes: Node[];
+    edges: Edge[];
   };
 
   return c.json({
@@ -575,8 +575,8 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
   }
 
   const workflowData = workflow.data as {
-    nodes: ApiNode[];
-    edges: ApiEdge[];
+    nodes: Node[];
+    edges: Edge[];
   };
 
   // Check if user is on free plan and workflow contains AI nodes

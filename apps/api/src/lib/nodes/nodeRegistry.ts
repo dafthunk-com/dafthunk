@@ -136,7 +136,7 @@ export class NodeRegistry {
     return new Implementation(node);
   }
 
-  public getApiNodeTypes(): NodeType[] {
+  public getNodeTypes(): NodeType[] {
     return Array.from(this.implementations.values()).map(
       (implementation) => implementation.nodeType
     );
