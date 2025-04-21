@@ -132,7 +132,7 @@ To reset the production database (a decision we will continue to make carelessly
 
 ```bash
 export CI=true
-npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations;  DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;"
+npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;"
 npx wrangler d1 migrations apply DB --remote --env production
 ```
 

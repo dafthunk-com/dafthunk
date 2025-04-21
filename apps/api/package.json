@@ -10,10 +10,10 @@
     "integration": "ts-node -P integration/tsconfig.json integration/execute.integration.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:reset": "wrangler d1 execute DB --local --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types; DROP TABLE IF EXISTS users;\"",
+    "db:reset": "wrangler d1 execute DB --local --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;\"",
     "db:migrate": "wrangler d1 migrations apply DB --local",
     "db:prod:migrate": "wrangler d1 migrations apply DB --remote --env production",
-    "db:prod:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS node_types; DROP TABLE IF EXISTS users;\" && wrangler d1 migrations apply DB --remote --env production"
+    "db:prod:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;\" && wrangler d1 migrations apply DB --remote --env production"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250404.0",
