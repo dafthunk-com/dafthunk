@@ -20,7 +20,7 @@ import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
 import { createEvent } from "./lib/sse";
 
-export { Runtime as ExecuteWorkflow } from "./runtime";
+export { Runtime } from "./runtime";
 import { RuntimeParams } from "./runtime";
 
 export interface Env {

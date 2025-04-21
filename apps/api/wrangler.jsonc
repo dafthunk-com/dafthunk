@@ -15,7 +15,7 @@
     {
       "name": "workflows-starter",
       "binding": "EXECUTE",
-      "class_name": "ExecuteWorkflow",
+      "class_name": "Runtime",
     },
   ],
   /**
@@ -67,7 +67,7 @@
         {
           "name": "workflows-starter",
           "binding": "EXECUTE",
-          "class_name": "ExecuteWorkflow",
+          "class_name": "Runtime",
         },
       ],
       "ai": {
