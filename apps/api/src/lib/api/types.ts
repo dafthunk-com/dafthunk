@@ -91,3 +91,11 @@ export interface NodeExecution {
   error?: string;
   outputs?: Record<string, ParameterValue>;
 }
+
+export interface WorkflowExecution {
+  id: string;
+  workflowId: string;
+  success: boolean;
+  error?: string;
+  nodeExecutions: NodeExecution[];
+}
