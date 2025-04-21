@@ -1,5 +1,5 @@
 // Types for workflows
-import { ExecutionResult, Node, NodeType } from "../api/types";
+import { NodeExecution, Node, NodeType } from "../api/types";
 
 export type ImageParameter = {
   data: Uint8Array;
@@ -104,11 +104,11 @@ export abstract class ExecutableNode {
     this.node = node;
   }
 
-  public abstract execute(context: NodeContext): Promise<ExecutionResult>;
+  public abstract execute(context: NodeContext): Promise<NodeExecution>;
 
   protected createSuccessResult(
     outputs: Record<string, ParameterValue>
-  ): ExecutionResult {
+  ): NodeExecution {
     return {
       nodeId: this.node.id,
       success: true,
@@ -116,7 +116,7 @@ export abstract class ExecutableNode {
     };
   }
 
-  protected createErrorResult(error: string): ExecutionResult {
+  protected createErrorResult(error: string): NodeExecution {
     return {
       nodeId: this.node.id,
       success: false,

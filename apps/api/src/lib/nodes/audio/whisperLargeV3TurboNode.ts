@@ -1,6 +1,6 @@
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo
@@ -84,7 +84,7 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (!context.env?.AI) {
         throw new Error("AI service is not available");

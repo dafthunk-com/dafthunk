@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters
@@ -91,7 +91,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         prompt,

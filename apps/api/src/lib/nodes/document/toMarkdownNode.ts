@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * ToMarkdown node implementation
@@ -32,7 +32,7 @@ export class ToMarkdownNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const documentInput = context.inputs.document as {
         data: Uint8Array;

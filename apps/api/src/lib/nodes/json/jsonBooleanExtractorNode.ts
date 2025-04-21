@@ -1,7 +1,7 @@
 import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 export class JsonBooleanExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -44,7 +44,7 @@ export class JsonBooleanExtractorNode extends ExecutableNode {
     ],
   };
 
-  public async execute(context: NodeContext): Promise<ExecutionResult> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { json, path, defaultValue = false } = context.inputs;
 

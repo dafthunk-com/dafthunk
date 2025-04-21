@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 export interface RadioOption {
   value: string;
@@ -53,7 +53,7 @@ export class RadioGroupNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const options = context.inputs.options as RadioOption[];
       const value = context.inputs.value as string;

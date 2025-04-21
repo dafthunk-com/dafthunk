@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * DreamShaper 8 LCM node implementation for text-to-image generation
@@ -72,7 +72,7 @@ export class DreamShaper8LCMNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         prompt,

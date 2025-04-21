@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Stable Diffusion XL Base 1.0 node implementation for text-to-image generation
@@ -73,7 +73,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const {
         prompt,

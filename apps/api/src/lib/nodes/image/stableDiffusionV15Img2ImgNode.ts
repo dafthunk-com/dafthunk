@@ -1,6 +1,6 @@
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Image Transformation node implementation using Stable Diffusion v1.5 img2img
@@ -67,7 +67,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (!context.env?.AI) {
         throw new Error("AI service is not available");

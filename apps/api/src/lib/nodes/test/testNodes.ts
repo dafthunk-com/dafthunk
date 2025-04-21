@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Start node implementation for testing
@@ -17,7 +17,7 @@ export class StartNode extends ExecutableNode {
     outputs: [{ name: "output", type: "string" }],
   };
 
-  async execute(_context: NodeContext): Promise<ExecutionResult> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     return this.createSuccessResult({
       output: "Hello from start node",
     });
@@ -39,7 +39,7 @@ export class ProcessNode extends ExecutableNode {
     outputs: [{ name: "output", type: "string" }],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     return this.createSuccessResult({
       output: `Processed: ${context.inputs.input}`,
     });
@@ -61,7 +61,7 @@ export class ErrorNode extends ExecutableNode {
     outputs: [],
   };
 
-  async execute(_context: NodeContext): Promise<ExecutionResult> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     return this.createErrorResult("Test error");
   }
 }
@@ -81,7 +81,7 @@ export class LongRunningNode extends ExecutableNode {
     outputs: [],
   };
 
-  async execute(_context: NodeContext): Promise<ExecutionResult> {
+  async execute(_context: NodeContext): Promise<NodeExecution> {
     // Simulate a long running operation
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return this.createSuccessResult({});

@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 export class SimpleStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -39,7 +39,7 @@ export class SimpleStringTemplateNode extends ExecutableNode {
     return template.replace(/\${variable}/g, variable);
   }
 
-  public async execute(context: NodeContext): Promise<ExecutionResult> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { template, variable } = context.inputs;
 

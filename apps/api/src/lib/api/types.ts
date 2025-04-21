@@ -99,7 +99,7 @@ export interface ValidationError {
   };
 }
 
-export interface ExecutionResult {
+export interface NodeExecution {
   nodeId: string;
   success: boolean;
   error?: string;

@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Modulo node implementation
@@ -21,7 +21,7 @@ export class ModuloNode extends ExecutableNode {
     outputs: [{ name: "result", type: "number" }],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const a = Number(context.inputs.a);
       const b = Number(context.inputs.b);

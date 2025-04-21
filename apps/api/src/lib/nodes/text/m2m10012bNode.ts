@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 /**
  * Translation node implementation using m2m100-1.2b model
  */
@@ -42,7 +42,7 @@ export class M2m10012bNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { text, sourceLang = "en", targetLang } = context.inputs;
 

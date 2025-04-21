@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 export class ImageUrlLoaderNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -27,7 +27,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { url } = context.inputs;
 

@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Absolute Value node implementation
@@ -17,7 +17,7 @@ export class AbsoluteValueNode extends ExecutableNode {
     outputs: [{ name: "result", type: "number" }],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const value = Number(context.inputs.value);
 

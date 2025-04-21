@@ -1,6 +1,6 @@
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType, ExecutionResult } from "../../api/types";
+import { NodeType, NodeExecution } from "../../api/types";
 
 /**
  * Image Generation node implementation using Stable Diffusion XL Lightning
@@ -66,7 +66,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
     ],
   };
 
-  async execute(context: NodeContext): Promise<ExecutionResult> {
+  async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       if (!context.env?.AI) {
         throw new Error("AI service is not available");
