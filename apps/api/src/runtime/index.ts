@@ -395,7 +395,7 @@ export class Runtime extends WorkflowEntrypoint<
         nodeId, 
         {
           nodeId,
-          status: state.nodeErrors.has(nodeId) ? "error" as NodeExecutionStatus : "success" as NodeExecutionStatus,
+          status: state.nodeErrors.has(nodeId) ? "error" as NodeExecutionStatus : "completed" as NodeExecutionStatus,
           error: state.nodeErrors.get(nodeId),
           outputs: state.nodeOutputs.get(nodeId),
         }
@@ -410,7 +410,7 @@ export class Runtime extends WorkflowEntrypoint<
           nodeId,
           {
             nodeId,
-            status: "pending" as NodeExecutionStatus,
+            status: "executing" as NodeExecutionStatus,
             outputs: {},
           }
         ])
@@ -431,7 +431,7 @@ export class Runtime extends WorkflowEntrypoint<
       // Otherwise, mark it as not started
       return {
         nodeId: node.id,
-        status: "not_started" as NodeExecutionStatus,
+        status: "idle" as NodeExecutionStatus,
         outputs: {},
       };
     });

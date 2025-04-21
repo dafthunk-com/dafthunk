@@ -362,40 +362,39 @@ export function EditorPage() {
               const execution = await statusResponse.json() as WorkflowExecution;
               
               // Process node executions
-              execution.nodeExecutions.forEach(nodeExecution => {
-                if (nodeExecution.status === "success") {
-                  // Node completed successfully
+              execution.nodeExecutions.forEach((nodeExecution) => {
+                if (nodeExecution.status === "completed") {
                   callbacks.onEvent({
                     type: 'node-complete',
                     nodeId: nodeExecution.nodeId,
                     outputs: nodeExecution.outputs || {},
                   });
                 } else if (nodeExecution.status === "error") {
-                  // Node failed
                   callbacks.onEvent({
                     type: 'node-error',
                     nodeId: nodeExecution.nodeId,
                     error: nodeExecution.error || 'Unknown error',
                   });
-                } else if (nodeExecution.status === "pending") {
-                  // Node is pending execution
+                } else if (nodeExecution.status === "executing") {
                   callbacks.onEvent({
                     type: 'node-start',
                     nodeId: nodeExecution.nodeId,
                   });
                 }
-                // Nodes with not_started status don't need any special handling
               });
               
               // Check if execution is complete
-              if (execution.success) {
+              const allNodesCompleted = execution.nodeExecutions.every(
+                (nodeExecution) => nodeExecution.status === "completed" || nodeExecution.status === "error"
+              );
+              if (allNodesCompleted && !execution.nodeExecutions.some((nodeExecution) => nodeExecution.status === "error")) {
                 // Execution completed successfully
                 clearInterval(pollInterval);
                 callbacks.onComplete();
-              } else if (execution.error) {
+              } else if (execution.nodeExecutions.some((nodeExecution) => nodeExecution.status === "error")) {
                 // Execution failed
                 clearInterval(pollInterval);
-                callbacks.onError(execution.error);
+                callbacks.onError(execution.error || 'Unknown error');
               }
               // Otherwise, continue polling
             } catch (error) {

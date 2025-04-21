@@ -15,13 +15,13 @@ export const workflowExecutionService = {
       // 3. Handle input/output transformations
       return {
         nodeId: node.id,
-        success: true,
+        status: "completed",
         outputs: {},
       };
     } catch (error) {
       return {
         nodeId: node.id,
-        success: false,
+        status: "error",
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
       };
@@ -38,7 +38,7 @@ export const workflowExecutionService = {
         const result = await this.executeNode(node);
         results.push(result);
 
-        if (!result.success) {
+        if (result.status === "error") {
           break;
         }
       }
@@ -86,8 +86,8 @@ export const workflowExecutionService = {
   ): ExecutionState {
     const result = executionResults.find((r) => r.nodeId === node.id);
     if (!result) return "idle";
-    if (result.error) return "error";
-    return result.success ? "completed" : "executing";
+    if (result.status === "error") return "error";
+    return result.status === "completed" ? "completed" : "executing";
   },
 
   validateNodeInputs(node: Node, workflow: Workflow): boolean {

@@ -86,9 +86,9 @@ export interface Workflow {
 }
 
 export type NodeExecutionStatus = 
-  | "not_started" 
-  | "pending" 
-  | "success" 
+  | "idle" 
+  | "executing" 
+  | "completed" 
   | "error";
 
 export interface NodeExecution {
