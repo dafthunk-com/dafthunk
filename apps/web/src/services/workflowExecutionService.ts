@@ -1,9 +1,9 @@
 import {
   Node,
   Workflow,
-  ExecutionState,
   ExecutionResult,
 } from "../../../api/src/lib/api/types";
+import {ExecutionState} from "@/components/workflow/workflow-types.tsx";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<ExecutionResult> {

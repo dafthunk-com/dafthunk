@@ -1,12 +1,12 @@
 import {
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
   Connection,
-  NodeChange,
+  Edge as ReactFlowEdge,
   EdgeChange,
-  OnConnectStart,
-  OnConnectEnd,
+  Node as ReactFlowNode,
+  NodeChange,
   OnConnect,
+  OnConnectEnd,
+  OnConnectStart,
   ReactFlowInstance,
 } from "reactflow";
 
@@ -223,3 +223,5 @@ export interface TypeBadgeProps {
   position: import("reactflow").Position;
   id: string;
 }
+
+export type ExecutionState = "idle" | "executing" | "completed" | "error";
