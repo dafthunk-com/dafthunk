@@ -106,7 +106,7 @@ export function WorkflowBuilder({
         updateNodeData(node.id, { inputs, outputs });
       }
     });
-  }, [edges, nodes]);
+  }, [edges, nodes, updateNodeData]);
 
   const handleExecute = () => {
     if (!executeWorkflow) return;
@@ -156,6 +156,8 @@ export function WorkflowBuilder({
 
         // Handle workflow completion
         if (execution.status === "completed") {
+          // Workflow completed successfully
+          console.log("Workflow execution completed");
         } else if (execution.status === "error") {
           setErrorMessage(execution.error || "Unknown error");
           setErrorDialogOpen(true);
@@ -171,15 +173,15 @@ export function WorkflowBuilder({
     e.stopPropagation();
 
     switch (workflowStatus) {
-      case "idle":
+      case "idle": {
         // Start execution
         const cleanup = handleExecute();
         if (typeof cleanup === "function") {
           cleanupRef.current = cleanup;
         }
         break;
-
-      case "executing":
+      }
+      case "executing": {
         // Stop the execution
         if (cleanupRef.current) {
           cleanupRef.current();
@@ -187,9 +189,9 @@ export function WorkflowBuilder({
         }
         setWorkflowStatus("completed");
         break;
-
+      }
       case "completed":
-      case "error":
+      case "error": {
         // Reset to idle state
         nodes.forEach((node) => {
           updateNodeExecutionState(node.id, "idle");
@@ -203,6 +205,7 @@ export function WorkflowBuilder({
         });
         setWorkflowStatus("idle");
         break;
+      }
     }
   };
 

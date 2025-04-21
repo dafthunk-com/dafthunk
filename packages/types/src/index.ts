@@ -8,6 +8,13 @@ export interface ObjectReference {
   type: string;
 }
 
+export type PrimitiveValue = string | number | boolean | null | undefined;
+export type JsonValue = PrimitiveValue | JsonObject | JsonArray;
+export interface JsonObject {
+  [key: string]: JsonValue;
+}
+export interface JsonArray extends Array<JsonValue> {}
+
 export type ParameterType =
   | {
       type: "string";
@@ -27,11 +34,11 @@ export type ParameterType =
     }
   | {
       type: "array";
-      value?: Array<any>;
+      value?: JsonArray;
     }
   | {
       type: "json";
-      value?: Record<string, any>;
+      value?: JsonObject;
     }
   | {
       type: "document";
