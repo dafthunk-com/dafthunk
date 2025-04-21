@@ -20,12 +20,12 @@ import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
 import { createEvent } from "./lib/sse";
 
-export { ExecuteWorkflow } from "./workflows/execute";
-import { ExecuteWorkflowParams } from "./workflows/execute";
+export { Runtime as ExecuteWorkflow } from "./runtime";
+import { RuntimeParams } from "./runtime";
 
 export interface Env {
   DB: D1Database;
-  EXECUTE: Workflow<ExecuteWorkflowParams>;
+  EXECUTE: Workflow<RuntimeParams>;
   BUCKET: R2Bucket;
   AI: Ai;
 

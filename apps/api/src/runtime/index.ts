@@ -6,7 +6,7 @@ import {
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 import { Env } from "../index";
-import { Workflow as ApiWorkflow } from "../lib/api/types";
+import { Workflow } from "../lib/api/types";
 import { validateWorkflow } from "../lib/runtime/validation";
 import { NodeRegistry } from "../lib/nodes/nodeRegistry";
 import { NodeContext } from "../lib/nodes/types";
@@ -14,14 +14,15 @@ import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
 import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
 import { ObjectStore } from "../lib/runtime/store";
 
-export type ExecuteWorkflowParams = {
-  workflow: ApiWorkflow;
+export type RuntimeParams = {
+  workflow: Workflow;
 };
 
-export class ExecuteWorkflow extends WorkflowEntrypoint<
+export class Runtime extends WorkflowEntrypoint<
   Env,
-  ExecuteWorkflowParams
+  RuntimeParams
 > {
+
   private static readonly defaultConfig: WorkflowStepConfig = {
     retries: {
       limit: 0,
@@ -31,19 +32,19 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<
     timeout: "10 minutes",
   };
 
-  async run(event: WorkflowEvent<ExecuteWorkflowParams>, step: WorkflowStep) {
+  async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
     try {
       // Step 1: Validate the workflow and initialize data
       const initState = await step.do(
         "validate workflow",
-        ExecuteWorkflow.defaultConfig,
+        Runtime.defaultConfig,
         async () => this.validateWorkflow(event.payload.workflow)
       );
 
       // Step 2: Initialize executable nodes and create topological sort
       let state = await step.do(
         "setup execution",
-        ExecuteWorkflow.defaultConfig,
+        Runtime.defaultConfig,
         async () => this.setupExecution(initState)
       );
 
@@ -55,7 +56,7 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<
         // Execute the node
         state = await step.do(
           `execute node ${nodeId}`,
-          ExecuteWorkflow.defaultConfig,
+          Runtime.defaultConfig,
           async () => this.executeNode(state, nodeId)
         );
       }
@@ -79,7 +80,7 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<
     }
   }
 
-  private async validateWorkflow(workflow: ApiWorkflow) {
+  private async validateWorkflow(workflow: Workflow) {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new Error(
@@ -173,7 +174,7 @@ export class ExecuteWorkflow extends WorkflowEntrypoint<
    * Creates a topological sorting of nodes (execution order)
    * Nodes with no dependencies come first, then nodes whose dependencies are satisfied
    */
-  private topologicalSort(workflow: ApiWorkflow): string[] {
+  private topologicalSort(workflow: Workflow): string[] {
     const sorted: string[] = [];
     const visited: Set<string> = new Set();
     const temporary: Set<string> = new Set();
