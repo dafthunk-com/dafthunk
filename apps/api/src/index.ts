@@ -14,7 +14,7 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./runtime/store";
-import { Node, Edge, WorkflowExecution } from "./types";
+import { Node, Edge, WorkflowExecution } from "@dafthunk/types";
 import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
@@ -597,17 +597,21 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
 
 app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
   const id = c.req.param("id");
-  const executionJson = await c.env.KV.get(`execution:${id}`);
-
-  if (!executionJson) {
-    return c.json({ error: "Execution not found" }, 404);
-  }
-
+  
   try {
+    // Get execution data from R2 instead of KV
+    const executionObject = await c.env.BUCKET.get(`executions/${id}`);
+    
+    if (!executionObject) {
+      return c.json({ error: "Execution not found" }, 404);
+    }
+    
+    // Get the execution data as text and parse it
+    const executionJson = await executionObject.text();
     const execution = JSON.parse(executionJson) as WorkflowExecution;
     return c.json(execution);
   } catch (error) {
-    console.error("Error parsing execution data:", error);
+    console.error("Error retrieving execution data:", error);
     return c.json({ error: "Invalid execution data" }, 500);
   }
 });

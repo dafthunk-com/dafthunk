@@ -11,7 +11,7 @@ import {
   WorkflowExecution,
   NodeExecutionStatus,
   WorkflowExecutionStatus,
-} from "../types";
+} from "@dafthunk/types";
 import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { NodeContext } from "../nodes/types";
@@ -101,10 +101,18 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         nodeExecutions: [],
         error: error instanceof Error ? error.message : String(error),
       };
-      await this.env.KV.put(
-        `execution:${event.instanceId}`,
-        JSON.stringify(errorExecution)
+      
+      // Store error execution in R2 instead of KV
+      await this.env.BUCKET.put(
+        `executions/${event.instanceId}`, 
+        JSON.stringify(errorExecution), 
+        {
+          httpMetadata: {
+            contentType: "application/json",
+          },
+        }
       );
+      
       return errorExecution;
     }
   }
@@ -490,7 +498,17 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           : undefined,
     };
 
-    await this.env.KV.put(`execution:${instanceId}`, JSON.stringify(execution));
+    // Store execution data in R2 instead of KV
+    await this.env.BUCKET.put(
+      `executions/${instanceId}`, 
+      JSON.stringify(execution), 
+      {
+        httpMetadata: {
+          contentType: "application/json",
+        },
+      }
+    );
+    
     return execution;
   }
 }
