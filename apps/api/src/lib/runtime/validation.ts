@@ -1,4 +1,18 @@
-import { Workflow, ValidationError, Parameter, Edge } from "../api/types";
+import {Edge, Parameter, Workflow} from "../api/types";
+
+export interface ValidationError {
+    type:
+        | "CYCLE_DETECTED"
+        | "TYPE_MISMATCH"
+        | "INVALID_CONNECTION"
+        | "DUPLICATE_CONNECTION";
+    message: string;
+    details: {
+        nodeId?: string;
+        connectionSource?: string;
+        connectionTarget?: string;
+    };
+}
 
 /**
  * Checks if there are any cycles in the workflow using DFS

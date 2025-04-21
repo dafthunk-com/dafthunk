@@ -85,30 +85,9 @@ export interface Workflow {
   edges: Edge[];
 }
 
-export interface ValidationError {
-  type:
-    | "CYCLE_DETECTED"
-    | "TYPE_MISMATCH"
-    | "INVALID_CONNECTION"
-    | "DUPLICATE_CONNECTION";
-  message: string;
-  details: {
-    nodeId?: string;
-    connectionSource?: string;
-    connectionTarget?: string;
-  };
-}
-
 export interface NodeExecution {
   nodeId: string;
   success: boolean;
   error?: string;
   outputs?: Record<string, ParameterValue>;
-}
-
-export interface ExecutionEvent {
-  type: "node-start" | "node-complete" | "node-error";
-  nodeId: string;
-  timestamp: number;
-  error?: string;
 }
