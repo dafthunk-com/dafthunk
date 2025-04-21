@@ -162,7 +162,7 @@ export class Runtime extends WorkflowEntrypoint<
     // Execute the node
     const result = await executableNode.execute(context);
 
-    if (result.success) {
+    if (result.status === "completed") {
       // Handle output validation and mapping
       const outputs = await this.handleNodeOutputs(
         state,

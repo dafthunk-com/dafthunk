@@ -111,7 +111,7 @@ export abstract class ExecutableNode {
   ): NodeExecution {
     return {
       nodeId: this.node.id,
-      success: true,
+      status: "completed",
       outputs,
     };
   }
@@ -119,7 +119,7 @@ export abstract class ExecutableNode {
   protected createErrorResult(error: string): NodeExecution {
     return {
       nodeId: this.node.id,
-      success: false,
+      status: "error",
       error,
     };
   }
