@@ -15,10 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  WorkflowExecutionStatus,
-  WorkflowExecution,
-} from "../../../../api/src/types";
+import { WorkflowExecutionStatus, WorkflowExecution } from "@dafthunk/types";
 
 export function WorkflowBuilder({
   workflowId,

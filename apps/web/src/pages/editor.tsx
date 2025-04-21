@@ -6,7 +6,7 @@ import {
   Parameter,
   ParameterType,
   WorkflowExecution,
-} from "../../../api/src/types";
+} from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";

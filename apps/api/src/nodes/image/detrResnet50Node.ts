@@ -1,6 +1,6 @@
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, NodeExecution } from "../../types";
+import { NodeType, NodeExecution } from "@dafthunk/types";
 
 /**
  * DETR-ResNet-50 node implementation for object detection

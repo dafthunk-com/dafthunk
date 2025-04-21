@@ -1,6 +1,6 @@
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType, NodeExecution } from "../../types";
+import { NodeType, NodeExecution } from "@dafthunk/types";
 
 /**
  * Image-to-Text node implementation using LLaVA 1.5 7B HF

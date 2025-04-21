@@ -9,10 +9,7 @@ import {
   OnConnectStart,
   ReactFlowInstance,
 } from "reactflow";
-import {
-  WorkflowExecution,
-  WorkflowExecutionStatus,
-} from "../../../../api/src/types";
+import { WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
 
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";

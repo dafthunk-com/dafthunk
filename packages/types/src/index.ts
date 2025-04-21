@@ -1,5 +1,12 @@
 // Types for workflows
-import { ObjectReference } from "./runtime/store";
+
+/**
+ * Reference to an object stored in the runtime store
+ */
+export interface ObjectReference {
+  id: string;
+  type: string;
+}
 
 export type ParameterType =
   | {
@@ -108,4 +115,4 @@ export interface WorkflowExecution {
   status: WorkflowExecutionStatus;
   error?: string;
   nodeExecutions: NodeExecution[];
-}
+} 

@@ -29,6 +29,7 @@
     "wrangler": "^4.7.1"
   },
   "dependencies": {
+    "@dafthunk/types": "workspace:*",
     "@hono/oauth-providers": "^0.7.1",
     "drizzle-orm": "^0.39.3",
     "hono": "^4.7.6",
