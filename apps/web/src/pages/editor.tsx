@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow } from "../../../api/src/lib/api/types";
+import { Workflow, Parameter, ParameterType } from "../../../api/src/lib/api/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
@@ -77,16 +77,16 @@ export function EditorPage() {
           id: type.id,
           type: type.id,
           name: type.name,
-          description: type.description,
+          description: type.description || '',
           category: type.category,
           inputs: type.inputs.map((input) => ({
-            id: input.id || input.name,
+            id: input.name,
             type: input.type,
             name: input.name,
             hidden: input.hidden,
           })),
           outputs: type.outputs.map((output) => ({
-            id: output.id || output.name,
+            id: output.name,
             type: output.type,
             name: output.name,
             hidden: output.hidden,
@@ -121,7 +121,7 @@ export function EditorPage() {
         data: {
           name: node.name,
           inputs: node.inputs.map((input) => ({
-            id: input.id || input.name,
+            id: input.name,
             type: input.type,
             name: input.name,
             value: input.value,
@@ -129,7 +129,7 @@ export function EditorPage() {
             required: input.required,
           })),
           outputs: node.outputs.map((output) => ({
-            id: output.id || output.name,
+            id: output.name,
             type: output.type,
             name: output.name,
             hidden: output.hidden,
@@ -196,23 +196,33 @@ export function EditorPage() {
                   (edge) => edge.targetHandle === input.id
                 );
 
-                return {
+                // Create a parameter with the correct type structure
+                const parameter: Parameter = {
                   name: input.id,
-                  type: input.type,
+                  type: input.type as ParameterType["type"],
                   description: input.name,
-                  // Only save the value if the input is not connected
-                  value: isConnected ? undefined : input.value,
                   hidden: input.hidden,
                   required: input.required,
                 };
+
+                // Only add value if the input is not connected
+                if (!isConnected && input.value !== undefined) {
+                  (parameter as any).value = input.value;
+                }
+
+                return parameter;
               }),
-              outputs: node.data.outputs.map((output) => ({
-                name: output.id,
-                type: output.type,
-                description: output.name,
-                hidden: output.hidden,
-                // Don't save the value here as it's not needed for executing the workflow
-              })),
+              outputs: node.data.outputs.map((output) => {
+                // Create a parameter with the correct type structure
+                const parameter: Parameter = {
+                  name: output.id,
+                  type: output.type as ParameterType["type"],
+                  description: output.name,
+                  hidden: output.hidden,
+                };
+
+                return parameter;
+              }),
             };
           });
 

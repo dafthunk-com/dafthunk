@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import type { R2Bucket } from '@cloudflare/workers-types';
 
 export interface StoreObject {
   id: string;
