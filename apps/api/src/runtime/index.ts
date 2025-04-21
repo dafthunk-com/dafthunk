@@ -6,7 +6,11 @@ import {
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 import { Env } from "../index";
-import { Workflow, WorkflowExecution, NodeExecutionStatus } from "../lib/api/types";
+import {
+  Workflow,
+  WorkflowExecution,
+  NodeExecutionStatus,
+} from "../lib/api/types";
 import { validateWorkflow } from "../lib/runtime/validation";
 import { NodeRegistry } from "../lib/nodes/nodeRegistry";
 import { NodeContext } from "../lib/nodes/types";
@@ -18,11 +22,7 @@ export type RuntimeParams = {
   workflow: Workflow;
 };
 
-export class Runtime extends WorkflowEntrypoint<
-  Env,
-  RuntimeParams
-> {
-
+export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private static readonly defaultConfig: WorkflowStepConfig = {
     retries: {
       limit: 0,
@@ -34,14 +34,17 @@ export class Runtime extends WorkflowEntrypoint<
 
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
     try {
-      
       // Step 1: Validate the workflow and initialize data
       const initState = await step.do(
         "validate workflow",
         Runtime.defaultConfig,
         async () => {
           const state = await this.validateWorkflow(event.payload.workflow);
-          await this.updateExecutionState(event.instanceId, event.payload.workflow.id, state);
+          await this.updateExecutionState(
+            event.instanceId,
+            event.payload.workflow.id,
+            state
+          );
           return state;
         }
       );
@@ -52,7 +55,11 @@ export class Runtime extends WorkflowEntrypoint<
         Runtime.defaultConfig,
         async () => {
           const state = await this.setupExecution(initState);
-          await this.updateExecutionState(event.instanceId, event.payload.workflow.id, state);
+          await this.updateExecutionState(
+            event.instanceId,
+            event.payload.workflow.id,
+            state
+          );
           return state;
         }
       );
@@ -68,15 +75,22 @@ export class Runtime extends WorkflowEntrypoint<
           Runtime.defaultConfig,
           async () => {
             const newState = await this.executeNode(state, nodeId);
-            await this.updateExecutionState(event.instanceId, event.payload.workflow.id, newState);
+            await this.updateExecutionState(
+              event.instanceId,
+              event.payload.workflow.id,
+              newState
+            );
             return newState;
           }
         );
       }
 
-      const finalExecution = await this.updateExecutionState(event.instanceId, event.payload.workflow.id, state);
+      const finalExecution = await this.updateExecutionState(
+        event.instanceId,
+        event.payload.workflow.id,
+        state
+      );
       return finalExecution;
-
     } catch (error) {
       console.error(error);
       const errorExecution: WorkflowExecution = {
@@ -84,9 +98,12 @@ export class Runtime extends WorkflowEntrypoint<
         workflowId: event.payload.workflow.id,
         success: false,
         nodeExecutions: [],
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
-      await this.env.KV.put(`execution:${event.instanceId}`, JSON.stringify(errorExecution));
+      await this.env.KV.put(
+        `execution:${event.instanceId}`,
+        JSON.stringify(errorExecution)
+      );
       return errorExecution;
     }
   }
@@ -104,7 +121,7 @@ export class Runtime extends WorkflowEntrypoint<
       nodeOutputs: new Map<string, Record<string, any>>(),
       executedNodes: new Set<string>(),
       nodeErrors: new Map<string, string>(),
-      sortedNodes: [] // Initialize empty array, will be populated in setupExecution
+      sortedNodes: [], // Initialize empty array, will be populated in setupExecution
     };
   }
 
@@ -391,43 +408,45 @@ export class Runtime extends WorkflowEntrypoint<
   ) {
     // Create a map of executed nodes for quick lookup
     const executedNodesMap = new Map(
-      Array.from(state.executedNodes).map(nodeId => [
-        nodeId, 
+      Array.from(state.executedNodes).map((nodeId) => [
+        nodeId,
         {
           nodeId,
-          status: state.nodeErrors.has(nodeId) ? "error" as NodeExecutionStatus : "completed" as NodeExecutionStatus,
+          status: state.nodeErrors.has(nodeId)
+            ? ("error" as NodeExecutionStatus)
+            : ("completed" as NodeExecutionStatus),
           error: state.nodeErrors.get(nodeId),
           outputs: state.nodeOutputs.get(nodeId),
-        }
+        },
       ])
     );
 
     // Create a map of nodes that are in the execution queue but not yet executed
     const pendingNodesMap = new Map(
       state.sortedNodes
-        .filter(nodeId => !state.executedNodes.has(nodeId))
-        .map(nodeId => [
+        .filter((nodeId) => !state.executedNodes.has(nodeId))
+        .map((nodeId) => [
           nodeId,
           {
             nodeId,
             status: "executing" as NodeExecutionStatus,
             outputs: {},
-          }
+          },
         ])
     );
 
     // Combine all nodes from the workflow
-    const allNodeExecutions = state.workflow.nodes.map(node => {
+    const allNodeExecutions = state.workflow.nodes.map((node) => {
       // If the node has been executed, use its execution data
       if (executedNodesMap.has(node.id)) {
         return executedNodesMap.get(node.id)!;
       }
-      
+
       // If the node is in the pending queue, mark it as pending
       if (pendingNodesMap.has(node.id)) {
         return pendingNodesMap.get(node.id)!;
       }
-      
+
       // Otherwise, mark it as not started
       return {
         nodeId: node.id,
@@ -441,11 +460,12 @@ export class Runtime extends WorkflowEntrypoint<
       workflowId: workflowId,
       success: state.nodeErrors.size === 0,
       nodeExecutions: allNodeExecutions,
-      error: state.nodeErrors.size > 0 
-        ? Array.from(state.nodeErrors.entries())
-            .map(([nodeId, error]) => error)
-            .join(", ")
-        : undefined
+      error:
+        state.nodeErrors.size > 0
+          ? Array.from(state.nodeErrors.entries())
+              .map(([_nodeId, error]) => error)
+              .join(", ")
+          : undefined,
     };
 
     await this.env.KV.put(`execution:${instanceId}`, JSON.stringify(execution));

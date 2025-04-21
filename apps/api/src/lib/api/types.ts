@@ -1,5 +1,5 @@
 // Types for workflows
-import {ObjectReference} from "../runtime/store";
+import { ObjectReference } from "../runtime/store";
 
 export type ParameterType =
   | {
@@ -85,11 +85,7 @@ export interface Workflow {
   edges: Edge[];
 }
 
-export type NodeExecutionStatus = 
-  | "idle" 
-  | "executing" 
-  | "completed" 
-  | "error";
+export type NodeExecutionStatus = "idle" | "executing" | "completed" | "error";
 
 export interface NodeExecution {
   nodeId: string;

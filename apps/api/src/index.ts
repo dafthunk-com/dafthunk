@@ -579,7 +579,7 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
     edges: Edge[];
   };
 
-  let instance = await c.env.EXECUTE.create({
+  const instance = await c.env.EXECUTE.create({
     params: {
       workflow: {
         id: workflow.id,
@@ -598,7 +598,7 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
 app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
   const id = c.req.param("id");
   const executionJson = await c.env.KV.get(`execution:${id}`);
-  
+
   if (!executionJson) {
     return c.json({ error: "Execution not found" }, 404);
   }

@@ -1,17 +1,17 @@
-import {Edge, Parameter, Workflow} from "../api/types";
+import { Edge, Parameter, Workflow } from "../api/types";
 
 export interface ValidationError {
-    type:
-        | "CYCLE_DETECTED"
-        | "TYPE_MISMATCH"
-        | "INVALID_CONNECTION"
-        | "DUPLICATE_CONNECTION";
-    message: string;
-    details: {
-        nodeId?: string;
-        connectionSource?: string;
-        connectionTarget?: string;
-    };
+  type:
+    | "CYCLE_DETECTED"
+    | "TYPE_MISMATCH"
+    | "INVALID_CONNECTION"
+    | "DUPLICATE_CONNECTION";
+  message: string;
+  details: {
+    nodeId?: string;
+    connectionSource?: string;
+    connectionTarget?: string;
+  };
 }
 
 /**

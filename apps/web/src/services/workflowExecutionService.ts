@@ -1,9 +1,5 @@
-import {
-  Node,
-  Workflow,
-  NodeExecution,
-} from "../../../api/src/lib/api/types";
-import {ExecutionState} from "@/components/workflow/workflow-types.tsx";
+import { Node, Workflow, NodeExecution } from "../../../api/src/lib/api/types";
+import { ExecutionState } from "@/components/workflow/workflow-types.tsx";
 
 export const workflowExecutionService = {
   async executeNode(node: Node): Promise<NodeExecution> {
@@ -80,10 +76,7 @@ export const workflowExecutionService = {
     return order;
   },
 
-  getNodeState(
-    node: Node,
-    executionResults: NodeExecution[]
-  ): ExecutionState {
+  getNodeState(node: Node, executionResults: NodeExecution[]): ExecutionState {
     const result = executionResults.find((r) => r.nodeId === node.id);
     if (!result) return "idle";
     if (result.status === "error") return "error";

@@ -1,7 +1,12 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow, Parameter, ParameterType, WorkflowExecution } from "../../../api/src/lib/api/types";
+import {
+  Workflow,
+  Parameter,
+  ParameterType,
+  WorkflowExecution,
+} from "../../../api/src/lib/api/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
@@ -77,7 +82,7 @@ export function EditorPage() {
           id: type.id,
           type: type.id,
           name: type.name,
-          description: type.description || '',
+          description: type.description || "",
           category: type.category,
           inputs: type.inputs.map((input) => ({
             id: input.name,
@@ -327,92 +332,117 @@ export function EditorPage() {
     ) => {
       // Start the workflow execution
       console.log(`Starting workflow execution for ID: ${workflowId}`);
-      
+
       // Make the initial request to start the workflow
       fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
       })
-        .then(response => {
+        .then((response) => {
           if (!response.ok) {
             if (response.status === 403) {
-              return response.json().then(data => {
-                throw new Error(data.error || 'AI nodes are not available in the free plan');
+              return response.json().then((data) => {
+                throw new Error(
+                  data.error || "AI nodes are not available in the free plan"
+                );
               });
             }
-            throw new Error('Failed to start workflow execution');
+            throw new Error("Failed to start workflow execution");
           }
           return response.json();
         })
-        .then(data => {
+        .then((data) => {
           const executionId = data.id;
           console.log(`Workflow execution started with ID: ${executionId}`);
-          
+
           // Set up polling interval to check execution status
           const pollInterval = setInterval(async () => {
             try {
-              const statusResponse = await fetch(`${API_BASE_URL}/executions/${executionId}`, {
-                credentials: 'include',
-              });
-              
+              const statusResponse = await fetch(
+                `${API_BASE_URL}/executions/${executionId}`,
+                {
+                  credentials: "include",
+                }
+              );
+
               if (!statusResponse.ok) {
-                throw new Error('Failed to fetch execution status');
+                throw new Error("Failed to fetch execution status");
               }
-              
-              const execution = await statusResponse.json() as WorkflowExecution;
-              
+
+              const execution =
+                (await statusResponse.json()) as WorkflowExecution;
+
               // Process node executions
               execution.nodeExecutions.forEach((nodeExecution) => {
                 if (nodeExecution.status === "completed") {
                   callbacks.onEvent({
-                    type: 'node-complete',
+                    type: "node-complete",
                     nodeId: nodeExecution.nodeId,
                     outputs: nodeExecution.outputs || {},
                   });
                 } else if (nodeExecution.status === "error") {
                   callbacks.onEvent({
-                    type: 'node-error',
+                    type: "node-error",
                     nodeId: nodeExecution.nodeId,
-                    error: nodeExecution.error || 'Unknown error',
+                    error: nodeExecution.error || "Unknown error",
                   });
                 } else if (nodeExecution.status === "executing") {
                   callbacks.onEvent({
-                    type: 'node-start',
+                    type: "node-start",
                     nodeId: nodeExecution.nodeId,
                   });
                 }
               });
-              
+
               // Check if execution is complete
               const allNodesCompleted = execution.nodeExecutions.every(
-                (nodeExecution) => nodeExecution.status === "completed" || nodeExecution.status === "error"
+                (nodeExecution) =>
+                  nodeExecution.status === "completed" ||
+                  nodeExecution.status === "error"
               );
-              if (allNodesCompleted && !execution.nodeExecutions.some((nodeExecution) => nodeExecution.status === "error")) {
+              if (
+                allNodesCompleted &&
+                !execution.nodeExecutions.some(
+                  (nodeExecution) => nodeExecution.status === "error"
+                )
+              ) {
                 // Execution completed successfully
                 clearInterval(pollInterval);
                 callbacks.onComplete();
-              } else if (execution.nodeExecutions.some((nodeExecution) => nodeExecution.status === "error")) {
+              } else if (
+                execution.nodeExecutions.some(
+                  (nodeExecution) => nodeExecution.status === "error"
+                )
+              ) {
                 // Execution failed
                 clearInterval(pollInterval);
-                callbacks.onError(execution.error || 'Unknown error');
+                callbacks.onError(execution.error || "Unknown error");
               }
               // Otherwise, continue polling
             } catch (error) {
-              console.error('Error polling execution status:', error);
+              console.error("Error polling execution status:", error);
               clearInterval(pollInterval);
-              callbacks.onError(error instanceof Error ? error.message : 'Failed to check execution status');
+              callbacks.onError(
+                error instanceof Error
+                  ? error.message
+                  : "Failed to check execution status"
+              );
             }
           }, 1000); // Poll every second
-          
+
           // Return cleanup function to clear the interval
           return () => {
-            console.log('Stopping execution status polling');
+            console.log("Stopping execution status polling");
             clearInterval(pollInterval);
           };
         })
-        .catch(error => {
-          console.error('Error starting workflow execution:', error);
-          callbacks.onError(error instanceof Error ? error.message : 'Failed to start workflow execution');
+        .catch((error) => {
+          console.error("Error starting workflow execution:", error);
+          callbacks.onError(
+            error instanceof Error
+              ? error.message
+              : "Failed to start workflow execution"
+          );
         });
     },
     []

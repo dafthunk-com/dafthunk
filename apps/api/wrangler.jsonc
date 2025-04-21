@@ -51,8 +51,8 @@
     {
       "binding": "KV",
       "id": "dd17ff67a75c41768dc30078eec37c46",
-      "preview_id": "dd17ff67a75c41768dc30078eec37c46"
-    }
+      "preview_id": "dd17ff67a75c41768dc30078eec37c46",
+    },
   ],
 
   /**
@@ -99,8 +99,8 @@
         {
           "binding": "KV",
           "id": "dd17ff67a75c41768dc30078eec37c46",
-          "preview_id": "dd17ff67a75c41768dc30078eec37c46"
-        }
+          "preview_id": "dd17ff67a75c41768dc30078eec37c46",
+        },
       ],
       "vars": {
         "WEB_HOST": "https://www.dafthunk.com",
