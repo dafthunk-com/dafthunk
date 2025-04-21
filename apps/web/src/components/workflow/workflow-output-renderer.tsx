@@ -42,6 +42,45 @@ export function WorkflowOutputRenderer({
   output,
   compact = false,
 }: WorkflowOutputRendererProps) {
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (output.type === "audio" && output.value) {
+      try {
+        // Check if we have an object reference
+        if (isObjectReference(output.value)) {
+          const objectUrl = createObjectUrl(output.value);
+          setAudioUrl(objectUrl);
+          setAudioError(null);
+        } else {
+          throw new Error("Invalid audio reference format");
+        }
+      } catch (error) {
+        console.error("Error processing audio data:", error);
+        setAudioError(
+          error instanceof Error
+            ? error.message
+            : "Failed to process audio data"
+        );
+        setAudioUrl(null);
+      }
+    }
+  }, [output.value, output.type]);
+
+  const handleAudioError = (
+    e: React.SyntheticEvent<HTMLAudioElement, Event>
+  ) => {
+    console.error("Audio playback error:", e);
+    if (audioRef.current) {
+      console.log("Audio element error:", audioRef.current.error);
+      const errorMessage =
+        audioRef.current.error?.message || "Unknown audio playback error";
+      setAudioError(`Error playing audio: ${errorMessage}`);
+    }
+  };
+
   if (output.type === "image" && output.value) {
     try {
       // Check if we have an object reference
@@ -94,43 +133,6 @@ export function WorkflowOutputRenderer({
   }
 
   if (output.type === "audio" && output.value) {
-    const [audioError, setAudioError] = useState<string | null>(null);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
-
-    useEffect(() => {
-      try {
-        // Check if we have an object reference
-        if (isObjectReference(output.value)) {
-          const objectUrl = createObjectUrl(output.value);
-          setAudioUrl(objectUrl);
-          setAudioError(null);
-        } else {
-          throw new Error("Invalid audio reference format");
-        }
-      } catch (error) {
-        console.error("Error processing audio data:", error);
-        setAudioError(
-          error instanceof Error
-            ? error.message
-            : "Failed to process audio data"
-        );
-        setAudioUrl(null);
-      }
-    }, [output.value]);
-
-    const handleAudioError = (
-      e: React.SyntheticEvent<HTMLAudioElement, Event>
-    ) => {
-      console.error("Audio playback error:", e);
-      if (audioRef.current) {
-        console.log("Audio element error:", audioRef.current.error);
-        const errorMessage =
-          audioRef.current.error?.message || "Unknown audio playback error";
-        setAudioError(`Error playing audio: ${errorMessage}`);
-      }
-    };
-
     // If we already have an error, show it
     if (audioError && !audioUrl) {
       return (
@@ -152,15 +154,10 @@ export function WorkflowOutputRenderer({
           <audio
             ref={audioRef}
             controls
+            className="w-full"
             src={audioUrl}
-            className="w-full rounded-md"
             onError={handleAudioError}
           />
-        )}
-        {audioError && (
-          <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
-            {audioError}
-          </div>
         )}
       </div>
     );

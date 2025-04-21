@@ -15,7 +15,7 @@
     {
       "name": "workflows-starter",
       "binding": "EXECUTE",
-      "class_name": "ExecuteWorkflow",
+      "class_name": "Runtime",
     },
   ],
   /**
@@ -47,6 +47,13 @@
       "bucket_name": "workflow-development",
     },
   ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "868c7fd3732e42c4ad1c6f65939d1bfc",
+      "preview_id": "868c7fd3732e42c4ad1c6f65939d1bfc",
+    },
+  ],
 
   /**
    * Environment Variables
@@ -67,7 +74,7 @@
         {
           "name": "workflows-starter",
           "binding": "EXECUTE",
-          "class_name": "ExecuteWorkflow",
+          "class_name": "Runtime",
         },
       ],
       "ai": {
@@ -86,6 +93,13 @@
         {
           "binding": "BUCKET",
           "bucket_name": "workflow-production",
+        },
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "dd17ff67a75c41768dc30078eec37c46",
+          "preview_id": "dd17ff67a75c41768dc30078eec37c46",
         },
       ],
       "vars": {

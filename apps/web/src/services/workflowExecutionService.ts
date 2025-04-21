@@ -1,12 +1,8 @@
-import {
-  Node,
-  Workflow,
-  ExecutionResult,
-  ExecutionState,
-} from "../../../api/src/lib/old/api/types";
+import { Node, Workflow, NodeExecution } from "@dafthunk/types";
+import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
 
 export const workflowExecutionService = {
-  async executeNode(node: Node): Promise<ExecutionResult> {
+  async executeNode(node: Node): Promise<NodeExecution> {
     try {
       // This is a placeholder for actual node execution logic
       // In a real implementation, this would:
@@ -15,21 +11,21 @@ export const workflowExecutionService = {
       // 3. Handle input/output transformations
       return {
         nodeId: node.id,
-        success: true,
+        status: "completed",
         outputs: {},
       };
     } catch (error) {
       return {
         nodeId: node.id,
-        success: false,
+        status: "error",
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   },
 
-  async executeWorkflow(workflow: Workflow): Promise<ExecutionResult[]> {
-    const results: ExecutionResult[] = [];
+  async executeWorkflow(workflow: Workflow): Promise<NodeExecution[]> {
+    const results: NodeExecution[] = [];
     const executionOrder = this.getExecutionOrder(workflow);
 
     for (const nodeId of executionOrder) {
@@ -38,7 +34,7 @@ export const workflowExecutionService = {
         const result = await this.executeNode(node);
         results.push(result);
 
-        if (!result.success) {
+        if (result.status === "error") {
           break;
         }
       }
@@ -82,12 +78,12 @@ export const workflowExecutionService = {
 
   getNodeState(
     node: Node,
-    executionResults: ExecutionResult[]
-  ): ExecutionState {
+    executionResults: NodeExecution[]
+  ): NodeExecutionState {
     const result = executionResults.find((r) => r.nodeId === node.id);
     if (!result) return "idle";
-    if (result.error) return "error";
-    return result.success ? "completed" : "executing";
+    if (result.status === "error") return "error";
+    return result.status === "completed" ? "completed" : "executing";
   },
 
   validateNodeInputs(node: Node, workflow: Workflow): boolean {

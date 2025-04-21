@@ -1,7 +1,6 @@
 import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
-import { useWorkflowExecution } from "./useWorkflowExecution";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
 import { useEffect, useState, useRef } from "react";
@@ -16,9 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-// Define workflow status states
-type WorkflowStatus = "idle" | "executing" | "completed";
+import { WorkflowExecutionStatus, WorkflowExecution } from "@dafthunk/types";
 
 export function WorkflowBuilder({
   workflowId,
@@ -29,15 +26,10 @@ export function WorkflowBuilder({
   onEdgesChange,
   validateConnection,
   executeWorkflow,
-  onExecutionStart,
-  onExecutionComplete,
-  onExecutionError,
-  onNodeStart,
-  onNodeComplete,
-  onNodeError,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus>("idle");
+  const [workflowStatus, setWorkflowStatus] =
+    useState<WorkflowExecutionStatus>("idle");
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -64,7 +56,6 @@ export function WorkflowBuilder({
     connectionValidationState,
     isValidConnection,
     updateNodeData,
-    updateNodeOutputs,
     updateEdgeData,
   } = useWorkflowState({
     initialNodes,
@@ -115,83 +106,106 @@ export function WorkflowBuilder({
         updateNodeData(node.id, { inputs, outputs });
       }
     });
-  }, [edges, nodes]);
+  }, [edges, nodes, updateNodeData]);
 
-  const { handleExecute } = useWorkflowExecution({
-    workflowId,
-    updateNodeExecutionState,
-    updateNodeData,
-    updateNodeOutputs,
-    onExecutionStart: () => {
-      setWorkflowStatus("executing");
-      onExecutionStart?.();
-    },
-    onExecutionComplete: () => {
-      setWorkflowStatus("completed");
-      onExecutionComplete?.();
-    },
-    onExecutionError: (error) => {
-      setWorkflowStatus("completed");
-      setErrorMessage(error);
-      setErrorDialogOpen(true);
-      onExecutionError?.(error);
-    },
-    onNodeStart,
-    onNodeComplete,
-    onNodeError,
-    executeWorkflow,
-  });
+  const handleExecute = () => {
+    if (!executeWorkflow) return;
+
+    // Reset all nodes to idle state before execution
+    nodes.forEach((node) => {
+      updateNodeExecutionState(node.id, "idle");
+      updateNodeData(node.id, {
+        outputs: node.data.outputs.map((output) => ({
+          ...output,
+          value: undefined,
+        })),
+        error: undefined,
+      });
+    });
+
+    setWorkflowStatus("executing");
+
+    const cleanup = executeWorkflow(
+      workflowId,
+      (execution: WorkflowExecution) => {
+        // Update workflow status
+        setWorkflowStatus(execution.status);
+
+        // Update all nodes based on execution state
+        execution.nodeExecutions.forEach((nodeExecution) => {
+          updateNodeExecutionState(nodeExecution.nodeId, nodeExecution.status);
+
+          if (nodeExecution.outputs) {
+            updateNodeData(nodeExecution.nodeId, {
+              outputs:
+                nodes
+                  .find((n) => n.id === nodeExecution.nodeId)
+                  ?.data.outputs.map((output) => ({
+                    ...output,
+                    value: nodeExecution.outputs?.[output.id],
+                  })) || [],
+            });
+          }
+
+          if (nodeExecution.error) {
+            updateNodeData(nodeExecution.nodeId, {
+              error: nodeExecution.error,
+            });
+          }
+        });
+
+        // Handle workflow completion
+        if (execution.status === "completed") {
+          // Workflow completed successfully
+          console.log("Workflow execution completed");
+        } else if (execution.status === "error") {
+          setErrorMessage(execution.error || "Unknown error");
+          setErrorDialogOpen(true);
+        }
+      }
+    );
+
+    return cleanup;
+  };
 
   const handleActionButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     switch (workflowStatus) {
-      case "idle":
-        // Execute workflow
-        // Reset all nodes to idle state before execution
-        nodes.forEach((node) => {
-          updateNodeExecutionState(node.id, "idle");
-        });
-
-        // Execute and store cleanup function if returned
+      case "idle": {
+        // Start execution
         const cleanup = handleExecute();
         if (typeof cleanup === "function") {
           cleanupRef.current = cleanup;
         }
         break;
-
-      case "executing":
-        // Stop the execution but keep the outputs
+      }
+      case "executing": {
+        // Stop the execution
         if (cleanupRef.current) {
           cleanupRef.current();
           cleanupRef.current = null;
         }
-
-        // Update workflow status to completed
         setWorkflowStatus("completed");
         break;
-
+      }
       case "completed":
-        // Clean up outputs and reset to idle
-        // Reset all nodes to idle state
+      case "error": {
+        // Reset to idle state
         nodes.forEach((node) => {
-          // Reset execution state to idle
           updateNodeExecutionState(node.id, "idle");
-
-          // Update node data to clear output values and error
           updateNodeData(node.id, {
             outputs: node.data.outputs.map((output) => ({
               ...output,
               value: undefined,
             })),
-            error: null,
+            error: undefined,
           });
         });
-
-        // Reset workflow status to idle
         setWorkflowStatus("idle");
         break;
+      }
     }
   };
 

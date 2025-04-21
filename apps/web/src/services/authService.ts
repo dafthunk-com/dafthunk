@@ -27,7 +27,7 @@ export const authService = {
         credentials: "include", // Important for cookies
       });
       return response.ok;
-    } catch (error) {
+    } catch (_) {
       console.log("Authentication check failed");
       return false;
     }

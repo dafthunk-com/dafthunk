@@ -1,4 +1,4 @@
-import { Edge } from "../../../api/src/lib/old/api/types";
+import { Edge } from "@dafthunk/types";
 import { Edge as ReactFlowEdge, Connection } from "reactflow";
 
 export type ConnectionValidationState = "default" | "valid" | "invalid";

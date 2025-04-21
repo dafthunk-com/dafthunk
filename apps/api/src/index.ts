@@ -10,26 +10,24 @@ import {
   CustomJWTPayload,
   JWT_SECRET_TOKEN_DURATION,
   JWT_SECRET_TOKEN_NAME,
-} from "./lib/auth";
+} from "./auth";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
-import { ObjectReference, ObjectStore } from "./lib/old/runtime/store";
-import { Edge, Node, WorkflowExecutionOptions } from "./lib/old/api/types";
-import { ParameterRegistry } from "./lib/old/api/parameterRegistry";
-import { Workflow as RuntimeWorkflow } from "./lib/old/runtime/types";
-import { NodeRegistry } from "./lib/old/runtime/nodeRegistry";
-import { Runtime } from "./lib/old/runtime/runtime";
-import { createEvent } from "./lib/sse";
+import { ObjectReference } from "./runtime/store";
+import { Node, Edge, WorkflowExecution } from "./types";
+import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
 
-export { ExecuteWorkflow } from "./workflows/execute";
+export { Runtime } from "./runtime";
+import { RuntimeParams } from "./runtime";
 
 export interface Env {
   DB: D1Database;
-  EXECUTE: Workflow;
+  EXECUTE: Workflow<RuntimeParams>;
   BUCKET: R2Bucket;
   AI: Ai;
+  KV: KVNamespace;
 
   WEB_HOST: string;
 
@@ -368,12 +366,7 @@ app.get("/types", jwtAuthMiddleware, (c) => {
   try {
     // Get the registry instance with all registered node types
     const registry = NodeRegistry.getInstance();
-    const parameterRegistry = ParameterRegistry.getInstance();
-    const nodeTypes = parameterRegistry.convertNodeTypes(
-      registry.getNodeTypes()
-    );
-
-    return c.json(nodeTypes);
+    return c.json(registry.getNodeTypes());
   } catch (error) {
     console.error("Error in types function:", error);
     return c.json({ error: "Unknown error occurred" }, 500);
@@ -578,184 +571,45 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
     .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
 
   if (!workflow) {
-    return new Response(JSON.stringify({ error: "Workflow not found" }), {
-      status: 404,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+    return c.json({ error: "Workflow not found" }, 404);
+  }
+
+  const workflowData = workflow.data as {
+    nodes: Node[];
+    edges: Edge[];
+  };
+
+  const instance = await c.env.EXECUTE.create({
+    params: {
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
       },
-    });
-  }
-
-  const parameterRegistry = ParameterRegistry.getInstance();
-  const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
-  const workflowGraph: RuntimeWorkflow = {
-    id: workflow.id,
-    name: workflow.name,
-    nodes: workflowData.nodes
-      ? parameterRegistry.convertApiNodes(workflowData.nodes)
-      : [],
-    edges: workflowData.edges || [],
-  };
-
-  // Check if user is on free plan and workflow contains AI nodes
-  if (user.plan === "free") {
-    const registry = NodeRegistry.getInstance();
-    const nodeTypes = parameterRegistry.convertNodeTypes(
-      registry.getNodeTypes()
-    );
-
-    const aiNodeTypes = new Set(
-      nodeTypes.filter((type) => type.category === "AI").map((type) => type.id)
-    );
-
-    const hasAINodes = workflowGraph.nodes.some((node) =>
-      aiNodeTypes.has(node.type)
-    );
-
-    if (hasAINodes) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "AI nodes are not available in the free plan. Please upgrade to use AI features.",
-        }),
-        {
-          status: 403,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }
-      );
-    }
-  }
-
-  // Create a TransformStream for SSE with Uint8Array chunks
-  const { readable, writable } = new TransformStream<Uint8Array>();
-  const writer = writable.getWriter();
-
-  // Create an AbortController to handle client disconnections
-  const abortController = new AbortController();
-  const { signal } = abortController;
-
-  // Safe write function to detect client disconnections
-  async function safeWrite(data: Uint8Array): Promise<void> {
-    try {
-      await writer.write(data);
-    } catch (error) {
-      console.error("Client disconnected:", error);
-      abortController.abort();
-      try {
-        await writer.close();
-      } catch (e) {
-        // Ignore errors on close after disconnection
-      }
-    }
-  }
-
-  // Create execution options that emit SSE events
-  const executionOptions: WorkflowExecutionOptions = {
-    onNodeStart: (nodeId) => {
-      if (signal.aborted) return;
-      safeWrite(
-        createEvent({
-          type: "node-start",
-          nodeId,
-          timestamp: Date.now(),
-        })
-      );
-    },
-    onNodeComplete: (nodeId, outputs) => {
-      if (signal.aborted) return;
-      safeWrite(
-        createEvent({
-          type: "node-complete",
-          nodeId,
-          data: { outputs },
-          timestamp: Date.now(),
-        })
-      );
-    },
-    onNodeError: (nodeId, error) => {
-      if (signal.aborted) return;
-      safeWrite(
-        createEvent({
-          type: "node-error",
-          nodeId,
-          error,
-          timestamp: Date.now(),
-        })
-      );
-    },
-    onExecutionComplete: async () => {
-      if (signal.aborted) return;
-      try {
-        await safeWrite(
-          createEvent({
-            type: "execution-complete",
-            timestamp: Date.now(),
-          })
-        );
-        await writer.close();
-      } catch (error) {
-        console.log("Error closing writer on execution complete:", error);
-      }
-    },
-    onExecutionError: async (error) => {
-      if (signal.aborted) return;
-      try {
-        await safeWrite(
-          createEvent({
-            type: "execution-error",
-            error,
-            timestamp: Date.now(),
-          })
-        );
-        await writer.close();
-      } catch (e) {
-        console.log("Error closing writer on execution error:", e);
-      }
-    },
-    abortSignal: signal, // Pass the abort signal to the runtime
-  };
-
-  // Create and execute the workflow runtime
-  const objectStore = new ObjectStore(c.env.BUCKET as any);
-
-  const runtime = new Runtime(
-    workflowGraph,
-    executionOptions,
-    c.env,
-    objectStore
-  );
-
-  // Execute the workflow in the background
-  runtime.execute().catch(async (error) => {
-    console.error("Runtime execution error:", error);
-    // The error will be handled by the onExecutionError callback
-    if (!signal.aborted) {
-      try {
-        await safeWrite(
-          createEvent({
-            type: "execution-error",
-            error: error instanceof Error ? error.message : "Unknown error",
-            timestamp: Date.now(),
-          })
-        );
-        await writer.close();
-      } catch (e) {
-        // Ignore errors on close after error
-      }
-    }
-  });
-
-  return c.body(readable, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
     },
   });
+
+  return c.json({
+    id: instance.id,
+  });
+});
+
+app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const executionJson = await c.env.KV.get(`execution:${id}`);
+
+  if (!executionJson) {
+    return c.json({ error: "Execution not found" }, 404);
+  }
+
+  try {
+    const execution = JSON.parse(executionJson) as WorkflowExecution;
+    return c.json(execution);
+  } catch (error) {
+    console.error("Error parsing execution data:", error);
+    return c.json({ error: "Invalid execution data" }, 500);
+  }
 });
 
 export default {

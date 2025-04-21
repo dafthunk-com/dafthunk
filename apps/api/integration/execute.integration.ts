@@ -1,4 +1,4 @@
-import { Workflow as RuntimeWorkflow } from "../src/lib/runtime/types";
+import { Workflow as RuntimeWorkflow } from "../src/types";
 
 // Create a simple math workflow
 function createMathWorkflow(): RuntimeWorkflow {
@@ -9,6 +9,7 @@ function createMathWorkflow(): RuntimeWorkflow {
       {
         id: "add1",
         type: "addition",
+        position: { x: 0, y: 0 },
         inputs: [
           { name: "a", type: "number", value: 1 },
           { name: "b", type: "number", value: 2 },
@@ -19,6 +20,7 @@ function createMathWorkflow(): RuntimeWorkflow {
       {
         id: "subtract1",
         type: "subtraction",
+        position: { x: 0, y: 0 },
         inputs: [
           { name: "a", type: "number" },
           { name: "b", type: "number", value: 1 },
@@ -29,6 +31,7 @@ function createMathWorkflow(): RuntimeWorkflow {
       {
         id: "multiply1",
         type: "multiplication",
+        position: { x: 0, y: 0 },
         inputs: [
           { name: "a", type: "number" },
           { name: "b", type: "number", value: 3 },
@@ -62,6 +65,7 @@ function createStableDiffusionWorkflow(): RuntimeWorkflow {
       {
         id: "image-generation",
         type: "stable-diffusion-xl-lightning",
+        position: { x: 0, y: 0 },
         inputs: [
           {
             name: "prompt",

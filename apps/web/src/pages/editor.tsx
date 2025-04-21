@@ -1,14 +1,18 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow } from "../../../api/src/lib/old/api/types";
+import {
+  Workflow,
+  Parameter,
+  ParameterType,
+  WorkflowExecution,
+} from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
 import { ReactFlowProvider } from "reactflow";
 import {
   NodeTemplate,
-  ExecutionEvent,
   WorkflowNodeData,
   WorkflowEdgeData,
 } from "@/components/workflow/workflow-types";
@@ -77,16 +81,16 @@ export function EditorPage() {
           id: type.id,
           type: type.id,
           name: type.name,
-          description: type.description,
+          description: type.description || "",
           category: type.category,
           inputs: type.inputs.map((input) => ({
-            id: input.id || input.name,
+            id: input.name,
             type: input.type,
             name: input.name,
             hidden: input.hidden,
           })),
           outputs: type.outputs.map((output) => ({
-            id: output.id || output.name,
+            id: output.name,
             type: output.type,
             name: output.name,
             hidden: output.hidden,
@@ -94,7 +98,7 @@ export function EditorPage() {
         }));
         setNodeTemplates(templates);
         setTemplatesError(null);
-      } catch (err) {
+      } catch (_) {
         setTemplatesError(
           "Failed to load node templates. Please try again later."
         );
@@ -121,7 +125,7 @@ export function EditorPage() {
         data: {
           name: node.name,
           inputs: node.inputs.map((input) => ({
-            id: input.id || input.name,
+            id: input.name,
             type: input.type,
             name: input.name,
             value: input.value,
@@ -129,7 +133,7 @@ export function EditorPage() {
             required: input.required,
           })),
           outputs: node.outputs.map((output) => ({
-            id: output.id || output.name,
+            id: output.name,
             type: output.type,
             name: output.name,
             hidden: output.hidden,
@@ -196,23 +200,33 @@ export function EditorPage() {
                   (edge) => edge.targetHandle === input.id
                 );
 
-                return {
+                // Create a parameter with the correct type structure
+                const parameter: Parameter = {
                   name: input.id,
-                  type: input.type,
+                  type: input.type as ParameterType["type"],
                   description: input.name,
-                  // Only save the value if the input is not connected
-                  value: isConnected ? undefined : input.value,
                   hidden: input.hidden,
                   required: input.required,
                 };
+
+                // Only add value if the input is not connected
+                if (!isConnected && input.value !== undefined) {
+                  (parameter as any).value = input.value;
+                }
+
+                return parameter;
               }),
-              outputs: node.data.outputs.map((output) => ({
-                name: output.id,
-                type: output.type,
-                description: output.name,
-                hidden: output.hidden,
-                // Don't save the value here as it's not needed for executing the workflow
-              })),
+              outputs: node.data.outputs.map((output) => {
+                // Create a parameter with the correct type structure
+                const parameter: Parameter = {
+                  name: output.id,
+                  type: output.type as ParameterType["type"],
+                  description: output.name,
+                  hidden: output.hidden,
+                };
+
+                return parameter;
+              }),
             };
           });
 
@@ -239,7 +253,7 @@ export function EditorPage() {
           }
 
           await workflowService.save(id, workflowToSave);
-        } catch (err) {
+        } catch (_) {
           // Error handling without logging
         } finally {
           setIsSaving(false);
@@ -309,125 +323,75 @@ export function EditorPage() {
   const executeWorkflow = useCallback(
     (
       workflowId: string,
-      callbacks: {
-        onEvent: (event: ExecutionEvent) => void;
-        onComplete: () => void;
-        onError: (error: string) => void;
-      }
+      onExecution: (execution: WorkflowExecution) => void
     ) => {
-      // Connect to the server-side SSE endpoint for workflow execution
-      console.log(
-        `Connecting to workflow execution endpoint for ID: ${workflowId}`
-      );
+      // Start the workflow execution
+      console.log(`Starting workflow execution for ID: ${workflowId}`);
 
-      // Create EventSource for SSE connection
-      const eventSource = new EventSource(
-        `${API_BASE_URL}/workflows/${workflowId}/execute`,
-        { withCredentials: true }
-      );
+      // Make the initial request to start the workflow
+      fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 403) {
+              return response.json().then((data) => {
+                throw new Error(
+                  data.error || "AI nodes are not available in the free plan"
+                );
+              });
+            }
+            throw new Error("Failed to start workflow execution");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const executionId = data.id;
+          console.log(`Workflow execution started with ID: ${executionId}`);
 
-      // Set up event listeners for different event types
-      eventSource.addEventListener("node-start", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onEvent({
-            type: "node-start",
-            nodeId: data.nodeId,
-          });
-        } catch (error) {
-          console.error("Error parsing node-start event:", error);
-        }
-      });
-
-      eventSource.addEventListener("node-complete", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onEvent({
-            type: "node-complete",
-            nodeId: data.nodeId,
-            outputs: data.data?.outputs || {},
-          });
-        } catch (error) {
-          console.error("Error parsing node-complete event:", error);
-        }
-      });
-
-      eventSource.addEventListener("node-error", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onEvent({
-            type: "node-error",
-            nodeId: data.nodeId,
-            error: data.error,
-          });
-        } catch (error) {
-          console.error("Error parsing node-error event:", error);
-        }
-      });
-
-      eventSource.addEventListener("execution-complete", () => {
-        callbacks.onComplete();
-        eventSource.close();
-      });
-
-      eventSource.addEventListener("execution-error", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onError(data.error || "Unknown execution error");
-        } catch (error) {
-          callbacks.onError("Failed to parse execution error");
-        } finally {
-          eventSource.close();
-        }
-      });
-
-      eventSource.addEventListener("validation-error", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onError(data.error || "Workflow validation error");
-        } catch (error) {
-          callbacks.onError("Failed to parse validation error");
-        } finally {
-          eventSource.close();
-        }
-      });
-
-      // Handle connection errors
-      eventSource.onerror = (error) => {
-        console.error("SSE connection error:", error);
-        // Check if the error is due to a 403 response (AI nodes in free plan)
-        if (eventSource.readyState === EventSource.CLOSED) {
-          fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, {
-            credentials: "include",
-          })
-            .then((response) => {
-              if (response.status === 403) {
-                return response.json();
-              }
-              throw new Error("Connection to execution service failed");
-            })
-            .then((data) => {
-              callbacks.onError(
-                data.error || "AI nodes are not available in the free plan"
+          // Set up polling interval to check execution status
+          const pollInterval = setInterval(async () => {
+            try {
+              const statusResponse = await fetch(
+                `${API_BASE_URL}/executions/${executionId}`,
+                {
+                  credentials: "include",
+                }
               );
-            })
-            .catch(() => {
-              callbacks.onError("Connection to execution service failed");
-            })
-            .finally(() => {
-              eventSource.close();
-            });
-        } else {
-          callbacks.onError("Connection to execution service failed");
-          eventSource.close();
-        }
-      };
 
-      // Return cleanup function to close the connection
-      return () => {
-        console.log("Closing SSE connection");
-        eventSource.close();
-      };
+              if (!statusResponse.ok) {
+                throw new Error("Failed to fetch execution status");
+              }
+
+              const execution =
+                (await statusResponse.json()) as WorkflowExecution;
+
+              // Pass the execution object to the callback
+              onExecution(execution);
+
+              // Check if execution is complete or has error
+              if (
+                execution.status === "completed" ||
+                execution.status === "error"
+              ) {
+                clearInterval(pollInterval);
+              }
+            } catch (error) {
+              console.error("Error polling execution status:", error);
+              clearInterval(pollInterval);
+            }
+          }, 1000); // Poll every second
+
+          // Return cleanup function to clear the interval
+          return () => {
+            console.log("Stopping execution status polling");
+            clearInterval(pollInterval);
+          };
+        })
+        .catch((error) => {
+          console.error("Error starting workflow execution:", error);
+        });
     },
     []
   );
@@ -475,82 +439,6 @@ export function EditorPage() {
               onEdgesChange={handleEdgesChange}
               validateConnection={validateConnection}
               executeWorkflow={executeWorkflow}
-              onExecutionStart={() => {
-                // Reset all nodes to idle state before execution
-                setNodes((currentNodes) =>
-                  currentNodes.map((node) => ({
-                    ...node,
-                    data: {
-                      ...node.data,
-                      executionState: "idle" as const,
-                      // Reset output values
-                      outputs: node.data.outputs.map((output) => ({
-                        ...output,
-                        value: undefined,
-                      })),
-                    },
-                  }))
-                );
-              }}
-              onExecutionComplete={() => {}}
-              onExecutionError={() => {}}
-              onNodeStart={() => {}}
-              onNodeComplete={(nodeId, outputs) => {
-                // Update the node's output parameter values with the values from the execution
-                if (outputs) {
-                  console.log(
-                    `Node ${nodeId} completed with outputs:`,
-                    outputs
-                  );
-
-                  // Use functional update to ensure we're working with the latest state
-                  setNodes((currentNodes) => {
-                    // Find the node to update
-                    const nodeToUpdate = currentNodes.find(
-                      (node) => node.id === nodeId
-                    );
-                    if (!nodeToUpdate) {
-                      console.error(`Node ${nodeId} not found`);
-                      return currentNodes;
-                    }
-
-                    // Map the output values to the node's output parameters
-                    const updatedOutputs = nodeToUpdate.data.outputs.map(
-                      (output) => {
-                        // Check if this output parameter has a value in the execution outputs
-                        if (outputs[output.id] !== undefined) {
-                          console.log(
-                            `Mapping output ${output.id} with value:`,
-                            outputs[output.id]
-                          );
-                          return {
-                            ...output,
-                            value: outputs[output.id],
-                          };
-                        }
-                        return output;
-                      }
-                    );
-
-                    const updatedNodes = currentNodes.map((node) => {
-                      // Check if the node is the one we want to update
-                      if (node.id === nodeId) {
-                        return {
-                          ...node,
-                          data: {
-                            ...node.data,
-                            outputs: updatedOutputs,
-                          },
-                        };
-                      }
-                      return node;
-                    });
-
-                    return updatedNodes;
-                  });
-                }
-              }}
-              onNodeError={() => {}}
             />
           </div>
         )}
