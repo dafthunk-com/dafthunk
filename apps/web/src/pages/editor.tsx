@@ -6,7 +6,6 @@ import {
   Parameter,
   ParameterType,
   WorkflowExecution,
-  WorkflowExecutionStatus,
 } from "../../../api/src/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
@@ -14,7 +13,6 @@ import { Node, Edge, Connection } from "reactflow";
 import { ReactFlowProvider } from "reactflow";
 import {
   NodeTemplate,
-  ExecutionEvent,
   WorkflowNodeData,
   WorkflowEdgeData,
 } from "@/components/workflow/workflow-types";
@@ -326,9 +324,7 @@ export function EditorPage() {
     (
       workflowId: string,
       callbacks: {
-        onEvent: (event: ExecutionEvent) => void;
-        onComplete: () => void;
-        onError: (error: string) => void;
+        onEvent: (execution: WorkflowExecution) => void;
       }
     ) => {
       // Start the workflow execution
@@ -373,57 +369,19 @@ export function EditorPage() {
               const execution =
                 (await statusResponse.json()) as WorkflowExecution;
 
-              // Process node executions
-              execution.nodeExecutions.forEach((nodeExecution) => {
-                if (nodeExecution.status === "completed") {
-                  callbacks.onEvent({
-                    type: "node-complete",
-                    nodeId: nodeExecution.nodeId,
-                    outputs: nodeExecution.outputs || {},
-                  });
-                } else if (nodeExecution.status === "error") {
-                  callbacks.onEvent({
-                    type: "node-error",
-                    nodeId: nodeExecution.nodeId,
-                    error: nodeExecution.error || "Unknown error",
-                  });
-                } else if (nodeExecution.status === "executing") {
-                  callbacks.onEvent({
-                    type: "node-start",
-                    nodeId: nodeExecution.nodeId,
-                  });
-                }
-              });
+              // Pass the entire execution object to the callback
+              callbacks.onEvent(execution);
 
-              // Check if execution is complete
-              const allNodesCompleted = execution.nodeExecutions.every(
-                (nodeExecution) =>
-                  nodeExecution.status === "completed" ||
-                  nodeExecution.status === "error"
-              );
+              // Check if execution is complete or has error
               if (
-                allNodesCompleted &&
-                execution.status === "completed"
-              ) {
-                // Execution completed successfully
-                clearInterval(pollInterval);
-                callbacks.onComplete();
-              } else if (
+                execution.status === "completed" ||
                 execution.status === "error"
               ) {
-                // Execution failed
                 clearInterval(pollInterval);
-                callbacks.onError(execution.error || "Unknown error");
               }
-              // Otherwise, continue polling
             } catch (error) {
               console.error("Error polling execution status:", error);
               clearInterval(pollInterval);
-              callbacks.onError(
-                error instanceof Error
-                  ? error.message
-                  : "Failed to check execution status"
-              );
             }
           }, 1000); // Poll every second
 
@@ -435,11 +393,6 @@ export function EditorPage() {
         })
         .catch((error) => {
           console.error("Error starting workflow execution:", error);
-          callbacks.onError(
-            error instanceof Error
-              ? error.message
-              : "Failed to start workflow execution"
-          );
         });
     },
     []
@@ -507,63 +460,6 @@ export function EditorPage() {
               }}
               onExecutionComplete={() => {}}
               onExecutionError={() => {}}
-              onNodeStart={() => {}}
-              onNodeComplete={(nodeId, outputs) => {
-                // Update the node's output parameter values with the values from the execution
-                if (outputs) {
-                  console.log(
-                    `Node ${nodeId} completed with outputs:`,
-                    outputs
-                  );
-
-                  // Use functional update to ensure we're working with the latest state
-                  setNodes((currentNodes) => {
-                    // Find the node to update
-                    const nodeToUpdate = currentNodes.find(
-                      (node) => node.id === nodeId
-                    );
-                    if (!nodeToUpdate) {
-                      console.error(`Node ${nodeId} not found`);
-                      return currentNodes;
-                    }
-
-                    // Map the output values to the node's output parameters
-                    const updatedOutputs = nodeToUpdate.data.outputs.map(
-                      (output) => {
-                        // Check if this output parameter has a value in the execution outputs
-                        if (outputs[output.id] !== undefined) {
-                          console.log(
-                            `Mapping output ${output.id} with value:`,
-                            outputs[output.id]
-                          );
-                          return {
-                            ...output,
-                            value: outputs[output.id],
-                          };
-                        }
-                        return output;
-                      }
-                    );
-
-                    const updatedNodes = currentNodes.map((node) => {
-                      // Check if the node is the one we want to update
-                      if (node.id === nodeId) {
-                        return {
-                          ...node,
-                          data: {
-                            ...node.data,
-                            outputs: updatedOutputs,
-                          },
-                        };
-                      }
-                      return node;
-                    });
-
-                    return updatedNodes;
-                  });
-                }
-              }}
-              onNodeError={() => {}}
             />
           </div>
         )}

@@ -1,7 +1,7 @@
 import { Node as ReactFlowNode, XYPosition } from "reactflow";
 import { API_BASE_URL } from "../config/api";
 import { Node, NodeType } from "../../../api/src/types.ts";
-import { ExecutionState } from "@/components/workflow/workflow-types.tsx";
+import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
 
 export const workflowNodeService = {
   convertToReactFlowNodes(nodes: Node[]): ReactFlowNode[] {
@@ -14,7 +14,7 @@ export const workflowNodeService = {
         inputs: node.inputs,
         outputs: node.outputs,
         error: node.error,
-        executionState: "idle" as ExecutionState,
+        executionState: "idle" as NodeExecutionState,
       },
     }));
   },
@@ -39,7 +39,7 @@ export const workflowNodeService = {
   updateNodeExecutionState(
     nodes: ReactFlowNode[],
     nodeId: string,
-    state: ExecutionState
+    state: NodeExecutionState
   ): ReactFlowNode[] {
     return nodes.map((node) => {
       if (node.id === nodeId) {

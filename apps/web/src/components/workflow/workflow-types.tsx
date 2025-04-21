@@ -9,6 +9,10 @@ import {
   OnConnectStart,
   ReactFlowInstance,
 } from "reactflow";
+import {
+  WorkflowExecution,
+  WorkflowExecutionStatus,
+} from "../../../../api/src/types";
 
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
@@ -76,7 +80,7 @@ export interface WorkflowCanvasProps {
   onInit: (instance: ReactFlowInstance) => void;
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
-  workflowStatus?: "idle" | "executing" | "completed";
+  workflowStatus?: WorkflowExecutionStatus;
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
   showControls?: boolean;
@@ -127,42 +131,6 @@ export interface UseWorkflowStateReturn {
   deleteNode: (nodeId: string) => void;
 }
 
-// Execution Types
-export type ExecutionEventType =
-  | "node-start"
-  | "node-complete"
-  | "node-error"
-  | "execution-complete"
-  | "execution-error";
-
-export interface ExecutionEvent {
-  type: ExecutionEventType;
-  nodeId?: string;
-  error?: string;
-  outputs?: Record<string, any>;
-}
-
-export interface UseWorkflowExecutionProps {
-  workflowId: string;
-  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-  updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
-  onExecutionStart?: () => void;
-  onExecutionComplete?: () => void;
-  onExecutionError?: (error: string) => void;
-  onNodeStart?: (nodeId: string) => void;
-  onNodeComplete?: (nodeId: string, outputs?: Record<string, any>) => void;
-  onNodeError?: (nodeId: string, error: string) => void;
-  executeWorkflow?: (
-    workflowId: string,
-    callbacks: {
-      onEvent: (event: ExecutionEvent) => void;
-      onComplete: () => void;
-      onError: (error: string) => void;
-    }
-  ) => void | (() => void);
-}
-
 // Component Props Types
 export interface WorkflowNodeSelectorProps {
   open: boolean;
@@ -204,24 +172,16 @@ export interface WorkflowBuilderProps {
   executeWorkflow?: (
     workflowId: string,
     callbacks: {
-      onEvent: (event: ExecutionEvent) => void;
-      onComplete: () => void;
-      onError: (error: string) => void;
+      onEvent: (execution: WorkflowExecution) => void;
     }
   ) => void | (() => void);
   onExecutionStart?: () => void;
   onExecutionComplete?: () => void;
   onExecutionError?: (error: string) => void;
-  onNodeStart?: (nodeId: string) => void;
-  onNodeComplete?: (nodeId: string, outputs?: Record<string, any>) => void;
-  onNodeError?: (nodeId: string, error: string) => void;
 }
 
-// Type for TypeBadge component
 export interface TypeBadgeProps {
   type: string;
   position: import("reactflow").Position;
   id: string;
 }
-
-export type ExecutionState = "idle" | "executing" | "completed" | "error";

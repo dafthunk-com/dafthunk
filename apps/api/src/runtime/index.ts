@@ -458,17 +458,19 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
 
     // Determine workflow status based on node executions
     let workflowStatus: WorkflowExecutionStatus = "idle";
-    
+
     // If there are executing nodes, the workflow is executing
-    if (allNodeExecutions.some(node => node.status === "executing")) {
+    if (allNodeExecutions.some((node) => node.status === "executing")) {
       workflowStatus = "executing";
-    } 
+    }
     // If all nodes are completed or error, determine final status
-    else if (allNodeExecutions.every(node => 
-      node.status === "completed" || node.status === "error"
-    )) {
+    else if (
+      allNodeExecutions.every(
+        (node) => node.status === "completed" || node.status === "error"
+      )
+    ) {
       // If any node has error, the workflow has error
-      if (allNodeExecutions.some(node => node.status === "error")) {
+      if (allNodeExecutions.some((node) => node.status === "error")) {
         workflowStatus = "error";
       } else {
         workflowStatus = "completed";
