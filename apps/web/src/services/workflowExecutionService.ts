@@ -1,12 +1,12 @@
 import {
   Node,
   Workflow,
-  ExecutionResult,
+  NodeExecution,
 } from "../../../api/src/lib/api/types";
 import {ExecutionState} from "@/components/workflow/workflow-types.tsx";
 
 export const workflowExecutionService = {
-  async executeNode(node: Node): Promise<ExecutionResult> {
+  async executeNode(node: Node): Promise<NodeExecution> {
     try {
       // This is a placeholder for actual node execution logic
       // In a real implementation, this would:
@@ -28,8 +28,8 @@ export const workflowExecutionService = {
     }
   },
 
-  async executeWorkflow(workflow: Workflow): Promise<ExecutionResult[]> {
-    const results: ExecutionResult[] = [];
+  async executeWorkflow(workflow: Workflow): Promise<NodeExecution[]> {
+    const results: NodeExecution[] = [];
     const executionOrder = this.getExecutionOrder(workflow);
 
     for (const nodeId of executionOrder) {
@@ -82,7 +82,7 @@ export const workflowExecutionService = {
 
   getNodeState(
     node: Node,
-    executionResults: ExecutionResult[]
+    executionResults: NodeExecution[]
   ): ExecutionState {
     const result = executionResults.find((r) => r.nodeId === node.id);
     if (!result) return "idle";

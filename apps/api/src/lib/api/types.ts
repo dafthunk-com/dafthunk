@@ -112,12 +112,3 @@ export interface ExecutionEvent {
   timestamp: number;
   error?: string;
 }
-
-export interface WorkflowExecutionOptions {
-  onNodeStart?: (nodeId: string) => void;
-  onNodeComplete?: (nodeId: string, outputs: Record<string, any>) => void;
-  onNodeError?: (nodeId: string, error: string) => void;
-  onExecutionComplete?: () => void;
-  onExecutionError?: (error: string) => void;
-  abortSignal?: AbortSignal;
-}
