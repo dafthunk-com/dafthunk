@@ -29,9 +29,6 @@ export function WorkflowBuilder({
   onEdgesChange,
   validateConnection,
   executeWorkflow,
-  onExecutionStart,
-  onExecutionComplete,
-  onExecutionError,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] =
@@ -130,7 +127,6 @@ export function WorkflowBuilder({
     });
 
     setWorkflowStatus("executing");
-    onExecutionStart?.();
 
     const cleanup = executeWorkflow(
       workflowId,
@@ -163,11 +159,9 @@ export function WorkflowBuilder({
 
         // Handle workflow completion
         if (execution.status === "completed") {
-          onExecutionComplete?.();
         } else if (execution.status === "error") {
           setErrorMessage(execution.error || "Unknown error");
           setErrorDialogOpen(true);
-          onExecutionError?.(execution.error || "Unknown error");
         }
       }
     );

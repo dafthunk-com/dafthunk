@@ -439,25 +439,6 @@ export function EditorPage() {
               onEdgesChange={handleEdgesChange}
               validateConnection={validateConnection}
               executeWorkflow={executeWorkflow}
-              onExecutionStart={() => {
-                // Reset all nodes to idle state before execution
-                setNodes((currentNodes) =>
-                  currentNodes.map((node) => ({
-                    ...node,
-                    data: {
-                      ...node.data,
-                      executionState: "idle" as const,
-                      // Reset output values
-                      outputs: node.data.outputs.map((output) => ({
-                        ...output,
-                        value: undefined,
-                      })),
-                    },
-                  }))
-                );
-              }}
-              onExecutionComplete={() => {}}
-              onExecutionError={() => {}}
             />
           </div>
         )}

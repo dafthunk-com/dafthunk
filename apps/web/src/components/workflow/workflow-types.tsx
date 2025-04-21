@@ -173,9 +173,6 @@ export interface WorkflowBuilderProps {
     workflowId: string,
     onExecution: (execution: WorkflowExecution) => void
   ) => void | (() => void);
-  onExecutionStart?: () => void;
-  onExecutionComplete?: () => void;
-  onExecutionError?: (error: string) => void;
 }
 
 export interface TypeBadgeProps {
