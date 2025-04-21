@@ -9,7 +9,9 @@
     "format": "pnpm --parallel format",
     "lint": "pnpm --parallel lint",
     "test": "pnpm --parallel --filter '@dafthunk/api' test",
-    "build": "pnpm --parallel --filter '@dafthunk/web' build",
+    "build": "pnpm build:packages && pnpm build:apps",
+    "build:packages": "pnpm --filter '@dafthunk/types' build",
+    "build:apps": "pnpm --filter '@dafthunk/web' build",
     "start": "pnpm --parallel start"
   },
   "packageManager": "pnpm@10.3.0+sha512.ee592eda8815a8a293c206bb0917c4bb0ff274c50def7cbc17be05ec641fc2d1b02490ce660061356bd0d126a4d7eb2ec8830e6959fb8a447571c631d5a2442d"
