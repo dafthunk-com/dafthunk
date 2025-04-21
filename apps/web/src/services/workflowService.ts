@@ -1,4 +1,4 @@
-import { Workflow } from "../../../api/src/lib/api/types";
+import { Workflow } from "../../../api/src/types.ts";
 import { API_BASE_URL } from "../config/api";
 
 export const workflowService = {

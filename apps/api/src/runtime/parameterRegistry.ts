@@ -1,10 +1,10 @@
-import { ParameterValue as ApiParameterValue } from "../lib/api/types";
+import { ParameterValue as ApiParameterValue } from "../types";
 import {
   ParameterValue as NodeParameterValue,
   ImageParameter as NodeImageParameter,
   DocumentParameter as NodeDocumentParameter,
   AudioParameter as NodeAudioParameter,
-} from "../lib/nodes/types";
+} from "../nodes/types";
 import { BinaryDataHandler } from "./binaryDataHandler";
 import { ObjectReference } from "./store";
 

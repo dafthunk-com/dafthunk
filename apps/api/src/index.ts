@@ -10,12 +10,12 @@ import {
   CustomJWTPayload,
   JWT_SECRET_TOKEN_DURATION,
   JWT_SECRET_TOKEN_NAME,
-} from "./lib/auth";
+} from "./auth";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./runtime/store";
-import { Node, Edge, WorkflowExecution } from "./lib/api/types";
-import { NodeRegistry } from "./lib/nodes/nodeRegistry";
+import { Node, Edge, WorkflowExecution } from "./types";
+import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
 

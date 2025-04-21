@@ -1,6 +1,6 @@
 import { Node as ReactFlowNode, XYPosition } from "reactflow";
 import { API_BASE_URL } from "../config/api";
-import { Node, NodeType } from "../../../api/src/lib/api/types";
+import { Node, NodeType } from "../../../api/src/types.ts";
 import { ExecutionState } from "@/components/workflow/workflow-types.tsx";
 
 export const workflowNodeService = {

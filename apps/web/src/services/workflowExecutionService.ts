@@ -1,4 +1,4 @@
-import { Node, Workflow, NodeExecution } from "../../../api/src/lib/api/types";
+import { Node, Workflow, NodeExecution } from "../../../api/src/types.ts";
 import { ExecutionState } from "@/components/workflow/workflow-types.tsx";
 
 export const workflowExecutionService = {

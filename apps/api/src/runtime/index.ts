@@ -10,10 +10,10 @@ import {
   Workflow,
   WorkflowExecution,
   NodeExecutionStatus,
-} from "../lib/api/types";
+} from "../types";
 import { validateWorkflow } from "./validation";
-import { NodeRegistry } from "../lib/nodes/nodeRegistry";
-import { NodeContext } from "../lib/nodes/types";
+import { NodeRegistry } from "../nodes/nodeRegistry";
+import { NodeContext } from "../nodes/types";
 import { ParameterRegistry } from "./parameterRegistry";
 import { BinaryDataHandler } from "./binaryDataHandler";
 import { ObjectStore } from "./store";
