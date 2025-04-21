@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useLoaderData, useParams, useNavigate } from "react-router-dom";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Workflow, Parameter, ParameterType } from "../../../api/src/lib/api/types";
+import { Workflow, Parameter, ParameterType, WorkflowExecution } from "../../../api/src/lib/api/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
 import { Node, Edge, Connection } from "reactflow";
@@ -325,119 +325,96 @@ export function EditorPage() {
         onError: (error: string) => void;
       }
     ) => {
-      // Connect to the server-side SSE endpoint for workflow execution
-      console.log(
-        `Connecting to workflow execution endpoint for ID: ${workflowId}`
-      );
-
-      // Create EventSource for SSE connection
-      const eventSource = new EventSource(
-        `${API_BASE_URL}/workflows/${workflowId}/execute`,
-        { withCredentials: true }
-      );
-
-      // Set up event listeners for different event types
-      eventSource.addEventListener("node-start", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onEvent({
-            type: "node-start",
-            nodeId: data.nodeId,
-          });
-        } catch (error) {
-          console.error("Error parsing node-start event:", error);
-        }
-      });
-
-      eventSource.addEventListener("node-complete", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onEvent({
-            type: "node-complete",
-            nodeId: data.nodeId,
-            outputs: data.data?.outputs || {},
-          });
-        } catch (error) {
-          console.error("Error parsing node-complete event:", error);
-        }
-      });
-
-      eventSource.addEventListener("node-error", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onEvent({
-            type: "node-error",
-            nodeId: data.nodeId,
-            error: data.error,
-          });
-        } catch (error) {
-          console.error("Error parsing node-error event:", error);
-        }
-      });
-
-      eventSource.addEventListener("execution-complete", () => {
-        callbacks.onComplete();
-        eventSource.close();
-      });
-
-      eventSource.addEventListener("execution-error", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onError(data.error || "Unknown execution error");
-        } catch (_) {
-          callbacks.onError("Failed to parse execution error");
-        } finally {
-          eventSource.close();
-        }
-      });
-
-      eventSource.addEventListener("validation-error", (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          callbacks.onError(data.error || "Workflow validation error");
-        } catch (_) {
-          callbacks.onError("Failed to parse validation error");
-        } finally {
-          eventSource.close();
-        }
-      });
-
-      // Handle connection errors
-      eventSource.onerror = (error) => {
-        console.error("SSE connection error:", error);
-        // Check if the error is due to a 403 response (AI nodes in free plan)
-        if (eventSource.readyState === EventSource.CLOSED) {
-          fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, {
-            credentials: "include",
-          })
-            .then((response) => {
-              if (response.status === 403) {
-                return response.json();
+      // Start the workflow execution
+      console.log(`Starting workflow execution for ID: ${workflowId}`);
+      
+      // Make the initial request to start the workflow
+      fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+        .then(response => {
+          if (!response.ok) {
+            if (response.status === 403) {
+              return response.json().then(data => {
+                throw new Error(data.error || 'AI nodes are not available in the free plan');
+              });
+            }
+            throw new Error('Failed to start workflow execution');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const executionId = data.id;
+          console.log(`Workflow execution started with ID: ${executionId}`);
+          
+          // Set up polling interval to check execution status
+          const pollInterval = setInterval(async () => {
+            try {
+              const statusResponse = await fetch(`${API_BASE_URL}/executions/${executionId}`, {
+                credentials: 'include',
+              });
+              
+              if (!statusResponse.ok) {
+                throw new Error('Failed to fetch execution status');
               }
-              throw new Error("Connection to execution service failed");
-            })
-            .then((data) => {
-              callbacks.onError(
-                data.error || "AI nodes are not available in the free plan"
-              );
-            })
-            .catch(() => {
-              callbacks.onError("Connection to execution service failed");
-            })
-            .finally(() => {
-              eventSource.close();
-            });
-        } else {
-          callbacks.onError("Connection to execution service failed");
-          eventSource.close();
-        }
-      };
-
-      // Return cleanup function to close the connection
-      return () => {
-        console.log("Closing SSE connection");
-        eventSource.close();
-      };
+              
+              const execution = await statusResponse.json() as WorkflowExecution;
+              
+              // Process node executions
+              execution.nodeExecutions.forEach(nodeExecution => {
+                if (nodeExecution.status === "success") {
+                  // Node completed successfully
+                  callbacks.onEvent({
+                    type: 'node-complete',
+                    nodeId: nodeExecution.nodeId,
+                    outputs: nodeExecution.outputs || {},
+                  });
+                } else if (nodeExecution.status === "error") {
+                  // Node failed
+                  callbacks.onEvent({
+                    type: 'node-error',
+                    nodeId: nodeExecution.nodeId,
+                    error: nodeExecution.error || 'Unknown error',
+                  });
+                } else if (nodeExecution.status === "pending") {
+                  // Node is pending execution
+                  callbacks.onEvent({
+                    type: 'node-start',
+                    nodeId: nodeExecution.nodeId,
+                  });
+                }
+                // Nodes with not_started status don't need any special handling
+              });
+              
+              // Check if execution is complete
+              if (execution.success) {
+                // Execution completed successfully
+                clearInterval(pollInterval);
+                callbacks.onComplete();
+              } else if (execution.error) {
+                // Execution failed
+                clearInterval(pollInterval);
+                callbacks.onError(execution.error);
+              }
+              // Otherwise, continue polling
+            } catch (error) {
+              console.error('Error polling execution status:', error);
+              clearInterval(pollInterval);
+              callbacks.onError(error instanceof Error ? error.message : 'Failed to check execution status');
+            }
+          }, 1000); // Poll every second
+          
+          // Return cleanup function to clear the interval
+          return () => {
+            console.log('Stopping execution status polling');
+            clearInterval(pollInterval);
+          };
+        })
+        .catch(error => {
+          console.error('Error starting workflow execution:', error);
+          callbacks.onError(error instanceof Error ? error.message : 'Failed to start workflow execution');
+        });
     },
     []
   );

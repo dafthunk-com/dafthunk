@@ -6,14 +6,13 @@ import {
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 import { Env } from "../index";
-import { Workflow } from "../lib/api/types";
+import { Workflow, WorkflowExecution, NodeExecutionStatus } from "../lib/api/types";
 import { validateWorkflow } from "../lib/runtime/validation";
 import { NodeRegistry } from "../lib/nodes/nodeRegistry";
 import { NodeContext } from "../lib/nodes/types";
 import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
 import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
 import { ObjectStore } from "../lib/runtime/store";
-import { WorkflowExecution } from "../lib/api/types";
 
 export type RuntimeParams = {
   workflow: Workflow;
@@ -390,16 +389,58 @@ export class Runtime extends WorkflowEntrypoint<
     workflowId: string,
     state: Awaited<ReturnType<typeof this.setupExecution>>
   ) {
+    // Create a map of executed nodes for quick lookup
+    const executedNodesMap = new Map(
+      Array.from(state.executedNodes).map(nodeId => [
+        nodeId, 
+        {
+          nodeId,
+          status: state.nodeErrors.has(nodeId) ? "error" as NodeExecutionStatus : "success" as NodeExecutionStatus,
+          error: state.nodeErrors.get(nodeId),
+          outputs: state.nodeOutputs.get(nodeId),
+        }
+      ])
+    );
+
+    // Create a map of nodes that are in the execution queue but not yet executed
+    const pendingNodesMap = new Map(
+      state.sortedNodes
+        .filter(nodeId => !state.executedNodes.has(nodeId))
+        .map(nodeId => [
+          nodeId,
+          {
+            nodeId,
+            status: "pending" as NodeExecutionStatus,
+            outputs: {},
+          }
+        ])
+    );
+
+    // Combine all nodes from the workflow
+    const allNodeExecutions = state.workflow.nodes.map(node => {
+      // If the node has been executed, use its execution data
+      if (executedNodesMap.has(node.id)) {
+        return executedNodesMap.get(node.id)!;
+      }
+      
+      // If the node is in the pending queue, mark it as pending
+      if (pendingNodesMap.has(node.id)) {
+        return pendingNodesMap.get(node.id)!;
+      }
+      
+      // Otherwise, mark it as not started
+      return {
+        nodeId: node.id,
+        status: "not_started" as NodeExecutionStatus,
+        outputs: {},
+      };
+    });
+
     const execution: WorkflowExecution = {
       id: instanceId,
       workflowId: workflowId,
       success: state.nodeErrors.size === 0,
-      nodeExecutions: Array.from(state.executedNodes).map(nodeId => ({
-        nodeId,
-        success: !state.nodeErrors.has(nodeId),
-        error: state.nodeErrors.get(nodeId),
-        outputs: state.nodeOutputs.get(nodeId),
-      })),
+      nodeExecutions: allNodeExecutions,
       error: state.nodeErrors.size > 0 
         ? Array.from(state.nodeErrors.entries())
             .map(([nodeId, error]) => error)

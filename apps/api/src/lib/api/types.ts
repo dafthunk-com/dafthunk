@@ -85,9 +85,15 @@ export interface Workflow {
   edges: Edge[];
 }
 
+export type NodeExecutionStatus = 
+  | "not_started" 
+  | "pending" 
+  | "success" 
+  | "error";
+
 export interface NodeExecution {
   nodeId: string;
-  success: boolean;
+  status: NodeExecutionStatus;
   error?: string;
   outputs?: Record<string, ParameterValue>;
 }
