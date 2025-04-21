@@ -1,5 +1,5 @@
 // Types for workflows
-import { ObjectReference } from "../runtime/store";
+import { ObjectReference } from "../../runtime/store";
 
 export type ParameterType =
   | {

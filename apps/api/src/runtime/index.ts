@@ -11,12 +11,12 @@ import {
   WorkflowExecution,
   NodeExecutionStatus,
 } from "../lib/api/types";
-import { validateWorkflow } from "../lib/runtime/validation";
+import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../lib/nodes/nodeRegistry";
 import { NodeContext } from "../lib/nodes/types";
-import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
-import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
-import { ObjectStore } from "../lib/runtime/store";
+import { ParameterRegistry } from "./parameterRegistry";
+import { BinaryDataHandler } from "./binaryDataHandler";
+import { ObjectStore } from "./store";
 
 export type RuntimeParams = {
   workflow: Workflow;

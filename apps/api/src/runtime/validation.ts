@@ -1,4 +1,4 @@
-import { Edge, Parameter, Workflow } from "../api/types";
+import { Edge, Parameter, Workflow } from "../lib/api/types";
 
 export interface ValidationError {
   type:

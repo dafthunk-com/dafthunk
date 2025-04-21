@@ -13,7 +13,7 @@ import {
 } from "./lib/auth";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
-import { ObjectReference } from "./lib/runtime/store";
+import { ObjectReference } from "./runtime/store";
 import { Node, Edge, WorkflowExecution } from "./lib/api/types";
 import { NodeRegistry } from "./lib/nodes/nodeRegistry";
 import { cors } from "hono/cors";
