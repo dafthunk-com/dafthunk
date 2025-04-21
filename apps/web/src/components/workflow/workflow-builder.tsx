@@ -132,8 +132,9 @@ export function WorkflowBuilder({
     setWorkflowStatus("executing");
     onExecutionStart?.();
 
-    const cleanup = executeWorkflow(workflowId, {
-      onEvent: (execution: WorkflowExecution) => {
+    const cleanup = executeWorkflow(
+      workflowId,
+      (execution: WorkflowExecution) => {
         // Update workflow status
         setWorkflowStatus(execution.status);
 
@@ -168,8 +169,8 @@ export function WorkflowBuilder({
           setErrorDialogOpen(true);
           onExecutionError?.(execution.error || "Unknown error");
         }
-      },
-    });
+      }
+    );
 
     return cleanup;
   };

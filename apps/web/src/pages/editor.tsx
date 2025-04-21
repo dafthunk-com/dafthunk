@@ -323,9 +323,7 @@ export function EditorPage() {
   const executeWorkflow = useCallback(
     (
       workflowId: string,
-      callbacks: {
-        onEvent: (execution: WorkflowExecution) => void;
-      }
+      onExecution: (execution: WorkflowExecution) => void
     ) => {
       // Start the workflow execution
       console.log(`Starting workflow execution for ID: ${workflowId}`);
@@ -369,8 +367,8 @@ export function EditorPage() {
               const execution =
                 (await statusResponse.json()) as WorkflowExecution;
 
-              // Pass the entire execution object to the callback
-              callbacks.onEvent(execution);
+              // Pass the execution object to the callback
+              onExecution(execution);
 
               // Check if execution is complete or has error
               if (

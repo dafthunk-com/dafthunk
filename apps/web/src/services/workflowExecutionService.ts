@@ -76,7 +76,10 @@ export const workflowExecutionService = {
     return order;
   },
 
-  getNodeState(node: Node, executionResults: NodeExecution[]): NodeExecutionState {
+  getNodeState(
+    node: Node,
+    executionResults: NodeExecution[]
+  ): NodeExecutionState {
     const result = executionResults.find((r) => r.nodeId === node.id);
     if (!result) return "idle";
     if (result.status === "error") return "error";

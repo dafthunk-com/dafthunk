@@ -171,9 +171,7 @@ export interface WorkflowBuilderProps {
   validateConnection?: (connection: Connection) => boolean;
   executeWorkflow?: (
     workflowId: string,
-    callbacks: {
-      onEvent: (execution: WorkflowExecution) => void;
-    }
+    onExecution: (execution: WorkflowExecution) => void
   ) => void | (() => void);
   onExecutionStart?: () => void;
   onExecutionComplete?: () => void;
