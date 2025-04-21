@@ -14,7 +14,7 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./lib/runtime/store";
-import { Node, Edge } from "./lib/api/types";
+import { Node, Edge, WorkflowExecution } from "./lib/api/types";
 import { NodeRegistry } from "./lib/nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
@@ -27,6 +27,7 @@ export interface Env {
   EXECUTE: Workflow<RuntimeParams>;
   BUCKET: R2Bucket;
   AI: Ai;
+  KV: KVNamespace;
 
   WEB_HOST: string;
 
@@ -592,6 +593,23 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
   return c.json({
     id: instance.id,
   });
+});
+
+app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const executionJson = await c.env.KV.get(`execution:${id}`);
+  
+  if (!executionJson) {
+    return c.json({ error: "Execution not found" }, 404);
+  }
+
+  try {
+    const execution = JSON.parse(executionJson) as WorkflowExecution;
+    return c.json(execution);
+  } catch (error) {
+    console.error("Error parsing execution data:", error);
+    return c.json({ error: "Invalid execution data" }, 500);
+  }
 });
 
 export default {

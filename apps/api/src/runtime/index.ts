@@ -13,6 +13,7 @@ import { NodeContext } from "../lib/nodes/types";
 import { ParameterRegistry } from "../lib/runtime/parameterRegistry";
 import { BinaryDataHandler } from "../lib/runtime/binaryDataHandler";
 import { ObjectStore } from "../lib/runtime/store";
+import { WorkflowExecution } from "../lib/api/types";
 
 export type RuntimeParams = {
   workflow: Workflow;
@@ -34,18 +35,27 @@ export class Runtime extends WorkflowEntrypoint<
 
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
     try {
+      
       // Step 1: Validate the workflow and initialize data
       const initState = await step.do(
         "validate workflow",
         Runtime.defaultConfig,
-        async () => this.validateWorkflow(event.payload.workflow)
+        async () => {
+          const state = await this.validateWorkflow(event.payload.workflow);
+          await this.updateExecutionState(event.instanceId, event.payload.workflow.id, state);
+          return state;
+        }
       );
 
       // Step 2: Initialize executable nodes and create topological sort
       let state = await step.do(
         "setup execution",
         Runtime.defaultConfig,
-        async () => this.setupExecution(initState)
+        async () => {
+          const state = await this.setupExecution(initState);
+          await this.updateExecutionState(event.instanceId, event.payload.workflow.id, state);
+          return state;
+        }
       );
 
       for (const nodeId of state.sortedNodes) {
@@ -57,26 +67,28 @@ export class Runtime extends WorkflowEntrypoint<
         state = await step.do(
           `execute node ${nodeId}`,
           Runtime.defaultConfig,
-          async () => this.executeNode(state, nodeId)
+          async () => {
+            const newState = await this.executeNode(state, nodeId);
+            await this.updateExecutionState(event.instanceId, event.payload.workflow.id, newState);
+            return newState;
+          }
         );
       }
 
-      return {
-        workflowId: state.workflow.id,
-        nodeOutputs: Object.fromEntries(state.nodeOutputs),
-        executedNodes: Array.from(state.executedNodes),
-        errors: Object.fromEntries(state.nodeErrors),
-      };
+      const finalExecution = await this.updateExecutionState(event.instanceId, event.payload.workflow.id, state);
+      return finalExecution;
+
     } catch (error) {
       console.error(error);
-      return {
+      const errorExecution: WorkflowExecution = {
+        id: event.instanceId,
         workflowId: event.payload.workflow.id,
-        nodeOutputs: {},
-        executedNodes: [],
-        errors: {
-          workflow: error instanceof Error ? error.message : String(error),
-        },
+        success: false,
+        nodeExecutions: [],
+        error: error instanceof Error ? error.message : String(error)
       };
+      await this.env.KV.put(`execution:${event.instanceId}`, JSON.stringify(errorExecution));
+      return errorExecution;
     }
   }
 
@@ -93,6 +105,7 @@ export class Runtime extends WorkflowEntrypoint<
       nodeOutputs: new Map<string, Record<string, any>>(),
       executedNodes: new Set<string>(),
       nodeErrors: new Map<string, string>(),
+      sortedNodes: [] // Initialize empty array, will be populated in setupExecution
     };
   }
 
@@ -370,5 +383,31 @@ export class Runtime extends WorkflowEntrypoint<
     }
 
     return mappedOutputs;
+  }
+
+  private async updateExecutionState(
+    instanceId: string,
+    workflowId: string,
+    state: Awaited<ReturnType<typeof this.setupExecution>>
+  ) {
+    const execution: WorkflowExecution = {
+      id: instanceId,
+      workflowId: workflowId,
+      success: state.nodeErrors.size === 0,
+      nodeExecutions: Array.from(state.executedNodes).map(nodeId => ({
+        nodeId,
+        success: !state.nodeErrors.has(nodeId),
+        error: state.nodeErrors.get(nodeId),
+        outputs: state.nodeOutputs.get(nodeId),
+      })),
+      error: state.nodeErrors.size > 0 
+        ? Array.from(state.nodeErrors.entries())
+            .map(([nodeId, error]) => error)
+            .join(", ")
+        : undefined
+    };
+
+    await this.env.KV.put(`execution:${instanceId}`, JSON.stringify(execution));
+    return execution;
   }
 }
