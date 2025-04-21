@@ -10,6 +10,7 @@ import {
   Workflow,
   WorkflowExecution,
   NodeExecutionStatus,
+  WorkflowExecutionStatus,
 } from "../types";
 import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
@@ -96,7 +97,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       const errorExecution: WorkflowExecution = {
         id: event.instanceId,
         workflowId: event.payload.workflow.id,
-        success: false,
+        status: "error",
         nodeExecutions: [],
         error: error instanceof Error ? error.message : String(error),
       };
@@ -455,10 +456,29 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       };
     });
 
+    // Determine workflow status based on node executions
+    let workflowStatus: WorkflowExecutionStatus = "idle";
+    
+    // If there are executing nodes, the workflow is executing
+    if (allNodeExecutions.some(node => node.status === "executing")) {
+      workflowStatus = "executing";
+    } 
+    // If all nodes are completed or error, determine final status
+    else if (allNodeExecutions.every(node => 
+      node.status === "completed" || node.status === "error"
+    )) {
+      // If any node has error, the workflow has error
+      if (allNodeExecutions.some(node => node.status === "error")) {
+        workflowStatus = "error";
+      } else {
+        workflowStatus = "completed";
+      }
+    }
+
     const execution: WorkflowExecution = {
       id: instanceId,
       workflowId: workflowId,
-      success: state.nodeErrors.size === 0,
+      status: workflowStatus,
       nodeExecutions: allNodeExecutions,
       error:
         state.nodeErrors.size > 0

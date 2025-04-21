@@ -6,6 +6,7 @@ import {
   Parameter,
   ParameterType,
   WorkflowExecution,
+  WorkflowExecutionStatus,
 } from "../../../api/src/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
@@ -402,17 +403,13 @@ export function EditorPage() {
               );
               if (
                 allNodesCompleted &&
-                !execution.nodeExecutions.some(
-                  (nodeExecution) => nodeExecution.status === "error"
-                )
+                execution.status === "completed"
               ) {
                 // Execution completed successfully
                 clearInterval(pollInterval);
                 callbacks.onComplete();
               } else if (
-                execution.nodeExecutions.some(
-                  (nodeExecution) => nodeExecution.status === "error"
-                )
+                execution.status === "error"
               ) {
                 // Execution failed
                 clearInterval(pollInterval);

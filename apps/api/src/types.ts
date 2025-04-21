@@ -94,10 +94,12 @@ export interface NodeExecution {
   outputs?: Record<string, ParameterValue>;
 }
 
+export type WorkflowExecutionStatus = "idle" | "executing" | "completed" | "error" | "cancelled" | "paused";
+
 export interface WorkflowExecution {
   id: string;
   workflowId: string;
-  success: boolean;
+  status: WorkflowExecutionStatus;
   error?: string;
   nodeExecutions: NodeExecution[];
 }
