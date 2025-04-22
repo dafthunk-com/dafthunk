@@ -14,7 +14,12 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./runtime/store";
-import { Node, Edge, WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
+import {
+  Node,
+  Edge,
+  WorkflowExecution,
+  WorkflowExecutionStatus,
+} from "@dafthunk/types";
 import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
@@ -598,7 +603,7 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
 
 app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
   const id = c.req.param("id");
-  
+
   try {
     // Get execution data from D1 instead of R2
     const db = createDatabase(c.env.DB);
@@ -607,14 +612,14 @@ app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
       .from(executions)
       .where(eq(executions.id, id))
       .get();
-    
+
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
-    
+
     // Parse the execution data from the JSON stored in the database
     const executionData = JSON.parse(execution.data as string);
-    
+
     // Create a WorkflowExecution object from the database record
     const workflowExecution: WorkflowExecution = {
       id: execution.id,
@@ -623,7 +628,7 @@ app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
       nodeExecutions: executionData.nodeExecutions || [],
       error: execution.error || undefined,
     };
-    
+
     return c.json(workflowExecution);
   } catch (error) {
     console.error("Error retrieving execution data:", error);

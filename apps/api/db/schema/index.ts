@@ -36,7 +36,8 @@ export const ExecutionStatus = {
   ERROR: "error",
 } as const;
 
-export type ExecutionStatusType = (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
+export type ExecutionStatusType =
+  (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(), // UUID
@@ -81,7 +82,10 @@ export const executions = sqliteTable("executions", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
-  status: text("status").$type<ExecutionStatusType>().notNull().default(ExecutionStatus.IDLE),
+  status: text("status")
+    .$type<ExecutionStatusType>()
+    .notNull()
+    .default(ExecutionStatus.IDLE),
   data: text("data", { mode: "json" }).notNull(), // Stores the execution data including node statuses
   error: text("error"), // Optional error message
   createdAt: integer("created_at", { mode: "timestamp" })
