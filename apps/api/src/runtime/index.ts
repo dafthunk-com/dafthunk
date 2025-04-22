@@ -51,18 +51,13 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     const userId = event.payload.userId || "system";
     
     try {
-      // Step 1: Validate the workflow and initialize data
+
       let state = await step.do(
         "validate workflow",
         Runtime.defaultConfig,
         async () => {
           const state = await this.initializeWorkflow(workflow);
-          await this.upsertExecutionState(
-            event.instanceId,
-            workflow.id,
-            state,
-            userId
-          );
+          await this.saveExecutionState(userId, workflow.id, event.instanceId, state);
           return state;
         }
       );
@@ -78,23 +73,13 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           Runtime.defaultConfig,
           async () => {
             const newState = await this.executeNode(state, nodeId);
-            await this.upsertExecutionState(
-              event.instanceId,
-              workflow.id,
-              newState,
-              userId
-            );
+            await this.saveExecutionState(userId, workflow.id, event.instanceId, newState);
             return newState;
           }
         );
       }
 
-      const finalExecution = await this.upsertExecutionState(
-        event.instanceId,
-        workflow.id,
-        state,
-        userId
-      );
+      const finalExecution = await this.saveExecutionState(userId, workflow.id, event.instanceId, state);
       return finalExecution;
     } catch (error) {
       console.error(error);
@@ -406,11 +391,11 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     return mappedOutputs;
   }
 
-  private async upsertExecutionState(
-    instanceId: string,
+  private async saveExecutionState(
+    userId: string,
     workflowId: string,
-    state: RuntimeState,
-    userId: string
+    instanceId: string,
+    state: RuntimeState
   ): Promise<WorkflowExecution> {
     // Create a map of executed nodes for quick lookup
     const executedNodesMap = new Map(
