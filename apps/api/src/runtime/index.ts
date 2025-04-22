@@ -57,7 +57,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         Runtime.defaultConfig,
         async () => {
           const state = await this.validateWorkflow(event.payload.workflow);
-          await this.updateExecutionState(
+          await this.upsertExecutionState(
             event.instanceId,
             event.payload.workflow.id,
             state,
@@ -73,7 +73,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         Runtime.defaultConfig,
         async () => {
           const state = await this.setupExecution(initState);
-          await this.updateExecutionState(
+          await this.upsertExecutionState(
             event.instanceId,
             event.payload.workflow.id,
             state,
@@ -94,7 +94,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           Runtime.defaultConfig,
           async () => {
             const newState = await this.executeNode(state, nodeId);
-            await this.updateExecutionState(
+            await this.upsertExecutionState(
               event.instanceId,
               event.payload.workflow.id,
               newState,
@@ -105,7 +105,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         );
       }
 
-      const finalExecution = await this.updateExecutionState(
+      const finalExecution = await this.upsertExecutionState(
         event.instanceId,
         event.payload.workflow.id,
         state,
@@ -430,7 +430,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     return mappedOutputs;
   }
 
-  private async updateExecutionState(
+  private async upsertExecutionState(
     instanceId: string,
     workflowId: string,
     state: RuntimeState,
@@ -520,7 +520,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     };
 
     try {
-      // Store execution data in D1 using upsert (INSERT ON CONFLICT UPDATE)
+      // Store execution data in D1 using upsert
       const db = createDatabase(this.env.DB);
       
       // Create common data object for both insert and update operations
