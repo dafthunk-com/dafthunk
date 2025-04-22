@@ -27,6 +27,15 @@ export type RuntimeParams = {
   userId: string;
 };
 
+// Define the workflow state type
+export type WorkflowState = {
+  workflow: Workflow;
+  nodeOutputs: Map<string, Record<string, any>>;
+  executedNodes: Set<string>;
+  nodeErrors: Map<string, string>;
+  sortedNodes: string[];
+};
+
 export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private static readonly defaultConfig: WorkflowStepConfig = {
     retries: {
@@ -128,7 +137,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     }
   }
 
-  private async validateWorkflow(workflow: Workflow & { userId?: string }) {
+  private async validateWorkflow(workflow: Workflow): Promise<WorkflowState> {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new Error(
@@ -146,8 +155,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   }
 
   private async setupExecution(
-    workflowState: Awaited<ReturnType<typeof this.validateWorkflow>>
-  ) {
+    workflowState: WorkflowState
+  ): Promise<WorkflowState> {
     // Create a topological sort of the nodes
     const sortedNodes = this.topologicalSort(workflowState.workflow);
 
@@ -164,9 +173,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   }
 
   private async executeNode(
-    state: Awaited<ReturnType<typeof this.setupExecution>>,
+    state: WorkflowState,
     nodeId: string
-  ) {
+  ): Promise<WorkflowState> {
     const node = state.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) {
       state.nodeErrors.set(nodeId, `Node not found: ${nodeId}`);
@@ -290,7 +299,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   /**
    * Gets the input values for a node based on its incoming connections
    */
-  private getNodeInputs(state: any, nodeId: string): Record<string, any> {
+  private getNodeInputs(state: WorkflowState, nodeId: string): Record<string, any> {
     const inputs: Record<string, any> = {};
     const node = state.workflow.nodes.find((n: any) => n.id === nodeId);
 
@@ -325,7 +334,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    * Validates and maps inputs for a node
    */
   private async handleNodeInputs(
-    state: Awaited<ReturnType<typeof this.setupExecution>>,
+    state: WorkflowState,
     nodeId: string,
     inputs: Record<string, any>
   ): Promise<Record<string, any>> {
@@ -379,7 +388,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    * Validates and maps outputs for a node
    */
   private async handleNodeOutputs(
-    state: Awaited<ReturnType<typeof this.setupExecution>>,
+    state: WorkflowState,
     nodeId: string,
     outputs: Record<string, any>
   ): Promise<Record<string, any>> {
@@ -424,9 +433,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private async updateExecutionState(
     instanceId: string,
     workflowId: string,
-    state: Awaited<ReturnType<typeof this.setupExecution>>,
+    state: WorkflowState,
     userId: string
-  ) {
+  ): Promise<WorkflowExecution> {
     // Create a map of executed nodes for quick lookup
     const executedNodesMap = new Map(
       Array.from(state.executedNodes).map((nodeId) => [
