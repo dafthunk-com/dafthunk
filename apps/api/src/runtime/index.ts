@@ -28,7 +28,7 @@ export type RuntimeParams = {
 };
 
 // Define the workflow state type
-export type WorkflowState = {
+export type RuntimeState = {
   workflow: Workflow;
   nodeOutputs: Map<string, Record<string, any>>;
   executedNodes: Set<string>;
@@ -137,7 +137,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     }
   }
 
-  private async validateWorkflow(workflow: Workflow): Promise<WorkflowState> {
+  private async validateWorkflow(workflow: Workflow): Promise<RuntimeState> {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new Error(
@@ -155,8 +155,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   }
 
   private async setupExecution(
-    workflowState: WorkflowState
-  ): Promise<WorkflowState> {
+    workflowState: RuntimeState
+  ): Promise<RuntimeState> {
     // Create a topological sort of the nodes
     const sortedNodes = this.topologicalSort(workflowState.workflow);
 
@@ -173,9 +173,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   }
 
   private async executeNode(
-    state: WorkflowState,
+    state: RuntimeState,
     nodeId: string
-  ): Promise<WorkflowState> {
+  ): Promise<RuntimeState> {
     const node = state.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) {
       state.nodeErrors.set(nodeId, `Node not found: ${nodeId}`);
@@ -299,7 +299,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   /**
    * Gets the input values for a node based on its incoming connections
    */
-  private getNodeInputs(state: WorkflowState, nodeId: string): Record<string, any> {
+  private getNodeInputs(state: RuntimeState, nodeId: string): Record<string, any> {
     const inputs: Record<string, any> = {};
     const node = state.workflow.nodes.find((n: any) => n.id === nodeId);
 
@@ -334,7 +334,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    * Validates and maps inputs for a node
    */
   private async handleNodeInputs(
-    state: WorkflowState,
+    state: RuntimeState,
     nodeId: string,
     inputs: Record<string, any>
   ): Promise<Record<string, any>> {
@@ -388,7 +388,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    * Validates and maps outputs for a node
    */
   private async handleNodeOutputs(
-    state: WorkflowState,
+    state: RuntimeState,
     nodeId: string,
     outputs: Record<string, any>
   ): Promise<Record<string, any>> {
@@ -433,7 +433,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private async updateExecutionState(
     instanceId: string,
     workflowId: string,
-    state: WorkflowState,
+    state: RuntimeState,
     userId: string
   ): Promise<WorkflowExecution> {
     // Create a map of executed nodes for quick lookup
@@ -520,38 +520,31 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     };
 
     try {
-      // Store execution data in D1 instead of R2
+      // Store execution data in D1 using upsert (INSERT ON CONFLICT UPDATE)
       const db = createDatabase(this.env.DB);
       
-      // Check if this execution already exists
-      const existingExecution = await db
-        .select()
-        .from(executions)
-        .where(eq(executions.id, instanceId))
-        .get();
+      // Create common data object for both insert and update operations
+      const executionData = {
+        status: workflowStatus,
+        data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
+        error: execution.error,
+        updatedAt: new Date()
+      };
       
-      if (existingExecution) {
-        // Update existing execution
-        await db
-          .update(executions)
-          .set({
-            status: workflowStatus,
-            data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
-            error: execution.error,
-            updatedAt: new Date(),
-          })
-          .where(eq(executions.id, instanceId));
-      } else {
-        // Create new execution with userId from parameter
-        await db.insert(executions).values({
+      // Perform upsert operation
+      await db
+        .insert(executions)
+        .values({
           id: instanceId,
           workflowId: workflowId,
-          userId: userId, // Use the provided userId parameter
-          status: workflowStatus,
-          data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
-          error: execution.error,
+          userId: userId,
+          createdAt: new Date(),
+          ...executionData
+        })
+        .onConflictDoUpdate({
+          target: executions.id,
+          set: executionData
         });
-      }
     } catch (error) {
       console.error("Error storing execution data:", error);
       // Continue execution even if DB operation fails
