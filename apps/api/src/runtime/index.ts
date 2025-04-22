@@ -32,6 +32,7 @@ export type RuntimeState = {
   executedNodes: Set<string>;
   nodeErrors: Map<string, string>;
   sortedNodes: string[];
+  status: WorkflowExecutionStatus;
 };
 
 export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
@@ -48,56 +49,100 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     const workflow = event.payload.workflow;
     const instanceId = event.instanceId;
     const userId = event.payload.userId || "system";
-  
-    const initialState = await step.do(
-      "Initialize workflow",
-      Runtime.defaultConfig,
-      async () => {
-        return await this.initializeWorkflow(workflow);
-      }
-    );
 
-    const initialExecution = await step.do(
-      "Save initial execution state",
-      Runtime.defaultConfig,
-      async () => {
-        return await this.saveExecutionState(userId, workflow.id, instanceId, initialState);
-      }
-    )
+    // Initialize the state and execution
+    let state: RuntimeState = {
+      workflow,
+      nodeOutputs: new Map<string, Record<string, any>>(),
+      executedNodes: new Set<string>(),
+      nodeErrors: new Map<string, string>(),
+      sortedNodes: [],
+      status: "idle",
+    };
+    let execution: WorkflowExecution = {
+      id: instanceId,
+      workflowId: workflow.id,
+      status: "idle",
+      nodeExecutions: [],
+      error: undefined,
+    };
 
-    let intermediateState = initialState;
-    let intermediateExecution = initialExecution;
-    for (const nodeId of initialState.sortedNodes) {
-      if (initialState.nodeErrors.has(nodeId)) {
-        continue;
-      }
-
-      intermediateState = await step.do(
-        `Execute node ${nodeId}`,
+    // Execute the workflow
+    try {
+      state = await step.do(
+        "Initialize workflow",
         Runtime.defaultConfig,
         async () => {
-          return await this.executeNode(intermediateState, nodeId);
+          return await this.initializeWorkflow(workflow);
         }
       );
-
-      intermediateExecution = await step.do(
-        `Save intermediate execution state after node ${nodeId}`,
+      execution = await step.do(
+        "Save initial execution state",
         Runtime.defaultConfig,
         async () => {
-          return await this.saveExecutionState(userId, workflow.id, instanceId, intermediateState);
+          return await this.saveExecutionState(
+            userId,
+            workflow.id,
+            instanceId,
+            state
+          );
         }
       );
+      for (const nodeId of state.sortedNodes) {
+        if (state.nodeErrors.has(nodeId)) {
+          continue;
+        }
+        state = await step.do(
+          `Execute node ${nodeId}`,
+          Runtime.defaultConfig,
+          async () => {
+            return await this.executeNode(state, nodeId);
+          }
+        );
+        execution = await step.do(
+          `Save intermediate execution state after node ${nodeId}`,
+          Runtime.defaultConfig,
+          async () => {
+            return await this.saveExecutionState(
+              userId,
+              workflow.id,
+              instanceId,
+              state
+            );
+          }
+        );
+      }
+    } 
+    
+    // If an error occurs, set the state and execution to error
+    catch (error) {
+      state = {
+        ...state,
+        status: "error",
+      };
+      execution = {
+        ...execution,
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    } 
+    
+    // Save the final execution state
+    finally {
+      const finalExecution = await step.do(
+        "Save final execution state",
+        Runtime.defaultConfig,
+        async () => {
+          return await this.saveExecutionState(
+            userId,
+            workflow.id,
+            instanceId,
+            state
+          );
+        }
+      );
+      return finalExecution;
     }
-
-    const finalExecution = await step.do(
-      "Save final execution state",
-      Runtime.defaultConfig,
-      async () => {
-        return await this.saveExecutionState(userId, workflow.id, instanceId, intermediateState);
-      }
-    );
-
-    return finalExecution;
   }
 
   private async initializeWorkflow(workflow: Workflow): Promise<RuntimeState> {
@@ -124,6 +169,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       executedNodes: new Set<string>(),
       nodeErrors: new Map<string, string>(),
       sortedNodes,
+      status: "executing",
     };
   }
 
@@ -134,53 +180,73 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     const node = state.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) {
       state.nodeErrors.set(nodeId, `Node not found: ${nodeId}`);
-      return state;
+      return { ...state, status: "error" };
     }
     const registry = NodeRegistry.getInstance();
     const executableNode = registry.createExecutableNode(node);
     if (!executableNode) {
       state.nodeErrors.set(nodeId, `Node type not implemented: ${node.type}`);
-      return state;
+      return { ...state, status: "error" };
     }
 
     // Get input values for the node
     const inputs = this.getNodeInputs(state, nodeId);
 
     // Handle input validation and mapping
-    const processedInputs = await this.handleNodeInputs(state, nodeId, inputs);
+    try {
+      const processedInputs = await this.handleNodeInputs(state, nodeId, inputs);
 
-    // Create node context
-    const context: NodeContext = {
-      nodeId,
-      workflowId: state.workflow.id,
-      inputs: processedInputs,
-      onProgress: () => {}, // Not using progress in this implementation
-      env: {
-        AI: this.env.AI,
-      },
-    };
-
-    // Execute the node
-    const result = await executableNode.execute(context);
-
-    if (result.status === "completed") {
-      // Handle output validation and mapping
-      const outputs = await this.handleNodeOutputs(
-        state,
+      // Create node context
+      const context: NodeContext = {
         nodeId,
-        result.outputs || {}
-      );
+        workflowId: state.workflow.id,
+        inputs: processedInputs,
+        onProgress: () => {}, // Not using progress in this implementation
+        env: {
+          AI: this.env.AI,
+        },
+      };
 
-      // Store outputs for downstream nodes
-      state.nodeOutputs.set(nodeId, outputs);
-      state.executedNodes.add(nodeId);
-    } else {
-      // Store the error
-      const errorMessage = result.error || "Unknown error";
+      // Execute the node
+      const result = await executableNode.execute(context);
+
+      if (result.status === "completed") {
+        // Handle output validation and mapping
+        const outputs = await this.handleNodeOutputs(
+          state,
+          nodeId,
+          result.outputs || {}
+        );
+
+        // Store outputs for downstream nodes
+        state.nodeOutputs.set(nodeId, outputs);
+        state.executedNodes.add(nodeId);
+      } else {
+        // Store the error
+        const errorMessage = result.error || "Unknown error";
+        state.nodeErrors.set(nodeId, errorMessage);
+        state.status = "error";
+      }
+
+      // Check if this is the last node to execute
+      if (state.status !== "error") {
+        const allNodesProcessed = state.sortedNodes.every(
+          (id) => state.executedNodes.has(id) || state.nodeErrors.has(id)
+        );
+        
+        if (allNodesProcessed) {
+          state.status = state.nodeErrors.size > 0 ? "error" : "completed";
+        }
+      }
+
+      return state;
+    } catch (error) {
+      // Handle errors during input processing or execution
+      const errorMessage = error instanceof Error ? error.message : String(error);
       state.nodeErrors.set(nodeId, errorMessage);
+      state.status = "error";
+      return state;
     }
-
-    return state;
   }
 
   /**
@@ -254,7 +320,10 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   /**
    * Gets the input values for a node based on its incoming connections
    */
-  private getNodeInputs(state: RuntimeState, nodeId: string): Record<string, any> {
+  private getNodeInputs(
+    state: RuntimeState,
+    nodeId: string
+  ): Record<string, any> {
     const inputs: Record<string, any> = {};
     const node = state.workflow.nodes.find((n: any) => n.id === nodeId);
 
@@ -440,26 +509,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       };
     });
 
-    // Determine workflow status based on node executions
-    let workflowStatus: WorkflowExecutionStatus = "idle";
-
-    // If there are executing nodes, the workflow is executing
-    if (allNodeExecutions.some((node) => node.status === "executing")) {
-      workflowStatus = "executing";
-    }
-    // If all nodes are completed or error, determine final status
-    else if (
-      allNodeExecutions.every(
-        (node) => node.status === "completed" || node.status === "error"
-      )
-    ) {
-      // If any node has error, the workflow has error
-      if (allNodeExecutions.some((node) => node.status === "error")) {
-        workflowStatus = "error";
-      } else {
-        workflowStatus = "completed";
-      }
-    }
+    // Use status directly from state instead of recalculating
+    const workflowStatus = state.status;
 
     const execution: WorkflowExecution = {
       id: instanceId,
@@ -477,15 +528,15 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     try {
       // Store execution data in D1 using upsert
       const db = createDatabase(this.env.DB);
-      
+
       // Create common data object for both insert and update operations
       const executionData = {
         status: workflowStatus,
         data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
         error: execution.error,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
-      
+
       // Perform upsert operation
       await db
         .insert(executions)
@@ -494,17 +545,17 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           workflowId: workflowId,
           userId: userId,
           createdAt: new Date(),
-          ...executionData
+          ...executionData,
         })
         .onConflictDoUpdate({
           target: executions.id,
-          set: executionData
+          set: executionData,
         });
     } catch (error) {
       console.error("Error storing execution data:", error);
       // Continue execution even if DB operation fails
     }
-    
+
     return execution;
   }
 }
