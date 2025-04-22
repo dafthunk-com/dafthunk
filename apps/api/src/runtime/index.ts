@@ -20,7 +20,6 @@ import { BinaryDataHandler } from "./binaryDataHandler";
 import { ObjectStore } from "./store";
 import { createDatabase } from "../../db";
 import { executions } from "../../db/schema";
-import { eq } from "drizzle-orm";
 
 export type RuntimeParams = {
   workflow: Workflow;
@@ -48,34 +47,19 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
 
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
     // Get userId from the event payload, defaulting to "system" if not provided
+    const workflow = event.payload.workflow;
     const userId = event.payload.userId || "system";
     
     try {
       // Step 1: Validate the workflow and initialize data
-      const initState = await step.do(
+      let state = await step.do(
         "validate workflow",
         Runtime.defaultConfig,
         async () => {
-          const state = await this.validateWorkflow(event.payload.workflow);
+          const state = await this.initializeWorkflow(workflow);
           await this.upsertExecutionState(
             event.instanceId,
-            event.payload.workflow.id,
-            state,
-            userId
-          );
-          return state;
-        }
-      );
-
-      // Step 2: Initialize executable nodes and create topological sort
-      let state = await step.do(
-        "setup execution",
-        Runtime.defaultConfig,
-        async () => {
-          const state = await this.setupExecution(initState);
-          await this.upsertExecutionState(
-            event.instanceId,
-            event.payload.workflow.id,
+            workflow.id,
             state,
             userId
           );
@@ -96,7 +80,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
             const newState = await this.executeNode(state, nodeId);
             await this.upsertExecutionState(
               event.instanceId,
-              event.payload.workflow.id,
+              workflow.id,
               newState,
               userId
             );
@@ -107,7 +91,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
 
       const finalExecution = await this.upsertExecutionState(
         event.instanceId,
-        event.payload.workflow.id,
+        workflow.id,
         state,
         userId
       );
@@ -116,7 +100,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       console.error(error);
       const errorExecution: WorkflowExecution = {
         id: event.instanceId,
-        workflowId: event.payload.workflow.id,
+        workflowId: workflow.id,
         status: "error",
         nodeExecutions: [],
         error: error instanceof Error ? error.message : String(error),
@@ -126,7 +110,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       const db = createDatabase(this.env.DB);
       await db.insert(executions).values({
         id: event.instanceId,
-        workflowId: event.payload.workflow.id,
+        workflowId: workflow.id,
         userId: userId, // Use the provided userId parameter
         status: "error",
         data: JSON.stringify({ nodeExecutions: [] }),
@@ -137,7 +121,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     }
   }
 
-  private async validateWorkflow(workflow: Workflow): Promise<RuntimeState> {
+  private async initializeWorkflow(workflow: Workflow): Promise<RuntimeState> {
+    // Validate the workflow
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new Error(
@@ -145,29 +130,20 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       ) as NonRetryableError;
     }
 
-    return {
-      workflow,
-      nodeOutputs: new Map<string, Record<string, any>>(),
-      executedNodes: new Set<string>(),
-      nodeErrors: new Map<string, string>(),
-      sortedNodes: [], // Initialize empty array, will be populated in setupExecution
-    };
-  }
-
-  private async setupExecution(
-    workflowState: RuntimeState
-  ): Promise<RuntimeState> {
     // Create a topological sort of the nodes
-    const sortedNodes = this.topologicalSort(workflowState.workflow);
-
-    if (sortedNodes.length === 0 && workflowState.workflow.nodes.length > 0) {
+    const sortedNodes = this.topologicalSort(workflow);
+    if (sortedNodes.length === 0 && workflow.nodes.length > 0) {
       throw new Error(
         "Failed to create execution order. Possible circular dependency detected."
       ) as NonRetryableError;
     }
 
+    // Initialize the workflow state
     return {
-      ...workflowState,
+      workflow,
+      nodeOutputs: new Map<string, Record<string, any>>(),
+      executedNodes: new Set<string>(),
+      nodeErrors: new Map<string, string>(),
       sortedNodes,
     };
   }
