@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { createDatabase, type NewWorkflow, type NewUser, users } from "../db";
-import { workflows } from "../db/schema";
+import { workflows, executions } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { jwt } from "hono/jwt";
@@ -14,7 +14,7 @@ import {
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "./runtime/store";
-import { Node, Edge, WorkflowExecution } from "@dafthunk/types";
+import { Node, Edge, WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
 import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
@@ -581,6 +581,7 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
 
   const instance = await c.env.EXECUTE.create({
     params: {
+      userId: user.sub,
       workflow: {
         id: workflow.id,
         name: workflow.name,
@@ -599,17 +600,31 @@ app.get("/executions/:id", jwtAuthMiddleware, async (c) => {
   const id = c.req.param("id");
   
   try {
-    // Get execution data from R2 instead of KV
-    const executionObject = await c.env.BUCKET.get(`executions/${id}`);
+    // Get execution data from D1 instead of R2
+    const db = createDatabase(c.env.DB);
+    const execution = await db
+      .select()
+      .from(executions)
+      .where(eq(executions.id, id))
+      .get();
     
-    if (!executionObject) {
+    if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
     
-    // Get the execution data as text and parse it
-    const executionJson = await executionObject.text();
-    const execution = JSON.parse(executionJson) as WorkflowExecution;
-    return c.json(execution);
+    // Parse the execution data from the JSON stored in the database
+    const executionData = JSON.parse(execution.data as string);
+    
+    // Create a WorkflowExecution object from the database record
+    const workflowExecution: WorkflowExecution = {
+      id: execution.id,
+      workflowId: execution.workflowId,
+      status: execution.status as WorkflowExecutionStatus,
+      nodeExecutions: executionData.nodeExecutions || [],
+      error: execution.error || undefined,
+    };
+    
+    return c.json(workflowExecution);
   } catch (error) {
     console.error("Error retrieving execution data:", error);
     return c.json({ error: "Invalid execution data" }, 500);

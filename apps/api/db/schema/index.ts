@@ -28,6 +28,16 @@ export const Provider = {
 
 export type ProviderType = (typeof Provider)[keyof typeof Provider];
 
+// Define execution status types
+export const ExecutionStatus = {
+  IDLE: "idle",
+  EXECUTING: "executing",
+  COMPLETED: "completed",
+  ERROR: "error",
+} as const;
+
+export type ExecutionStatusType = (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
+
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(), // UUID
   name: text("name").notNull(),
@@ -63,14 +73,46 @@ export const workflows = sqliteTable("workflows", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const executions = sqliteTable("executions", {
+  id: text("id").primaryKey(), // Execution instance ID
+  workflowId: text("workflow_id")
+    .notNull()
+    .references(() => workflows.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  status: text("status").$type<ExecutionStatusType>().notNull().default(ExecutionStatus.IDLE),
+  data: text("data", { mode: "json" }).notNull(), // Stores the execution data including node statuses
+  error: text("error"), // Optional error message
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
 // Relations definitions after all tables are defined
 export const usersRelations = relations(users, ({ many }) => ({
   workflows: many(workflows),
+  executions: many(executions),
 }));
 
-export const workflowsRelations = relations(workflows, ({ one }) => ({
+export const workflowsRelations = relations(workflows, ({ one, many }) => ({
   user: one(users, {
     fields: [workflows.userId],
+    references: [users.id],
+  }),
+  executions: many(executions),
+}));
+
+export const executionsRelations = relations(executions, ({ one }) => ({
+  workflow: one(workflows, {
+    fields: [executions.workflowId],
+    references: [workflows.id],
+  }),
+  user: one(users, {
+    fields: [executions.userId],
     references: [users.id],
   }),
 }));
@@ -80,3 +122,6 @@ export type NewUser = typeof users.$inferInsert;
 
 export type Workflow = typeof workflows.$inferSelect;
 export type NewWorkflow = typeof workflows.$inferInsert;
+
+export type Execution = typeof executions.$inferSelect;
+export type NewExecution = typeof executions.$inferInsert;

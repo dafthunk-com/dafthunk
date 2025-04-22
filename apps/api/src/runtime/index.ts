@@ -18,9 +18,13 @@ import { NodeContext } from "../nodes/types";
 import { ParameterRegistry } from "./parameterRegistry";
 import { BinaryDataHandler } from "./binaryDataHandler";
 import { ObjectStore } from "./store";
+import { createDatabase } from "../../db";
+import { executions } from "../../db/schema";
+import { eq } from "drizzle-orm";
 
 export type RuntimeParams = {
   workflow: Workflow;
+  userId: string;
 };
 
 export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
@@ -33,7 +37,13 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     timeout: "10 minutes",
   };
 
+  // Store the userId from the event payload for later use
+  private userId: string = "system";
+
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
+    // Store userId for later use
+    this.userId = event.payload.userId || "system";
+    
     try {
       // Step 1: Validate the workflow and initialize data
       const initState = await step.do(
@@ -102,22 +112,22 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         error: error instanceof Error ? error.message : String(error),
       };
       
-      // Store error execution in R2 instead of KV
-      await this.env.BUCKET.put(
-        `executions/${event.instanceId}`, 
-        JSON.stringify(errorExecution), 
-        {
-          httpMetadata: {
-            contentType: "application/json",
-          },
-        }
-      );
+      // Store error execution in D1 instead of R2
+      const db = createDatabase(this.env.DB);
+      await db.insert(executions).values({
+        id: event.instanceId,
+        workflowId: event.payload.workflow.id,
+        userId: this.userId, // Use the stored userId
+        status: "error",
+        data: JSON.stringify({ nodeExecutions: [] }),
+        error: error instanceof Error ? error.message : String(error),
+      });
       
       return errorExecution;
     }
   }
 
-  private async validateWorkflow(workflow: Workflow) {
+  private async validateWorkflow(workflow: Workflow & { userId?: string }) {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new Error(
@@ -498,16 +508,43 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           : undefined,
     };
 
-    // Store execution data in R2 instead of KV
-    await this.env.BUCKET.put(
-      `executions/${instanceId}`, 
-      JSON.stringify(execution), 
-      {
-        httpMetadata: {
-          contentType: "application/json",
-        },
+    try {
+      // Store execution data in D1 instead of R2
+      const db = createDatabase(this.env.DB);
+      
+      // Check if this execution already exists
+      const existingExecution = await db
+        .select()
+        .from(executions)
+        .where(eq(executions.id, instanceId))
+        .get();
+      
+      if (existingExecution) {
+        // Update existing execution
+        await db
+          .update(executions)
+          .set({
+            status: workflowStatus,
+            data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
+            error: execution.error,
+            updatedAt: new Date(),
+          })
+          .where(eq(executions.id, instanceId));
+      } else {
+        // Create new execution with userId from instance property
+        await db.insert(executions).values({
+          id: instanceId,
+          workflowId: workflowId,
+          userId: this.userId, // Use the stored userId
+          status: workflowStatus,
+          data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
+          error: execution.error,
+        });
       }
-    );
+    } catch (error) {
+      console.error("Error storing execution data:", error);
+      // Continue execution even if DB operation fails
+    }
     
     return execution;
   }

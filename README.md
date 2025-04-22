@@ -75,7 +75,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    wrangler login
 
    # Create a D1 database
-   wrangler d1 create workflow-development
+   wrangler d1 create DB
    ```
 
 5. Start the development server and cross your fingers:
@@ -109,7 +109,12 @@ The project uses Cloudflare D1 as the database. Migrations are automatically app
 #### 🧪 Development
 
 ```bash
-npx wrangler d1 migrations apply DB --remote --env development
+pnpm --filter '@dafthunk/api' db:migrate
+```
+
+To run queries against the development database:
+
+```bash
 npx wrangler d1 execute DB --env development --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
 ```
 
@@ -117,14 +122,20 @@ To reset the development database when things have gone spectacularly wrong:
 
 ```bash
 export CI=true
-npx wrangler d1 execute workflow-development --local --command="DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;"
-npx wrangler d1 migrations apply workflow-development --local
+pnpm --filter '@dafthunk/api' db:reset
 ```
 
 #### 🚨 Production
 
+To apply migrations without resetting:
+
 ```bash
-npx wrangler d1 migrations apply DB --remote --env production
+pnpm --filter '@dafthunk/api' db:prod:migrate
+```
+
+To run queries against the production database:
+
+```bash
 npx wrangler d1 execute DB --env production --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
 ```
 
@@ -132,11 +143,10 @@ To reset the production database (a decision we will continue to make carelessly
 
 ```bash
 export CI=true
-npx wrangler d1 execute DB --remote --env production --command="DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;"
-npx wrangler d1 migrations apply DB --remote --env production
+pnpm --filter '@dafthunk/api' db:prod:reset
 ```
 
-> For using D1 locally, use the `--local` flag instead of `--remote`.
+> For using D1 locally, use the `--local` flag instead of `--remote` when executing wrangler commands directly.
 
 ## 🚢 Deployment
 
