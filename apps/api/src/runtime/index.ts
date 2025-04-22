@@ -37,12 +37,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     timeout: "10 minutes",
   };
 
-  // Store the userId from the event payload for later use
-  private userId: string = "system";
-
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    // Store userId for later use
-    this.userId = event.payload.userId || "system";
+    // Get userId from the event payload, defaulting to "system" if not provided
+    const userId = event.payload.userId || "system";
     
     try {
       // Step 1: Validate the workflow and initialize data
@@ -54,7 +51,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           await this.updateExecutionState(
             event.instanceId,
             event.payload.workflow.id,
-            state
+            state,
+            userId
           );
           return state;
         }
@@ -69,7 +67,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           await this.updateExecutionState(
             event.instanceId,
             event.payload.workflow.id,
-            state
+            state,
+            userId
           );
           return state;
         }
@@ -89,7 +88,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
             await this.updateExecutionState(
               event.instanceId,
               event.payload.workflow.id,
-              newState
+              newState,
+              userId
             );
             return newState;
           }
@@ -99,7 +99,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       const finalExecution = await this.updateExecutionState(
         event.instanceId,
         event.payload.workflow.id,
-        state
+        state,
+        userId
       );
       return finalExecution;
     } catch (error) {
@@ -117,7 +118,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       await db.insert(executions).values({
         id: event.instanceId,
         workflowId: event.payload.workflow.id,
-        userId: this.userId, // Use the stored userId
+        userId: userId, // Use the provided userId parameter
         status: "error",
         data: JSON.stringify({ nodeExecutions: [] }),
         error: error instanceof Error ? error.message : String(error),
@@ -423,7 +424,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private async updateExecutionState(
     instanceId: string,
     workflowId: string,
-    state: Awaited<ReturnType<typeof this.setupExecution>>
+    state: Awaited<ReturnType<typeof this.setupExecution>>,
+    userId: string
   ) {
     // Create a map of executed nodes for quick lookup
     const executedNodesMap = new Map(
@@ -531,11 +533,11 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           })
           .where(eq(executions.id, instanceId));
       } else {
-        // Create new execution with userId from instance property
+        // Create new execution with userId from parameter
         await db.insert(executions).values({
           id: instanceId,
           workflowId: workflowId,
-          userId: this.userId, // Use the stored userId
+          userId: userId, // Use the provided userId parameter
           status: workflowStatus,
           data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
           error: execution.error,
