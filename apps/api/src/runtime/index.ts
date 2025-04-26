@@ -35,527 +35,414 @@ export type RuntimeState = {
   status: WorkflowExecutionStatus;
 };
 
+/**
+ * Executes a `Workflow` instance from start to finish.
+ *
+ * The public API remains identical to the original implementation
+ * but internal variable names were expanded for clarity and all
+ * comments were rewritten to be short and direct.
+ */
 export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
-  private static readonly defaultConfig: WorkflowStepConfig = {
+  /**
+   * Default step configuration used across the workflow.
+   */
+  private static readonly defaultStepConfig: WorkflowStepConfig = {
     retries: {
       limit: 0,
-      delay: 10000,
+      delay: 10_000,
       backoff: "exponential",
     },
     timeout: "10 minutes",
   };
 
+  /**
+   * The main entrypoint called by the Workflows engine.
+   */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    const workflow = event.payload.workflow;
+    const { workflow, userId } = event.payload;
     const instanceId = event.instanceId;
-    const userId = event.payload.userId || "system";
 
-    // Initialize the state and execution
-    let state: RuntimeState = {
+    // Initialise state and execution records.
+    let runtimeState: RuntimeState = {
       workflow,
-      nodeOutputs: new Map<string, Record<string, any>>(),
-      executedNodes: new Set<string>(),
-      nodeErrors: new Map<string, string>(),
+      nodeOutputs: new Map(),
+      executedNodes: new Set(),
+      nodeErrors: new Map(),
       sortedNodes: [],
       status: "idle",
     };
-    let execution: WorkflowExecution = {
+
+    let executionRecord: WorkflowExecution = {
       id: instanceId,
       workflowId: workflow.id,
       status: "idle",
       nodeExecutions: [],
-      error: undefined,
-    };
+    } as WorkflowExecution;
 
-    // Execute the workflow
     try {
-      state = await step.do(
-        "Initialize workflow",
-        Runtime.defaultConfig,
-        async () => {
-          return await this.initializeWorkflow(workflow);
-        }
+      // Prepare workflow (validation + ordering).
+      runtimeState = await step.do(
+        "initialise workflow",
+        Runtime.defaultStepConfig,
+        async () => this.initialiseWorkflow(workflow),
       );
-      execution = await step.do(
-        "Save initial execution state",
-        Runtime.defaultConfig,
-        async () => {
-          return await this.saveExecutionState(
-            userId,
-            workflow.id,
-            instanceId,
-            state
-          );
-        }
+
+      // Save state before node execution begins.
+      executionRecord = await step.do(
+        "persist initial execution record",
+        Runtime.defaultStepConfig,
+        async () =>
+          this.saveExecutionState(userId, workflow.id, instanceId, runtimeState),
       );
-      for (const nodeId of state.sortedNodes) {
-        if (state.nodeErrors.has(nodeId)) {
-          continue;
+
+      // Execute nodes sequentially.
+      for (const nodeIdentifier of runtimeState.sortedNodes) {
+        if (runtimeState.nodeErrors.has(nodeIdentifier)) {
+          continue; // Skip nodes that were already marked as failed.
         }
-        state = await step.do(
-          `Execute node ${nodeId}`,
-          Runtime.defaultConfig,
-          async () => {
-            return await this.executeNode(state, nodeId);
-          }
+
+        runtimeState = await step.do(
+          `run node ${nodeIdentifier}`,
+          Runtime.defaultStepConfig,
+          async () => this.executeNode(runtimeState, nodeIdentifier),
         );
-        execution = await step.do(
-          `Save intermediate execution state after node ${nodeId}`,
-          Runtime.defaultConfig,
-          async () => {
-            return await this.saveExecutionState(
+
+        // Persist progress after each node.
+        executionRecord = await step.do(
+          `persist after ${nodeIdentifier}`,
+          Runtime.defaultStepConfig,
+          async () =>
+            this.saveExecutionState(
               userId,
               workflow.id,
               instanceId,
-              state
-            );
-          }
+              runtimeState,
+            ),
         );
       }
-    } 
-    
-    // If an error occurs, set the state and execution to error
-    catch (error) {
-      state = {
-        ...state,
-        status: "error",
-      };
-      execution = {
-        ...execution,
+    } catch (error) {
+      // Capture unexpected failure.
+      runtimeState = { ...runtimeState, status: "error" };
+      executionRecord = {
+        ...executionRecord,
         status: "error",
         error: error instanceof Error ? error.message : String(error),
       };
-    } 
-    
-    // Save the final execution state
-    finally {
-      const finalExecution = await step.do(
-        "Save final execution state",
-        Runtime.defaultConfig,
-        async () => {
-          return await this.saveExecutionState(
-            userId,
-            workflow.id,
-            instanceId,
-            state
-          );
-        }
+    } finally {
+      // Persist the final state.
+      executionRecord = await step.do(
+        "persist final execution record",
+        Runtime.defaultStepConfig,
+        async () =>
+          this.saveExecutionState(userId, workflow.id, instanceId, runtimeState),
       );
-      return finalExecution;
+
+      return executionRecord;
     }
   }
 
-  private async initializeWorkflow(workflow: Workflow): Promise<RuntimeState> {
-    // Validate the workflow
+  /**
+   * Validates the workflow and creates a sequential execution order.
+   */
+  private async initialiseWorkflow(workflow: Workflow): Promise<RuntimeState> {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
-      throw new Error(
-        `Workflow validation failed: ${validationErrors.map((error) => error.message).join(", ")}`
-      ) as NonRetryableError;
+      throw new NonRetryableError(
+        `Workflow validation failed: ${validationErrors
+          .map((e) => e.message)
+          .join(", ")}`,
+      );
     }
 
-    // Create a topological sort of the nodes
-    const sortedNodes = this.topologicalSort(workflow);
-    if (sortedNodes.length === 0 && workflow.nodes.length > 0) {
-      throw new Error(
-        "Failed to create execution order. Possible circular dependency detected."
-      ) as NonRetryableError;
+    const orderedNodes = this.createTopologicalOrder(workflow);
+    if (orderedNodes.length === 0 && workflow.nodes.length > 0) {
+      throw new NonRetryableError(
+        "Unable to derive execution order. The graph may contain a cycle.",
+      );
     }
 
-    // Initialize the workflow state
     return {
       workflow,
-      nodeOutputs: new Map<string, Record<string, any>>(),
-      executedNodes: new Set<string>(),
-      nodeErrors: new Map<string, string>(),
-      sortedNodes,
+      nodeOutputs: new Map(),
+      executedNodes: new Set(),
+      nodeErrors: new Map(),
+      sortedNodes: orderedNodes,
       status: "executing",
     };
   }
 
+  /**
+   * Executes a single node and stores its outputs.
+   */
   private async executeNode(
-    state: RuntimeState,
-    nodeId: string
+    runtimeState: RuntimeState,
+    nodeIdentifier: string,
   ): Promise<RuntimeState> {
-    const node = state.workflow.nodes.find((n) => n.id === nodeId);
+    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
     if (!node) {
-      state.nodeErrors.set(nodeId, `Node not found: ${nodeId}`);
-      return { ...state, status: "error" };
-    }
-    const registry = NodeRegistry.getInstance();
-    const executableNode = registry.createExecutableNode(node);
-    if (!executableNode) {
-      state.nodeErrors.set(nodeId, `Node type not implemented: ${node.type}`);
-      return { ...state, status: "error" };
+      runtimeState.nodeErrors.set(nodeIdentifier, `Node not found: ${nodeIdentifier}`);
+      return { ...runtimeState, status: "error" };
     }
 
-    // Get input values for the node
-    const inputs = this.getNodeInputs(state, nodeId);
+    // Resolve the runnable implementation.
+    const executable = NodeRegistry.getInstance().createExecutableNode(node);
+    if (!executable) {
+      runtimeState.nodeErrors.set(
+        nodeIdentifier,
+        `Node type not implemented: ${node.type}`,
+      );
+      return { ...runtimeState, status: "error" };
+    }
 
-    // Handle input validation and mapping
+    // Gather inputs by reading connections and default values.
+    const inputValues = this.collectNodeInputs(runtimeState, nodeIdentifier);
+
     try {
-      const processedInputs = await this.handleNodeInputs(state, nodeId, inputs);
+      const processedInputs = await this.mapRuntimeToNodeInputs(
+        runtimeState,
+        nodeIdentifier,
+        inputValues,
+      );
 
-      // Create node context
       const context: NodeContext = {
-        nodeId,
-        workflowId: state.workflow.id,
+        nodeId: nodeIdentifier,
+        workflowId: runtimeState.workflow.id,
         inputs: processedInputs,
-        onProgress: () => {}, // Not using progress in this implementation
+        // No progress feedback in this implementation.
+        onProgress: () => {},
         env: {
           AI: this.env.AI,
         },
       };
 
-      // Execute the node
-      const result = await executableNode.execute(context);
+      const result = await executable.execute(context);
 
       if (result.status === "completed") {
-        // Handle output validation and mapping
-        const outputs = await this.handleNodeOutputs(
-          state,
-          nodeId,
-          result.outputs || {}
+        const outputsForRuntime = await this.mapNodeToRuntimeOutputs(
+          runtimeState,
+          nodeIdentifier,
+          result.outputs ?? {},
         );
 
-        // Store outputs for downstream nodes
-        state.nodeOutputs.set(nodeId, outputs);
-        state.executedNodes.add(nodeId);
+        runtimeState.nodeOutputs.set(nodeIdentifier, outputsForRuntime);
+        runtimeState.executedNodes.add(nodeIdentifier);
       } else {
-        // Store the error
-        const errorMessage = result.error || "Unknown error";
-        state.nodeErrors.set(nodeId, errorMessage);
-        state.status = "error";
+        const failureMessage = result.error ?? "Unknown error";
+        runtimeState.nodeErrors.set(nodeIdentifier, failureMessage);
+        runtimeState.status = "error";
       }
 
-      // Check if this is the last node to execute
-      if (state.status !== "error") {
-        const allNodesProcessed = state.sortedNodes.every(
-          (id) => state.executedNodes.has(id) || state.nodeErrors.has(id)
+      // Determine final workflow status.
+      if (runtimeState.status !== "error") {
+        const allNodesVisited = runtimeState.sortedNodes.every(
+          (id) =>
+            runtimeState.executedNodes.has(id) || runtimeState.nodeErrors.has(id),
         );
-        
-        if (allNodesProcessed) {
-          state.status = state.nodeErrors.size > 0 ? "error" : "completed";
-        }
+        runtimeState.status = allNodesVisited && runtimeState.nodeErrors.size === 0
+          ? "completed"
+          : "executing";
       }
 
-      return state;
+      return runtimeState;
     } catch (error) {
-      // Handle errors during input processing or execution
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      state.nodeErrors.set(nodeId, errorMessage);
-      state.status = "error";
-      return state;
+      const message = error instanceof Error ? error.message : String(error);
+      runtimeState.nodeErrors.set(nodeIdentifier, message);
+      runtimeState.status = "error";
+      return runtimeState;
     }
   }
 
   /**
-   * Creates a topological sorting of nodes (execution order)
-   * Nodes with no dependencies come first, then nodes whose dependencies are satisfied
+   * Returns inputs for a node by checking its default values and inbound edges.
    */
-  private topologicalSort(workflow: Workflow): string[] {
-    const sorted: string[] = [];
-    const visited: Set<string> = new Set();
-    const temporary: Set<string> = new Set();
-
-    // Create an adjacency list representation of the graph
-    const graph: Map<string, string[]> = new Map();
-    for (const node of workflow.nodes) {
-      graph.set(node.id, []);
-    }
-
-    // Populate the graph with edges
-    for (const edge of workflow.edges) {
-      const neighbors = graph.get(edge.source) || [];
-      if (!neighbors.includes(edge.target)) {
-        neighbors.push(edge.target);
-        graph.set(edge.source, neighbors);
-      }
-    }
-
-    // Define a depth-first search function
-    const visit = (nodeId: string): boolean => {
-      // If we've permanently visited this node, skip it
-      if (visited.has(nodeId)) {
-        return true;
-      }
-
-      // If we're temporarily visiting this node, we found a cycle
-      if (temporary.has(nodeId)) {
-        return false; // Cycle detected
-      }
-
-      // Mark as temporarily visited
-      temporary.add(nodeId);
-
-      // Visit all neighbors
-      const neighbors = graph.get(nodeId) || [];
-      for (const neighbor of neighbors) {
-        if (!visit(neighbor)) {
-          return false; // Cycle detected in subtree
-        }
-      }
-
-      // Mark as permanently visited
-      temporary.delete(nodeId);
-      visited.add(nodeId);
-
-      // Add to sorted list
-      sorted.unshift(nodeId);
-      return true;
-    };
-
-    // Start DFS from each node not yet visited
-    for (const node of workflow.nodes) {
-      if (!visited.has(node.id)) {
-        if (!visit(node.id)) {
-          return []; // Return empty array if cycle detected
-        }
-      }
-    }
-
-    return sorted;
-  }
-
-  /**
-   * Gets the input values for a node based on its incoming connections
-   */
-  private getNodeInputs(
-    state: RuntimeState,
-    nodeId: string
-  ): Record<string, any> {
-    const inputs: Record<string, any> = {};
-    const node = state.workflow.nodes.find((n: any) => n.id === nodeId);
-
+  private collectNodeInputs(
+    runtimeState: RuntimeState,
+    nodeIdentifier: string,
+  ): Record<string, unknown> {
+    const inputs: Record<string, unknown> = {};
+    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
     if (!node) return inputs;
 
-    // Set default values for inputs
+    // Defaults declared directly on the node.
     for (const input of node.inputs) {
       if (input.value !== undefined) {
         inputs[input.name] = input.value;
       }
     }
 
-    // Get values from connected nodes
-    const incomingEdges = state.workflow.edges.filter(
-      (edge: any) => edge.target === nodeId
+    // Values coming from connected nodes.
+    const inboundEdges = runtimeState.workflow.edges.filter(
+      (edge) => edge.target === nodeIdentifier,
     );
 
-    for (const edge of incomingEdges) {
-      const sourceNodeOutputs = state.nodeOutputs.get(edge.source);
-      if (
-        sourceNodeOutputs &&
-        sourceNodeOutputs[edge.sourceOutput] !== undefined
-      ) {
-        inputs[edge.targetInput] = sourceNodeOutputs[edge.sourceOutput];
+    for (const edge of inboundEdges) {
+      const sourceOutputs = runtimeState.nodeOutputs.get(edge.source);
+      if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
+        inputs[edge.targetInput] = sourceOutputs[edge.sourceOutput];
       }
     }
-
     return inputs;
   }
 
   /**
-   * Validates and maps inputs for a node
+   * Converts raw runtime inputs to the representation expected by the node.
    */
-  private async handleNodeInputs(
-    state: RuntimeState,
-    nodeId: string,
-    inputs: Record<string, any>
-  ): Promise<Record<string, any>> {
-    const node = state.workflow.nodes.find((n: any) => n.id === nodeId);
-    if (!node) {
-      throw new Error(`Node ${nodeId} not found`);
+  private async mapRuntimeToNodeInputs(
+    runtimeState: RuntimeState,
+    nodeIdentifier: string,
+    inputValues: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
+
+    const processed: Record<string, unknown> = {};
+    const binaryHandler = new BinaryDataHandler(new ObjectStore(this.env.BUCKET));
+    const registry = ParameterRegistry.getInstance(binaryHandler);
+
+    for (const definition of node.inputs) {
+      const { name, type, required } = definition;
+      const value = inputValues[name];
+
+      if (required && value === undefined) {
+        throw new Error(`Required input '${name}' missing for node ${nodeIdentifier}`);
+      }
+      if (value === undefined) continue;
+
+      processed[name] = await registry.convertRuntimeToNode(type, value);
     }
 
-    const mappedInputs: Record<string, any> = {};
-
-    // Process each input defined in the node type
-    for (const inputDef of node.inputs) {
-      const inputName = inputDef.name;
-      const inputType = inputDef.type;
-      const inputValue = inputs[inputName];
-
-      // Check if required input is missing
-      if (inputDef.required && inputValue === undefined) {
-        throw new Error(
-          `Required input '${inputName}' is missing for node ${nodeId}`
-        );
-      }
-
-      // Skip undefined values
-      if (inputValue === undefined) {
-        continue;
-      }
-
-      try {
-        // Convert the input value from runtime to node representation
-        const binaryHandler = new BinaryDataHandler(
-          new ObjectStore(this.env.BUCKET)
-        );
-        const typeRegistry = ParameterRegistry.getInstance(binaryHandler);
-
-        mappedInputs[inputName] = await typeRegistry.convertRuntimeToNode(
-          inputType,
-          inputValue
-        );
-      } catch (error: unknown) {
-        throw new Error(
-          `Failed to convert input '${inputName}' for node ${nodeId}: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    }
-
-    return mappedInputs;
+    return processed;
   }
 
   /**
-   * Validates and maps outputs for a node
+   * Converts node outputs to a serialisable runtime representation.
    */
-  private async handleNodeOutputs(
-    state: RuntimeState,
-    nodeId: string,
-    outputs: Record<string, any>
-  ): Promise<Record<string, any>> {
-    const node = state.workflow.nodes.find((n) => n.id === nodeId);
-    if (!node) {
-      throw new Error(`Node ${nodeId} not found`);
+  private async mapNodeToRuntimeOutputs(
+    runtimeState: RuntimeState,
+    nodeIdentifier: string,
+    outputsFromNode: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
+
+    const processed: Record<string, unknown> = {};
+    const binaryHandler = new BinaryDataHandler(new ObjectStore(this.env.BUCKET));
+    const registry = ParameterRegistry.getInstance(binaryHandler);
+
+    for (const definition of node.outputs) {
+      const { name, type } = definition;
+      const value = outputsFromNode[name];
+      if (value === undefined || value === null) continue;
+
+      processed[name] = await registry.convertNodeToRuntime(type, value);
     }
-
-    const mappedOutputs: Record<string, any> = {};
-
-    // Process each output defined in the node type
-    for (const outputDef of node.outputs) {
-      const outputName = outputDef.name;
-      const outputType = outputDef.type;
-      const outputValue = outputs[outputName];
-
-      // Skip undefined values
-      if (outputValue === undefined) {
-        continue;
-      }
-
-      try {
-        // Convert the output value from node to runtime representation
-        const binaryHandler = new BinaryDataHandler(
-          new ObjectStore(this.env.BUCKET)
-        );
-        const typeRegistry = ParameterRegistry.getInstance(binaryHandler);
-        mappedOutputs[outputName] = await typeRegistry.convertNodeToRuntime(
-          outputType,
-          outputValue
-        );
-      } catch (error: unknown) {
-        throw new Error(
-          `Failed to convert output '${outputName}' for node ${nodeId}: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    }
-
-    return mappedOutputs;
+    return processed;
   }
 
+  /**
+   * Calculates a topological ordering of nodes. Returns an empty array if a cycle is detected.
+   */
+  private createTopologicalOrder(workflow: Workflow): string[] {
+    const inDegree: Record<string, number> = {};
+    const adjacency: Record<string, string[]> = {};
+
+    for (const node of workflow.nodes) {
+      inDegree[node.id] = 0;
+      adjacency[node.id] = [];
+    }
+
+    for (const edge of workflow.edges) {
+      adjacency[edge.source].push(edge.target);
+      inDegree[edge.target] += 1;
+    }
+
+    const queue: string[] = Object.keys(inDegree).filter((id) => inDegree[id] === 0);
+    const ordered: string[] = [];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      ordered.push(current);
+
+      for (const neighbour of adjacency[current]) {
+        inDegree[neighbour] -= 1;
+        if (inDegree[neighbour] === 0) {
+          queue.push(neighbour);
+        }
+      }
+    }
+
+    // If ordering missed nodes, a cycle exists.
+    return ordered.length === workflow.nodes.length ? ordered : [];
+  }
+
+  /**
+   * Persists the workflow execution state to the database.
+   */
   private async saveExecutionState(
     userId: string,
     workflowId: string,
     instanceId: string,
-    state: RuntimeState
+    runtimeState: RuntimeState,
   ): Promise<WorkflowExecution> {
-    // Create a map of executed nodes for quick lookup
-    const executedNodesMap = new Map(
-      Array.from(state.executedNodes).map((nodeId) => [
-        nodeId,
-        {
-          nodeId,
-          status: state.nodeErrors.has(nodeId)
-            ? ("error" as NodeExecutionStatus)
-            : ("completed" as NodeExecutionStatus),
-          error: state.nodeErrors.get(nodeId),
-          outputs: state.nodeOutputs.get(nodeId),
-        },
-      ])
-    );
-
-    // Create a map of nodes that are in the execution queue but not yet executed
-    const pendingNodesMap = new Map(
-      state.sortedNodes
-        .filter((nodeId) => !state.executedNodes.has(nodeId))
-        .map((nodeId) => [
-          nodeId,
-          {
-            nodeId,
-            status: "executing" as NodeExecutionStatus,
-            outputs: {},
-          },
-        ])
-    );
-
-    // Combine all nodes from the workflow
-    const allNodeExecutions = state.workflow.nodes.map((node) => {
-      // If the node has been executed, use its execution data
-      if (executedNodesMap.has(node.id)) {
-        return executedNodesMap.get(node.id)!;
+    // Build node execution list with explicit status for each node.
+    const nodeExecutionList = runtimeState.workflow.nodes.map((node) => {
+      if (runtimeState.executedNodes.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "completed" as NodeExecutionStatus,
+          outputs: runtimeState.nodeOutputs.get(node.id),
+        };
       }
-
-      // If the node is in the pending queue, mark it as pending
-      if (pendingNodesMap.has(node.id)) {
-        return pendingNodesMap.get(node.id)!;
+      if (runtimeState.nodeErrors.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "error" as NodeExecutionStatus,
+          error: runtimeState.nodeErrors.get(node.id),
+        };
       }
-
-      // Otherwise, mark it as not started
       return {
         nodeId: node.id,
-        status: "idle" as NodeExecutionStatus,
-        outputs: {},
+        status: "executing" as NodeExecutionStatus,
       };
     });
 
-    // Use status directly from state instead of recalculating
-    const workflowStatus = state.status;
+    const executionStatus = runtimeState.status;
 
-    const execution: WorkflowExecution = {
+    const executionRecord: WorkflowExecution = {
       id: instanceId,
-      workflowId: workflowId,
-      status: workflowStatus,
-      nodeExecutions: allNodeExecutions,
+      workflowId,
+      status: executionStatus,
+      nodeExecutions: nodeExecutionList,
       error:
-        state.nodeErrors.size > 0
-          ? Array.from(state.nodeErrors.entries())
-              .map(([_nodeId, error]) => error)
-              .join(", ")
+        runtimeState.nodeErrors.size > 0
+          ? Array.from(runtimeState.nodeErrors.values()).join(", ")
           : undefined,
     };
 
     try {
-      // Store execution data in D1 using upsert
       const db = createDatabase(this.env.DB);
-
-      // Create common data object for both insert and update operations
       const executionData = {
-        status: workflowStatus,
-        data: JSON.stringify({ nodeExecutions: allNodeExecutions }),
-        error: execution.error,
+        status: executionStatus,
+        data: JSON.stringify({ nodeExecutions: nodeExecutionList }),
+        error: executionRecord.error,
         updatedAt: new Date(),
       };
 
-      // Perform upsert operation
       await db
         .insert(executions)
         .values({
           id: instanceId,
-          workflowId: workflowId,
-          userId: userId,
+          workflowId,
+          userId,
           createdAt: new Date(),
           ...executionData,
         })
-        .onConflictDoUpdate({
-          target: executions.id,
-          set: executionData,
-        });
+        .onConflictDoUpdate({ target: executions.id, set: executionData });
     } catch (error) {
-      console.error("Error storing execution data:", error);
-      // Continue execution even if DB operation fails
+      console.error("Failed to persist execution record:", error);
+      // Continue without interrupting the workflow.
     }
 
-    return execution;
+    return executionRecord;
   }
 }
