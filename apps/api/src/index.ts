@@ -570,6 +570,10 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
+  // Get monitorProgress from query parameters, default to false if not provided
+  const url = new URL(c.req.url);
+  const monitorProgress = url.searchParams.get("monitorProgress") === "true";
+
   const [workflow] = await db
     .select()
     .from(workflows)
@@ -593,6 +597,7 @@ app.get("/workflows/:id/execute", jwtAuthMiddleware, async (c) => {
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },
+      monitorProgress,
     },
   });
 

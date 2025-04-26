@@ -329,7 +329,7 @@ export function EditorPage() {
       console.log(`Starting workflow execution for ID: ${workflowId}`);
 
       // Make the initial request to start the workflow
-      fetch(`${API_BASE_URL}/workflows/${workflowId}/execute`, {
+      fetch(`${API_BASE_URL}/workflows/${workflowId}/execute?monitorProgress=true`, {
         method: "GET",
         credentials: "include",
       })

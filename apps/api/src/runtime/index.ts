@@ -24,6 +24,7 @@ import { executions } from "../../db/schema";
 export type RuntimeParams = {
   workflow: Workflow;
   userId: string;
+  monitorProgress?: boolean;
 };
 
 export type RuntimeState = {
@@ -59,7 +60,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    * The main entrypoint called by the Workflows engine.
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    const { workflow, userId } = event.payload;
+    const { workflow, userId, monitorProgress = false } = event.payload;
     const instanceId = event.instanceId;
 
     // Initialise state and execution records.
@@ -87,13 +88,15 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         async () => this.initialiseWorkflow(workflow),
       );
 
-      // Save state before node execution begins.
-      executionRecord = await step.do(
-        "persist initial execution record",
-        Runtime.defaultStepConfig,
-        async () =>
-          this.saveExecutionState(userId, workflow.id, instanceId, runtimeState),
-      );
+      // Save state before node execution begins if monitoring is enabled
+      if (monitorProgress) {
+        executionRecord = await step.do(
+          "persist initial execution record",
+          Runtime.defaultStepConfig,
+          async () =>
+            this.saveExecutionState(userId, workflow.id, instanceId, runtimeState),
+        );
+      }
 
       // Execute nodes sequentially.
       for (const nodeIdentifier of runtimeState.sortedNodes) {
@@ -107,18 +110,20 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           async () => this.executeNode(runtimeState, nodeIdentifier),
         );
 
-        // Persist progress after each node.
-        executionRecord = await step.do(
-          `persist after ${nodeIdentifier}`,
-          Runtime.defaultStepConfig,
-          async () =>
-            this.saveExecutionState(
-              userId,
-              workflow.id,
-              instanceId,
-              runtimeState,
-            ),
-        );
+        // Persist progress after each node if monitoring is enabled
+        if (monitorProgress) {
+          executionRecord = await step.do(
+            `persist after ${nodeIdentifier}`,
+            Runtime.defaultStepConfig,
+            async () =>
+              this.saveExecutionState(
+                userId,
+                workflow.id,
+                instanceId,
+                runtimeState,
+              ),
+          );
+        }
       }
     } catch (error) {
       // Capture unexpected failure.
@@ -129,7 +134,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         error: error instanceof Error ? error.message : String(error),
       };
     } finally {
-      // Persist the final state.
+      // Always persist the final state
       executionRecord = await step.do(
         "persist final execution record",
         Runtime.defaultStepConfig,
