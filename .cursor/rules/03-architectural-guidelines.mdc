@@ -1,0 +1,19 @@
+---
+description: Project architecture & directory structure
+globs: 
+alwaysApply: true
+---
+
+#### Philosophy
+
+- **Least complexity**: choose the simplest solution that satisfies the requirement.  
+- Separate UI, business logic, and data concerns clearly.  
+- Design for extensibility but avoid premature abstraction.
+
+#### State management
+
+- Prefer local component state; use context or external stores **only when needed**.
+
+#### Error boundaries
+
+- Provide React error boundaries and fallback UI to shield the user from crashes.

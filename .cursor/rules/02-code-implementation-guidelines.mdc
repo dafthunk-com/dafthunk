@@ -1,0 +1,27 @@
+---
+description: Coding standards, naming, testing & style rules
+alwaysApply: true
+---
+
+#### General
+
+- Write **correct, DRY, bug-free** code; leave **no TODOs**.  
+- Prefer functional components & hooks; use TypeScript types/interfaces everywhere.  
+- Early-return to reduce nesting; use descriptive names.
+
+#### Styling
+
+- Style exclusively with **Tailwind classes**; never external CSS files.  
+- Use the `cn` helper from `@/lib/utils` for conditional classes (avoid ternaries).
+
+#### Naming conventions
+
+- Kebab-case file names for components.  
+- camelCase for hooks (`useX`) and utilities.  
+- Prefix event handlers with `handle` (e.g. `handleClick`).
+
+#### Testing & QA
+
+- Write comprehensive tests in **Vitest**; cover critical paths and edge cases.  
+- Supply error handling & fallback UI.
+

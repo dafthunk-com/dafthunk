@@ -1,0 +1,13 @@
+---
+description: Tooling & environment constants for the project
+globs: 
+alwaysApply: true
+---
+
+This repository uses:
+
+- **pnpm** for package management & workspaces.  
+- **Vite** for fast dev/build.  
+- **TypeScript**, **React 18**, **React Router v6**, **React Flow**, **TailwindCSS**, **Shadcn UI**.  
+- **Vitest** for unit/integration tests.  
+- **Cloudflare Pages** for deployment (edge-optimised).
