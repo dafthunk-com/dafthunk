@@ -38,12 +38,9 @@ export type RuntimeState = {
 
 /**
  * Executes a `Workflow` instance from start to finish.
- *
- * The public API remains identical to the original implementation
- * but internal variable names were expanded for clarity and all
- * comments were rewritten to be short and direct.
  */
 export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
+  
   /**
    * Default step configuration used across the workflow.
    */

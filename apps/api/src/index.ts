@@ -23,6 +23,7 @@ import {
 import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
+import { ObjectStore } from "./runtime/store";
 
 export { Runtime } from "./runtime";
 import { RuntimeParams } from "./runtime";
@@ -295,20 +296,23 @@ app.get("/objects", jwtAuthMiddleware, async (c) => {
 
   let data: Uint8Array | null = null;
 
-  // Try to get from R2 if available
+  // Use ObjectStore instead of direct R2 access
   try {
-    const object = await c.env.BUCKET.get(`objects/${objectId}`);
-    if (object) {
-      const arrayBuffer = await object.arrayBuffer();
-      data = new Uint8Array(arrayBuffer);
+    const objectStore = new ObjectStore(c.env.BUCKET);
+    const reference: ObjectReference = {
+      id: objectId,
+      mimeType: mimeType
+    };
+    
+    try {
+      data = await objectStore.readObject(reference);
+    } catch (error) {
+      console.error("Object retrieval error:", error);
+      return c.text(`Object not found: ${objectId}`, 404);
     }
   } catch (error) {
-    console.error("R2 retrieval error:", error);
+    console.error("ObjectStore initialization error:", error);
     return c.text("Error retrieving object", 500);
-  }
-
-  if (!data) {
-    return c.text(`Object not found: ${objectId}`, 404);
   }
 
   // Return the binary data with the correct content type
@@ -340,31 +344,20 @@ app.post("/objects", jwtAuthMiddleware, async (c) => {
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
 
-  // Generate a unique ID for the object
-  const id = uuidv4();
+  // Use ObjectStore instead of direct R2 access
   try {
-    // Store in R2
-    console.log(`Storing object ${id} in R2 (${data.byteLength} bytes)`);
-    await c.env.BUCKET.put(`objects/${id}`, data, {
-      httpMetadata: {
-        contentType: mimeType,
-        cacheControl: "public, max-age=31536000",
-      },
-    });
-    console.log(`Successfully stored object ${id} in R2`);
+    const objectStore = new ObjectStore(c.env.BUCKET);
+    console.log(`Storing object in ObjectStore (${data.byteLength} bytes)`);
+    
+    const reference = await objectStore.writeObject(data, mimeType);
+    console.log(`Successfully stored object ${reference.id} in ObjectStore`);
+    
+    // Return the reference
+    return c.json({ reference });
   } catch (error) {
-    console.error("R2 storage error:", error);
+    console.error("ObjectStore storage error:", error);
     return c.text("Error storing object", 500);
   }
-
-  // Create the reference
-  const reference: ObjectReference = {
-    id,
-    mimeType: mimeType,
-  };
-
-  // Return the reference
-  return c.json({ reference });
 });
 
 app.get("/types", jwtAuthMiddleware, (c) => {

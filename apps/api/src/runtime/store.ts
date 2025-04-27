@@ -23,7 +23,7 @@ export class ObjectStore {
   /**
    * Write a binary object to storage and return a reference
    */
-  async write(data: Uint8Array, mimeType: string): Promise<ObjectReference> {
+  async writeObject(data: Uint8Array, mimeType: string): Promise<ObjectReference> {
     try {
       console.log(
         `ObjectStore.write: Starting to write object of type ${mimeType}, size: ${data.length} bytes`
@@ -35,7 +35,7 @@ export class ObjectStore {
       }
 
       const id = uuidv4();
-      const key = `objects/${id}`;
+      const key = `objects/${id}/object.data`;
 
       console.log(
         `ObjectStore.write: Attempting to store object with key ${key}`
@@ -69,7 +69,7 @@ export class ObjectStore {
   /**
    * Read an object from storage using its reference
    */
-  async read(reference: ObjectReference): Promise<Uint8Array> {
+  async readObject(reference: ObjectReference): Promise<Uint8Array> {
     try {
       console.log(
         `ObjectStore.read: Attempting to read object with id ${reference.id}`
@@ -80,16 +80,26 @@ export class ObjectStore {
         throw new Error("R2 bucket is not initialized");
       }
 
-      const object = await this.readObject(reference.id);
+      const key = `objects/${reference.id}/object.data`;
+      console.log(`ObjectStore.readObject: Getting object with key ${key}`);
+
+      const object = await this.bucket.get(key);
+
       if (!object) {
+        console.log(`ObjectStore.readObject: Object not found with key ${key}`);
         console.error(`ObjectStore.read: Object not found: ${reference.id}`);
         throw new Error(`Object not found: ${reference.id}`);
       }
 
       console.log(
-        `ObjectStore.read: Successfully read object ${reference.id}, size: ${object.data.length} bytes`
+        `ObjectStore.readObject: Retrieved object ${reference.id}, size: ${object.size} bytes`
       );
-      return object.data;
+
+      const data = await object.arrayBuffer();
+      console.log(
+        `ObjectStore.read: Successfully read object ${reference.id}, size: ${data.byteLength} bytes`
+      );
+      return new Uint8Array(data);
     } catch (error) {
       console.error(
         `ObjectStore.read: Failed to read object ${reference.id}:`,
@@ -102,7 +112,7 @@ export class ObjectStore {
   /**
    * Delete an object from storage using its reference
    */
-  async delete(reference: ObjectReference): Promise<void> {
+  async deleteObject(reference: ObjectReference): Promise<void> {
     try {
       console.log(
         `ObjectStore.delete: Attempting to delete object with id ${reference.id}`
@@ -113,71 +123,17 @@ export class ObjectStore {
         throw new Error("R2 bucket is not initialized");
       }
 
-      await this.deleteObject(reference.id);
+      const key = `objects/${reference.id}/object.data`;
+      console.log(`ObjectStore.deleteObject: Deleting object with key ${key}`);
+
+      await this.bucket.delete(key);
+      console.log(`ObjectStore.deleteObject: Deleted object with key ${key}`);
       console.log(
         `ObjectStore.delete: Successfully deleted object ${reference.id}`
       );
     } catch (error) {
       console.error(
         `ObjectStore.delete: Failed to delete object ${reference.id}:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Read raw object data from storage
-   */
-  private async readObject(id: string): Promise<StoreObject | null> {
-    try {
-      const key = `objects/${id}`;
-      console.log(`ObjectStore.readObject: Getting object with key ${key}`);
-
-      const object = await this.bucket.get(key);
-
-      if (!object) {
-        console.log(`ObjectStore.readObject: Object not found with key ${key}`);
-        return null;
-      }
-
-      console.log(
-        `ObjectStore.readObject: Retrieved object ${id}, size: ${object.size} bytes`
-      );
-
-      const data = await object.arrayBuffer();
-      const metadata = object.customMetadata || {};
-
-      return {
-        id: metadata.id || id,
-        data: new Uint8Array(data),
-        mimeType:
-          object.httpMetadata?.contentType || "application/octet-stream",
-        size: object.size,
-        createdAt: new Date(metadata.createdAt || object.uploaded),
-      };
-    } catch (error) {
-      console.error(
-        `ObjectStore.readObject: Error reading object ${id}:`,
-        error
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Delete raw object data from storage
-   */
-  private async deleteObject(id: string): Promise<void> {
-    try {
-      const key = `objects/${id}`;
-      console.log(`ObjectStore.deleteObject: Deleting object with key ${key}`);
-
-      await this.bucket.delete(key);
-      console.log(`ObjectStore.deleteObject: Deleted object with key ${key}`);
-    } catch (error) {
-      console.error(
-        `ObjectStore.deleteObject: Error deleting object ${id}:`,
         error
       );
       throw error;

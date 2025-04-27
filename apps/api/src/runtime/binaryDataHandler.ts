@@ -24,7 +24,7 @@ export class BinaryDataHandler {
       // Convert to array buffer and store
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
-      const reference = await this.store.write(data, blob.type);
+      const reference = await this.store.writeObject(data, blob.type);
 
       return reference;
     } catch (error) {
@@ -48,7 +48,7 @@ export class BinaryDataHandler {
     }
 
     try {
-      const data = await this.store.read(input);
+      const data = await this.store.readObject(input);
       return new Blob([data], { type: input.mimeType });
     } catch (error) {
       console.error("BinaryDataHandler: Failed to retrieve blob", error);
@@ -82,7 +82,7 @@ export class BinaryDataHandler {
     }
 
     try {
-      await this.store.delete(input);
+      await this.store.deleteObject(input);
     } catch (error) {
       console.error("BinaryDataHandler: Failed to delete blob", error);
       // Swallow error, as this might be cleanup code
@@ -98,7 +98,7 @@ export class BinaryDataHandler {
     // Handle object references
     if (this.isReference(value)) {
       try {
-        const data = await this.store.read(value);
+        const data = await this.store.readObject(value);
         return new Blob([data], { type: value.mimeType });
       } catch (error) {
         console.error("Failed to load binary data from reference", error);
