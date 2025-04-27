@@ -85,7 +85,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       runtimeState = await step.do(
         "initialise workflow",
         Runtime.defaultStepConfig,
-        async () => this.initialiseWorkflow(workflow),
+        async () => this.initialiseWorkflow(workflow)
       );
 
       // Save state before node execution begins if monitoring is enabled
@@ -94,7 +94,12 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           "persist initial execution record",
           Runtime.defaultStepConfig,
           async () =>
-            this.saveExecutionState(userId, workflow.id, instanceId, runtimeState),
+            this.saveExecutionState(
+              userId,
+              workflow.id,
+              instanceId,
+              runtimeState
+            )
         );
       }
 
@@ -107,7 +112,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         runtimeState = await step.do(
           `run node ${nodeIdentifier}`,
           Runtime.defaultStepConfig,
-          async () => this.executeNode(runtimeState, nodeIdentifier),
+          async () => this.executeNode(runtimeState, nodeIdentifier)
         );
 
         // Persist progress after each node if monitoring is enabled
@@ -120,8 +125,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
                 userId,
                 workflow.id,
                 instanceId,
-                runtimeState,
-              ),
+                runtimeState
+              )
           );
         }
       }
@@ -139,7 +144,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         "persist final execution record",
         Runtime.defaultStepConfig,
         async () =>
-          this.saveExecutionState(userId, workflow.id, instanceId, runtimeState),
+          this.saveExecutionState(userId, workflow.id, instanceId, runtimeState)
       );
 
       return executionRecord;
@@ -155,14 +160,14 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       throw new NonRetryableError(
         `Workflow validation failed: ${validationErrors
           .map((e) => e.message)
-          .join(", ")}`,
+          .join(", ")}`
       );
     }
 
     const orderedNodes = this.createTopologicalOrder(workflow);
     if (orderedNodes.length === 0 && workflow.nodes.length > 0) {
       throw new NonRetryableError(
-        "Unable to derive execution order. The graph may contain a cycle.",
+        "Unable to derive execution order. The graph may contain a cycle."
       );
     }
 
@@ -181,11 +186,16 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    */
   private async executeNode(
     runtimeState: RuntimeState,
-    nodeIdentifier: string,
+    nodeIdentifier: string
   ): Promise<RuntimeState> {
-    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    const node = runtimeState.workflow.nodes.find(
+      (n) => n.id === nodeIdentifier
+    );
     if (!node) {
-      runtimeState.nodeErrors.set(nodeIdentifier, `Node not found: ${nodeIdentifier}`);
+      runtimeState.nodeErrors.set(
+        nodeIdentifier,
+        `Node not found: ${nodeIdentifier}`
+      );
       return { ...runtimeState, status: "error" };
     }
 
@@ -194,7 +204,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     if (!executable) {
       runtimeState.nodeErrors.set(
         nodeIdentifier,
-        `Node type not implemented: ${node.type}`,
+        `Node type not implemented: ${node.type}`
       );
       return { ...runtimeState, status: "error" };
     }
@@ -206,7 +216,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       const processedInputs = await this.mapRuntimeToNodeInputs(
         runtimeState,
         nodeIdentifier,
-        inputValues,
+        inputValues
       );
 
       const context: NodeContext = {
@@ -226,7 +236,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         const outputsForRuntime = await this.mapNodeToRuntimeOutputs(
           runtimeState,
           nodeIdentifier,
-          result.outputs ?? {},
+          result.outputs ?? {}
         );
 
         runtimeState.nodeOutputs.set(nodeIdentifier, outputsForRuntime);
@@ -241,11 +251,13 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       if (runtimeState.status !== "error") {
         const allNodesVisited = runtimeState.sortedNodes.every(
           (id) =>
-            runtimeState.executedNodes.has(id) || runtimeState.nodeErrors.has(id),
+            runtimeState.executedNodes.has(id) ||
+            runtimeState.nodeErrors.has(id)
         );
-        runtimeState.status = allNodesVisited && runtimeState.nodeErrors.size === 0
-          ? "completed"
-          : "executing";
+        runtimeState.status =
+          allNodesVisited && runtimeState.nodeErrors.size === 0
+            ? "completed"
+            : "executing";
       }
 
       return runtimeState;
@@ -262,10 +274,12 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
    */
   private collectNodeInputs(
     runtimeState: RuntimeState,
-    nodeIdentifier: string,
+    nodeIdentifier: string
   ): Record<string, unknown> {
     const inputs: Record<string, unknown> = {};
-    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    const node = runtimeState.workflow.nodes.find(
+      (n) => n.id === nodeIdentifier
+    );
     if (!node) return inputs;
 
     // Defaults declared directly on the node.
@@ -277,7 +291,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
 
     // Values coming from connected nodes.
     const inboundEdges = runtimeState.workflow.edges.filter(
-      (edge) => edge.target === nodeIdentifier,
+      (edge) => edge.target === nodeIdentifier
     );
 
     for (const edge of inboundEdges) {
@@ -295,13 +309,17 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private async mapRuntimeToNodeInputs(
     runtimeState: RuntimeState,
     nodeIdentifier: string,
-    inputValues: Record<string, unknown>,
+    inputValues: Record<string, unknown>
   ): Promise<Record<string, unknown>> {
-    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    const node = runtimeState.workflow.nodes.find(
+      (n) => n.id === nodeIdentifier
+    );
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
     const processed: Record<string, unknown> = {};
-    const binaryHandler = new BinaryDataHandler(new ObjectStore(this.env.BUCKET));
+    const binaryHandler = new BinaryDataHandler(
+      new ObjectStore(this.env.BUCKET)
+    );
     const registry = ParameterRegistry.getInstance(binaryHandler);
 
     for (const definition of node.inputs) {
@@ -309,7 +327,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       const value = inputValues[name];
 
       if (required && value === undefined) {
-        throw new Error(`Required input '${name}' missing for node ${nodeIdentifier}`);
+        throw new Error(
+          `Required input '${name}' missing for node ${nodeIdentifier}`
+        );
       }
       if (value === undefined) continue;
 
@@ -325,13 +345,17 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private async mapNodeToRuntimeOutputs(
     runtimeState: RuntimeState,
     nodeIdentifier: string,
-    outputsFromNode: Record<string, unknown>,
+    outputsFromNode: Record<string, unknown>
   ): Promise<Record<string, unknown>> {
-    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    const node = runtimeState.workflow.nodes.find(
+      (n) => n.id === nodeIdentifier
+    );
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
     const processed: Record<string, unknown> = {};
-    const binaryHandler = new BinaryDataHandler(new ObjectStore(this.env.BUCKET));
+    const binaryHandler = new BinaryDataHandler(
+      new ObjectStore(this.env.BUCKET)
+    );
     const registry = ParameterRegistry.getInstance(binaryHandler);
 
     for (const definition of node.outputs) {
@@ -361,7 +385,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       inDegree[edge.target] += 1;
     }
 
-    const queue: string[] = Object.keys(inDegree).filter((id) => inDegree[id] === 0);
+    const queue: string[] = Object.keys(inDegree).filter(
+      (id) => inDegree[id] === 0
+    );
     const ordered: string[] = [];
 
     while (queue.length > 0) {
@@ -387,7 +413,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     userId: string,
     workflowId: string,
     instanceId: string,
-    runtimeState: RuntimeState,
+    runtimeState: RuntimeState
   ): Promise<WorkflowExecution> {
     // Build node execution list with explicit status for each node.
     const nodeExecutionList = runtimeState.workflow.nodes.map((node) => {

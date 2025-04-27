@@ -329,10 +329,13 @@ export function EditorPage() {
       console.log(`Starting workflow execution for ID: ${workflowId}`);
 
       // Make the initial request to start the workflow
-      fetch(`${API_BASE_URL}/workflows/${workflowId}/execute?monitorProgress=true`, {
-        method: "GET",
-        credentials: "include",
-      })
+      fetch(
+        `${API_BASE_URL}/workflows/${workflowId}/execute?monitorProgress=true`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      )
         .then((response) => {
           if (!response.ok) {
             if (response.status === 403) {
