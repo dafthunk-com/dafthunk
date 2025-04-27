@@ -13,7 +13,7 @@ import {
 } from "./auth";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { v4 as uuidv4 } from "uuid";
-import { ObjectReference } from "./runtime/store";
+import { ObjectReference } from "@dafthunk/types";
 import {
   Node,
   Edge,
@@ -360,7 +360,7 @@ app.post("/objects", jwtAuthMiddleware, async (c) => {
   // Create the reference
   const reference: ObjectReference = {
     id,
-    mimeType,
+    mimeType: mimeType,
   };
 
   // Return the reference

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import type { R2Bucket } from "@cloudflare/workers-types";
+import { ObjectReference } from '@dafthunk/types';
 
 export interface StoreObject {
   id: string;
@@ -7,11 +8,6 @@ export interface StoreObject {
   mimeType: string;
   size: number;
   createdAt: Date;
-}
-
-export interface ObjectReference {
-  id: string;
-  mimeType: string;
 }
 
 export class ObjectStore {
@@ -62,7 +58,7 @@ export class ObjectStore {
 
       return {
         id,
-        mimeType,
+        mimeType: mimeType,
       };
     } catch (error) {
       console.error("ObjectStore.write: Failed to write object to R2:", error);

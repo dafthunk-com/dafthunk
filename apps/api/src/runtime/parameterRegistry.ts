@@ -6,7 +6,7 @@ import {
   AudioParameter as NodeAudioParameter,
 } from "../nodes/types";
 import { BinaryDataHandler } from "./binaryDataHandler";
-import { ObjectReference } from "./store";
+import { ObjectReference } from "@dafthunk/types";
 
 type TypeConverter = {
   nodeToApi: (

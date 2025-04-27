@@ -5,7 +5,7 @@
  */
 export interface ObjectReference {
   id: string;
-  type: string;
+  mimeType: string;
 }
 
 export type PrimitiveValue = string | number | boolean | null | undefined;
