@@ -7,7 +7,6 @@
     "dev": "wrangler dev --live-reload --port 3001",
     "test": "vitest run",
     "lint": "pnpm run format:check && eslint .",
-    "integration": "ts-node -P integration/tsconfig.json integration/execute.integration.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:reset": "wrangler d1 execute DB --local --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;\"",
