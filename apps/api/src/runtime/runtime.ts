@@ -243,6 +243,11 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         onProgress: () => {},
         env: {
           AI: this.env.AI,
+          TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
+          TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
+          TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,
+          SENDGRID_API_KEY: this.env.SENDGRID_API_KEY,
+          SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
         },
       };
 

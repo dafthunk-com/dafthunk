@@ -30,10 +30,12 @@
   "dependencies": {
     "@dafthunk/types": "workspace:*",
     "@hono/oauth-providers": "^0.7.1",
+    "@sendgrid/mail": "^8.1.5",
     "drizzle-orm": "^0.39.3",
     "hono": "^4.7.6",
     "jose": "^6.0.8",
     "jsonpath-plus": "^10.3.0",
+    "twilio": "^5.5.2",
     "uuid": "^11.1.0"
   }
 }

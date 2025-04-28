@@ -90,6 +90,11 @@ export interface NodeContext {
   onProgress?: (progress: number) => void;
   env: {
     AI: Ai;
+    TWILIO_ACCOUNT_SID: string;
+    TWILIO_AUTH_TOKEN: string;
+    TWILIO_PHONE_NUMBER: string;
+    SENDGRID_API_KEY: string;
+    SENDGRID_DEFAULT_FROM: string;
   };
 }
 
@@ -113,7 +118,7 @@ export abstract class ExecutableNode {
       nodeId: this.node.id,
       status: "completed",
       outputs,
-    };
+    } as NodeExecution;
   }
 
   protected createErrorResult(error: string): NodeExecution {
@@ -121,6 +126,6 @@ export abstract class ExecutableNode {
       nodeId: this.node.id,
       status: "error",
       error,
-    };
+    } as NodeExecution;
   }
 }

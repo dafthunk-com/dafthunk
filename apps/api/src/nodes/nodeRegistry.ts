@@ -46,6 +46,8 @@ import { SimpleStringTemplateNode } from "./text/simpleStringTemplateNode";
 import { StringTemplateNode } from "./text/stringTemplateNode";
 import { TextAreaNode } from "./text/textAreaNode";
 import { ToMarkdownNode } from "./document/toMarkdownNode";
+import { TwilioSmsNode } from "./text/twilioSmsNode";
+import { TwilioEmailNode } from "./text/twilioEmailNode";
 
 import { ExecutableNode } from "./types";
 import { Node } from "@dafthunk/types";
@@ -110,6 +112,8 @@ export class NodeRegistry {
     this.registerImplementation(AudioRecorderNode);
     this.registerImplementation(ToMarkdownNode);
     this.registerImplementation(DocumentNode);
+    this.registerImplementation(TwilioSmsNode);
+    this.registerImplementation(TwilioEmailNode);
   }
 
   public static getInstance(): NodeRegistry {

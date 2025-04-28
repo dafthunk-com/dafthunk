@@ -38,10 +38,19 @@ export interface Env {
 
   CLOUDFLARE_ENV: string;
   JWT_SECRET: string;
+  
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
+  
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+
+  TWILIO_ACCOUNT_SID: string;
+  TWILIO_AUTH_TOKEN: string;
+  TWILIO_PHONE_NUMBER: string;
+
+  SENDGRID_API_KEY: string;
+  SENDGRID_DEFAULT_FROM: string;
 }
 
 const app = new Hono<{
