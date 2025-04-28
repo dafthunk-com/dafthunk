@@ -22,7 +22,7 @@ import {
 import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
-import { ObjectStore } from "./runtime/store";
+import { ObjectStore } from "./runtime/objectStore";
 
 export { Runtime } from "./runtime/runtime";
 import { RuntimeParams } from "./runtime/runtime";

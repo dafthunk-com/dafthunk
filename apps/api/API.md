@@ -96,7 +96,7 @@ Handles the storage and retrieval of binary data (images, documents, audio) used
   - `200 OK`: `{ "reference": ObjectReference }` containing the ID and MIME type of the stored object.
   - `400 Bad Request`: If the content type is incorrect or no valid file is provided.
   - `500 Internal Server Error`: If there's an error storing the object.
-- **Types**: `ObjectReference` (from `apps/api/src/lib/runtime/store.ts`)
+- **Types**: `ObjectReference` (from `apps/api/src/lib/runtime/objectStore.ts`)
 
 ## Node Types
 

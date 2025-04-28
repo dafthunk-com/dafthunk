@@ -48,8 +48,8 @@ import { TextAreaNode } from "./text/textAreaNode";
 import { ToMarkdownNode } from "./document/toMarkdownNode";
 
 import { ExecutableNode } from "./types";
-import { Node } from "../types";
-import { NodeType } from "../types";
+import { Node } from "@dafthunk/types";
+import { NodeType } from "@dafthunk/types";
 
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;

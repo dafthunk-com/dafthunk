@@ -18,10 +18,13 @@ import {
 import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { NodeContext } from "../nodes/types";
-import { ParameterRegistry } from "./parameterRegistry";
-import { ObjectStore } from "./store";
+import { ObjectStore } from "./objectStore";
 import { createDatabase } from "../../db";
-import { executions } from "../../db/schema";
+import { executions } from "../../db";
+import {
+  nodeToApiParameter,
+  apiToNodeParameter,
+} from "../nodes/parameterMapper";
 
 export type RuntimeParams = {
   workflow: Workflow;
@@ -316,7 +319,6 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
 
     const processed: Record<string, unknown> = {};
     const objectStore = new ObjectStore(this.env.BUCKET);
-    const registry = ParameterRegistry.getInstance(objectStore);
 
     for (const definition of node.inputs) {
       const { name, type, required } = definition;
@@ -338,7 +340,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         | JsonArray
         | JsonObject;
 
-      processed[name] = await registry.convertRuntimeToNode(type, validValue);
+      processed[name] = await apiToNodeParameter(type, validValue, objectStore);
     }
 
     return processed;
@@ -359,14 +361,13 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
 
     const processed: Record<string, unknown> = {};
     const objectStore = new ObjectStore(this.env.BUCKET);
-    const registry = ParameterRegistry.getInstance(objectStore);
 
     for (const definition of node.outputs) {
       const { name, type } = definition;
       const value = outputsFromNode[name];
       if (value === undefined || value === null) continue;
 
-      processed[name] = await registry.convertNodeToRuntime(type, value);
+      processed[name] = await nodeToApiParameter(type, value, objectStore);
     }
     return processed;
   }
