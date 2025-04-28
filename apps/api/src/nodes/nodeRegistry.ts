@@ -48,6 +48,7 @@ import { TextAreaNode } from "./text/textAreaNode";
 import { ToMarkdownNode } from "./document/toMarkdownNode";
 import { TwilioSmsNode } from "./text/twilioSmsNode";
 import { TwilioEmailNode } from "./text/twilioEmailNode";
+import { HttpRequestNode } from "./text/httpRequestNode";
 
 import { ExecutableNode } from "./types";
 import { Node } from "@dafthunk/types";
@@ -57,6 +58,15 @@ export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
   readonly nodeType: NodeType;
 }
+
+const hasTwilioSms =
+  process.env.TWILIO_ACCOUNT_SID &&
+  process.env.TWILIO_AUTH_TOKEN &&
+  process.env.TWILIO_PHONE_NUMBER;
+
+const hasTwilioEmail =
+  process.env.SENDGRID_API_KEY &&
+  process.env.SENDGRID_DEFAULT_FROM;
 
 export class NodeRegistry {
   private static instance: NodeRegistry;
@@ -112,8 +122,13 @@ export class NodeRegistry {
     this.registerImplementation(AudioRecorderNode);
     this.registerImplementation(ToMarkdownNode);
     this.registerImplementation(DocumentNode);
-    this.registerImplementation(TwilioSmsNode);
-    this.registerImplementation(TwilioEmailNode);
+    this.registerImplementation(HttpRequestNode);
+    if (hasTwilioSms) {
+      this.registerImplementation(TwilioSmsNode);
+    }
+    if (hasTwilioEmail) {
+      this.registerImplementation(TwilioEmailNode);
+    }
   }
 
   public static getInstance(): NodeRegistry {
