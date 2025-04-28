@@ -136,7 +136,10 @@ export class ParameterRegistry {
           value.data instanceof Uint8Array
         ) {
           // It's already a node image value
-          return value as NodeImageParameter;
+          return {
+            data: value.data,
+            mimeType: value.mimeType,
+          } as NodeImageParameter;
         }
 
         // Convert from runtime format (id + mimeType) to node format (data + mimeType)
@@ -235,7 +238,10 @@ export class ParameterRegistry {
           value.data instanceof Uint8Array
         ) {
           // It's already a node document value
-          return value as NodeDocumentParameter;
+          return {
+            data: value.data,
+            mimeType: value.mimeType,
+          } as NodeDocumentParameter;
         }
 
         // Convert from runtime format (id + mimeType) to node format (data + mimeType)
@@ -332,7 +338,10 @@ export class ParameterRegistry {
           value.data instanceof Uint8Array
         ) {
           // It's already a node audio value
-          return value as NodeAudioParameter;
+          return {
+            data: value.data,
+            mimeType: value.mimeType,
+          } as NodeAudioParameter;
         }
 
         // Convert from runtime format (id + mimeType) to node format (data + mimeType)

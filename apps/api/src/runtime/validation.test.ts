@@ -4,7 +4,7 @@ import {
   validateTypeCompatibility,
   validateWorkflow,
 } from "./validation";
-import type { Workflow, Node, Edge } from "../types";
+import type { Workflow, Node, Edge } from "@dafthunk/types";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node
