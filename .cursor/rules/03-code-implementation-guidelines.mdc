@@ -1,5 +1,6 @@
 ---
 description: Coding standards, naming, testing & style rules
+globs: 
 alwaysApply: true
 ---
 
@@ -8,6 +9,15 @@ alwaysApply: true
 - Write **correct, DRY, bug-free** code; leave **no TODOs**.  
 - Prefer functional components & hooks; use TypeScript types/interfaces everywhere.  
 - Early-return to reduce nesting; use descriptive names.
+
+#### Typing
+
+- Use **strict TypeScript**; no `any`, `unknown`, or implicit `any`.  
+- Prefer **types** (`type`) over **interfaces** unless extending is needed.  
+- Always type props, state, event handlers, and returned values explicitly.  
+- Favor **readonly** and **const assertions** (`as const`) where appropriate.  
+- Narrow types as much as possible (e.g., specific string literals instead of `string`).  
+- Use utility types (`Partial`, `Pick`, `Omit`, etc.) thoughtfully to enhance type safety.
 
 #### Styling
 
