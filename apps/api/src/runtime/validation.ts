@@ -26,7 +26,7 @@ export function detectCycles(workflow: Workflow): ValidationError | null {
     recursionStack.add(nodeId);
 
     const outgoingConnections = workflow.edges.filter(
-      (conn: Edge) => conn.source === nodeId
+      (conn: Edge): boolean => conn.source === nodeId
     );
     for (const connection of outgoingConnections) {
       if (!visited.has(connection.target)) {
@@ -64,8 +64,12 @@ export function validateTypeCompatibility(
   workflow: Workflow
 ): ValidationError | null {
   for (const connection of workflow.edges) {
-    const sourceNode = workflow.nodes.find((n) => n.id === connection.source);
-    const targetNode = workflow.nodes.find((n) => n.id === connection.target);
+    const sourceNode = workflow.nodes.find(
+      (n: Workflow["nodes"][number]): boolean => n.id === connection.source
+    );
+    const targetNode = workflow.nodes.find(
+      (n: Workflow["nodes"][number]): boolean => n.id === connection.target
+    );
 
     if (!sourceNode || !targetNode) {
       return {
@@ -79,10 +83,10 @@ export function validateTypeCompatibility(
     }
 
     const sourceParam = sourceNode.outputs.find(
-      (o: Parameter) => o.name === connection.sourceOutput
+      (o: Parameter): boolean => o.name === connection.sourceOutput
     );
     const targetParam = targetNode.inputs.find(
-      (i: Parameter) => i.name === connection.targetInput
+      (i: Parameter): boolean => i.name === connection.targetInput
     );
 
     if (!sourceParam || !targetParam) {

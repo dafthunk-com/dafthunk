@@ -26,6 +26,21 @@ import {
   apiToNodeParameter,
 } from "../nodes/parameterMapper";
 
+// Node output value type
+export type NodeOutputValue =
+  | string
+  | number
+  | boolean
+  | ObjectReference
+  | JsonArray
+  | JsonObject;
+
+export type NodeOutputs = Record<string, NodeOutputValue>;
+export type NodeErrors = Map<string, string>;
+export type WorkflowOutputs = Map<string, NodeOutputs>;
+export type ExecutedNodeSet = Set<string>;
+export type SortedNodeList = string[];
+
 export type RuntimeParams = {
   workflow: Workflow;
   userId: string;
@@ -34,10 +49,10 @@ export type RuntimeParams = {
 
 export type RuntimeState = {
   workflow: Workflow;
-  nodeOutputs: Map<string, Record<string, any>>;
-  executedNodes: Set<string>;
-  nodeErrors: Map<string, string>;
-  sortedNodes: string[];
+  nodeOutputs: WorkflowOutputs;
+  executedNodes: ExecutedNodeSet;
+  nodeErrors: NodeErrors;
+  sortedNodes: SortedNodeList;
   status: WorkflowExecutionStatus;
 };
 
@@ -190,7 +205,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     nodeIdentifier: string
   ): Promise<RuntimeState> {
     const node = runtimeState.workflow.nodes.find(
-      (n) => n.id === nodeIdentifier
+      (n): boolean => n.id === nodeIdentifier
     );
     if (!node) {
       runtimeState.nodeErrors.set(
@@ -239,8 +254,10 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           nodeIdentifier,
           result.outputs ?? {}
         );
-
-        runtimeState.nodeOutputs.set(nodeIdentifier, outputsForRuntime);
+        runtimeState.nodeOutputs.set(
+          nodeIdentifier,
+          outputsForRuntime as NodeOutputs
+        );
         runtimeState.executedNodes.add(nodeIdentifier);
       } else {
         const failureMessage = result.error ?? "Unknown error";
@@ -251,7 +268,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
       // Determine final workflow status.
       if (runtimeState.status !== "error") {
         const allNodesVisited = runtimeState.sortedNodes.every(
-          (id) =>
+          (id: string) =>
             runtimeState.executedNodes.has(id) ||
             runtimeState.nodeErrors.has(id)
         );
@@ -276,29 +293,44 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
   private collectNodeInputs(
     runtimeState: RuntimeState,
     nodeIdentifier: string
-  ): Record<string, unknown> {
-    const inputs: Record<string, unknown> = {};
+  ): NodeOutputs {
+    const inputs: NodeOutputs = {};
     const node = runtimeState.workflow.nodes.find(
-      (n) => n.id === nodeIdentifier
+      (n): boolean => n.id === nodeIdentifier
     );
     if (!node) return inputs;
 
     // Defaults declared directly on the node.
     for (const input of node.inputs) {
       if (input.value !== undefined) {
-        inputs[input.name] = input.value;
+        if (
+          typeof input.value === "string" ||
+          typeof input.value === "number" ||
+          typeof input.value === "boolean" ||
+          (typeof input.value === "object" && input.value !== null)
+        ) {
+          inputs[input.name] = input.value as NodeOutputValue;
+        }
       }
     }
 
     // Values coming from connected nodes.
     const inboundEdges = runtimeState.workflow.edges.filter(
-      (edge) => edge.target === nodeIdentifier
+      (edge): boolean => edge.target === nodeIdentifier
     );
 
     for (const edge of inboundEdges) {
       const sourceOutputs = runtimeState.nodeOutputs.get(edge.source);
       if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
-        inputs[edge.targetInput] = sourceOutputs[edge.sourceOutput];
+        const value = sourceOutputs[edge.sourceOutput];
+        if (
+          typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "boolean" ||
+          (typeof value === "object" && value !== null)
+        ) {
+          inputs[edge.targetInput] = value as NodeOutputValue;
+        }
       }
     }
     return inputs;

@@ -4,14 +4,14 @@ import {
   validateTypeCompatibility,
   validateWorkflow,
 } from "./validation";
-import type { Workflow, Node, Edge } from "@dafthunk/types";
+import type { Workflow, Node, Edge, Parameter } from "@dafthunk/types";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node
   const createNode = (
     id: string,
-    inputs: any[] = [],
-    outputs: any[] = []
+    inputs: Parameter[] = [],
+    outputs: Parameter[] = []
   ): Node => ({
     id,
     name: `Node ${id}`,
