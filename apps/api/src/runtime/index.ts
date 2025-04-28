@@ -40,7 +40,6 @@ export type RuntimeState = {
  * Executes a `Workflow` instance from start to finish.
  */
 export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
-  
   /**
    * Default step configuration used across the workflow.
    */
@@ -143,9 +142,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         async () =>
           this.saveExecutionState(userId, workflow.id, instanceId, runtimeState)
       );
-
-      return executionRecord;
     }
+
+    return executionRecord;
   }
 
   /**
@@ -328,9 +327,18 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
           `Required input '${name}' missing for node ${nodeIdentifier}`
         );
       }
-      if (value === undefined) continue;
+      if (value === undefined || value === null) continue;
 
-      processed[name] = await registry.convertRuntimeToNode(type, value);
+      // Ensure we're passing a valid ApiParameterValue type as defined in packages/types
+      const validValue = value as
+        | string
+        | number
+        | boolean
+        | import("@dafthunk/types").ObjectReference
+        | import("@dafthunk/types").JsonArray
+        | import("@dafthunk/types").JsonObject;
+
+      processed[name] = await registry.convertRuntimeToNode(type, validValue);
     }
 
     return processed;
@@ -450,7 +458,7 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     try {
       const db = createDatabase(this.env.DB);
       const executionData = {
-        status: executionStatus,
+        status: executionStatus as any,
         data: JSON.stringify({ nodeExecutions: nodeExecutionList }),
         error: executionRecord.error,
         updatedAt: new Date(),

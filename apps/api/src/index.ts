@@ -12,7 +12,6 @@ import {
   JWT_SECRET_TOKEN_NAME,
 } from "./auth";
 import { googleAuth } from "@hono/oauth-providers/google";
-import { v4 as uuidv4 } from "uuid";
 import { ObjectReference } from "@dafthunk/types";
 import {
   Node,
@@ -301,9 +300,9 @@ app.get("/objects", jwtAuthMiddleware, async (c) => {
     const objectStore = new ObjectStore(c.env.BUCKET);
     const reference: ObjectReference = {
       id: objectId,
-      mimeType: mimeType
+      mimeType: mimeType,
     };
-    
+
     try {
       data = await objectStore.readObject(reference);
     } catch (error) {
@@ -348,10 +347,10 @@ app.post("/objects", jwtAuthMiddleware, async (c) => {
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);
     console.log(`Storing object in ObjectStore (${data.byteLength} bytes)`);
-    
+
     const reference = await objectStore.writeObject(data, mimeType);
     console.log(`Successfully stored object ${reference.id} in ObjectStore`);
-    
+
     // Return the reference
     return c.json({ reference });
   } catch (error) {

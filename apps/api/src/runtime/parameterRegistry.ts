@@ -1,4 +1,4 @@
-import { ParameterValue as ApiParameterValue } from "../types";
+import { ParameterValue as ApiParameterValue } from "@dafthunk/types";
 import {
   ParameterValue as NodeParameterValue,
   ImageParameter as NodeImageParameter,

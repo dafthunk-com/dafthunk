@@ -1,4 +1,5 @@
-import { ObjectReference, ObjectStore } from "./store";
+import { ObjectReference } from "@dafthunk/types";
+import { ObjectStore } from "./store";
 
 /**
  * Manages binary data conversion and storage in workflows

@@ -1,4 +1,4 @@
-import { Workflow as RuntimeWorkflow } from "../src/types";
+import { Workflow as RuntimeWorkflow } from "@dafthunk/types";
 
 // Create a simple math workflow
 function createMathWorkflow(): RuntimeWorkflow {
