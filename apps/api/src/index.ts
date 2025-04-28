@@ -75,6 +75,15 @@ app.use("*", (c, next) =>
   })(c, next)
 );
 
+// Health endpoint for monitoring
+app.get("/health", (c) => {
+  return c.json({
+    status: "ok",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
+  });
+});
+
 const jwtAuthMiddleware = (c: any, next: any) => {
   const middleware = jwt({
     secret: c.env.JWT_SECRET,
