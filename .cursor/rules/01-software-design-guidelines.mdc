@@ -1,0 +1,18 @@
+---
+description: software design and architectural guidelines
+globs: 
+alwaysApply: true
+---
+
+#### Philosophy
+
+- Minimize complexity: treat every design choice as a cost measured in future cognitive load. Eradicate unnecessary state and conditionals.
+- Prefer deep modules: expose a small, simple API that hides rich internal logic; avoid “wide” interfaces that mirror implementation details.
+- Pull complexity downward: if high-level code feels intricate, move that intricacy into a lower abstraction layer.
+- One purpose per abstraction: any class or function that can’t be described in a single sentence should be split.
+- Optimize for read-time, not write-time: it’s worth extra effort now to make future maintenance obvious.
+- Capture the *why*: use comments to record design intent and trade-offs; leave *how* to the code.
+- Design it twice: prototype at least two distinctly different solutions before settling on one.
+- Working ≠ finished: once the feature runs, refactor and polish interfaces until they’re as simple as possible.
+- Decide big things early, small things late: lock in module boundaries or concurrency models first; postpone naming tweaks or parameter tuning.
+- Example-driven APIs: write the calling code you wish you had, then shape the real interface to match it.
