@@ -13,12 +13,11 @@ export class BinaryDataHandler {
 
   /**
    * Converts a blob to a storable reference
-   * If no object store is available, returns the blob as is
+   * Throws if no object store is available or storage fails
    */
-  async storeBlob(blob: Blob): Promise<ObjectReference | Blob> {
+  async storeBlob(blob: Blob): Promise<ObjectReference> {
     if (!this.store) {
-      // No storage available, return blob as is
-      return blob;
+      throw new Error("No object store available to store blob");
     }
 
     try {
@@ -26,12 +25,11 @@ export class BinaryDataHandler {
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
       const reference = await this.store.writeObject(data, blob.type);
-
       return reference;
     } catch (error) {
-      console.error("BinaryDataHandler: Failed to store blob", error);
-      // Fall back to returning the blob directly
-      return blob;
+      throw new Error(
+        `Failed to store blob: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -52,7 +50,6 @@ export class BinaryDataHandler {
       const data = await this.store.readObject(input);
       return new Blob([data], { type: input.mimeType });
     } catch (error) {
-      console.error("BinaryDataHandler: Failed to retrieve blob", error);
       throw new Error(
         `Failed to retrieve blob: ${error instanceof Error ? error.message : String(error)}`
       );
@@ -85,7 +82,6 @@ export class BinaryDataHandler {
     try {
       await this.store.deleteObject(input);
     } catch (error) {
-      console.error("BinaryDataHandler: Failed to delete blob", error);
       // Swallow error, as this might be cleanup code
     }
   }
@@ -102,7 +98,6 @@ export class BinaryDataHandler {
         const data = await this.store.readObject(value);
         return new Blob([data], { type: value.mimeType });
       } catch (error) {
-        console.error("Failed to load binary data from reference", error);
         throw new Error(
           `Failed to load binary data: ${error instanceof Error ? error.message : String(error)}`
         );
