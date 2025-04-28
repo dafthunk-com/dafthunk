@@ -10,4 +10,4 @@ This repository uses:
 - **Vite** for fast dev/build.  
 - **TypeScript**, **React 18**, **React Router v6**, **React Flow**, **TailwindCSS**, **Shadcn UI**.  
 - **Vitest** for unit/integration tests.  
-- **Cloudflare Pages** for deployment (edge-optimised).
+- **Cloudflare** for deployment (edge-optimised).
