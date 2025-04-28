@@ -11,12 +11,14 @@ import {
   WorkflowExecution,
   NodeExecutionStatus,
   WorkflowExecutionStatus,
+  ObjectReference,
+  JsonArray,
+  JsonObject,
 } from "@dafthunk/types";
 import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { NodeContext } from "../nodes/types";
 import { ParameterRegistry } from "./parameterRegistry";
-import { BinaryDataHandler } from "./binaryDataHandler";
 import { ObjectStore } from "./store";
 import { createDatabase } from "../../db";
 import { executions } from "../../db/schema";
@@ -313,10 +315,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
     const processed: Record<string, unknown> = {};
-    const binaryHandler = new BinaryDataHandler(
-      new ObjectStore(this.env.BUCKET)
-    );
-    const registry = ParameterRegistry.getInstance(binaryHandler);
+    const objectStore = new ObjectStore(this.env.BUCKET);
+    const registry = ParameterRegistry.getInstance(objectStore);
 
     for (const definition of node.inputs) {
       const { name, type, required } = definition;
@@ -334,9 +334,9 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         | string
         | number
         | boolean
-        | import("@dafthunk/types").ObjectReference
-        | import("@dafthunk/types").JsonArray
-        | import("@dafthunk/types").JsonObject;
+        | ObjectReference
+        | JsonArray
+        | JsonObject;
 
       processed[name] = await registry.convertRuntimeToNode(type, validValue);
     }
@@ -358,10 +358,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
     const processed: Record<string, unknown> = {};
-    const binaryHandler = new BinaryDataHandler(
-      new ObjectStore(this.env.BUCKET)
-    );
-    const registry = ParameterRegistry.getInstance(binaryHandler);
+    const objectStore = new ObjectStore(this.env.BUCKET);
+    const registry = ParameterRegistry.getInstance(objectStore);
 
     for (const definition of node.outputs) {
       const { name, type } = definition;

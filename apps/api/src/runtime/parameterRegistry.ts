@@ -1,11 +1,14 @@
-import { ParameterValue as ApiParameterValue } from "@dafthunk/types";
+import {
+  ParameterValue as ApiParameterValue,
+  JsonArray,
+} from "@dafthunk/types";
 import {
   ParameterValue as NodeParameterValue,
   ImageParameter as NodeImageParameter,
   DocumentParameter as NodeDocumentParameter,
   AudioParameter as NodeAudioParameter,
 } from "../nodes/types";
-import { BinaryDataHandler } from "./binaryDataHandler";
+import { ObjectStore } from "./store";
 import { ObjectReference } from "@dafthunk/types";
 
 type TypeConverter = {
@@ -25,19 +28,17 @@ type TypeConverter = {
 export class ParameterRegistry {
   private static instance: ParameterRegistry;
   private converters: Map<string, TypeConverter>;
-  private readonly binaryHandler: BinaryDataHandler;
+  private readonly objectStore: ObjectStore;
 
-  private constructor(binaryHandler: BinaryDataHandler) {
+  private constructor(objectStore: ObjectStore) {
     this.converters = new Map();
     this.registerDefaultConverters();
-    this.binaryHandler = binaryHandler;
+    this.objectStore = objectStore;
   }
 
-  public static getInstance(
-    binaryHandler: BinaryDataHandler
-  ): ParameterRegistry {
+  public static getInstance(objectStore: ObjectStore): ParameterRegistry {
     if (!ParameterRegistry.instance) {
-      ParameterRegistry.instance = new ParameterRegistry(binaryHandler);
+      ParameterRegistry.instance = new ParameterRegistry(objectStore);
     }
     return ParameterRegistry.instance;
   }
@@ -48,334 +49,198 @@ export class ParameterRegistry {
   private registerDefaultConverters() {
     // String converter
     this.registerConverter("string", {
-      nodeToApi: (value) => value as string,
-      apiToNode: (value) => value as string,
+      nodeToApi: (value: NodeParameterValue) =>
+        typeof value === "string" ? value : undefined,
+      apiToNode: (value: ApiParameterValue) =>
+        typeof value === "string" ? value : undefined,
     });
 
     // Number converter
     this.registerConverter("number", {
-      nodeToApi: (value) => value as number,
-      apiToNode: (value) => value as number,
+      nodeToApi: (value: NodeParameterValue) =>
+        typeof value === "number" ? value : undefined,
+      apiToNode: (value: ApiParameterValue) =>
+        typeof value === "number" ? value : undefined,
     });
 
     // Boolean converter
     this.registerConverter("boolean", {
-      nodeToApi: (value) => value as boolean,
-      apiToNode: (value) => value as boolean,
+      nodeToApi: (value: NodeParameterValue) =>
+        typeof value === "boolean" ? value : undefined,
+      apiToNode: (value: ApiParameterValue) =>
+        typeof value === "boolean" ? value : undefined,
     });
 
-    // Array converter
-    this.registerConverter("array", {
-      nodeToApi: (value) => value as Array<any>,
-      apiToNode: (value) => value as Array<any>,
-    });
-
-    // JSON converter
-    this.registerConverter("json", {
-      nodeToApi: (value) => value as Record<string, any>,
-      apiToNode: (value) => value as Record<string, any>,
-    });
+    // Type guards for binary parameter types
+    function isImageParameter(value: unknown): value is NodeImageParameter {
+      return (
+        !!value &&
+        typeof value === "object" &&
+        "data" in value &&
+        "mimeType" in value &&
+        value["data"] instanceof Uint8Array &&
+        typeof value["mimeType"] === "string"
+      );
+    }
+    function isDocumentParameter(
+      value: unknown
+    ): value is NodeDocumentParameter {
+      return (
+        !!value &&
+        typeof value === "object" &&
+        "data" in value &&
+        "mimeType" in value &&
+        value["data"] instanceof Uint8Array &&
+        typeof value["mimeType"] === "string"
+      );
+    }
+    function isAudioParameter(value: unknown): value is NodeAudioParameter {
+      return (
+        !!value &&
+        typeof value === "object" &&
+        "data" in value &&
+        "mimeType" in value &&
+        value["data"] instanceof Uint8Array &&
+        typeof value["mimeType"] === "string"
+      );
+    }
+    function isPlainJsonObject(value: unknown): value is Record<string, any> {
+      if (!value || typeof value !== "object" || Array.isArray(value))
+        return false;
+      // Exclude binary parameter types
+      if (
+        isImageParameter(value) ||
+        isDocumentParameter(value) ||
+        isAudioParameter(value)
+      )
+        return false;
+      // Exclude Uint8Array
+      if (value instanceof Uint8Array) return false;
+      return true;
+    }
+    function isJsonArray(value: unknown): value is JsonArray {
+      if (!Array.isArray(value)) return false;
+      // Exclude binary parameter types
+      if (
+        isImageParameter(value) ||
+        isDocumentParameter(value) ||
+        isAudioParameter(value)
+      )
+        return false;
+      // Recursively check all elements
+      return value.every(
+        (el) =>
+          el === null ||
+          el === undefined ||
+          typeof el === "string" ||
+          typeof el === "number" ||
+          typeof el === "boolean" ||
+          isPlainJsonObject(el) ||
+          isJsonArray(el)
+      );
+    }
 
     // Image converter
     this.registerConverter("image", {
-      // Convert node image (with binary data) to runtime image (with reference)
-      nodeToApi: async (value) => {
-        // If no value, return undefined
-        if (!value) return undefined;
-
-        // Already in runtime format (id + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "id" in value &&
-          "mimeType" in value &&
-          typeof value.id === "string" &&
-          typeof value.mimeType === "string"
-        ) {
-          // It's already a runtime image value
-          return value as ObjectReference;
-        }
-
-        // Convert from node format (data + mimeType) to runtime format (id + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "data" in value &&
-          "mimeType" in value &&
-          value.data instanceof Uint8Array
-        ) {
-          const nodeImage = value as NodeImageParameter;
-          const blob = new Blob([nodeImage.data], { type: nodeImage.mimeType });
-          const reference = await this.binaryHandler.storeBlob(blob);
-
-          // Return reference or blob depending on what was returned
-          if (this.binaryHandler.isReference(reference)) {
-            return {
-              id: reference.id,
-              mimeType: reference.mimeType,
-            } as ObjectReference;
-          } else {
-            throw new Error("Failed to store image: Storage not available");
-          }
-        }
-
-        throw new Error(`Invalid image format: ${JSON.stringify(value)}`);
+      nodeToApi: async (
+        value: NodeParameterValue
+      ): Promise<ObjectReference | undefined> => {
+        if (!isImageParameter(value)) return undefined;
+        const blob = new Blob([value.data], { type: value.mimeType });
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        return await this.objectStore.writeObject(data, blob.type);
       },
-
-      // Convert runtime image (with reference) to node image (with binary data)
-      apiToNode: async (value) => {
-        // If no value, return undefined
-        if (!value) return undefined;
-
-        // Already in node format (data + mimeType)
+      apiToNode: async (value: ApiParameterValue) => {
         if (
-          typeof value === "object" &&
-          value !== null &&
-          "data" in value &&
-          "mimeType" in value &&
-          value.data instanceof Uint8Array
-        ) {
-          // It's already a node image value
-          return {
-            data: value.data,
-            mimeType: value.mimeType,
-          } as NodeImageParameter;
-        }
-
-        // Convert from runtime format (id + mimeType) to node format (data + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "id" in value &&
-          "mimeType" in value &&
-          typeof value.id === "string"
-        ) {
-          const runtimeImage = value as ObjectReference;
-          const reference: ObjectReference = {
-            id: runtimeImage.id,
-            mimeType: runtimeImage.mimeType,
-          };
-
-          try {
-            const blob = await this.binaryHandler.retrieveBlob(reference);
-            const buffer = await blob.arrayBuffer();
-            return {
-              data: new Uint8Array(buffer),
-              mimeType: blob.type,
-            } as NodeImageParameter;
-          } catch (error) {
-            throw new Error(
-              `Failed to load image: ${error instanceof Error ? error.message : String(error)}`
-            );
-          }
-        }
-
-        throw new Error(
-          `Invalid image reference format: ${JSON.stringify(value)}`
+          !value ||
+          typeof value !== "object" ||
+          !("id" in value) ||
+          !("mimeType" in value)
+        )
+          return undefined;
+        const data = await this.objectStore.readObject(
+          value as ObjectReference
         );
+        return {
+          data,
+          mimeType: (value as ObjectReference).mimeType,
+        } as NodeImageParameter;
       },
     });
 
     // Document converter
     this.registerConverter("document", {
-      // Convert node document (with binary data) to runtime document (with reference)
-      nodeToApi: async (value) => {
-        // If no value, return undefined
-        if (!value) return undefined;
-
-        // Already in runtime format (id + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "id" in value &&
-          "mimeType" in value &&
-          typeof value.id === "string" &&
-          typeof value.mimeType === "string"
-        ) {
-          // It's already a runtime document value
-          return value as ObjectReference;
-        }
-
-        // Convert from node format (data + mimeType) to runtime format (id + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "data" in value &&
-          "mimeType" in value &&
-          value.data instanceof Uint8Array
-        ) {
-          const nodeDocument = value as NodeDocumentParameter;
-          const blob = new Blob([nodeDocument.data], {
-            type: nodeDocument.mimeType,
-          });
-          const reference = await this.binaryHandler.storeBlob(blob);
-
-          // Return reference or blob depending on what was returned
-          if (this.binaryHandler.isReference(reference)) {
-            return {
-              id: reference.id,
-              mimeType: reference.mimeType,
-            } as ObjectReference;
-          } else {
-            throw new Error("Failed to store document: Storage not available");
-          }
-        }
-
-        throw new Error(`Invalid document format: ${JSON.stringify(value)}`);
+      nodeToApi: async (
+        value: NodeParameterValue
+      ): Promise<ObjectReference | undefined> => {
+        if (!isDocumentParameter(value)) return undefined;
+        const blob = new Blob([value.data], { type: value.mimeType });
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        return await this.objectStore.writeObject(data, blob.type);
       },
-
-      // Convert runtime document (with reference) to node document (with binary data)
-      apiToNode: async (value) => {
-        // If no value, return undefined
-        if (!value) return undefined;
-
-        // Already in node format (data + mimeType)
+      apiToNode: async (value: ApiParameterValue) => {
         if (
-          typeof value === "object" &&
-          value !== null &&
-          "data" in value &&
-          "mimeType" in value &&
-          value.data instanceof Uint8Array
-        ) {
-          // It's already a node document value
-          return {
-            data: value.data,
-            mimeType: value.mimeType,
-          } as NodeDocumentParameter;
-        }
-
-        // Convert from runtime format (id + mimeType) to node format (data + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "id" in value &&
-          "mimeType" in value &&
-          typeof value.id === "string"
-        ) {
-          const runtimeDocument = value as ObjectReference;
-          const reference: ObjectReference = {
-            id: runtimeDocument.id,
-            mimeType: runtimeDocument.mimeType,
-          };
-
-          try {
-            const blob = await this.binaryHandler.retrieveBlob(reference);
-            const buffer = await blob.arrayBuffer();
-            return {
-              data: new Uint8Array(buffer),
-              mimeType: blob.type,
-            } as NodeDocumentParameter;
-          } catch (error) {
-            throw new Error(
-              `Failed to load document: ${error instanceof Error ? error.message : String(error)}`
-            );
-          }
-        }
-
-        throw new Error(
-          `Invalid document reference format: ${JSON.stringify(value)}`
+          !value ||
+          typeof value !== "object" ||
+          !("id" in value) ||
+          !("mimeType" in value)
+        )
+          return undefined;
+        const data = await this.objectStore.readObject(
+          value as ObjectReference
         );
+        return {
+          data,
+          mimeType: (value as ObjectReference).mimeType,
+        } as NodeDocumentParameter;
       },
     });
 
     // Audio converter
     this.registerConverter("audio", {
-      // Convert node audio (with binary data) to runtime audio (with reference)
-      nodeToApi: async (value) => {
-        // If no value, return undefined
-        if (!value) return undefined;
-
-        // Already in runtime format (id + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "id" in value &&
-          "mimeType" in value &&
-          typeof value.id === "string" &&
-          typeof value.mimeType === "string"
-        ) {
-          // It's already a runtime audio value
-          return value as ObjectReference;
-        }
-
-        // Convert from node format (data + mimeType) to runtime format (id + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "data" in value &&
-          "mimeType" in value &&
-          value.data instanceof Uint8Array
-        ) {
-          const nodeAudio = value as NodeAudioParameter;
-          const blob = new Blob([nodeAudio.data], { type: nodeAudio.mimeType });
-          const reference = await this.binaryHandler.storeBlob(blob);
-
-          // Return reference or blob depending on what was returned
-          if (this.binaryHandler.isReference(reference)) {
-            return {
-              id: reference.id,
-              mimeType: reference.mimeType,
-            } as ObjectReference;
-          } else {
-            throw new Error("Failed to store audio: Storage not available");
-          }
-        }
-
-        throw new Error(`Invalid audio format: ${JSON.stringify(value)}`);
+      nodeToApi: async (
+        value: NodeParameterValue
+      ): Promise<ObjectReference | undefined> => {
+        if (!isAudioParameter(value)) return undefined;
+        const blob = new Blob([value.data], { type: value.mimeType });
+        const buffer = await blob.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        return await this.objectStore.writeObject(data, blob.type);
       },
-
-      // Convert runtime audio (with reference) to node audio (with binary data)
-      apiToNode: async (value) => {
-        // If no value, return undefined
-        if (!value) return undefined;
-
-        // Already in node format (data + mimeType)
+      apiToNode: async (value: ApiParameterValue) => {
         if (
-          typeof value === "object" &&
-          value !== null &&
-          "data" in value &&
-          "mimeType" in value &&
-          value.data instanceof Uint8Array
-        ) {
-          // It's already a node audio value
-          return {
-            data: value.data,
-            mimeType: value.mimeType,
-          } as NodeAudioParameter;
-        }
-
-        // Convert from runtime format (id + mimeType) to node format (data + mimeType)
-        if (
-          typeof value === "object" &&
-          value !== null &&
-          "id" in value &&
-          "mimeType" in value &&
-          typeof value.id === "string"
-        ) {
-          const runtimeAudio = value as ObjectReference;
-          const reference: ObjectReference = {
-            id: runtimeAudio.id,
-            mimeType: runtimeAudio.mimeType,
-          };
-
-          try {
-            const blob = await this.binaryHandler.retrieveBlob(reference);
-            const buffer = await blob.arrayBuffer();
-            return {
-              data: new Uint8Array(buffer),
-              mimeType: blob.type,
-            } as NodeAudioParameter;
-          } catch (error) {
-            throw new Error(
-              `Failed to load audio: ${error instanceof Error ? error.message : String(error)}`
-            );
-          }
-        }
-
-        throw new Error(
-          `Invalid audio reference format: ${JSON.stringify(value)}`
+          !value ||
+          typeof value !== "object" ||
+          !("id" in value) ||
+          !("mimeType" in value)
+        )
+          return undefined;
+        const data = await this.objectStore.readObject(
+          value as ObjectReference
         );
+        return {
+          data,
+          mimeType: (value as ObjectReference).mimeType,
+        } as NodeAudioParameter;
       },
+    });
+
+    // Array converter
+    this.registerConverter("array", {
+      nodeToApi: (value: NodeParameterValue) =>
+        (isJsonArray(value) ? value : undefined) as ApiParameterValue,
+      apiToNode: (value: ApiParameterValue) =>
+        (isJsonArray(value) ? value : undefined) as NodeParameterValue,
+    });
+
+    // JSON converter
+    this.registerConverter("json", {
+      nodeToApi: (value: NodeParameterValue) =>
+        (isPlainJsonObject(value) ? value : undefined) as ApiParameterValue,
+      apiToNode: (value: ApiParameterValue) =>
+        (isPlainJsonObject(value) ? value : undefined) as NodeParameterValue,
     });
   }
 

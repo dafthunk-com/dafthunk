@@ -24,8 +24,8 @@ import { cors } from "hono/cors";
 import { Plan, Provider, Role } from "../db/schema";
 import { ObjectStore } from "./runtime/store";
 
-export { Runtime } from "./runtime";
-import { RuntimeParams } from "./runtime";
+export { Runtime } from "./runtime/runtime";
+import { RuntimeParams } from "./runtime/runtime";
 
 export interface Env {
   DB: D1Database;
@@ -80,7 +80,7 @@ app.get("/health", (c) => {
   return c.json({
     status: "ok",
     version: "1.0.0",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
