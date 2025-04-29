@@ -1,11 +1,10 @@
 import { ExecutableNode, NodeContext } from "../types";
 import { NodeType, NodeExecution } from "@dafthunk/types";
-import Cloudflare from "cloudflare";
 
 /**
- * Cloudflare Browser Rendering Content Node
+ * Cloudflare Browser Rendering Content Node (REST API version)
  * Calls the Cloudflare Browser Rendering REST API /content endpoint to fetch fully rendered HTML.
- * See: https://developers.cloudflare.com/browser-rendering/rest-api/content-endpoint/
+ * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/content/methods/create/
  */
 export class CloudflareBrowserContentNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -104,43 +103,43 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       return this.createErrorResult("'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required.");
     }
 
-    try {
-      const client = new Cloudflare({
-        apiToken: CLOUDFLARE_API_TOKEN,
-      });
-      const params: Record<string, unknown> = { url };
-      if (rejectResourceTypes) params.rejectResourceTypes = rejectResourceTypes;
-      if (rejectRequestPattern) params.rejectRequestPattern = rejectRequestPattern;
-      if (allowRequestPattern) params.allowRequestPattern = allowRequestPattern;
-      if (allowResourceTypes) params.allowResourceTypes = allowResourceTypes;
-      if (setExtraHTTPHeaders) params.setExtraHTTPHeaders = setExtraHTTPHeaders;
-      if (cookies) params.cookies = cookies;
-      if (gotoOptions) params.gotoOptions = gotoOptions;
+    // Build request body
+    const body: Record<string, unknown> = { url };
+    if (rejectResourceTypes) body.rejectResourceTypes = rejectResourceTypes;
+    if (rejectRequestPattern) body.rejectRequestPattern = rejectRequestPattern;
+    if (allowRequestPattern) body.allowRequestPattern = allowRequestPattern;
+    if (allowResourceTypes) body.allowResourceTypes = allowResourceTypes;
+    if (setExtraHTTPHeaders) body.setExtraHTTPHeaders = setExtraHTTPHeaders;
+    if (cookies) body.cookies = cookies;
+    if (gotoOptions) body.gotoOptions = gotoOptions;
 
-      // Call the Cloudflare SDK
-      const sdkResult = await client.browserRendering.content.create({
-        account_id: CLOUDFLARE_ACCOUNT_ID,
-        ...params,
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/content`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       });
-      // Type guard for SDK result
-      let result: any = sdkResult;
-      console.log("Cloudflare SDK raw result:", result);
-      // If result is a string, treat as HTML
-      if (typeof result === "string") {
-        return this.createSuccessResult({
-          status: 200,
-          html: result,
-        });
+
+      const status = response.status;
+      const json: any = await response.json();
+
+      if (!response.ok || !json.status) {
+        const errorMsg = (json.errors && json.errors[0]?.message) || response.statusText;
+        return this.createErrorResult(`Cloudflare API error: ${status} - ${errorMsg}`);
       }
-      // Try to find HTML content in common places
-      const html = result?.result?.content || result?.content || result?.html || null;
-      if (!html || typeof html !== "string") {
-        return this.createErrorResult(
-          result?.errors?.[0]?.message || "Cloudflare SDK error: No content returned"
-        );
+
+      // The HTML content is in json.result
+      const html = typeof json.result === "string" ? json.result : null;
+      if (!html) {
+        return this.createErrorResult("Cloudflare API error: No content returned");
       }
       return this.createSuccessResult({
-        status: 200, // SDK does not expose HTTP status, assume 200 if no error
+        status,
         html,
       });
     } catch (error) {

@@ -2,12 +2,12 @@ import { ExecutableNode, NodeContext } from "../types";
 import { NodeType, NodeExecution } from "@dafthunk/types";
 import sgMail from "@sendgrid/mail";
 
-export class TwilioEmailNode extends ExecutableNode {
+export class SendgridEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "twilio-email",
-    name: "Twilio Email",
-    type: "twilio-email",
-    description: "Send an email using Twilio via SendGrid",
+    id: "sendgrid-email",
+    name: "Sendgrid Email",
+    type: "sendgrid-email",
+    description: "Send an email using Sendgrid",
     category: "Text",
     icon: "mail",
     inputs: [

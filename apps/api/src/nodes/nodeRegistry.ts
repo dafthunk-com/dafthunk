@@ -47,17 +47,27 @@ import { StringTemplateNode } from "./text/stringTemplateNode";
 import { TextAreaNode } from "./text/textAreaNode";
 import { ToMarkdownNode } from "./document/toMarkdownNode";
 import { TwilioSmsNode } from "./text/twilioSmsNode";
-import { TwilioEmailNode } from "./text/twilioEmailNode";
+import { SendgridEmailNode as EmailNode } from "./text/sendgridEmailNode";
 import { HttpRequestNode } from "./net/httpRequestNode";
 import { CloudflareBrowserContentNode } from "./net/cloudflareBrowserContentNode";
+import { CloudflareBrowserScreenshotNode } from "./net/cloudflareBrowserScreenshotNode";
 import { ExecutableNode } from "./types";
 import { Node } from "@dafthunk/types";
 import { NodeType } from "@dafthunk/types";
-
+import { CloudflareBrowserLinksNode } from "./net/cloudflareBrowserLinksNode";
+import { CloudflareBrowserJsonNode } from "./net/cloudflareBrowserJsonNode";
+import { CloudflareBrowserMarkdownNode } from "./net/cloudflareBrowserMarkdownNode";
+import { CloudflareBrowserPdfNode } from "./net/cloudflareBrowserPdfNode";
+import { CloudflareBrowserScrapeNode } from "./net/cloudflareBrowserScrapeNode";
+import { CloudflareBrowserSnapshotNode } from "./net/cloudflareBrowserSnapshotNode";
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
   readonly nodeType: NodeType;
 }
+
+const hasCloudflare =
+  process.env.CLOUDFLARE_API_KEY &&
+  process.env.CLOUDFLARE_ACCOUNT_ID;
 
 const hasTwilioSms =
   process.env.TWILIO_ACCOUNT_SID &&
@@ -125,14 +135,25 @@ export class NodeRegistry {
     this.registerImplementation(HttpRequestNode);
 
     // Cloudflare
-    this.registerImplementation(CloudflareBrowserContentNode);
+    if (hasCloudflare) {
+      this.registerImplementation(CloudflareBrowserContentNode);
+      this.registerImplementation(CloudflareBrowserJsonNode);
+      this.registerImplementation(CloudflareBrowserLinksNode);
+      this.registerImplementation(CloudflareBrowserMarkdownNode);
+      this.registerImplementation(CloudflareBrowserPdfNode);
+      this.registerImplementation(CloudflareBrowserScreenshotNode);
+      this.registerImplementation(CloudflareBrowserScrapeNode);
+      this.registerImplementation(CloudflareBrowserSnapshotNode);
+    }
 
     // Twilio
     if (hasTwilioSms) {
       this.registerImplementation(TwilioSmsNode);
     }
+
+    // Sendgrid
     if (hasTwilioEmail) {
-      this.registerImplementation(TwilioEmailNode);
+      this.registerImplementation(EmailNode);
     }
   }
 
