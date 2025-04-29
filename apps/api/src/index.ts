@@ -36,12 +36,15 @@ export interface Env {
 
   WEB_HOST: string;
 
-  CLOUDFLARE_ENV: string;
   JWT_SECRET: string;
-  
+
+  CLOUDFLARE_ENV: string;
+  CLOUDFLARE_ACCOUNT_ID: string;
+  CLOUDFLARE_API_TOKEN: string;
+
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
-  
+
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
 

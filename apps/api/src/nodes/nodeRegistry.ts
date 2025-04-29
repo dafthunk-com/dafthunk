@@ -48,8 +48,8 @@ import { TextAreaNode } from "./text/textAreaNode";
 import { ToMarkdownNode } from "./document/toMarkdownNode";
 import { TwilioSmsNode } from "./text/twilioSmsNode";
 import { TwilioEmailNode } from "./text/twilioEmailNode";
-import { HttpRequestNode } from "./text/httpRequestNode";
-
+import { HttpRequestNode } from "./net/httpRequestNode";
+import { CloudflareBrowserContentNode } from "./net/cloudflareBrowserContentNode";
 import { ExecutableNode } from "./types";
 import { Node } from "@dafthunk/types";
 import { NodeType } from "@dafthunk/types";
@@ -123,6 +123,11 @@ export class NodeRegistry {
     this.registerImplementation(ToMarkdownNode);
     this.registerImplementation(DocumentNode);
     this.registerImplementation(HttpRequestNode);
+
+    // Cloudflare
+    this.registerImplementation(CloudflareBrowserContentNode);
+
+    // Twilio
     if (hasTwilioSms) {
       this.registerImplementation(TwilioSmsNode);
     }

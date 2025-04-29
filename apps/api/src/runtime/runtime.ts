@@ -243,6 +243,8 @@ export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
         onProgress: () => {},
         env: {
           AI: this.env.AI,
+          CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
+          CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
           TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
           TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
           TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,

@@ -95,6 +95,8 @@ export interface NodeContext {
     TWILIO_PHONE_NUMBER: string;
     SENDGRID_API_KEY: string;
     SENDGRID_DEFAULT_FROM: string;
+    CLOUDFLARE_ACCOUNT_ID: string;
+    CLOUDFLARE_API_TOKEN: string;
   };
 }
 
