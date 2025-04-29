@@ -66,8 +66,7 @@ export interface NodeImplementationConstructor {
 }
 
 const hasCloudflare =
-  process.env.CLOUDFLARE_API_KEY &&
-  process.env.CLOUDFLARE_ACCOUNT_ID;
+  process.env.CLOUDFLARE_API_KEY && process.env.CLOUDFLARE_ACCOUNT_ID;
 
 const hasTwilioSms =
   process.env.TWILIO_ACCOUNT_SID &&
@@ -75,8 +74,7 @@ const hasTwilioSms =
   process.env.TWILIO_PHONE_NUMBER;
 
 const hasTwilioEmail =
-  process.env.SENDGRID_API_KEY &&
-  process.env.SENDGRID_DEFAULT_FROM;
+  process.env.SENDGRID_API_KEY && process.env.SENDGRID_DEFAULT_FROM;
 
 export class NodeRegistry {
   private static instance: NodeRegistry;

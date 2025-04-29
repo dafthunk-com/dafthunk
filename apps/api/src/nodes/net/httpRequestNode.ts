@@ -74,7 +74,14 @@ export class HttpRequestNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, method = "GET", headers, body, query, timeout } = context.inputs;
+    const {
+      url,
+      method = "GET",
+      headers,
+      body,
+      query,
+      timeout,
+    } = context.inputs;
     if (!url) {
       return this.createErrorResult("'url' is a required input.");
     }
@@ -113,4 +120,4 @@ export class HttpRequestNode extends ExecutableNode {
       );
     }
   }
-} 
+}

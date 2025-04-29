@@ -11,7 +11,8 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     id: "cloudflare-browser-markdown",
     name: "Cloudflare Browser Markdown",
     type: "cloudflare-browser-markdown",
-    description: "Fetch markdown from a rendered page using Cloudflare Browser Rendering.",
+    description:
+      "Fetch markdown from a rendered page using Cloudflare Browser Rendering.",
     category: "Net",
     icon: "markdown",
     inputs: [
@@ -24,7 +25,8 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
       {
         name: "html",
         type: "string",
-        description: "HTML content to render instead of navigating to a URL (optional)",
+        description:
+          "HTML content to render instead of navigating to a URL (optional)",
       },
       {
         name: "gotoOptions",
@@ -61,17 +63,14 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const {
-      url,
-      html,
-      gotoOptions,
-      waitForSelector,
-    } = context.inputs;
+    const { url, html, gotoOptions, waitForSelector } = context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
     if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult("'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required.");
+      return this.createErrorResult(
+        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+      );
     }
 
     // Build request body
@@ -86,7 +85,7 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -94,17 +93,25 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
 
       const status = response.status;
       const json: any = await response.json();
-      console.log('Cloudflare API response:', json);
+      console.log("Cloudflare API response:", json);
 
       // Only treat as error if HTTP is not ok, or errors array is present and non-empty
-      if (!response.ok || (Array.isArray(json.errors) && json.errors.length > 0)) {
-        const errorMsg = (json.errors && json.errors[0]?.message) || response.statusText;
-        return this.createErrorResult(`Cloudflare API error: ${status} - ${errorMsg}`);
+      if (
+        !response.ok ||
+        (Array.isArray(json.errors) && json.errors.length > 0)
+      ) {
+        const errorMsg =
+          (json.errors && json.errors[0]?.message) || response.statusText;
+        return this.createErrorResult(
+          `Cloudflare API error: ${status} - ${errorMsg}`
+        );
       }
 
       // The markdown is in json.result (should be a string)
       if (typeof json.result !== "string") {
-        return this.createErrorResult("Cloudflare API error: No markdown string returned");
+        return this.createErrorResult(
+          "Cloudflare API error: No markdown string returned"
+        );
       }
       return this.createSuccessResult({
         status,
@@ -116,4 +123,4 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
       );
     }
   }
-} 
+}

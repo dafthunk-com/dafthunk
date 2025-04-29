@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { createDatabase, type NewWorkflow, type NewUser, users } from "../db";
-import { workflows, executions } from "../db/schema";
+import { createDatabase, type NewWorkflow, type NewUser, users } from "./db";
+import { workflows, executions } from "./db";
 import { eq, and } from "drizzle-orm";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { jwt } from "hono/jwt";
@@ -21,7 +21,7 @@ import {
 } from "@dafthunk/types";
 import { NodeRegistry } from "./nodes/nodeRegistry";
 import { cors } from "hono/cors";
-import { Plan, Provider, Role } from "../db/schema";
+import { Plan, Provider, Role } from "./db";
 import { ObjectStore } from "./runtime/objectStore";
 
 export { Runtime } from "./runtime/runtime";

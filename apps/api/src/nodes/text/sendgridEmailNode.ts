@@ -85,10 +85,13 @@ export class SendgridEmailNode extends ExecutableNode {
         to,
         from: sender,
         subject,
-        html: body
+        html: body,
       };
       const [response] = await sgMail.send(msg);
-      const messageId = response.headers["x-message-id"] || response.headers["X-Message-Id"] || "";
+      const messageId =
+        response.headers["x-message-id"] ||
+        response.headers["X-Message-Id"] ||
+        "";
       return this.createSuccessResult({
         messageId,
         status: String(response.statusCode),
@@ -99,4 +102,4 @@ export class SendgridEmailNode extends ExecutableNode {
       );
     }
   }
-} 
+}

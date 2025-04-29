@@ -11,7 +11,8 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     id: "cloudflare-browser-pdf",
     name: "Cloudflare Browser PDF",
     type: "cloudflare-browser-pdf",
-    description: "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",
+    description:
+      "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",
     category: "Net",
     icon: "file-text",
     inputs: [
@@ -24,12 +25,14 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
       {
         name: "html",
         type: "string",
-        description: "HTML content to render instead of navigating to a URL (optional)",
+        description:
+          "HTML content to render instead of navigating to a URL (optional)",
       },
       {
         name: "pdfOptions",
         type: "json",
-        description: "PDF options (e.g. format, printBackground, etc.) (optional)",
+        description:
+          "PDF options (e.g. format, printBackground, etc.) (optional)",
       },
       {
         name: "gotoOptions",
@@ -66,18 +69,15 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const {
-      url,
-      html,
-      pdfOptions,
-      gotoOptions,
-      waitForSelector,
-    } = context.inputs;
+    const { url, html, pdfOptions, gotoOptions, waitForSelector } =
+      context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
     if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult("'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required.");
+      return this.createErrorResult(
+        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+      );
     }
 
     // Build request body
@@ -93,7 +93,7 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -102,14 +102,18 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
       const status = response.status;
       if (!response.ok) {
         const errorText = await response.text();
-        return this.createErrorResult(`Cloudflare API error: ${status} - ${errorText}`);
+        return this.createErrorResult(
+          `Cloudflare API error: ${status} - ${errorText}`
+        );
       }
 
       // The response is a PDF file (binary)
       const arrayBuffer = await response.arrayBuffer();
       const pdfBuffer = new Uint8Array(arrayBuffer);
       if (!pdfBuffer || pdfBuffer.length === 0) {
-        return this.createErrorResult("Cloudflare API error: No valid PDF data returned");
+        return this.createErrorResult(
+          "Cloudflare API error: No valid PDF data returned"
+        );
       }
       return this.createSuccessResult({
         pdf: {
@@ -124,4 +128,4 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
       );
     }
   }
-} 
+}

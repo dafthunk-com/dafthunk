@@ -11,29 +11,34 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     id: "cloudflare-browser-screenshot",
     name: "Cloudflare Browser Screenshot",
     type: "cloudflare-browser-screenshot",
-    description: "Capture a screenshot of a webpage using Cloudflare Browser Rendering.",
+    description:
+      "Capture a screenshot of a webpage using Cloudflare Browser Rendering.",
     category: "Net",
     icon: "camera",
     inputs: [
       {
         name: "url",
         type: "string",
-        description: "The URL of the webpage to screenshot (optional if html is provided)",
+        description:
+          "The URL of the webpage to screenshot (optional if html is provided)",
       },
       {
         name: "html",
         type: "string",
-        description: "HTML content to render instead of navigating to a URL (optional)",
+        description:
+          "HTML content to render instead of navigating to a URL (optional)",
       },
       {
         name: "screenshotOptions",
         type: "json",
-        description: "Screenshot options (e.g. fullPage, omitBackground, clip, etc.) (optional)",
+        description:
+          "Screenshot options (e.g. fullPage, omitBackground, clip, etc.) (optional)",
       },
       {
         name: "viewport",
         type: "json",
-        description: "Viewport settings (width, height, deviceScaleFactor, etc.) (optional)",
+        description:
+          "Viewport settings (width, height, deviceScaleFactor, etc.) (optional)",
         hidden: true,
       },
       {
@@ -104,21 +109,31 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult("'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required.");
+      return this.createErrorResult(
+        "'CLOUDFLARE_ACCOUNT_ID' and 'CLOUDFLARE_API_TOKEN' are required."
+      );
     }
 
     // Require at least one of url or html
     if (!url && !html) {
-      return this.createErrorResult("You must provide either a 'url' or 'html' input.");
+      return this.createErrorResult(
+        "You must provide either a 'url' or 'html' input."
+      );
     }
 
     // Build request body
     const body: Record<string, unknown> = {};
     if (url) body.url = url;
     if (html) body.html = html;
-    body.screenshotOptions = screenshotOptions ?? { fullPage: true, omitBackground: false };
+    body.screenshotOptions = screenshotOptions ?? {
+      fullPage: true,
+      omitBackground: false,
+    };
     body.viewport = viewport ?? { width: 1280, height: 720 };
-    body.gotoOptions = gotoOptions ?? { waitUntil: "networkidle0", timeout: 45000 };
+    body.gotoOptions = gotoOptions ?? {
+      waitUntil: "networkidle0",
+      timeout: 45000,
+    };
     if (addScriptTag) body.addScriptTag = addScriptTag;
     if (addStyleTag) body.addStyleTag = addStyleTag;
     if (cookies) body.cookies = cookies;
@@ -130,7 +145,7 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -138,14 +153,18 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
 
       if (!response.ok) {
         const errorText = await response.text();
-        return this.createErrorResult(`Cloudflare API error: ${response.status} ${response.statusText} - ${errorText}`);
+        return this.createErrorResult(
+          `Cloudflare API error: ${response.status} ${response.statusText} - ${errorText}`
+        );
       }
 
       // The response is a PNG image (binary)
       const arrayBuffer = await response.arrayBuffer();
       const imageBuffer = new Uint8Array(arrayBuffer);
       if (!imageBuffer || imageBuffer.length === 0) {
-        return this.createErrorResult("Cloudflare API error: No valid screenshot data returned");
+        return this.createErrorResult(
+          "Cloudflare API error: No valid screenshot data returned"
+        );
       }
       return this.createSuccessResult({
         image: {
@@ -160,4 +179,4 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
       );
     }
   }
-} 
+}

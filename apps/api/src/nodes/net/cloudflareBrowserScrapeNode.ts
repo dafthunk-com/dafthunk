@@ -11,7 +11,8 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     id: "cloudflare-browser-scrape",
     name: "Cloudflare Browser Scrape",
     type: "cloudflare-browser-scrape",
-    description: "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
+    description:
+      "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
     category: "Net",
     icon: "search",
     inputs: [
@@ -24,12 +25,14 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       {
         name: "html",
         type: "string",
-        description: "HTML content to render instead of navigating to a URL (optional)",
+        description:
+          "HTML content to render instead of navigating to a URL (optional)",
       },
       {
         name: "elements",
         type: "json",
-        description: "Array of CSS selectors to scrape (required, use 'elements' as per API)",
+        description:
+          "Array of CSS selectors to scrape (required, use 'elements' as per API)",
         required: true,
       },
       {
@@ -49,7 +52,8 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       {
         name: "results",
         type: "json",
-        description: "Array of scraped results as returned by Cloudflare [{ result, selector }]",
+        description:
+          "Array of scraped results as returned by Cloudflare [{ result, selector }]",
       },
       {
         name: "status",
@@ -67,20 +71,17 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const {
-      url,
-      html,
-      elements,
-      gotoOptions,
-      waitForSelector,
-    } = context.inputs;
+    const { url, html, elements, gotoOptions, waitForSelector } =
+      context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
     console.log(url, elements, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN);
 
     if (!url || !elements || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult("'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required.");
+      return this.createErrorResult(
+        "'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+      );
     }
 
     // Build request body
@@ -95,7 +96,7 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -103,17 +104,25 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
 
       const status = response.status;
       const json: any = await response.json();
-      console.log('Cloudflare API response:', json);
+      console.log("Cloudflare API response:", json);
 
       // Only treat as error if HTTP is not ok, or errors array is present and non-empty
-      if (!response.ok || (Array.isArray(json.errors) && json.errors.length > 0)) {
-        const errorMsg = (json.errors && json.errors[0]?.message) || response.statusText;
-        return this.createErrorResult(`Cloudflare API error: ${status} - ${errorMsg}`);
+      if (
+        !response.ok ||
+        (Array.isArray(json.errors) && json.errors.length > 0)
+      ) {
+        const errorMsg =
+          (json.errors && json.errors[0]?.message) || response.statusText;
+        return this.createErrorResult(
+          `Cloudflare API error: ${status} - ${errorMsg}`
+        );
       }
 
       // The results are in json.result (should be an array of { result, selector })
       if (!Array.isArray(json.result)) {
-        return this.createErrorResult("Cloudflare API error: No results array returned");
+        return this.createErrorResult(
+          "Cloudflare API error: No results array returned"
+        );
       }
       return this.createSuccessResult({
         status,
@@ -125,4 +134,4 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       );
     }
   }
-} 
+}

@@ -11,7 +11,8 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
     id: "cloudflare-browser-content",
     name: "Cloudflare Browser Content",
     type: "cloudflare-browser-content",
-    description: "Fetch fully rendered HTML from a URL using Cloudflare Browser Rendering.",
+    description:
+      "Fetch fully rendered HTML from a URL using Cloudflare Browser Rendering.",
     category: "Net",
     icon: "globe",
     inputs: [
@@ -100,7 +101,9 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
     if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      return this.createErrorResult("'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required.");
+      return this.createErrorResult(
+        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+      );
     }
 
     // Build request body
@@ -119,7 +122,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
@@ -129,14 +132,19 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       const json: any = await response.json();
 
       if (!response.ok || !json.status) {
-        const errorMsg = (json.errors && json.errors[0]?.message) || response.statusText;
-        return this.createErrorResult(`Cloudflare API error: ${status} - ${errorMsg}`);
+        const errorMsg =
+          (json.errors && json.errors[0]?.message) || response.statusText;
+        return this.createErrorResult(
+          `Cloudflare API error: ${status} - ${errorMsg}`
+        );
       }
 
       // The HTML content is in json.result
       const html = typeof json.result === "string" ? json.result : null;
       if (!html) {
-        return this.createErrorResult("Cloudflare API error: No content returned");
+        return this.createErrorResult(
+          "Cloudflare API error: No content returned"
+        );
       }
       return this.createSuccessResult({
         status,
@@ -148,4 +156,4 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       );
     }
   }
-} 
+}

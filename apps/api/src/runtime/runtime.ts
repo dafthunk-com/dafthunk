@@ -19,8 +19,8 @@ import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { NodeContext } from "../nodes/types";
 import { ObjectStore } from "./objectStore";
-import { createDatabase } from "../../db";
-import { executions } from "../../db";
+import { createDatabase } from "../db";
+import { executions } from "../db";
 import {
   nodeToApiParameter,
   apiToNodeParameter,
