@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { ObjectStore } from "../runtime/objectStore";
 import { ObjectReference } from "@dafthunk/types";
-import { AppContext } from "../types/bindings";
+import { ApiContext } from "../context";
 import { jwtAuth } from "./auth";
 
-const objects = new Hono<AppContext>();
+const objects = new Hono<ApiContext>();
 
 objects.get("/", jwtAuth, async (c) => {
   const url = new URL(c.req.url);
@@ -61,4 +61,4 @@ objects.post("/", jwtAuth, async (c) => {
   }
 });
 
-export default objects; 
+export default objects;

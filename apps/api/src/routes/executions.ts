@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
-import { AppContext } from "../types/bindings";
+import { ApiContext } from "../context";
 import { createDatabase, executions } from "../db";
 import { jwtAuth } from "./auth";
 
-const executionRoutes = new Hono<AppContext>();
+const executionRoutes = new Hono<ApiContext>();
 
 executionRoutes.get("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
@@ -38,4 +38,4 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
   }
 });
 
-export default executionRoutes; 
+export default executionRoutes;

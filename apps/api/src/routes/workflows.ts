@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { eq, and } from "drizzle-orm";
 import { Node, Edge } from "@dafthunk/types";
-import { AppContext, CustomJWTPayload } from "../types/bindings";
+import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, workflows, type NewWorkflow } from "../db";
 import { jwtAuth } from "./auth";
 
-const workflowRoutes = new Hono<AppContext>();
+const workflowRoutes = new Hono<ApiContext>();
 
 workflowRoutes.get("/", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
@@ -213,4 +213,4 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
   return c.json({ id: instance.id });
 });
 
-export default workflowRoutes; 
+export default workflowRoutes;

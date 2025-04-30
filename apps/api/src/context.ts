@@ -1,5 +1,5 @@
 import { JWTPayload } from "jose";
-import { RuntimeParams } from "../runtime/runtime";
+import { RuntimeParams } from "./runtime/runtime";
 import { Workflow } from "@cloudflare/workers-types";
 
 export interface CustomJWTPayload extends JWTPayload {
@@ -14,7 +14,7 @@ export interface CustomJWTPayload extends JWTPayload {
   exp?: number;
 }
 
-export interface Env {
+export interface Bindings {
   DB: D1Database;
   EXECUTE: Workflow<RuntimeParams>;
   BUCKET: R2Bucket;
@@ -41,11 +41,7 @@ export interface Variables {
 }
 
 // Type for Hono app context combining Env and Variables
-export type AppContext = {
-  Bindings: Env;
+export type ApiContext = {
+  Bindings: Bindings;
   Variables: Variables;
 };
-
-// Constants
-export const JWT_SECRET_TOKEN_NAME = "auth_token";
-export const JWT_SECRET_TOKEN_DURATION = 3600; // 1 hour 

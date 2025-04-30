@@ -4,9 +4,21 @@ import { setCookie, deleteCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT } from "jose";
-import { Provider, Plan, Role, users, type ProviderType, type PlanType, type RoleType } from "../db";
+import {
+  Provider,
+  Plan,
+  Role,
+  users,
+  type ProviderType,
+  type PlanType,
+  type RoleType,
+} from "../db";
 import { createDatabase } from "../db";
-import { AppContext, CustomJWTPayload, JWT_SECRET_TOKEN_NAME, JWT_SECRET_TOKEN_DURATION } from "../types/bindings";
+import { ApiContext, CustomJWTPayload } from "../context";
+
+// Constants
+const JWT_SECRET_TOKEN_NAME = "auth_token";
+const JWT_SECRET_TOKEN_DURATION = 3600;
 
 // Utility functions
 const createJWT = async (
@@ -74,14 +86,15 @@ const saveUser = async (
 };
 
 // Auth middleware
-export const jwtAuth = (c: Context<AppContext>, next: () => Promise<void>) => {
+export const jwtAuth = (c: Context<ApiContext>, next: () => Promise<void>) => {
   return jwt({
     secret: c.env.JWT_SECRET,
+    cookie: JWT_SECRET_TOKEN_NAME,
   })(c, next);
 };
 
 // Create auth router
-const auth = new Hono<AppContext>();
+const auth = new Hono<ApiContext>();
 
 auth.get("/user", jwtAuth, (c) => c.json({ user: c.get("jwtPayload") }));
 
@@ -212,4 +225,10 @@ auth.get(
   }
 );
 
-export default auth; 
+// Restore /protected endpoint for auth check
+auth.get("/protected", jwtAuth, (c) => {
+  // If jwtAuth passes, user is authenticated
+  return c.json({ ok: true }, 200);
+});
+
+export default auth;

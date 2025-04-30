@@ -1,8 +1,11 @@
 import { cors } from "hono/cors";
 import type { Context } from "hono";
-import { AppContext } from "../types/bindings";
+import { ApiContext } from "../context";
 
-export const corsMiddleware = (c: Context<AppContext>, next: () => Promise<void>) =>
+export const corsMiddleware = (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) =>
   cors({
     origin: c.env.WEB_HOST,
     allowHeaders: [
@@ -20,4 +23,4 @@ export const corsMiddleware = (c: Context<AppContext>, next: () => Promise<void>
     exposeHeaders: ["Content-Length", "X-Content-Type-Options"],
     maxAge: 600,
     credentials: true,
-  })(c, next); 
+  })(c, next);

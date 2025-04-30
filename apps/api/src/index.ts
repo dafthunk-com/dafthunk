@@ -1,7 +1,6 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 export { Runtime } from "./runtime/runtime";
-import {AppContext} from "./types/bindings";
+import { ApiContext } from "./context";
 
 // Import routes
 import auth from "./routes/auth";
@@ -10,10 +9,10 @@ import workflowRoutes from "./routes/workflows";
 import executionRoutes from "./routes/executions";
 import typeRoutes from "./routes/types";
 import health from "./routes/health";
-import {corsMiddleware} from "./middleware/cors";
+import { corsMiddleware } from "./middleware/cors";
 
 // Initialize Hono app with types
-const app = new Hono<AppContext>();
+const app = new Hono<ApiContext>();
 
 // Global middleware
 app.use("*", corsMiddleware);

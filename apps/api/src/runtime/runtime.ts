@@ -5,7 +5,7 @@ import {
   WorkflowStepConfig,
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
-import { Env } from "../types/bindings";
+import { Bindings } from "../context";
 import {
   Workflow,
   WorkflowExecution,
@@ -59,7 +59,7 @@ export type RuntimeState = {
 /**
  * Executes a `Workflow` instance from start to finish.
  */
-export class Runtime extends WorkflowEntrypoint<Env, RuntimeParams> {
+export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   /**
    * Default step configuration used across the workflow.
    */

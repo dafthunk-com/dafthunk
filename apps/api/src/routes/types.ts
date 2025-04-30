@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import { NodeRegistry } from "../nodes/nodeRegistry";
-import { AppContext } from "../types/bindings";
+import { ApiContext } from "../context";
 import { jwtAuth } from "./auth";
 
-const typeRoutes = new Hono<AppContext>();
+const typeRoutes = new Hono<ApiContext>();
 
 typeRoutes.get("/", jwtAuth, (c) => {
   try {
@@ -15,4 +15,4 @@ typeRoutes.get("/", jwtAuth, (c) => {
   }
 });
 
-export default typeRoutes; 
+export default typeRoutes;
