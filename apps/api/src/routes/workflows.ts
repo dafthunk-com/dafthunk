@@ -3,7 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { Node, Edge } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, workflows, type NewWorkflow } from "../db";
-import { jwtAuth } from "./auth";
+import { jwtAuth } from "../auth";
 
 const workflowRoutes = new Hono<ApiContext>();
 

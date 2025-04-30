@@ -12,9 +12,9 @@ import {
   type ProviderType,
   type PlanType,
   type RoleType,
-} from "../db";
-import { createDatabase } from "../db";
-import { ApiContext, CustomJWTPayload } from "../context";
+} from "./db";
+import { createDatabase } from "./db";
+import { ApiContext, CustomJWTPayload } from "./context";
 
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";
@@ -95,8 +95,6 @@ export const jwtAuth = (c: Context<ApiContext>, next: () => Promise<void>) => {
 
 // Create auth router
 const auth = new Hono<ApiContext>();
-
-auth.get("/user", jwtAuth, (c) => c.json({ user: c.get("jwtPayload") }));
 
 auth.get("/logout", (c) => {
   deleteCookie(c, JWT_SECRET_TOKEN_NAME, {
@@ -225,10 +223,13 @@ auth.get(
   }
 );
 
-// Restore /protected endpoint for auth check
 auth.get("/protected", jwtAuth, (c) => {
   // If jwtAuth passes, user is authenticated
   return c.json({ ok: true }, 200);
+});
+
+auth.get("/user", jwtAuth, (c) => {
+  return c.json({ user: c.get("jwtPayload") });
 });
 
 export default auth;

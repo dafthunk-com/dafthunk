@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { ObjectStore } from "../runtime/objectStore";
 import { ObjectReference } from "@dafthunk/types";
 import { ApiContext } from "../context";
-import { jwtAuth } from "./auth";
+import { jwtAuth } from "../auth";
 
 const objects = new Hono<ApiContext>();
 

@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
 import { ApiContext } from "../context";
 import { createDatabase, executions } from "../db";
-import { jwtAuth } from "./auth";
+import { jwtAuth } from "../auth";
 
 const executionRoutes = new Hono<ApiContext>();
 

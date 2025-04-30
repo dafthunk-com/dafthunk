@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { ApiContext } from "../context";
-import { jwtAuth } from "./auth";
+import { jwtAuth } from "../auth";
 
 const typeRoutes = new Hono<ApiContext>();
 
