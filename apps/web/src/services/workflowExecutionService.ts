@@ -19,9 +19,15 @@ type GenericEdge = {
 };
 
 export const workflowExecutionService = {
-  stripExecutionFields(data: WorkflowNodeData): Omit<WorkflowNodeData, 'executionState' | 'error'> & {
-    outputs: Omit<WorkflowNodeData['outputs'][number], 'value' | 'isConnected'>[];
-    inputs: Omit<WorkflowNodeData['inputs'][number], 'isConnected'>[];
+  stripExecutionFields(data: WorkflowNodeData): Omit<
+    WorkflowNodeData,
+    "executionState" | "error"
+  > & {
+    outputs: Omit<
+      WorkflowNodeData["outputs"][number],
+      "value" | "isConnected"
+    >[];
+    inputs: Omit<WorkflowNodeData["inputs"][number], "isConnected">[];
   } {
     const { executionState, error, ...rest } = data;
 
@@ -34,7 +40,9 @@ export const workflowExecutionService = {
     };
   },
 
-  stripEdgeExecutionFields(data: WorkflowEdgeData = {}): Omit<WorkflowEdgeData, 'isActive'> {
+  stripEdgeExecutionFields(
+    data: WorkflowEdgeData = {}
+  ): Omit<WorkflowEdgeData, "isActive"> {
     const { isActive, ...rest } = data;
     return rest;
   },
@@ -75,8 +83,8 @@ export const workflowExecutionService = {
           },
         };
       });
-    } 
-    
+    }
+
     if (state === "completed" || state === "error") {
       return edges.map((edge) => ({
         ...edge,
@@ -86,7 +94,7 @@ export const workflowExecutionService = {
         },
       }));
     }
-    
+
     return edges;
   },
 

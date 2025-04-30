@@ -1,7 +1,7 @@
 import { Edge } from "@dafthunk/types";
 import { Edge as ReactFlowEdge, Connection } from "reactflow";
 
-export type ConnectionValidationResult = 
+export type ConnectionValidationResult =
   | { status: "valid" }
   | { status: "invalid"; reason: string };
 
@@ -21,7 +21,7 @@ export const workflowEdgeService = {
     if (!connection.source || !connection.target) {
       throw new Error("Invalid connection: missing source or target");
     }
-    
+
     return {
       source: connection.source,
       target: connection.target,
@@ -35,9 +35,9 @@ export const workflowEdgeService = {
     edges: readonly ReactFlowEdge[]
   ): ConnectionValidationResult {
     if (!connection.source || !connection.target) {
-      return { 
-        status: "invalid", 
-        reason: "Missing source or target" 
+      return {
+        status: "invalid",
+        reason: "Missing source or target",
       };
     }
 
@@ -46,9 +46,9 @@ export const workflowEdgeService = {
 
     // Prevent self-connections
     if (sourceNode === targetNode) {
-      return { 
-        status: "invalid", 
-        reason: "Cannot connect a node to itself" 
+      return {
+        status: "invalid",
+        reason: "Cannot connect a node to itself",
       };
     }
 
@@ -58,17 +58,17 @@ export const workflowEdgeService = {
     );
 
     if (directCycle) {
-      return { 
-        status: "invalid", 
-        reason: "Would create a direct cycle" 
+      return {
+        status: "invalid",
+        reason: "Would create a direct cycle",
       };
     }
 
     // Check for indirect cycles (A→B→C→A)
     if (this.wouldCreateIndirectCycle(sourceNode, targetNode, edges)) {
-      return { 
-        status: "invalid", 
-        reason: "Would create an indirect cycle" 
+      return {
+        status: "invalid",
+        reason: "Would create an indirect cycle",
       };
     }
 
@@ -76,29 +76,29 @@ export const workflowEdgeService = {
   },
 
   wouldCreateIndirectCycle(
-    sourceNode: string, 
-    targetNode: string, 
+    sourceNode: string,
+    targetNode: string,
     edges: readonly ReactFlowEdge[]
   ): boolean {
     // Use depth-first search to check if target can reach source
     const visited = new Set<string>();
-    
+
     const dfs = (currentNode: string): boolean => {
       if (currentNode === sourceNode) return true;
       if (visited.has(currentNode)) return false;
-      
+
       visited.add(currentNode);
-      
+
       // Find all outgoing edges from current node
-      const outgoingEdges = edges.filter(edge => edge.source === currentNode);
-      
+      const outgoingEdges = edges.filter((edge) => edge.source === currentNode);
+
       for (const edge of outgoingEdges) {
         if (dfs(edge.target)) return true;
       }
-      
+
       return false;
     };
-    
+
     return dfs(targetNode);
-  }
+  },
 } as const;
