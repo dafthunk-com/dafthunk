@@ -25,8 +25,10 @@ export function WorkflowNodeSelector({
   const [activeElement, setActiveElement] = useState<ActiveElement>("search");
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const categoryButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Use callback refs instead of direct refs array assignments
+  const nodeRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const categoryButtonsRef = useRef<Map<number, HTMLButtonElement>>(new Map());
 
   // Get unique categories from templates
   const categories = Array.from(
@@ -56,22 +58,10 @@ export function WorkflowNodeSelector({
     }
   }, [open]);
 
-  // Reset refs when content changes
-  useEffect(() => {
-    nodeRefs.current = nodeRefs.current.slice(0, filteredTemplates.length);
-  }, [filteredTemplates]);
-
-  useEffect(() => {
-    categoryButtonsRef.current = categoryButtonsRef.current.slice(
-      0,
-      categories.length + 1
-    );
-  }, [categories]);
-
   // Scroll focused node into view
   useEffect(() => {
-    if (activeElement === "nodes" && nodeRefs.current[focusedIndex]) {
-      nodeRefs.current[focusedIndex]?.scrollIntoView({
+    if (activeElement === "nodes") {
+      nodeRefs.current.get(focusedIndex)?.scrollIntoView({
         behavior: "smooth",
         block: "nearest",
       });
@@ -84,10 +74,10 @@ export function WorkflowNodeSelector({
     if (element === "search") {
       searchInputRef.current?.focus();
     } else if (element === "categories") {
-      categoryButtonsRef.current[index]?.focus();
+      categoryButtonsRef.current.get(index)?.focus();
     } else if (element === "nodes") {
       setFocusedIndex(index);
-      nodeRefs.current[index]?.focus();
+      nodeRefs.current.get(index)?.focus();
     }
   };
 
@@ -222,6 +212,26 @@ export function WorkflowNodeSelector({
     }
   };
 
+  // Callback refs for DOM elements
+  const setCategoryButtonRef = (
+    el: HTMLButtonElement | null,
+    index: number
+  ) => {
+    if (el) {
+      categoryButtonsRef.current.set(index, el);
+    } else {
+      categoryButtonsRef.current.delete(index);
+    }
+  };
+
+  const setNodeRef = (el: HTMLDivElement | null, index: number) => {
+    if (el) {
+      nodeRefs.current.set(index, el);
+    } else {
+      nodeRefs.current.delete(index);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent
@@ -252,7 +262,7 @@ export function WorkflowNodeSelector({
           <div className="px-4 mb-4">
             <div className="flex gap-2 flex-wrap">
               <button
-                ref={(el) => (categoryButtonsRef.current[0] = el)}
+                ref={(el) => setCategoryButtonRef(el, 0)}
                 className={cn(
                   "border rounded-md px-3 py-1.5 text-sm transition-colors",
                   selectedCategory === null ? "bg-accent" : "hover:bg-accent/50"
@@ -266,7 +276,7 @@ export function WorkflowNodeSelector({
               {categories.map((category, index) => (
                 <button
                   key={category}
-                  ref={(el) => (categoryButtonsRef.current[index + 1] = el)}
+                  ref={(el) => setCategoryButtonRef(el, index + 1)}
                   className={cn(
                     "border rounded-md px-3 py-1.5 text-sm transition-colors",
                     selectedCategory === category
@@ -289,7 +299,7 @@ export function WorkflowNodeSelector({
             {filteredTemplates.map((template, index) => (
               <div
                 key={template.id}
-                ref={(el) => (nodeRefs.current[index] = el)}
+                ref={(el) => setNodeRef(el, index)}
                 className={cn(
                   "border rounded-md p-3 cursor-pointer transition-colors",
                   focusedIndex === index && activeElement === "nodes"

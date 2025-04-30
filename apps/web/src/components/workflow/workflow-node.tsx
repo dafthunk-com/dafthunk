@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, createElement } from "react";
 import { Handle, Position } from "reactflow";
 import { cn } from "@/utils/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
@@ -38,22 +38,12 @@ import {
   convertValueByType,
 } from "./workflow-context";
 import { createWidgetConfig } from "./widgets/widget-factory";
-
-export interface Parameter {
-  id: string;
-  type: string;
-  name: string;
-  value?: any;
-  isConnected?: boolean;
-  hidden?: boolean;
-}
-
-type NodeExecutionState = "idle" | "executing" | "completed" | "error";
+import { WorkflowParameter, NodeExecutionState } from "./workflow-types";
 
 export interface WorkflowNodeData {
   name: string;
-  inputs: Parameter[];
-  outputs: Parameter[];
+  inputs: WorkflowParameter[];
+  outputs: WorkflowParameter[];
   error?: string | null;
   executionState: NodeExecutionState;
   nodeType?: string;
@@ -70,8 +60,8 @@ const TypeBadge = ({
   type: string;
   position: Position;
   id: string;
-  parameter?: Parameter;
-  onInputClick?: (param: Parameter) => void;
+  parameter?: WorkflowParameter;
+  onInputClick?: (param: WorkflowParameter) => void;
 }) => {
   const name = type.charAt(0).toUpperCase();
 
@@ -136,36 +126,40 @@ export const WorkflowNode = memo(
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
     );
-    const [selectedInput, setSelectedInput] = useState<Parameter | null>(null);
+    const [selectedInput, setSelectedInput] =
+      useState<WorkflowParameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");
     const [isEditingName, setIsEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(data.name);
 
-    // Check if the node is a widget node
-    const isSliderNode = data.nodeType === "slider";
-    const isRadioGroupNode = data.nodeType === "radio-group";
-    const isTextAreaNode = data.nodeType === "text-area";
-    const isInputTextNode = data.nodeType === "input-text";
-    const isNumberInputNode = data.nodeType === "number-input";
-    const isMonacoEditorNode = data.nodeType === "monaco-editor";
-    const isCanvasDoodleNode = data.nodeType === "canvas-doodle";
-    const isWebcamNode = data.nodeType === "webcam";
-    const isAudioRecorderNode = data.nodeType === "audio-recorder";
-    const isDocumentNode = data.nodeType === "document";
+    // Get node type
+    const nodeType = data.nodeType || "";
 
-    // Get widget configuration
+    // Widget mapping
+    const widgetComponents: Record<
+      string,
+      React.FC<{
+        config: any;
+        onChange: (value: any) => void;
+        compact?: boolean;
+      }>
+    > = {
+      slider: SliderWidget,
+      "radio-group": RadioGroupWidget,
+      "text-area": TextAreaWidget,
+      "input-text": InputTextWidget,
+      "number-input": NumberInputWidget,
+      "monaco-editor": MonacoEditorWidget,
+      "canvas-doodle": CanvasDoodleWidget,
+      webcam: WebcamWidget,
+      "audio-recorder": AudioRecorderWidget,
+      document: DocumentWidget,
+    };
+
+    // Get widget configuration if this is a widget node
     const widgetConfig =
-      isSliderNode ||
-      isRadioGroupNode ||
-      isTextAreaNode ||
-      isInputTextNode ||
-      isNumberInputNode ||
-      isMonacoEditorNode ||
-      isCanvasDoodleNode ||
-      isWebcamNode ||
-      isAudioRecorderNode ||
-      isDocumentNode
-        ? createWidgetConfig(id, data.inputs, data.nodeType || "")
+      nodeType && widgetComponents[nodeType]
+        ? createWidgetConfig(id, data.inputs, nodeType)
         : null;
 
     const handleWidgetChange = (value: any) => {
@@ -184,7 +178,7 @@ export const WorkflowNode = memo(
       }
     }, [data.name, isEditingName]);
 
-    const handleInputClick = (input: Parameter) => {
+    const handleInputClick = (input: WorkflowParameter) => {
       setSelectedInput(input);
       setInputValue(input.value !== undefined ? String(input.value) : "");
     };
@@ -267,98 +261,13 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {widgetConfig && (
+          {widgetConfig && nodeType && widgetComponents[nodeType] && (
             <div className="px-3 py-2 border-b border-gray-200 nodrag">
-              {isSliderNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "slider" && (
-                  <SliderWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isRadioGroupNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "radio-group" && (
-                  <RadioGroupWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isTextAreaNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "text-area" && (
-                  <TextAreaWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isInputTextNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "input-text" && (
-                  <InputTextWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isNumberInputNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "number-input" && (
-                  <NumberInputWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isMonacoEditorNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "monaco-editor" && (
-                  <MonacoEditorWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isCanvasDoodleNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "canvas-doodle" && (
-                  <CanvasDoodleWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isWebcamNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "webcam" && (
-                  <WebcamWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isAudioRecorderNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "audio-recorder" && (
-                  <AudioRecorderWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
-              {isDocumentNode &&
-                "type" in widgetConfig &&
-                widgetConfig.type === "document" && (
-                  <DocumentWidget
-                    config={widgetConfig}
-                    onChange={handleWidgetChange}
-                    compact={true}
-                  />
-                )}
+              {createElement(widgetComponents[nodeType], {
+                config: widgetConfig,
+                onChange: handleWidgetChange,
+                compact: true,
+              })}
             </div>
           )}
 
