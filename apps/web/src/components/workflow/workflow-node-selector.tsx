@@ -8,8 +8,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "lucide-react";
-import { WorkflowNodeSelectorProps } from "./workflow-types";
+import { NodeTemplate, WorkflowNodeSelectorProps } from "./workflow-types";
 import { cn } from "@/utils/utils";
+
+type ActiveElement = "search" | "categories" | "nodes";
 
 export function WorkflowNodeSelector({
   open,
@@ -20,12 +22,10 @@ export function WorkflowNodeSelector({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [activeElement, setActiveElement] = useState<
-    "search" | "categories" | "nodes"
-  >("search");
+  const [activeElement, setActiveElement] = useState<ActiveElement>("search");
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const categoryButtonsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Get unique categories from templates
@@ -43,33 +43,58 @@ export function WorkflowNodeSelector({
     return matchesSearch && matchesCategory;
   });
 
-  // Reset focused index when search term or category changes
+  // Reset focused index when filters change
   useEffect(() => {
     setFocusedIndex(0);
   }, [searchTerm, selectedCategory]);
 
-  // Focus the search input when the dialog opens
+  // Focus search input when dialog opens
   useEffect(() => {
     if (open) {
       setActiveElement("search");
-      if (searchInputRef.current) {
-        searchInputRef.current.focus();
-      }
+      searchInputRef.current?.focus();
     }
   }, [open]);
 
-  // Update node refs array when filtered templates change
+  // Reset refs when content changes
   useEffect(() => {
     nodeRefs.current = nodeRefs.current.slice(0, filteredTemplates.length);
   }, [filteredTemplates]);
 
-  // Update category button refs when categories change
   useEffect(() => {
     categoryButtonsRef.current = categoryButtonsRef.current.slice(
       0,
       categories.length + 1
-    ); // +1 for "All" button
+    );
   }, [categories]);
+
+  // Scroll focused node into view
+  useEffect(() => {
+    if (activeElement === "nodes" && nodeRefs.current[focusedIndex]) {
+      nodeRefs.current[focusedIndex]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [focusedIndex, activeElement]);
+
+  const focusElement = (element: ActiveElement, index = 0) => {
+    setActiveElement(element);
+
+    if (element === "search") {
+      searchInputRef.current?.focus();
+    } else if (element === "categories") {
+      categoryButtonsRef.current[index]?.focus();
+    } else if (element === "nodes") {
+      setFocusedIndex(index);
+      nodeRefs.current[index]?.focus();
+    }
+  };
+
+  const selectNode = (template: NodeTemplate) => {
+    onSelect(template);
+    onClose();
+  };
 
   // Handle keyboard navigation
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -80,60 +105,49 @@ export function WorkflowNodeSelector({
         e.preventDefault();
         if (activeElement === "search") {
           if (categories.length > 0) {
-            setActiveElement("categories");
-            categoryButtonsRef.current[0]?.focus();
+            focusElement("categories", 0);
           } else if (filteredTemplates.length > 0) {
-            setActiveElement("nodes");
-            setFocusedIndex(0);
-            nodeRefs.current[0]?.focus();
+            focusElement("nodes", 0);
           }
-        } else if (activeElement === "categories") {
-          if (filteredTemplates.length > 0) {
-            setActiveElement("nodes");
-            setFocusedIndex(0);
-            nodeRefs.current[0]?.focus();
-          }
+        } else if (
+          activeElement === "categories" &&
+          filteredTemplates.length > 0
+        ) {
+          focusElement("nodes", 0);
         } else if (activeElement === "nodes") {
-          const nextIndex =
-            focusedIndex < filteredTemplates.length - 1
-              ? focusedIndex + 1
-              : focusedIndex;
-          setFocusedIndex(nextIndex);
-          nodeRefs.current[nextIndex]?.focus();
+          const nextIndex = Math.min(
+            focusedIndex + 1,
+            filteredTemplates.length - 1
+          );
+          focusElement("nodes", nextIndex);
         }
         break;
+
       case "ArrowUp":
         e.preventDefault();
         if (activeElement === "nodes") {
           if (focusedIndex > 0) {
-            const prevIndex = focusedIndex - 1;
-            setFocusedIndex(prevIndex);
-            nodeRefs.current[prevIndex]?.focus();
+            focusElement("nodes", focusedIndex - 1);
           } else if (categories.length > 0) {
-            setActiveElement("categories");
-            categoryButtonsRef.current[0]?.focus();
+            focusElement("categories", 0);
           } else {
-            setActiveElement("search");
-            searchInputRef.current?.focus();
+            focusElement("search");
           }
         } else if (activeElement === "categories") {
-          setActiveElement("search");
-          searchInputRef.current?.focus();
+          focusElement("search");
         }
         break;
+
       case "Enter":
         e.preventDefault();
         if (activeElement === "nodes" && filteredTemplates[focusedIndex]) {
-          onSelect(filteredTemplates[focusedIndex]);
-          onClose();
+          selectNode(filteredTemplates[focusedIndex]);
         }
         break;
+
       case "Escape":
         e.preventDefault();
         onClose();
-        break;
-      case "Tab":
-        // Let the browser handle tab navigation naturally
         break;
     }
   };
@@ -143,28 +157,37 @@ export function WorkflowNodeSelector({
     e: KeyboardEvent<HTMLButtonElement>,
     index: number
   ) => {
-    if (e.key === "ArrowRight" && index < categories.length) {
-      e.preventDefault();
-      categoryButtonsRef.current[index + 1]?.focus();
-    } else if (e.key === "ArrowLeft" && index > 0) {
-      e.preventDefault();
-      categoryButtonsRef.current[index - 1]?.focus();
-    } else if (e.key === "ArrowDown" && filteredTemplates.length > 0) {
-      e.preventDefault();
-      setActiveElement("nodes");
-      setFocusedIndex(0);
-      nodeRefs.current[0]?.focus();
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveElement("search");
-      searchInputRef.current?.focus();
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (index === 0) {
-        setSelectedCategory(null);
-      } else {
-        setSelectedCategory(categories[index - 1]);
-      }
+    switch (e.key) {
+      case "ArrowRight":
+        if (index < categories.length) {
+          e.preventDefault();
+          focusElement("categories", index + 1);
+        }
+        break;
+
+      case "ArrowLeft":
+        if (index > 0) {
+          e.preventDefault();
+          focusElement("categories", index - 1);
+        }
+        break;
+
+      case "ArrowDown":
+        if (filteredTemplates.length > 0) {
+          e.preventDefault();
+          focusElement("nodes", 0);
+        }
+        break;
+
+      case "ArrowUp":
+        e.preventDefault();
+        focusElement("search");
+        break;
+
+      case "Enter":
+        e.preventDefault();
+        setSelectedCategory(index === 0 ? null : categories[index - 1]);
+        break;
     }
   };
 
@@ -173,41 +196,31 @@ export function WorkflowNodeSelector({
     e: KeyboardEvent<HTMLDivElement>,
     index: number
   ) => {
-    if (e.key === "ArrowDown" && index < filteredTemplates.length - 1) {
-      e.preventDefault();
-      const nextIndex = index + 1;
-      setFocusedIndex(nextIndex);
-      nodeRefs.current[nextIndex]?.focus();
-    } else if (e.key === "ArrowUp" && index > 0) {
-      e.preventDefault();
-      const prevIndex = index - 1;
-      setFocusedIndex(prevIndex);
-      nodeRefs.current[prevIndex]?.focus();
-    } else if (e.key === "ArrowUp" && index === 0) {
-      e.preventDefault();
-      if (categories.length > 0) {
-        setActiveElement("categories");
-        categoryButtonsRef.current[0]?.focus();
-      } else {
-        setActiveElement("search");
-        searchInputRef.current?.focus();
-      }
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      onSelect(filteredTemplates[index]);
-      onClose();
+    switch (e.key) {
+      case "ArrowDown":
+        if (index < filteredTemplates.length - 1) {
+          e.preventDefault();
+          focusElement("nodes", index + 1);
+        }
+        break;
+
+      case "ArrowUp":
+        e.preventDefault();
+        if (index > 0) {
+          focusElement("nodes", index - 1);
+        } else if (categories.length > 0) {
+          focusElement("categories", 0);
+        } else {
+          focusElement("search");
+        }
+        break;
+
+      case "Enter":
+        e.preventDefault();
+        selectNode(filteredTemplates[index]);
+        break;
     }
   };
-
-  // Scroll the focused node into view
-  useEffect(() => {
-    if (activeElement === "nodes" && nodeRefs.current[focusedIndex]) {
-      nodeRefs.current[focusedIndex]?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, [focusedIndex, activeElement]);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -215,7 +228,6 @@ export function WorkflowNodeSelector({
         className="sm:max-w-[600px] h-[80vh] flex flex-col p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
-        ref={dialogRef}
       >
         <DialogHeader className="px-4 pt-4">
           <DialogTitle>Add Node</DialogTitle>
@@ -240,9 +252,7 @@ export function WorkflowNodeSelector({
           <div className="px-4 mb-4">
             <div className="flex gap-2 flex-wrap">
               <button
-                ref={(el) => {
-                  categoryButtonsRef.current[0] = el;
-                }}
+                ref={(el) => (categoryButtonsRef.current[0] = el)}
                 className={cn(
                   "border rounded-md px-3 py-1.5 text-sm transition-colors",
                   selectedCategory === null ? "bg-accent" : "hover:bg-accent/50"
@@ -256,9 +266,7 @@ export function WorkflowNodeSelector({
               {categories.map((category, index) => (
                 <button
                   key={category}
-                  ref={(el) => {
-                    categoryButtonsRef.current[index + 1] = el;
-                  }}
+                  ref={(el) => (categoryButtonsRef.current[index + 1] = el)}
                   className={cn(
                     "border rounded-md px-3 py-1.5 text-sm transition-colors",
                     selectedCategory === category
@@ -281,19 +289,14 @@ export function WorkflowNodeSelector({
             {filteredTemplates.map((template, index) => (
               <div
                 key={template.id}
-                ref={(el) => {
-                  nodeRefs.current[index] = el;
-                }}
+                ref={(el) => (nodeRefs.current[index] = el)}
                 className={cn(
                   "border rounded-md p-3 cursor-pointer transition-colors",
                   focusedIndex === index && activeElement === "nodes"
                     ? "bg-accent"
                     : "hover:bg-accent/50"
                 )}
-                onClick={() => {
-                  onSelect(template);
-                  onClose();
-                }}
+                onClick={() => selectNode(template)}
                 onMouseEnter={() => {
                   setActiveElement("nodes");
                   setFocusedIndex(index);
