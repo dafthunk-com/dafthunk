@@ -5,7 +5,8 @@ export interface ValidationError {
     | "CYCLE_DETECTED"
     | "TYPE_MISMATCH"
     | "INVALID_CONNECTION"
-    | "DUPLICATE_CONNECTION";
+    | "DUPLICATE_CONNECTION"
+    | "DUPLICATE_NODE_ID";
   message: string;
   details: {
     nodeId?: string;
@@ -120,6 +121,22 @@ export function validateTypeCompatibility(
  */
 export function validateWorkflow(workflow: Workflow): ValidationError[] {
   const errors: ValidationError[] = [];
+
+  // Check for duplicate node IDs
+  const nodeIds = workflow.nodes.map((n) => n.id);
+  const seen = new Set<string>();
+  const duplicates = nodeIds.filter((id) => {
+    if (seen.has(id)) return true;
+    seen.add(id);
+    return false;
+  });
+  if (duplicates.length > 0) {
+    errors.push({
+      type: "DUPLICATE_NODE_ID" as const,
+      message: `Duplicate node IDs found: ${[...new Set(duplicates)].join(", ")}`,
+      details: {},
+    });
+  }
 
   // Check for cycles
   const cycleError = detectCycles(workflow);

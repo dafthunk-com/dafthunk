@@ -15,7 +15,7 @@ import {
   JsonArray,
   JsonObject,
 } from "@dafthunk/types";
-import { validateWorkflow } from "./validation";
+import { validateWorkflow } from "../utils/workflows";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { NodeContext } from "../nodes/types";
 import { ObjectStore } from "./objectStore";

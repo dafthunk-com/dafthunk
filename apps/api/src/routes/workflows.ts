@@ -7,6 +7,7 @@ import { jwtAuth } from "../auth";
 // @ts-ignore
 import crypto from "crypto";
 import { saveExecutionRecord } from "../utils/executions";
+import { validateWorkflow } from "../utils/workflows";
 
 const workflowRoutes = new Hono<ApiContext>();
 
@@ -43,6 +44,15 @@ workflowRoutes.post("/", jwtAuth, async (c) => {
     createdAt: now,
     updatedAt: now,
   };
+
+  const workflowToValidate = {
+    nodes: Array.isArray(data.nodes) ? data.nodes : [],
+    edges: Array.isArray(data.edges) ? data.edges : [],
+  };
+  const validationErrors = validateWorkflow(workflowToValidate as any);
+  if (validationErrors.length > 0) {
+    return c.json({ errors: validationErrors }, 400);
+  }
 
   const db = createDatabase(c.env.DB);
   const [newWorkflow] = await db
@@ -135,6 +145,15 @@ workflowRoutes.put("/:id", jwtAuth, async (c) => {
         };
       })
     : [];
+
+  const workflowToValidate = {
+    nodes: sanitizedNodes,
+    edges: Array.isArray(data.edges) ? data.edges : [],
+  };
+  const validationErrors = validateWorkflow(workflowToValidate as any);
+  if (validationErrors.length > 0) {
+    return c.json({ errors: validationErrors }, 400);
+  }
 
   const [updatedWorkflow] = await db
     .update(workflows)

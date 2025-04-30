@@ -3,7 +3,7 @@ import {
   detectCycles,
   validateTypeCompatibility,
   validateWorkflow,
-} from "./validation";
+} from "./workflows";
 import type { Workflow, Node, Edge, Parameter } from "@dafthunk/types";
 
 describe("workflowValidation", () => {
