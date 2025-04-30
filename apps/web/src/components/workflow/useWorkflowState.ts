@@ -253,26 +253,26 @@ export function useWorkflowState({
   // Update node execution state without triggering save
   const updateNodeExecutionState = useCallback(
     (nodeId: string, state: NodeExecutionState) => {
-      setNodes((nds) =>
-        workflowExecutionService.updateNodesWithExecutionState(
+      setNodes((nds) => [
+        ...workflowExecutionService.updateNodesWithExecutionState(
           nds,
           nodeId,
           state
-        )
-      );
+        ),
+      ]);
 
       // Handle edge updates based on node execution state
       const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
       const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
 
-      setEdges((eds) =>
-        workflowExecutionService.updateEdgesForNodeExecution(
+      setEdges((eds) => [
+        ...workflowExecutionService.updateEdgesForNodeExecution(
           eds,
           nodeId,
           state,
           connectedEdgeIds
-        )
-      );
+        ),
+      ]);
     },
     [edges, setNodes, setEdges]
   );
@@ -280,26 +280,26 @@ export function useWorkflowState({
   // Node data update functions
   const updateNodeExecutionOutputs = useCallback(
     (nodeId: string, outputs: Record<string, any>) => {
-      setNodes((nds) =>
-        workflowExecutionService.updateNodesWithExecutionOutputs(
+      setNodes((nds) => [
+        ...workflowExecutionService.updateNodesWithExecutionOutputs(
           nds,
           nodeId,
           outputs
-        )
-      );
+        ),
+      ]);
     },
     [setNodes]
   );
 
   const updateNodeExecutionError = useCallback(
     (nodeId: string, error: string | undefined) => {
-      setNodes((nds) =>
-        workflowExecutionService.updateNodesWithExecutionError(
+      setNodes((nds) => [
+        ...workflowExecutionService.updateNodesWithExecutionError(
           nds,
           nodeId,
           error
-        )
-      );
+        ),
+      ]);
     },
     [setNodes]
   );
