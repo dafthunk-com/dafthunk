@@ -1,22 +1,24 @@
 import { API_BASE_URL } from "@/config/api";
 
-export interface User {
-  id: string; // UUID (from JWT sub)
-  name: string;
-  email: string | null; // Email can be null
-  provider: string; // Provider used for the current login session (from JWT)
-  avatarUrl?: string | null; // Optional avatar URL (from JWT)
-  plan?: string; // Plan (from JWT)
-  role?: string; // Role (from JWT)
-  githubId?: string | null; // GitHub ID (from JWT)
-  googleId?: string | null; // Google ID (from JWT)
-}
+export type User = {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string | null;
+  readonly provider: string;
+  readonly avatarUrl?: string | null;
+  readonly plan?: string;
+  readonly role?: string;
+  readonly githubId?: string | null;
+  readonly googleId?: string | null;
+};
 
-export interface TokenInfo {
-  expiresIn: number;
-  issuedAt: number;
-  expiresAt: number;
-}
+export type TokenInfo = {
+  readonly expiresIn: number;
+  readonly issuedAt: number;
+  readonly expiresAt: number;
+};
+
+export type AuthProvider = "github" | "google";
 
 export const authService = {
   // Check if the user is authenticated
@@ -53,7 +55,7 @@ export const authService = {
   },
 
   // Login with a provider
-  async loginWithProvider(provider: "github" | "google"): Promise<void> {
+  async loginWithProvider(provider: AuthProvider): Promise<void> {
     window.location.href = `${API_BASE_URL}/auth/login/${provider}`;
   },
 
@@ -79,4 +81,4 @@ export const authService = {
       window.location.href = "/";
     }
   },
-};
+} as const;

@@ -6,17 +6,20 @@ import {
   ReactNode,
   useRef,
 } from "react";
-// User type now matches the JWT payload (includes avatarUrl, excludes provider IDs)
-import { authService, User } from "@/services/authService.ts";
+import { 
+  authService, 
+  User,
+  type AuthProvider
+} from "@/services/authService";
 
-interface AuthContextType {
-  user: User | null; // User reflects JWT payload
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (provider: "github" | "google") => Promise<void>;
+type AuthContextType = {
+  readonly user: User | null;
+  readonly isAuthenticated: boolean;
+  readonly isLoading: boolean;
+  login: (provider: AuthProvider) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -24,29 +27,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const isAuthenticatedRef = useRef<boolean>(false); // Add a ref to track authentication state
+  const isAuthenticatedRef = useRef<boolean>(false);
 
-  // Update the ref whenever isAuthenticated changes
   useEffect(() => {
     isAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated]);
 
-  const refreshUser = async () => {
+  const refreshUser = async (): Promise<boolean> => {
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
       const isAuth = !!currentUser;
       setIsAuthenticated(isAuth);
-      return isAuth; // Return the authentication state for internal use
-    } catch (error) {
-      console.error("Failed to refresh user:", error);
+      return isAuth;
+    } catch (_) {
       setUser(null);
       setIsAuthenticated(false);
       return false;
     }
   };
 
-  // This is the function exposed in the context, which matches the expected void return type
   const refreshUserContext = async (): Promise<void> => {
     await refreshUser();
   };
@@ -55,26 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       setIsLoading(true);
       try {
-        // Check if user is authenticated
         const isAuth = await authService.checkAuth();
-        console.log("Authentication check result:", isAuth);
-
+        
         if (isAuth) {
-          // If authenticated, get user info and update the authentication state
           const userAuthenticated = await refreshUser();
-          console.log(
-            "User refreshed, authentication state:",
-            userAuthenticated
-          );
-
-          // Directly update the ref to ensure it's set before calling renewToken
           isAuthenticatedRef.current = userAuthenticated;
         } else {
           setIsAuthenticated(false);
           setUser(null);
         }
-      } catch (error) {
-        console.error("Auth initialization failed:", error);
+      } catch (_) {
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -85,21 +75,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (provider: "github" | "google") => {
+  const login = async (provider: AuthProvider): Promise<void> => {
     try {
       setIsLoading(true);
       await authService.loginWithProvider(provider);
-    } catch (error) {
-      console.error("Login failed:", error);
+    } catch (_) {
+      // Login will redirect, so we don't need to handle errors here
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async () => {
-    // Reset the authentication ref
+  const logout = async (): Promise<void> => {
     isAuthenticatedRef.current = false;
-
     await authService.logout();
     setUser(null);
     setIsAuthenticated(false);
@@ -121,10 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+  
   return context;
 }
