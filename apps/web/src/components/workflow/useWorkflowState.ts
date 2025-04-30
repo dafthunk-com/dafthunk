@@ -15,6 +15,7 @@ import {
   UseWorkflowStateReturn,
   NodeExecutionState,
 } from "./workflow-types";
+import { workflowExecutionService } from "@/services/workflowExecutionService";
 
 export function useWorkflowState({
   initialNodes = [],
@@ -35,27 +36,6 @@ export function useWorkflowState({
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
 
-  // Helper functions
-  const stripExecutionFields = useCallback((data: WorkflowNodeData) => {
-    const { executionState, error, ...rest } = data;
-
-    return {
-      ...rest,
-      outputs: data.outputs.map(
-        ({ value, isConnected, ...outputRest }) => outputRest
-      ),
-      inputs: data.inputs.map(({ isConnected, ...inputRest }) => inputRest),
-    };
-  }, []);
-
-  const stripEdgeExecutionFields = useCallback(
-    (data: WorkflowEdgeData = {}) => {
-      const { isActive, ...rest } = data;
-      return rest;
-    },
-    []
-  );
-
   // Effect to notify parent of changes for nodes
   useEffect(() => {
     const hasNonExecutionChanges = nodes.some((node) => {
@@ -68,8 +48,8 @@ export function useWorkflowState({
       )
         return true;
 
-      const nodeData = stripExecutionFields(node.data);
-      const initialNodeData = stripExecutionFields(initialNode.data);
+      const nodeData = workflowExecutionService.stripExecutionFields(node.data);
+      const initialNodeData = workflowExecutionService.stripExecutionFields(initialNode.data);
 
       return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
     });
@@ -77,7 +57,7 @@ export function useWorkflowState({
     if (hasNonExecutionChanges) {
       onNodesChangeCallback?.(nodes);
     }
-  }, [nodes, onNodesChangeCallback, initialNodes, stripExecutionFields]);
+  }, [nodes, onNodesChangeCallback, initialNodes]);
 
   // Effect to notify parent of changes for edges
   useEffect(() => {
@@ -93,8 +73,8 @@ export function useWorkflowState({
       )
         return true;
 
-      const edgeData = stripEdgeExecutionFields(edge.data);
-      const initialEdgeData = stripEdgeExecutionFields(initialEdge.data);
+      const edgeData = workflowExecutionService.stripEdgeExecutionFields(edge.data);
+      const initialEdgeData = workflowExecutionService.stripEdgeExecutionFields(initialEdge.data);
 
       return JSON.stringify(edgeData) !== JSON.stringify(initialEdgeData);
     });
@@ -102,7 +82,7 @@ export function useWorkflowState({
     if (hasNonExecutionChanges) {
       onEdgesChangeCallback?.(edges);
     }
-  }, [edges, onEdgesChangeCallback, initialEdges, stripEdgeExecutionFields]);
+  }, [edges, onEdgesChangeCallback, initialEdges]);
 
   // Effect to keep selectedNode in sync with nodes state
   useEffect(() => {
@@ -267,98 +247,30 @@ export function useWorkflowState({
   // Update node execution state without triggering save
   const updateNodeExecutionState = useCallback(
     (nodeId: string, state: NodeExecutionState) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId
-            ? {
-                ...node,
-                data: {
-                  ...node.data,
-                  executionState: state,
-                  error: state === "error" ? node.data.error : null,
-                },
-              }
-            : node
-        )
+      setNodes((nds) => workflowExecutionService.updateNodesWithExecutionState(nds, nodeId, state));
+      
+      // Handle edge updates based on node execution state
+      const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
+      const connectedEdgeIds = nodeEdges.map(edge => edge.id);
+      
+      setEdges((eds) => 
+        workflowExecutionService.updateEdgesForNodeExecution(eds, nodeId, state, connectedEdgeIds)
       );
-
-      updateEdgesForNodeExecution(nodeId, state);
     },
-    [setNodes]
-  );
-
-  // Separated edge update logic to avoid dependency issues
-  const updateEdgesForNodeExecution = useCallback(
-    (nodeId: string, state: NodeExecutionState) => {
-      if (state === "executing") {
-        const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
-        setEdges((eds) =>
-          eds.map((edge) => {
-            const isConnectedToExecutingNode = nodeEdges.some(
-              (e) => e.id === edge.id
-            );
-            return {
-              ...edge,
-              data: {
-                ...edge.data,
-                isActive: isConnectedToExecutingNode,
-              },
-            };
-          })
-        );
-      } else if (state === "completed" || state === "error") {
-        setEdges((eds) =>
-          eds.map((edge) => ({
-            ...edge,
-            data: {
-              ...edge.data,
-              isActive: false,
-            },
-          }))
-        );
-      }
-    },
-    [edges, setEdges]
+    [edges, setNodes, setEdges]
   );
 
   // Node data update functions
   const updateNodeExecutionOutputs = useCallback(
     (nodeId: string, outputs: Record<string, any>) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId
-            ? {
-                ...node,
-                data: {
-                  ...node.data,
-                  outputs: node.data.outputs.map((output) => ({
-                    ...output,
-                    value: outputs[output.id],
-                  })),
-                },
-              }
-            : node
-        )
-      );
+      setNodes((nds) => workflowExecutionService.updateNodesWithExecutionOutputs(nds, nodeId, outputs));
     },
     [setNodes]
   );
 
   const updateNodeExecutionError = useCallback(
     (nodeId: string, error: string | undefined) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId
-            ? {
-                ...node,
-                data: {
-                  ...node.data,
-                  error,
-                },
-              }
-            : node
-        )
-      );
+      setNodes((nds) => workflowExecutionService.updateNodesWithExecutionError(nds, nodeId, error));
     },
     [setNodes]
   );
