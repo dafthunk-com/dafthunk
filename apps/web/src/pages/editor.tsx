@@ -363,6 +363,10 @@ export function EditorPage() {
                 }
               );
 
+              if (statusResponse.status === 404) {
+                // D1 propagation delay: execution not found yet, keep polling
+                return;
+              }
               if (!statusResponse.ok) {
                 throw new Error("Failed to fetch execution status");
               }
