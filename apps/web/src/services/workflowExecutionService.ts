@@ -3,20 +3,7 @@ import {
   WorkflowNodeData,
   WorkflowEdgeData,
 } from "@/components/workflow/workflow-types.tsx";
-
-type GenericNode = {
-  id: string;
-  data: WorkflowNodeData;
-  [key: string]: unknown;
-};
-
-type GenericEdge = {
-  id: string;
-  data?: WorkflowEdgeData;
-  source: string;
-  target: string;
-  [key: string]: unknown;
-};
+import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
 
 export const workflowExecutionService = {
   stripExecutionFields(data: WorkflowNodeData): Omit<
@@ -48,10 +35,10 @@ export const workflowExecutionService = {
   },
 
   updateNodesWithExecutionState(
-    nodes: readonly GenericNode[],
+    nodes: readonly ReactFlowNode<WorkflowNodeData>[],
     nodeId: string,
     state: NodeExecutionState
-  ): readonly GenericNode[] {
+  ): readonly ReactFlowNode<WorkflowNodeData>[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
@@ -67,11 +54,11 @@ export const workflowExecutionService = {
   },
 
   updateEdgesForNodeExecution(
-    edges: readonly GenericEdge[],
+    edges: readonly ReactFlowEdge<WorkflowEdgeData>[],
     _nodeId: string,
     state: NodeExecutionState,
     connectedEdgeIds: readonly string[]
-  ): readonly GenericEdge[] {
+  ): readonly ReactFlowEdge<WorkflowEdgeData>[] {
     if (state === "executing") {
       return edges.map((edge) => {
         const isConnectedToExecutingNode = connectedEdgeIds.includes(edge.id);
@@ -99,10 +86,10 @@ export const workflowExecutionService = {
   },
 
   updateNodesWithExecutionOutputs(
-    nodes: readonly GenericNode[],
+    nodes: readonly ReactFlowNode<WorkflowNodeData>[],
     nodeId: string,
     outputs: Record<string, unknown>
-  ): readonly GenericNode[] {
+  ): readonly ReactFlowNode<WorkflowNodeData>[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
@@ -120,10 +107,10 @@ export const workflowExecutionService = {
   },
 
   updateNodesWithExecutionError(
-    nodes: readonly GenericNode[],
+    nodes: readonly ReactFlowNode<WorkflowNodeData>[],
     nodeId: string,
     error: string | undefined
-  ): readonly GenericNode[] {
+  ): readonly ReactFlowNode<WorkflowNodeData>[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {

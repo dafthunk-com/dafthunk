@@ -1,4 +1,4 @@
-import { Workflow, Node, Edge } from "@dafthunk/types";
+import { Workflow, Node } from "@dafthunk/types";
 import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
 
 type ValidationResult = {
@@ -44,13 +44,13 @@ function validateNodes(nodes: readonly Node[]): string[] {
  */
 function validateEdgeConnections(workflow: Workflow): string[] {
   const errors: string[] = [];
-  const nodeIds = new Set(workflow.nodes.map(node => node.id));
+  const nodeIds = new Set(workflow.nodes.map((node) => node.id));
 
   for (const edge of workflow.edges) {
     if (!nodeIds.has(edge.source)) {
       errors.push(`Edge source node ${edge.source} not found`);
     }
-    
+
     if (!nodeIds.has(edge.target)) {
       errors.push(`Edge target node ${edge.target} not found`);
     }
@@ -69,7 +69,7 @@ export function hasCycles(workflow: Workflow): boolean {
   const hasCyclesDFS = (nodeId: string): boolean => {
     // If node is already in recursion stack, we found a cycle
     if (recursionStack.has(nodeId)) return true;
-    
+
     // If node was already visited and not in the recursion stack, no cycle here
     if (visited.has(nodeId)) return false;
 
@@ -79,7 +79,7 @@ export function hasCycles(workflow: Workflow): boolean {
     const outgoingEdges = workflow.edges.filter(
       (edge) => edge.source === nodeId
     );
-    
+
     for (const edge of outgoingEdges) {
       if (hasCyclesDFS(edge.target)) {
         return true;

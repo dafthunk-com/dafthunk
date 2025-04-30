@@ -1,15 +1,8 @@
 import { Node as ReactFlowNode, XYPosition } from "reactflow";
 import { API_BASE_URL } from "../config/api";
-import { Node, NodeType, Parameter } from "@dafthunk/types";
+import { Node, NodeType } from "@dafthunk/types";
 import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
-
-type WorkflowNodeData = {
-  readonly name: string;
-  readonly inputs: readonly Parameter[];
-  readonly outputs: readonly Parameter[];
-  readonly error?: string;
-  readonly executionState: NodeExecutionState;
-};
+import { WorkflowNodeData } from "@/components/workflow/workflow-types";
 
 /**
  * Converts domain nodes to ReactFlow compatible nodes
@@ -23,8 +16,8 @@ export function convertToReactFlowNodes(
     position: node.position,
     data: {
       name: node.name,
-      inputs: node.inputs,
-      outputs: node.outputs,
+      inputs: node.inputs.map((input) => ({ ...input, id: input.name })),
+      outputs: node.outputs.map((output) => ({ ...output, id: output.name })),
       error: node.error,
       executionState: "idle" as NodeExecutionState,
     },

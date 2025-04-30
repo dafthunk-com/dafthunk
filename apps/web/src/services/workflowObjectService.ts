@@ -3,19 +3,12 @@
  */
 
 import { API_BASE_URL } from "@/config/api";
+import { ObjectReference } from "@dafthunk/types";
 
 /**
  * Binary data types supported for operations
  */
 export type BinaryData = Uint8Array | ArrayBuffer | number[] | string;
-
-/**
- * Object reference type returned by the API
- */
-export type ObjectReference = {
-  id: string;
-  mimeType: string;
-};
 
 /**
  * Converts a Uint8Array to a base64 string
