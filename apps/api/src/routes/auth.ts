@@ -4,7 +4,6 @@ import { setCookie, deleteCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT } from "jose";
-import { eq } from "drizzle-orm";
 import { Provider, Plan, Role, users, type ProviderType, type PlanType, type RoleType } from "../db";
 import { createDatabase } from "../db";
 import { AppContext, CustomJWTPayload, JWT_SECRET_TOKEN_NAME, JWT_SECRET_TOKEN_DURATION } from "../types/bindings";
@@ -17,7 +16,6 @@ const createJWT = async (
   const secret = new TextEncoder().encode(jwtSecret);
   const expirationTime =
     Math.floor(Date.now() / 1000) + JWT_SECRET_TOKEN_DURATION;
-
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -31,7 +29,7 @@ const urlToTopLevelDomain = (url: string): string => {
 };
 
 // Database helper functions
-const saveUserToDatabase = async (
+const saveUser = async (
   db: ReturnType<typeof createDatabase>,
   userData: {
     id: string;
@@ -79,14 +77,12 @@ const saveUserToDatabase = async (
 export const jwtAuth = (c: Context<AppContext>, next: () => Promise<void>) => {
   return jwt({
     secret: c.env.JWT_SECRET,
-    cookie: JWT_SECRET_TOKEN_NAME,
   })(c, next);
 };
 
 // Create auth router
 const auth = new Hono<AppContext>();
 
-auth.get("/protected", jwtAuth, (c) => c.json({ success: true }));
 auth.get("/user", jwtAuth, (c) => c.json({ user: c.get("jwtPayload") }));
 
 auth.get("/logout", (c) => {
@@ -120,7 +116,7 @@ auth.get(
     const avatarUrl = user.avatar_url;
 
     const db = createDatabase(c.env.DB);
-    await saveUserToDatabase(db, {
+    await saveUser(db, {
       id: userId,
       name: userName,
       email: userEmail ?? undefined,
@@ -179,7 +175,7 @@ auth.get(
     const avatarUrl = user.picture;
 
     const db = createDatabase(c.env.DB);
-    await saveUserToDatabase(db, {
+    await saveUser(db, {
       id: userId,
       name: userName,
       email: userEmail,

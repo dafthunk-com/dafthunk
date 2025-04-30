@@ -5,7 +5,7 @@ import {
   WorkflowStepConfig,
 } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
-import { Env } from "../index";
+import { Env } from "../types/bindings";
 import {
   Workflow,
   WorkflowExecution,
