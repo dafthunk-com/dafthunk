@@ -23,7 +23,6 @@ export type RoleType = (typeof Role)[keyof typeof Role];
 export const Provider = {
   GITHUB: "github",
   GOOGLE: "google",
-  // Add more providers as needed
 } as const;
 
 export type ProviderType = (typeof Provider)[keyof typeof Provider];
@@ -42,12 +41,10 @@ export type ExecutionStatusType =
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(), // UUID
   name: text("name").notNull(),
-  email: text("email").unique(), // Unique constraint on email
+  email: text("email").unique(),
   provider: text("provider").$type<ProviderType>().notNull(),
-  // Provider-specific IDs
   githubId: text("github_id"),
   googleId: text("google_id"),
-  // Add more provider IDs as needed
   avatarUrl: text("avatar_url"),
   plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
   role: text("role").$type<RoleType>().notNull().default(Role.USER),
@@ -62,7 +59,7 @@ export const users = sqliteTable("users", {
 export const workflows = sqliteTable("workflows", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  data: text("data", { mode: "json" }).notNull(), // This will store nodes and edges
+  data: text("data", { mode: "json" }).notNull(),
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
@@ -75,7 +72,7 @@ export const workflows = sqliteTable("workflows", {
 });
 
 export const executions = sqliteTable("executions", {
-  id: text("id").primaryKey(), // Execution instance ID
+  id: text("id").primaryKey(), // Workflow execution instance UUID
   workflowId: text("workflow_id")
     .notNull()
     .references(() => workflows.id),
@@ -86,8 +83,8 @@ export const executions = sqliteTable("executions", {
     .$type<ExecutionStatusType>()
     .notNull()
     .default(ExecutionStatus.IDLE),
-  data: text("data", { mode: "json" }).notNull(), // Stores the execution data including node statuses
-  error: text("error"), // Optional error message
+  data: text("data", { mode: "json" }).notNull(),
+  error: text("error"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -96,7 +93,6 @@ export const executions = sqliteTable("executions", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
-// Relations definitions after all tables are defined
 export const usersRelations = relations(users, ({ many }) => ({
   workflows: many(workflows),
   executions: many(executions),
