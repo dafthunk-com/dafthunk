@@ -1,13 +1,16 @@
 import { createContext, useContext, ReactNode } from "react";
-import { 
-  WorkflowNodeData, 
-  WorkflowEdgeData, 
-  WorkflowParameter 
+import {
+  WorkflowNodeData,
+  WorkflowEdgeData,
+  WorkflowParameter,
 } from "./workflow-types";
 
+type UpdateNodeFn = (nodeId: string, data: Partial<WorkflowNodeData>) => void;
+type UpdateEdgeFn = (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+
 export interface WorkflowContextProps {
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-  updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+  updateNodeData: UpdateNodeFn;
+  updateEdgeData: UpdateEdgeFn;
 }
 
 // Create the context with a default value
@@ -21,8 +24,8 @@ export const useWorkflow = () => useContext(WorkflowContext);
 
 export interface WorkflowProviderProps {
   readonly children: ReactNode;
-  readonly updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-  readonly updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+  readonly updateNodeData: UpdateNodeFn;
+  readonly updateEdgeData: UpdateEdgeFn;
 }
 
 export function WorkflowProvider({
@@ -43,14 +46,19 @@ export function WorkflowProvider({
 }
 
 // Helper functions for common node updates
-export const convertValueByType = (value: string, type: string): string | number | boolean | undefined => {
+export const convertValueByType = (
+  value: string,
+  type: string
+): string | number | boolean | undefined => {
   if (type === "number") {
     const num = parseFloat(value);
     return isNaN(num) ? undefined : num;
   }
+
   if (type === "boolean") {
     return value.toLowerCase() === "true";
   }
+
   return value;
 };
 
@@ -59,9 +67,9 @@ export const updateNodeInput = (
   inputId: string,
   value: unknown,
   inputs: readonly WorkflowParameter[],
-  updateNodeData: WorkflowContextProps["updateNodeData"]
-): WorkflowParameter[] => {
-  const updatedInputs = inputs.map((input) => 
+  updateNodeData: UpdateNodeFn
+): readonly WorkflowParameter[] => {
+  const updatedInputs = inputs.map((input) =>
     input.id === inputId ? { ...input, value } : input
   );
 
@@ -73,9 +81,9 @@ export const clearNodeInput = (
   nodeId: string,
   inputId: string,
   inputs: readonly WorkflowParameter[],
-  updateNodeData: WorkflowContextProps["updateNodeData"]
-): WorkflowParameter[] => {
-  const updatedInputs = inputs.map((input) => 
+  updateNodeData: UpdateNodeFn
+): readonly WorkflowParameter[] => {
+  const updatedInputs = inputs.map((input) =>
     input.id === inputId ? { ...input, value: undefined } : input
   );
 
@@ -86,7 +94,7 @@ export const clearNodeInput = (
 export const updateNodeName = (
   nodeId: string,
   name: string,
-  updateNodeData: WorkflowContextProps["updateNodeData"]
+  updateNodeData: UpdateNodeFn
 ): void => {
   updateNodeData(nodeId, { name });
 };

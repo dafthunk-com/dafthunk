@@ -153,7 +153,7 @@ export function WorkflowCanvas({
         size={1}
         color="#d4d4d4"
       />
-      
+
       {onAddNode && (
         <Button
           onClick={(e) => {
@@ -167,14 +167,11 @@ export function WorkflowCanvas({
           <Plus className="w-6 h-6" />
         </Button>
       )}
-      
+
       {onAction && (
-        <ActionButton 
-          onClick={onAction} 
-          workflowStatus={workflowStatus} 
-        />
+        <ActionButton onClick={onAction} workflowStatus={workflowStatus} />
       )}
-      
+
       {onToggleSidebar && isSidebarVisible !== undefined && (
         <SidebarToggle
           onClick={onToggleSidebar}

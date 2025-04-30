@@ -3,6 +3,7 @@ import {
   EdgeProps,
   getSmoothStepPath,
   ConnectionLineComponentProps,
+  Position,
 } from "reactflow";
 import { cn } from "@/utils/utils";
 import { WorkflowEdgeData } from "./workflow-types";
@@ -17,8 +18,8 @@ const createSmoothStepPath = (params: {
   sourceY: number;
   targetX: number;
   targetY: number;
-  sourcePosition: any;
-  targetPosition: any;
+  sourcePosition: Position;
+  targetPosition: Position;
   sourceOffset?: number;
   targetOffset?: number;
 }) => {
