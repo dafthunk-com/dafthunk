@@ -4,10 +4,9 @@ import { Node, Edge } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, workflows, type NewWorkflow } from "../db";
 import { jwtAuth } from "../auth";
-// @ts-ignore
-import crypto from "crypto";
 import { saveExecutionRecord } from "../utils/executions";
 import { validateWorkflow } from "../utils/workflows";
+import { v7 as uuid } from "uuid";
 
 const workflowRoutes = new Hono<ApiContext>();
 
@@ -34,7 +33,7 @@ workflowRoutes.post("/", jwtAuth, async (c) => {
   const now = new Date();
 
   const newWorkflowData: NewWorkflow = {
-    id: crypto.randomUUID(),
+    id: uuid(),
     name: data.name || "Untitled Workflow",
     data: JSON.stringify({
       nodes: Array.isArray(data.nodes) ? data.nodes : [],
