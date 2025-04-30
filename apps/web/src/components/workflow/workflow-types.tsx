@@ -122,6 +122,8 @@ export interface UseWorkflowStateReturn {
   handleNodeSelect: (template: NodeTemplate) => void;
   setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
   updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
+  updateNodeExecutionOutputs: (nodeId: string, outputs: Record<string, any>) => void;
+  updateNodeExecutionError: (nodeId: string, error: string | undefined) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
   updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;

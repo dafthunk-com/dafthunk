@@ -35,14 +35,117 @@ export function useWorkflowState({
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
 
-  // Effect to notify parent of changes
+  // Effect to notify parent of changes for nodes
   useEffect(() => {
-    onNodesChangeCallback?.(nodes);
-  }, [nodes, onNodesChangeCallback]);
+    // Only notify parent if the change is not an execution state update
+    const hasNonExecutionChanges = nodes.some(node => {
+      const initialNode = initialNodes.find(n => n.id === node.id);
+      if (!initialNode) {
+        console.log(`New node detected: ${node.id}`);
+        return true; // New node is definitely a non-execution change
+      }
 
+      // Check for position changes - these should always trigger a save
+      if (
+        node.position.x !== initialNode.position.x || 
+        node.position.y !== initialNode.position.y
+      ) {
+        console.log(`Node ${node.id} position changed`);
+        return true;
+      }
+
+      // Remove execution-only fields for comparison
+      const stripExecutionFields = (data: WorkflowNodeData) => {
+        const { executionState, error, ...rest } = data;
+        
+        // Create a clean copy without execution-related data
+        return {
+          ...rest,
+          outputs: data.outputs.map(output => {
+            const { value, isConnected, ...outputRest } = output;
+            return outputRest;
+          }),
+          inputs: data.inputs.map(input => {
+            const { isConnected, ...inputRest } = input;
+            return inputRest;
+          })
+        };
+      };
+
+      const nodeData = stripExecutionFields(node.data);
+      const initialNodeData = stripExecutionFields(initialNode.data);
+
+      const nodeDataStr = JSON.stringify(nodeData);
+      const initialNodeDataStr = JSON.stringify(initialNodeData);
+      
+      const isDifferent = nodeDataStr !== initialNodeDataStr;
+      
+      if (isDifferent) {
+        console.log(`Node ${node.id} has non-execution changes`);
+        // Uncomment for detailed debugging when needed
+        // console.log('Current:', nodeDataStr);
+        // console.log('Initial:', initialNodeDataStr);
+      }
+      
+      return isDifferent;
+    });
+
+    if (hasNonExecutionChanges) {
+      console.log('Triggering onNodesChangeCallback due to non-execution changes');
+      onNodesChangeCallback?.(nodes);
+    }
+  }, [nodes, onNodesChangeCallback, initialNodes]);
+
+  // Effect to notify parent of changes for edges
   useEffect(() => {
-    onEdgesChangeCallback?.(edges);
-  }, [edges, onEdgesChangeCallback]);
+    // Only notify parent if the change is not an execution-related change
+    const hasNonExecutionChanges = edges.some(edge => {
+      const initialEdge = initialEdges.find(e => e.id === edge.id);
+      if (!initialEdge) {
+        console.log(`New edge detected: ${edge.id}`);
+        return true; // New edge is definitely a non-execution change
+      }
+
+      // Remove execution-only fields for comparison
+      const stripExecutionFields = (data: WorkflowEdgeData = {}) => {
+        const { isActive, ...rest } = data;
+        return rest;
+      };
+
+      const edgeData = stripExecutionFields(edge.data);
+      const initialEdgeData = stripExecutionFields(initialEdge.data);
+
+      // Also check for structural changes (source, target, handles)
+      if (
+        edge.source !== initialEdge.source ||
+        edge.target !== initialEdge.target ||
+        edge.sourceHandle !== initialEdge.sourceHandle ||
+        edge.targetHandle !== initialEdge.targetHandle
+      ) {
+        console.log(`Edge ${edge.id} connection changed`);
+        return true;
+      }
+
+      const edgeDataStr = JSON.stringify(edgeData);
+      const initialEdgeDataStr = JSON.stringify(initialEdgeData);
+      
+      const isDifferent = edgeDataStr !== initialEdgeDataStr;
+      
+      if (isDifferent) {
+        console.log(`Edge ${edge.id} has non-execution changes`);
+        // Uncomment for detailed debugging when needed
+        // console.log('Current:', edgeDataStr);
+        // console.log('Initial:', initialEdgeDataStr);
+      }
+      
+      return isDifferent;
+    });
+
+    if (hasNonExecutionChanges) {
+      console.log('Triggering onEdgesChangeCallback due to non-execution changes');
+      onEdgesChangeCallback?.(edges);
+    }
+  }, [edges, onEdgesChangeCallback, initialEdges]);
 
   // Handle node selection
   const handleNodeClick = useCallback((event: React.MouseEvent, node: any) => {
@@ -222,9 +325,11 @@ export function useWorkflowState({
     [reactFlowInstance, setNodes]
   );
 
-  // Update node execution state
+  // Update node execution state without triggering save
   const updateNodeExecutionState = useCallback(
     (nodeId: string, state: NodeExecutionState) => {
+      console.log(`Setting node ${nodeId} execution state to: ${state}`);
+      
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === nodeId) {
@@ -241,6 +346,18 @@ export function useWorkflowState({
         })
       );
 
+      // Use a separate function for updating edge active states to avoid
+      // creating unnecessary dependencies and potential infinite loops
+      updateEdgesForNodeExecution(nodeId, state);
+    },
+    [setNodes]
+  );
+
+  // Separated edge update logic to avoid dependency issues
+  const updateEdgesForNodeExecution = useCallback(
+    (nodeId: string, state: NodeExecutionState) => {
+      console.log(`Updating edges for node ${nodeId} execution state: ${state}`);
+      
       // Update edge active state based on execution
       if (state === "executing") {
         const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
@@ -270,7 +387,52 @@ export function useWorkflowState({
         );
       }
     },
-    [edges, setEdges, setNodes]
+    [edges, setEdges]
+  );
+
+  // Update node execution outputs without triggering save
+  const updateNodeExecutionOutputs = useCallback(
+    (nodeId: string, outputs: Record<string, any>) => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                outputs: node.data.outputs.map((output) => ({
+                  ...output,
+                  value: outputs[output.id],
+                })),
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes]
+  );
+
+  // Update node execution error without triggering save
+  const updateNodeExecutionError = useCallback(
+    (nodeId: string, error: string | undefined) => {
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                error,
+              },
+            };
+          }
+          return node;
+        })
+      );
+    },
+    [setNodes]
   );
 
   // Update node data
@@ -401,6 +563,8 @@ export function useWorkflowState({
     handleNodeSelect,
     setReactFlowInstance,
     updateNodeExecutionState,
+    updateNodeExecutionOutputs,
+    updateNodeExecutionError,
     updateNodeData,
     updateNodeOutputs,
     updateEdgeData,

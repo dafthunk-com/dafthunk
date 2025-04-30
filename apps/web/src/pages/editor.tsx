@@ -182,6 +182,13 @@ export function EditorPage() {
         try {
           setIsSaving(true);
 
+          // Only check if we're in an active workflow execution
+          // This was too restrictive - we still want to save if users make legitimate changes
+          // during or after execution
+          if (nodes.some(node => node.data.executionState === 'executing')) {
+            console.log('Workflow is executing, but still saving legitimate changes');
+          }
+
           // Convert ReactFlow nodes back to workflow nodes
           const workflowNodes = nodes.map((node) => {
             // Get all edges where this node is the target
@@ -252,6 +259,7 @@ export function EditorPage() {
             return;
           }
 
+          console.log('Saving workflow:', id);
           await workflowService.save(id, workflowToSave);
         } catch (_) {
           // Error handling without logging
@@ -338,13 +346,6 @@ export function EditorPage() {
       )
         .then((response) => {
           if (!response.ok) {
-            if (response.status === 403) {
-              return response.json().then((data) => {
-                throw new Error(
-                  data.error || "AI nodes are not available in the free plan"
-                );
-              });
-            }
             throw new Error("Failed to start workflow execution");
           }
           return response.json();

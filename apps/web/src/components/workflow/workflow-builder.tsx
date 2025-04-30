@@ -52,6 +52,8 @@ export function WorkflowBuilder({
     handleAddNode,
     handleNodeSelect,
     updateNodeExecutionState,
+    updateNodeExecutionOutputs,
+    updateNodeExecutionError,
     setReactFlowInstance,
     connectionValidationState,
     isValidConnection,
@@ -114,13 +116,8 @@ export function WorkflowBuilder({
     // Reset all nodes to idle state before execution
     nodes.forEach((node) => {
       updateNodeExecutionState(node.id, "idle");
-      updateNodeData(node.id, {
-        outputs: node.data.outputs.map((output) => ({
-          ...output,
-          value: undefined,
-        })),
-        error: undefined,
-      });
+      updateNodeExecutionOutputs(node.id, {});
+      updateNodeExecutionError(node.id, undefined);
     });
 
     setWorkflowStatus("executing");
@@ -136,21 +133,11 @@ export function WorkflowBuilder({
           updateNodeExecutionState(nodeExecution.nodeId, nodeExecution.status);
 
           if (nodeExecution.outputs) {
-            updateNodeData(nodeExecution.nodeId, {
-              outputs:
-                nodes
-                  .find((n) => n.id === nodeExecution.nodeId)
-                  ?.data.outputs.map((output) => ({
-                    ...output,
-                    value: nodeExecution.outputs?.[output.id],
-                  })) || [],
-            });
+            updateNodeExecutionOutputs(nodeExecution.nodeId, nodeExecution.outputs);
           }
 
           if (nodeExecution.error) {
-            updateNodeData(nodeExecution.nodeId, {
-              error: nodeExecution.error,
-            });
+            updateNodeExecutionError(nodeExecution.nodeId, nodeExecution.error);
           }
         });
 
@@ -195,13 +182,8 @@ export function WorkflowBuilder({
         // Reset to idle state
         nodes.forEach((node) => {
           updateNodeExecutionState(node.id, "idle");
-          updateNodeData(node.id, {
-            outputs: node.data.outputs.map((output) => ({
-              ...output,
-              value: undefined,
-            })),
-            error: undefined,
-          });
+          updateNodeExecutionOutputs(node.id, {});
+          updateNodeExecutionError(node.id, undefined);
         });
         setWorkflowStatus("idle");
         break;
@@ -218,7 +200,10 @@ export function WorkflowBuilder({
   return (
     <ReactFlowProvider>
       <WorkflowProvider
-        updateNodeData={updateNodeData}
+        updateNodeData={(nodeId, data) => {
+          console.log(`User-initiated updateNodeData for node ${nodeId}:`, data);
+          updateNodeData(nodeId, data);
+        }}
         updateEdgeData={updateEdgeData}
       >
         <div className="w-full h-full flex">
