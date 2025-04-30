@@ -2,8 +2,10 @@ import { Hono } from "hono";
 import { eq, and } from "drizzle-orm";
 import { Node, Edge } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase, workflows, type NewWorkflow } from "../db";
+import { createDatabase, workflows, executions, type NewWorkflow } from "../db";
 import { jwtAuth } from "../auth";
+// @ts-ignore
+import crypto from "crypto";
 
 const workflowRoutes = new Hono<ApiContext>();
 
@@ -197,6 +199,8 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
   }
 
   const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
+
+  // Trigger the runtime and get the instance id
   const instance = await c.env.EXECUTE.create({
     params: {
       userId: user.sub,
@@ -209,8 +213,33 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
       monitorProgress,
     },
   });
+  const executionId = instance.id;
 
-  return c.json({ id: instance.id });
+  // Build initial nodeExecutions (all idle)
+  const nodeExecutions = workflowData.nodes.map((node) => ({
+    nodeId: node.id,
+    status: "idle" as const,
+  }));
+
+  // Save initial execution record
+  await db.insert(executions).values({
+    id: executionId,
+    workflowId: workflow.id,
+    userId: user.sub,
+    status: "idle",
+    data: JSON.stringify({ nodeExecutions }),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  // Return the initial WorkflowExecution object
+  const initialExecution = {
+    id: executionId,
+    workflowId: workflow.id,
+    status: "idle",
+    nodeExecutions,
+  };
+  return c.json(initialExecution, 201);
 });
 
 export default workflowRoutes;

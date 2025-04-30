@@ -349,8 +349,27 @@ export function EditorPage() {
           }
           return response.json();
         })
-        .then((data) => {
-          const executionId = data.id;
+        .then(async (initialExecution: WorkflowExecution) => {
+          const executionId = initialExecution.id;
+          // Immediately load the canonical execution from the backend
+          try {
+            const statusResponse = await fetch(
+              `${API_BASE_URL}/executions/${executionId}`,
+              {
+                credentials: "include",
+              }
+            );
+            if (statusResponse.ok) {
+              const loadedExecution = (await statusResponse.json()) as WorkflowExecution;
+              onExecution(loadedExecution);
+            } else {
+              // fallback: if not found, use the initial execution
+              onExecution(initialExecution);
+            }
+          } catch (err) {
+            // fallback: if error, use the initial execution
+            onExecution(initialExecution);
+          }
           console.log(`Workflow execution started with ID: ${executionId}`);
 
           // Set up polling interval to check execution status

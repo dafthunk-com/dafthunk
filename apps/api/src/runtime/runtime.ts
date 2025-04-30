@@ -104,21 +104,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         async () => this.initialiseWorkflow(workflow)
       );
 
-      // Save state before node execution begins if monitoring is enabled
-      if (monitorProgress) {
-        executionRecord = await step.do(
-          "persist initial execution record",
-          Runtime.defaultStepConfig,
-          async () =>
-            this.saveExecutionState(
-              userId,
-              workflow.id,
-              instanceId,
-              runtimeState
-            )
-        );
-      }
-
       // Execute nodes sequentially.
       for (const nodeIdentifier of runtimeState.sortedNodes) {
         if (runtimeState.nodeErrors.has(nodeIdentifier)) {
