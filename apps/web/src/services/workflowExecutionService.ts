@@ -4,17 +4,25 @@ import {
   WorkflowEdgeData,
 } from "@/components/workflow/workflow-types.tsx";
 
-// Generic edge type to avoid ReactFlow dependency
-interface GenericEdge {
+type GenericNode = {
+  id: string;
+  data: WorkflowNodeData;
+  [key: string]: unknown;
+};
+
+type GenericEdge = {
   id: string;
   data?: WorkflowEdgeData;
   source: string;
   target: string;
-}
+  [key: string]: unknown;
+};
 
 export const workflowExecutionService = {
-  // Moved from useWorkflowState
-  stripExecutionFields(data: WorkflowNodeData) {
+  stripExecutionFields(data: WorkflowNodeData): Omit<WorkflowNodeData, 'executionState' | 'error'> & {
+    outputs: Omit<WorkflowNodeData['outputs'][number], 'value' | 'isConnected'>[];
+    inputs: Omit<WorkflowNodeData['inputs'][number], 'isConnected'>[];
+  } {
     const { executionState, error, ...rest } = data;
 
     return {
@@ -26,18 +34,16 @@ export const workflowExecutionService = {
     };
   },
 
-  // Moved from useWorkflowState
-  stripEdgeExecutionFields(data: WorkflowEdgeData = {}) {
+  stripEdgeExecutionFields(data: WorkflowEdgeData = {}): Omit<WorkflowEdgeData, 'isActive'> {
     const { isActive, ...rest } = data;
     return rest;
   },
 
-  // Moved from useWorkflowState
   updateNodesWithExecutionState(
-    nodes: any[],
+    nodes: readonly GenericNode[],
     nodeId: string,
     state: NodeExecutionState
-  ) {
+  ): readonly GenericNode[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
@@ -52,13 +58,12 @@ export const workflowExecutionService = {
     );
   },
 
-  // Moved from useWorkflowState, now using generic edge type
   updateEdgesForNodeExecution(
-    edges: GenericEdge[],
+    edges: readonly GenericEdge[],
     _nodeId: string,
     state: NodeExecutionState,
-    connectedEdgeIds: string[]
-  ) {
+    connectedEdgeIds: readonly string[]
+  ): readonly GenericEdge[] {
     if (state === "executing") {
       return edges.map((edge) => {
         const isConnectedToExecutingNode = connectedEdgeIds.includes(edge.id);
@@ -70,7 +75,9 @@ export const workflowExecutionService = {
           },
         };
       });
-    } else if (state === "completed" || state === "error") {
+    } 
+    
+    if (state === "completed" || state === "error") {
       return edges.map((edge) => ({
         ...edge,
         data: {
@@ -79,22 +86,22 @@ export const workflowExecutionService = {
         },
       }));
     }
+    
     return edges;
   },
 
-  // Moved from useWorkflowState
   updateNodesWithExecutionOutputs(
-    nodes: any[],
+    nodes: readonly GenericNode[],
     nodeId: string,
-    outputs: Record<string, any>
-  ) {
+    outputs: Record<string, unknown>
+  ): readonly GenericNode[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
             ...node,
             data: {
               ...node.data,
-              outputs: node.data.outputs.map((output: any) => ({
+              outputs: node.data.outputs.map((output) => ({
                 ...output,
                 value: outputs[output.id],
               })),
@@ -104,12 +111,11 @@ export const workflowExecutionService = {
     );
   },
 
-  // Moved from useWorkflowState
   updateNodesWithExecutionError(
-    nodes: any[],
+    nodes: readonly GenericNode[],
     nodeId: string,
     error: string | undefined
-  ) {
+  ): readonly GenericNode[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
