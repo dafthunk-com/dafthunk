@@ -45,26 +45,10 @@ const saveUserToDatabase = async (
     role?: string;
   }
 ): Promise<void> => {
-  const existingUser = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userData.id))
-    .get();
-
-  if (existingUser) {
-    await db
-      .update(users)
-      .set({
-        name: userData.name,
-        email: userData.email,
-        githubId: userData.githubId,
-        googleId: userData.googleId,
-        avatarUrl: userData.avatarUrl,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userData.id));
-  } else {
-    const newUser = {
+  const now = new Date();
+  await db
+    .insert(users)
+    .values({
       id: userData.id,
       name: userData.name,
       email: userData.email,
@@ -74,9 +58,21 @@ const saveUserToDatabase = async (
       avatarUrl: userData.avatarUrl,
       plan: (userData.plan as PlanType) || Plan.TRIAL,
       role: (userData.role as RoleType) || Role.USER,
-    };
-    await db.insert(users).values(newUser);
-  }
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: users.id,
+      set: {
+        name: userData.name,
+        email: userData.email,
+        githubId: userData.githubId,
+        googleId: userData.googleId,
+        avatarUrl: userData.avatarUrl,
+        plan: (userData.plan as PlanType) || Plan.TRIAL,
+        role: (userData.role as RoleType) || Role.USER,
+        updatedAt: now,
+      },
+    });
 };
 
 // Auth middleware
