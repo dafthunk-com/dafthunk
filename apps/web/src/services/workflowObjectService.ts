@@ -19,7 +19,7 @@ export type ObjectReference = {
 
 /**
  * Converts a Uint8Array to a base64 string
- * 
+ *
  * @param buffer - The buffer to convert
  * @returns A base64 encoded string representation of the buffer
  */
@@ -29,11 +29,14 @@ export const arrayBufferToBase64 = (buffer: BinaryData): string => {
   }
 
   // Handle different input types to ensure we have a Uint8Array
-  const bytes = buffer instanceof Uint8Array
-    ? buffer
-    : typeof buffer === "string" 
-      ? new TextEncoder().encode(buffer)
-      : new Uint8Array(Array.isArray(buffer) ? buffer : Object.values(buffer));
+  const bytes =
+    buffer instanceof Uint8Array
+      ? buffer
+      : typeof buffer === "string"
+        ? new TextEncoder().encode(buffer)
+        : new Uint8Array(
+            Array.isArray(buffer) ? buffer : Object.values(buffer)
+          );
 
   // Convert Uint8Array to a binary string
   let binary = "";
@@ -102,17 +105,17 @@ export const isObjectReference = (value: unknown): value is ObjectReference => {
 export const base64ToUint8Array = (base64: string): Uint8Array => {
   const binaryString = window.atob(base64);
   const bytes = new Uint8Array(binaryString.length);
-  
+
   for (let i = 0; i < binaryString.length; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
-  
+
   return bytes;
 };
 
 /**
  * Converts binary data to a Blob
- * 
+ *
  * @param data - Binary data in various formats
  * @param mimeType - The MIME type to use for the Blob
  * @returns A Blob representing the data
@@ -123,13 +126,16 @@ const binaryDataToBlob = (data: BinaryData, mimeType: string): Blob => {
     const bytes = base64ToUint8Array(data);
     return new Blob([bytes], { type: mimeType });
   }
-  
+
   if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
     return new Blob([data], { type: mimeType });
   }
-  
+
   // For number arrays or other array-like objects
-  return new Blob([new Uint8Array(Array.isArray(data) ? data : Object.values(data))], { type: mimeType });
+  return new Blob(
+    [new Uint8Array(Array.isArray(data) ? data : Object.values(data))],
+    { type: mimeType }
+  );
 };
 
 /**
@@ -146,14 +152,14 @@ export const uploadBinaryData = async (
   if (!data) {
     throw new Error("No data provided for upload");
   }
-  
+
   if (!mimeType) {
     throw new Error("MIME type is required for upload");
   }
 
   // Convert to blob
   const blob = binaryDataToBlob(data, mimeType);
-  
+
   // Create form data
   const formData = new FormData();
   formData.append("file", blob);
@@ -170,7 +176,7 @@ export const uploadBinaryData = async (
   }
 
   const result = await response.json();
-  
+
   if (!result.reference?.id || !result.reference?.mimeType) {
     throw new Error("Invalid response from server");
   }

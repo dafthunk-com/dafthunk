@@ -14,7 +14,9 @@ type WorkflowNodeData = {
 /**
  * Converts domain nodes to ReactFlow compatible nodes
  */
-export function convertToReactFlowNodes(nodes: readonly Node[]): readonly ReactFlowNode<WorkflowNodeData>[] {
+export function convertToReactFlowNodes(
+  nodes: readonly Node[]
+): readonly ReactFlowNode<WorkflowNodeData>[] {
   return nodes.map((node) => ({
     id: node.id,
     type: "workflowNode",
@@ -57,7 +59,7 @@ export function updateNodeExecutionState(
   nodeId: string,
   state: NodeExecutionState
 ): readonly ReactFlowNode[] {
-  return nodes.map((node) => 
+  return nodes.map((node) =>
     node.id === nodeId
       ? { ...node, data: { ...node.data, executionState: state } }
       : node
@@ -81,7 +83,7 @@ export async function fetchNodeTypes(): Promise<readonly NodeType[]> {
       throw new Error(`Failed to fetch node types: ${response.statusText}`);
     }
 
-    return await response.json() as NodeType[];
+    return (await response.json()) as NodeType[];
   } catch (error) {
     console.error("Error fetching node types:", error);
     throw new Error(
