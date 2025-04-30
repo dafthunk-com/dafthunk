@@ -9,7 +9,9 @@ import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
 import { Plus, Play, X, PanelLeftClose, PanelLeft, Square } from "lucide-react";
+import { cn } from "@/utils/utils";
 import "reactflow/dist/style.css";
+import { WorkflowExecutionStatus } from "@dafthunk/types";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
@@ -18,6 +20,83 @@ const nodeTypes = {
 const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
+
+type ActionButtonProps = {
+  onClick: (e: React.MouseEvent) => void;
+  workflowStatus: WorkflowExecutionStatus;
+};
+
+function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
+  const statusConfig = {
+    idle: {
+      icon: <Play className="w-6 h-6" />,
+      title: "Execute Workflow",
+      className: "bg-green-600 hover:bg-green-700",
+    },
+    executing: {
+      icon: <Square className="w-6 h-6" />,
+      title: "Stop Execution",
+      className: "bg-red-500 hover:bg-red-600",
+    },
+    completed: {
+      icon: <X className="w-6 h-6" />,
+      title: "Clear Outputs & Reset",
+      className: "bg-blue-600 hover:bg-blue-700",
+    },
+    error: {
+      icon: <X className="w-6 h-6" />,
+      title: "Clear Errors & Reset",
+      className: "bg-yellow-600 hover:bg-yellow-700",
+    },
+    cancelled: {
+      icon: <Play className="w-6 h-6" />,
+      title: "Restart Workflow",
+      className: "bg-gray-600 hover:bg-gray-700",
+    },
+    paused: {
+      icon: <Play className="w-6 h-6" />,
+      title: "Resume Workflow",
+      className: "bg-blue-500 hover:bg-blue-600",
+    },
+  };
+
+  // Use a default config if the status isn't in our mapping
+  const config = statusConfig[workflowStatus] || statusConfig.idle;
+
+  return (
+    <Button
+      onClick={onClick}
+      className={cn(
+        "absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0",
+        config.className
+      )}
+      title={config.title}
+    >
+      {config.icon}
+    </Button>
+  );
+}
+
+type SidebarToggleProps = {
+  onClick: (e: React.MouseEvent) => void;
+  isSidebarVisible: boolean;
+};
+
+function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
+  return (
+    <Button
+      onClick={onClick}
+      className="absolute top-4 right-4 z-50 rounded-full shadow-lg h-10 w-10 p-0"
+      title={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
+    >
+      {isSidebarVisible ? (
+        <PanelLeftClose className="w-6 h-6" />
+      ) : (
+        <PanelLeft className="w-6 h-6" />
+      )}
+    </Button>
+  );
+}
 
 export function WorkflowCanvas({
   nodes,
@@ -39,32 +118,6 @@ export function WorkflowCanvas({
   showControls = true,
   isValidConnection,
 }: WorkflowCanvasProps) {
-  // Function to get the action button icon based on workflow status
-  const getActionIcon = () => {
-    switch (workflowStatus) {
-      case "executing":
-        return <Square className="w-6 h-6" />;
-      case "completed":
-        return <X className="w-6 h-6" />;
-      case "idle":
-      default:
-        return <Play className="w-6 h-6" />;
-    }
-  };
-
-  // Function to get the action button title based on workflow status
-  const getActionTitle = () => {
-    switch (workflowStatus) {
-      case "executing":
-        return "Stop Execution";
-      case "completed":
-        return "Clear Outputs & Reset";
-      case "idle":
-      default:
-        return "Execute Workflow";
-    }
-  };
-
   return (
     <ReactFlow
       nodes={nodes}
@@ -100,6 +153,7 @@ export function WorkflowCanvas({
         size={1}
         color="#d4d4d4"
       />
+      
       {onAddNode && (
         <Button
           onClick={(e) => {
@@ -113,33 +167,19 @@ export function WorkflowCanvas({
           <Plus className="w-6 h-6" />
         </Button>
       )}
+      
       {onAction && (
-        <Button
-          onClick={onAction}
-          className={`absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0 ${
-            workflowStatus === "idle"
-              ? "bg-green-600 hover:bg-green-700"
-              : workflowStatus === "executing"
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-blue-600 hover:bg-blue-700"
-          }`}
-          title={getActionTitle()}
-        >
-          {getActionIcon()}
-        </Button>
+        <ActionButton 
+          onClick={onAction} 
+          workflowStatus={workflowStatus} 
+        />
       )}
-      {onToggleSidebar && (
-        <Button
+      
+      {onToggleSidebar && isSidebarVisible !== undefined && (
+        <SidebarToggle
           onClick={onToggleSidebar}
-          className="absolute top-4 right-4 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-          title={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
-        >
-          {isSidebarVisible ? (
-            <PanelLeftClose className="w-6 h-6" />
-          ) : (
-            <PanelLeft className="w-6 h-6" />
-          )}
-        </Button>
+          isSidebarVisible={isSidebarVisible}
+        />
       )}
     </ReactFlow>
   );
