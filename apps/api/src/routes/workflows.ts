@@ -2,10 +2,11 @@ import { Hono } from "hono";
 import { eq, and } from "drizzle-orm";
 import { Node, Edge } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase, workflows, executions, type NewWorkflow } from "../db";
+import { createDatabase, workflows, type NewWorkflow } from "../db";
 import { jwtAuth } from "../auth";
 // @ts-ignore
 import crypto from "crypto";
+import { saveExecutionRecord } from "../utils/executions";
 
 const workflowRoutes = new Hono<ApiContext>();
 
@@ -222,12 +223,12 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
   }));
 
   // Save initial execution record
-  await db.insert(executions).values({
+  await saveExecutionRecord(db, {
     id: executionId,
     workflowId: workflow.id,
     userId: user.sub,
     status: "idle",
-    data: JSON.stringify({ nodeExecutions }),
+    nodeExecutions,
     createdAt: new Date(),
     updatedAt: new Date(),
   });

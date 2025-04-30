@@ -19,12 +19,12 @@ import { validateWorkflow } from "./validation";
 import { NodeRegistry } from "../nodes/nodeRegistry";
 import { NodeContext } from "../nodes/types";
 import { ObjectStore } from "./objectStore";
-import { createDatabase } from "../db";
-import { executions } from "../db";
+import { createDatabase, ExecutionStatusType } from "../db";
 import {
   nodeToApiParameter,
   apiToNodeParameter,
 } from "../nodes/parameterMapper";
+import { saveExecutionRecord } from "../utils/executions";
 
 // Node output value type
 export type NodeOutputValue =
@@ -466,42 +466,33 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     });
 
     const executionStatus = runtimeState.status;
-
-    const executionRecord: WorkflowExecution = {
-      id: instanceId,
-      workflowId,
-      status: executionStatus,
-      nodeExecutions: nodeExecutionList,
-      error:
-        runtimeState.nodeErrors.size > 0
-          ? Array.from(runtimeState.nodeErrors.values()).join(", ")
-          : undefined,
-    };
+    const errorMsg =
+      runtimeState.nodeErrors.size > 0
+        ? Array.from(runtimeState.nodeErrors.values()).join(", ")
+        : undefined;
 
     try {
       const db = createDatabase(this.env.DB);
-      const executionData = {
-        status: executionStatus as any,
-        data: JSON.stringify({ nodeExecutions: nodeExecutionList }),
-        error: executionRecord.error,
+      return await saveExecutionRecord(db, {
+        id: instanceId,
+        workflowId,
+        userId,
+        status: executionStatus as ExecutionStatusType,
+        nodeExecutions: nodeExecutionList,
+        error: errorMsg,
         updatedAt: new Date(),
-      };
-
-      await db
-        .insert(executions)
-        .values({
-          id: instanceId,
-          workflowId,
-          userId,
-          createdAt: new Date(),
-          ...executionData,
-        })
-        .onConflictDoUpdate({ target: executions.id, set: executionData });
+      });
     } catch (error) {
       console.error("Failed to persist execution record:", error);
       // Continue without interrupting the workflow.
     }
 
-    return executionRecord;
+    return {
+      id: instanceId,
+      workflowId,
+      status: executionStatus,
+      nodeExecutions: nodeExecutionList,
+      error: errorMsg,
+    };
   }
 }

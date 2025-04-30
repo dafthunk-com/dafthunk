@@ -360,13 +360,14 @@ export function EditorPage() {
               }
             );
             if (statusResponse.ok) {
-              const loadedExecution = (await statusResponse.json()) as WorkflowExecution;
+              const loadedExecution =
+                (await statusResponse.json()) as WorkflowExecution;
               onExecution(loadedExecution);
             } else {
               // fallback: if not found, use the initial execution
               onExecution(initialExecution);
             }
-          } catch (err) {
+          } catch {
             // fallback: if error, use the initial execution
             onExecution(initialExecution);
           }
