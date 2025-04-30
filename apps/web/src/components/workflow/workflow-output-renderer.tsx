@@ -39,7 +39,13 @@ export const formatOutputValue = (value: any, type: string): string => {
 };
 
 // Reusable error component
-const ErrorMessage = ({ message, compact }: { message: string; compact?: boolean }) => (
+const ErrorMessage = ({
+  message,
+  compact,
+}: {
+  message: string;
+  compact?: boolean;
+}) => (
   <div
     className={
       compact
@@ -52,7 +58,15 @@ const ErrorMessage = ({ message, compact }: { message: string; compact?: boolean
 );
 
 // Image output renderer
-const ImageRenderer = ({ output, compact, objectUrl }: { output: WorkflowParameter; compact?: boolean; objectUrl: string }) => (
+const ImageRenderer = ({
+  output,
+  compact,
+  objectUrl,
+}: {
+  output: WorkflowParameter;
+  compact?: boolean;
+  objectUrl: string;
+}) => (
   <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
     <img
       src={objectUrl}
@@ -71,14 +85,14 @@ const ImageRenderer = ({ output, compact, objectUrl }: { output: WorkflowParamet
 );
 
 // Audio output renderer
-const AudioRenderer = ({ 
-  audioUrl, 
-  onError, 
-  audioRef 
-}: { 
-  audioUrl: string; 
-  onError: (e: React.SyntheticEvent<HTMLAudioElement, Event>) => void; 
-  audioRef: React.RefObject<HTMLAudioElement | null>; 
+const AudioRenderer = ({
+  audioUrl,
+  onError,
+  audioRef,
+}: {
+  audioUrl: string;
+  onError: (e: React.SyntheticEvent<HTMLAudioElement, Event>) => void;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
 }) => (
   <audio
     ref={audioRef}
@@ -90,7 +104,15 @@ const AudioRenderer = ({
 );
 
 // Document output renderer
-const DocumentRenderer = ({ output, objectUrl, compact }: { output: WorkflowParameter; objectUrl: string; compact?: boolean }) => {
+const DocumentRenderer = ({
+  output,
+  objectUrl,
+  compact,
+}: {
+  output: WorkflowParameter;
+  objectUrl: string;
+  compact?: boolean;
+}) => {
   const isPDF = output.value.mimeType === "application/pdf";
   const isImage = output.value.mimeType.startsWith("image/");
 
@@ -115,7 +137,7 @@ const DocumentRenderer = ({ output, objectUrl, compact }: { output: WorkflowPara
       </div>
     );
   }
-  
+
   if (isImage) {
     return (
       <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
@@ -138,7 +160,7 @@ const DocumentRenderer = ({ output, objectUrl, compact }: { output: WorkflowPara
       </div>
     );
   }
-  
+
   // For other document types, just show a link
   return (
     <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
@@ -155,7 +177,15 @@ const DocumentRenderer = ({ output, objectUrl, compact }: { output: WorkflowPara
 };
 
 // Binary output renderer
-const BinaryRenderer = ({ output, objectUrl, compact }: { output: WorkflowParameter; objectUrl: string; compact?: boolean }) => (
+const BinaryRenderer = ({
+  output,
+  objectUrl,
+  compact,
+}: {
+  output: WorkflowParameter;
+  objectUrl: string;
+  compact?: boolean;
+}) => (
   <div
     className={
       compact
@@ -178,7 +208,13 @@ const BinaryRenderer = ({ output, objectUrl, compact }: { output: WorkflowParame
 );
 
 // Text output renderer
-const TextRenderer = ({ value, compact }: { value: string; compact?: boolean }) => (
+const TextRenderer = ({
+  value,
+  compact,
+}: {
+  value: string;
+  compact?: boolean;
+}) => (
   <div
     className={
       compact
@@ -235,12 +271,25 @@ export function WorkflowOutputRenderer({
   if (output.type === "image" && output.value) {
     try {
       if (isObjectReference(output.value)) {
-        return <ImageRenderer output={output} compact={compact} objectUrl={createObjectUrl(output.value)} />;
+        return (
+          <ImageRenderer
+            output={output}
+            compact={compact}
+            objectUrl={createObjectUrl(output.value)}
+          />
+        );
       }
-      return <ErrorMessage message="Invalid image reference format" compact={compact} />;
+      return (
+        <ErrorMessage
+          message="Invalid image reference format"
+          compact={compact}
+        />
+      );
     } catch (error) {
       console.error("Error processing image data:", error);
-      return <ErrorMessage message="Error processing image data" compact={compact} />;
+      return (
+        <ErrorMessage message="Error processing image data" compact={compact} />
+      );
     }
   }
 
@@ -252,7 +301,13 @@ export function WorkflowOutputRenderer({
 
     return (
       <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
-        {audioUrl && <AudioRenderer audioUrl={audioUrl} onError={handleAudioError} audioRef={audioRef} />}
+        {audioUrl && (
+          <AudioRenderer
+            audioUrl={audioUrl}
+            onError={handleAudioError}
+            audioRef={audioRef}
+          />
+        )}
       </div>
     );
   }
@@ -261,21 +316,48 @@ export function WorkflowOutputRenderer({
   if (output.type === "document" && output.value) {
     try {
       if (isObjectReference(output.value)) {
-        return <DocumentRenderer output={output} objectUrl={createObjectUrl(output.value)} compact={compact} />;
+        return (
+          <DocumentRenderer
+            output={output}
+            objectUrl={createObjectUrl(output.value)}
+            compact={compact}
+          />
+        );
       }
-      return <ErrorMessage message="Invalid document reference format" compact={compact} />;
+      return (
+        <ErrorMessage
+          message="Invalid document reference format"
+          compact={compact}
+        />
+      );
     } catch (error) {
       console.error("Error processing document data:", error);
-      return <ErrorMessage message="Error processing document data" compact={compact} />;
+      return (
+        <ErrorMessage
+          message="Error processing document data"
+          compact={compact}
+        />
+      );
     }
   }
 
   // Handle binary output
   if (output.type === "binary" && output.value) {
     if (isObjectReference(output.value)) {
-      return <BinaryRenderer output={output} objectUrl={createObjectUrl(output.value)} compact={compact} />;
+      return (
+        <BinaryRenderer
+          output={output}
+          objectUrl={createObjectUrl(output.value)}
+          compact={compact}
+        />
+      );
     }
-    return <ErrorMessage message="Invalid binary reference format" compact={compact} />;
+    return (
+      <ErrorMessage
+        message="Invalid binary reference format"
+        compact={compact}
+      />
+    );
   }
 
   // Handle text-based output

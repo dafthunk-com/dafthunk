@@ -6,11 +6,7 @@ import {
   ReactNode,
   useRef,
 } from "react";
-import { 
-  authService, 
-  User,
-  type AuthProvider
-} from "@/services/authService";
+import { authService, User, type AuthProvider } from "@/services/authService";
 
 type AuthContextType = {
   readonly user: User | null;
@@ -56,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       try {
         const isAuth = await authService.checkAuth();
-        
+
         if (isAuth) {
           const userAuthenticated = await refreshUser();
           isAuthenticatedRef.current = userAuthenticated;
@@ -111,10 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  
+
   return context;
 }
