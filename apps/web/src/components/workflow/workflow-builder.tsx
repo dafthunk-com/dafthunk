@@ -3,7 +3,7 @@ import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { ReactFlowProvider } from "reactflow";
 import { WorkflowProvider } from "./workflow-context";
 import {
@@ -30,8 +30,13 @@ export function WorkflowBuilder({
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] =
     useState<WorkflowExecutionStatus>("idle");
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorDialogState, setErrorDialogState] = useState<{
+    open: boolean;
+    message: string;
+  }>({
+    open: false,
+    message: "",
+  });
   const cleanupRef = useRef<(() => void) | null>(null);
 
   const {
@@ -67,150 +72,146 @@ export function WorkflowBuilder({
     validateConnection,
   });
 
-  // Keep the connection state effect as is
+  // Track input and output connections
   useEffect(() => {
-    // Create separate maps to track input and output connections
     const connectedInputs = new Map();
     const connectedOutputs = new Map();
 
-    // Collect all connections from edges
     edges.forEach((edge) => {
-      if (edge.targetHandle) {
+      if (edge.targetHandle)
         connectedInputs.set(`${edge.target}-${edge.targetHandle}`, true);
-      }
-      if (edge.sourceHandle) {
+      if (edge.sourceHandle)
         connectedOutputs.set(`${edge.source}-${edge.sourceHandle}`, true);
-      }
     });
 
-    // Update nodes with connection information
     nodes.forEach((node) => {
-      const inputs = node.data.inputs.map((input) => ({
+      const updatedInputs = node.data.inputs.map((input) => ({
         ...input,
         isConnected: connectedInputs.has(`${node.id}-${input.id}`),
       }));
 
-      const outputs = node.data.outputs.map((output) => ({
+      const updatedOutputs = node.data.outputs.map((output) => ({
         ...output,
         isConnected: connectedOutputs.has(`${node.id}-${output.id}`),
       }));
 
-      // Only update if there's a change to avoid infinite loops
-      const inputChanged = inputs.some(
+      const inputChanged = updatedInputs.some(
         (input, i) => input.isConnected !== node.data.inputs[i].isConnected
       );
 
-      const outputChanged = outputs.some(
+      const outputChanged = updatedOutputs.some(
         (output, i) => output.isConnected !== node.data.outputs[i].isConnected
       );
 
       if (inputChanged || outputChanged) {
-        updateNodeData(node.id, { inputs, outputs });
+        updateNodeData(node.id, {
+          inputs: updatedInputs,
+          outputs: updatedOutputs,
+        });
       }
     });
   }, [edges, nodes, updateNodeData]);
 
-  const handleExecute = () => {
-    if (!executeWorkflow) return;
-
-    // Reset all nodes to idle state before execution
+  const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {
       updateNodeExecutionState(node.id, "idle");
       updateNodeExecutionOutputs(node.id, {});
       updateNodeExecutionError(node.id, undefined);
     });
+  }, [
+    nodes,
+    updateNodeExecutionState,
+    updateNodeExecutionOutputs,
+    updateNodeExecutionError,
+  ]);
 
+  const handleExecute = useCallback(() => {
+    if (!executeWorkflow) return null;
+
+    resetNodeStates();
     setWorkflowStatus("executing");
 
-    const cleanup = executeWorkflow(
-      workflowId,
-      (execution: WorkflowExecution) => {
-        // Update workflow status
-        setWorkflowStatus(execution.status);
+    return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
+      setWorkflowStatus(execution.status);
 
-        // Update all nodes based on execution state
-        execution.nodeExecutions.forEach((nodeExecution) => {
-          updateNodeExecutionState(nodeExecution.nodeId, nodeExecution.status);
+      execution.nodeExecutions.forEach((nodeExecution) => {
+        updateNodeExecutionState(nodeExecution.nodeId, nodeExecution.status);
 
-          if (nodeExecution.outputs) {
-            updateNodeExecutionOutputs(nodeExecution.nodeId, nodeExecution.outputs);
-          }
+        if (nodeExecution.outputs) {
+          updateNodeExecutionOutputs(
+            nodeExecution.nodeId,
+            nodeExecution.outputs
+          );
+        }
 
-          if (nodeExecution.error) {
-            updateNodeExecutionError(nodeExecution.nodeId, nodeExecution.error);
-          }
+        if (nodeExecution.error) {
+          updateNodeExecutionError(nodeExecution.nodeId, nodeExecution.error);
+        }
+      });
+
+      if (execution.status === "error") {
+        setErrorDialogState({
+          open: true,
+          message: execution.error || "Unknown error",
         });
+      }
+    });
+  }, [
+    executeWorkflow,
+    workflowId,
+    resetNodeStates,
+    updateNodeExecutionState,
+    updateNodeExecutionOutputs,
+    updateNodeExecutionError,
+  ]);
 
-        // Handle workflow completion
-        if (execution.status === "completed") {
-          // Workflow completed successfully
-          console.log("Workflow execution completed");
-        } else if (execution.status === "error") {
-          setErrorMessage(execution.error || "Unknown error");
-          setErrorDialogOpen(true);
+  const handleActionButtonClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      switch (workflowStatus) {
+        case "idle": {
+          const cleanup = handleExecute();
+          if (cleanup) cleanupRef.current = cleanup;
+          break;
+        }
+        case "executing": {
+          if (cleanupRef.current) {
+            cleanupRef.current();
+            cleanupRef.current = null;
+          }
+          setWorkflowStatus("completed");
+          break;
+        }
+        case "completed":
+        case "error": {
+          resetNodeStates();
+          setWorkflowStatus("idle");
+          break;
         }
       }
-    );
+    },
+    [workflowStatus, handleExecute, resetNodeStates]
+  );
 
-    return cleanup;
-  };
-
-  const handleActionButtonClick = (e: React.MouseEvent) => {
+  const toggleSidebar = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    switch (workflowStatus) {
-      case "idle": {
-        // Start execution
-        const cleanup = handleExecute();
-        if (typeof cleanup === "function") {
-          cleanupRef.current = cleanup;
-        }
-        break;
-      }
-      case "executing": {
-        // Stop the execution
-        if (cleanupRef.current) {
-          cleanupRef.current();
-          cleanupRef.current = null;
-        }
-        setWorkflowStatus("completed");
-        break;
-      }
-      case "completed":
-      case "error": {
-        // Reset to idle state
-        nodes.forEach((node) => {
-          updateNodeExecutionState(node.id, "idle");
-          updateNodeExecutionOutputs(node.id, {});
-          updateNodeExecutionError(node.id, undefined);
-        });
-        setWorkflowStatus("idle");
-        break;
-      }
-    }
-  };
-
-  const handleToggleSidebar = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsSidebarVisible(!isSidebarVisible);
-  };
+    setIsSidebarVisible((prev) => !prev);
+  }, []);
 
   return (
     <ReactFlowProvider>
       <WorkflowProvider
         updateNodeData={(nodeId, data) => {
-          console.log(`User-initiated updateNodeData for node ${nodeId}:`, data);
           updateNodeData(nodeId, data);
         }}
         updateEdgeData={updateEdgeData}
       >
         <div className="w-full h-full flex">
           <div
-            className={`h-full rounded-xl overflow-hidden relative ${
-              isSidebarVisible ? "w-[calc(100%-384px)]" : "w-full"
-            }`}
+            className={`h-full rounded-xl overflow-hidden relative ${isSidebarVisible ? "w-[calc(100%-384px)]" : "w-full"}`}
           >
             <WorkflowCanvas
               nodes={nodes}
@@ -228,7 +229,7 @@ export function WorkflowBuilder({
               onAddNode={handleAddNode}
               onAction={executeWorkflow ? handleActionButtonClick : undefined}
               workflowStatus={workflowStatus}
-              onToggleSidebar={handleToggleSidebar}
+              onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
             />
@@ -253,15 +254,25 @@ export function WorkflowBuilder({
           />
         </div>
 
-        {/* Error Dialog */}
-        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <Dialog
+          open={errorDialogState.open}
+          onOpenChange={(open) =>
+            setErrorDialogState((prev) => ({ ...prev, open }))
+          }
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Workflow Execution Error</DialogTitle>
-              <DialogDescription>{errorMessage}</DialogDescription>
+              <DialogDescription>{errorDialogState.message}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button onClick={() => setErrorDialogOpen(false)}>Close</Button>
+              <Button
+                onClick={() =>
+                  setErrorDialogState((prev) => ({ ...prev, open: false }))
+                }
+              >
+                Close
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

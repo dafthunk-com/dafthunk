@@ -185,8 +185,10 @@ export function EditorPage() {
           // Only check if we're in an active workflow execution
           // This was too restrictive - we still want to save if users make legitimate changes
           // during or after execution
-          if (nodes.some(node => node.data.executionState === 'executing')) {
-            console.log('Workflow is executing, but still saving legitimate changes');
+          if (nodes.some((node) => node.data.executionState === "executing")) {
+            console.log(
+              "Workflow is executing, but still saving legitimate changes"
+            );
           }
 
           // Convert ReactFlow nodes back to workflow nodes
@@ -259,7 +261,7 @@ export function EditorPage() {
             return;
           }
 
-          console.log('Saving workflow:', id);
+          console.log("Saving workflow:", id);
           await workflowService.save(id, workflowToSave);
         } catch (_) {
           // Error handling without logging

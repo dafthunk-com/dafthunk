@@ -38,33 +38,39 @@ export function useWorkflowState({
   // Helper functions
   const stripExecutionFields = useCallback((data: WorkflowNodeData) => {
     const { executionState, error, ...rest } = data;
-    
+
     return {
       ...rest,
-      outputs: data.outputs.map(({ value, isConnected, ...outputRest }) => outputRest),
-      inputs: data.inputs.map(({ isConnected, ...inputRest }) => inputRest)
+      outputs: data.outputs.map(
+        ({ value, isConnected, ...outputRest }) => outputRest
+      ),
+      inputs: data.inputs.map(({ isConnected, ...inputRest }) => inputRest),
     };
   }, []);
 
-  const stripEdgeExecutionFields = useCallback((data: WorkflowEdgeData = {}) => {
-    const { isActive, ...rest } = data;
-    return rest;
-  }, []);
+  const stripEdgeExecutionFields = useCallback(
+    (data: WorkflowEdgeData = {}) => {
+      const { isActive, ...rest } = data;
+      return rest;
+    },
+    []
+  );
 
   // Effect to notify parent of changes for nodes
   useEffect(() => {
-    const hasNonExecutionChanges = nodes.some(node => {
-      const initialNode = initialNodes.find(n => n.id === node.id);
+    const hasNonExecutionChanges = nodes.some((node) => {
+      const initialNode = initialNodes.find((n) => n.id === node.id);
       if (!initialNode) return true;
 
       if (
-        node.position.x !== initialNode.position.x || 
+        node.position.x !== initialNode.position.x ||
         node.position.y !== initialNode.position.y
-      ) return true;
+      )
+        return true;
 
       const nodeData = stripExecutionFields(node.data);
       const initialNodeData = stripExecutionFields(initialNode.data);
-      
+
       return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
     });
 
@@ -75,8 +81,8 @@ export function useWorkflowState({
 
   // Effect to notify parent of changes for edges
   useEffect(() => {
-    const hasNonExecutionChanges = edges.some(edge => {
-      const initialEdge = initialEdges.find(e => e.id === edge.id);
+    const hasNonExecutionChanges = edges.some((edge) => {
+      const initialEdge = initialEdges.find((e) => e.id === edge.id);
       if (!initialEdge) return true;
 
       if (
@@ -84,11 +90,12 @@ export function useWorkflowState({
         edge.target !== initialEdge.target ||
         edge.sourceHandle !== initialEdge.sourceHandle ||
         edge.targetHandle !== initialEdge.targetHandle
-      ) return true;
+      )
+        return true;
 
       const edgeData = stripEdgeExecutionFields(edge.data);
       const initialEdgeData = stripEdgeExecutionFields(initialEdge.data);
-      
+
       return JSON.stringify(edgeData) !== JSON.stringify(initialEdgeData);
     });
 
@@ -206,10 +213,11 @@ export function useWorkflowState({
       setEdges((eds) => {
         // Remove existing edges with same target input
         const filteredEdges = eds.filter(
-          (edge) => !(
-            edge.target === connection.target &&
-            edge.targetHandle === connection.targetHandle
-          )
+          (edge) =>
+            !(
+              edge.target === connection.target &&
+              edge.targetHandle === connection.targetHandle
+            )
         );
 
         // Reset all z-indices and add new edge
@@ -260,7 +268,7 @@ export function useWorkflowState({
   const updateNodeExecutionState = useCallback(
     (nodeId: string, state: NodeExecutionState) => {
       setNodes((nds) =>
-        nds.map((node) => 
+        nds.map((node) =>
           node.id === nodeId
             ? {
                 ...node,
@@ -317,7 +325,7 @@ export function useWorkflowState({
   const updateNodeExecutionOutputs = useCallback(
     (nodeId: string, outputs: Record<string, any>) => {
       setNodes((nds) =>
-        nds.map((node) => 
+        nds.map((node) =>
           node.id === nodeId
             ? {
                 ...node,
@@ -339,7 +347,7 @@ export function useWorkflowState({
   const updateNodeExecutionError = useCallback(
     (nodeId: string, error: string | undefined) => {
       setNodes((nds) =>
-        nds.map((node) => 
+        nds.map((node) =>
           node.id === nodeId
             ? {
                 ...node,
@@ -358,7 +366,7 @@ export function useWorkflowState({
   const updateNodeData = useCallback(
     (nodeId: string, data: Partial<WorkflowNodeData>) => {
       setNodes((nds) =>
-        nds.map((node) => 
+        nds.map((node) =>
           node.id === nodeId
             ? {
                 ...node,
@@ -379,12 +387,13 @@ export function useWorkflowState({
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id !== nodeId) return node;
-          
+
           const updatedOutputs = node.data.outputs.map((output) => ({
             ...output,
-            value: outputs[output.id] !== undefined 
-              ? outputs[output.id] 
-              : output.value,
+            value:
+              outputs[output.id] !== undefined
+                ? outputs[output.id]
+                : output.value,
           }));
 
           return {
@@ -403,7 +412,7 @@ export function useWorkflowState({
   const updateEdgeData = useCallback(
     (edgeId: string, data: Partial<WorkflowEdgeData>) => {
       setEdges((eds) =>
-        eds.map((edge) => 
+        eds.map((edge) =>
           edge.id === edgeId
             ? {
                 ...edge,
@@ -426,7 +435,9 @@ export function useWorkflowState({
       const edgeIdsToRemove = nodeEdges.map((edge) => edge.id);
 
       if (edgeIdsToRemove.length > 0) {
-        setEdges((eds) => eds.filter((edge) => !edgeIdsToRemove.includes(edge.id)));
+        setEdges((eds) =>
+          eds.filter((edge) => !edgeIdsToRemove.includes(edge.id))
+        );
       }
 
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
