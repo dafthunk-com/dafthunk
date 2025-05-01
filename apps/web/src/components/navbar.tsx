@@ -16,10 +16,12 @@ export function NavBar({ className }: NavBarProps) {
     >
       <div className="flex items-center">
         <Link to="/" className="text-xl font-semibold">
-          <img src="/logo.svg" alt="Workflow" className="h-10" />
+          <h2>dafthunk</h2>
         </Link>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-8">
+        <Link to="/">Dashboard</Link>
+        <Link to="/docs">Docs</Link>
         <UserProfile />
       </div>
     </nav>

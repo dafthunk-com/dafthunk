@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Trash2Icon, PencilIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { PlusIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
@@ -17,17 +16,14 @@ import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { DataTable } from "@/components/workflows/data-table";
+import { columns } from "@/components/workflows/columns";
+
 export function HomePage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
@@ -36,7 +32,6 @@ export function HomePage() {
   const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
     null
   );
-  const [newWorkflowName, setNewWorkflowName] = useState("");
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -67,19 +62,15 @@ export function HomePage() {
     }
   }, [isAuthenticated, authLoading]);
 
-  const handleCreateWorkflow = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleCreateWorkflow = async (name: string) => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
 
     try {
-      const newWorkflow = await workflowService.create(newWorkflowName);
+      const newWorkflow = await workflowService.create(name);
       setWorkflows([...workflows, newWorkflow]);
-      setNewWorkflowName("");
-      setOpen(false);
       navigate(`/workflow/${newWorkflow.id}`);
     } catch (error) {
       console.error("Error creating workflow:", error);
@@ -106,21 +97,6 @@ export function HomePage() {
     }
   };
 
-  const openDeleteDialog = (e: React.MouseEvent, workflow: Workflow) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setWorkflowToDelete(workflow);
-    setDeleteDialogOpen(true);
-  };
-
-  const openRenameDialog = (e: React.MouseEvent, workflow: Workflow) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setWorkflowToRename(workflow);
-    setRenameWorkflowName(workflow.name || "");
-    setRenameDialogOpen(true);
-  };
-
   const handleRenameWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -131,7 +107,6 @@ export function HomePage() {
       const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
       await workflowService.save(workflowToRename.id, updatedWorkflow);
 
-      // Update the workflow in the list
       setWorkflows(
         workflows.map((w) =>
           w.id === workflowToRename.id ? { ...w, name: renameWorkflowName } : w
@@ -159,11 +134,7 @@ export function HomePage() {
     if (!isAuthenticated) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
-          <img
-            src="/logo.svg"
-            alt="Dafthunk – Short for Dope as F*** Thunk."
-            className="h-32 mb-8"
-          />
+          <img src="/logo.svg" alt="Dafthunk Logo" className="h-32 mb-8" />
           <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
           <p className="text-gray-500 text-lg mt-2 mb-14">
             Break it, fix it, prompt it, automatic, automatic, ...
@@ -172,7 +143,6 @@ export function HomePage() {
             <Button
               onClick={() => handleLoginClick("google")}
               className="w-full flex items-center justify-center"
-              variant="outline"
             >
               <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
               Sign in with Google
@@ -180,7 +150,6 @@ export function HomePage() {
             <Button
               onClick={() => handleLoginClick("github")}
               className="w-full flex items-center justify-center"
-              variant="outline"
             >
               <FontAwesomeIcon icon={faGithub} className="w-5 h-5 mr-2" />
               Sign in with GitHub
@@ -202,11 +171,7 @@ export function HomePage() {
     if (workflows.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full">
-          <img
-            src="/logo.svg"
-            alt="Dafthunk – Short for Dope as F*** Thunk."
-            className="h-32 mb-8"
-          />
+          <img src="/logo.svg" alt="Dafthunk Logo" className="h-32 mb-8" />
           <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
           <p className="text-gray-500 text-lg mt-2 mb-14">
             Break it, fix it, prompt it, automatic, automatic, ...
@@ -216,47 +181,27 @@ export function HomePage() {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {workflows.map((workflow) => (
-          <Link key={workflow.id} to={`/workflow/${workflow.id}`}>
-            <div className="p-4 rounded-lg border-2 bg-white hover:border-blue-500 transition-colors cursor-pointer relative group">
-              <h3 className="font-medium text-lg truncate">
-                {workflow.name || "Untitled Workflow"}
-              </h3>
-              <div className="absolute top-1/2 right-2 -translate-y-1/2 flex space-x-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={(e) => openRenameDialog(e, workflow)}
-                      className="inline-flex items-center justify-center w-10 h-10 rounded bg-gray-100 text-blue-500 hover:bg-gray-200"
-                      aria-label="Rename workflow"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Rename</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={(e) => openDeleteDialog(e, workflow)}
-                      className="inline-flex items-center justify-center w-10 h-10 rounded bg-gray-100 text-red-500 hover:bg-gray-200"
-                      aria-label="Delete workflow"
-                    >
-                      <Trash2Icon className="w-5 h-5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Delete</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </Link>
-        ))}
+      <div className="p-6">
+        <div className="flex flex-col gap-1.5 mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Workflows</h1>
+          <p className="text-muted-foreground">
+            Create, manage, and run your workflows. Break it, fix it, prompt it, automatic.
+          </p>
+        </div>
+        <DataTable
+          columns={columns}
+          data={workflows}
+          onDelete={(workflow) => {
+            setWorkflowToDelete(workflow);
+            setDeleteDialogOpen(true);
+          }}
+          onRename={(workflow) => {
+            setWorkflowToRename(workflow);
+            setRenameWorkflowName(workflow.name || "");
+            setRenameDialogOpen(true);
+          }}
+          onCreateWorkflow={handleCreateWorkflow}
+        />
       </div>
     );
   };
@@ -264,41 +209,9 @@ export function HomePage() {
   return (
     <TooltipProvider>
       <main className="h-full">
-        <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100">
-          <div className="relative h-full p-6 overflow-auto">
+        <div className="h-full overflow-hidden">
+          <div className="relative h-full overflow-auto">
             {renderContent()}
-
-            {isAuthenticated && (
-              <div className="absolute bottom-4 right-4">
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="rounded-full shadow-lg h-10 w-10 p-0">
-                      <PlusIcon className="w-6 h-6" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Workflow</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleCreateWorkflow} className="space-y-4">
-                      <div>
-                        <Label htmlFor="name">Workflow Name</Label>
-                        <Input
-                          id="name"
-                          value={newWorkflowName}
-                          onChange={(e) => setNewWorkflowName(e.target.value)}
-                          placeholder="Enter workflow name"
-                          className="mt-2"
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Create Workflow
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )}
           </div>
         </div>
 

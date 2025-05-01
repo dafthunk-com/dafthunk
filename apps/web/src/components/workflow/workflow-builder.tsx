@@ -211,7 +211,7 @@ export function WorkflowBuilder({
       >
         <div className="w-full h-full flex">
           <div
-            className={`h-full rounded-xl overflow-hidden relative ${isSidebarVisible ? "w-[calc(100%-384px)]" : "w-full"}`}
+            className={`h-full rounded-xl border border-gray-200 overflow-hidden relative ${isSidebarVisible ? "w-[calc(100%-384px)]" : "w-full"}`}
           >
             <WorkflowCanvas
               nodes={nodes}
