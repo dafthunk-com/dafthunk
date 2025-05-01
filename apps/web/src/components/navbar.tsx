@@ -17,22 +17,22 @@ export function NavBar({ className }: NavBarProps) {
       )}
     >
       <div className="flex items-center">
-        <Link to="/" className="text-xl font-semibold">
+        <Link to="/" className="text-base font-semibold">
           <h2>dafthunk</h2>
         </Link>
       </div>
       <div className="flex items-center gap-8">
         {isAuthenticated && (
           <>
-            <Link to="/">Dashboard</Link>
-            <Link to="/workflows">Workflows</Link>
+            <Link to="/dashboard" className="text-sm">Dashboard</Link>
+            <Link to="/workflows" className="text-sm">Workflows</Link>
           </>
         )}
-        <Link to="/docs">Docs</Link>
+        <Link to="/docs" className="text-sm">Docs</Link>
 
         {isAuthenticated && <UserProfile />}
 
-        {!isAuthenticated && <Link to="/login">Login</Link>}
+        {!isAuthenticated && <Link to="/login" className="text-sm">Login</Link>}
       </div>
     </nav>
   );

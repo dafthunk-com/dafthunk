@@ -7,30 +7,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
+import { useAuth } from "./authContext";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const { login } = useAuth();
+
   const handleLoginClick = async (provider: "github" | "google") => {
-    console.log("Login with", provider);
+    await login(provider);
   };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardTitle className="text-xl">Workflows no one asked for</CardTitle>
           <CardDescription>
-            Login with your Apple or Google account
+            Break it, fix it, prompt it, automatic, automatic, ...
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button
@@ -49,7 +50,6 @@ export function LoginForm({
                 </Button>
               </div>
             </div>
-          </form>
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
