@@ -7,13 +7,42 @@ import { Layout } from "./components/layout";
 import { ErrorBoundary } from "./components/error-boundary";
 import { WorkflowsPage } from "./pages/workflows";
 import { DocsPage } from "./pages/docs";
-
+import { LoginPage } from "./pages/login";
 export const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <Layout>
         <HomePage />
+      </Layout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/login",
+    element: (
+      <Layout>
+        <LoginPage />
+      </Layout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/profile",
+    element: (
+      <Layout>
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
+      </Layout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/docs",
+    element: (
+      <Layout>
+        <DocsPage />
       </Layout>
     ),
     errorElement: <ErrorBoundary />,
@@ -41,24 +70,4 @@ export const router = createBrowserRouter([
     loader: editorLoader,
     errorElement: <ErrorBoundary />,
   },
-  {
-    path: "/profile",
-    element: (
-      <Layout>
-        <ProtectedRoute>
-          <ProfilePage />
-        </ProtectedRoute>
-      </Layout>
-    ),
-    errorElement: <ErrorBoundary />,
-  },
-  {
-    path: "/docs",
-    element: (
-      <Layout>
-        <DocsPage />
-      </Layout>
-    ),
-    errorElement: <ErrorBoundary />,
-  }
 ]);

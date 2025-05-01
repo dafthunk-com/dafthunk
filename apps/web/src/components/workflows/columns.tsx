@@ -1,13 +1,13 @@
-import { ColumnDef } from "@tanstack/react-table"
-import { Workflow } from "@dafthunk/types"
-import { Button } from "@/components/ui/button"
-import { PencilIcon, Trash2Icon, ArrowUpDown } from "lucide-react"
+import { ColumnDef } from "@tanstack/react-table";
+import { Workflow } from "@dafthunk/types";
+import { Button } from "@/components/ui/button";
+import { PencilIcon, Trash2Icon, ArrowUpDown } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const columns: ColumnDef<Workflow>[] = [
   {
@@ -44,17 +44,17 @@ export const columns: ColumnDef<Workflow>[] = [
           Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
     cell: ({ row }) => {
-      const name = row.getValue("name") as string
-      return <div className="font-medium">{name || "Untitled Workflow"}</div>
+      const name = row.getValue("name") as string;
+      return <div className="font-medium">{name || "Untitled Workflow"}</div>;
     },
   },
   {
     id: "actions",
     cell: ({ row, table }) => {
-      const workflow = row.original
+      const workflow = row.original;
 
       return (
         <div className="flex justify-end">
@@ -62,10 +62,10 @@ export const columns: ColumnDef<Workflow>[] = [
             <TooltipTrigger asChild>
               <Button
                 onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
+                  e.preventDefault();
+                  e.stopPropagation();
                   // We'll handle this in the parent component
-                  ;(table.options.meta as any)?.onRename?.(workflow)
+                  (table.options.meta as any)?.onRename?.(workflow);
                 }}
                 variant="ghost"
                 className="h-8 w-8 p-0"
@@ -82,10 +82,10 @@ export const columns: ColumnDef<Workflow>[] = [
             <TooltipTrigger asChild>
               <Button
                 onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
+                  e.preventDefault();
+                  e.stopPropagation();
                   // We'll handle this in the parent component
-                  ;(table.options.meta as any)?.onDelete?.(workflow)
+                  (table.options.meta as any)?.onDelete?.(workflow);
                 }}
                 variant="ghost"
                 className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
@@ -98,7 +98,7 @@ export const columns: ColumnDef<Workflow>[] = [
             </TooltipContent>
           </Tooltip>
         </div>
-      )
+      );
     },
   },
-] 
+];

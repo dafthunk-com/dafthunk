@@ -1,30 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Workflow } from "@dafthunk/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
-import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faGoogle } from "@fortawesome/free-brands-svg-icons";
-import { DataTable } from "@/components/workflows/data-table";
-import { columns } from "@/components/workflows/columns";
 
 export function HomePage() {
   const { isAuthenticated, isLoading: authLoading, login } = useAuth();
-  const navigate = useNavigate();
 
   const handleLoginClick = async (provider: "github" | "google") => {
     await login(provider);
@@ -72,7 +54,9 @@ export function HomePage() {
       <div className="flex flex-col items-center justify-center h-full">
         <img src="/logo.svg" alt="Dafthunk Logo" className="h-32 mb-8" />
         <h1 className="text-3xl font-bold mb-2">Welcome to Dafthunk</h1>
-        <p className="text-muted-foreground text-lg mb-4">Your dashboard will appear here soon.</p>
+        <p className="text-muted-foreground text-lg mb-4">
+          Your dashboard will appear here soon.
+        </p>
       </div>
     );
   };
@@ -81,9 +65,7 @@ export function HomePage() {
     <TooltipProvider>
       <main className="h-full">
         <div className="h-full overflow-hidden">
-          <div className="relative h-full overflow-auto">
-            {renderContent()}
-          </div>
+          <div className="relative h-full overflow-auto">{renderContent()}</div>
         </div>
       </main>
     </TooltipProvider>

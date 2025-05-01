@@ -24,8 +24,12 @@ export function WorkflowsPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
-  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
+    null
+  );
+  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
+    null
+  );
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -147,7 +151,8 @@ export function WorkflowsPage() {
               <div className="flex flex-col gap-1.5 mb-8">
                 <h1 className="text-3xl font-bold tracking-tight">Workflows</h1>
                 <p className="text-muted-foreground">
-                  Create, manage, and run your workflows. Break it, fix it, prompt it, automatic.
+                  Create, manage, and run your workflows. Break it, fix it,
+                  prompt it, automatic.
                 </p>
               </div>
               <DataTable

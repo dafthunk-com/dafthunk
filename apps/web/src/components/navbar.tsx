@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { UserProfile } from "./user-profile";
 import { cn } from "@/utils/utils";
 import { useAuth } from "@/components/authContext";
-import { Button } from "@/components/ui/button";
 interface NavBarProps {
   className?: string;
 }
@@ -30,10 +29,10 @@ export function NavBar({ className }: NavBarProps) {
           </>
         )}
         <Link to="/docs">Docs</Link>
-        
-        {isAuthenticated &&  <UserProfile />}
 
-        {!isAuthenticated && <Link to="/">Login</Link> }
+        {isAuthenticated && <UserProfile />}
+
+        {!isAuthenticated && <Link to="/login">Login</Link>}
       </div>
     </nav>
   );

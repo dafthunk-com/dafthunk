@@ -4,7 +4,6 @@ import { AuthProvider } from "./components/authContext.tsx";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { Layout } from "./components/layout";
 import { Button } from "@/components/ui/button";
-import { Inspiration } from "./components/ui/inspiration";
 
 function FallbackErrorUI() {
   return (
@@ -34,7 +33,6 @@ function App() {
           <RouterProvider router={router} />
         </AuthProvider>
       </ReactErrorBoundary>
-      <Inspiration />
     </>
   );
 }

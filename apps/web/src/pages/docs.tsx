@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Link } from "react-router-dom";
 
 export function DocsPage() {
@@ -8,7 +14,8 @@ export function DocsPage() {
       <div className="space-y-4">
         <h1 className="text-4xl font-bold tracking-tight">Documentation</h1>
         <p className="text-lg text-muted-foreground">
-          Learn how to use dafthunk to build and manage your workflows effectively.
+          Learn how to use dafthunk to build and manage your workflows
+          effectively.
         </p>
       </div>
 
@@ -63,4 +70,4 @@ export function DocsPage() {
       </div>
     </div>
   );
-} 
+}
