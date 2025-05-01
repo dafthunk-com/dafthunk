@@ -152,7 +152,7 @@ export function DataTable<TData, TValue>({
                   className="cursor-pointer"
                   onClick={() => {
                     const workflow = row.original as any;
-                    navigate(`/workflow/${workflow.id}`);
+                    navigate(`/workflows/${workflow.id}`);
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (

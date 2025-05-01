@@ -5,6 +5,8 @@ import { ProfilePage } from "./pages/profile";
 import { ProtectedRoute } from "./components/protected-route.tsx";
 import { Layout } from "./components/layout";
 import { ErrorBoundary } from "./components/error-boundary";
+import { WorkflowsPage } from "./pages/workflows";
+import { DocsPage } from "./pages/docs";
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +19,18 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/workflow/:id",
+    path: "/workflows",
+    element: (
+      <Layout>
+        <ProtectedRoute>
+          <WorkflowsPage />
+        </ProtectedRoute>
+      </Layout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/workflows/:id",
     element: (
       <Layout>
         <ProtectedRoute>
@@ -39,4 +52,13 @@ export const router = createBrowserRouter([
     ),
     errorElement: <ErrorBoundary />,
   },
+  {
+    path: "/docs",
+    element: (
+      <Layout>
+        <DocsPage />
+      </Layout>
+    ),
+    errorElement: <ErrorBoundary />,
+  }
 ]);
