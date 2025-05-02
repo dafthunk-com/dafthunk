@@ -94,12 +94,12 @@ const TypeBadge = ({
           "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
           {
             // Dark gray for connected parameters (both input and output)
-            "bg-gray-400 text-gray-900 hover:bg-gray-500": isConnected,
+            "bg-neutral-400 text-neutral-900 hover:bg-neutral-500": isConnected,
             // Medium gray for input parameters with values
-            "bg-gray-300 text-gray-800 hover:bg-gray-400":
+            "bg-neutral-300 text-neutral-800 hover:bg-neutral-400":
               isInput && !isConnected && hasValue,
             // Light gray for unconnected parameters
-            "bg-gray-100 text-gray-600 hover:bg-gray-200":
+            "bg-neutral-100 text-neutral-600 hover:bg-neutral-200":
               !isConnected && (!isInput || !hasValue),
           }
         )}
@@ -227,7 +227,7 @@ export const WorkflowNode = memo(
             "bg-white shadow-sm w-[200px] rounded-md border-[1px] transition-colors overflow-hidden",
             {
               "border-blue-500": selected,
-              "border-gray-300": !selected && data.executionState === "idle",
+              "border-neutral-300": !selected && data.executionState === "idle",
               "border-yellow-400": data.executionState === "executing",
               "border-green-500": data.executionState === "completed",
               "border-red-500": data.executionState === "error",
@@ -237,7 +237,7 @@ export const WorkflowNode = memo(
           {/* Header */}
           <div
             className={cn(
-              "pl-2 pr-1 py-1 flex justify-between items-center border-b border-gray-200 hover:cursor-grab active:cursor-grabbing",
+              "pl-2 pr-1 py-1 flex justify-between items-center border-b border-neutral-200 hover:cursor-grab active:cursor-grabbing",
               "workflow-node-drag-handle"
             )}
           >
@@ -247,7 +247,7 @@ export const WorkflowNode = memo(
                 <TooltipTrigger asChild>
                   <button
                     onClick={handleNameClick}
-                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-blue-500 hover:bg-gray-200 nodrag"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-neutral-100 text-blue-500 hover:bg-neutral-200 nodrag"
                     aria-label="Edit node label"
                   >
                     <PencilIcon className="w-3 h-3" />
@@ -262,7 +262,7 @@ export const WorkflowNode = memo(
 
           {/* Widget */}
           {widgetConfig && nodeType && widgetComponents[nodeType] && (
-            <div className="px-3 py-2 border-b border-gray-200 nodrag">
+            <div className="px-3 py-2 border-b border-neutral-200 nodrag">
               {createElement(widgetComponents[nodeType], {
                 config: widgetConfig,
                 onChange: handleWidgetChange,
@@ -322,28 +322,30 @@ export const WorkflowNode = memo(
           {/* Output Values Section - Always visible but disabled when no outputs */}
           <div
             className={cn(
-              "px-2 py-1 border-t border-gray-200 flex items-center justify-between nodrag",
+              "px-2 py-1 border-t border-neutral-200 flex items-center justify-between nodrag",
               {
-                "cursor-pointer hover:bg-gray-50": hasOutputValues,
+                "cursor-pointer hover:bg-neutral-50": hasOutputValues,
                 "cursor-not-allowed opacity-60": !hasOutputValues,
               }
             )}
             onClick={() => hasOutputValues && setShowOutputs(!showOutputs)}
           >
-            <span className="text-xs font-medium text-gray-600">Outputs</span>
+            <span className="text-xs font-medium text-neutral-600">
+              Outputs
+            </span>
             {hasOutputValues ? (
               showOutputs ? (
-                <ChevronUp className="h-3 w-3 text-gray-500" />
+                <ChevronUp className="h-3 w-3 text-neutral-500" />
               ) : (
-                <ChevronDown className="h-3 w-3 text-gray-500" />
+                <ChevronDown className="h-3 w-3 text-neutral-500" />
               )
             ) : (
-              <ChevronDown className="h-3 w-3 text-gray-300" />
+              <ChevronDown className="h-3 w-3 text-neutral-300" />
             )}
           </div>
 
           {hasOutputValues && showOutputs && (
-            <div className="px-2 pt-1 pb-2 border-t border-gray-200 space-y-2">
+            <div className="px-2 pt-1 pb-2 border-t border-neutral-200 space-y-2">
               {data.outputs.map(
                 (output, index) =>
                   output.value !== undefined && (
@@ -386,7 +388,7 @@ export const WorkflowNode = memo(
                     >
                       {selectedInput.name}
                     </Label>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-neutral-500">
                       {selectedInput.type}
                     </span>
                   </div>
@@ -425,7 +427,7 @@ export const WorkflowNode = memo(
                         {inputValue && (
                           <button
                             onClick={handleClearValue}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                             aria-label="Clear value"
                           >
                             <XCircleIcon className="h-4 w-4" />
@@ -444,7 +446,7 @@ export const WorkflowNode = memo(
                         {inputValue && (
                           <button
                             onClick={handleClearValue}
-                            className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-2 top-2 text-neutral-400 hover:text-neutral-600"
                             aria-label="Clear value"
                           >
                             <XCircleIcon className="h-4 w-4" />
@@ -462,7 +464,7 @@ export const WorkflowNode = memo(
                         {inputValue && (
                           <button
                             onClick={handleClearValue}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                             aria-label="Clear value"
                           >
                             <XCircleIcon className="h-4 w-4" />
@@ -497,7 +499,7 @@ export const WorkflowNode = memo(
                   <Label htmlFor="label-value" className="text-sm font-medium">
                     Node Label
                   </Label>
-                  <span className="text-xs text-gray-500">string</span>
+                  <span className="text-xs text-neutral-500">string</span>
                 </div>
                 <Input
                   id="label-value"

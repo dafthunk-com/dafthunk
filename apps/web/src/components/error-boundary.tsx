@@ -17,11 +17,13 @@ export function ErrorBoundary() {
   return (
     <Layout>
       <main className="h-full">
-        <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="h-full rounded-xl border border-white overflow-hidden bg-neutral-100 dark:bg-neutral-800">
           <div className="relative h-full p-6 overflow-auto">
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-2xl font-bold">Oops! Something went wrong</h1>
-              <p className="text-gray-500 text-lg mt-2 mb-6">{errorMessage}</p>
+              <p className="text-neutral-500 text-lg mt-2 mb-6">
+                {errorMessage}
+              </p>
               <div className="flex gap-4">
                 <Button
                   variant="outline"

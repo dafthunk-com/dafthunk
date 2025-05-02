@@ -125,7 +125,7 @@ export function WorkflowsPage() {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <Spinner className="h-8 w-8" />
-        <p className="text-gray-500 mt-4">Loading workflows...</p>
+        <p className="text-neutral-500 mt-4">Loading workflows...</p>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export function WorkflowsPage() {
       <div className="flex flex-col items-center justify-center h-full">
         <img src="/logo.svg" alt="Dafthunk Logo" className="h-32 mb-8" />
         <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
-        <p className="text-gray-500 text-lg mt-2 mb-7">
+        <p className="text-neutral-500 text-lg mt-2 mb-7">
           Break it, fix it, prompt it, automatic, automatic, ...
         </p>
         <CreateWorkflowDialog onCreateWorkflow={handleCreateWorkflow} />

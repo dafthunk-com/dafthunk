@@ -23,7 +23,7 @@ export function Layout({ children, sidebar }: LayoutProps) {
             <Sidebar.SidebarInset>{children}</Sidebar.SidebarInset>
           </Sidebar.SidebarProvider>
         ) : (
-          <div className="relative flex w-full flex-1 flex-col border border-gray-200 rounded-md mx-2 mb-2 bg-background overflow-hidden">
+          <div className="relative flex w-full flex-1 flex-col border border-neutral-200 rounded-md mx-2 mb-2 bg-background overflow-hidden">
             {children}
           </div>
         )}

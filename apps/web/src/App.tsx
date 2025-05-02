@@ -13,7 +13,7 @@ function FallbackErrorUI() {
           <div className="relative h-full p-6 overflow-auto">
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-2xl font-bold">Unexpected Error</h1>
-              <p className="text-gray-500 text-lg mt-2 mb-6">
+              <p className="text-neutral-500 text-lg mt-2 mb-6">
                 Something went wrong. Please try refreshing the page.
               </p>
               <Button onClick={() => window.location.reload()}>Refresh</Button>

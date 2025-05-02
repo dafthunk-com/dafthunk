@@ -24,7 +24,7 @@ export function SliderWidget({
         onValueChange={handleValueChange}
         className={cn("py-4", compact && "py-2")}
       />
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between text-xs text-neutral-500">
         <span>{config.min}</span>
         <span>Value: {config.value}</span>
         <span>{config.max}</span>

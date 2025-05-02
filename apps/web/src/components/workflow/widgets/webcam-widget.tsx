@@ -130,7 +130,7 @@ export function WebcamWidget({
           {imageReference ? (
             <button
               onClick={clearImage}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
               aria-label="Clear image"
             >
               <X className="h-3 w-3" />
@@ -138,7 +138,7 @@ export function WebcamWidget({
           ) : (
             <button
               onClick={captureImage}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
               aria-label="Capture image"
               disabled={isUploading}
             >
@@ -147,7 +147,7 @@ export function WebcamWidget({
           )}
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">
-          <div className="relative aspect-video bg-gray-100">
+          <div className="relative aspect-video bg-neutral-100">
             {imageReference ? (
               <img
                 src={createObjectUrl(imageReference)}

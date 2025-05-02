@@ -26,11 +26,11 @@ export function WorkflowSidebar({
       )}
       {!selectedNode && !edge && (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-          <Sparkles className="w-12 h-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <Sparkles className="w-12 h-12 text-neutral-400 mb-4" />
+          <h3 className="text-lg font-medium text-neutral-900 mb-2">
             Nothing Selected
           </h3>
-          <p className="text-gray-500">
+          <p className="text-neutral-500">
             Click on a node or edge in the workflow to view and edit its
             properties.
           </p>

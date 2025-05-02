@@ -193,7 +193,7 @@ export function WorkflowNodeInspector({
                       <div className="flex items-center gap-2">
                         <span>{input.name}</span>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-neutral-500">
                         {input.type}
                       </span>
                     </div>
@@ -228,7 +228,7 @@ export function WorkflowNodeInspector({
                         {input.value !== undefined && (
                           <button
                             onClick={() => handleClearValue(input.id)}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            className="text-neutral-400 hover:text-neutral-600 transition-colors"
                             aria-label={`Clear ${input.name} value`}
                           >
                             <XCircleIcon className="h-4 w-4" />
@@ -241,7 +241,7 @@ export function WorkflowNodeInspector({
                             handleToggleVisibility(input.id)
                           }
                           aria-label={`Toggle visibility for ${input.name}`}
-                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-gray-400 hover:text-gray-600 transition-colors"
+                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 transition-colors"
                         >
                           {input.hidden ? (
                             <EyeOffIcon className="h-3 w-3" />
@@ -254,7 +254,7 @@ export function WorkflowNodeInspector({
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-gray-500">No inputs</div>
+                <div className="text-sm text-neutral-500">No inputs</div>
               )}
             </div>
           </div>
@@ -267,7 +267,7 @@ export function WorkflowNodeInspector({
                   <div key={output.id} className="text-sm space-y-1">
                     <div className="flex items-center justify-between">
                       <span>{output.name}</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-neutral-500">
                         {output.type}
                       </span>
                     </div>
@@ -275,7 +275,7 @@ export function WorkflowNodeInspector({
                   </div>
                 ))
               ) : (
-                <div className="text-sm text-gray-500">No outputs</div>
+                <div className="text-sm text-neutral-500">No outputs</div>
               )}
             </div>
           </div>

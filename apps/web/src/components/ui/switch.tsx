@@ -18,7 +18,7 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
       <div
         className={cn(
           "inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
-          props.checked ? "bg-blue-500" : "bg-gray-200",
+          props.checked ? "bg-blue-500" : "bg-neutral-200",
           className
         )}
       >

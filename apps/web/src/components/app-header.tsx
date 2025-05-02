@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Bot } from "lucide-react";
 import { UserProfile } from "@/components/user-profile";
+import { NavLink } from "./nav-link";
 
 export function AppHeader() {
   return (
@@ -12,19 +13,31 @@ export function AppHeader() {
         </Link>
       </div>
       <div className="flex items-center gap-6">
-        <nav className="flex items-center gap-6">
-          <Link to="/dashboard" className="text-sm">
+        <nav className="flex items-center gap-4">
+          <NavLink
+            to="/dashboard"
+            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 transition-colors"
+            activeClassName="bg-neutral-300/50 text-neutral-900 hover:bg-neutral-300/50"
+          >
             Dashboard
-          </Link>
-          <Link to="/workflows/playground" className="text-sm">
+          </NavLink>
+          <NavLink
+            to="/workflows/playground"
+            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 transition-colors"
+            activeClassName="bg-neutral-300/50 text-neutral-900 hover:bg-neutral-300/50"
+          >
             Workflows
-          </Link>
-          <Link to="/agents" className="text-sm">
+          </NavLink>
+          {/* <Link to="/agents" className="text-sm">
             Agents
-          </Link>
-          <Link to="/docs" className="text-sm">
+          </Link> */}
+          <NavLink
+            to="/docs"
+            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 transition-colors"
+            activeClassName="bg-neutral-300/50 text-neutral-900 hover:bg-neutral-300/50"
+          >
             Docs
-          </Link>
+          </NavLink>
         </nav>
         <UserProfile />
       </div>

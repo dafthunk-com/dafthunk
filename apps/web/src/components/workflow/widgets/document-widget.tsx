@@ -90,8 +90,8 @@ export function DocumentWidget({
           {fileName ? (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center space-x-2 min-w-0">
-                <File className="h-4 w-4 flex-shrink-0 text-gray-500" />
-                <span className="text-sm text-gray-700 truncate">
+                <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+                <span className="text-sm text-neutral-700 truncate">
                   {fileName}
                 </span>
               </div>
@@ -107,8 +107,8 @@ export function DocumentWidget({
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center space-y-2">
-              <Upload className="h-8 w-8 text-gray-400" />
-              <div className="text-sm text-gray-500 text-center">
+              <Upload className="h-8 w-8 text-neutral-400" />
+              <div className="text-sm text-neutral-500 text-center">
                 <label
                   htmlFor="document-upload"
                   className={cn(

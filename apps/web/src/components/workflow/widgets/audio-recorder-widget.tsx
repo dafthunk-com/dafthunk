@@ -126,7 +126,7 @@ export function AudioRecorderWidget({
           {audioReference ? (
             <button
               onClick={clearRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
               aria-label="Clear recording"
               disabled={isUploading}
             >
@@ -144,7 +144,7 @@ export function AudioRecorderWidget({
           ) : (
             <button
               onClick={startRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
               aria-label="Start recording"
               disabled={isUploading}
             >
@@ -153,7 +153,7 @@ export function AudioRecorderWidget({
           )}
         </div>
         <div className="border rounded-lg overflow-hidden bg-white">
-          <div className="relative h-24 bg-gray-100">
+          <div className="relative h-24 bg-neutral-100">
             {audioReference ? (
               <audio
                 src={createObjectUrl(audioReference)}
@@ -168,7 +168,7 @@ export function AudioRecorderWidget({
                     <span className="text-sm">Recording...</span>
                   </div>
                 ) : (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-neutral-500">
                     Click to start recording
                   </span>
                 )}

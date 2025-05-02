@@ -39,7 +39,7 @@ export function ProfilePage() {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <Spinner className="h-8 w-8" />
-        <p className="text-gray-500 mt-4">Loading profile...</p>
+        <p className="text-neutral-500 mt-4">Loading profile...</p>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export function ProfilePage() {
 
   return (
     <main className="h-full">
-      <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="h-full rounded-xl border border-white overflow-hidden bg-neutral-100 dark:bg-neutral-800">
         <div className="relative h-full p-6 overflow-auto">
           <div className="max-w-2xl mx-auto">
             <Card>
@@ -79,40 +79,40 @@ export function ProfilePage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2 text-gray-500" />
+                    <User className="h-4 w-4 mr-2 text-neutral-500" />
                     <div>
                       <p className="text-sm font-medium">Name</p>
-                      <p className="text-sm text-gray-500">{user.name}</p>
+                      <p className="text-sm text-neutral-500">{user.name}</p>
                     </div>
                   </div>
 
                   {user.email && (
                     <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                      <Mail className="h-4 w-4 mr-2 text-neutral-500" />
                       <div>
                         <p className="text-sm font-medium">Email</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="text-sm text-neutral-500">{user.email}</p>
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center">
-                    <KeyRound className="h-4 w-4 mr-2 text-gray-500" />
+                    <KeyRound className="h-4 w-4 mr-2 text-neutral-500" />
                     <div>
                       <p className="text-sm font-medium">
                         Authentication Provider
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-neutral-500">
                         {formatProviderName(user.provider)}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center">
-                    <UserCog className="h-4 w-4 mr-2 text-gray-500" />
+                    <UserCog className="h-4 w-4 mr-2 text-neutral-500" />
                     <div>
                       <p className="text-sm font-medium">Role</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-neutral-500">
                         {formatRoleName(user.role)}
                       </p>
                     </div>
@@ -122,7 +122,7 @@ export function ProfilePage() {
                     <Crown className="h-4 w-4 mr-2" />
                     <div>
                       <p className="text-sm font-medium">Subscription Plan</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-neutral-500">
                         {formatPlanName(user.plan)}
                       </p>
                     </div>

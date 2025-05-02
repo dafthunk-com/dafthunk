@@ -51,7 +51,7 @@ function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
     cancelled: {
       icon: <Play className="w-6 h-6" />,
       title: "Restart Workflow",
-      className: "bg-gray-600 hover:bg-gray-700",
+      className: "bg-neutral-600 hover:bg-neutral-700",
     },
     paused: {
       icon: <Play className="w-6 h-6" />,
@@ -138,7 +138,7 @@ export function WorkflowCanvas({
       onInit={onInit}
       isValidConnection={isValidConnection}
       fitView
-      className="bg-gray-100/50"
+      className="bg-neutral-100/50"
     >
       {showControls && (
         <Controls

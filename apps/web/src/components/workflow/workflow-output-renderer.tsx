@@ -71,7 +71,7 @@ const ImageRenderer = ({
     <img
       src={objectUrl}
       alt={`${output.name} output`}
-      className="w-full rounded-md border border-gray-200"
+      className="w-full rounded-md border border-neutral-200"
       onError={(e) => {
         console.error("Error loading image:", e);
         e.currentTarget.style.display = "none";
@@ -120,7 +120,7 @@ const DocumentRenderer = ({
     return (
       <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-gray-500">PDF Document</span>
+          <span className="text-xs text-neutral-500">PDF Document</span>
           <a
             href={objectUrl}
             target="_blank"
@@ -132,7 +132,7 @@ const DocumentRenderer = ({
         </div>
         <iframe
           src={objectUrl}
-          className={`w-full rounded-md border border-gray-200 ${compact ? "h-32" : "h-64"}`}
+          className={`w-full rounded-md border border-neutral-200 ${compact ? "h-32" : "h-64"}`}
         />
       </div>
     );
@@ -142,7 +142,7 @@ const DocumentRenderer = ({
     return (
       <div className={compact ? "mt-1 relative" : "mt-2 relative"}>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-gray-500">Document (Image)</span>
+          <span className="text-xs text-neutral-500">Document (Image)</span>
           <a
             href={objectUrl}
             target="_blank"
@@ -155,7 +155,7 @@ const DocumentRenderer = ({
         <img
           src={objectUrl}
           alt={`${output.name} document`}
-          className="w-full rounded-md border border-gray-200"
+          className="w-full rounded-md border border-neutral-200"
         />
       </div>
     );
@@ -189,7 +189,7 @@ const BinaryRenderer = ({
   <div
     className={
       compact
-        ? "text-xs text-gray-500 p-1 mt-1 flex justify-between items-center"
+        ? "text-xs text-neutral-500 p-1 mt-1 flex justify-between items-center"
         : "relative w-full p-2 flex items-center justify-between rounded-lg border border-border bg-muted"
     }
   >
@@ -218,7 +218,7 @@ const TextRenderer = ({
   <div
     className={
       compact
-        ? "text-xs p-1 mt-1 bg-gray-50 rounded border border-gray-200"
+        ? "text-xs p-1 mt-1 bg-neutral-50 rounded border border-neutral-200"
         : "w-full p-2 bg-muted rounded-md border border-border"
     }
   >
