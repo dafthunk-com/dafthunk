@@ -4,6 +4,7 @@ import { AuthProvider } from "./components/authContext.tsx";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { Layout } from "./components/layout";
 import { Button } from "@/components/ui/button";
+import { ThemeProvider } from "@/components/theme-provider";
 
 function FallbackErrorUI() {
   return (
@@ -28,11 +29,13 @@ function FallbackErrorUI() {
 function App() {
   return (
     <>
-      <ReactErrorBoundary FallbackComponent={FallbackErrorUI}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
-      </ReactErrorBoundary>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <ReactErrorBoundary FallbackComponent={FallbackErrorUI}>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </ReactErrorBoundary>
+      </ThemeProvider>
     </>
   );
 }

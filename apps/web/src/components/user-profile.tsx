@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User } from "lucide-react";
+import { CircleUserRound, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAvatarUrl, getInitials } from "@/utils/userUtils";
 
@@ -48,13 +48,13 @@ export function UserProfile() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="cursor-pointer">
           <Link to="/profile" className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
+            <CircleUserRound className="mr-2 size-4 text-muted-foreground" />
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="mr-2 size-4 text-muted-foreground" />
           <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -33,7 +33,7 @@ export function NavMain({ title, items }: NavMainProps) {
           <SidebarMenuButton
             tooltip={title}
             onClick={toggleSidebar}
-            className="hover:bg-neutral-200/50 transition-colors mb-1"
+            className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mb-1"
           >
             <PanelLeft />
             <span
@@ -51,16 +51,16 @@ export function NavMain({ title, items }: NavMainProps) {
             <SidebarMenuButton
               asChild
               tooltip={item.title}
-              className="hover:bg-neutral-200/50 transition-colors"
+              className="hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
             >
               <NavLink
                 to={item.url}
-                activeClassName="[&>span]:text-foreground bg-neutral-300/50 hover:bg-neutral-300/50 focus:bg-neutral-300/50 active:bg-neutral-300/50"
+                activeClassName="[&>span]:!text-foreground bg-neutral-300/50 dark:bg-neutral-600/50 hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 focus:bg-neutral-300/50 dark:focus:bg-neutral-600/50 active:bg-neutral-300/50 dark:active:bg-neutral-600/50"
               >
                 {item.icon && <item.icon />}
                 <span
                   className={cn(
-                    "text-sm transition-opacity text-neutral-600",
+                    "text-sm transition-opacity text-neutral-600 dark:text-neutral-400",
                     open ? "opacity-100" : "opacity-0"
                   )}
                 >

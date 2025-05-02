@@ -133,7 +133,11 @@ export function WorkflowsPage() {
   if (workflows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <img src="/logo.svg" alt="Dafthunk Logo" className="h-32 mb-8" />
+        <img
+          src="/logo.svg"
+          alt="Dafthunk Logo"
+          className="h-32 mb-8 dark:invert"
+        />
         <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
         <p className="text-neutral-500 text-lg mt-2 mb-7">
           Break it, fix it, prompt it, automatic, automatic, ...

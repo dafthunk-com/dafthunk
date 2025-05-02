@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { AppSidebar } from "@/components/workflows-sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import * as Sidebar from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/app-header";
 import { NavMainProps } from "@/components/nav-main";
@@ -23,7 +23,7 @@ export function Layout({ children, sidebar }: LayoutProps) {
             <Sidebar.SidebarInset>{children}</Sidebar.SidebarInset>
           </Sidebar.SidebarProvider>
         ) : (
-          <div className="relative flex w-full flex-1 flex-col border border-neutral-200 rounded-md mx-2 mb-2 bg-background overflow-hidden">
+          <div className="relative flex w-full flex-1 flex-col border rounded-md mx-2 mb-2 bg-background overflow-hidden">
             {children}
           </div>
         )}
