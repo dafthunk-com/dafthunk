@@ -21,7 +21,7 @@ const pageVariants = {
   animate: {
     opacity: 1,
     transition: {
-      duration: 0.1,
+      duration: 0.2,
       ease: "easeInOut",
     },
   },
@@ -41,24 +41,26 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
     <div className="flex h-screen w-screen overflow-hidden flex-col">
       <AppHeader />
       <div className="flex flex-1 overflow-hidden">
-        <AnimatePresence mode="wait">
-          {sidebar ? (
-            <Sidebar.SidebarProvider key={`provider-${location.pathname}`}>
-              <AppSidebar title={sidebar.title} items={sidebar.items} />
-              <Sidebar.SidebarInset>
+        {sidebar ? (
+          <Sidebar.SidebarProvider>
+            <AppSidebar title={sidebar.title} items={sidebar.items} />
+            <Sidebar.SidebarInset>
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={`sidebar-content-${location.pathname}`}
                   variants={pageVariants}
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  className="h-full w-full"
+                  className="h-full w-full overflow-y-auto"
                 >
                   {children}
                 </motion.div>
-              </Sidebar.SidebarInset>
-            </Sidebar.SidebarProvider>
-          ) : (
+              </AnimatePresence>
+            </Sidebar.SidebarInset>
+          </Sidebar.SidebarProvider>
+        ) : (
+          <AnimatePresence mode="wait">
             <motion.div
               key={`no-sidebar-content-${location.pathname}`}
               variants={pageVariants}
@@ -69,8 +71,8 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
             >
               {children}
             </motion.div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );
