@@ -47,7 +47,7 @@ import { StringTemplateNode } from "./text/stringTemplateNode";
 import { TextAreaNode } from "./text/textAreaNode";
 import { ToMarkdownNode } from "./document/toMarkdownNode";
 import { TwilioSmsNode } from "./text/twilioSmsNode";
-import { SendgridEmailNode as EmailNode } from "./text/sendgridEmailNode";
+import { SendgridEmailNode } from "./text/sendgridEmailNode";
 import { HttpRequestNode } from "./net/httpRequestNode";
 import { CloudflareBrowserContentNode } from "./net/cloudflareBrowserContentNode";
 import { CloudflareBrowserScreenshotNode } from "./net/cloudflareBrowserScreenshotNode";
@@ -151,7 +151,7 @@ export class NodeRegistry {
 
     // Sendgrid
     if (hasTwilioEmail) {
-      this.registerImplementation(EmailNode);
+      this.registerImplementation(SendgridEmailNode);
     }
   }
 

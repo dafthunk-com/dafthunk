@@ -3,8 +3,6 @@ import {
   Target,
   Logs,
   SquareTerminal,
-  Play,
-  Bot,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -12,14 +10,9 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
 const data = {
   navMain: [
     {
@@ -40,25 +33,12 @@ const data = {
   ],
 }
 
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-            >
-              <a href="#">
-                <Bot className="h-5 w-5" />
-                <span className="text-sm font-semibold">dafthunk</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+    <Sidebar collapsible="icon" className="h-full mt-12 border-none" {...props}>
       <SidebarContent>
-        
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>

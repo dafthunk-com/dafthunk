@@ -10,7 +10,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Button } from "./ui/button"
 
 export function NavMain({
   items,
@@ -25,19 +24,12 @@ export function NavMain({
 
   const { toggleSidebar } = useSidebar()
 
-
   return (
-    <SidebarGroup>
-      <SidebarMenu>
-        <SidebarMenuItem key="collapse">
-          <SidebarMenuButton onClick={toggleSidebar}>
-            <SidebarTrigger className="h-4 w-4" />
-            <span className="text-sm">Workflows</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+    <SidebarGroup className="bg-transparent">
+      <SidebarMenu className="bg-transparent">
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild tooltip={item.title}>
+            <SidebarMenuButton asChild tooltip={item.title} className="hover:bg-transparent">
               <a href={item.url}>
                 {item.icon && <item.icon />}
                 <span className="text-sm">{item.title}</span>

@@ -440,7 +440,7 @@ export function EditorPage() {
 
   return (
     <ReactFlowProvider>
-      <div className="h-full w-full flex flex-col relative p-4">
+      <div className="h-full w-full flex flex-col relative">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <div className="text-center">
