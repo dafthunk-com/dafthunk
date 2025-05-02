@@ -11,7 +11,6 @@ import {
   ColumnFiltersState,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
 
 import {
   Table,
@@ -22,15 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { CreateWorkflowDialog } from "./create-workflow-dialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -51,8 +42,6 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [open, setOpen] = useState(false);
-  const [newWorkflowName, setNewWorkflowName] = useState("");
 
   const table = useReactTable({
     data,
@@ -74,15 +63,6 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const handleCreateWorkflow = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onCreateWorkflow) {
-      await onCreateWorkflow(newWorkflowName);
-      setNewWorkflowName("");
-      setOpen(false);
-    }
-  };
-
   return (
     <div>
       <div className="flex items-center justify-between py-4">
@@ -94,34 +74,9 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="ml-4">
-              <PlusIcon className="mr-2 h-4 w-4" />
-              New Workflow
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Workflow</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateWorkflow} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Workflow Name</Label>
-                <Input
-                  id="name"
-                  value={newWorkflowName}
-                  onChange={(e) => setNewWorkflowName(e.target.value)}
-                  placeholder="Enter workflow name"
-                  className="mt-2"
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Create Workflow
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {onCreateWorkflow && (
+          <CreateWorkflowDialog onCreateWorkflow={onCreateWorkflow} />
+        )}
       </div>
       <div className="rounded-md border">
         <Table>
@@ -152,7 +107,7 @@ export function DataTable<TData, TValue>({
                   className="cursor-pointer"
                   onClick={() => {
                     const workflow = row.original as any;
-                    navigate(`/workflows/${workflow.id}`);
+                    navigate(`/workflows/playground/${workflow.id}`);
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (

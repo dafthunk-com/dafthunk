@@ -14,7 +14,7 @@ export function WorkflowSidebar({
   const selectedNode = useMemo(() => node, [node]);
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto border-s">
       {selectedNode && (
         <WorkflowNodeInspector
           node={selectedNode}

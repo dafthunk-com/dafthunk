@@ -138,7 +138,7 @@ export function WorkflowCanvas({
       onInit={onInit}
       isValidConnection={isValidConnection}
       fitView
-      className="bg-gray-100"
+      className="bg-gray-100/50"
     >
       {showControls && (
         <Controls

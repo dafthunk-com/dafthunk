@@ -79,7 +79,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/workflows/editor/:id",
+    path: "/workflows/playground/:id",
     element: (
       <Layout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
         <ProtectedRoute>

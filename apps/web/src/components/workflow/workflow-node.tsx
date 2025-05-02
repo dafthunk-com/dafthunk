@@ -224,7 +224,7 @@ export const WorkflowNode = memo(
       <TooltipProvider>
         <div
           className={cn(
-            "bg-white shadow-sm w-[200px] rounded-lg border-[1px] transition-colors overflow-hidden",
+            "bg-white shadow-sm w-[200px] rounded-md border-[1px] transition-colors overflow-hidden",
             {
               "border-blue-500": selected,
               "border-gray-300": !selected && data.executionState === "idle",
