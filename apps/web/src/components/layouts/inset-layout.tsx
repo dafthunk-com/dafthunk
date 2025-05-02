@@ -1,17 +1,19 @@
-import { ReactNode } from "react";
+import { HTMLAttributes, ReactNode } from "react";
 
-interface InsetLayoutProps {
-  title: string;
+interface InsetLayoutProps extends HTMLAttributes<HTMLDivElement> {
+  title?: string;
   children: ReactNode;
 }
 
-export function InsetLayout({ title, children }: InsetLayoutProps) {
+export function InsetLayout({ title, children, ...props }: InsetLayoutProps) {
   return (
     <main className="h-full">
-      <div className="h-full overflow-hidden">
-        <div className="flex justify-between items-center mb-2 border-b px-6 py-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        </div>
+      <div className="h-full overflow-hidden" {...props}>
+        {title && (
+          <div className="flex justify-between items-center mb-2 border-b px-6 py-2">
+            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          </div>
+        )}
         <div className="px-6 py-4">{children}</div>
       </div>
     </main>

@@ -11,6 +11,7 @@ import { ExecutionsPage } from "./pages/executions.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
 import { ApiKeysPage } from "./pages/api-keys";
+import { NotFoundPage } from "./pages/not-found.tsx";
 import {
   SquareTerminal,
   Target,
@@ -171,6 +172,15 @@ export const router = createBrowserRouter([
         <ProtectedRoute>
           <ApiKeysPage />
         </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "*",
+    element: (
+      <AppLayout>
+        <NotFoundPage />
       </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
