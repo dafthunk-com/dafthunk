@@ -10,7 +10,14 @@ import { DeploymentsPage } from "./pages/deployments.tsx";
 import { ExecutionsPage } from "./pages/executions.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
-import { SquareTerminal, Target, Logs } from "lucide-react";
+import { ApiKeysPage } from "./pages/api-keys";
+import {
+  SquareTerminal,
+  Target,
+  Logs,
+  KeyRound,
+  HelpCircle,
+} from "lucide-react";
 
 const workflowsSidebarItems = [
   {
@@ -27,6 +34,19 @@ const workflowsSidebarItems = [
     title: "Executions",
     url: "/workflows/executions",
     icon: Logs,
+  },
+];
+
+const footerItems = [
+  {
+    title: "Api Keys",
+    url: "/api-keys",
+    icon: KeyRound,
+  },
+  {
+    title: "Help",
+    url: "/help",
+    icon: HelpCircle,
   },
 ];
 
@@ -72,7 +92,13 @@ export const router = createBrowserRouter([
   {
     path: "/workflows/playground",
     element: (
-      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
         <ProtectedRoute>
           <PlaygroundPage />
         </ProtectedRoute>
@@ -83,7 +109,13 @@ export const router = createBrowserRouter([
   {
     path: "/workflows/deployments",
     element: (
-      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
         <ProtectedRoute>
           <DeploymentsPage />
         </ProtectedRoute>
@@ -94,7 +126,13 @@ export const router = createBrowserRouter([
   {
     path: "/workflows/executions",
     element: (
-      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
         <ProtectedRoute>
           <ExecutionsPage />
         </ProtectedRoute>
@@ -105,13 +143,36 @@ export const router = createBrowserRouter([
   {
     path: "/workflows/playground/:id",
     element: (
-      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
         <ProtectedRoute>
           <EditorPage />
         </ProtectedRoute>
       </AppLayout>
     ),
     loader: editorLoader,
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/api-keys",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <ApiKeysPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
     errorElement: <ErrorBoundary />,
   },
 ]);

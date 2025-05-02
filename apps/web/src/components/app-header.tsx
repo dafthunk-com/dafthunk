@@ -7,7 +7,7 @@ import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
 
 export function AppHeader() {
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between gap-2 px-3">
+    <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3">
       <div className="flex items-center gap-2">
         <Link to="/" className="flex items-center gap-2">
           <Bot className="h-6 w-6" />

@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import * as Sidebar from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/app-header";
-import { NavMainProps } from "@/components/nav-main";
+import { NavMainProps } from "@/components/sidebar/nav-main";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 
@@ -11,6 +11,7 @@ interface AppLayoutProps {
   sidebar?: {
     title: string;
     items: NavMainProps["items"];
+    footerItems?: NavMainProps["footerItems"];
   };
 }
 
@@ -43,7 +44,11 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
       <div className="flex flex-1 overflow-hidden">
         {sidebar ? (
           <Sidebar.SidebarProvider>
-            <AppSidebar title={sidebar.title} items={sidebar.items} />
+            <AppSidebar
+              title={sidebar.title}
+              items={sidebar.items}
+              footerItems={sidebar.footerItems}
+            />
             <Sidebar.SidebarInset>
               <AnimatePresence mode="wait">
                 <motion.div
