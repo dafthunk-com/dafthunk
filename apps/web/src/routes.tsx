@@ -8,11 +8,35 @@ import { ErrorBoundary } from "./components/error-boundary";
 import { WorkflowsPage } from "./pages/workflows";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
+import { SquareTerminal } from "lucide-react";
+import { Target } from "lucide-react";
+import { Logs } from "lucide-react";
+
+const workflowsSidebarItems = [
+  {
+    title: "Playground",
+    url: "/workflows/playground",
+    icon: SquareTerminal,
+  },
+  {
+    title: "Deployments",
+    url: "/workflows/deployments",
+    icon: Target,
+  },
+  {
+    title: "Executions",
+    url: "/workflows/executions",
+    icon: Logs,
+  },
+];
+
 export const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <HomePage />
+      <Layout>
+        <HomePage />
+      </Layout>
     ),
     errorElement: <ErrorBoundary />,
   },
@@ -30,7 +54,9 @@ export const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: (
-      <DashboardPage />
+      <Layout>
+        <DashboardPage />
+      </Layout>
     ),
     errorElement: <ErrorBoundary />,
   },
@@ -46,7 +72,7 @@ export const router = createBrowserRouter([
   {
     path: "/workflows",
     element: (
-      <Layout>
+      <Layout sidebarTitle="Workflows" sidebarItems={workflowsSidebarItems}>
         <ProtectedRoute>
           <WorkflowsPage />
         </ProtectedRoute>
@@ -57,7 +83,7 @@ export const router = createBrowserRouter([
   {
     path: "/workflows/:id",
     element: (
-      <Layout>
+      <Layout sidebarTitle="Workflows" sidebarItems={workflowsSidebarItems}>
         <ProtectedRoute>
           <EditorPage />
         </ProtectedRoute>

@@ -9,7 +9,7 @@ function FallbackErrorUI() {
   return (
     <Layout>
       <main className="h-full">
-        <div className="h-full rounded-xl border border-white overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="h-full rounded-xl border border-white overflow-hidden">
           <div className="relative h-full p-6 overflow-auto">
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-2xl font-bold">Unexpected Error</h1>

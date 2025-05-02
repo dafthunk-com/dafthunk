@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom"
-import { Bot } from "lucide-react"
-import { UserProfile } from "@/components/user-profile"
+import { Link } from "react-router-dom";
+import { Bot } from "lucide-react";
+import { UserProfile } from "@/components/user-profile";
 
 export function AppHeader() {
   return (
@@ -13,13 +13,21 @@ export function AppHeader() {
       </div>
       <div className="flex items-center gap-6">
         <nav className="flex items-center gap-6">
-          <Link to="/dashboard" className="text-sm">Dashboard</Link>
-          <Link to="/workflows" className="text-sm">Workflows</Link>
-          <Link to="/agents" className="text-sm">Agents</Link>
-          <Link to="/docs" className="text-sm">Docs</Link>
+          <Link to="/dashboard" className="text-sm">
+            Dashboard
+          </Link>
+          <Link to="/workflows" className="text-sm">
+            Workflows
+          </Link>
+          <Link to="/agents" className="text-sm">
+            Agents
+          </Link>
+          <Link to="/docs" className="text-sm">
+            Docs
+          </Link>
         </nav>
         <UserProfile />
       </div>
     </header>
-  )
-} 
+  );
+}

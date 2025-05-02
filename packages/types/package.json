@@ -5,6 +5,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "files": [
     "dist/**"
   ],
@@ -20,4 +23,4 @@
     "eslint": "^8.0.0",
     "typescript": "^5.0.0"
   }
-} 
+}

@@ -24,15 +24,25 @@ export function NavBar({ className }: NavBarProps) {
       <div className="flex items-center gap-8">
         {isAuthenticated && (
           <>
-            <Link to="/dashboard" className="text-sm">Dashboard</Link>
-            <Link to="/workflows" className="text-sm">Workflows</Link>
+            <Link to="/dashboard" className="text-sm">
+              Dashboard
+            </Link>
+            <Link to="/workflows" className="text-sm">
+              Workflows
+            </Link>
           </>
         )}
-        <Link to="/docs" className="text-sm">Docs</Link>
+        <Link to="/docs" className="text-sm">
+          Docs
+        </Link>
 
         {isAuthenticated && <UserProfile />}
 
-        {!isAuthenticated && <Link to="/login" className="text-sm">Login</Link>}
+        {!isAuthenticated && (
+          <Link to="/login" className="text-sm">
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );

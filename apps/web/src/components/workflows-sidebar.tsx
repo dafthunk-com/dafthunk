@@ -1,50 +1,33 @@
-import * as React from "react"
-import {
-  Target,
-  Logs,
-  SquareTerminal,
-} from "lucide-react"
+import * as React from "react";
+import { LucideIcon } from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
+import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-const data = {
-  navMain: [
-    {
-      title: "Playground",
-      url: "/workflows/playground",
-      icon: SquareTerminal,
-    },
-    {
-      title: "Deployments",
-      url: "/workflows/deployments",
-      icon: Target,
-    },
-    {
-      title: "Executions",
-      url: "/workflows/executions",
-      icon: Logs,
-    },
-  ],
+export interface AppSidebarItem {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
 }
 
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  title: string;
+  items: AppSidebarItem[];
+}
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-
+export function AppSidebar({ title, items, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" className="h-full mt-12 border-none" {...props}>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={items} title={title} />
       </SidebarContent>
-      <SidebarFooter>
-        {/* Footer content */}
-      </SidebarFooter>
+      <SidebarFooter>{/* Footer content */}</SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

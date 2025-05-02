@@ -1,25 +1,24 @@
 import { ReactNode } from "react";
-import { AppSidebar } from "@/components/workflows-sidebar"
-import * as sidebar from "@/components/ui/sidebar"
-import { AppHeader } from "@/components/app-header"
+import { AppSidebar, AppSidebarItem } from "@/components/workflows-sidebar";
+import * as sidebar from "@/components/ui/sidebar";
+import { AppHeader } from "@/components/app-header";
 
 interface LayoutProps {
   children: ReactNode;
+  sidebarTitle?: string;
+  sidebarItems?: AppSidebarItem[];
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, sidebarTitle, sidebarItems }: LayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-gray-100">
+    <div className="flex h-screen w-screen overflow-hidden flex-col">
       <AppHeader />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1">
         <sidebar.SidebarProvider>
-          <AppSidebar />
-          <sidebar.SidebarInset>
-            {children}
-          </sidebar.SidebarInset>
+          <AppSidebar title={sidebarTitle ?? ""} items={sidebarItems ?? []} />
+          <sidebar.SidebarInset>{children}</sidebar.SidebarInset>
         </sidebar.SidebarProvider>
       </div>
     </div>
-  )
+  );
 }
-
