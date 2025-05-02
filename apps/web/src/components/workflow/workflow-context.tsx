@@ -1,12 +1,12 @@
 import { createContext, useContext, ReactNode } from "react";
 import {
-  WorkflowNodeData,
-  WorkflowEdgeData,
+  WorkflowNodeType,
+  WorkflowEdgeType,
   WorkflowParameter,
 } from "./workflow-types";
 
-type UpdateNodeFn = (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-type UpdateEdgeFn = (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+type UpdateNodeFn = (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+type UpdateEdgeFn = (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
 
 export interface WorkflowContextProps {
   updateNodeData: UpdateNodeFn;

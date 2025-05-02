@@ -1,15 +1,15 @@
-import { Node as ReactFlowNode, XYPosition } from "reactflow";
+import { Node as ReactFlowNode, XYPosition } from "@xyflow/react";
 import { API_BASE_URL } from "../config/api";
 import { Node, NodeType } from "@dafthunk/types";
 import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
-import { WorkflowNodeData } from "@/components/workflow/workflow-types";
+import { WorkflowNodeType } from "@/components/workflow/workflow-types";
 
 /**
  * Converts domain nodes to ReactFlow compatible nodes
  */
 export function convertToReactFlowNodes(
   nodes: readonly Node[]
-): readonly ReactFlowNode<WorkflowNodeData>[] {
+): readonly ReactFlowNode<WorkflowNodeType>[] {
   return nodes.map((node) => ({
     id: node.id,
     type: "workflowNode",

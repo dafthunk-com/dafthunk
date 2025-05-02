@@ -1,5 +1,5 @@
 import { memo, useState, useEffect, createElement } from "react";
-import { Handle, Position } from "reactflow";
+import { Handle, Position } from "@xyflow/react";
 import { cn } from "@/utils/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
@@ -40,7 +40,7 @@ import {
 import { createWidgetConfig } from "./widgets/widget-factory";
 import { WorkflowParameter, NodeExecutionState } from "./workflow-types";
 
-export interface WorkflowNodeData {
+export interface WorkflowNodeType {
   name: string;
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
@@ -117,7 +117,7 @@ export const WorkflowNode = memo(
     selected,
     id,
   }: {
-    data: WorkflowNodeData;
+    data: WorkflowNodeType;
     selected?: boolean;
     id: string;
   }) => {

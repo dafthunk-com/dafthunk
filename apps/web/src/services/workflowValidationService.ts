@@ -1,5 +1,5 @@
 import { Workflow, Node } from "@dafthunk/types";
-import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "reactflow";
+import { Node as ReactFlowNode, Edge as ReactFlowEdge } from "@xyflow/react";
 
 type ValidationResult = {
   readonly isValid: boolean;

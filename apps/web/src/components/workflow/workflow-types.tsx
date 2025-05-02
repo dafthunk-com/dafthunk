@@ -1,14 +1,15 @@
 import {
   Connection,
   Edge as ReactFlowEdge,
-  EdgeChange,
   Node as ReactFlowNode,
-  NodeChange,
   OnConnect,
   OnConnectEnd,
   OnConnectStart,
   ReactFlowInstance,
-} from "reactflow";
+  IsValidConnection,
+  OnNodesChange,
+  OnEdgesChange,
+} from "@xyflow/react";
 import { WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
 
 // Node Types
@@ -31,7 +32,7 @@ export interface WorkflowParameter {
   required?: boolean;
 }
 
-export interface WorkflowNodeData {
+export interface WorkflowNodeType extends Record<string, unknown> {
   name: string;
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
@@ -41,7 +42,7 @@ export interface WorkflowNodeData {
 }
 
 // Edge Types
-export interface WorkflowEdgeData {
+export interface WorkflowEdgeType extends Record<string, unknown> {
   isValid?: boolean;
   isActive?: boolean;
   sourceType?: string;
@@ -63,73 +64,98 @@ export interface NodeTemplate {
 export type ConnectionValidationState = "default" | "valid" | "invalid";
 
 export interface WorkflowCanvasProps {
-  nodes: ReactFlowNode[];
-  edges: ReactFlowEdge[];
+  nodes: ReactFlowNode<WorkflowNodeType>[];
+  edges: ReactFlowEdge<WorkflowEdgeType>[];
   connectionValidationState?: ConnectionValidationState;
-  onNodesChange: (changes: NodeChange[]) => void;
-  onEdgesChange: (changes: EdgeChange[]) => void;
+  onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
+  onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
-  onNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
-  onEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
+  onNodeClick: (
+    event: React.MouseEvent,
+    node: ReactFlowNode<WorkflowNodeType>
+  ) => void;
+  onEdgeClick: (
+    event: React.MouseEvent,
+    edge: ReactFlowEdge<WorkflowEdgeType>
+  ) => void;
   onPaneClick: () => void;
-  onInit: (instance: ReactFlowInstance) => void;
+  onInit: (
+    instance: ReactFlowInstance<
+      ReactFlowNode<WorkflowNodeType>,
+      ReactFlowEdge<WorkflowEdgeType>
+    >
+  ) => void;
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
   workflowStatus?: WorkflowExecutionStatus;
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
   showControls?: boolean;
-  isValidConnection?: (connection: Connection) => boolean;
+  isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
 }
 
 // Workflow State Types
 export interface WorkflowData {
   id: string;
   name: string;
-  nodes: ReactFlowNode<WorkflowNodeData>[];
-  edges: ReactFlowEdge<WorkflowEdgeData>[];
+  nodes: ReactFlowNode<WorkflowNodeType>[];
+  edges: ReactFlowEdge<WorkflowEdgeType>[];
 }
 
 export interface UseWorkflowStateProps {
-  initialNodes?: ReactFlowNode<WorkflowNodeData>[];
-  initialEdges?: ReactFlowEdge<WorkflowEdgeData>[];
-  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeData>[]) => void;
-  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeData>[]) => void;
+  initialNodes?: ReactFlowNode<WorkflowNodeType>[];
+  initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
+  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
+  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
 }
 
 export interface UseWorkflowStateReturn {
-  nodes: ReactFlowNode<WorkflowNodeData>[];
-  edges: ReactFlowEdge<WorkflowEdgeData>[];
-  selectedNode: ReactFlowNode<WorkflowNodeData> | null;
-  selectedEdge: ReactFlowEdge<WorkflowEdgeData> | null;
-  reactFlowInstance: ReactFlowInstance | null;
+  nodes: ReactFlowNode<WorkflowNodeType>[];
+  edges: ReactFlowEdge<WorkflowEdgeType>[];
+  selectedNode: ReactFlowNode<WorkflowNodeType> | null;
+  selectedEdge: ReactFlowEdge<WorkflowEdgeType> | null;
+  reactFlowInstance: ReactFlowInstance<
+    ReactFlowNode<WorkflowNodeType>,
+    ReactFlowEdge<WorkflowEdgeType>
+  > | null;
   isNodeSelectorOpen: boolean;
   setIsNodeSelectorOpen: (open: boolean) => void;
-  onNodesChange: (changes: NodeChange[]) => void;
-  onEdgesChange: (changes: EdgeChange[]) => void;
+  onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
+  onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
   connectionValidationState: ConnectionValidationState;
-  isValidConnection: (connection: Connection) => boolean;
-  handleNodeClick: (event: React.MouseEvent, node: ReactFlowNode) => void;
-  handleEdgeClick: (event: React.MouseEvent, edge: ReactFlowEdge) => void;
+  isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
+  handleNodeClick: (
+    event: React.MouseEvent,
+    node: ReactFlowNode<WorkflowNodeType>
+  ) => void;
+  handleEdgeClick: (
+    event: React.MouseEvent,
+    edge: ReactFlowEdge<WorkflowEdgeType>
+  ) => void;
   handlePaneClick: () => void;
   handleAddNode: () => void;
   handleNodeSelect: (template: NodeTemplate) => void;
-  setReactFlowInstance: (instance: ReactFlowInstance | null) => void;
+  setReactFlowInstance: (
+    instance: ReactFlowInstance<
+      ReactFlowNode<WorkflowNodeType>,
+      ReactFlowEdge<WorkflowEdgeType>
+    > | null
+  ) => void;
   updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
   updateNodeExecutionOutputs: (
     nodeId: string,
     outputs: Record<string, any>
   ) => void;
   updateNodeExecutionError: (nodeId: string, error: string | undefined) => void;
-  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
+  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
-  updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+  updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;
 }
 
@@ -142,20 +168,20 @@ export interface WorkflowNodeSelectorProps {
 }
 
 export interface WorkflowNodeInspectorProps {
-  node: ReactFlowNode<WorkflowNodeData> | null;
-  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
+  node: ReactFlowNode<WorkflowNodeType> | null;
+  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
 }
 
 export interface WorkflowEdgeInspectorProps {
-  edge: ReactFlowEdge<WorkflowEdgeData> | null;
-  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+  edge: ReactFlowEdge<WorkflowEdgeType> | null;
+  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
 }
 
 export interface WorkflowSidebarProps {
-  node: ReactFlowNode<WorkflowNodeData> | null;
-  edge: ReactFlowEdge<WorkflowEdgeData> | null;
-  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeData>) => void;
-  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeData>) => void;
+  node: ReactFlowNode<WorkflowNodeType> | null;
+  edge: ReactFlowEdge<WorkflowEdgeType> | null;
+  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
 }
 
 export interface WorkflowErrorProps {
@@ -165,11 +191,11 @@ export interface WorkflowErrorProps {
 
 export interface WorkflowBuilderProps {
   workflowId: string;
-  initialNodes?: ReactFlowNode<WorkflowNodeData>[];
-  initialEdges?: ReactFlowEdge<WorkflowEdgeData>[];
+  initialNodes?: ReactFlowNode<WorkflowNodeType>[];
+  initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
   nodeTemplates?: NodeTemplate[];
-  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeData>[]) => void;
-  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeData>[]) => void;
+  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
+  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
   executeWorkflow?: (
     workflowId: string,
@@ -179,6 +205,6 @@ export interface WorkflowBuilderProps {
 
 export interface TypeBadgeProps {
   type: string;
-  position: import("reactflow").Position;
+  position: import("@xyflow/react").Position;
   id: string;
 }

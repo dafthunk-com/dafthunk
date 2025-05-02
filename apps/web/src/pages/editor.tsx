@@ -9,12 +9,12 @@ import {
 } from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
-import { Node, Edge, Connection } from "reactflow";
-import { ReactFlowProvider } from "reactflow";
+import { Node, Edge, Connection } from "@xyflow/react";
+import { ReactFlowProvider } from "@xyflow/react";
 import {
   NodeTemplate,
-  WorkflowNodeData,
-  WorkflowEdgeData,
+  WorkflowNodeType,
+  WorkflowEdgeType,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
@@ -66,8 +66,8 @@ export function EditorPage() {
   const [_, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [nodes, setNodes] = useState<Node<WorkflowNodeData>[]>([]);
-  const [edges, setEdges] = useState<Edge<WorkflowEdgeData>[]>([]);
+  const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
+  const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
 
@@ -174,8 +174,8 @@ export function EditorPage() {
   const debouncedSave = useCallback(
     debounce(
       async (
-        nodes: Node<WorkflowNodeData>[],
-        edges: Edge<WorkflowEdgeData>[]
+        nodes: Node<WorkflowNodeType>[],
+        edges: Edge<WorkflowEdgeType>[]
       ) => {
         if (!id) return;
 
@@ -276,7 +276,7 @@ export function EditorPage() {
 
   // Handle node changes
   const handleNodesChange = useCallback(
-    (updatedNodes: Node<WorkflowNodeData>[]) => {
+    (updatedNodes: Node<WorkflowNodeType>[]) => {
       setNodes(updatedNodes);
 
       // Only save if we have nodes to save
@@ -289,7 +289,7 @@ export function EditorPage() {
 
   // Handle edge changes
   const handleEdgesChange = useCallback(
-    (updatedEdges: Edge<WorkflowEdgeData>[]) => {
+    (updatedEdges: Edge<WorkflowEdgeType>[]) => {
       setEdges(updatedEdges);
 
       // Only trigger save if we have nodes

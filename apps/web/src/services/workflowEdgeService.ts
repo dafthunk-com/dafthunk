@@ -1,5 +1,5 @@
 import { Edge } from "@dafthunk/types";
-import { Edge as ReactFlowEdge, Connection } from "reactflow";
+import { Edge as ReactFlowEdge, Connection } from "@xyflow/react";
 
 export type ConnectionValidationResult =
   | { status: "valid" }

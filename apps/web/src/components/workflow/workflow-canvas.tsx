@@ -1,16 +1,17 @@
-import ReactFlow, {
+import {
+  ReactFlow,
   Controls,
   Background,
   BackgroundVariant,
   ConnectionMode,
-} from "reactflow";
+} from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
 import { Plus, Play, X, PanelLeftClose, PanelLeft, Square } from "lucide-react";
 import { cn } from "@/utils/utils";
-import "reactflow/dist/style.css";
+import "@xyflow/react/dist/style.css";
 import { WorkflowExecutionStatus } from "@dafthunk/types";
 
 const nodeTypes = {

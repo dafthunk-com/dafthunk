@@ -4,7 +4,7 @@ import { useWorkflowState } from "./useWorkflowState";
 import { WorkflowCanvas } from "./workflow-canvas";
 import { WorkflowBuilderProps } from "./workflow-types";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { ReactFlowProvider } from "reactflow";
+import { ReactFlowProvider } from "@xyflow/react";
 import { WorkflowProvider } from "./workflow-context";
 import {
   Dialog,

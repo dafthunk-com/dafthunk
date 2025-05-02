@@ -4,11 +4,12 @@ import {
   getSmoothStepPath,
   ConnectionLineComponentProps,
   Position,
-} from "reactflow";
+  Edge as ReactFlowEdge,
+} from "@xyflow/react";
 import { cn } from "@/utils/utils";
-import { WorkflowEdgeData } from "./workflow-types";
+import { WorkflowEdgeType } from "./workflow-types";
 
-interface WorkflowEdgeProps extends EdgeProps<WorkflowEdgeData> {
+interface WorkflowEdgeProps extends EdgeProps<ReactFlowEdge<WorkflowEdgeType>> {
   zIndex?: number;
 }
 

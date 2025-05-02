@@ -5,10 +5,12 @@ import {
   addEdge,
   getConnectedEdges,
   Node as ReactFlowNode,
-} from "reactflow";
+  Edge as ReactFlowEdge,
+  ReactFlowInstance,
+} from "@xyflow/react";
 import {
-  WorkflowNodeData,
-  WorkflowEdgeData,
+  WorkflowNodeType,
+  WorkflowEdgeType,
   NodeTemplate,
   ConnectionValidationState,
   UseWorkflowStateProps,
@@ -26,12 +28,15 @@ export function useWorkflowState({
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
   const [nodes, setNodes, onNodesChange] =
-    useNodesState<WorkflowNodeData>(initialNodes);
+    useNodesState<ReactFlowNode<WorkflowNodeType>>(initialNodes);
   const [edges, setEdges, onEdgesChange] =
-    useEdgesState<WorkflowEdgeData>(initialEdges);
+    useEdgesState<ReactFlowEdge<WorkflowEdgeType>>(initialEdges);
   const [selectedNode, setSelectedNode] = useState<any | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState<any | null>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
+    ReactFlowNode<WorkflowNodeType>,
+    ReactFlowEdge<WorkflowEdgeType>
+  > | null>(null);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
@@ -227,12 +232,12 @@ export function useWorkflowState({
     (template: NodeTemplate) => {
       if (!reactFlowInstance) return;
 
-      const position = reactFlowInstance.project({
+      const position = reactFlowInstance.screenToFlowPosition({
         x: window.innerWidth / 2,
         y: window.innerHeight / 2,
       });
 
-      const newNode: ReactFlowNode<WorkflowNodeData> = {
+      const newNode: ReactFlowNode<WorkflowNodeType> = {
         id: `${template.type}-${Date.now()}`,
         type: "workflowNode",
         position,
@@ -305,7 +310,7 @@ export function useWorkflowState({
   );
 
   const updateNodeData = useCallback(
-    (nodeId: string, data: Partial<WorkflowNodeData>) => {
+    (nodeId: string, data: Partial<WorkflowNodeType>) => {
       setNodes((nds) =>
         nds.map((node) =>
           node.id === nodeId
@@ -351,7 +356,7 @@ export function useWorkflowState({
   );
 
   const updateEdgeData = useCallback(
-    (edgeId: string, data: Partial<WorkflowEdgeData>) => {
+    (edgeId: string, data: Partial<WorkflowEdgeType>) => {
       setEdges((eds) =>
         eds.map((edge) =>
           edge.id === edgeId

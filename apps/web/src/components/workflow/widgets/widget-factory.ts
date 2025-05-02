@@ -1,4 +1,4 @@
-import { Parameter } from "../workflow-node";
+import { WorkflowParameter } from "../workflow-types";
 
 export interface SliderWidgetConfig {
   type: "slider";
@@ -108,7 +108,7 @@ export type WidgetConfig =
 
 export function createWidgetConfig(
   nodeId: string,
-  inputs: Parameter[],
+  inputs: WorkflowParameter[],
   type: string
 ): WidgetConfig | null {
   switch (type) {
