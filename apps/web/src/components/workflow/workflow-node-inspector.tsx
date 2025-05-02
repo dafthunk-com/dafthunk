@@ -152,7 +152,7 @@ export function WorkflowNodeInspector({
   };
 
   return (
-    <Card className="border-none shadow-none">
+    <Card className="border-none shadow-none rounded-none h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Node Properties</CardTitle>
       </CardHeader>
@@ -228,7 +228,7 @@ export function WorkflowNodeInspector({
                         {input.value !== undefined && (
                           <button
                             onClick={() => handleClearValue(input.id)}
-                            className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                            className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                             aria-label={`Clear ${input.name} value`}
                           >
                             <XCircleIcon className="h-4 w-4" />
@@ -241,7 +241,7 @@ export function WorkflowNodeInspector({
                             handleToggleVisibility(input.id)
                           }
                           aria-label={`Toggle visibility for ${input.name}`}
-                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 transition-colors"
+                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                         >
                           {input.hidden ? (
                             <EyeOffIcon className="h-3 w-3" />

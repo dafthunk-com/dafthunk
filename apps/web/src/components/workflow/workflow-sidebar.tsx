@@ -26,8 +26,8 @@ export function WorkflowSidebar({
       )}
       {!selectedNode && !edge && (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-          <Sparkles className="w-12 h-12 text-neutral-400 mb-4" />
-          <h3 className="text-lg font-medium text-neutral-900 mb-2">
+          <Sparkles className="w-12 h-12 text-neutral-400 dark:text-neutral-500 mb-4" />
+          <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
             Nothing Selected
           </h3>
           <p className="text-neutral-500">

@@ -49,8 +49,8 @@ const ErrorMessage = ({
   <div
     className={
       compact
-        ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1"
-        : "text-sm text-red-500 p-2 bg-red-50 rounded-md"
+        ? "text-xs text-red-500 p-1 bg-red-50 rounded-md mt-1 dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800"
+        : "text-sm text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800"
     }
   >
     {message}
@@ -71,14 +71,14 @@ const ImageRenderer = ({
     <img
       src={objectUrl}
       alt={`${output.name} output`}
-      className="w-full rounded-md border border-neutral-200"
+      className="w-full rounded-md border"
       onError={(e) => {
         console.error("Error loading image:", e);
         e.currentTarget.style.display = "none";
         e.currentTarget.nextElementSibling?.classList.remove("hidden");
       }}
     />
-    <div className="hidden text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1">
+    <div className="hidden text-sm text-red-500 p-2 bg-red-50 rounded-md mt-1 dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
       Error displaying image. The data may be corrupted.
     </div>
   </div>
@@ -132,7 +132,7 @@ const DocumentRenderer = ({
         </div>
         <iframe
           src={objectUrl}
-          className={`w-full rounded-md border border-neutral-200 ${compact ? "h-32" : "h-64"}`}
+          className={`w-full rounded-md border ${compact ? "h-32" : "h-64"}`}
         />
       </div>
     );
@@ -155,7 +155,7 @@ const DocumentRenderer = ({
         <img
           src={objectUrl}
           alt={`${output.name} document`}
-          className="w-full rounded-md border border-neutral-200"
+          className="w-full rounded-md border"
         />
       </div>
     );
@@ -190,7 +190,7 @@ const BinaryRenderer = ({
     className={
       compact
         ? "text-xs text-neutral-500 p-1 mt-1 flex justify-between items-center"
-        : "relative w-full p-2 flex items-center justify-between rounded-lg border border-border bg-muted"
+        : "relative w-full p-2 flex items-center justify-between rounded-lg border bg-secondary/50"
     }
   >
     <p className={compact ? "" : "text-sm text-muted-foreground"}>
@@ -218,8 +218,8 @@ const TextRenderer = ({
   <div
     className={
       compact
-        ? "text-xs p-1 mt-1 bg-neutral-50 rounded border border-neutral-200"
-        : "w-full p-2 bg-muted rounded-md border border-border"
+        ? "text-xs p-1 mt-1 bg-secondary/50 rounded border"
+        : "w-full p-2 bg-secondary/50 rounded-md border border-border"
     }
   >
     {value}

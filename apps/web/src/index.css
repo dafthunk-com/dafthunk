@@ -97,3 +97,11 @@
     display: unset;
   }
 }
+
+.react-flow__attribution {
+  @apply !bg-muted rounded-tl overflow-hidden !ps-1.5 border-l border-t;
+}
+
+.react-flow__attribution a {
+  @apply !text-muted-foreground;
+}

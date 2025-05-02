@@ -32,32 +32,32 @@ function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
     idle: {
       icon: <Play className="w-6 h-6" />,
       title: "Execute Workflow",
-      className: "bg-green-600 hover:bg-green-700",
+      className: "bg-green-600 hover:bg-green-700 text-white",
     },
     executing: {
       icon: <Square className="w-6 h-6" />,
       title: "Stop Execution",
-      className: "bg-red-500 hover:bg-red-600",
+      className: "bg-red-500 hover:bg-red-600 text-white",
     },
     completed: {
       icon: <X className="w-6 h-6" />,
       title: "Clear Outputs & Reset",
-      className: "bg-blue-600 hover:bg-blue-700",
+      className: "bg-blue-600 hover:bg-blue-700 text-white",
     },
     error: {
       icon: <X className="w-6 h-6" />,
       title: "Clear Errors & Reset",
-      className: "bg-yellow-600 hover:bg-yellow-700",
+      className: "bg-yellow-600 hover:bg-yellow-700 text-white",
     },
     cancelled: {
       icon: <Play className="w-6 h-6" />,
       title: "Restart Workflow",
-      className: "bg-neutral-600 hover:bg-neutral-700",
+      className: "bg-neutral-600 hover:bg-neutral-700 text-white",
     },
     paused: {
       icon: <Play className="w-6 h-6" />,
       title: "Resume Workflow",
-      className: "bg-blue-500 hover:bg-blue-600",
+      className: "bg-blue-500 hover:bg-blue-600 text-white",
     },
   };
 
@@ -152,7 +152,7 @@ export function WorkflowCanvas({
         variant={BackgroundVariant.Dots}
         gap={12}
         size={1}
-        color="#d4d4d4"
+        className="stroke-foreground/5 opacity-50"
       />
 
       {onAddNode && (
