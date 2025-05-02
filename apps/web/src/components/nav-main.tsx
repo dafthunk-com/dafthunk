@@ -1,7 +1,6 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
-
+import { type LucideIcon, PanelLeft } from "lucide-react";
 import {
   SidebarGroup,
   SidebarMenu,
@@ -9,38 +8,65 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/utils/utils";
+import { NavLink } from "./nav-link";
 
-export function NavMain({
-  title,
-  items,
-}: {
+interface NavMainItem {
   title: string;
-  items: {
-    title: string;
-    url: string;
-    icon?: LucideIcon;
-    isActive?: boolean;
-  }[];
-}) {
-  const { toggleSidebar } = useSidebar();
+  url: string;
+  icon?: LucideIcon;
+  isActive?: boolean;
+}
+
+export interface NavMainProps {
+  title: string;
+  items: NavMainItem[];
+}
+
+export function NavMain({ title, items }: NavMainProps) {
+  const { toggleSidebar, open } = useSidebar();
 
   return (
     <SidebarGroup className="bg-transparent">
       <SidebarMenu className="bg-transparent">
         <SidebarMenuItem>
-          <div className="text-sm mx-2 mb-2 font-bold">{title}</div>
+          <SidebarMenuButton
+            tooltip={title}
+            onClick={toggleSidebar}
+            className="hover:bg-gray-200/50 transition-colors mb-1"
+          >
+            <PanelLeft />
+            <span
+              className={cn(
+                "uppercase text-semibold text-xs transition-opacity",
+                open ? "opacity-100" : "opacity-0"
+              )}
+            >
+              {title}
+            </span>
+          </SidebarMenuButton>
         </SidebarMenuItem>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton
               asChild
               tooltip={item.title}
-              className="hover:bg-gray-200 transition-colors"
+              className="hover:bg-gray-200/50 transition-colors"
             >
-              <a href={item.url}>
+              <NavLink
+                to={item.url}
+                activeClassName="[&>span]:text-foreground bg-gray-300/50 hover:bg-gray-300/50 focus:bg-gray-300/50 active:bg-gray-300/50"
+              >
                 {item.icon && <item.icon />}
-                <span className="text-sm">{item.title}</span>
-              </a>
+                <span
+                  className={cn(
+                    "text-sm transition-opacity text-gray-600",
+                    open ? "opacity-100" : "opacity-0"
+                  )}
+                >
+                  {item.title}
+                </span>
+              </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

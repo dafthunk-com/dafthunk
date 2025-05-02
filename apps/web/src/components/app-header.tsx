@@ -16,7 +16,7 @@ export function AppHeader() {
           <Link to="/dashboard" className="text-sm">
             Dashboard
           </Link>
-          <Link to="/workflows" className="text-sm">
+          <Link to="/workflows/playground" className="text-sm">
             Workflows
           </Link>
           <Link to="/agents" className="text-sm">
