@@ -4,6 +4,7 @@ import { UserProfile } from "@/components/user-profile";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
+import { Logo } from "./logo";
 
 export function AppHeader() {
   return (
@@ -11,7 +12,7 @@ export function AppHeader() {
       <div className="flex items-center gap-2">
         <Link to="/" className="flex items-center gap-2">
           <Bot className="h-6 w-6" />
-          <span className="text-lg font-semibold">dafthunk</span>
+          <Logo />
         </Link>
         <AppHeaderBreadcrumb />
       </div>
