@@ -14,6 +14,7 @@ type AuthContextType = {
   readonly isLoading: boolean;
   login: (provider: AuthProvider) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAllSessions: () => Promise<void>;
   refreshUser: () => Promise<void>;
 };
 
@@ -89,6 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
   };
 
+  const logoutAllSessions = async (): Promise<void> => {
+    isAuthenticatedRef.current = false;
+    await authService.logoutAllSessions();
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -97,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         login,
         logout,
+        logoutAllSessions,
         refreshUser: refreshUserContext,
       }}
     >

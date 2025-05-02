@@ -16,8 +16,8 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 
 export function OrganizationSwitcher() {
-  const currentOrganization = "Acme Inc.";
-  const organizations = ["Acme Inc.", "Monsters Inc.", "Wayne Enterprises"];
+  const currentOrganization = "Personal";
+  const organizations = ["Personal"];
 
   const { open } = useSidebar();
 

@@ -51,7 +51,6 @@ export function EditorPage() {
   const { workflow: initialWorkflow } =
     (useLoaderData() as { workflow: Workflow } | undefined) ?? {};
   const navigate = useNavigate();
-  const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
@@ -176,8 +175,6 @@ export function EditorPage() {
         if (!id || !initialWorkflow) return;
 
         try {
-          setIsSaving(true);
-
           if (
             currentNodes.some(
               (node) => node.data.executionState === "executing"
@@ -251,8 +248,6 @@ export function EditorPage() {
           await workflowService.save(id, workflowToSave);
         } catch (error) {
           console.error("Error saving workflow:", error);
-        } finally {
-          setIsSaving(false);
         }
       },
       1000

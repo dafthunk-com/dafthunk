@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bot } from "lucide-react";
+import { Bot, Settings } from "lucide-react";
 import { UserProfile } from "@/components/user-profile";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
@@ -40,6 +40,14 @@ export function AppHeader() {
             activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
           >
             Docs
+          </NavLink>
+          <NavLink
+            to="/settings/profile"
+            isActive={() => window.location.pathname.startsWith("/settings")}
+            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+            activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+          >
+            <Settings className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
           </NavLink>
         </nav>
         <ThemeToggle />

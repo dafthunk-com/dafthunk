@@ -10,16 +10,9 @@ import { DeploymentsPage } from "./pages/deployments.tsx";
 import { ExecutionsPage } from "./pages/executions.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
-import { ApiKeysPage } from "./pages/api-keys";
 import { NotFoundPage } from "./pages/not-found.tsx";
-import {
-  SquareTerminal,
-  Target,
-  Logs,
-  KeyRound,
-  HelpCircle,
-} from "lucide-react";
-
+import { SquareTerminal, Target, Logs, KeyRound, User } from "lucide-react";
+import { ApiKeysPage } from "./pages/api-keys.tsx";
 const workflowsSidebarItems = [
   {
     title: "Playground",
@@ -38,18 +31,20 @@ const workflowsSidebarItems = [
   },
 ];
 
-const footerItems = [
+const settingsSidebarItems = [
   {
-    title: "Api Keys",
-    url: "/api-keys",
+    title: "Profile",
+    url: "/settings/profile",
+    icon: User,
+  },
+  {
+    title: "API Keys",
+    url: "/settings/api-keys",
     icon: KeyRound,
   },
-  {
-    title: "Help",
-    url: "/help",
-    icon: HelpCircle,
-  },
 ];
+
+const footerItems = [];
 
 export const router = createBrowserRouter([
   {
@@ -62,11 +57,34 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/profile",
+    path: "/settings/profile",
     element: (
-      <AppLayout>
+      <AppLayout
+        sidebar={{
+          title: "Settings",
+          items: settingsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
         <ProtectedRoute>
           <ProfilePage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/settings/api-keys",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Settings",
+          items: settingsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <ApiKeysPage />
         </ProtectedRoute>
       </AppLayout>
     ),
@@ -157,23 +175,6 @@ export const router = createBrowserRouter([
       </AppLayout>
     ),
     loader: editorLoader,
-    errorElement: <ErrorBoundary />,
-  },
-  {
-    path: "/api-keys",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Workflows",
-          items: workflowsSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <ApiKeysPage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
     errorElement: <ErrorBoundary />,
   },
   {

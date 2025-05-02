@@ -2,16 +2,9 @@ import { useEffect } from "react";
 import { useAuth } from "@/components/authContext.tsx";
 import { useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Mail, Crown, KeyRound, UserCog } from "lucide-react";
 import { getAvatarUrl, getInitials } from "@/utils/userUtils";
+import { InsetLayout } from "@/components/layouts/inset-layout";
 
 // Helper function to format provider name
 const formatProviderName = (provider: string) => {
@@ -57,82 +50,89 @@ export function ProfilePage() {
   const avatarSrc = getAvatarUrl(user);
 
   return (
-    <main className="h-full">
-      <div className="h-full rounded-xl border border-white overflow-hidden bg-neutral-100 dark:bg-neutral-800">
-        <div className="relative h-full p-6 overflow-auto">
-          <div className="max-w-2xl mx-auto">
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  {avatarSrc && <AvatarImage src={avatarSrc} alt={user.name} />}
-                  <AvatarFallback className="text-xl">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-2xl">{user.name}</CardTitle>
-                  <CardDescription>
-                    {user.email || "No email provided"}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2 text-neutral-500" />
-                    <div>
-                      <p className="text-sm font-medium">Name</p>
-                      <p className="text-sm text-neutral-500">{user.name}</p>
-                    </div>
-                  </div>
-
-                  {user.email && (
-                    <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-neutral-500" />
-                      <div>
-                        <p className="text-sm font-medium">Email</p>
-                        <p className="text-sm text-neutral-500">{user.email}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center">
-                    <KeyRound className="h-4 w-4 mr-2 text-neutral-500" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        Authentication Provider
-                      </p>
-                      <p className="text-sm text-neutral-500">
-                        {formatProviderName(user.provider)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center">
-                    <UserCog className="h-4 w-4 mr-2 text-neutral-500" />
-                    <div>
-                      <p className="text-sm font-medium">Role</p>
-                      <p className="text-sm text-neutral-500">
-                        {formatRoleName(user.role)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center">
-                    <Crown className="h-4 w-4 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Subscription Plan</p>
-                      <p className="text-sm text-neutral-500">
-                        {formatPlanName(user.plan)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+    <InsetLayout title="Profile">
+      <div className="w-full max-w-md flex flex-col gap-8">
+        <div className="flex items-center gap-4 mb-2">
+          <Avatar className="h-14 w-14">
+            {avatarSrc && <AvatarImage src={avatarSrc} alt={user.name} />}
+            <AvatarFallback className="text-xl">
+              {getInitials(user.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-xl font-bold">{user.name}</h1>
+            <p className="text-muted-foreground">
+              {user.email || "No email provided"}
+            </p>
           </div>
         </div>
+        <form className="flex flex-col gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-1">Name</label>
+            <input
+              type="text"
+              value={user.name}
+              readOnly
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              The name associated with this account
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Email address
+            </label>
+            <input
+              type="email"
+              value={user.email || ""}
+              readOnly
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              The email address associated with this account
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Authentication Provider
+            </label>
+            <input
+              type="text"
+              value={formatProviderName(user.provider)}
+              readOnly
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              The service you used to sign up or log in (e.g., Google, GitHub).
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Role</label>
+            <input
+              type="text"
+              value={formatRoleName(user.role)}
+              readOnly
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Your access level or permissions within the application.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Plan</label>
+            <input
+              type="text"
+              value={formatPlanName(user.plan)}
+              readOnly
+              className="w-full rounded-md border border-input bg-muted px-3 py-2 text-base"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Your current subscription plan.
+            </p>
+          </div>
+        </form>
       </div>
-    </main>
+    </InsetLayout>
   );
 }

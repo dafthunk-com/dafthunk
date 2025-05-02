@@ -94,7 +94,7 @@ export function ApiKeysPage() {
     <InsetLayout title="API Keys">
       <div className="flex items-center justify-between mb-6">
         <p className="text-muted-foreground">
-          Manage your API keys for accessing DaftHunk services.
+          Manage your API keys for accessing your organization's services.
         </p>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>

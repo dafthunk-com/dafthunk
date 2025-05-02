@@ -81,4 +81,22 @@ export const authService = {
       window.location.href = "/";
     }
   },
+
+  // Logout all sessions for the user
+  async logoutAllSessions(): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/logout-all`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Logout all sessions failed:", error);
+      window.location.href = "/";
+    }
+  },
 } as const;

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CircleUserRound, LogOut } from "lucide-react";
+import { CircleUserRound, LogOut, KeyRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAvatarUrl, getInitials } from "@/utils/userUtils";
 
@@ -47,9 +47,15 @@ export function UserProfile() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/profile" className="flex items-center">
+          <Link to="/settings/profile" className="flex items-center">
             <CircleUserRound className="mr-2 size-4 text-muted-foreground" />
             <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/settings/api-keys" className="flex items-center">
+            <KeyRound className="mr-2 size-4 text-muted-foreground" />
+            <span>API Keys</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
