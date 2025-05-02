@@ -3,6 +3,7 @@ import { Bot } from "lucide-react";
 import { UserProfile } from "@/components/user-profile";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
+import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
 
 export function AppHeader() {
   return (
@@ -12,6 +13,7 @@ export function AppHeader() {
           <Bot className="h-6 w-6" />
           <span className="text-lg font-semibold">dafthunk</span>
         </Link>
+        <AppHeaderBreadcrumb />
       </div>
       <div className="flex items-center gap-6">
         <nav className="flex items-center gap-4">
