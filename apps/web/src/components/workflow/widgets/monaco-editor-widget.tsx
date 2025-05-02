@@ -54,7 +54,7 @@ export function MonacoEditorWidget({
             glyphMargin: false,
             folding: false,
             fontSize: compact ? 8 : 14,
-            automaticLayout: true,
+            automaticAppLayout: true,
             padding: { top: 0, bottom: 0 },
             scrollbar: {
               vertical: "visible",

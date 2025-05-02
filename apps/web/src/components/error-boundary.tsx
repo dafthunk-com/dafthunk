@@ -1,6 +1,6 @@
 import { useRouteError } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Layout } from "@/components/layout";
+import { AppLayout } from "@/components/layouts/app-layout";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -15,7 +15,7 @@ export function ErrorBoundary() {
   }
 
   return (
-    <Layout>
+    <AppLayout>
       <main className="h-full">
         <div className="h-full rounded-md border overflow-hidden bg-background">
           <div className="relative h-full p-6 overflow-auto">
@@ -39,6 +39,6 @@ export function ErrorBoundary() {
           </div>
         </div>
       </main>
-    </Layout>
+    </AppLayout>
   );
 }

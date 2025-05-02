@@ -75,7 +75,12 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
         {onCreateWorkflow && (
-          <CreateWorkflowDialog onCreateWorkflow={onCreateWorkflow} />
+          <CreateWorkflowDialog
+            onCreateWorkflow={onCreateWorkflow}
+            buttonProps={{
+              size: "sm",
+            }}
+          />
         )}
       </div>
       <div className="rounded-md border">

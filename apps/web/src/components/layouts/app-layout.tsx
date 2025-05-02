@@ -4,7 +4,7 @@ import * as Sidebar from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/app-header";
 import { NavMainProps } from "@/components/nav-main";
 
-interface LayoutProps {
+interface AppLayoutProps {
   children: ReactNode;
   sidebar?: {
     title: string;
@@ -12,7 +12,7 @@ interface LayoutProps {
   };
 }
 
-export function Layout({ children, sidebar }: LayoutProps) {
+export function AppLayout({ children, sidebar }: AppLayoutProps) {
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col">
       <AppHeader />

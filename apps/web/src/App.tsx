@@ -2,13 +2,13 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./routes";
 import { AuthProvider } from "./components/authContext.tsx";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
-import { Layout } from "./components/layout";
+import { AppLayout } from "./components/layouts/app-layout.tsx";
 import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/theme-provider";
 
 function FallbackErrorUI() {
   return (
-    <Layout>
+    <AppLayout>
       <main className="h-full">
         <div className="h-full rounded-xl border border-white overflow-hidden">
           <div className="relative h-full p-6 overflow-auto">
@@ -22,7 +22,7 @@ function FallbackErrorUI() {
           </div>
         </div>
       </main>
-    </Layout>
+    </AppLayout>
   );
 }
 

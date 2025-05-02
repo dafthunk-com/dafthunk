@@ -19,6 +19,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/workflows/data-table";
 import { columns } from "@/components/workflows/columns";
 import { CreateWorkflowDialog } from "@/components/workflows/create-workflow-dialog";
+import { InsetLayout } from "@/components/layouts/inset-layout";
 
 export function PlaygroundPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
@@ -149,34 +150,25 @@ export function PlaygroundPage() {
 
   return (
     <TooltipProvider>
-      <main className="h-full">
-        <div className="h-full overflow-hidden">
-          <div className="relative h-full overflow-auto">
-            <div className="p-6">
-              <div className="flex flex-col gap-1.5 mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Workflows</h1>
-                <p className="text-muted-foreground">
-                  Create, manage, and run your workflows. Break it, fix it,
-                  prompt it, automatic.
-                </p>
-              </div>
-              <DataTable
-                columns={columns}
-                data={workflows}
-                onDelete={(workflow) => {
-                  setWorkflowToDelete(workflow);
-                  setDeleteDialogOpen(true);
-                }}
-                onRename={(workflow) => {
-                  setWorkflowToRename(workflow);
-                  setRenameWorkflowName(workflow.name || "");
-                  setRenameDialogOpen(true);
-                }}
-                onCreateWorkflow={handleCreateWorkflow}
-              />
-            </div>
-          </div>
-        </div>
+      <InsetLayout title="Workflows">
+        <p className="text-muted-foreground">
+          Create, manage, and run your workflows. Break it, fix it, prompt it,
+          automatic.
+        </p>
+        <DataTable
+          columns={columns}
+          data={workflows}
+          onDelete={(workflow) => {
+            setWorkflowToDelete(workflow);
+            setDeleteDialogOpen(true);
+          }}
+          onRename={(workflow) => {
+            setWorkflowToRename(workflow);
+            setRenameWorkflowName(workflow.name || "");
+            setRenameDialogOpen(true);
+          }}
+          onCreateWorkflow={handleCreateWorkflow}
+        />
         {/* Delete confirmation dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
@@ -241,7 +233,7 @@ export function PlaygroundPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </main>
+      </InsetLayout>
     </TooltipProvider>
   );
 }

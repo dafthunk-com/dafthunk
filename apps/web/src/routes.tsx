@@ -3,7 +3,7 @@ import { HomePage } from "./pages/home";
 import { EditorPage, editorLoader } from "./pages/editor";
 import { ProfilePage } from "./pages/profile";
 import { ProtectedRoute } from "./components/protected-route.tsx";
-import { Layout } from "./components/layout";
+import { AppLayout } from "./components/layouts/app-layout.tsx";
 import { ErrorBoundary } from "./components/error-boundary";
 import { PlaygroundPage } from "./pages/playground.tsx";
 import { DocsPage } from "./pages/docs";
@@ -32,60 +32,60 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <Layout>
+      <AppLayout>
         <HomePage />
-      </Layout>
+      </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
   },
   {
     path: "/profile",
     element: (
-      <Layout>
+      <AppLayout>
         <ProtectedRoute>
           <ProfilePage />
         </ProtectedRoute>
-      </Layout>
+      </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
   },
   {
     path: "/dashboard",
     element: (
-      <Layout>
+      <AppLayout>
         <DashboardPage />
-      </Layout>
+      </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
   },
   {
     path: "/docs",
     element: (
-      <Layout>
+      <AppLayout>
         <DocsPage />
-      </Layout>
+      </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
   },
   {
     path: "/workflows/playground",
     element: (
-      <Layout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
         <ProtectedRoute>
           <PlaygroundPage />
         </ProtectedRoute>
-      </Layout>
+      </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
   },
   {
     path: "/workflows/playground/:id",
     element: (
-      <Layout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
         <ProtectedRoute>
           <EditorPage />
         </ProtectedRoute>
-      </Layout>
+      </AppLayout>
     ),
     loader: editorLoader,
     errorElement: <ErrorBoundary />,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonProps } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 
 interface CreateWorkflowDialogProps {
   onCreateWorkflow: (name: string) => Promise<void>;
+  buttonProps?: ButtonProps;
 }
 
 export function CreateWorkflowDialog({
   onCreateWorkflow,
+  buttonProps,
 }: CreateWorkflowDialogProps) {
   const [open, setOpen] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState("");
@@ -30,7 +32,7 @@ export function CreateWorkflowDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="ml-4">
+        <Button {...buttonProps}>
           <PlusIcon className="mr-2 h-4 w-4" />
           New Workflow
         </Button>
