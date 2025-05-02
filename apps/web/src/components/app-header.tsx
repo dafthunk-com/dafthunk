@@ -26,16 +26,15 @@ export function AppHeader() {
           </NavLink>
           <NavLink
             to="/workflows/playground"
+            isActive={() => window.location.pathname.startsWith("/workflows")}
             className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
             activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
           >
             Workflows
           </NavLink>
-          {/* <Link to="/agents" className="text-sm">
-            Agents
-          </Link> */}
           <NavLink
             to="/docs"
+            isActive={() => window.location.pathname.startsWith("/docs")}
             className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
             activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
           >
