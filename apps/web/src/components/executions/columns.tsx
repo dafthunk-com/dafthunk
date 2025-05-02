@@ -1,14 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  PlayCircle,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -20,10 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { VariantProps } from "class-variance-authority";
-import { badgeVariants } from "@/components/ui/badge";
+import {
+  ExecutionStatusBadge,
+  ExecutionStatus,
+} from "./execution-status-badge";
 
 // Represents a single run instance of a workflow
 export type Execution = {
@@ -81,38 +75,8 @@ export const columns: ColumnDef<Execution>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as Execution["status"];
-      let variant: VariantProps<typeof badgeVariants>["variant"] = "secondary";
-      let Icon = Clock;
-
-      switch (status) {
-        case "running":
-          variant = "secondary"; // Use secondary for running
-          Icon = PlayCircle;
-          break;
-        case "completed":
-          variant = "translucent-active"; // Reuse active green
-          Icon = CheckCircle;
-          break;
-        case "failed":
-          variant = "translucent-error"; // Reuse error red
-          Icon = XCircle;
-          break;
-        case "cancelled":
-          variant = "translucent-inactive"; // Reuse inactive grey
-          Icon = Clock; // Or another icon? Maybe stop-circle
-          break;
-      }
-
-      return (
-        <Badge
-          variant={variant}
-          className="capitalize flex items-center space-x-1 w-fit"
-        >
-          <Icon className="h-3 w-3" />
-          <span>{status}</span>
-        </Badge>
-      );
+      const status = row.getValue("status") as ExecutionStatus;
+      return <ExecutionStatusBadge status={status} />;
     },
   },
   {

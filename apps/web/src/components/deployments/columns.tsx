@@ -67,10 +67,10 @@ export const columns: ColumnDef<Deployment>[] = [
       // Map status to the new badge variants
       const variant: Extract<
         VariantProps<typeof badgeVariants>["variant"],
-        "translucent-active" | "translucent-error" | "translucent-inactive"
+        "translucent-success" | "translucent-error" | "translucent-inactive"
       > =
         status === "active"
-          ? "translucent-active"
+          ? "translucent-success"
           : status === "failed"
             ? "translucent-error"
             : "translucent-inactive";
