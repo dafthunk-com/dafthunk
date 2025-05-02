@@ -129,10 +129,17 @@ export function WorkflowBuilder({
     if (!executeWorkflow) return null;
 
     resetNodeStates();
-    setWorkflowStatus("executing");
+    setWorkflowStatus("executing"); // Local immediate update
 
     return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
-      setWorkflowStatus(execution.status);
+      // Only update status if the new status is not 'idle' while we are 'executing',
+      // or if the local status is not 'executing' anymore (e.g., already completed/errored).
+      setWorkflowStatus((currentStatus) => {
+        if (currentStatus === "executing" && execution.status === "idle") {
+          return currentStatus; // Ignore initial idle updates while executing
+        }
+        return execution.status; // Apply other status updates
+      });
 
       execution.nodeExecutions.forEach((nodeExecution) => {
         updateNodeExecutionState(nodeExecution.nodeId, nodeExecution.status);
@@ -181,11 +188,15 @@ export function WorkflowBuilder({
             cleanupRef.current();
             cleanupRef.current = null;
           }
-          setWorkflowStatus("completed");
           break;
         }
         case "completed":
         case "error": {
+          resetNodeStates();
+          setWorkflowStatus("idle");
+          break;
+        }
+        case "cancelled": {
           resetNodeStates();
           setWorkflowStatus("idle");
           break;

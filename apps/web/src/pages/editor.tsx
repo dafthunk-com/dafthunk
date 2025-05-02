@@ -332,7 +332,6 @@ export function EditorPage() {
           } catch {
             onExecution(initialExecution);
           }
-          console.log(`Workflow execution started with ID: ${executionId}`);
           const pollInterval = setInterval(async () => {
             try {
               const statusResponse = await fetch(
@@ -361,13 +360,42 @@ export function EditorPage() {
               clearInterval(pollInterval);
             }
           }, 1000);
+          // Return a cleanup function that requests cancellation but lets polling continue
           return () => {
-            console.log("Stopping execution status polling");
-            clearInterval(pollInterval);
+            console.log(
+              `Requesting cancellation for execution ID: ${executionId}`
+            );
+            // Assume a DELETE endpoint exists for cancellation
+            fetch(`${API_BASE_URL}/executions/${executionId}`, {
+              method: "DELETE",
+              credentials: "include",
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  console.error(
+                    `Failed to request cancellation for execution ${executionId}. Status: ${response.status}`
+                  );
+                  // Optionally handle cancellation request failure - maybe stop polling here?
+                  // For now, let polling continue as the backend might still transition state.
+                } else {
+                  console.log(
+                    `Cancellation requested successfully for execution ${executionId}`
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error("Error sending cancellation request:", error);
+                // Let polling continue
+              });
+
+            // DO NOT clear interval here. Let the interval clear itself on terminal status.
+            // clearInterval(pollInterval);
           };
         })
         .catch((error) => {
           console.error("Error starting workflow execution:", error);
+          // Return a no-op cleanup function in case of startup error
+          return () => {};
         });
     },
     []
