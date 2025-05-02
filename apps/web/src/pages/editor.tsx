@@ -19,6 +19,7 @@ import {
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { API_BASE_URL } from "@/config/api";
+import { debounce } from "@/utils/utils";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
@@ -45,38 +46,24 @@ export async function editorLoader({ params }: LoaderFunctionArgs) {
   }
 }
 
-// Debounce utility function
-const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
-  func: T,
-  wait: number
-): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
-
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
-  const { workflow: initialWorkflow } = useLoaderData() as {
-    workflow: Workflow;
-  };
+  const { workflow: initialWorkflow } =
+    (useLoaderData() as { workflow: Workflow } | undefined) ?? {};
   const navigate = useNavigate();
-  const [_, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
+  const [isProcessingWorkflow, setIsProcessingWorkflow] = useState(true);
 
   // Fetch node templates
   useEffect(() => {
     const loadNodeTemplates = async () => {
       try {
         const types = await fetchNodeTypes();
-        // Convert NodeType to NodeTemplate
         const templates: NodeTemplate[] = types.map((type) => ({
           id: type.id,
           type: type.id,
@@ -108,16 +95,16 @@ export function EditorPage() {
     loadNodeTemplates();
   }, []);
 
-  // Convert the initial workflow to ReactFlow nodes and edges
+  // Convert the initial workflow (only if it exists)
   useEffect(() => {
     if (!initialWorkflow) {
-      setIsLoading(false);
-      setLoadError("Failed to load workflow data");
+      setIsProcessingWorkflow(false);
+      setLoadError("Workflow data not found or invalid.");
       return;
     }
 
+    setIsProcessingWorkflow(true);
     try {
-      // Convert nodes
       const reactFlowNodes = initialWorkflow.nodes.map((node) => ({
         id: node.id,
         type: "workflowNode",
@@ -143,7 +130,6 @@ export function EditorPage() {
         },
       }));
 
-      // Convert edges
       const reactFlowEdges = initialWorkflow.edges.map((edge, index) => ({
         id: `e${index}`,
         source: edge.source,
@@ -158,7 +144,6 @@ export function EditorPage() {
         },
       }));
 
-      // Set the state with the converted data
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
       setLoadError(null);
@@ -166,7 +151,7 @@ export function EditorPage() {
       console.error("Error processing workflow data:", error);
       setLoadError("Failed to process workflow data");
     } finally {
-      setIsLoading(false);
+      setIsProcessingWorkflow(false);
     }
   }, [initialWorkflow]);
 
@@ -174,42 +159,37 @@ export function EditorPage() {
   const debouncedSave = useCallback(
     debounce(
       async (
-        nodes: Node<WorkflowNodeType>[],
-        edges: Edge<WorkflowEdgeType>[]
+        currentNodes: Node<WorkflowNodeType>[],
+        currentEdges: Edge<WorkflowEdgeType>[]
       ) => {
-        if (!id) return;
+        if (!id || !initialWorkflow) return;
 
         try {
           setIsSaving(true);
 
-          // Only check if we're in an active workflow execution
-          // This was too restrictive - we still want to save if users make legitimate changes
-          // during or after execution
-          if (nodes.some((node) => node.data.executionState === "executing")) {
+          if (
+            currentNodes.some(
+              (node) => node.data.executionState === "executing"
+            )
+          ) {
             console.log(
               "Workflow is executing, but still saving legitimate changes"
             );
           }
 
-          // Convert ReactFlow nodes back to workflow nodes
-          const workflowNodes = nodes.map((node) => {
-            // Get all edges where this node is the target
-            const incomingEdges = edges.filter(
+          const workflowNodes = currentNodes.map((node) => {
+            const incomingEdges = currentEdges.filter(
               (edge) => edge.target === node.id
             );
-
             return {
               id: node.id,
               name: node.data.name,
               type: node.data.nodeType || "default",
               position: node.position,
               inputs: node.data.inputs.map((input) => {
-                // Check if this input is connected to another node
                 const isConnected = incomingEdges.some(
                   (edge) => edge.targetHandle === input.id
                 );
-
-                // Create a parameter with the correct type structure
                 const parameter: Parameter = {
                   name: input.id,
                   type: input.type as ParameterType["type"],
@@ -217,54 +197,49 @@ export function EditorPage() {
                   hidden: input.hidden,
                   required: input.required,
                 };
-
-                // Only add value if the input is not connected
                 if (!isConnected && input.value !== undefined) {
                   (parameter as any).value = input.value;
                 }
-
                 return parameter;
               }),
               outputs: node.data.outputs.map((output) => {
-                // Create a parameter with the correct type structure
                 const parameter: Parameter = {
                   name: output.id,
                   type: output.type as ParameterType["type"],
                   description: output.name,
                   hidden: output.hidden,
                 };
-
                 return parameter;
               }),
             };
           });
 
-          // Convert ReactFlow edges back to workflow edges
-          const workflowEdges = edges.map((edge) => ({
+          const workflowEdges = currentEdges.map((edge) => ({
             source: edge.source,
             target: edge.target,
             sourceOutput: edge.sourceHandle || "",
             targetInput: edge.targetHandle || "",
           }));
 
-          // Create the workflow object
           const workflowToSave: Workflow = {
-            ...initialWorkflow, // Keep other properties from the initial workflow
+            ...initialWorkflow,
             id: id,
             name: initialWorkflow.name,
             nodes: workflowNodes,
             edges: workflowEdges,
           };
 
-          // Verify we have nodes and edges before saving
           if (workflowNodes.length === 0 && initialWorkflow.nodes.length > 0) {
+            console.warn(
+              "Attempted to save an empty node list, aborting save."
+            );
             return;
           }
 
           console.log("Saving workflow:", id);
           await workflowService.save(id, workflowToSave);
-        } catch (_) {
-          // Error handling without logging
+        } catch (error) {
+          console.error("Error saving workflow:", error);
         } finally {
           setIsSaving(false);
         }
@@ -278,8 +253,6 @@ export function EditorPage() {
   const handleNodesChange = useCallback(
     (updatedNodes: Node<WorkflowNodeType>[]) => {
       setNodes(updatedNodes);
-
-      // Only save if we have nodes to save
       if (updatedNodes.length > 0) {
         debouncedSave(updatedNodes, edges);
       }
@@ -291,8 +264,6 @@ export function EditorPage() {
   const handleEdgesChange = useCallback(
     (updatedEdges: Edge<WorkflowEdgeType>[]) => {
       setEdges(updatedEdges);
-
-      // Only trigger save if we have nodes
       if (nodes.length > 0) {
         debouncedSave(nodes, updatedEdges);
       }
@@ -303,23 +274,16 @@ export function EditorPage() {
   // Validate connections based on type compatibility
   const validateConnection = useCallback(
     (connection: Connection) => {
-      // Find source and target nodes
       const sourceNode = nodes.find((node) => node.id === connection.source);
       const targetNode = nodes.find((node) => node.id === connection.target);
-
       if (!sourceNode || !targetNode) return false;
-
-      // Find source and target parameters
       const sourceOutput = sourceNode.data.outputs.find(
         (output) => output.id === connection.sourceHandle
       );
       const targetInput = targetNode.data.inputs.find(
         (input) => input.id === connection.targetHandle
       );
-
       if (!sourceOutput || !targetInput) return false;
-
-      // Check if types are compatible (allow 'any' to connect to anything)
       return (
         sourceOutput.type === targetInput.type ||
         sourceOutput.type === "any" ||
@@ -335,10 +299,7 @@ export function EditorPage() {
       workflowId: string,
       onExecution: (execution: WorkflowExecution) => void
     ) => {
-      // Start the workflow execution
       console.log(`Starting workflow execution for ID: ${workflowId}`);
-
-      // Make the initial request to start the workflow
       fetch(
         `${API_BASE_URL}/workflows/${workflowId}/execute?monitorProgress=true`,
         {
@@ -354,7 +315,6 @@ export function EditorPage() {
         })
         .then(async (initialExecution: WorkflowExecution) => {
           const executionId = initialExecution.id;
-          // Immediately load the canonical execution from the backend
           try {
             const statusResponse = await fetch(
               `${API_BASE_URL}/executions/${executionId}`,
@@ -367,16 +327,12 @@ export function EditorPage() {
                 (await statusResponse.json()) as WorkflowExecution;
               onExecution(loadedExecution);
             } else {
-              // fallback: if not found, use the initial execution
               onExecution(initialExecution);
             }
           } catch {
-            // fallback: if error, use the initial execution
             onExecution(initialExecution);
           }
           console.log(`Workflow execution started with ID: ${executionId}`);
-
-          // Set up polling interval to check execution status
           const pollInterval = setInterval(async () => {
             try {
               const statusResponse = await fetch(
@@ -385,22 +341,15 @@ export function EditorPage() {
                   credentials: "include",
                 }
               );
-
               if (statusResponse.status === 404) {
-                // D1 propagation delay: execution not found yet, keep polling
                 return;
               }
               if (!statusResponse.ok) {
                 throw new Error("Failed to fetch execution status");
               }
-
               const execution =
                 (await statusResponse.json()) as WorkflowExecution;
-
-              // Pass the execution object to the callback
               onExecution(execution);
-
-              // Check if execution is complete or has error
               if (
                 execution.status === "completed" ||
                 execution.status === "error"
@@ -411,9 +360,7 @@ export function EditorPage() {
               console.error("Error polling execution status:", error);
               clearInterval(pollInterval);
             }
-          }, 1000); // Poll every second
-
-          // Return cleanup function to clear the interval
+          }, 1000);
           return () => {
             console.log("Stopping execution status polling");
             clearInterval(pollInterval);
@@ -429,49 +376,68 @@ export function EditorPage() {
   // Handle retry loading
   const handleRetryLoading = () => {
     if (id) {
-      navigate(0); // Refresh the current page
+      navigate(0);
     }
   };
 
   // Show error if loading failed
-  if (loadError && !isLoading) {
+  if (loadError) {
     return <WorkflowError message={loadError} onRetry={handleRetryLoading} />;
+  }
+
+  // Show error if processing workflow data failed
+  if (templatesError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <p className="text-red-500 mb-4">{templatesError}</p>
+        <button
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // Show loading state if templates aren't ready OR workflow is being processed
+  const showLoading =
+    nodeTemplates.length === 0 || (initialWorkflow && isProcessingWorkflow);
+
+  if (showLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading workflow editor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle case where initialWorkflow is null/undefined after loading checks (e.g., new workflow)
+  if (!initialWorkflow && !showLoading && !loadError) {
+    // This case might represent creating a new workflow
+    // Currently, the emptyWorkflow from loader should handle this.
+    // If specific behavior is needed for a brand new workflow after loading, add it here.
+    // For now, we assume the WorkflowBuilder handles an empty initial state correctly.
   }
 
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading workflow...</p>
-            </div>
-          </div>
-        ) : templatesError ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <p className="text-red-500 mb-4">{templatesError}</p>
-            <button
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-              onClick={() => window.location.reload()}
-            >
-              Retry
-            </button>
-          </div>
-        ) : (
-          <div className="h-full w-full flex-grow">
-            <WorkflowBuilder
-              workflowId={id || ""}
-              initialNodes={nodes}
-              initialEdges={edges}
-              nodeTemplates={nodeTemplates}
-              onNodesChange={handleNodesChange}
-              onEdgesChange={handleEdgesChange}
-              validateConnection={validateConnection}
-              executeWorkflow={executeWorkflow}
-            />
-          </div>
-        )}
+        <div className="h-full w-full flex-grow">
+          <WorkflowBuilder
+            workflowId={id || ""}
+            initialNodes={nodes}
+            initialEdges={edges}
+            nodeTemplates={nodeTemplates}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
+            validateConnection={validateConnection}
+            executeWorkflow={executeWorkflow}
+          />
+        </div>
       </div>
     </ReactFlowProvider>
   );

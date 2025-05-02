@@ -16,9 +16,9 @@ import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { DataTable } from "@/components/workflows/data-table";
-import { columns } from "@/components/workflows/columns";
-import { CreateWorkflowDialog } from "@/components/workflows/create-workflow-dialog";
+import { DataTable } from "@/components/playground/data-table";
+import { columns } from "@/components/playground/columns";
+import { CreateWorkflowDialog } from "@/components/playground/create-workflow-dialog";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 
 export function PlaygroundPage() {

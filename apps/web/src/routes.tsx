@@ -6,6 +6,8 @@ import { ProtectedRoute } from "./components/protected-route.tsx";
 import { AppLayout } from "./components/layouts/app-layout.tsx";
 import { ErrorBoundary } from "./components/error-boundary";
 import { PlaygroundPage } from "./pages/playground.tsx";
+import { DeploymentsPage } from "./pages/deployments.tsx";
+import { ExecutionsPage } from "./pages/executions.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
 import { SquareTerminal, Target, Logs } from "lucide-react";
@@ -73,6 +75,28 @@ export const router = createBrowserRouter([
       <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
         <ProtectedRoute>
           <PlaygroundPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/workflows/deployments",
+    element: (
+      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+        <ProtectedRoute>
+          <DeploymentsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/workflows/executions",
+    element: (
+      <AppLayout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
+        <ProtectedRoute>
+          <ExecutionsPage />
         </ProtectedRoute>
       </AppLayout>
     ),
