@@ -20,7 +20,7 @@ import { DataTable } from "@/components/workflows/data-table";
 import { columns } from "@/components/workflows/columns";
 import { CreateWorkflowDialog } from "@/components/workflows/create-workflow-dialog";
 
-export function WorkflowsPage() {
+export function PlaygroundPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);

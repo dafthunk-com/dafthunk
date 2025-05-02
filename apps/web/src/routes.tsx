@@ -5,7 +5,7 @@ import { ProfilePage } from "./pages/profile";
 import { ProtectedRoute } from "./components/protected-route.tsx";
 import { Layout } from "./components/layout";
 import { ErrorBoundary } from "./components/error-boundary";
-import { WorkflowsPage } from "./pages/workflows";
+import { PlaygroundPage } from "./pages/playground.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
 import { SquareTerminal, Target, Logs } from "lucide-react";
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
     element: (
       <Layout sidebar={{ title: "Workflows", items: workflowsSidebarItems }}>
         <ProtectedRoute>
-          <WorkflowsPage />
+          <PlaygroundPage />
         </ProtectedRoute>
       </Layout>
     ),
