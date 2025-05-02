@@ -58,6 +58,8 @@ export function EditorPage() {
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
   const [isProcessingWorkflow, setIsProcessingWorkflow] = useState(true);
+  const [hasProcessedInitialWorkflow, setHasProcessedInitialWorkflow] =
+    useState(false); // Track if initial workflow processing completed
 
   // Fetch node templates
   useEffect(() => {
@@ -97,9 +99,17 @@ export function EditorPage() {
 
   // Convert the initial workflow (only if it exists)
   useEffect(() => {
-    if (!initialWorkflow) {
+    // Only set 'not found' error if we haven't processed a valid workflow yet.
+    // This prevents the error flash during exit transitions.
+    if (!initialWorkflow && !hasProcessedInitialWorkflow) {
       setIsProcessingWorkflow(false);
       setLoadError("Workflow data not found or invalid.");
+      return;
+    }
+
+    // If initialWorkflow becomes undefined *after* initial processing, just bail out.
+    if (!initialWorkflow) {
+      setIsProcessingWorkflow(false); // Ensure loading state is cleared
       return;
     }
 
@@ -147,13 +157,14 @@ export function EditorPage() {
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
       setLoadError(null);
+      setHasProcessedInitialWorkflow(true); // Mark initial processing as complete
     } catch (error) {
       console.error("Error processing workflow data:", error);
       setLoadError("Failed to process workflow data");
     } finally {
       setIsProcessingWorkflow(false);
     }
-  }, [initialWorkflow]);
+  }, [initialWorkflow, hasProcessedInitialWorkflow]); // Add hasProcessedInitialWorkflow to dependency array
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -444,11 +455,16 @@ export function EditorPage() {
   }
 
   // Handle case where initialWorkflow is null/undefined after loading checks (e.g., new workflow)
-  if (!initialWorkflow && !showLoading && !loadError) {
-    // This case might represent creating a new workflow
-    // Currently, the emptyWorkflow from loader should handle this.
-    // If specific behavior is needed for a brand new workflow after loading, add it here.
-    // For now, we assume the WorkflowBuilder handles an empty initial state correctly.
+  if (
+    !initialWorkflow &&
+    !showLoading &&
+    !loadError &&
+    !hasProcessedInitialWorkflow
+  ) {
+    // This path might indicate a genuine loading issue not caught elsewhere,
+    // or potentially the state for a brand new workflow before loader returns emptyWorkflow.
+    // If loader guarantees emptyWorkflow, this might be redundant.
+    // Consider adding specific handling or logging if needed.
   }
 
   return (
