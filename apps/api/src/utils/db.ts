@@ -395,14 +395,12 @@ export async function updateExecutionStatus(
  * @param db Database instance
  * @param organizationId Organization ID
  * @param name Descriptive name for the token
- * @param expiresAt Optional expiration date
  * @returns Object containing the raw token (shown only once) and the token record
  */
 export async function createApiToken(
   db: ReturnType<typeof createDatabase>,
   organizationId: string,
-  name: string,
-  expiresAt?: Date
+  name: string
 ) {
   const id = nanoid();
   const now = new Date();
@@ -419,8 +417,6 @@ export async function createApiToken(
     name,
     token: hashedToken,
     organizationId,
-    expiresAt,
-    isActive: true,
     createdAt: now,
     updatedAt: now,
   };
@@ -462,30 +458,12 @@ export async function verifyApiToken(
     .select({
       id: apiTokens.id,
       organizationId: apiTokens.organizationId,
-      expiresAt: apiTokens.expiresAt,
-      isActive: apiTokens.isActive,
     })
     .from(apiTokens)
     .where(eq(apiTokens.token, hashedToken));
   
   // Check if token exists
   if (!token) {
-    return null;
-  }
-  
-  // Check if token is active
-  if (!token.isActive) {
-    return null;
-  }
-  
-  // Check if token has expired
-  if (token.expiresAt && new Date(token.expiresAt) < new Date()) {
-    // Automatically deactivate expired tokens
-    await db
-      .update(apiTokens)
-      .set({ isActive: false })
-      .where(eq(apiTokens.id, token.id));
-    
     return null;
   }
   
@@ -507,8 +485,6 @@ export async function getApiTokens(
     .select({
       id: apiTokens.id,
       name: apiTokens.name,
-      expiresAt: apiTokens.expiresAt,
-      isActive: apiTokens.isActive,
       createdAt: apiTokens.createdAt,
       updatedAt: apiTokens.updatedAt,
     })
@@ -517,22 +493,21 @@ export async function getApiTokens(
 }
 
 /**
- * Revoke an API token
+ * Delete an API token
  * 
  * @param db Database instance
  * @param id Token ID
  * @param organizationId Organization ID
- * @returns True if token was revoked, false if not found
+ * @returns True if token was deleted, false if not found
  */
-export async function revokeApiToken(
+export async function deleteApiToken(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
 ): Promise<boolean> {
-  // Try to update the token by its ID and organization
-  const [updatedToken] = await db
-    .update(apiTokens)
-    .set({ isActive: false, updatedAt: new Date() })
+  // Try to delete the token by its ID and organization
+  const [deletedToken] = await db
+    .delete(apiTokens)
     .where(
       and(
         eq(apiTokens.id, id),
@@ -541,6 +516,6 @@ export async function revokeApiToken(
     )
     .returning({ id: apiTokens.id });
     
-  // If we got a record back, it was updated successfully
-  return !!updatedToken;
+  // If we got a record back, it was deleted successfully
+  return !!deletedToken;
 } 

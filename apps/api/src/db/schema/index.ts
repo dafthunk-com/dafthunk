@@ -150,8 +150,6 @@ export const apiTokens = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id),
-    expiresAt: integer("expires_at", { mode: "timestamp" }),
-    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

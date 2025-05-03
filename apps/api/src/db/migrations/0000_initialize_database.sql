@@ -3,8 +3,6 @@ CREATE TABLE `api_tokens` (
 	`name` text NOT NULL,
 	`token` text NOT NULL,
 	`organization_id` text NOT NULL,
-	`expires_at` integer,
-	`is_active` integer DEFAULT true NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action

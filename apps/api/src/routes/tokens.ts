@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createApiToken, getApiTokens, revokeApiToken } from "../utils/db";
+import { createApiToken, getApiTokens, deleteApiToken } from "../utils/db";
 import { createDatabase } from "../db";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
@@ -41,20 +41,18 @@ tokenRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Token name is required"),
-      expiresAt: z.string().datetime().optional(),
     })
   ),
   async (c) => {
     const user = c.get("jwtPayload") as CustomJWTPayload;
     const db = createDatabase(c.env.DB);
-    const { name, expiresAt } = c.req.valid("json");
+    const { name } = c.req.valid("json");
 
     try {
       const result = await createApiToken(
         db, 
         user.organizationId, 
-        name, 
-        expiresAt ? new Date(expiresAt) : undefined
+        name
       );
       
       // Return both the raw token (only shown once) and the token record
@@ -64,7 +62,6 @@ tokenRoutes.post(
           tokenRecord: {
             id: result.token.id,
             name: result.token.name,
-            expiresAt: result.token.expiresAt,
             createdAt: result.token.createdAt,
           },
         },
@@ -80,7 +77,7 @@ tokenRoutes.post(
 /**
  * DELETE /api/tokens/:id
  * 
- * Revoke an API token
+ * Delete an API token
  */
 tokenRoutes.delete("/:id", async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
@@ -88,7 +85,7 @@ tokenRoutes.delete("/:id", async (c) => {
   const tokenId = c.req.param("id");
 
   try {
-    const success = await revokeApiToken(db, tokenId, user.organizationId);
+    const success = await deleteApiToken(db, tokenId, user.organizationId);
     
     if (success) {
       return c.json({ success: true });
@@ -96,8 +93,8 @@ tokenRoutes.delete("/:id", async (c) => {
       return c.json({ error: "Token not found" }, 404);
     }
   } catch (error) {
-    console.error("Error revoking API token:", error);
-    return c.json({ error: "Failed to revoke API token" }, 500);
+    console.error("Error deleting API token:", error);
+    return c.json({ error: "Failed to delete API token" }, 500);
   }
 });
 

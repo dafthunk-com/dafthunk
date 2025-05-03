@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Copy, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,8 +35,6 @@ import { API_BASE_URL } from "@/config/api";
 interface ApiToken {
   id: string;
   name: string;
-  expiresAt: string | null;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -125,8 +122,8 @@ export function ApiKeysPage() {
     }
   };
 
-  const handleRevokeKey = async (tokenId: string) => {
-    if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) {
+  const handleDeleteKey = async (tokenId: string) => {
+    if (!confirm("Are you sure you want to delete this API key? This action cannot be undone.")) {
       return;
     }
 
@@ -137,20 +134,16 @@ export function ApiKeysPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to revoke API token: ${response.statusText}`);
+        throw new Error(`Failed to delete API token: ${response.statusText}`);
       }
 
-      // Update the local state to reflect the change
-      setApiTokens(
-        apiTokens.map((token) =>
-          token.id === tokenId ? { ...token, isActive: false } : token
-        )
-      );
+      // Update the local state to remove the deleted token
+      setApiTokens(apiTokens.filter(token => token.id !== tokenId));
 
-      toast.success("API token revoked successfully");
+      toast.success("API token deleted successfully");
     } catch (error) {
-      console.error("Error revoking API token:", error);
-      toast.error("Failed to revoke API token. Please try again.");
+      console.error("Error deleting API token:", error);
+      toast.error("Failed to delete API token. Please try again.");
     }
   };
 
@@ -283,8 +276,6 @@ export function ApiKeysPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Expires</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -293,13 +284,13 @@ export function ApiKeysPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={3} className="text-center py-8">
                   Loading API keys...
                 </TableCell>
               </TableRow>
             ) : apiTokens.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                   No API keys found. Create your first key to get started.
                 </TableCell>
               </TableRow>
@@ -309,16 +300,6 @@ export function ApiKeysPage() {
                   <TableCell className="font-medium">{token.name}</TableCell>
                   <TableCell>{formatDate(token.createdAt)}</TableCell>
                   <TableCell>
-                    {token.expiresAt ? formatDate(token.expiresAt) : "Never"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={token.isActive ? "default" : "destructive"}
-                    >
-                      {token.isActive ? "Active" : "Revoked"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -327,15 +308,13 @@ export function ApiKeysPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {token.isActive && (
-                          <DropdownMenuItem
-                            onClick={() => handleRevokeKey(token.id)}
-                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Revoke Key
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteKey(token.id)}
+                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Key
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
