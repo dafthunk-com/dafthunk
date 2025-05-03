@@ -9,6 +9,7 @@ import workflowRoutes from "./routes/workflows";
 import executionRoutes from "./routes/executions";
 import typeRoutes from "./routes/types";
 import health from "./routes/health";
+import tokenRoutes from "./routes/tokens";
 import { corsMiddleware } from "./middleware/cors";
 
 // Initialize Hono app with types
@@ -24,6 +25,7 @@ app.route("/objects", objects);
 app.route("/workflows", workflowRoutes);
 app.route("/executions", executionRoutes);
 app.route("/types", typeRoutes);
+app.route("/tokens", tokenRoutes);
 
 export default {
   fetch: app.fetch,
