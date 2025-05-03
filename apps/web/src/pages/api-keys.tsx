@@ -24,6 +24,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -51,6 +61,8 @@ export function ApiKeysPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newToken, setNewToken] = useState<string | null>(null);
+  const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Fetch the API tokens
   const fetchTokens = async () => {
@@ -60,11 +72,11 @@ export function ApiKeysPage() {
         method: "GET",
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch API tokens: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       setApiTokens(data.tokens);
     } catch (error) {
@@ -104,13 +116,13 @@ export function ApiKeysPage() {
       }
 
       const data: TokenResponse = await response.json();
-      
+
       // Store the token to display to the user
       setNewToken(data.token);
-      
+
       // Add the new token to the list
       setApiTokens([...apiTokens, data.tokenRecord]);
-      
+
       setNewKeyName("");
       // Keep dialog open to show the token
     } catch (error) {
@@ -122,13 +134,16 @@ export function ApiKeysPage() {
     }
   };
 
-  const handleDeleteKey = async (tokenId: string) => {
-    if (!confirm("Are you sure you want to delete this API key? This action cannot be undone.")) {
-      return;
-    }
+  const confirmDeleteKey = (tokenId: string) => {
+    setTokenToDelete(tokenId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteKey = async () => {
+    if (!tokenToDelete) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/tokens/${tokenId}`, {
+      const response = await fetch(`${API_BASE_URL}/tokens/${tokenToDelete}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -138,12 +153,15 @@ export function ApiKeysPage() {
       }
 
       // Update the local state to remove the deleted token
-      setApiTokens(apiTokens.filter(token => token.id !== tokenId));
+      setApiTokens(apiTokens.filter((token) => token.id !== tokenToDelete));
 
       toast.success("API token deleted successfully");
     } catch (error) {
       console.error("Error deleting API token:", error);
       toast.error("Failed to delete API token. Please try again.");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setTokenToDelete(null);
     }
   };
 
@@ -168,29 +186,40 @@ export function ApiKeysPage() {
           <DialogHeader>
             <DialogTitle>API Key Created</DialogTitle>
             <DialogDescription>
-              This is your API key. Make sure to copy it now as it will never be shown again.
+              This is your API key. Make sure to copy it now as it will never be
+              shown again.
             </DialogDescription>
           </DialogHeader>
           <div className="my-4">
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Important</AlertTitle>
-              <AlertDescription>
-                Copy your API key now. You won't be able to see it again!
-              </AlertDescription>
+            <Alert variant="destructive" className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-1 flex-shrink-0" />
+              <div>
+                <AlertTitle>One time display</AlertTitle>
+                <AlertDescription>
+                  This API key will only be displayed once. Make sure to copy it
+                  now and save it in a secure location.
+                </AlertDescription>
+              </div>
             </Alert>
-            <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
-              <code className="flex-1 text-sm break-all">{newToken}</code>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => copyToClipboard(newToken)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-col gap-3 mt-4">
+              <Label htmlFor="api-key" className="text-sm font-medium">
+                Your new API key
+              </Label>
+              <div className="flex items-center gap-2 p-3 border rounded-md bg-muted">
+                <code id="api-key" className="flex-1 text-sm break-all font-mono">{newToken}</code>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => copyToClipboard(newToken)}
+                  className="shrink-0"
+                >
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy
+                </Button>
+              </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-2">
             <Button
               onClick={() => {
                 setNewToken(null);
@@ -209,8 +238,8 @@ export function ApiKeysPage() {
         <DialogHeader>
           <DialogTitle>Create New API Key</DialogTitle>
           <DialogDescription>
-            Give your new key a descriptive name. The key will be displayed
-            only once after creation.
+            Give your new key a descriptive name. The key will be displayed only
+            once after creation.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -251,8 +280,8 @@ export function ApiKeysPage() {
         <p className="text-muted-foreground">
           Manage your API keys for accessing your organization's services.
         </p>
-        <Dialog 
-          open={isCreateDialogOpen} 
+        <Dialog
+          open={isCreateDialogOpen}
           onOpenChange={(open) => {
             if (!open) setNewToken(null);
             setIsCreateDialogOpen(open);
@@ -264,9 +293,7 @@ export function ApiKeysPage() {
               Create New Key
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            {renderDialogContent()}
-          </DialogContent>
+          <DialogContent>{renderDialogContent()}</DialogContent>
         </Dialog>
       </div>
 
@@ -290,7 +317,10 @@ export function ApiKeysPage() {
               </TableRow>
             ) : apiTokens.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={3}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No API keys found. Create your first key to get started.
                 </TableCell>
               </TableRow>
@@ -302,14 +332,18 @@ export function ApiKeysPage() {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Toggle menu</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleDeleteKey(token.id)}
+                          onClick={() => confirmDeleteKey(token.id)}
                           className="text-red-600 focus:text-red-600 focus:bg-red-50"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -329,6 +363,32 @@ export function ApiKeysPage() {
           Showing <strong>{apiTokens.length}</strong> API keys.
         </div>
       )}
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              API key.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setTokenToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteKey}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </InsetLayout>
   );
 }

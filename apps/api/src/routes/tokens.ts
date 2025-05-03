@@ -14,7 +14,7 @@ tokenRoutes.use("*", jwtAuth);
 
 /**
  * GET /api/tokens
- * 
+ *
  * List all API tokens for the current organization
  */
 tokenRoutes.get("/", async (c) => {
@@ -32,7 +32,7 @@ tokenRoutes.get("/", async (c) => {
 
 /**
  * POST /api/tokens
- * 
+ *
  * Create a new API token for the current organization
  */
 tokenRoutes.post(
@@ -49,12 +49,8 @@ tokenRoutes.post(
     const { name } = c.req.valid("json");
 
     try {
-      const result = await createApiToken(
-        db, 
-        user.organizationId, 
-        name
-      );
-      
+      const result = await createApiToken(db, user.organizationId, name);
+
       // Return both the raw token (only shown once) and the token record
       return c.json(
         {
@@ -76,7 +72,7 @@ tokenRoutes.post(
 
 /**
  * DELETE /api/tokens/:id
- * 
+ *
  * Delete an API token
  */
 tokenRoutes.delete("/:id", async (c) => {
@@ -86,7 +82,7 @@ tokenRoutes.delete("/:id", async (c) => {
 
   try {
     const success = await deleteApiToken(db, tokenId, user.organizationId);
-    
+
     if (success) {
       return c.json({ success: true });
     } else {
@@ -98,4 +94,4 @@ tokenRoutes.delete("/:id", async (c) => {
   }
 });
 
-export default tokenRoutes; 
+export default tokenRoutes;

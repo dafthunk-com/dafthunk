@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
-import { 
-  createDatabase, 
-  workflows, 
+import {
+  createDatabase,
+  workflows,
   executions,
   users,
   organizations,
@@ -17,7 +17,7 @@ import {
   OrganizationRole,
   type ProviderType,
   type PlanType,
-  type UserRoleType 
+  type UserRoleType,
 } from "../db";
 import { Workflow as WorkflowType, WorkflowExecution } from "@dafthunk/types";
 import { ExecutionStatusType } from "../db/schema";
@@ -56,7 +56,7 @@ export type UserData = {
 
 /**
  * Save a user to the database and ensure they belong to an organization
- * 
+ *
  * @param db Database instance
  * @param userData User data to save
  * @returns The ID of the organization the user belongs to
@@ -66,7 +66,7 @@ export async function saveUser(
   userData: UserData
 ): Promise<string> {
   const now = new Date();
-  
+
   // Insert or update user
   await db
     .insert(users)
@@ -96,17 +96,17 @@ export async function saveUser(
         updatedAt: now,
       },
     });
-    
+
   // Check if user already exists in any organization
   const existingMemberships = await db
     .select()
     .from(memberships)
     .where(sql`${memberships.userId} = ${userData.id}`);
-    
+
   // If user has no organizations, create a personal one
   if (existingMemberships.length === 0) {
     const orgId = nanoid();
-    
+
     // Create personal organization
     const newOrg: NewOrganization = {
       id: orgId,
@@ -114,9 +114,9 @@ export async function saveUser(
       createdAt: now,
       updatedAt: now,
     };
-    
+
     await db.insert(organizations).values(newOrg);
-    
+
     // Create membership with owner role
     const newMembership: NewMembership = {
       userId: userData.id,
@@ -125,18 +125,18 @@ export async function saveUser(
       createdAt: now,
       updatedAt: now,
     };
-    
+
     await db.insert(memberships).values(newMembership);
-    
+
     return orgId;
   }
-  
+
   return existingMemberships[0].organizationId;
 }
 
 /**
  * Get a user by ID
- * 
+ *
  * @param db Database instance
  * @param id User ID
  * @returns User record or undefined if not found
@@ -145,17 +145,14 @@ export async function getUserById(
   db: ReturnType<typeof createDatabase>,
   id: string
 ) {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, id));
-  
+  const [user] = await db.select().from(users).where(eq(users.id, id));
+
   return user;
 }
 
 /**
  * Get all organizations a user belongs to
- * 
+ *
  * @param db Database instance
  * @param userId User ID
  * @returns Array of organizations and the user's role in each
@@ -167,25 +164,22 @@ export async function getUserOrganizations(
   return db
     .select({
       organization: organizations,
-      role: memberships.role
+      role: memberships.role,
     })
     .from(memberships)
-    .innerJoin(
-      organizations, 
-      eq(memberships.organizationId, organizations.id)
-    )
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
     .where(eq(memberships.userId, userId));
 }
 
 /**
  * Get all workflows for an organization
- * 
+ *
  * @param db Database instance
  * @param organizationId Organization ID
  * @returns Array of workflows with basic info
  */
 export async function getWorkflowsByOrganization(
-  db: ReturnType<typeof createDatabase>, 
+  db: ReturnType<typeof createDatabase>,
   organizationId: string
 ) {
   return db
@@ -201,28 +195,30 @@ export async function getWorkflowsByOrganization(
 
 /**
  * Get a workflow by ID, ensuring it belongs to the specified organization
- * 
+ *
  * @param db Database instance
  * @param id Workflow ID
  * @param organizationId Organization ID
  * @returns Workflow record or undefined if not found
  */
 export async function getWorkflowById(
-  db: ReturnType<typeof createDatabase>, 
-  id: string, 
+  db: ReturnType<typeof createDatabase>,
+  id: string,
   organizationId: string
 ) {
   const [workflow] = await db
     .select()
     .from(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.organizationId, organizationId)));
-  
+    .where(
+      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
+    );
+
   return workflow;
 }
 
 /**
  * Create a new workflow
- * 
+ *
  * @param db Database instance
  * @param newWorkflow Workflow data to insert
  * @returns Created workflow record
@@ -231,17 +227,14 @@ export async function createWorkflow(
   db: ReturnType<typeof createDatabase>,
   newWorkflow: NewWorkflow
 ) {
-  const [workflow] = await db
-    .insert(workflows)
-    .values(newWorkflow)
-    .returning();
-  
+  const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
+
   return workflow;
 }
 
 /**
  * Update a workflow, ensuring it belongs to the specified organization
- * 
+ *
  * @param db Database instance
  * @param id Workflow ID
  * @param organizationId Organization ID
@@ -257,15 +250,17 @@ export async function updateWorkflow(
   const [workflow] = await db
     .update(workflows)
     .set(data)
-    .where(and(eq(workflows.id, id), eq(workflows.organizationId, organizationId)))
+    .where(
+      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
+    )
     .returning();
-  
+
   return workflow;
 }
 
 /**
  * Delete a workflow, ensuring it belongs to the specified organization
- * 
+ *
  * @param db Database instance
  * @param id Workflow ID
  * @param organizationId Organization ID
@@ -278,9 +273,11 @@ export async function deleteWorkflow(
 ) {
   const [workflow] = await db
     .delete(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.organizationId, organizationId)))
+    .where(
+      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
+    )
     .returning();
-  
+
   return workflow;
 }
 
@@ -290,7 +287,7 @@ export async function deleteWorkflow(
 
 /**
  * Get an execution by ID, ensuring it belongs to the specified organization
- * 
+ *
  * @param db Database instance
  * @param id Execution ID
  * @param organizationId Organization ID
@@ -305,19 +302,16 @@ export async function getExecutionById(
     .select()
     .from(executions)
     .where(
-      and(
-        eq(executions.id, id),
-        eq(executions.organizationId, organizationId)
-      )
+      and(eq(executions.id, id), eq(executions.organizationId, organizationId))
     )
     .get();
-  
+
   return execution;
 }
 
 /**
  * Save an execution record
- * 
+ *
  * @param db Database instance
  * @param record Execution data to save
  * @returns Workflow execution object
@@ -328,7 +322,7 @@ export async function saveExecution(
 ): Promise<WorkflowExecution> {
   const now = new Date();
   const { nodeExecutions, userId, ...dbFields } = record;
-  
+
   // Create the execution object that will be stored as JSON in the data field
   const executionData: WorkflowExecution = {
     id: record.id,
@@ -356,7 +350,7 @@ export async function saveExecution(
 
 /**
  * Update an execution's status, ensuring it belongs to the specified organization
- * 
+ *
  * @param db Database instance
  * @param id Execution ID
  * @param organizationId Organization ID
@@ -373,25 +367,22 @@ export async function updateExecutionStatus(
 ) {
   const [execution] = await db
     .update(executions)
-    .set({ 
-      status, 
+    .set({
+      status,
       error: errorMessage,
-      updatedAt: new Date() 
+      updatedAt: new Date(),
     })
     .where(
-      and(
-        eq(executions.id, id),
-        eq(executions.organizationId, organizationId)
-      )
+      and(eq(executions.id, id), eq(executions.organizationId, organizationId))
     )
     .returning();
-  
+
   return execution;
 }
 
 /**
  * Create a new API token for an organization
- * 
+ *
  * @param db Database instance
  * @param organizationId Organization ID
  * @param name Descriptive name for the token
@@ -404,13 +395,16 @@ export async function createApiToken(
 ) {
   const id = nanoid();
   const now = new Date();
-  
+
   // Generate a secure random token
-  const rawToken = crypto.randomBytes(32).toString('hex');
-  
+  const rawToken = crypto.randomBytes(32).toString("hex");
+
   // Hash the token for storage
-  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
-  
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+
   // Create the token record
   const newToken: NewApiToken = {
     id,
@@ -420,23 +414,20 @@ export async function createApiToken(
     createdAt: now,
     updatedAt: now,
   };
-  
+
   // Insert the token record
-  const [tokenRecord] = await db
-    .insert(apiTokens)
-    .values(newToken)
-    .returning();
-  
+  const [tokenRecord] = await db.insert(apiTokens).values(newToken).returning();
+
   // Return both the raw token (only shown once) and the record
   return {
-    rawToken: `daft_${rawToken}`, // Prefix for easier identification
+    rawToken: `${rawToken}`, // Prefix for easier identification
     token: tokenRecord,
   };
 }
 
 /**
  * Verify an API token
- * 
+ *
  * @param db Database instance
  * @param providedToken The token provided in the request
  * @returns The organization ID if token is valid, null otherwise
@@ -446,13 +437,16 @@ export async function verifyApiToken(
   providedToken: string
 ): Promise<string | null> {
   // Remove prefix if present
-  const tokenValue = providedToken.startsWith('daft_') 
-    ? providedToken.substring(5) 
+  const tokenValue = providedToken.startsWith("")
+    ? providedToken.substring(5)
     : providedToken;
-  
+
   // Hash the provided token
-  const hashedToken = crypto.createHash('sha256').update(tokenValue).digest('hex');
-  
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(tokenValue)
+    .digest("hex");
+
   // Find the token in the database
   const [token] = await db
     .select({
@@ -461,18 +455,18 @@ export async function verifyApiToken(
     })
     .from(apiTokens)
     .where(eq(apiTokens.token, hashedToken));
-  
+
   // Check if token exists
   if (!token) {
     return null;
   }
-  
+
   return token.organizationId;
 }
 
 /**
  * List API tokens for an organization
- * 
+ *
  * @param db Database instance
  * @param organizationId Organization ID
  * @returns Array of API token records (without the token hash)
@@ -494,7 +488,7 @@ export async function getApiTokens(
 
 /**
  * Delete an API token
- * 
+ *
  * @param db Database instance
  * @param id Token ID
  * @param organizationId Organization ID
@@ -509,13 +503,10 @@ export async function deleteApiToken(
   const [deletedToken] = await db
     .delete(apiTokens)
     .where(
-      and(
-        eq(apiTokens.id, id),
-        eq(apiTokens.organizationId, organizationId)
-      )
+      and(eq(apiTokens.id, id), eq(apiTokens.organizationId, organizationId))
     )
     .returning({ id: apiTokens.id });
-    
+
   // If we got a record back, it was deleted successfully
   return !!deletedToken;
-} 
+}

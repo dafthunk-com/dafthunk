@@ -5,8 +5,11 @@ import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
 import { Logo } from "./logo";
+import { useAuth } from "./authContext";
 
 export function AppHeader() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3">
       <div className="flex items-center gap-2">
@@ -16,23 +19,27 @@ export function AppHeader() {
         </Link>
         <AppHeaderBreadcrumb />
       </div>
-      <div className="flex items-center gap-6">
-        <nav className="flex items-center gap-4">
-          <NavLink
-            to="/dashboard"
-            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-            activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
-          >
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/workflows/playground"
-            isActive={() => window.location.pathname.startsWith("/workflows")}
-            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-            activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
-          >
-            Workflows
-          </NavLink>
+      <div className="flex items-center gap-2">
+        <nav className="flex items-center gap-2">
+          {isAuthenticated && (
+            <NavLink
+              to="/dashboard"
+              className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+              activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+            >
+              Dashboard
+            </NavLink>
+          )}
+          {isAuthenticated && (
+            <NavLink
+              to="/workflows/playground"
+              isActive={() => window.location.pathname.startsWith("/workflows")}
+              className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+              activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+            >
+              Workflows
+            </NavLink>
+          )}
           <NavLink
             to="/docs"
             isActive={() => window.location.pathname.startsWith("/docs")}
@@ -41,14 +48,16 @@ export function AppHeader() {
           >
             Docs
           </NavLink>
-          <NavLink
-            to="/settings/profile"
-            isActive={() => window.location.pathname.startsWith("/settings")}
-            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-            activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
-          >
-            <Settings className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
-          </NavLink>
+          {isAuthenticated && (
+            <NavLink
+              to="/settings/profile"
+              isActive={() => window.location.pathname.startsWith("/settings")}
+              className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+              activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+            >
+              <Settings className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+            </NavLink>
+          )}
         </nav>
         <ThemeToggle />
         <UserProfile />
