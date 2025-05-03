@@ -1,0 +1,77 @@
+CREATE TABLE `deployments` (
+	`id` text PRIMARY KEY NOT NULL,
+	`organization_id` text NOT NULL,
+	`workflow_id` text,
+	`workflow_data` text NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`workflow_id`) REFERENCES `workflows`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `deployments_org_id_idx` ON `deployments` (`organization_id`);--> statement-breakpoint
+CREATE INDEX `deployments_workflow_id_idx` ON `deployments` (`workflow_id`);--> statement-breakpoint
+CREATE TABLE `executions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`workflow_id` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`status` text DEFAULT 'idle' NOT NULL,
+	`data` text NOT NULL,
+	`error` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`workflow_id`) REFERENCES `workflows`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `executions_workflow_id_idx` ON `executions` (`workflow_id`);--> statement-breakpoint
+CREATE INDEX `executions_org_id_idx` ON `executions` (`organization_id`);--> statement-breakpoint
+CREATE INDEX `executions_status_idx` ON `executions` (`status`);--> statement-breakpoint
+CREATE TABLE `memberships` (
+	`user_id` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`role` text DEFAULT 'member' NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	PRIMARY KEY(`user_id`, `organization_id`),
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `memberships_role_idx` ON `memberships` (`role`);--> statement-breakpoint
+CREATE TABLE `organizations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX `organizations_name_idx` ON `organizations` (`name`);--> statement-breakpoint
+CREATE TABLE `users` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`email` text,
+	`provider` text NOT NULL,
+	`github_id` text,
+	`google_id` text,
+	`avatar_url` text,
+	`plan` text DEFAULT 'trial' NOT NULL,
+	`role` text DEFAULT 'user' NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE INDEX `users_provider_id_idx` ON `users` (`provider`,`github_id`,`google_id`);--> statement-breakpoint
+CREATE TABLE `workflows` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`data` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE INDEX `workflows_name_idx` ON `workflows` (`name`);--> statement-breakpoint
+CREATE INDEX `workflows_org_id_idx` ON `workflows` (`organization_id`);

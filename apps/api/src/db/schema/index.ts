@@ -1,8 +1,13 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, primaryKey, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
+import { Workflow as WorkflowType, WorkflowExecution as WorkflowExecutionType } from "@dafthunk/types";
 
-// Define plans
+/**
+ * ENUMS & CONSTANTS
+ */
+
+// Subscription plan types 
 export const Plan = {
   TRIAL: "trial",
   FREE: "free",
@@ -11,15 +16,24 @@ export const Plan = {
 
 export type PlanType = (typeof Plan)[keyof typeof Plan];
 
-// Define roles
-export const Role = {
+// User permission roles
+export const UserRole = {
   USER: "user",
   ADMIN: "admin",
 } as const;
 
-export type RoleType = (typeof Role)[keyof typeof Role];
+export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
-// Define providers
+// Organization member roles
+export const OrganizationRole = {
+  MEMBER: "member",
+  ADMIN: "admin",
+  OWNER: "owner",
+} as const;
+
+export type OrganizationRoleType = (typeof OrganizationRole)[keyof typeof OrganizationRole];
+
+// Authentication providers
 export const Provider = {
   GITHUB: "github",
   GOOGLE: "google",
@@ -27,7 +41,7 @@ export const Provider = {
 
 export type ProviderType = (typeof Provider)[keyof typeof Provider];
 
-// Define execution status types
+// Workflow execution states
 export const ExecutionStatus = {
   IDLE: "idle",
   EXECUTING: "executing",
@@ -38,8 +52,25 @@ export const ExecutionStatus = {
 export type ExecutionStatusType =
   (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
 
+/**
+ * REUSABLE COLUMNS
+ */
+
+const createCreatedAt = () => integer("created_at", { mode: "timestamp" })
+  .notNull()
+  .default(sql`CURRENT_TIMESTAMP`);
+
+const createUpdatedAt = () => integer("updated_at", { mode: "timestamp" })
+  .notNull()
+  .default(sql`CURRENT_TIMESTAMP`);
+
+/**
+ * SCHEMA DEFINITION
+ */
+
+// Users - System users with authentication and subscription details
 export const users = sqliteTable("users", {
-  id: text("id").primaryKey(), // UUID
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").unique(),
   provider: text("provider").$type<ProviderType>().notNull(),
@@ -47,63 +78,136 @@ export const users = sqliteTable("users", {
   googleId: text("google_id"),
   avatarUrl: text("avatar_url"),
   plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
-  role: text("role").$type<RoleType>().notNull().default(Role.USER),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-});
+  role: text("role").$type<UserRoleType>().notNull().default(UserRole.USER),
+  createdAt: createCreatedAt(),
+  updatedAt: createUpdatedAt(),
+}, (table) => [
+  index("users_provider_id_idx").on(
+    table.provider, 
+    table.githubId,
+    table.googleId
+  ),
+]);
 
+// Organizations - Collaborative workspaces for teams
+export const organizations = sqliteTable("organizations", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: createCreatedAt(),
+  updatedAt: createUpdatedAt(),
+}, (table) => [
+  index("organizations_name_idx").on(table.name),
+]);
+
+// Memberships - Join table for users and organizations (many-to-many)
+export const memberships = sqliteTable("memberships", {
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id),
+  role: text("role").$type<OrganizationRoleType>().notNull().default(OrganizationRole.MEMBER),
+  createdAt: createCreatedAt(),
+  updatedAt: createUpdatedAt(),
+},
+  (table) => [
+    primaryKey({ columns: [table.userId, table.organizationId] }),
+    index("memberships_role_idx").on(table.role),
+  ]
+);
+
+// Workflows - Workflow definitions created and edited by users
 export const workflows = sqliteTable("workflows", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  data: text("data", { mode: "json" }).notNull(),
-  userId: text("user_id")
+  data: text("data", { mode: "json" }).$type<WorkflowType>().notNull(),
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => users.id),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-});
+    .references(() => organizations.id),
+  createdAt: createCreatedAt(),
+  updatedAt: createUpdatedAt(),
+}, (table) => [
+  index("workflows_name_idx").on(table.name),
+  index("workflows_org_id_idx").on(table.organizationId),
+]);
 
+// Deployments - Versioned workflow definitions ready for execution
+export const deployments = sqliteTable("deployments", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organizations.id),
+  workflowId: text("workflow_id").references(
+    () => workflows.id
+  ),
+  workflowData: text("workflow_data", { mode: "json" }).$type<WorkflowType>().notNull(),
+  createdAt: createCreatedAt(),
+  updatedAt: createUpdatedAt(),
+}, (table) => [
+  index("deployments_org_id_idx").on(table.organizationId),
+  index("deployments_workflow_id_idx").on(table.workflowId),
+]);
+
+// Executions - Records of workflow runs with status and results
 export const executions = sqliteTable("executions", {
-  id: text("id").primaryKey(), // Workflow execution instance UUID
+  id: text("id").primaryKey(),
   workflowId: text("workflow_id")
     .notNull()
     .references(() => workflows.id),
-  userId: text("user_id")
+  organizationId: text("organization_id")
     .notNull()
-    .references(() => users.id),
+    .references(() => organizations.id),
   status: text("status")
     .$type<ExecutionStatusType>()
     .notNull()
     .default(ExecutionStatus.IDLE),
-  data: text("data", { mode: "json" }).notNull(),
+  data: text("data", { mode: "json" }).$type<WorkflowExecutionType>().notNull(),
   error: text("error"),
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-});
+  createdAt: createCreatedAt(),
+  updatedAt: createUpdatedAt(),
+}, (table) => [
+  index("executions_workflow_id_idx").on(table.workflowId),
+  index("executions_org_id_idx").on(table.organizationId),
+  index("executions_status_idx").on(table.status),
+]);
+
+/**
+ * RELATION DEFINITIONS
+ */
 
 export const usersRelations = relations(users, ({ many }) => ({
-  workflows: many(workflows),
-  executions: many(executions),
+  memberships: many(memberships),
 }));
 
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  memberships: many(memberships),
+  workflows: many(workflows),
+  executions: many(executions),
+  deployments: many(deployments),
+}));
+
+export const membershipsRelations = relations(
+  memberships,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [memberships.userId],
+      references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [memberships.organizationId],
+      references: [organizations.id],
+    }),
+  })
+);
+
 export const workflowsRelations = relations(workflows, ({ one, many }) => ({
-  user: one(users, {
-    fields: [workflows.userId],
-    references: [users.id],
+  organization: one(organizations, {
+    fields: [workflows.organizationId],
+    references: [organizations.id],
   }),
   executions: many(executions),
+  deployments: many(deployments),
 }));
 
 export const executionsRelations = relations(executions, ({ one }) => ({
@@ -111,11 +215,44 @@ export const executionsRelations = relations(executions, ({ one }) => ({
     fields: [executions.workflowId],
     references: [workflows.id],
   }),
-  user: one(users, {
-    fields: [executions.userId],
-    references: [users.id],
+  organization: one(organizations, {
+    fields: [executions.organizationId],
+    references: [organizations.id],
   }),
 }));
+
+export const deploymentsRelations = relations(deployments, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [deployments.organizationId],
+    references: [organizations.id],
+  }),
+  workflow: one(workflows, {
+    fields: [deployments.workflowId],
+    references: [workflows.id],
+  }),
+}));
+
+/**
+ * HELPER FUNCTIONS
+ */
+
+// Updates the updatedAt timestamp for record modifications
+export function withUpdatedTimestamp<T extends Record<string, any>>(data: T): T & { updatedAt: Date } {
+  return {
+    ...data,
+    updatedAt: new Date(),
+  };
+}
+
+/**
+ * TYPE EXPORTS
+ */
+
+export type Organization = typeof organizations.$inferSelect;
+export type NewOrganization = typeof organizations.$inferInsert;
+
+export type Membership = typeof memberships.$inferSelect;
+export type NewMembership = typeof memberships.$inferInsert;
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -125,3 +262,6 @@ export type NewWorkflow = typeof workflows.$inferInsert;
 
 export type Execution = typeof executions.$inferSelect;
 export type NewExecution = typeof executions.$inferInsert;
+
+export type Deployment = typeof deployments.$inferSelect;
+export type NewDeployment = typeof deployments.$inferInsert;

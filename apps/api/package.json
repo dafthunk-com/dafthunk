@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "db:reset": "wrangler d1 execute DB --local --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;\"",
     "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:generate": "drizzle-kit generate",
     "db:prod:migrate": "wrangler d1 migrations apply DB --remote --env production",
     "db:prod:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS users;\" && wrangler d1 migrations apply DB --remote --env production"
   },
@@ -18,6 +19,7 @@
     "@cloudflare/workers-types": "^4.20250404.0",
     "@eslint/js": "^9.19.0",
     "@types/node": "^22.14.0",
+    "drizzle-kit": "^0.31.0",
     "eslint": "^9.19.0",
     "globals": "^15.14.0",
     "prettier": "^3.5.3",
