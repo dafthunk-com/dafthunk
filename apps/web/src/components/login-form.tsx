@@ -36,7 +36,6 @@ export function LoginForm({
             <div className="flex flex-col gap-4">
               <Button
                 onClick={() => handleLoginClick("google")}
-                variant="outline"
                 className="w-full"
               >
                 <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
@@ -44,7 +43,6 @@ export function LoginForm({
               </Button>
               <Button
                 onClick={() => handleLoginClick("github")}
-                variant="outline"
                 className="w-full"
               >
                 <FontAwesomeIcon icon={faGithub} className="w-5 h-5 mr-2" />

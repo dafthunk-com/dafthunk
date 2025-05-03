@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+
+import { Link } from "react-router-dom";
 import { Bot, Settings } from "lucide-react";
 import { UserProfile } from "@/components/user-profile";
 import { NavLink } from "./nav-link";
