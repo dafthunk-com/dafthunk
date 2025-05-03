@@ -6,10 +6,12 @@ import {
   users,
   organizations,
   memberships,
+  apiTokens,
   type NewWorkflow,
   type Workflow,
   type NewOrganization,
   type NewMembership,
+  type NewApiToken,
   Plan,
   UserRole,
   OrganizationRole,
@@ -20,6 +22,7 @@ import {
 import { Workflow as WorkflowType, WorkflowExecution } from "@dafthunk/types";
 import { ExecutionStatusType } from "../db/schema";
 import { nanoid } from "nanoid";
+import * as crypto from "crypto";
 
 /**
  * Data required to save an execution record
@@ -384,4 +387,160 @@ export async function updateExecutionStatus(
     .returning();
   
   return execution;
+}
+
+/**
+ * Create a new API token for an organization
+ * 
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @param name Descriptive name for the token
+ * @param expiresAt Optional expiration date
+ * @returns Object containing the raw token (shown only once) and the token record
+ */
+export async function createApiToken(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string,
+  name: string,
+  expiresAt?: Date
+) {
+  const id = nanoid();
+  const now = new Date();
+  
+  // Generate a secure random token
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  
+  // Hash the token for storage
+  const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  
+  // Create the token record
+  const newToken: NewApiToken = {
+    id,
+    name,
+    token: hashedToken,
+    organizationId,
+    expiresAt,
+    isActive: true,
+    createdAt: now,
+    updatedAt: now,
+  };
+  
+  // Insert the token record
+  const [tokenRecord] = await db
+    .insert(apiTokens)
+    .values(newToken)
+    .returning();
+  
+  // Return both the raw token (only shown once) and the record
+  return {
+    rawToken: `daft_${rawToken}`, // Prefix for easier identification
+    token: tokenRecord,
+  };
+}
+
+/**
+ * Verify an API token
+ * 
+ * @param db Database instance
+ * @param providedToken The token provided in the request
+ * @returns The organization ID if token is valid, null otherwise
+ */
+export async function verifyApiToken(
+  db: ReturnType<typeof createDatabase>,
+  providedToken: string
+): Promise<string | null> {
+  // Remove prefix if present
+  const tokenValue = providedToken.startsWith('daft_') 
+    ? providedToken.substring(5) 
+    : providedToken;
+  
+  // Hash the provided token
+  const hashedToken = crypto.createHash('sha256').update(tokenValue).digest('hex');
+  
+  // Find the token in the database
+  const [token] = await db
+    .select({
+      id: apiTokens.id,
+      organizationId: apiTokens.organizationId,
+      expiresAt: apiTokens.expiresAt,
+      isActive: apiTokens.isActive,
+    })
+    .from(apiTokens)
+    .where(eq(apiTokens.token, hashedToken));
+  
+  // Check if token exists
+  if (!token) {
+    return null;
+  }
+  
+  // Check if token is active
+  if (!token.isActive) {
+    return null;
+  }
+  
+  // Check if token has expired
+  if (token.expiresAt && new Date(token.expiresAt) < new Date()) {
+    // Automatically deactivate expired tokens
+    await db
+      .update(apiTokens)
+      .set({ isActive: false })
+      .where(eq(apiTokens.id, token.id));
+    
+    return null;
+  }
+  
+  return token.organizationId;
+}
+
+/**
+ * List API tokens for an organization
+ * 
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @returns Array of API token records (without the token hash)
+ */
+export async function getApiTokens(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string
+) {
+  return db
+    .select({
+      id: apiTokens.id,
+      name: apiTokens.name,
+      expiresAt: apiTokens.expiresAt,
+      isActive: apiTokens.isActive,
+      createdAt: apiTokens.createdAt,
+      updatedAt: apiTokens.updatedAt,
+    })
+    .from(apiTokens)
+    .where(eq(apiTokens.organizationId, organizationId));
+}
+
+/**
+ * Revoke an API token
+ * 
+ * @param db Database instance
+ * @param id Token ID
+ * @param organizationId Organization ID
+ * @returns True if token was revoked, false if not found
+ */
+export async function revokeApiToken(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<boolean> {
+  // Try to update the token by its ID and organization
+  const [updatedToken] = await db
+    .update(apiTokens)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(
+      and(
+        eq(apiTokens.id, id),
+        eq(apiTokens.organizationId, organizationId)
+      )
+    )
+    .returning({ id: apiTokens.id });
+    
+  // If we got a record back, it was updated successfully
+  return !!updatedToken;
 } 
