@@ -1,12 +1,18 @@
 import { Hono } from "hono";
-import { eq, and } from "drizzle-orm";
-import { Node, Edge } from "@dafthunk/types";
+import { Node, Edge, Workflow as WorkflowType } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase, workflows, type NewWorkflow } from "../db";
+import { createDatabase, type NewWorkflow } from "../db";
 import { jwtAuth } from "../auth";
-import { saveExecutionRecord } from "../utils/executions";
 import { validateWorkflow } from "../utils/workflows";
 import { v7 as uuid } from "uuid";
+import {
+  getWorkflowsByOrganization,
+  getWorkflowById,
+  createWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
+  saveExecution,
+} from "../utils/db";
 
 const workflowRoutes = new Hono<ApiContext>();
 
@@ -14,15 +20,10 @@ workflowRoutes.get("/", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const db = createDatabase(c.env.DB);
 
-  const allWorkflows = await db
-    .select({
-      id: workflows.id,
-      name: workflows.name,
-      createdAt: workflows.createdAt,
-      updatedAt: workflows.updatedAt,
-    })
-    .from(workflows)
-    .where(eq(workflows.userId, user.sub));
+  const allWorkflows = await getWorkflowsByOrganization(
+    db,
+    user.organizationId
+  );
 
   return c.json({ workflows: allWorkflows });
 });
@@ -32,33 +33,31 @@ workflowRoutes.post("/", jwtAuth, async (c) => {
   const data = await c.req.json();
   const now = new Date();
 
-  const newWorkflowData: NewWorkflow = {
+  const workflowData: WorkflowType = {
     id: uuid(),
     name: data.name || "Untitled Workflow",
-    data: JSON.stringify({
-      nodes: Array.isArray(data.nodes) ? data.nodes : [],
-      edges: Array.isArray(data.edges) ? data.edges : [],
-    }),
-    userId: user.sub,
+    nodes: Array.isArray(data.nodes) ? data.nodes : [],
+    edges: Array.isArray(data.edges) ? data.edges : [],
+  };
+
+  const newWorkflowData: NewWorkflow = {
+    id: workflowData.id,
+    name: workflowData.name,
+    data: workflowData,
+    organizationId: user.organizationId,
     createdAt: now,
     updatedAt: now,
   };
 
-  const workflowToValidate = {
-    nodes: Array.isArray(data.nodes) ? data.nodes : [],
-    edges: Array.isArray(data.edges) ? data.edges : [],
-  };
-  const validationErrors = validateWorkflow(workflowToValidate as any);
+  const validationErrors = validateWorkflow(workflowData);
   if (validationErrors.length > 0) {
     return c.json({ errors: validationErrors }, 400);
   }
 
   const db = createDatabase(c.env.DB);
-  const [newWorkflow] = await db
-    .insert(workflows)
-    .values(newWorkflowData)
-    .returning();
-  const workflowData = JSON.parse(newWorkflow.data as string);
+  const newWorkflow = await createWorkflow(db, newWorkflowData);
+
+  const workflowDataFromDb = newWorkflow.data as WorkflowType;
 
   return c.json(
     {
@@ -66,8 +65,8 @@ workflowRoutes.post("/", jwtAuth, async (c) => {
       name: newWorkflow.name,
       createdAt: newWorkflow.createdAt,
       updatedAt: newWorkflow.updatedAt,
-      nodes: workflowData.nodes,
-      edges: workflowData.edges,
+      nodes: workflowDataFromDb.nodes,
+      edges: workflowDataFromDb.edges,
     },
     201
   );
@@ -78,16 +77,13 @@ workflowRoutes.get("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const [workflow] = await db
-    .select()
-    .from(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
+  const workflow = await getWorkflowById(db, id, user.organizationId);
 
   if (!workflow) {
     return c.text("Workflow not found", 404);
   }
 
-  const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
+  const workflowData = workflow.data as WorkflowType;
 
   return c.json({
     id: workflow.id,
@@ -104,10 +100,7 @@ workflowRoutes.put("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const [existingWorkflow] = await db
-    .select()
-    .from(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
+  const existingWorkflow = await getWorkflowById(db, id, user.organizationId);
 
   if (!existingWorkflow) {
     return c.text("Workflow not found", 404);
@@ -154,28 +147,28 @@ workflowRoutes.put("/:id", jwtAuth, async (c) => {
     return c.json({ errors: validationErrors }, 400);
   }
 
-  const [updatedWorkflow] = await db
-    .update(workflows)
-    .set({
-      name: data.name,
-      data: {
-        nodes: sanitizedNodes,
-        edges: Array.isArray(data.edges) ? data.edges : [],
-      },
-      updatedAt: now,
-    })
-    .where(eq(workflows.id, id))
-    .returning();
+  const updatedWorkflowData: WorkflowType = {
+    id: existingWorkflow.id,
+    name: data.name,
+    nodes: sanitizedNodes,
+    edges: Array.isArray(data.edges) ? data.edges : [],
+  };
 
-  const workflowData = updatedWorkflow.data as { nodes: Node[]; edges: Edge[] };
+  const updatedWorkflow = await updateWorkflow(db, id, user.organizationId, {
+    name: data.name,
+    data: updatedWorkflowData,
+    updatedAt: now,
+  });
+
+  const workflowDataFromDb = updatedWorkflow.data as WorkflowType;
 
   return c.json({
     id: updatedWorkflow.id,
     name: updatedWorkflow.name,
     createdAt: updatedWorkflow.createdAt,
     updatedAt: updatedWorkflow.updatedAt,
-    nodes: workflowData.nodes || [],
-    edges: workflowData.edges || [],
+    nodes: workflowDataFromDb.nodes || [],
+    edges: workflowDataFromDb.edges || [],
   });
 });
 
@@ -184,19 +177,13 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const [existingWorkflow] = await db
-    .select()
-    .from(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
+  const existingWorkflow = await getWorkflowById(db, id, user.organizationId);
 
   if (!existingWorkflow) {
     return c.text("Workflow not found", 404);
   }
 
-  const [deletedWorkflow] = await db
-    .delete(workflows)
-    .where(eq(workflows.id, id))
-    .returning();
+  const deletedWorkflow = await deleteWorkflow(db, id, user.organizationId);
 
   return c.json({ id: deletedWorkflow.id });
 });
@@ -208,21 +195,19 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
 
   const monitorProgress =
     new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-  const [workflow] = await db
-    .select()
-    .from(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.userId, user.sub)));
+  const workflow = await getWorkflowById(db, id, user.organizationId);
 
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const workflowData = workflow.data as { nodes: Node[]; edges: Edge[] };
+  const workflowData = workflow.data as WorkflowType;
 
   // Trigger the runtime and get the instance id
   const instance = await c.env.EXECUTE.create({
     params: {
       userId: user.sub,
+      organizationId: user.organizationId,
       workflow: {
         id: workflow.id,
         name: workflow.name,
@@ -235,16 +220,17 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
   const executionId = instance.id;
 
   // Build initial nodeExecutions (all idle)
-  const nodeExecutions = workflowData.nodes.map((node) => ({
+  const nodeExecutions = workflowData.nodes.map((node: Node) => ({
     nodeId: node.id,
     status: "idle" as const,
   }));
 
   // Save initial execution record
-  await saveExecutionRecord(db, {
+  await saveExecution(db, {
     id: executionId,
     workflowId: workflow.id,
     userId: user.sub,
+    organizationId: user.organizationId,
     status: "idle",
     nodeExecutions,
     createdAt: new Date(),

@@ -7,14 +7,14 @@ import { SignJWT } from "jose";
 import {
   Provider,
   Plan,
-  Role,
-  users,
+  UserRole,
   type ProviderType,
   type PlanType,
-  type RoleType,
-} from "./db";
+  type UserRoleType,
+} from "./db/schema";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload } from "./context";
+import { saveUser } from "./utils/db";
 
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";
@@ -38,51 +38,6 @@ const createJWT = async (
 const urlToTopLevelDomain = (url: string): string => {
   const parsedUrl = new URL(url);
   return parsedUrl.hostname.split(".").slice(-2).join(".");
-};
-
-// Database helper functions
-const saveUser = async (
-  db: ReturnType<typeof createDatabase>,
-  userData: {
-    id: string;
-    name: string;
-    email?: string;
-    provider: string;
-    githubId?: string;
-    googleId?: string;
-    avatarUrl?: string;
-    plan?: string;
-    role?: string;
-  }
-): Promise<void> => {
-  const now = new Date();
-  await db
-    .insert(users)
-    .values({
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      provider: userData.provider as ProviderType,
-      githubId: userData.githubId,
-      googleId: userData.googleId,
-      avatarUrl: userData.avatarUrl,
-      plan: (userData.plan as PlanType) || Plan.TRIAL,
-      role: (userData.role as RoleType) || Role.USER,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: users.id,
-      set: {
-        name: userData.name,
-        email: userData.email,
-        githubId: userData.githubId,
-        googleId: userData.googleId,
-        avatarUrl: userData.avatarUrl,
-        plan: (userData.plan as PlanType) || Plan.TRIAL,
-        role: (userData.role as RoleType) || Role.USER,
-        updatedAt: now,
-      },
-    });
 };
 
 // Auth middleware
@@ -127,7 +82,7 @@ auth.get(
     const avatarUrl = user.avatar_url;
 
     const db = createDatabase(c.env.DB);
-    await saveUser(db, {
+    const organizationId = await saveUser(db, {
       id: userId,
       name: userName,
       email: userEmail ?? undefined,
@@ -135,7 +90,7 @@ auth.get(
       githubId: userId,
       avatarUrl,
       plan: Plan.FREE,
-      role: Role.USER,
+      role: UserRole.USER,
     });
 
     const jwtToken = await createJWT(
@@ -147,6 +102,7 @@ auth.get(
         avatarUrl,
         plan: "free",
         role: "user",
+        organizationId,
       },
       c.env.JWT_SECRET
     );
@@ -186,7 +142,7 @@ auth.get(
     const avatarUrl = user.picture;
 
     const db = createDatabase(c.env.DB);
-    await saveUser(db, {
+    const organizationId = await saveUser(db, {
       id: userId,
       name: userName,
       email: userEmail,
@@ -194,7 +150,7 @@ auth.get(
       googleId: userId,
       avatarUrl,
       plan: Plan.FREE,
-      role: Role.USER,
+      role: UserRole.USER,
     });
 
     const jwtToken = await createJWT(
@@ -206,6 +162,7 @@ auth.get(
         avatarUrl: avatarUrl || undefined,
         plan: "free",
         role: "user",
+        organizationId,
       },
       c.env.JWT_SECRET
     );

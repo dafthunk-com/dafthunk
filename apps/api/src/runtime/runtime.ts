@@ -24,7 +24,7 @@ import {
   nodeToApiParameter,
   apiToNodeParameter,
 } from "../nodes/parameterMapper";
-import { saveExecutionRecord } from "../utils/executions";
+import { saveExecution } from "../utils/db";
 
 // Node output value type
 export type NodeOutputValue =
@@ -44,6 +44,7 @@ export type SortedNodeList = string[];
 export type RuntimeParams = {
   workflow: Workflow;
   userId: string;
+  organizationId: string;
   monitorProgress?: boolean;
 };
 
@@ -76,7 +77,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * The main entrypoint called by the Workflows engine.
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    const { workflow, userId, monitorProgress = false } = event.payload;
+    const {
+      workflow,
+      userId,
+      organizationId,
+      monitorProgress = false,
+    } = event.payload;
     const instanceId = event.instanceId;
 
     // Initialise state and execution records.
@@ -124,6 +130,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             async () =>
               this.saveExecutionState(
                 userId,
+                organizationId,
                 workflow.id,
                 instanceId,
                 runtimeState
@@ -145,7 +152,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         "persist final execution record",
         Runtime.defaultStepConfig,
         async () =>
-          this.saveExecutionState(userId, workflow.id, instanceId, runtimeState)
+          this.saveExecutionState(
+            userId,
+            organizationId,
+            workflow.id,
+            instanceId,
+            runtimeState
+          )
       );
     }
 
@@ -439,6 +452,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    */
   private async saveExecutionState(
     userId: string,
+    organizationId: string,
     workflowId: string,
     instanceId: string,
     runtimeState: RuntimeState
@@ -473,10 +487,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     try {
       const db = createDatabase(this.env.DB);
-      return await saveExecutionRecord(db, {
+      return await saveExecution(db, {
         id: instanceId,
         workflowId,
         userId,
+        organizationId,
         status: executionStatus as ExecutionStatusType,
         nodeExecutions: nodeExecutionList,
         error: errorMsg,

@@ -10,6 +10,7 @@ export interface CustomJWTPayload extends JWTPayload {
   avatarUrl?: string;
   plan: string;
   role: string;
+  organizationId: string;
   iat?: number;
   exp?: number;
 }
