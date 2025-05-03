@@ -1,3 +1,18 @@
+CREATE TABLE `api_tokens` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`token` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`expires_at` integer,
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `api_tokens_token_unique` ON `api_tokens` (`token`);--> statement-breakpoint
+CREATE INDEX `api_tokens_name_idx` ON `api_tokens` (`name`);--> statement-breakpoint
+CREATE INDEX `api_tokens_org_id_idx` ON `api_tokens` (`organization_id`);--> statement-breakpoint
 CREATE TABLE `deployments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`organization_id` text NOT NULL,

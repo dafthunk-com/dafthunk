@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { AlertCircle, Copy, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,66 +28,228 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from "date-fns";
+import { API_BASE_URL } from "@/config/api";
 
-// Mock data - replace with actual data fetching later
-const mockApiKeys = [
-  {
-    id: "key_1",
-    name: "Production Key",
-    tokenPrefix: "prod_...",
-    createdAt: "2023-10-26",
-    lastUsed: "2024-05-15",
-    status: "active",
-  },
-  {
-    id: "key_2",
-    name: "Development Key",
-    tokenPrefix: "dev_...",
-    createdAt: "2024-01-10",
-    lastUsed: "2024-06-20",
-    status: "active",
-  },
-  {
-    id: "key_3",
-    name: "Revoked Key",
-    tokenPrefix: "rvk_...",
-    createdAt: "2023-08-01",
-    lastUsed: "2023-09-01",
-    status: "revoked",
-  },
-];
+interface ApiToken {
+  id: string;
+  name: string;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
-type ApiKey = (typeof mockApiKeys)[0];
+interface TokenResponse {
+  token: string;
+  tokenRecord: ApiToken;
+}
 
 export function ApiKeysPage() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
+  const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [newToken, setNewToken] = useState<string | null>(null);
 
-  const handleCreateKey = () => {
-    // Mock creation - replace with actual API call
-    const newKey: ApiKey = {
-      id: `key_${Date.now()}`,
-      name: newKeyName || `New Key ${apiKeys.length + 1}`,
-      tokenPrefix: "new_...",
-      createdAt: new Date().toISOString().split("T")[0],
-      lastUsed: "Never",
-      status: "active",
-    };
-    setApiKeys([...apiKeys, newKey]);
-    setNewKeyName("");
-    setIsCreateDialogOpen(false);
-    // TODO: Show the generated key to the user securely
+  // Fetch the API tokens
+  const fetchTokens = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/tokens`, {
+        method: "GET",
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch API tokens: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setApiTokens(data.tokens);
+    } catch (error) {
+      console.error("Error fetching API tokens:", error);
+      toast.error("Failed to fetch API tokens. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRevokeKey = (keyId: string) => {
-    // Mock revocation - replace with actual API call
-    setApiKeys(
-      apiKeys.map((key) =>
-        key.id === keyId ? { ...key, status: "revoked" } : key
-      )
+  // Load tokens on component mount
+  useEffect(() => {
+    fetchTokens();
+  }, []);
+
+  const handleCreateKey = async () => {
+    if (!newKeyName.trim()) {
+      toast.error("Please enter a name for your API key.");
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      const response = await fetch(`${API_BASE_URL}/tokens`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: newKeyName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create API token: ${response.statusText}`);
+      }
+
+      const data: TokenResponse = await response.json();
+      
+      // Store the token to display to the user
+      setNewToken(data.token);
+      
+      // Add the new token to the list
+      setApiTokens([...apiTokens, data.tokenRecord]);
+      
+      setNewKeyName("");
+      // Keep dialog open to show the token
+    } catch (error) {
+      console.error("Error creating API token:", error);
+      toast.error("Failed to create API token. Please try again.");
+      setIsCreateDialogOpen(false);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleRevokeKey = async (tokenId: string) => {
+    if (!confirm("Are you sure you want to revoke this API key? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/tokens/${tokenId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to revoke API token: ${response.statusText}`);
+      }
+
+      // Update the local state to reflect the change
+      setApiTokens(
+        apiTokens.map((token) =>
+          token.id === tokenId ? { ...token, isActive: false } : token
+        )
+      );
+
+      toast.success("API token revoked successfully");
+    } catch (error) {
+      console.error("Error revoking API token:", error);
+      toast.error("Failed to revoke API token. Please try again.");
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("API token copied to clipboard");
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM d, yyyy");
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Dialog content changes based on whether we're showing a new token
+  const renderDialogContent = () => {
+    if (newToken) {
+      return (
+        <>
+          <DialogHeader>
+            <DialogTitle>API Key Created</DialogTitle>
+            <DialogDescription>
+              This is your API key. Make sure to copy it now as it will never be shown again.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-4">
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Important</AlertTitle>
+              <AlertDescription>
+                Copy your API key now. You won't be able to see it again!
+              </AlertDescription>
+            </Alert>
+            <div className="flex items-center gap-2 p-2 border rounded-md bg-muted">
+              <code className="flex-1 text-sm break-all">{newToken}</code>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => copyToClipboard(newToken)}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setNewToken(null);
+                setIsCreateDialogOpen(false);
+              }}
+            >
+              Done
+            </Button>
+          </DialogFooter>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>Create New API Key</DialogTitle>
+          <DialogDescription>
+            Give your new key a descriptive name. The key will be displayed
+            only once after creation.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Name
+            </Label>
+            <Input
+              id="name"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              className="col-span-3"
+              placeholder="e.g., Production Key"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setNewKeyName("");
+              setIsCreateDialogOpen(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleCreateKey} disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create Key"}
+          </Button>
+        </DialogFooter>
+      </>
     );
-    // TODO: Add confirmation dialog
   };
 
   return (
@@ -96,7 +258,13 @@ export function ApiKeysPage() {
         <p className="text-muted-foreground">
           Manage your API keys for accessing your organization's services.
         </p>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog 
+          open={isCreateDialogOpen} 
+          onOpenChange={(open) => {
+            if (!open) setNewToken(null);
+            setIsCreateDialogOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <Plus className="size-4" />
@@ -104,36 +272,7 @@ export function ApiKeysPage() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New API Key</DialogTitle>
-              <DialogDescription>
-                Give your new key a descriptive name. The key will be displayed
-                only once after creation.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
-                  className="col-span-3"
-                  placeholder="e.g., My Production Key"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleCreateKey}>Create Key</Button>
-            </DialogFooter>
+            {renderDialogContent()}
           </DialogContent>
         </Dialog>
       </div>
@@ -143,9 +282,8 @@ export function ApiKeysPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Token Prefix</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Last Used</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Expires</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -153,51 +291,65 @@ export function ApiKeysPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {apiKeys.map((key) => (
-              <TableRow key={key.id}>
-                <TableCell className="font-medium">{key.name}</TableCell>
-                <TableCell>{key.tokenPrefix}</TableCell>
-                <TableCell>{key.createdAt}</TableCell>
-                <TableCell>{key.lastUsed}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      key.status === "active" ? "default" : "destructive"
-                    }
-                  >
-                    {key.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {/* <DropdownMenuItem>View Details</DropdownMenuItem> */}
-                      {key.status === "active" && (
-                        <DropdownMenuItem
-                          onClick={() => handleRevokeKey(key.id)}
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Revoke Key
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  Loading API keys...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : apiTokens.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  No API keys found. Create your first key to get started.
+                </TableCell>
+              </TableRow>
+            ) : (
+              apiTokens.map((token) => (
+                <TableRow key={token.id}>
+                  <TableCell className="font-medium">{token.name}</TableCell>
+                  <TableCell>{formatDate(token.createdAt)}</TableCell>
+                  <TableCell>
+                    {token.expiresAt ? formatDate(token.expiresAt) : "Never"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={token.isActive ? "default" : "destructive"}
+                    >
+                      {token.isActive ? "Active" : "Revoked"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {token.isActive && (
+                          <DropdownMenuItem
+                            onClick={() => handleRevokeKey(token.id)}
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Revoke Key
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
-      <div className="text-xs text-muted-foreground mt-4">
-        Showing <strong>{apiKeys.length}</strong> API keys.
-      </div>
+      {!isLoading && (
+        <div className="text-xs text-muted-foreground mt-4">
+          Showing <strong>{apiTokens.length}</strong> API keys.
+        </div>
+      )}
     </InsetLayout>
   );
 }
