@@ -1,69 +1,282 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/deployments/data-table";
-import { columns, Deployment } from "@/components/deployments/columns";
+import { columns, DeploymentWithActions } from "@/components/deployments/columns";
 import { TooltipProvider } from "@/components/ui/tooltip";
-// import { Button } from "@/components/ui/button"; // Import if needed for create button
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { WorkflowDeployment } from "@dafthunk/types";
+import { API_BASE_URL } from "@/config/api";
+import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
-// Mock data for deployments (frozen workflow instances)
-const mockDeployments: Deployment[] = [
-  {
-    id: "dep_abc123",
-    workflowId: "wf_prod_email", // Example workflow ID
-    workflowName: "Production Email Campaign",
-    status: "active",
-    commitHash: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
-    deployedAt: new Date(2024, 5, 15, 10, 0, 0), // June 15, 2024
-  },
-  {
-    id: "dep_def456",
-    workflowId: "wf_staging_report",
-    workflowName: "Staging Daily Report",
-    status: "inactive",
-    commitHash: "f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1",
-    deployedAt: new Date(2024, 5, 10, 16, 30, 0),
-  },
-  {
-    id: "dep_ghi789",
-    workflowId: "wf_dev_image_proc",
-    workflowName: "Development Image Processing",
-    status: "failed",
-    commitHash: "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
-    deployedAt: new Date(2024, 5, 16, 9, 15, 0),
-  },
-  {
-    id: "dep_jkl012",
-    workflowId: "wf_prod_email", // Same workflow, older deployment
-    workflowName: "Production Email Campaign",
-    status: "inactive", // Older deployment is now inactive
-    commitHash: "b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0",
-    deployedAt: new Date(2024, 4, 20, 12, 0, 0), // May 20, 2024
-  },
-];
+// Type for the workflows to select from
+interface WorkflowOption {
+  id: string;
+  name: string;
+}
 
 export function DeploymentsPage() {
-  // State for actual data fetching would go here
-  const [deployments] = useState<Deployment[]>(mockDeployments);
+  const navigate = useNavigate();
+  const [deployments, setDeployments] = useState<WorkflowDeployment[]>([]);
+  const [workflows, setWorkflows] = useState<WorkflowOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
+  const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [isLoadingWorkflows, setIsLoadingWorkflows] = useState(false);
 
-  // Handler for creating a deployment (placeholder)
-  // const handleCreateDeployment = () => {
-  //   console.log("Create deployment clicked");
-  //   // Add logic to open a dialog or navigate
-  // };
+  // Fetch the deployments
+  const fetchDeployments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/deployments`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch deployments: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setDeployments(data.workflows);
+    } catch (error) {
+      console.error("Error fetching deployments:", error);
+      toast.error("Failed to fetch deployments. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch available workflows for the create dialog
+  const fetchWorkflows = async () => {
+    try {
+      setIsLoadingWorkflows(true);
+      const response = await fetch(`${API_BASE_URL}/workflows`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch workflows: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setWorkflows(data.workflows || []);
+    } catch (error) {
+      console.error("Error fetching workflows:", error);
+      toast.error("Failed to fetch workflows. Please try again.");
+    } finally {
+      setIsLoadingWorkflows(false);
+    }
+  };
+
+  // Load deployments on component mount
+  useEffect(() => {
+    fetchDeployments();
+  }, []);
+
+  // Load workflows when the create dialog opens
+  useEffect(() => {
+    if (isCreateDialogOpen) {
+      fetchWorkflows();
+    }
+  }, [isCreateDialogOpen]);
+
+  const handleViewDeployment = (workflowId: string) => {
+    navigate(`/workflows/deployments/${workflowId}`);
+  };
+
+  const handleCreateDeployment = (workflowId: string) => {
+    setSelectedWorkflowId(workflowId);
+    setIsDeployDialogOpen(true);
+  };
+
+  const deployWorkflow = async () => {
+    if (!selectedWorkflowId) return;
+
+    try {
+      setIsDeploying(true);
+      const response = await fetch(`${API_BASE_URL}/deployments/${selectedWorkflowId}`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create deployment: ${response.statusText}`);
+      }
+
+      // Get the deployment data
+      const deploymentData = await response.json();
+      
+      toast.success("Workflow deployed successfully");
+      
+      // Close the dialogs and refresh the deployments list
+      setIsDeployDialogOpen(false);
+      setIsCreateDialogOpen(false);
+      setSelectedWorkflowId(null);
+      fetchDeployments();
+      
+      // Navigate to the deployment details
+      navigate(`/workflows/deployments/${selectedWorkflowId}`);
+    } catch (error) {
+      console.error("Error creating deployment:", error);
+      toast.error("Failed to create deployment. Please try again.");
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
+  // Add actions to the deployments
+  const deploymentsWithActions: DeploymentWithActions[] = deployments.map(deployment => ({
+    ...deployment,
+    onViewLatest: handleViewDeployment,
+    onCreateDeployment: handleCreateDeployment
+  }));
 
   return (
     <TooltipProvider>
       <InsetLayout title="Deployments">
-        <p className="text-muted-foreground mb-4">
-          Manage your application deployments across different environments.
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-muted-foreground">
+            Manage your workflow deployments across different environments.
+          </p>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (!open) setSelectedWorkflowId(null);
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1">
+                <Plus className="size-4" />
+                Create Deployment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Deployment</DialogTitle>
+                <DialogDescription>
+                  Select a workflow to create a new deployment.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="workflow">Select Workflow</Label>
+                  {isLoadingWorkflows ? (
+                    <div className="text-sm text-muted-foreground">Loading workflows...</div>
+                  ) : workflows.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">No workflows available</div>
+                  ) : (
+                    <Select 
+                      onValueChange={(value) => setSelectedWorkflowId(value)}
+                      value={selectedWorkflowId || undefined}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a workflow" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {workflows.map((workflow) => (
+                          <SelectItem key={workflow.id} value={workflow.id}>
+                            {workflow.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedWorkflowId(null);
+                    setIsCreateDialogOpen(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={deployWorkflow} 
+                  disabled={isDeploying || !selectedWorkflowId}
+                >
+                  {isDeploying ? "Deploying..." : "Create Deployment"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
         <DataTable
           columns={columns}
-          data={deployments}
-          // Pass the handler if you add a create button to DataTable
-          // onCreateDeployment={handleCreateDeployment}
+          data={deploymentsWithActions}
+          isLoading={isLoading}
+          emptyState={{
+            title: "No deployments found",
+            description: "Deploy a workflow to get started.",
+          }}
         />
-        {/* Add Dialogs for actions like delete, redeploy etc. similar to PlaygroundPage if needed */}
+        
+        {!isLoading && (
+          <div className="text-xs text-muted-foreground mt-4">
+            Showing <strong>{deployments.length}</strong> workflow deployments.
+          </div>
+        )}
+
+        {/* Deploy Dialog from List */}
+        <Dialog
+          open={isDeployDialogOpen}
+          onOpenChange={setIsDeployDialogOpen}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Deploy Workflow</DialogTitle>
+              <DialogDescription>
+                This will create a new deployment of the current workflow state.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSelectedWorkflowId(null);
+                  setIsDeployDialogOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={deployWorkflow} 
+                disabled={isDeploying}
+              >
+                {isDeploying ? "Deploying..." : "Deploy"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </InsetLayout>
     </TooltipProvider>
   );

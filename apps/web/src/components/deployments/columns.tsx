@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, GitCommitHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, GitCommitHorizontal, ArrowUpToLine, Eye } from "lucide-react";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 import { Link } from "react-router-dom";
 import { VariantProps } from "class-variance-authority";
 import { badgeVariants } from "@/components/ui/badge";
+import { WorkflowDeployment } from "@dafthunk/types";
 
 // Represents a deployed, frozen instance of a workflow
 export type Deployment = {
@@ -33,140 +34,64 @@ export type Deployment = {
   deployedAt: Date;
 };
 
-export const columns: ColumnDef<Deployment>[] = [
+export type DeploymentWithActions = WorkflowDeployment & {
+  onViewLatest?: (workflowId: string) => void;
+  onCreateDeployment?: (workflowId: string) => void;
+};
+
+export const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "workflowName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Workflow Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const deployment = row.original;
-      return (
-        <Link
-          to={`/workflows/playground/${deployment.workflowId}`}
-          className="hover:underline"
-        >
-          {row.getValue("workflowName")}
-        </Link>
-      );
-    },
+    header: "Workflow",
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("workflowName")}</div>
+    ),
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as Deployment["status"];
-      // Map status to the new badge variants
-      const variant: Extract<
-        VariantProps<typeof badgeVariants>["variant"],
-        "translucent-success" | "translucent-error" | "translucent-inactive"
-      > =
-        status === "active"
-          ? "translucent-success"
-          : status === "failed"
-            ? "translucent-error"
-            : "translucent-inactive";
-
-      return (
-        <Badge variant={variant} className="capitalize">
-          {status}
-        </Badge>
-      );
-    },
+    accessorKey: "deploymentCount",
+    header: "Deployments",
+    cell: ({ row }) => (
+      <Badge variant="outline">
+        {row.getValue("deploymentCount")}
+      </Badge>
+    ),
   },
   {
-    accessorKey: "commitHash",
-    header: "Commit Hash",
+    accessorKey: "latestDeploymentId",
+    header: "Latest Deployment",
     cell: ({ row }) => {
-      const commitHash = row.getValue("commitHash") as string;
-      const shortHash = commitHash.substring(0, 7);
+      const id = row.getValue("latestDeploymentId") as string;
       return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="font-mono flex items-center space-x-1 cursor-default">
-              <GitCommitHorizontal className="h-4 w-4 text-muted-foreground" />
-              <span>{shortHash}</span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{commitHash}</p>
-          </TooltipContent>
-        </Tooltip>
+        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+          {id.substring(0, 10)}...
+        </code>
       );
-    },
-  },
-  {
-    accessorKey: "deployedAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Deployed At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const date = row.getValue("deployedAt") as Date;
-      const formatted = format(date, "PPpp");
-      return <div className="font-medium">{formatted}</div>;
     },
   },
   {
     id: "actions",
-    enableHiding: false,
     cell: ({ row }) => {
       const deployment = row.original;
-
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          <Link to={`/workflows/deployments/${deployment.workflowId}`}>
+            <Button size="sm" variant="ghost" className="h-8 px-2">
+              <Eye className="h-4 w-4 mr-1" />
+              View
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(deployment.id)}
+          </Link>
+          {deployment.onCreateDeployment && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-8 px-2"
+              onClick={() => deployment.onCreateDeployment?.(deployment.workflowId)}
             >
-              Copy Deployment ID
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(deployment.commitHash)
-              }
-            >
-              Copy Commit Hash
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to={`/workflows/playground/${deployment.workflowId}`}>
-                View Workflow
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>View Logs</DropdownMenuItem>
-            <DropdownMenuItem disabled>Rollback</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive focus:bg-destructive/10"
-              disabled
-            >
-              Deactivate Deployment
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <ArrowUpToLine className="h-4 w-4 mr-1" />
+              Deploy
+            </Button>
+          )}
+        </div>
       );
     },
   },

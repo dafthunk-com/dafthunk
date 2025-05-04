@@ -12,7 +12,8 @@ import {
   getDeploymentById,
   getWorkflowById,
   createDeployment,
-  getDeploymentsGroupedByWorkflow
+  getDeploymentsGroupedByWorkflow,
+  getDeploymentsByWorkflowId
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 
@@ -152,6 +153,50 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   };
 
   return c.json(deploymentVersion, 201);
+});
+
+/**
+ * GET /deployments/history/:workflowUUID
+ * Returns all deployments for a workflow
+ */
+deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const workflowUUID = c.req.param("workflowUUID");
+  const db = createDatabase(c.env.DB);
+
+  // Check if workflow exists and belongs to the organization
+  const workflow = await getWorkflowById(db, workflowUUID, user.organizationId);
+  if (!workflow) {
+    return c.json({ error: "Workflow not found" }, 404);
+  }
+
+  // Get all deployments for this workflow
+  const deploymentsList = await getDeploymentsByWorkflowId(
+    db,
+    workflowUUID,
+    user.organizationId
+  );
+
+  // Transform to match WorkflowDeploymentVersion type
+  const deploymentVersions = deploymentsList.map(deployment => {
+    const workflowData = deployment.workflowData as WorkflowType;
+    return {
+      id: deployment.id,
+      workflowId: deployment.workflowId || '',
+      createdAt: deployment.createdAt,
+      updatedAt: deployment.updatedAt,
+      nodes: workflowData.nodes || [],
+      edges: workflowData.edges || [],
+    };
+  });
+
+  return c.json({ 
+    workflow: {
+      id: workflow.id,
+      name: workflow.name
+    },
+    deployments: deploymentVersions 
+  });
 });
 
 export default deploymentRoutes; 

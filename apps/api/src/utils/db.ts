@@ -636,3 +636,28 @@ export async function getDeploymentsGroupedByWorkflow(
 
   return result;
 }
+
+/**
+ * Get all deployments for a specific workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID for security checks
+ * @returns Array of deployments, sorted by creation date (newest first)
+ */
+export async function getDeploymentsByWorkflowId(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+) {
+  return db
+    .select()
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.workflowId, workflowId),
+        eq(deployments.organizationId, organizationId)
+      )
+    )
+    .orderBy(desc(deployments.createdAt));
+}

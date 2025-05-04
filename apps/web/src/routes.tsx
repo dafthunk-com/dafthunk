@@ -7,6 +7,8 @@ import { AppLayout } from "./components/layouts/app-layout.tsx";
 import { ErrorBoundary } from "./components/error-boundary";
 import { PlaygroundPage } from "./pages/playground.tsx";
 import { DeploymentsPage } from "./pages/deployments.tsx";
+import { DeploymentDetailPage } from "./pages/deployment-detail.tsx";
+import { DeploymentVersionPage } from "./pages/deployment-version.tsx";
 import { ExecutionsPage } from "./pages/executions.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
@@ -137,6 +139,40 @@ export const router = createBrowserRouter([
       >
         <ProtectedRoute>
           <DeploymentsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/workflows/deployments/:workflowId",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DeploymentDetailPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/workflows/deployments/version/:deploymentId",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DeploymentVersionPage />
         </ProtectedRoute>
       </AppLayout>
     ),
