@@ -13,7 +13,8 @@ import {
   getWorkflowById,
   createDeployment,
   getDeploymentsGroupedByWorkflow,
-  getDeploymentsByWorkflowId
+  getDeploymentsByWorkflowId,
+  getLatestVersionNumberByWorkflowId
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 
@@ -63,6 +64,7 @@ deploymentRoutes.get("/version/:deploymentUUID", jwtAuth, async (c) => {
   const deploymentVersion: WorkflowDeploymentVersion = {
     id: deployment.id,
     workflowId: deployment.workflowId || '',
+    version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
     nodes: workflowData.nodes || [],
@@ -104,6 +106,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   const deploymentVersion: WorkflowDeploymentVersion = {
     id: deployment.id,
     workflowId: deployment.workflowId || '',
+    version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
     nodes: workflowData.nodes || [],
@@ -131,12 +134,17 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
 
   const workflowData = workflow.data as WorkflowType;
 
+  // Get the latest version number and increment
+  const latestVersion = await getLatestVersionNumberByWorkflowId(db, workflowUUID, user.organizationId) || 0;
+  const newVersion = latestVersion + 1;
+
   // Create new deployment
   const deploymentId = uuid();
   const newDeployment = await createDeployment(db, {
     id: deploymentId,
     organizationId: user.organizationId,
     workflowId: workflowUUID,
+    version: newVersion,
     workflowData: workflowData,
     createdAt: now,
     updatedAt: now,
@@ -146,6 +154,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   const deploymentVersion: WorkflowDeploymentVersion = {
     id: newDeployment.id,
     workflowId: newDeployment.workflowId || '',
+    version: newDeployment.version,
     createdAt: newDeployment.createdAt,
     updatedAt: newDeployment.updatedAt,
     nodes: workflowData.nodes || [],
@@ -183,6 +192,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
     return {
       id: deployment.id,
       workflowId: deployment.workflowId || '',
+      version: deployment.version,
       createdAt: deployment.createdAt,
       updatedAt: deployment.updatedAt,
       nodes: workflowData.nodes || [],

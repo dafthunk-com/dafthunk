@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useState } from "react";
 import {
   ColumnDef,
@@ -20,7 +19,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { DeploymentWithActions } from "./columns";
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];

@@ -15,6 +15,7 @@ CREATE TABLE `deployments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`organization_id` text NOT NULL,
 	`workflow_id` text,
+	`version` integer NOT NULL,
 	`workflow_data` text NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -24,6 +25,7 @@ CREATE TABLE `deployments` (
 --> statement-breakpoint
 CREATE INDEX `deployments_org_id_idx` ON `deployments` (`organization_id`);--> statement-breakpoint
 CREATE INDEX `deployments_workflow_id_idx` ON `deployments` (`workflow_id`);--> statement-breakpoint
+CREATE INDEX `deployments_version_idx` ON `deployments` (`version`);--> statement-breakpoint
 CREATE TABLE `executions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`workflow_id` text NOT NULL,

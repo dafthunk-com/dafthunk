@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { format } from "date-fns";
-import { ArrowUpToLine, Clock, Hash, History, Workflow } from "lucide-react";
+import { ArrowUpToLine, Clock, Hash, History, Workflow, GitCommitHorizontal } from "lucide-react";
 import { DeploymentHistoryTable } from "@/components/deployments/history-table";
 import {
   Dialog,
@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { Badge } from "@/components/ui/badge";
 
 interface WorkflowInfo {
   id: string;
@@ -139,16 +140,35 @@ export function DeploymentDetailPage() {
                 Deploy Latest Version
               </Button>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Workflow className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{workflow.name}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="font-mono text-xs text-muted-foreground">{workflow.id}</span>
-            </div>
           </div>
 
           {currentDeployment ? (
             <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Workflow Information</CardTitle>
+                  <CardDescription>
+                    Details about the workflow being deployed
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Workflow ID
+                      </p>
+                      <p className="font-mono text-sm mt-1">{workflow.id}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Workflow Name
+                      </p>
+                      <p className="mt-1 font-medium">{workflow.name}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Current Deployment</CardTitle>
@@ -158,29 +178,28 @@ export function DeploymentDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                  <div>
                       <p className="text-sm text-muted-foreground flex items-center">
-                        <Hash className="mr-1 h-4 w-4" /> Deployment ID
+                        <Hash className="mr-1 h-4 w-4" /> ID
                       </p>
                       <p className="font-mono text-sm mt-1">{currentDeployment.id}</p>
+                    </div>
+                  <div>
+                      <p className="text-sm text-muted-foreground">
+                        Version
+                      </p>
+                      <p className="mt-1">
+                        <Badge variant="secondary" className="gap-1">
+                          <GitCommitHorizontal className="h-3.5 w-3.5" />
+                          v{currentDeployment.version}
+                        </Badge>
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground flex items-center">
                         <Clock className="mr-1 h-4 w-4" /> Created
                       </p>
                       <p className="mt-1">{formatDate(currentDeployment.createdAt)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Nodes
-                      </p>
-                      <p className="mt-1">{currentDeployment.nodes.length}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Edges
-                      </p>
-                      <p className="mt-1">{currentDeployment.edges.length}</p>
                     </div>
                   </div>
                 </CardContent>

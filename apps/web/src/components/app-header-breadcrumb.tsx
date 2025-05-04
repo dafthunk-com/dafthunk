@@ -21,20 +21,8 @@ export function AppHeaderBreadcrumb() {
   return (
     <Breadcrumb className="ml-4 hidden md:flex">
       <BreadcrumbList>
-<<<<<<< HEAD
-        {displayPathnames.map((value, index) => {
-          const originalIndex = index + 1;
-          const isLast = index === displayPathnames.length - 1;
-          const to = `/${pathnames.slice(0, originalIndex + 1).join("/")}`;
-          const displayValue = decodeURIComponent(value)
-            .replace(/\+/g, " ")
-            .replace(/-/g, " ");
-
-=======
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;
-          
->>>>>>> 67c57a5 (feat: refactor breadcrumb handling in app header and pages, integrating page context for improved navigation)
           return (
             <React.Fragment key={`${item.label}-${index}`}>
               <BreadcrumbItem>

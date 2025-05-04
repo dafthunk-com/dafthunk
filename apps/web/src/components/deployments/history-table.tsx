@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Eye, ArrowDown } from "lucide-react";
+import { Clock, Eye, ArrowDown, GitCommitHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface DeploymentHistoryTableProps {
@@ -24,7 +24,6 @@ interface DeploymentHistoryTableProps {
 export function DeploymentHistoryTable({
   deployments,
   currentDeploymentId,
-  workflowId,
   isLoading = false,
 }: DeploymentHistoryTableProps) {
   const [expanded, setExpanded] = useState(false);
@@ -49,16 +48,15 @@ export function DeploymentHistoryTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Deployment ID</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>Version</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Nodes</TableHead>
-              <TableHead>Edges</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={4} className="h-24 text-center">
                 Loading deployment history...
               </TableCell>
             </TableRow>
@@ -74,16 +72,15 @@ export function DeploymentHistoryTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Deployment ID</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>Version</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Nodes</TableHead>
-              <TableHead>Edges</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
+              <TableCell colSpan={4} className="h-24 text-center">
                 No deployment history found.
               </TableCell>
             </TableRow>
@@ -99,10 +96,9 @@ export function DeploymentHistoryTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Deployment ID</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>Version</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Nodes</TableHead>
-              <TableHead>Edges</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -119,15 +115,15 @@ export function DeploymentHistoryTable({
                     <>{deployment.id}</>
                   )}
                 </TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className="gap-1">
+                    <GitCommitHorizontal className="h-3.5 w-3.5" />
+                    v{deployment.version}
+                  </Badge>
+                </TableCell>
                 <TableCell className="flex items-center">
                   <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
                   {formatDate(deployment.createdAt)}
-                </TableCell>
-                <TableCell>
-                  {deployment.nodes.length}
-                </TableCell>
-                <TableCell>
-                  {deployment.edges.length}
                 </TableCell>
                 <TableCell>
                   <Link to={`/workflows/deployments/version/${deployment.id}`}>

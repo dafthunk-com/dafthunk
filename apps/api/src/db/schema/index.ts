@@ -187,6 +187,7 @@ export const deployments = sqliteTable(
       .notNull()
       .references(() => organizations.id),
     workflowId: text("workflow_id").references(() => workflows.id),
+    version: integer("version").notNull(),
     workflowData: text("workflow_data", { mode: "json" })
       .$type<WorkflowType>()
       .notNull(),
@@ -196,6 +197,7 @@ export const deployments = sqliteTable(
   (table) => [
     index("deployments_org_id_idx").on(table.organizationId),
     index("deployments_workflow_id_idx").on(table.workflowId),
+    index("deployments_version_idx").on(table.version),
   ]
 );
 

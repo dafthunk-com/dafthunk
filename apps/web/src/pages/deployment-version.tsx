@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { format } from "date-fns";
-import { Clock, Hash, FileCode, ArrowLeft } from "lucide-react";
+import { Clock, Hash, FileCode } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DeploymentVersionPage() {
@@ -40,15 +40,17 @@ export function DeploymentVersionPage() {
       const workflowData = await response.json();
       setWorkflow(workflowData);
       
-      // Update breadcrumbs
-      setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
-        { 
-          label: workflowData.name, 
-          to: `/workflows/deployments/${workflowId}` 
-        },
-        { label: deploymentId }
-      ]);
+      if (deployment) {
+        // Update breadcrumbs
+        setBreadcrumbs([
+          { label: "Deployments", to: "/workflows/deployments" },
+          { 
+            label: workflowData.name, 
+            to: `/workflows/deployments/${workflowId}` 
+          },
+          { label: `v${deployment.version}` }
+        ]);
+      }
     } catch (error) {
       console.error("Error fetching workflow:", error);
       toast.error("Failed to fetch workflow details.");
@@ -100,7 +102,7 @@ export function DeploymentVersionPage() {
   };
 
   return (
-    <InsetLayout title={deployment?.id ? `${deployment.id}` : "Deployment"}>
+    <InsetLayout title={deployment?.version ? `Version ${deployment.version}` : "Deployment"}>
       {isLoading ? (
         <div className="py-10 text-center">Loading deployment details...</div>
       ) : deployment ? (
@@ -141,6 +143,12 @@ export function DeploymentVersionPage() {
                     <Clock className="mr-1 h-4 w-4" /> Deployed
                   </p>
                   <p className="mt-1">{formatDate(deployment.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Version
+                  </p>
+                  <p className="mt-1 font-medium">v{deployment.version}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">

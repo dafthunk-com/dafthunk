@@ -1,18 +1,9 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, GitCommitHorizontal, ArrowUpToLine, Eye } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowUpDown, GitCommitHorizontal, ArrowUpToLine, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -20,8 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
-import { VariantProps } from "class-variance-authority";
-import { badgeVariants } from "@/components/ui/badge";
 import { WorkflowDeployment } from "@dafthunk/types";
 
 // Represents a deployed, frozen instance of a workflow
@@ -42,38 +31,69 @@ export type DeploymentWithActions = WorkflowDeployment & {
 export const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "workflowName",
-    header: "Workflow Name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="px-0 font-medium"
+        >
+          Workflow Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("workflowName")}</div>
     ),
   },
   {
-    accessorKey: "workflowId",
-    header: "Workflow UUID",
-    cell: ({ row }) => {
-      const id = row.getValue("workflowId") as string;
+    accessorKey: "latestVersion",
+    header: ({ column }) => {
       return (
-        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-          {id}
-        </code>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="px-0 font-medium"
+        >
+          Latest Deployment Version
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
       );
     },
-  },
-  {
-    accessorKey: "latestDeploymentId",
-    header: "Latest Deployment UUID",
     cell: ({ row }) => {
-      const id = row.getValue("latestDeploymentId") as string;
+      const deployment = row.original;
+      // Convert to string and default to 1.0.0 if not available
+      const version = deployment.latestVersion ? deployment.latestVersion.toString() : "1.0";
       return (
-        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-          {id}
-        </code>
+        <Tooltip>
+          <TooltipTrigger>
+            <Badge variant="secondary" className="gap-1">
+              <GitCommitHorizontal className="h-3.5 w-3.5" />
+              v{version}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Latest deployment ID: {deployment.latestDeploymentId}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
   },
   {
     accessorKey: "deploymentCount",
-    header: "Number of Deployments",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="px-0 font-medium"
+        >
+          Number of Deployments
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <Badge variant="outline">
         {row.getValue("deploymentCount")}

@@ -10,7 +10,6 @@ import { useAuth } from "./authContext";
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
-  const location = useLocation();
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3">

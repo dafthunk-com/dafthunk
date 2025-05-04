@@ -629,6 +629,7 @@ export async function getDeploymentsGroupedByWorkflow(
         workflowId: workflow.id,
         workflowName: workflow.name,
         latestDeploymentId: deploymentsList[0].id,
+        latestVersion: deploymentsList[0].version,
         deploymentCount: deploymentsList.length
       });
     }
@@ -638,12 +639,12 @@ export async function getDeploymentsGroupedByWorkflow(
 }
 
 /**
- * Get all deployments for a specific workflow
+ * Get deployments for a workflow, sorted by creation date
  *
  * @param db Database instance
  * @param workflowId Workflow ID
- * @param organizationId Organization ID for security checks
- * @returns Array of deployments, sorted by creation date (newest first)
+ * @param organizationId Organization ID
+ * @returns Array of deployment records
  */
 export async function getDeploymentsByWorkflowId(
   db: ReturnType<typeof createDatabase>,
@@ -660,4 +661,32 @@ export async function getDeploymentsByWorkflowId(
       )
     )
     .orderBy(desc(deployments.createdAt));
+}
+
+/**
+ * Get the latest version number for a workflow's deployments
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID
+ * @returns The latest version number or null if no deployments exist
+ */
+export async function getLatestVersionNumberByWorkflowId(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+): Promise<number | null> {
+  const result = await db
+    .select({
+      maxVersion: sql<number>`MAX(${deployments.version})`
+    })
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.workflowId, workflowId),
+        eq(deployments.organizationId, organizationId)
+      )
+    );
+
+  return result[0]?.maxVersion || null;
 }
