@@ -10,20 +10,51 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { WorkflowDeploymentVersion } from "@dafthunk/types";
+import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { format } from "date-fns";
-import { ArrowLeft, Clock, Hash } from "lucide-react";
+import { Clock, Hash, FileCode } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams();
   const navigate = useNavigate();
   const [deployment, setDeployment] = useState<WorkflowDeploymentVersion | null>(null);
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // Initialize with empty breadcrumbs
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
+  // Fetch the workflow data
+  const fetchWorkflow = async (workflowId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/workflows/${workflowId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch workflow: ${response.statusText}`);
+      }
+
+      const workflowData = await response.json();
+      setWorkflow(workflowData);
+      
+      // Update breadcrumb with actual workflow name and deployment ID
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { 
+          label: workflowData.name, 
+          to: `/workflows/deployments/${workflowId}` 
+        },
+        { label: `${deploymentId}` }
+      ]);
+    } catch (error) {
+      console.error("Error fetching workflow:", error);
+      toast.error("Failed to fetch workflow details.");
+    }
+  };
 
   // Fetch the specific deployment version
   const fetchDeployment = async () => {
@@ -43,24 +74,13 @@ export function DeploymentVersionPage() {
       const data = await response.json();
       setDeployment(data);
       
-      // Update breadcrumb with actual workflow name and deployment ID
-      setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
-        { 
-          label: data.workflowName, 
-          to: `/workflows/deployments/${data.workflowId}` 
-        },
-        { label: `${deploymentId}` }
-      ]);
+      // Fetch workflow data once we have the workflowId
+      if (data.workflowId) {
+        await fetchWorkflow(data.workflowId);
+      }
     } catch (error) {
       console.error("Error fetching deployment:", error);
       toast.error("Failed to fetch deployment. Please try again.");
-      
-      // Set a fallback breadcrumb on error
-      setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
-        { label: "Deployment Details" }
-      ]);
     } finally {
       setIsLoading(false);
     }
@@ -81,31 +101,38 @@ export function DeploymentVersionPage() {
   };
 
   return (
-    <InsetLayout title="Deployment Version">
-      <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => deployment?.workflowId 
-            ? navigate(`/workflows/deployments/${deployment.workflowId}`)
-            : navigate('/workflows/deployments')
-          }
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Workflow
-        </Button>
-      </div>
-
+    <InsetLayout title={deployment?.id || "Deployment Version"}>
       {isLoading ? (
         <div className="py-10 text-center">Loading deployment details...</div>
       ) : deployment ? (
         <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold">Deployment Version</h2>
-            <p className="text-muted-foreground">
-              Deployment ID: <code className="text-xs">{deployment.id}</code>
-            </p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Deployment Version</CardTitle>
+              <CardDescription>
+                Details about this specific deployment
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <Hash className="mr-1 h-4 w-4" /> Deployment ID
+                  </p>
+                  <p className="font-mono text-sm mt-1">{deployment.id}</p>
+                </div>
+                {workflow && (
+                  <div>
+                    <p className="text-sm text-muted-foreground flex items-center">
+                      <FileCode className="mr-1 h-4 w-4" /> Workflow
+                    </p>
+                    <p className="mt-1">{workflow.name}</p>
+                    <p className="font-mono text-xs mt-1 text-muted-foreground">{workflow.id}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

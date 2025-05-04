@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { WorkflowDeployment } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { useNavigate } from "react-router-dom";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ interface WorkflowOption {
 
 export function DeploymentsPage() {
   const navigate = useNavigate();
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const [deployments, setDeployments] = useState<WorkflowDeployment[]>([]);
   const [workflows, setWorkflows] = useState<WorkflowOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +45,13 @@ export function DeploymentsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [isLoadingWorkflows, setIsLoadingWorkflows] = useState(false);
+
+  // Set breadcrumbs on component mount
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Deployments" }
+    ]);
+  }, []);
 
   // Fetch the deployments
   const fetchDeployments = async () => {

@@ -42,14 +42,38 @@ export type DeploymentWithActions = WorkflowDeployment & {
 export const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "workflowName",
-    header: "Workflow",
+    header: "Workflow Name",
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("workflowName")}</div>
     ),
   },
   {
+    accessorKey: "workflowId",
+    header: "Workflow UUID",
+    cell: ({ row }) => {
+      const id = row.getValue("workflowId") as string;
+      return (
+        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+          {id}
+        </code>
+      );
+    },
+  },
+  {
+    accessorKey: "latestDeploymentId",
+    header: "Latest Deployment UUID",
+    cell: ({ row }) => {
+      const id = row.getValue("latestDeploymentId") as string;
+      return (
+        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+          {id}
+        </code>
+      );
+    },
+  },
+  {
     accessorKey: "deploymentCount",
-    header: "Deployments",
+    header: "Number of Deployments",
     cell: ({ row }) => (
       <Badge variant="outline">
         {row.getValue("deploymentCount")}
@@ -57,19 +81,8 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
     ),
   },
   {
-    accessorKey: "latestDeploymentId",
-    header: "Latest Deployment",
-    cell: ({ row }) => {
-      const id = row.getValue("latestDeploymentId") as string;
-      return (
-        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-          {id.substring(0, 10)}...
-        </code>
-      );
-    },
-  },
-  {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const deployment = row.original;
       return (

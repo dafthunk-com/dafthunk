@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { format } from "date-fns";
-import { ArrowLeft, ArrowUpToLine, Clock, Hash, History } from "lucide-react";
+import { ArrowUpToLine, Clock, Hash, History, Workflow } from "lucide-react";
 import { DeploymentHistoryTable } from "@/components/deployments/history-table";
 import {
   Dialog,
@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 interface WorkflowInfo {
   id: string;
@@ -34,6 +35,9 @@ export function DeploymentDetailPage() {
   const { workflowId } = useParams();
   const navigate = useNavigate();
   
+  // Initialize with empty breadcrumbs
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
   const [workflow, setWorkflow] = useState<WorkflowInfo | null>(null);
   const [currentDeployment, setCurrentDeployment] = useState<WorkflowDeploymentVersion | null>(null);
   const [deploymentHistory, setDeploymentHistory] = useState<WorkflowDeploymentVersion[]>([]);
@@ -60,6 +64,14 @@ export function DeploymentDetailPage() {
       const data = await response.json();
       setWorkflow(data.workflow);
       setDeploymentHistory(data.deployments);
+      
+      // Update breadcrumbs with workflow name
+      if (data.workflow) {
+        setBreadcrumbs([
+          { label: "Deployments", to: "/workflows/deployments" },
+          { label: data.workflow.name }
+        ]);
+      }
       
       if (data.deployments.length > 0) {
         // Set the first deployment (latest) as the current one
@@ -121,29 +133,40 @@ export function DeploymentDetailPage() {
 
   return (
     <InsetLayout title={workflow?.name || "Workflow Deployments"}>
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/workflows/deployments')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Deployments
-        </Button>
-      </div>
-
       {isLoading ? (
         <div className="py-10 text-center">Loading workflow information...</div>
       ) : workflow ? (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-semibold">{workflow.name}</h2>
-              <p className="text-muted-foreground">
-                Workflow ID: <code className="text-xs">{workflow.id}</code>
-              </p>
-            </div>
-            <Button onClick={handleCreateDeployment}>
-              <ArrowUpToLine className="mr-2 h-4 w-4" />
-              Deploy New Version
-            </Button>
-          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Workflow Information</CardTitle>
+                <CardDescription>
+                  Details about this workflow
+                </CardDescription>
+              </div>
+              <Button onClick={handleCreateDeployment}>
+                <ArrowUpToLine className="mr-2 h-4 w-4" />
+                Deploy New Version
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <Workflow className="mr-1 h-4 w-4" /> Workflow Name
+                  </p>
+                  <p className="font-medium mt-1">{workflow.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground flex items-center">
+                    <Hash className="mr-1 h-4 w-4" /> Workflow ID
+                  </p>
+                  <p className="font-mono text-sm mt-1">{workflow.id}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {currentDeployment ? (
             <>
