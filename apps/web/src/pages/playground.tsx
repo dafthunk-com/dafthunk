@@ -1,13 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
-import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
-import { createColumns, useWorkflowActions } from "@/components/playground/columns";
+import {
+  createColumns,
+  useWorkflowActions,
+} from "@/components/playground/columns";
 import { CreateWorkflowDialog } from "@/components/playground/create-workflow-dialog";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 
@@ -16,16 +18,10 @@ export function PlaygroundPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
-  
-  const {
-    deleteDialog,
-    renameDialog,
-    openDeleteDialog,
-    openRenameDialog,
-    handleDeleteWorkflow,
-    handleRenameWorkflow,
-  } = useWorkflowActions();
-  
+
+  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
+    useWorkflowActions();
+
   // Create columns with our action handlers
   const columns = createColumns(openDeleteDialog, openRenameDialog);
 
@@ -66,18 +62,6 @@ export function PlaygroundPage() {
 
   // Set up success handlers for delete and rename
   useEffect(() => {
-    const onDeleteSuccess = (id: string) => {
-      setWorkflows(workflows.filter((w) => w.id !== id));
-    };
-    
-    const onRenameSuccess = (updatedWorkflow: Workflow) => {
-      setWorkflows(
-        workflows.map((w) =>
-          w.id === updatedWorkflow.id ? updatedWorkflow : w
-        )
-      );
-    };
-    
     // We're just setting up callbacks here, not actually binding them
     // The handlers will be called with these callbacks from the dialog actions
   }, [workflows]);
@@ -121,17 +105,6 @@ export function PlaygroundPage() {
     );
   }
 
-  const toolbarContent = (
-    <>
-      <CreateWorkflowDialog 
-        onCreateWorkflow={handleCreateWorkflow}
-        buttonProps={{
-          size: "sm",
-        }}
-      />
-    </>
-  );
-
   return (
     <TooltipProvider>
       <InsetLayout title="Workflows">
@@ -143,23 +116,9 @@ export function PlaygroundPage() {
           columns={columns}
           data={workflows}
           isLoading={isLoading}
-          enableSorting={true}
-          enableFiltering={true}
-          enablePagination={true}
-          enableRowSelection={false}
           emptyState={{
             title: "No workflows found",
             description: "Create a new workflow to get started",
-          }}
-          toolbar={toolbarContent}
-          meta={{
-            rowProps: (row: any) => ({
-              className: "cursor-pointer",
-              onClick: () => {
-                const workflow = row.original as Workflow;
-                navigate(`/workflows/playground/${workflow.id}`);
-              }
-            })
           }}
         />
         {deleteDialog}

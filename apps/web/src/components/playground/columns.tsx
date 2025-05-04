@@ -1,13 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workflow } from "@dafthunk/types";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2Icon, ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Checkbox } from "@/components/ui/checkbox";
+  PencilIcon,
+  Trash2Icon,
+  ArrowUpDown,
+  MoreHorizontal,
+} from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -31,13 +30,19 @@ import {
 export const useWorkflowActions = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
-  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
+    null
+  );
+  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
+    null
+  );
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
 
-  const handleDeleteWorkflow = async (onDeleteSuccess?: (id: string) => void) => {
+  const handleDeleteWorkflow = async (
+    onDeleteSuccess?: (id: string) => void
+  ) => {
     if (!workflowToDelete) return;
     setIsDeleting(true);
     try {
@@ -83,8 +88,8 @@ export const useWorkflowActions = () => {
           <DialogTitle>Delete Workflow</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete "
-            {workflowToDelete?.name || "Untitled Workflow"}"? This action
-            cannot be undone.
+            {workflowToDelete?.name || "Untitled Workflow"}"? This action cannot
+            be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

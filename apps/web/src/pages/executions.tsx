@@ -65,14 +65,10 @@ export function ExecutionsPage() {
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
         </p>
-        <DataTable 
-          columns={columns} 
+        <DataTable
+          columns={columns}
           data={executions}
           isLoading={isLoading}
-          enableSorting={true}
-          enableFiltering={true}
-          enableColumnVisibility={true}
-          enablePagination={true}
           emptyState={{
             title: error ? "Error" : "No executions",
             description: error || "No executions found.",

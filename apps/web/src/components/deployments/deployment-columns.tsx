@@ -1,6 +1,4 @@
-import {
-  ColumnDef,
-} from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -105,4 +103,4 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
       );
     },
   },
-]; 
+];

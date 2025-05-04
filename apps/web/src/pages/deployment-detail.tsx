@@ -129,8 +129,8 @@ export function DeploymentDetailPage() {
   };
 
   // Show only most recent 3 deployments unless expanded
-  const displayDeployments = expandedHistory 
-    ? deploymentHistory 
+  const displayDeployments = expandedHistory
+    ? deploymentHistory
     : deploymentHistory.slice(0, 3);
 
   // Only show the "Show more" button if there are more than 3 deployments
@@ -201,11 +201,11 @@ export function DeploymentDetailPage() {
                 <CardContent>
                   <div className="space-y-2">
                     <DataTable
-                      columns={createDeploymentHistoryColumns(currentDeployment.id)}
+                      columns={createDeploymentHistoryColumns(
+                        currentDeployment.id
+                      )}
                       data={displayDeployments}
                       isLoading={isHistoryLoading}
-                      enablePagination={false}
-                      enableSorting={false}
                       emptyState={{
                         title: "No deployment history",
                         description: "No deployment history found.",

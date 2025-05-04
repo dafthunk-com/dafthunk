@@ -25,7 +25,7 @@ export const createDeploymentHistoryColumns = (
     cell: ({ row }) => {
       const deployment = row.original;
       const isCurrent = deployment.id === currentDeploymentId;
-      
+
       return (
         <div className="font-mono text-xs">
           {isCurrent ? (
@@ -47,8 +47,7 @@ export const createDeploymentHistoryColumns = (
     header: "Version",
     cell: ({ row }) => (
       <Badge variant="secondary" className="gap-1">
-        <GitCommitHorizontal className="h-3.5 w-3.5" />v
-        {row.original.version}
+        <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
       </Badge>
     ),
   },
@@ -74,4 +73,4 @@ export const createDeploymentHistoryColumns = (
       </Link>
     ),
   },
-]; 
+];
