@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { format } from "date-fns";
-import { Clock, Hash, FileCode } from "lucide-react";
+import { Clock, Hash, FileCode, ArrowLeft } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DeploymentVersionPage() {
@@ -23,7 +23,6 @@ export function DeploymentVersionPage() {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Initialize with empty breadcrumbs
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   // Fetch the workflow data
@@ -41,14 +40,14 @@ export function DeploymentVersionPage() {
       const workflowData = await response.json();
       setWorkflow(workflowData);
       
-      // Update breadcrumb with actual workflow name and deployment ID
+      // Update breadcrumbs
       setBreadcrumbs([
         { label: "Deployments", to: "/workflows/deployments" },
         { 
           label: workflowData.name, 
           to: `/workflows/deployments/${workflowId}` 
         },
-        { label: `${deploymentId}` }
+        { label: "Deployment" }
       ]);
     } catch (error) {
       console.error("Error fetching workflow:", error);
@@ -101,39 +100,24 @@ export function DeploymentVersionPage() {
   };
 
   return (
-    <InsetLayout title={deployment?.id || "Deployment Version"}>
+    <InsetLayout title={workflow?.name ? `${workflow.name} Deployment` : "Deployment"}>
       {isLoading ? (
         <div className="py-10 text-center">Loading deployment details...</div>
       ) : deployment ? (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Deployment Version</CardTitle>
-              <CardDescription>
-                Details about this specific deployment
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <Hash className="mr-1 h-4 w-4" /> Deployment ID
-                  </p>
-                  <p className="font-mono text-sm mt-1">{deployment.id}</p>
-                </div>
-                {workflow && (
-                  <div>
-                    <p className="text-sm text-muted-foreground flex items-center">
-                      <FileCode className="mr-1 h-4 w-4" /> Workflow
-                    </p>
-                    <p className="mt-1">{workflow.name}</p>
-                    <p className="font-mono text-xs mt-1 text-muted-foreground">{workflow.id}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
+          <div className="flex justify-between items-center">
+            <p className="text-muted-foreground">
+              Details for this deployment version
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(`/workflows/deployments/${deployment.workflowId}`)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Deployment History
+            </Button>
+          </div>
+          
           <Card>
             <CardHeader>
               <CardTitle>Deployment Information</CardTitle>
@@ -143,6 +127,15 @@ export function DeploymentVersionPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workflow && (
+                  <div>
+                    <p className="text-sm text-muted-foreground flex items-center">
+                      <FileCode className="mr-1 h-4 w-4" /> Workflow
+                    </p>
+                    <p className="mt-1">{workflow.name}</p>
+                    <p className="font-mono text-xs mt-1 text-muted-foreground">{workflow.id}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-muted-foreground flex items-center">
                     <Hash className="mr-1 h-4 w-4" /> Deployment ID
@@ -151,35 +144,15 @@ export function DeploymentVersionPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground flex items-center">
-                    <Hash className="mr-1 h-4 w-4" /> Workflow ID
-                  </p>
-                  <p className="font-mono text-sm mt-1">{deployment.workflowId}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <Clock className="mr-1 h-4 w-4" /> Created
+                    <Clock className="mr-1 h-4 w-4" /> Deployed
                   </p>
                   <p className="mt-1">{formatDate(deployment.createdAt)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <Clock className="mr-1 h-4 w-4" /> Updated
+                  <p className="text-sm text-muted-foreground">
+                    Nodes / Edges
                   </p>
-                  <p className="mt-1">{formatDate(deployment.updatedAt)}</p>
-                </div>
-              </div>
-              
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Configuration</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nodes</p>
-                    <p className="font-medium">{deployment.nodes.length}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Edges</p>
-                    <p className="font-medium">{deployment.edges.length}</p>
-                  </div>
+                  <p className="mt-1">{deployment.nodes.length} / {deployment.edges.length}</p>
                 </div>
               </div>
             </CardContent>

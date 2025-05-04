@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -42,7 +42,6 @@ export function DeploymentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [isLoadingWorkflows, setIsLoadingWorkflows] = useState(false);
 
@@ -51,7 +50,7 @@ export function DeploymentsPage() {
     setBreadcrumbs([
       { label: "Deployments" }
     ]);
-  }, []);
+  }, [setBreadcrumbs]);
 
   // Fetch the deployments
   const fetchDeployments = async () => {
@@ -104,20 +103,15 @@ export function DeploymentsPage() {
     fetchDeployments();
   }, []);
 
-  // Load workflows when the create dialog opens
+  // Load workflows when the deploy dialog opens
   useEffect(() => {
-    if (isCreateDialogOpen) {
+    if (isDeployDialogOpen) {
       fetchWorkflows();
     }
-  }, [isCreateDialogOpen]);
+  }, [isDeployDialogOpen]);
 
   const handleViewDeployment = (workflowId: string) => {
     navigate(`/workflows/deployments/${workflowId}`);
-  };
-
-  const handleCreateDeployment = (workflowId: string) => {
-    setSelectedWorkflowId(workflowId);
-    setIsDeployDialogOpen(true);
   };
 
   const deployWorkflow = async () => {
@@ -131,25 +125,19 @@ export function DeploymentsPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create deployment: ${response.statusText}`);
+        throw new Error(`Failed to deploy workflow: ${response.statusText}`);
       }
-
-      // Get the deployment data
-      const deploymentData = await response.json();
       
       toast.success("Workflow deployed successfully");
       
-      // Close the dialogs and refresh the deployments list
       setIsDeployDialogOpen(false);
-      setIsCreateDialogOpen(false);
       setSelectedWorkflowId(null);
       fetchDeployments();
       
-      // Navigate to the deployment details
       navigate(`/workflows/deployments/${selectedWorkflowId}`);
     } catch (error) {
-      console.error("Error creating deployment:", error);
-      toast.error("Failed to create deployment. Please try again.");
+      console.error("Error deploying workflow:", error);
+      toast.error("Failed to deploy workflow. Please try again.");
     } finally {
       setIsDeploying(false);
     }
@@ -159,7 +147,10 @@ export function DeploymentsPage() {
   const deploymentsWithActions: DeploymentWithActions[] = deployments.map(deployment => ({
     ...deployment,
     onViewLatest: handleViewDeployment,
-    onCreateDeployment: handleCreateDeployment
+    onCreateDeployment: (workflowId) => {
+      setSelectedWorkflowId(workflowId);
+      setIsDeployDialogOpen(true);
+    }
   }));
 
   return (
@@ -170,29 +161,29 @@ export function DeploymentsPage() {
             Manage your workflow deployments across different environments.
           </p>
           <Dialog
-            open={isCreateDialogOpen}
+            open={isDeployDialogOpen}
             onOpenChange={(open) => {
-              setIsCreateDialogOpen(open);
+              setIsDeployDialogOpen(open);
               if (!open) setSelectedWorkflowId(null);
             }}
           >
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1">
                 <Plus className="size-4" />
-                Create Deployment
+                Deploy Workflow
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Deployment</DialogTitle>
+                <DialogTitle>Deploy Workflow</DialogTitle>
                 <DialogDescription>
-                  Select a workflow to create a new deployment.
+                  Select a workflow to deploy.
                 </DialogDescription>
               </DialogHeader>
               
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="workflow">Select Workflow</Label>
+                  <Label htmlFor="workflow">Workflow</Label>
                   {isLoadingWorkflows ? (
                     <div className="text-sm text-muted-foreground">Loading workflows...</div>
                   ) : workflows.length === 0 ? (
@@ -222,7 +213,7 @@ export function DeploymentsPage() {
                   variant="outline"
                   onClick={() => {
                     setSelectedWorkflowId(null);
-                    setIsCreateDialogOpen(false);
+                    setIsDeployDialogOpen(false);
                   }}
                 >
                   Cancel
@@ -231,7 +222,7 @@ export function DeploymentsPage() {
                   onClick={deployWorkflow} 
                   disabled={isDeploying || !selectedWorkflowId}
                 >
-                  {isDeploying ? "Deploying..." : "Create Deployment"}
+                  {isDeploying ? "Deploying..." : "Deploy"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -250,42 +241,9 @@ export function DeploymentsPage() {
         
         {!isLoading && (
           <div className="text-xs text-muted-foreground mt-4">
-            Showing <strong>{deployments.length}</strong> workflow deployments.
+            Showing <strong>{deployments.length}</strong> workflow deployment{deployments.length !== 1 ? 's' : ''}.
           </div>
         )}
-
-        {/* Deploy Dialog from List */}
-        <Dialog
-          open={isDeployDialogOpen}
-          onOpenChange={setIsDeployDialogOpen}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Deploy Workflow</DialogTitle>
-              <DialogDescription>
-                This will create a new deployment of the current workflow state.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSelectedWorkflowId(null);
-                  setIsDeployDialogOpen(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={deployWorkflow} 
-                disabled={isDeploying}
-              >
-                {isDeploying ? "Deploying..." : "Deploy"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </InsetLayout>
     </TooltipProvider>
   );

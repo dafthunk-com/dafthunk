@@ -101,7 +101,7 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
               onClick={() => deployment.onCreateDeployment?.(deployment.workflowId)}
             >
               <ArrowUpToLine className="h-4 w-4 mr-1" />
-              Deploy
+              Deploy Latest Version
             </Button>
           )}
         </div>
