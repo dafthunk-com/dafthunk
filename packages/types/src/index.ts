@@ -13,7 +13,7 @@ export type JsonValue = PrimitiveValue | JsonObject | JsonArray;
 export interface JsonObject {
   [key: string]: JsonValue;
 }
-export interface JsonArray extends Array<JsonValue> {}
+export type JsonArray = Array<JsonValue>;
 
 export type ParameterType =
   | {
@@ -122,4 +122,4 @@ export interface WorkflowExecution {
   status: WorkflowExecutionStatus;
   error?: string;
   nodeExecutions: NodeExecution[];
-} 
+}
