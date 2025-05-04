@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { DeploymentTable, DeploymentWithActions } from "@/components/deployments/deployment-table";
+import { DataTable } from "@/components/deployments/data-table";
+import {
+  columns,
+  DeploymentWithActions,
+} from "@/components/deployments/columns";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -33,7 +37,7 @@ interface WorkflowOption {
   name: string;
 }
 
-export function DeploymentsPage() {
+export function DeploymentListPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const [deployments, setDeployments] = useState<WorkflowDeployment[]>([]);
@@ -237,7 +241,8 @@ export function DeploymentsPage() {
           </Dialog>
         </div>
 
-        <DeploymentTable
+        <DataTable
+          columns={columns}
           data={deploymentsWithActions}
           isLoading={isLoading}
           emptyState={{
