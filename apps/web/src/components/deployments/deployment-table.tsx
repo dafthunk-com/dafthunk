@@ -76,10 +76,7 @@ export function DataTable<TData>({
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center"
-              >
+              <TableCell colSpan={columns.length} className="h-24 text-center">
                 Loading...
               </TableCell>
             </TableRow>
@@ -112,10 +109,7 @@ export function DataTable<TData>({
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center"
-              >
+              <TableCell colSpan={columns.length} className="h-24 text-center">
                 <div className="flex flex-col items-center justify-center py-8">
                   <h3 className="font-semibold text-lg">{emptyState.title}</h3>
                   <p className="text-muted-foreground mt-1">

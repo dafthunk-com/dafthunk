@@ -1,9 +1,9 @@
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Hash, GitCommitHorizontal } from "lucide-react";
@@ -17,18 +17,17 @@ interface DeploymentInfoCardProps {
   description?: string;
 }
 
-export function DeploymentInfoCard({ 
-  id, 
-  version, 
-  createdAt, 
+export function DeploymentInfoCard({
+  id,
+  version,
+  createdAt,
   title = "Deployment Information",
-  description = "Details about this deployment version"
+  description = "Details about this deployment version",
 }: DeploymentInfoCardProps) {
-  
   const formatDate = (dateString: string | Date) => {
     try {
       return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
-    } catch (error) {
+    } catch (_error) {
       return String(dateString);
     }
   };
@@ -54,13 +53,10 @@ export function DeploymentInfoCard({
             <p className="mt-1">{formatDate(createdAt)}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">
-              Version
-            </p>
+            <p className="text-sm text-muted-foreground">Version</p>
             <p className="mt-1">
               <Badge variant="secondary" className="text-xs gap-1">
-                <GitCommitHorizontal className="h-3.5 w-3.5" />
-                v{version}
+                <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
               </Badge>
             </p>
           </div>
@@ -68,4 +64,4 @@ export function DeploymentInfoCard({
       </CardContent>
     </Card>
   );
-} 
+}

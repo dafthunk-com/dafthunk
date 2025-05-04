@@ -1,20 +1,20 @@
 import { Hono } from "hono";
-import { 
-  Workflow as WorkflowType, 
+import {
+  Workflow as WorkflowType,
   WorkflowDeployment,
-  WorkflowDeploymentVersion
+  WorkflowDeploymentVersion,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
 import { jwtAuth } from "../auth";
-import { 
-  getLatestDeploymentByWorkflowId, 
+import {
+  getLatestDeploymentByWorkflowId,
   getDeploymentById,
   getWorkflowById,
   createDeployment,
   getDeploymentsGroupedByWorkflow,
   getDeploymentsByWorkflowId,
-  getLatestVersionNumberByWorkflowId
+  getLatestVersionNumberByWorkflowId,
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 
@@ -63,7 +63,7 @@ deploymentRoutes.get("/version/:deploymentUUID", jwtAuth, async (c) => {
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: WorkflowDeploymentVersion = {
     id: deployment.id,
-    workflowId: deployment.workflowId || '',
+    workflowId: deployment.workflowId || "",
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
@@ -105,7 +105,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: WorkflowDeploymentVersion = {
     id: deployment.id,
-    workflowId: deployment.workflowId || '',
+    workflowId: deployment.workflowId || "",
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
@@ -135,7 +135,12 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   const workflowData = workflow.data as WorkflowType;
 
   // Get the latest version number and increment
-  const latestVersion = await getLatestVersionNumberByWorkflowId(db, workflowUUID, user.organizationId) || 0;
+  const latestVersion =
+    (await getLatestVersionNumberByWorkflowId(
+      db,
+      workflowUUID,
+      user.organizationId
+    )) || 0;
   const newVersion = latestVersion + 1;
 
   // Create new deployment
@@ -153,7 +158,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: WorkflowDeploymentVersion = {
     id: newDeployment.id,
-    workflowId: newDeployment.workflowId || '',
+    workflowId: newDeployment.workflowId || "",
     version: newDeployment.version,
     createdAt: newDeployment.createdAt,
     updatedAt: newDeployment.updatedAt,
@@ -187,11 +192,11 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
   );
 
   // Transform to match WorkflowDeploymentVersion type
-  const deploymentVersions = deploymentsList.map(deployment => {
+  const deploymentVersions = deploymentsList.map((deployment) => {
     const workflowData = deployment.workflowData as WorkflowType;
     return {
       id: deployment.id,
-      workflowId: deployment.workflowId || '',
+      workflowId: deployment.workflowId || "",
       version: deployment.version,
       createdAt: deployment.createdAt,
       updatedAt: deployment.updatedAt,
@@ -200,13 +205,13 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
     };
   });
 
-  return c.json({ 
+  return c.json({
     workflow: {
       id: workflow.id,
-      name: workflow.name
+      name: workflow.name,
     },
-    deployments: deploymentVersions 
+    deployments: deploymentVersions,
   });
 });
 
-export default deploymentRoutes; 
+export default deploymentRoutes;

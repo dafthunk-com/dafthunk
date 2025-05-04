@@ -1,9 +1,9 @@
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Hash } from "lucide-react";
 
@@ -13,7 +13,11 @@ interface WorkflowInfoCardProps {
   description?: string;
 }
 
-export function WorkflowInfoCard({ id, name, description = "Details about this workflow" }: WorkflowInfoCardProps) {
+export function WorkflowInfoCard({
+  id,
+  name,
+  description = "Details about this workflow",
+}: WorkflowInfoCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -29,13 +33,11 @@ export function WorkflowInfoCard({ id, name, description = "Details about this w
             <p className="font-mono text-sm mt-1">{id}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">
-              Name
-            </p>
+            <p className="text-sm text-muted-foreground">Name</p>
             <p className="mt-1 font-medium">{name}</p>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}

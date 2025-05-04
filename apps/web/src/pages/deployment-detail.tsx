@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { ArrowUpToLine, History } from "lucide-react";
-import { DeploymentHistoryTable } from "@/components/deployments/history-table";
+import { DeploymentHistoryTable } from "@/components/deployments/deployment-history-table";
 import {
   Dialog,
   DialogContent,
@@ -37,8 +37,11 @@ export function DeploymentDetailPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const [workflow, setWorkflow] = useState<WorkflowInfo | null>(null);
-  const [currentDeployment, setCurrentDeployment] = useState<WorkflowDeploymentVersion | null>(null);
-  const [deploymentHistory, setDeploymentHistory] = useState<WorkflowDeploymentVersion[]>([]);
+  const [currentDeployment, setCurrentDeployment] =
+    useState<WorkflowDeploymentVersion | null>(null);
+  const [deploymentHistory, setDeploymentHistory] = useState<
+    WorkflowDeploymentVersion[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
@@ -47,30 +50,35 @@ export function DeploymentDetailPage() {
   // Fetch the deployment history for this workflow
   const fetchDeploymentHistory = async () => {
     if (!workflowId) return;
-    
+
     try {
       setIsHistoryLoading(true);
-      const response = await fetch(`${API_BASE_URL}/deployments/history/${workflowId}`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/history/${workflowId}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch deployment history: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch deployment history: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
       setWorkflow(data.workflow);
       setDeploymentHistory(data.deployments);
-      
+
       // Update breadcrumbs with workflow name
       if (data.workflow) {
         setBreadcrumbs([
           { label: "Deployments", to: "/workflows/deployments" },
-          { label: data.workflow.name }
+          { label: data.workflow.name },
         ]);
       }
-      
+
       if (data.deployments.length > 0) {
         // Set the first deployment (latest) as the current one
         setCurrentDeployment(data.deployments[0]);
@@ -94,17 +102,20 @@ export function DeploymentDetailPage() {
 
     try {
       setIsDeploying(true);
-      const response = await fetch(`${API_BASE_URL}/deployments/${workflowId}`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/${workflowId}`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to deploy workflow: ${response.statusText}`);
       }
 
       toast.success("Workflow deployed successfully");
-      
+
       setIsDeployDialogOpen(false);
       fetchDeploymentHistory();
     } catch (error) {
@@ -135,9 +146,9 @@ export function DeploymentDetailPage() {
 
           {currentDeployment ? (
             <>
-              <WorkflowInfoCard 
-                id={workflow.id} 
-                name={workflow.name} 
+              <WorkflowInfoCard
+                id={workflow.id}
+                name={workflow.name}
                 description="Details about the workflow being deployed"
               />
 
@@ -160,7 +171,7 @@ export function DeploymentDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DeploymentHistoryTable 
+                  <DeploymentHistoryTable
                     deployments={deploymentHistory}
                     currentDeploymentId={currentDeployment.id}
                     workflowId={workflow.id}
@@ -172,8 +183,8 @@ export function DeploymentDetailPage() {
           ) : (
             <div className="text-center py-10">
               <p className="text-lg">No deployments found for this workflow.</p>
-              <Button 
-                className="mt-4" 
+              <Button
+                className="mt-4"
                 onClick={() => setIsDeployDialogOpen(true)}
               >
                 Deploy Workflow
@@ -184,9 +195,9 @@ export function DeploymentDetailPage() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg">Workflow not found</p>
-          <Button 
-            className="mt-4" 
-            onClick={() => navigate('/workflows/deployments')}
+          <Button
+            className="mt-4"
+            onClick={() => navigate("/workflows/deployments")}
           >
             Back to Deployments
           </Button>
@@ -194,10 +205,7 @@ export function DeploymentDetailPage() {
       )}
 
       {/* Deploy Dialog */}
-      <Dialog
-        open={isDeployDialogOpen}
-        onOpenChange={setIsDeployDialogOpen}
-      >
+      <Dialog open={isDeployDialogOpen} onOpenChange={setIsDeployDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Deploy Workflow</DialogTitle>
@@ -205,7 +213,7 @@ export function DeploymentDetailPage() {
               This will create a new deployment of "{workflow?.name}".
             </DialogDescription>
           </DialogHeader>
-          
+
           <DialogFooter>
             <Button
               variant="outline"
@@ -213,10 +221,7 @@ export function DeploymentDetailPage() {
             >
               Cancel
             </Button>
-            <Button 
-              onClick={deployWorkflow} 
-              disabled={isDeploying}
-            >
+            <Button onClick={deployWorkflow} disabled={isDeploying}>
               {isDeploying ? "Deploying..." : "Deploy"}
             </Button>
           </DialogFooter>
@@ -224,4 +229,4 @@ export function DeploymentDetailPage() {
       </Dialog>
     </InsetLayout>
   );
-} 
+}

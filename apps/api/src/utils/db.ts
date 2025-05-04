@@ -21,7 +21,11 @@ import {
   deployments,
   type NewDeployment,
 } from "../db";
-import { Workflow as WorkflowType, WorkflowExecution, WorkflowDeployment } from "@dafthunk/types";
+import {
+  Workflow as WorkflowType,
+  WorkflowExecution,
+  WorkflowDeployment,
+} from "@dafthunk/types";
 import { ExecutionStatusType } from "../db/schema";
 import { nanoid } from "nanoid";
 import * as crypto from "crypto";
@@ -579,12 +583,12 @@ export async function createDeployment(
   newDeployment: NewDeployment
 ) {
   await db.insert(deployments).values(newDeployment);
-  
+
   const [deployment] = await db
     .select()
     .from(deployments)
     .where(eq(deployments.id, newDeployment.id));
-    
+
   return deployment;
 }
 
@@ -630,7 +634,7 @@ export async function getDeploymentsGroupedByWorkflow(
         workflowName: workflow.name,
         latestDeploymentId: deploymentsList[0].id,
         latestVersion: deploymentsList[0].version,
-        deploymentCount: deploymentsList.length
+        deploymentCount: deploymentsList.length,
       });
     }
   }
@@ -678,7 +682,7 @@ export async function getLatestVersionNumberByWorkflowId(
 ): Promise<number | null> {
   const result = await db
     .select({
-      maxVersion: sql<number>`MAX(${deployments.version})`
+      maxVersion: sql<number>`MAX(${deployments.version})`,
     })
     .from(deployments)
     .where(

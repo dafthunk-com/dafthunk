@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { 
-  useBreadcrumbsSetter, 
+import {
+  useBreadcrumbsSetter,
   useBreadcrumbs,
   usePage as usePageContext,
-  BreadcrumbItem 
+  BreadcrumbItem,
 } from "@/components/page-context";
 
 /**
@@ -15,7 +15,7 @@ export function usePage() {
 
 /**
  * Hook that manages breadcrumb state for a page component
- * 
+ *
  * @param items - Array of breadcrumb items to display
  * @param dependencies - Optional array of dependencies that should trigger breadcrumb update
  */
@@ -54,4 +54,4 @@ export function usePageBreadcrumb(
 ) {
   const { setBreadcrumbs } = usePageBreadcrumbs(items, dependencies);
   return { setBreadcrumb: setBreadcrumbs };
-} 
+}

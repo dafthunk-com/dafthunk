@@ -1,7 +1,12 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, GitCommitHorizontal, ArrowUpToLine, Eye } from "lucide-react";
+import {
+  ArrowUpDown,
+  GitCommitHorizontal,
+  ArrowUpToLine,
+  Eye,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,13 +69,14 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
     cell: ({ row }) => {
       const deployment = row.original;
       // Convert to string and default to 1.0.0 if not available
-      const version = deployment.latestVersion ? deployment.latestVersion.toString() : "1.0";
+      const version = deployment.latestVersion
+        ? deployment.latestVersion.toString()
+        : "1.0";
       return (
         <Tooltip>
           <TooltipTrigger>
             <Badge variant="secondary" className="text-xs gap-1">
-              <GitCommitHorizontal className="h-3.5 w-3.5" />
-              v{version}
+              <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
@@ -95,9 +101,7 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
       );
     },
     cell: ({ row }) => (
-      <Badge variant="outline">
-        {row.getValue("deploymentCount")}
-      </Badge>
+      <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
     ),
   },
   {
@@ -114,11 +118,13 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
             </Button>
           </Link>
           {deployment.onCreateDeployment && (
-            <Button 
-              size="sm" 
-              variant="outline" 
+            <Button
+              size="sm"
+              variant="outline"
               className="h-8 px-2"
-              onClick={() => deployment.onCreateDeployment?.(deployment.workflowId)}
+              onClick={() =>
+                deployment.onCreateDeployment?.(deployment.workflowId)
+              }
             >
               <ArrowUpToLine className="h-4 w-4 mr-1" />
               Deploy Latest Version

@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Bot, Settings } from "lucide-react";
 import { UserProfile } from "@/components/user-profile";

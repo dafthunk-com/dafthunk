@@ -27,17 +27,15 @@ export function DeploymentHistoryTable({
   isLoading = false,
 }: DeploymentHistoryTableProps) {
   const [expanded, setExpanded] = useState(false);
-  
+
   // Show only most recent 3 deployments unless expanded
-  const displayDeployments = expanded
-    ? deployments
-    : deployments.slice(0, 3);
+  const displayDeployments = expanded ? deployments : deployments.slice(0, 3);
 
   // Format a date string
   const formatDate = (dateString: string | Date) => {
     try {
       return format(new Date(dateString), "MMM d, yyyy h:mm a");
-    } catch (error) {
+    } catch (_error) {
       return String(dateString);
     }
   };
@@ -109,7 +107,9 @@ export function DeploymentHistoryTable({
                   {deployment.id === currentDeploymentId ? (
                     <div className="flex items-center">
                       {deployment.id}
-                      <Badge variant="outline" className="ml-2 bg-green-50">Current</Badge>
+                      <Badge variant="outline" className="ml-2 bg-green-50">
+                        Current
+                      </Badge>
                     </div>
                   ) : (
                     <>{deployment.id}</>
@@ -117,8 +117,8 @@ export function DeploymentHistoryTable({
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="gap-1">
-                    <GitCommitHorizontal className="h-3.5 w-3.5" />
-                    v{deployment.version}
+                    <GitCommitHorizontal className="h-3.5 w-3.5" />v
+                    {deployment.version}
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center">
@@ -127,10 +127,7 @@ export function DeploymentHistoryTable({
                 </TableCell>
                 <TableCell>
                   <Link to={`/workflows/deployments/version/${deployment.id}`}>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                    >
+                    <Button size="sm" variant="ghost">
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
@@ -141,12 +138,12 @@ export function DeploymentHistoryTable({
           </TableBody>
         </Table>
       </div>
-      
+
       {deployments.length > 3 && (
         <div className="flex justify-center">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setExpanded(!expanded)}
             className="text-xs"
           >
@@ -163,4 +160,4 @@ export function DeploymentHistoryTable({
       )}
     </div>
   );
-} 
+}

@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { DataTable } from "@/components/deployments/data-table";
-import { columns, DeploymentWithActions } from "@/components/deployments/columns";
+import { DataTable } from "@/components/deployments/deployment-table";
+import {
+  columns,
+  DeploymentWithActions,
+} from "@/components/deployments/columns";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -17,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -40,16 +43,16 @@ export function DeploymentsPage() {
   const [deployments, setDeployments] = useState<WorkflowDeployment[]>([]);
   const [workflows, setWorkflows] = useState<WorkflowOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(
+    null
+  );
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [isLoadingWorkflows, setIsLoadingWorkflows] = useState(false);
 
   // Set breadcrumbs on component mount
   useEffect(() => {
-    setBreadcrumbs([
-      { label: "Deployments" }
-    ]);
+    setBreadcrumbs([{ label: "Deployments" }]);
   }, [setBreadcrumbs]);
 
   // Fetch the deployments
@@ -119,21 +122,24 @@ export function DeploymentsPage() {
 
     try {
       setIsDeploying(true);
-      const response = await fetch(`${API_BASE_URL}/deployments/${selectedWorkflowId}`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/${selectedWorkflowId}`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to deploy workflow: ${response.statusText}`);
       }
-      
+
       toast.success("Workflow deployed successfully");
-      
+
       setIsDeployDialogOpen(false);
       setSelectedWorkflowId(null);
       fetchDeployments();
-      
+
       navigate(`/workflows/deployments/${selectedWorkflowId}`);
     } catch (error) {
       console.error("Error deploying workflow:", error);
@@ -144,14 +150,16 @@ export function DeploymentsPage() {
   };
 
   // Add actions to the deployments
-  const deploymentsWithActions: DeploymentWithActions[] = deployments.map(deployment => ({
-    ...deployment,
-    onViewLatest: handleViewDeployment,
-    onCreateDeployment: (workflowId) => {
-      setSelectedWorkflowId(workflowId);
-      setIsDeployDialogOpen(true);
-    }
-  }));
+  const deploymentsWithActions: DeploymentWithActions[] = deployments.map(
+    (deployment) => ({
+      ...deployment,
+      onViewLatest: handleViewDeployment,
+      onCreateDeployment: (workflowId) => {
+        setSelectedWorkflowId(workflowId);
+        setIsDeployDialogOpen(true);
+      },
+    })
+  );
 
   return (
     <TooltipProvider>
@@ -180,16 +188,20 @@ export function DeploymentsPage() {
                   Select a workflow to deploy.
                 </DialogDescription>
               </DialogHeader>
-              
+
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="workflow">Workflow</Label>
                   {isLoadingWorkflows ? (
-                    <div className="text-sm text-muted-foreground">Loading workflows...</div>
+                    <div className="text-sm text-muted-foreground">
+                      Loading workflows...
+                    </div>
                   ) : workflows.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">No workflows available</div>
+                    <div className="text-sm text-muted-foreground">
+                      No workflows available
+                    </div>
                   ) : (
-                    <Select 
+                    <Select
                       onValueChange={(value) => setSelectedWorkflowId(value)}
                       value={selectedWorkflowId || undefined}
                     >
@@ -207,7 +219,7 @@ export function DeploymentsPage() {
                   )}
                 </div>
               </div>
-              
+
               <DialogFooter>
                 <Button
                   variant="outline"
@@ -218,8 +230,8 @@ export function DeploymentsPage() {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  onClick={deployWorkflow} 
+                <Button
+                  onClick={deployWorkflow}
                   disabled={isDeploying || !selectedWorkflowId}
                 >
                   {isDeploying ? "Deploying..." : "Deploy"}
@@ -228,7 +240,7 @@ export function DeploymentsPage() {
             </DialogContent>
           </Dialog>
         </div>
-        
+
         <DataTable
           columns={columns}
           data={deploymentsWithActions}
@@ -238,10 +250,11 @@ export function DeploymentsPage() {
             description: "Deploy a workflow to get started.",
           }}
         />
-        
+
         {!isLoading && (
           <div className="text-xs text-muted-foreground mt-4">
-            Showing <strong>{deployments.length}</strong> workflow deployment{deployments.length !== 1 ? 's' : ''}.
+            Showing <strong>{deployments.length}</strong> workflow deployment
+            {deployments.length !== 1 ? "s" : ""}.
           </div>
         )}
       </InsetLayout>

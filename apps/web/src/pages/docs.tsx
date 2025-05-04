@@ -11,9 +11,7 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsPage() {
   // Set a simple breadcrumb for the docs page
-  usePageBreadcrumbs([
-    { label: "Documentation" }
-  ]);
+  usePageBreadcrumbs([{ label: "Documentation" }]);
 
   return (
     <div className="container mx-auto py-10 space-y-8">

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
@@ -11,11 +10,11 @@ import { DeploymentInfoCard } from "@/components/deployments/deployment-info-car
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams();
-  const navigate = useNavigate();
-  const [deployment, setDeployment] = useState<WorkflowDeploymentVersion | null>(null);
+  const [deployment, setDeployment] =
+    useState<WorkflowDeploymentVersion | null>(null);
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   // Fetch the workflow data
@@ -43,11 +42,11 @@ export function DeploymentVersionPage() {
     if (workflow && deployment) {
       setBreadcrumbs([
         { label: "Deployments", to: "/workflows/deployments" },
-        { 
-          label: workflow.name, 
-          to: `/workflows/deployments/${workflow.id}` 
+        {
+          label: workflow.name,
+          to: `/workflows/deployments/${workflow.id}`,
         },
-        { label: `v${deployment.version}` }
+        { label: `v${deployment.version}` },
       ]);
     }
   }, [workflow, deployment, setBreadcrumbs]);
@@ -55,13 +54,16 @@ export function DeploymentVersionPage() {
   // Fetch the specific deployment version
   const fetchDeployment = async () => {
     if (!deploymentId) return;
-    
+
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/deployments/version/${deploymentId}`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/version/${deploymentId}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch deployment: ${response.statusText}`);
@@ -69,7 +71,7 @@ export function DeploymentVersionPage() {
 
       const data = await response.json();
       setDeployment(data);
-      
+
       // Fetch workflow data once we have the workflowId
       if (data.workflowId) {
         await fetchWorkflow(data.workflowId);
@@ -88,7 +90,11 @@ export function DeploymentVersionPage() {
   }, [deploymentId]);
 
   return (
-    <InsetLayout title={deployment?.version ? `Version ${deployment.version}` : "Deployment"}>
+    <InsetLayout
+      title={
+        deployment?.version ? `Version ${deployment.version}` : "Deployment"
+      }
+    >
       {isLoading ? (
         <div className="py-10 text-center">Loading deployment details...</div>
       ) : deployment ? (
@@ -100,15 +106,15 @@ export function DeploymentVersionPage() {
               </p>
             </div>
           </div>
-          
+
           {workflow && (
-            <WorkflowInfoCard 
+            <WorkflowInfoCard
               id={workflow.id}
               name={workflow.name}
               description="Details about this workflow"
             />
           )}
-          
+
           <DeploymentInfoCard
             id={deployment.id}
             version={deployment.version}
@@ -122,4 +128,4 @@ export function DeploymentVersionPage() {
       )}
     </InsetLayout>
   );
-} 
+}
