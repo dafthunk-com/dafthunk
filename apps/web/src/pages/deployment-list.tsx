@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import {
-  DeploymentTable,
   DeploymentWithActions,
-} from "@/components/deployments/deployment-table";
+  columns,
+} from "@/components/deployments/deployment-columns";
+import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -160,89 +161,95 @@ export function DeploymentListPage() {
     })
   );
 
+  const toolbarContent = (
+    <div className="flex items-center justify-between mb-6">
+      <p className="text-muted-foreground">
+        Manage your workflow deployments across different environments.
+      </p>
+      <Dialog
+        open={isDeployDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeployDialogOpen(open);
+          if (!open) setSelectedWorkflowId(null);
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button size="sm" className="gap-1">
+            <Plus className="size-4" />
+            Deploy Workflow
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deploy Workflow</DialogTitle>
+            <DialogDescription>
+              Select a workflow to deploy.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="workflow">Workflow</Label>
+              {isLoadingWorkflows ? (
+                <div className="text-sm text-muted-foreground">
+                  Loading workflows...
+                </div>
+              ) : workflows.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No workflows available
+                </div>
+              ) : (
+                <Select
+                  onValueChange={(value) => setSelectedWorkflowId(value)}
+                  value={selectedWorkflowId || undefined}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a workflow" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workflows.map((workflow) => (
+                      <SelectItem key={workflow.id} value={workflow.id}>
+                        {workflow.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedWorkflowId(null);
+                setIsDeployDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={deployWorkflow}
+              disabled={isDeploying || !selectedWorkflowId}
+            >
+              {isDeploying ? "Deploying..." : "Deploy"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+
   return (
     <TooltipProvider>
       <InsetLayout title="Deployments">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-muted-foreground">
-            Manage your workflow deployments across different environments.
-          </p>
-          <Dialog
-            open={isDeployDialogOpen}
-            onOpenChange={(open) => {
-              setIsDeployDialogOpen(open);
-              if (!open) setSelectedWorkflowId(null);
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1">
-                <Plus className="size-4" />
-                Deploy Workflow
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Deploy Workflow</DialogTitle>
-                <DialogDescription>
-                  Select a workflow to deploy.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="workflow">Workflow</Label>
-                  {isLoadingWorkflows ? (
-                    <div className="text-sm text-muted-foreground">
-                      Loading workflows...
-                    </div>
-                  ) : workflows.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">
-                      No workflows available
-                    </div>
-                  ) : (
-                    <Select
-                      onValueChange={(value) => setSelectedWorkflowId(value)}
-                      value={selectedWorkflowId || undefined}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a workflow" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workflows.map((workflow) => (
-                          <SelectItem key={workflow.id} value={workflow.id}>
-                            {workflow.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedWorkflowId(null);
-                    setIsDeployDialogOpen(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={deployWorkflow}
-                  disabled={isDeploying || !selectedWorkflowId}
-                >
-                  {isDeploying ? "Deploying..." : "Deploy"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <DeploymentTable
+        <DataTable
+          columns={columns}
           data={deploymentsWithActions}
           isLoading={isLoading}
+          enableSorting={true}
+          enablePagination={true}
+          toolbar={toolbarContent}
           emptyState={{
             title: "No deployments found",
             description: "Deploy a workflow to get started.",

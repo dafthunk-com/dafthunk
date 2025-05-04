@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { DataTable } from "@/components/executions/data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { columns, Execution } from "@/components/executions/columns";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { API_BASE_URL } from "@/config/api";
@@ -65,13 +65,19 @@ export function ExecutionsPage() {
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
         </p>
-        {isLoading ? (
-          <div className="text-center py-8">Loading executions...</div>
-        ) : error ? (
-          <div className="text-center text-red-500 py-8">{error}</div>
-        ) : (
-          <DataTable columns={columns} data={executions} />
-        )}
+        <DataTable 
+          columns={columns} 
+          data={executions}
+          isLoading={isLoading}
+          enableSorting={true}
+          enableFiltering={true}
+          enableColumnVisibility={true}
+          enablePagination={true}
+          emptyState={{
+            title: error ? "Error" : "No executions",
+            description: error || "No executions found.",
+          }}
+        />
         {!isLoading && !error && (
           <div className="text-xs text-muted-foreground mt-4">
             Showing <strong>{executions.length}</strong> executions.

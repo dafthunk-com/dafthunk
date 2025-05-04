@@ -12,8 +12,9 @@ import {
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
-import { ArrowUpToLine, History } from "lucide-react";
-import { DeploymentHistoryTable } from "@/components/deployments/deployment-history-table";
+import { ArrowUpToLine, History, ArrowDown } from "lucide-react";
+import { createDeploymentHistoryColumns } from "@/components/deployments/deployment-history-columns";
+import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ export function DeploymentDetailPage() {
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
+  const [expandedHistory, setExpandedHistory] = useState(false);
 
   // Fetch the deployment history for this workflow
   const fetchDeploymentHistory = async () => {
@@ -126,6 +128,32 @@ export function DeploymentDetailPage() {
     }
   };
 
+  // Show only most recent 3 deployments unless expanded
+  const displayDeployments = expandedHistory 
+    ? deploymentHistory 
+    : deploymentHistory.slice(0, 3);
+
+  // Only show the "Show more" button if there are more than 3 deployments
+  const showMoreButton = deploymentHistory.length > 3 && (
+    <div className="flex justify-center mt-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setExpandedHistory(!expandedHistory)}
+        className="text-xs"
+      >
+        {expandedHistory ? (
+          "Show Less"
+        ) : (
+          <>
+            Show All ({deploymentHistory.length}) Deployments
+            <ArrowDown className="ml-1 h-3 w-3" />
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
   return (
     <InsetLayout title={workflow?.name || "Workflow Deployments"}>
       {isLoading ? (
@@ -171,12 +199,20 @@ export function DeploymentDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DeploymentHistoryTable
-                    deployments={deploymentHistory}
-                    currentDeploymentId={currentDeployment.id}
-                    workflowId={workflow.id}
-                    isLoading={isHistoryLoading}
-                  />
+                  <div className="space-y-2">
+                    <DataTable
+                      columns={createDeploymentHistoryColumns(currentDeployment.id)}
+                      data={displayDeployments}
+                      isLoading={isHistoryLoading}
+                      enablePagination={false}
+                      enableSorting={false}
+                      emptyState={{
+                        title: "No deployment history",
+                        description: "No deployment history found.",
+                      }}
+                    />
+                    {showMoreButton}
+                  </div>
                 </CardContent>
               </Card>
             </>

@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import {
+  ColumnDef,
   flexRender,
   getCoreRowModel,
-  useReactTable,
   getPaginationRowModel,
+  useReactTable,
   SortingState,
   getSortedRowModel,
-  ColumnDef,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  VisibilityState,
+  RowSelectionState,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -19,149 +24,74 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Link } from "react-router-dom";
-import { ArrowUpDown, GitCommitHorizontal, Eye } from "lucide-react";
-import { WorkflowDeployment } from "@dafthunk/types";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
-// Represents a deployed, frozen instance of a workflow
-export type Deployment = {
-  id: string; // Unique deployment ID
-  workflowId: string; // ID of the source workflow
-  workflowName: string; // Name of the source workflow
-  status: "active" | "failed" | "inactive";
-  commitHash: string; // Git commit hash representing the deployed version
-  deployedAt: Date;
-};
-
-export type DeploymentWithActions = WorkflowDeployment & {
-  onViewLatest?: (workflowId: string) => void;
-  onCreateDeployment?: (workflowId: string) => void;
-};
-
-const columns: ColumnDef<DeploymentWithActions>[] = [
-  {
-    accessorKey: "workflowName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 font-medium"
-        >
-          Workflow Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("workflowName")}</div>
-    ),
-  },
-  {
-    accessorKey: "latestVersion",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 font-medium"
-        >
-          Latest Deployment Version
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const deployment = row.original;
-      // Convert to string and default to 1.0.0 if not available
-      const version = deployment.latestVersion
-        ? deployment.latestVersion.toString()
-        : "1.0";
-      return (
-        <Tooltip>
-          <TooltipTrigger>
-            <Badge variant="secondary" className="text-xs gap-1">
-              <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
-            </Badge>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Latest deployment ID: {deployment.latestDeploymentId}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    },
-  },
-  {
-    accessorKey: "deploymentCount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 font-medium"
-        >
-          Number of Deployments
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
-    ),
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const deployment = row.original;
-      return (
-        <div className="flex items-center gap-2">
-          <Link to={`/workflows/deployments/${deployment.workflowId}`}>
-            <Button size="sm" variant="ghost" className="h-8 px-2">
-              <Eye className="h-4 w-4 mr-1" />
-              View
-            </Button>
-          </Link>
-        </div>
-      );
-    },
-  },
-];
-
-interface DeploymentTableProps {
-  data: DeploymentWithActions[];
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
   isLoading?: boolean;
   emptyState?: {
     title: string;
     description: string;
   };
+  enablePagination?: boolean;
+  enableSorting?: boolean;
+  enableFiltering?: boolean;
+  enableColumnVisibility?: boolean;
+  enableRowSelection?: boolean;
+  toolbar?: React.ReactNode;
 }
 
-export function DeploymentTable({
+export function DataTable<TData, TValue>({
+  columns,
   data,
   isLoading = false,
   emptyState = {
     title: "No results",
     description: "No data available.",
   },
-}: DeploymentTableProps) {
+  enablePagination = true,
+  enableSorting = true,
+  enableFiltering = false,
+  enableColumnVisibility = false,
+  enableRowSelection = false,
+  toolbar,
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
+    ...(enablePagination && { getPaginationRowModel: getPaginationRowModel() }),
+    ...(enableSorting && { 
+      onSortingChange: setSorting,
+      getSortedRowModel: getSortedRowModel(),
+    }),
+    ...(enableFiltering && { 
+      onColumnFiltersChange: setColumnFilters,
+      getFilteredRowModel: getFilteredRowModel(),
+    }),
+    ...(enableColumnVisibility && { 
+      onColumnVisibilityChange: setColumnVisibility, 
+    }),
+    ...(enableRowSelection && { 
+      onRowSelectionChange: setRowSelection, 
+    }),
     state: {
-      sorting,
+      ...(enableSorting && { sorting }),
+      ...(enableFiltering && { columnFilters }),
+      ...(enableColumnVisibility && { columnVisibility }),
+      ...(enableRowSelection && { rowSelection }),
     },
   });
 
@@ -236,6 +166,39 @@ export function DeploymentTable({
 
   return (
     <div className="space-y-4">
+      {toolbar && <div className="flex items-center justify-between">{toolbar}</div>}
+      
+      {enableColumnVisibility && (
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+      
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -284,24 +247,33 @@ export function DeploymentTable({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div>
+      
+      {enablePagination && (
+        <div className="flex items-center justify-end space-x-2">
+          {enableRowSelection && (
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
-}
+} 

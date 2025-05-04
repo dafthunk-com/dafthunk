@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
 import { AlertCircle, Copy, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,6 +34,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { API_BASE_URL } from "@/config/api";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface ApiToken {
   id: string;
@@ -54,6 +48,53 @@ interface TokenResponse {
   tokenRecord: ApiToken;
 }
 
+// Column definitions for API keys table
+const columns: ColumnDef<ApiToken>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("name")}</div>
+    ),
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created",
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as string;
+      const formatted = format(new Date(date), "MMM d, yyyy");
+      return <div>{formatted}</div>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const token = row.original;
+      
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button aria-haspopup="true" size="icon" variant="ghost">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              // Using onClick instead of passing a delete function through table options meta
+              onClick={() => document.dispatchEvent(new CustomEvent('deleteApiToken', { detail: token.id }))}
+              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Key
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];
+
 export function ApiKeysPage() {
   const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,6 +104,21 @@ export function ApiKeysPage() {
   const [newToken, setNewToken] = useState<string | null>(null);
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Setup event listener for delete action from the table
+  useEffect(() => {
+    const handleDeleteEvent = (e: CustomEvent) => {
+      if (e.detail) {
+        confirmDeleteKey(e.detail);
+      }
+    };
+    
+    document.addEventListener('deleteApiToken', handleDeleteEvent as EventListener);
+    
+    return () => {
+      document.removeEventListener('deleteApiToken', handleDeleteEvent as EventListener);
+    };
+  }, []);
 
   // Fetch the API tokens
   const fetchTokens = async () => {
@@ -170,14 +226,6 @@ export function ApiKeysPage() {
     toast.success("API token copied to clipboard");
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "MMM d, yyyy");
-    } catch (_error) {
-      return dateString;
-    }
-  };
-
   // Dialog content changes based on whether we're showing a new token
   const renderDialogContent = () => {
     if (newToken) {
@@ -279,90 +327,43 @@ export function ApiKeysPage() {
     );
   };
 
+  const toolbarContent = (
+    <div className="flex items-center justify-between mb-6">
+      <p className="text-muted-foreground">
+        Manage your API keys for accessing your organization's services.
+      </p>
+      <Dialog
+        open={isCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) setNewToken(null);
+          setIsCreateDialogOpen(open);
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button size="sm" className="gap-1">
+            <Plus className="size-4" />
+            Create New Key
+          </Button>
+        </DialogTrigger>
+        <DialogContent>{renderDialogContent()}</DialogContent>
+      </Dialog>
+    </div>
+  );
+
   return (
     <InsetLayout title="API Keys">
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-muted-foreground">
-          Manage your API keys for accessing your organization's services.
-        </p>
-        <Dialog
-          open={isCreateDialogOpen}
-          onOpenChange={(open) => {
-            if (!open) setNewToken(null);
-            setIsCreateDialogOpen(open);
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button size="sm" className="gap-1">
-              <Plus className="size-4" />
-              Create New Key
-            </Button>
-          </DialogTrigger>
-          <DialogContent>{renderDialogContent()}</DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-8">
-                  Loading API keys...
-                </TableCell>
-              </TableRow>
-            ) : apiTokens.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={3}
-                  className="text-center py-8 text-muted-foreground"
-                >
-                  No API keys found. Create your first key to get started.
-                </TableCell>
-              </TableRow>
-            ) : (
-              apiTokens.map((token) => (
-                <TableRow key={token.id}>
-                  <TableCell className="font-medium">{token.name}</TableCell>
-                  <TableCell>{formatDate(token.createdAt)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => confirmDeleteKey(token.id)}
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete Key
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={apiTokens}
+        isLoading={isLoading}
+        enableSorting={true}
+        enablePagination={false}
+        toolbar={toolbarContent}
+        emptyState={{
+          title: "No API keys found",
+          description: "Create your first key to get started.",
+        }}
+      />
       {!isLoading && (
         <div className="text-xs text-muted-foreground mt-4">
           Showing <strong>{apiTokens.length}</strong> API keys.

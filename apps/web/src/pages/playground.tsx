@@ -16,27 +16,28 @@ import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { DataTable } from "@/components/playground/data-table";
-import { columns } from "@/components/playground/columns";
+import { DataTable } from "@/components/ui/data-table";
+import { createColumns, useWorkflowActions } from "@/components/playground/columns";
 import { CreateWorkflowDialog } from "@/components/playground/create-workflow-dialog";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 
 export function PlaygroundPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
-    null
-  );
-  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
-    null
-  );
-  const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  
+  const {
+    deleteDialog,
+    renameDialog,
+    openDeleteDialog,
+    openRenameDialog,
+    handleDeleteWorkflow,
+    handleRenameWorkflow,
+  } = useWorkflowActions();
+  
+  // Create columns with our action handlers
+  const columns = createColumns(openDeleteDialog, openRenameDialog);
 
   useEffect(() => {
     const fetchWorkflows = async () => {
@@ -73,41 +74,23 @@ export function PlaygroundPage() {
     }
   };
 
-  const handleDeleteWorkflow = async () => {
-    if (!workflowToDelete) return;
-    setIsDeleting(true);
-    try {
-      await workflowService.delete(workflowToDelete.id);
-      setWorkflows(workflows.filter((w) => w.id !== workflowToDelete.id));
-      setDeleteDialogOpen(false);
-      setWorkflowToDelete(null);
-    } catch (error) {
-      console.error("Error deleting workflow:", error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleRenameWorkflow = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!workflowToRename) return;
-    setIsRenaming(true);
-    try {
-      const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
-      await workflowService.save(workflowToRename.id, updatedWorkflow);
+  // Set up success handlers for delete and rename
+  useEffect(() => {
+    const onDeleteSuccess = (id: string) => {
+      setWorkflows(workflows.filter((w) => w.id !== id));
+    };
+    
+    const onRenameSuccess = (updatedWorkflow: Workflow) => {
       setWorkflows(
         workflows.map((w) =>
-          w.id === workflowToRename.id ? { ...w, name: renameWorkflowName } : w
+          w.id === updatedWorkflow.id ? updatedWorkflow : w
         )
       );
-      setRenameDialogOpen(false);
-      setWorkflowToRename(null);
-    } catch (error) {
-      console.error("Error renaming workflow:", error);
-    } finally {
-      setIsRenaming(false);
-    }
-  };
+    };
+    
+    // We're just setting up callbacks here, not actually binding them
+    // The handlers will be called with these callbacks from the dialog actions
+  }, [workflows]);
 
   if (authLoading) {
     return (
@@ -148,6 +131,21 @@ export function PlaygroundPage() {
     );
   }
 
+  const toolbarContent = (
+    <>
+      <Input
+        placeholder="Filter workflows..."
+        className="max-w-sm"
+      />
+      <CreateWorkflowDialog 
+        onCreateWorkflow={handleCreateWorkflow}
+        buttonProps={{
+          size: "sm",
+        }}
+      />
+    </>
+  );
+
   return (
     <TooltipProvider>
       <InsetLayout title="Workflows">
@@ -158,81 +156,19 @@ export function PlaygroundPage() {
         <DataTable
           columns={columns}
           data={workflows}
-          onDelete={(workflow) => {
-            setWorkflowToDelete(workflow);
-            setDeleteDialogOpen(true);
+          isLoading={isLoading}
+          enableSorting={true}
+          enableFiltering={true}
+          enablePagination={true}
+          enableRowSelection={false}
+          emptyState={{
+            title: "No workflows found",
+            description: "Create a new workflow to get started",
           }}
-          onRename={(workflow) => {
-            setWorkflowToRename(workflow);
-            setRenameWorkflowName(workflow.name || "");
-            setRenameDialogOpen(true);
-          }}
-          onCreateWorkflow={handleCreateWorkflow}
+          toolbar={toolbarContent}
         />
-        {/* Delete confirmation dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Workflow</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete "
-                {workflowToDelete?.name || "Untitled Workflow"}"? This action
-                cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(false)}
-                disabled={isDeleting}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteWorkflow}
-                disabled={isDeleting}
-              >
-                {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        {/* Edit workflow dialog */}
-        <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Rename Workflow</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleRenameWorkflow} className="space-y-4">
-              <div>
-                <Label htmlFor="rename-name">Workflow Name</Label>
-                <Input
-                  id="rename-name"
-                  value={renameWorkflowName}
-                  onChange={(e) => setRenameWorkflowName(e.target.value)}
-                  placeholder="Enter workflow name"
-                  className="mt-2"
-                />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setRenameDialogOpen(false)}
-                  disabled={isRenaming}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isRenaming}>
-                  {isRenaming ? <Spinner className="h-4 w-4 mr-2" /> : null}
-                  Rename
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {deleteDialog}
+        {renameDialog}
       </InsetLayout>
     </TooltipProvider>
   );
