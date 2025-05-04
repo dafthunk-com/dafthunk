@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -8,22 +8,20 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useBreadcrumbs } from "./page-context";
 
 export function AppHeaderBreadcrumb() {
-  const location = useLocation();
-  const pathnames = location.pathname.split("/").filter((x) => x);
+  const { breadcrumbs } = useBreadcrumbs();
 
-  // Exclude the root path segment if needed (e.g., /workflows/playground becomes Playground)
-  const displayPathnames = pathnames.slice(1);
-
-  // Don't render if there's nothing to display after slicing
-  if (displayPathnames.length === 0) {
+  // Don't render if there are no breadcrumb items
+  if (breadcrumbs.length === 0) {
     return null;
   }
 
   return (
     <Breadcrumb className="ml-4 hidden md:flex">
       <BreadcrumbList>
+<<<<<<< HEAD
         {displayPathnames.map((value, index) => {
           const originalIndex = index + 1;
           const isLast = index === displayPathnames.length - 1;
@@ -32,17 +30,22 @@ export function AppHeaderBreadcrumb() {
             .replace(/\+/g, " ")
             .replace(/-/g, " ");
 
+=======
+        {breadcrumbs.map((item, index) => {
+          const isLast = index === breadcrumbs.length - 1;
+          
+>>>>>>> 67c57a5 (feat: refactor breadcrumb handling in app header and pages, integrating page context for improved navigation)
           return (
-            <React.Fragment key={to}>
+            <React.Fragment key={`${item.label}-${index}`}>
               <BreadcrumbItem>
-                {isLast ? (
-                  <BreadcrumbPage className="capitalize">
-                    {displayValue}
+                {isLast || !item.to ? (
+                  <BreadcrumbPage>
+                    {item.label}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <RouterLink to={to} className="capitalize">
-                      {displayValue}
+                    <RouterLink to={item.to}>
+                      {item.label}
                     </RouterLink>
                   </BreadcrumbLink>
                 )}

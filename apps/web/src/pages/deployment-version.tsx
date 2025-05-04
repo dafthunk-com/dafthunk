@@ -14,12 +14,16 @@ import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { format } from "date-fns";
 import { ArrowLeft, Clock, Hash } from "lucide-react";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DeploymentVersionPage() {
-  const { deploymentId } = useParams();
+  const { deploymentId = "" } = useParams();
   const navigate = useNavigate();
   const [deployment, setDeployment] = useState<WorkflowDeploymentVersion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Initialize with empty breadcrumbs
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   // Fetch the specific deployment version
   const fetchDeployment = async () => {
@@ -38,9 +42,25 @@ export function DeploymentVersionPage() {
 
       const data = await response.json();
       setDeployment(data);
+      
+      // Update breadcrumb with actual workflow name and deployment ID
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { 
+          label: data.workflowName, 
+          to: `/workflows/deployments/${data.workflowId}` 
+        },
+        { label: `${deploymentId}` }
+      ]);
     } catch (error) {
       console.error("Error fetching deployment:", error);
       toast.error("Failed to fetch deployment. Please try again.");
+      
+      // Set a fallback breadcrumb on error
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { label: "Deployment Details" }
+      ]);
     } finally {
       setIsLoading(false);
     }

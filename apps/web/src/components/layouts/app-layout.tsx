@@ -5,6 +5,7 @@ import { AppHeader } from "@/components/app-header";
 import { NavMainProps } from "@/components/sidebar/nav-main";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
+import { PageProvider } from "@/components/page-context";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -39,46 +40,48 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden flex-col">
-      <AppHeader />
-      <div className="flex flex-1 overflow-hidden">
-        {sidebar ? (
-          <Sidebar.SidebarProvider>
-            <AppSidebar
-              title={sidebar.title}
-              items={sidebar.items}
-              footerItems={sidebar.footerItems}
-            />
-            <Sidebar.SidebarInset>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`sidebar-content-${location.pathname}`}
-                  variants={pageVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  className="h-full w-full overflow-y-auto"
-                >
-                  {children}
-                </motion.div>
-              </AnimatePresence>
-            </Sidebar.SidebarInset>
-          </Sidebar.SidebarProvider>
-        ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`no-sidebar-content-${location.pathname}`}
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="relative flex w-full flex-1 flex-col border rounded-md mx-2 mb-2 bg-background overflow-auto"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        )}
+    <PageProvider>
+      <div className="flex h-screen w-screen overflow-hidden flex-col">
+        <AppHeader />
+        <div className="flex flex-1 overflow-hidden">
+          {sidebar ? (
+            <Sidebar.SidebarProvider>
+              <AppSidebar
+                title={sidebar.title}
+                items={sidebar.items}
+                footerItems={sidebar.footerItems}
+              />
+              <Sidebar.SidebarInset>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`sidebar-content-${location.pathname}`}
+                    variants={pageVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="h-full w-full overflow-y-auto"
+                  >
+                    {children}
+                  </motion.div>
+                </AnimatePresence>
+              </Sidebar.SidebarInset>
+            </Sidebar.SidebarProvider>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`no-sidebar-content-${location.pathname}`}
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="relative flex w-full flex-1 flex-col border rounded-md mx-2 mb-2 bg-background overflow-auto"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          )}
+        </div>
       </div>
-    </div>
+    </PageProvider>
   );
 }
