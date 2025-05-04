@@ -726,8 +726,12 @@ export async function listExecutions(
     where: (executions, { eq, and }) =>
       and(
         eq(executions.organizationId, organizationId),
-        options?.workflowId ? eq(executions.workflowId, options.workflowId) : undefined,
-        options?.deploymentId ? eq(executions.deploymentId, options.deploymentId) : undefined
+        options?.workflowId
+          ? eq(executions.workflowId, options.workflowId)
+          : undefined,
+        options?.deploymentId
+          ? eq(executions.deploymentId, options.deploymentId)
+          : undefined
       ),
     orderBy: (executions, { desc }) => [desc(executions.createdAt)],
     limit: options?.limit,

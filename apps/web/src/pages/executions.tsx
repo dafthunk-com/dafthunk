@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/executions/data-table";
 import { columns, Execution } from "@/components/executions/columns";
@@ -25,14 +25,16 @@ export function ExecutionsPage() {
         const data = await response.json();
         // Map API executions to Execution type expected by DataTable
         const mapped: Execution[] = (data.executions || []).map((exec: any) => {
-          const startedAt = exec.startedAt ? new Date(exec.startedAt) : undefined;
+          const startedAt = exec.startedAt
+            ? new Date(exec.startedAt)
+            : undefined;
           const endedAt = exec.endedAt ? new Date(exec.endedAt) : undefined;
-          let status: Execution["status"] =
+          const status: Execution["status"] =
             exec.status === "executing"
               ? "running"
               : exec.status === "error"
-              ? "failed"
-              : exec.status;
+                ? "failed"
+                : exec.status;
           return {
             id: exec.id,
             workflowId: exec.workflowId,

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { DeploymentTable, DeploymentWithActions } from "@/components/deployments/deployment-table";
+import {
+  DeploymentTable,
+  DeploymentWithActions,
+} from "@/components/deployments/deployment-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

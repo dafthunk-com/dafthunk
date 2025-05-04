@@ -209,8 +209,7 @@ export const executions = sqliteTable(
     workflowId: text("workflow_id")
       .notNull()
       .references(() => workflows.id),
-    deploymentId: text("deployment_id")
-      .references(() => deployments.id),
+    deploymentId: text("deployment_id").references(() => deployments.id),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id),

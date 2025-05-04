@@ -26,12 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
-import {
-  ArrowUpDown,
-  GitCommitHorizontal,
-  ArrowUpToLine,
-  Eye,
-} from "lucide-react";
+import { ArrowUpDown, GitCommitHorizontal, Eye } from "lucide-react";
 import { WorkflowDeployment } from "@dafthunk/types";
 
 // Represents a deployed, frozen instance of a workflow

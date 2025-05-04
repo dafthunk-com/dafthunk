@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,19 +31,6 @@ export type Execution = {
   endedAt?: Date;
   duration?: string; // Optional: Calculated duration string
 };
-
-// Helper to calculate duration if endedAt exists
-function calculateDuration(
-  startedAt: Date,
-  endedAt?: Date
-): string | undefined {
-  if (!endedAt) return undefined;
-  return formatDistanceToNowStrict(startedAt, {
-    unit: "second",
-    addSuffix: false, // Remove 'ago'
-  });
-  // More sophisticated duration formatting can be added here
-}
 
 export const columns: ColumnDef<Execution>[] = [
   {
