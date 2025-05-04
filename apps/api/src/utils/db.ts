@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, desc } from "drizzle-orm";
 import {
   createDatabase,
   workflows,
@@ -18,8 +18,10 @@ import {
   type ProviderType,
   type PlanType,
   type UserRoleType,
+  deployments,
+  type NewDeployment,
 } from "../db";
-import { Workflow as WorkflowType, WorkflowExecution } from "@dafthunk/types";
+import { Workflow as WorkflowType, WorkflowExecution, WorkflowDeployment } from "@dafthunk/types";
 import { ExecutionStatusType } from "../db/schema";
 import { nanoid } from "nanoid";
 import * as crypto from "crypto";
@@ -509,4 +511,128 @@ export async function deleteApiToken(
 
   // If we got a record back, it was deleted successfully
   return !!deletedToken;
+}
+
+/**
+ * Get the latest deployment for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID for security checks
+ * @returns The latest deployment or undefined if none found
+ */
+export async function getLatestDeploymentByWorkflowId(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationId: string
+) {
+  const [deployment] = await db
+    .select()
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.workflowId, workflowId),
+        eq(deployments.organizationId, organizationId)
+      )
+    )
+    .orderBy(desc(deployments.createdAt))
+    .limit(1);
+
+  return deployment;
+}
+
+/**
+ * Get a deployment by its ID
+ *
+ * @param db Database instance
+ * @param id Deployment ID
+ * @param organizationId Organization ID for security checks
+ * @returns The deployment or undefined if not found
+ */
+export async function getDeploymentById(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+) {
+  const [deployment] = await db
+    .select()
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.id, id),
+        eq(deployments.organizationId, organizationId)
+      )
+    );
+
+  return deployment;
+}
+
+/**
+ * Create a new deployment
+ *
+ * @param db Database instance
+ * @param newDeployment Deployment data
+ * @returns The created deployment
+ */
+export async function createDeployment(
+  db: ReturnType<typeof createDatabase>,
+  newDeployment: NewDeployment
+) {
+  await db.insert(deployments).values(newDeployment);
+  
+  const [deployment] = await db
+    .select()
+    .from(deployments)
+    .where(eq(deployments.id, newDeployment.id));
+    
+  return deployment;
+}
+
+/**
+ * Get deployments grouped by workflow
+ *
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @returns Array of WorkflowDeployment objects
+ */
+export async function getDeploymentsGroupedByWorkflow(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string
+): Promise<WorkflowDeployment[]> {
+  // First get all workflows that belong to the organization
+  const workflowsList = await db
+    .select({
+      id: workflows.id,
+      name: workflows.name,
+    })
+    .from(workflows)
+    .where(eq(workflows.organizationId, organizationId));
+
+  // Create a result array to store our response
+  const result: WorkflowDeployment[] = [];
+
+  // For each workflow, get the deployment count and latest deployment
+  for (const workflow of workflowsList) {
+    const deploymentsList = await db
+      .select()
+      .from(deployments)
+      .where(
+        and(
+          eq(deployments.workflowId, workflow.id),
+          eq(deployments.organizationId, organizationId)
+        )
+      )
+      .orderBy(desc(deployments.createdAt));
+
+    if (deploymentsList.length > 0) {
+      result.push({
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        latestDeploymentId: deploymentsList[0].id,
+        deploymentCount: deploymentsList.length
+      });
+    }
+  }
+
+  return result;
 }

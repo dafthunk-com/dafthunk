@@ -123,3 +123,30 @@ export interface WorkflowExecution {
   error?: string;
   nodeExecutions: NodeExecution[];
 }
+<<<<<<< HEAD
+=======
+
+/**
+ * Represents a group of deployments for a workflow
+ * Used for listing deployments grouped by workflow
+ */
+export interface WorkflowDeployment {
+  workflowId: string;
+  workflowName: string;
+  latestDeploymentId: string;
+  deploymentCount: number;
+}
+
+/**
+ * Represents a specific deployment version of a workflow
+ * Used for deployment details and execution
+ */
+export interface WorkflowDeploymentVersion {
+  id: string;
+  workflowId: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  nodes: Node[];
+  edges: Edge[];
+} 
+>>>>>>> 615f615 (feat: add deployment management functions to handle creation, retrieval, and grouping of deployments by workflow)
