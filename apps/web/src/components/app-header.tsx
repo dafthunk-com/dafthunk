@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Bot, Settings } from "lucide-react";
 import { UserProfile } from "@/components/user-profile";
 import { NavLink } from "./nav-link";
@@ -9,6 +9,7 @@ import { useAuth } from "./authContext";
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3">
@@ -33,7 +34,7 @@ export function AppHeader() {
           {isAuthenticated && (
             <NavLink
               to="/workflows/playground"
-              isActive={() => window.location.pathname.startsWith("/workflows")}
+              isActive={() => location.pathname.startsWith("/workflows")}
               className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
               activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
             >
@@ -42,7 +43,7 @@ export function AppHeader() {
           )}
           <NavLink
             to="/docs"
-            isActive={() => window.location.pathname.startsWith("/docs")}
+            isActive={() => location.pathname.startsWith("/docs")}
             className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
             activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
           >
@@ -51,7 +52,7 @@ export function AppHeader() {
           {isAuthenticated && (
             <NavLink
               to="/settings/profile"
-              isActive={() => window.location.pathname.startsWith("/settings")}
+              isActive={() => location.pathname.startsWith("/settings")}
               className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
               activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
             >

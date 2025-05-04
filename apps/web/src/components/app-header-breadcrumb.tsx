@@ -30,7 +30,7 @@ export function AppHeaderBreadcrumb() {
           const to = `/${pathnames.slice(0, originalIndex + 1).join("/")}`;
           const displayValue = decodeURIComponent(value)
             .replace(/\+/g, " ")
-            .replace(/\-/g, " ");
+            .replace(/-/g, " ");
 
           return (
             <React.Fragment key={to}>

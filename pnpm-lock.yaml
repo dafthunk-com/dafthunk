@@ -16,6 +16,9 @@ importers:
       '@hono/oauth-providers':
         specifier: ^0.7.1
         version: 0.7.1(hono@4.7.8)
+      '@hono/zod-validator':
+        specifier: ^0.5.0
+        version: 0.5.0(hono@4.7.8)(zod@3.24.3)
       '@sendgrid/mail':
         specifier: ^8.1.5
         version: 8.1.5
@@ -34,12 +37,18 @@ importers:
       jsonpath-plus:
         specifier: ^10.3.0
         version: 10.3.0
+      nanoid:
+        specifier: ^5.1.5
+        version: 5.1.5
       twilio:
         specifier: ^5.5.2
         version: 5.5.2
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
+      zod:
+        specifier: ^3.24.3
+        version: 3.24.3
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250504.0
@@ -1068,6 +1077,12 @@ packages:
     engines: {node: '>=18.4.0'}
     peerDependencies:
       hono: '>=3.*'
+
+  '@hono/zod-validator@0.5.0':
+    resolution: {integrity: sha512-ds5bW6DCgAnNHP33E3ieSbaZFd5dkV52ZjyaXtGoR06APFrCtzAsKZxTHwOrJNBdXsi0e5wNwo5L4nVEVnJUdg==}
+    peerDependencies:
+      hono: '>=3.9.0'
+      zod: ^3.19.1
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -3441,6 +3456,11 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
+
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
@@ -4991,6 +5011,11 @@ snapshots:
   '@hono/oauth-providers@0.7.1(hono@4.7.8)':
     dependencies:
       hono: 4.7.8
+
+  '@hono/zod-validator@0.5.0(hono@4.7.8)(zod@3.24.3)':
+    dependencies:
+      hono: 4.7.8
+      zod: 3.24.3
 
   '@humanfs/core@0.19.1': {}
 
@@ -7485,6 +7510,8 @@ snapshots:
       thenify-all: 1.6.0
 
   nanoid@3.3.11: {}
+
+  nanoid@5.1.5: {}
 
   natural-compare@1.4.0: {}
 
