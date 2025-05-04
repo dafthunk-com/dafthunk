@@ -129,14 +129,22 @@ export function DeploymentDetailPage() {
         <div className="py-10 text-center">Loading workflow information...</div>
       ) : workflow ? (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <p className="text-muted-foreground">
-              Manage deployments for this workflow
-            </p>
-            <Button onClick={() => setIsDeployDialogOpen(true)}>
-              <ArrowUpToLine className="mr-2 h-4 w-4" />
-              Deploy
-            </Button>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-muted-foreground">
+                Manage deployments for this workflow
+              </p>
+              <Button onClick={() => setIsDeployDialogOpen(true)}>
+                <ArrowUpToLine className="mr-2 h-4 w-4" />
+                Deploy Latest Version
+              </Button>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Workflow className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">{workflow.name}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="font-mono text-xs text-muted-foreground">{workflow.id}</span>
+            </div>
           </div>
 
           {currentDeployment ? (
@@ -152,28 +160,27 @@ export function DeploymentDetailPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground flex items-center">
-                        <Workflow className="mr-1 h-4 w-4" /> Workflow
-                      </p>
-                      <p className="font-medium mt-1">{workflow.name}</p>
-                      <p className="font-mono text-xs mt-1 text-muted-foreground">{workflow.id}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground flex items-center">
-                        <Clock className="mr-1 h-4 w-4" /> Deployed
-                      </p>
-                      <p className="mt-1">{formatDate(currentDeployment.createdAt)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground flex items-center">
                         <Hash className="mr-1 h-4 w-4" /> Deployment ID
                       </p>
                       <p className="font-mono text-sm mt-1">{currentDeployment.id}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Nodes / Edges
+                      <p className="text-sm text-muted-foreground flex items-center">
+                        <Clock className="mr-1 h-4 w-4" /> Created
                       </p>
-                      <p className="mt-1">{currentDeployment.nodes.length} / {currentDeployment.edges.length}</p>
+                      <p className="mt-1">{formatDate(currentDeployment.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Nodes
+                      </p>
+                      <p className="mt-1">{currentDeployment.nodes.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Edges
+                      </p>
+                      <p className="mt-1">{currentDeployment.edges.length}</p>
                     </div>
                   </div>
                 </CardContent>

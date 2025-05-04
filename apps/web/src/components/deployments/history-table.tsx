@@ -51,13 +51,14 @@ export function DeploymentHistoryTable({
             <TableRow>
               <TableHead>Deployment ID</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Nodes / Edges</TableHead>
+              <TableHead>Nodes</TableHead>
+              <TableHead>Edges</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 Loading deployment history...
               </TableCell>
             </TableRow>
@@ -75,13 +76,14 @@ export function DeploymentHistoryTable({
             <TableRow>
               <TableHead>Deployment ID</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Nodes / Edges</TableHead>
+              <TableHead>Nodes</TableHead>
+              <TableHead>Edges</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 No deployment history found.
               </TableCell>
             </TableRow>
@@ -99,7 +101,8 @@ export function DeploymentHistoryTable({
             <TableRow>
               <TableHead>Deployment ID</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead>Nodes / Edges</TableHead>
+              <TableHead>Nodes</TableHead>
+              <TableHead>Edges</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -109,11 +112,11 @@ export function DeploymentHistoryTable({
                 <TableCell className="font-mono text-xs">
                   {deployment.id === currentDeploymentId ? (
                     <div className="flex items-center">
-                      {deployment.id.substring(0, 10)}...
+                      {deployment.id}
                       <Badge variant="outline" className="ml-2 bg-green-50">Current</Badge>
                     </div>
                   ) : (
-                    <>{deployment.id.substring(0, 10)}...</>
+                    <>{deployment.id}</>
                   )}
                 </TableCell>
                 <TableCell className="flex items-center">
@@ -121,10 +124,10 @@ export function DeploymentHistoryTable({
                   {formatDate(deployment.createdAt)}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col text-xs">
-                    <span>Nodes: {deployment.nodes.length}</span>
-                    <span>Edges: {deployment.edges.length}</span>
-                  </div>
+                  {deployment.nodes.length}
+                </TableCell>
+                <TableCell>
+                  {deployment.edges.length}
                 </TableCell>
                 <TableCell>
                   <Link to={`/workflows/deployments/version/${deployment.id}`}>

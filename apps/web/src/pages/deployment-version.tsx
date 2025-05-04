@@ -47,7 +47,7 @@ export function DeploymentVersionPage() {
           label: workflowData.name, 
           to: `/workflows/deployments/${workflowId}` 
         },
-        { label: "Deployment" }
+        { label: deploymentId }
       ]);
     } catch (error) {
       console.error("Error fetching workflow:", error);
@@ -100,22 +100,25 @@ export function DeploymentVersionPage() {
   };
 
   return (
-    <InsetLayout title={workflow?.name ? `${workflow.name} Deployment` : "Deployment"}>
+    <InsetLayout title={deployment?.id ? `${deployment.id}` : "Deployment"}>
       {isLoading ? (
         <div className="py-10 text-center">Loading deployment details...</div>
       ) : deployment ? (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <p className="text-muted-foreground">
-              Details for this deployment version
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate(`/workflows/deployments/${deployment.workflowId}`)}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Deployment History
-            </Button>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-muted-foreground">
+                Details for this workflow deployment version
+              </p>
+            </div>
+            {workflow && (
+              <div className="flex items-center gap-2 text-sm">
+                <FileCode className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{workflow.name}</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="font-mono text-xs text-muted-foreground">{workflow.id}</span>
+              </div>
+            )}
           </div>
           
           <Card>
@@ -127,15 +130,6 @@ export function DeploymentVersionPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {workflow && (
-                  <div>
-                    <p className="text-sm text-muted-foreground flex items-center">
-                      <FileCode className="mr-1 h-4 w-4" /> Workflow
-                    </p>
-                    <p className="mt-1">{workflow.name}</p>
-                    <p className="font-mono text-xs mt-1 text-muted-foreground">{workflow.id}</p>
-                  </div>
-                )}
                 <div>
                   <p className="text-sm text-muted-foreground flex items-center">
                     <Hash className="mr-1 h-4 w-4" /> Deployment ID
@@ -150,9 +144,15 @@ export function DeploymentVersionPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    Nodes / Edges
+                    Nodes
                   </p>
-                  <p className="mt-1">{deployment.nodes.length} / {deployment.edges.length}</p>
+                  <p className="mt-1">{deployment.nodes.length}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Edges
+                  </p>
+                  <p className="mt-1">{deployment.edges.length}</p>
                 </div>
               </div>
             </CardContent>
