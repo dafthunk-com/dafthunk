@@ -9,6 +9,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
@@ -39,23 +40,25 @@ export function DeploymentVersionPage() {
 
       const workflowData = await response.json();
       setWorkflow(workflowData);
-      
-      if (deployment) {
-        // Update breadcrumbs
-        setBreadcrumbs([
-          { label: "Deployments", to: "/workflows/deployments" },
-          { 
-            label: workflowData.name, 
-            to: `/workflows/deployments/${workflowId}` 
-          },
-          { label: `v${deployment.version}` }
-        ]);
-      }
     } catch (error) {
       console.error("Error fetching workflow:", error);
       toast.error("Failed to fetch workflow details.");
     }
   };
+
+  // Update breadcrumbs when both workflow and deployment are available
+  useEffect(() => {
+    if (workflow && deployment) {
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { 
+          label: workflow.name, 
+          to: `/workflows/deployments/${workflow.id}` 
+        },
+        { label: `v${deployment.version}` }
+      ]);
+    }
+  }, [workflow, deployment, setBreadcrumbs]);
 
   // Fetch the specific deployment version
   const fetchDeployment = async () => {
@@ -113,15 +116,34 @@ export function DeploymentVersionPage() {
                 Details for this workflow deployment version
               </p>
             </div>
-            {workflow && (
-              <div className="flex items-center gap-2 text-sm">
-                <FileCode className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{workflow.name}</span>
-                <span className="text-muted-foreground">•</span>
-                <span className="font-mono text-xs text-muted-foreground">{workflow.id}</span>
-              </div>
-            )}
           </div>
+          
+          {workflow && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow Information</CardTitle>
+                <CardDescription>
+                  Details about this workflow
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground flex items-center">
+                      <Hash className="mr-1 h-4 w-4" /> Workflow ID
+                    </p>
+                    <p className="font-mono text-sm mt-1">{workflow.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Name
+                    </p>
+                    <p className="mt-1">{workflow.name}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           <Card>
             <CardHeader>
@@ -148,19 +170,9 @@ export function DeploymentVersionPage() {
                   <p className="text-sm text-muted-foreground">
                     Version
                   </p>
-                  <p className="mt-1 font-medium">v{deployment.version}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Nodes
+                  <p className="mt-1">
+                    <Badge variant="secondary" className="text-xs">v{deployment.version}</Badge>
                   </p>
-                  <p className="mt-1">{deployment.nodes.length}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Edges
-                  </p>
-                  <p className="mt-1">{deployment.edges.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -169,12 +181,6 @@ export function DeploymentVersionPage() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg">Deployment not found</p>
-          <Button 
-            className="mt-4" 
-            onClick={() => navigate('/workflows/deployments')}
-          >
-            Back to Deployments
-          </Button>
         </div>
       )}
     </InsetLayout>
