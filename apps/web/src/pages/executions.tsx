@@ -24,14 +24,28 @@ export function ExecutionsPage() {
         }
         const data = await response.json();
         // Map API executions to Execution type expected by DataTable
-        const mapped: Execution[] = (data.executions || []).map((exec: any) => ({
-          id: exec.id,
-          workflowId: exec.workflowId,
-          deploymentId: exec.deploymentId || undefined, // Now available from API
-          status: exec.status === "executing" ? "running" : exec.status, // Map API status
-          startedAt: exec.createdAt ? new Date(exec.createdAt) : new Date(),
-          duration: undefined, // Will be calculated in DataTable
-        }));
+        const mapped: Execution[] = (data.executions || []).map((exec: any) => {
+          const startedAt = exec.startedAt ? new Date(exec.startedAt) : undefined;
+          const endedAt = exec.endedAt ? new Date(exec.endedAt) : undefined;
+          let status: Execution["status"] =
+            exec.status === "executing"
+              ? "running"
+              : exec.status === "error"
+              ? "failed"
+              : exec.status;
+          return {
+            id: exec.id,
+            workflowId: exec.workflowId,
+            deploymentId: exec.deploymentId || undefined,
+            status,
+            startedAt: startedAt || new Date(),
+            duration:
+              startedAt && endedAt
+                ? `${Math.round((endedAt.getTime() - startedAt.getTime()) / 1000)}s`
+                : undefined,
+            endedAt,
+          };
+        });
         setExecutions(mapped);
       } catch (err) {
         setError((err as Error).message);

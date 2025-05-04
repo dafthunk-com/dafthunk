@@ -100,6 +100,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       workflowId: workflow.id,
       status: "idle",
       nodeExecutions: [],
+      startedAt: undefined,
+      endedAt: undefined,
     } as WorkflowExecution;
 
     try {
@@ -109,6 +111,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         Runtime.defaultStepConfig,
         async () => this.initialiseWorkflow(workflow)
       );
+
+      // Set startedAt timestamp when execution actually begins
+      executionRecord.startedAt = new Date();
 
       // Execute nodes sequentially.
       for (const nodeIdentifier of runtimeState.sortedNodes) {
@@ -133,7 +138,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 organizationId,
                 workflow.id,
                 instanceId,
-                runtimeState
+                runtimeState,
+                executionRecord.startedAt,
+                executionRecord.endedAt
               )
           );
         }
@@ -147,6 +154,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         error: error instanceof Error ? error.message : String(error),
       };
     } finally {
+      // Set endedAt timestamp when execution finishes (success or error)
+      executionRecord.endedAt = new Date();
       // Always persist the final state
       executionRecord = await step.do(
         "persist final execution record",
@@ -157,7 +166,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             organizationId,
             workflow.id,
             instanceId,
-            runtimeState
+            runtimeState,
+            executionRecord.startedAt,
+            executionRecord.endedAt
           )
       );
     }
@@ -455,7 +466,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     organizationId: string,
     workflowId: string,
     instanceId: string,
-    runtimeState: RuntimeState
+    runtimeState: RuntimeState,
+    startedAt?: Date,
+    endedAt?: Date
   ): Promise<WorkflowExecution> {
     // Build node execution list with explicit status for each node.
     const nodeExecutionList = runtimeState.workflow.nodes.map((node) => {
@@ -496,6 +509,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         nodeExecutions: nodeExecutionList,
         error: errorMsg,
         updatedAt: new Date(),
+        startedAt,
+        endedAt,
       });
     } catch (error) {
       console.error("Failed to persist execution record:", error);
@@ -508,6 +523,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       status: executionStatus,
       nodeExecutions: nodeExecutionList,
       error: errorMsg,
+      startedAt,
+      endedAt,
     };
   }
 }

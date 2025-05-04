@@ -34,6 +34,8 @@ CREATE TABLE `executions` (
 	`status` text DEFAULT 'idle' NOT NULL,
 	`data` text NOT NULL,
 	`error` text,
+	`started_at` integer,
+	`ended_at` integer,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`workflow_id`) REFERENCES `workflows`(`id`) ON UPDATE no action ON DELETE no action,

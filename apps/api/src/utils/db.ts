@@ -44,6 +44,8 @@ export type SaveExecutionRecord = {
   error?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  startedAt?: Date;
+  endedAt?: Date;
 };
 
 /**
@@ -338,6 +340,8 @@ export async function saveExecution(
     status: record.status,
     nodeExecutions,
     error: record.error,
+    startedAt: record.startedAt,
+    endedAt: record.endedAt,
   };
 
   // Create the record to insert into the database
@@ -347,6 +351,8 @@ export async function saveExecution(
     data: executionData,
     updatedAt: record.updatedAt ?? now,
     createdAt: record.createdAt ?? now,
+    startedAt: record.startedAt,
+    endedAt: record.endedAt,
   };
 
   await db

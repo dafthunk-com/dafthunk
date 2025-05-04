@@ -222,6 +222,8 @@ export const executions = sqliteTable(
       .$type<WorkflowExecutionType>()
       .notNull(),
     error: text("error"),
+    startedAt: integer("started_at", { mode: "timestamp" }),
+    endedAt: integer("ended_at", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

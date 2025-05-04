@@ -28,7 +28,7 @@ export type Execution = {
   status: "running" | "completed" | "failed" | "cancelled";
   // trigger?: string; // e.g., "Manual", "Schedule", "Webhook" (not in API)
   startedAt: Date;
-  // endedAt?: Date; // Optional: Only present if not running (not in API)
+  endedAt?: Date;
   duration?: string; // Optional: Calculated duration string
 };
 
@@ -72,7 +72,7 @@ export const columns: ColumnDef<Execution>[] = [
   },
   {
     accessorKey: "deploymentId",
-    header: "Deployment",
+    header: "Deployment ID",
     enableHiding: false,
     cell: ({ row }) => {
       const deploymentId = row.getValue("deploymentId") as string | undefined;
@@ -111,8 +111,8 @@ export const columns: ColumnDef<Execution>[] = [
     accessorKey: "duration",
     header: "Duration",
     cell: ({ row }) => {
-      // Always show "-" since endedAt is not available from API
-      return <div>-</div>;
+      const duration = row.getValue("duration") as string | undefined;
+      return <div>{duration ?? "-"}</div>;
     },
   },
   {
