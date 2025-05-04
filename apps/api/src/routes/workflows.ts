@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { Node, Edge, Workflow as WorkflowType } from "@dafthunk/types";
+import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, type NewWorkflow } from "../db";
 import { jwtAuth } from "../auth";

@@ -173,7 +173,7 @@ export function ApiKeysPage() {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), "MMM d, yyyy");
-    } catch (error) {
+    } catch (_error) {
       return dateString;
     }
   };
@@ -206,10 +206,15 @@ export function ApiKeysPage() {
                 Your new API key
               </Label>
               <div className="flex items-center gap-2 p-3 border rounded-md bg-muted">
-                <code id="api-key" className="flex-1 text-sm break-all font-mono">{newToken}</code>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <code
+                  id="api-key"
+                  className="flex-1 text-sm break-all font-mono"
+                >
+                  {newToken}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => copyToClipboard(newToken)}
                   className="shrink-0"
                 >

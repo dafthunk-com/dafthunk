@@ -4,14 +4,7 @@ import { setCookie, deleteCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT } from "jose";
-import {
-  Provider,
-  Plan,
-  UserRole,
-  type ProviderType,
-  type PlanType,
-  type UserRoleType,
-} from "./db/schema";
+import { Provider, Plan, UserRole } from "./db/schema";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload } from "./context";
 import { saveUser } from "./utils/db";
