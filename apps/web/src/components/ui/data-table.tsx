@@ -46,6 +46,9 @@ interface DataTableProps<TData, TValue> {
   enableColumnVisibility?: boolean;
   enableRowSelection?: boolean;
   toolbar?: React.ReactNode;
+  meta?: {
+    rowProps?: (row: any) => React.HTMLAttributes<HTMLTableRowElement>;
+  };
 }
 
 export function DataTable<TData, TValue>({
@@ -62,6 +65,7 @@ export function DataTable<TData, TValue>({
   enableColumnVisibility = false,
   enableRowSelection = false,
   toolbar,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -93,28 +97,13 @@ export function DataTable<TData, TValue>({
       ...(enableColumnVisibility && { columnVisibility }),
       ...(enableRowSelection && { rowSelection }),
     },
+    meta,
   });
 
   if (isLoading) {
     return (
       <div className="border rounded-md">
         <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
@@ -131,22 +120,6 @@ export function DataTable<TData, TValue>({
     return (
       <div className="border rounded-md">
         <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
           <TableBody>
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
@@ -223,6 +196,7 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  {...(meta?.rowProps ? meta.rowProps(row) : {})}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

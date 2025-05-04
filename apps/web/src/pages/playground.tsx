@@ -1,16 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
@@ -133,10 +123,6 @@ export function PlaygroundPage() {
 
   const toolbarContent = (
     <>
-      <Input
-        placeholder="Filter workflows..."
-        className="max-w-sm"
-      />
       <CreateWorkflowDialog 
         onCreateWorkflow={handleCreateWorkflow}
         buttonProps={{
@@ -166,6 +152,15 @@ export function PlaygroundPage() {
             description: "Create a new workflow to get started",
           }}
           toolbar={toolbarContent}
+          meta={{
+            rowProps: (row: any) => ({
+              className: "cursor-pointer",
+              onClick: () => {
+                const workflow = row.original as Workflow;
+                navigate(`/workflows/playground/${workflow.id}`);
+              }
+            })
+          }}
         />
         {deleteDialog}
         {renameDialog}

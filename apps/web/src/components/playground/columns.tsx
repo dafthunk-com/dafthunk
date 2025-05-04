@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Workflow } from "@dafthunk/types";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2Icon, ArrowUpDown } from "lucide-react";
+import { PencilIcon, Trash2Icon, ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +21,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { workflowService } from "@/services/workflowService";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const useWorkflowActions = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -160,24 +166,10 @@ export const createColumns = (
   openRenameDialog: (workflow: Workflow) => void
 ): ColumnDef<Workflow>[] => [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
+    accessorKey: "id",
+    header: "UUID",
     cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        onClick={(e) => e.stopPropagation()}
-      />
+      <span className="font-mono text-xs">{row.original.id}</span>
     ),
     enableSorting: false,
   },
@@ -204,47 +196,38 @@ export const createColumns = (
     id: "actions",
     cell: ({ row }) => {
       const workflow = row.original;
-
       return (
-        <div className="flex justify-end">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openRenameDialog(workflow);
-                }}
-                variant="ghost"
-                className="h-8 w-8 p-0"
-              >
-                <PencilIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Rename</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openDeleteDialog(workflow);
-                }}
-                variant="ghost"
-                className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-              >
-                <Trash2Icon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Delete</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button aria-haspopup="true" size="icon" variant="ghost">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openRenameDialog(workflow);
+              }}
+            >
+              <PencilIcon className="mr-2 h-4 w-4" />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openDeleteDialog(workflow);
+              }}
+              className="text-red-600 focus:text-red-600 focus:bg-red-50"
+            >
+              <Trash2Icon className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },
