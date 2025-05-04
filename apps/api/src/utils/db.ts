@@ -694,3 +694,32 @@ export async function getLatestVersionNumberByWorkflowId(
 
   return result[0]?.maxVersion || null;
 }
+
+/**
+ * List executions with optional filtering and pagination
+ *
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @param options Optional filters: workflowId, limit, offset
+ * @returns Array of execution records
+ */
+export async function listExecutions(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string,
+  options?: {
+    workflowId?: string;
+    limit?: number;
+    offset?: number;
+  }
+) {
+  return db.query.executions.findMany({
+    where: (executions, { eq, and }) =>
+      and(
+        eq(executions.organizationId, organizationId),
+        options?.workflowId ? eq(executions.workflowId, options.workflowId) : undefined
+      ),
+    orderBy: (executions, { desc }) => [desc(executions.createdAt)],
+    limit: options?.limit,
+    offset: options?.offset,
+  });
+}
