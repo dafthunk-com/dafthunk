@@ -60,7 +60,7 @@ export function NavMain({ title, items, footerItems }: NavMainProps) {
       <SidebarMenu className="bg-transparent">
         <SidebarMenuItem>
           <SidebarMenuButton
-            tooltip={title}
+            tooltip="Toggle sidebar"
             onClick={toggleSidebar}
             className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mb-1"
           >
