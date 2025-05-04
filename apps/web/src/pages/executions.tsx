@@ -1,77 +1,46 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/executions/data-table";
 import { columns, Execution } from "@/components/executions/columns";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
-// Helper to add seconds to a date for mock data
-function addSeconds(date: Date, seconds: number): Date {
-  const result = new Date(date);
-  result.setSeconds(result.getSeconds() + seconds);
-  return result;
-}
-
-// Mock data for executions
-const now = new Date();
-const mockExecutionsData: Omit<Execution, "duration">[] = [
-  {
-    id: "exec_aaa111",
-    workflowId: "wf_prod_email",
-    workflowName: "Production Email Campaign",
-    deploymentId: "dep_abc123",
-    status: "completed",
-    trigger: "Schedule",
-    startedAt: addSeconds(now, -3600), // 1 hour ago
-    endedAt: addSeconds(now, -3540), // finished 60 seconds later
-  },
-  {
-    id: "exec_bbb222",
-    workflowId: "wf_staging_report",
-    workflowName: "Staging Daily Report",
-    status: "failed",
-    trigger: "Manual",
-    startedAt: addSeconds(now, -1800), // 30 mins ago
-    endedAt: addSeconds(now, -1770), // failed 30 seconds later
-  },
-  {
-    id: "exec_ccc333",
-    workflowId: "wf_dev_image_proc",
-    workflowName: "Development Image Processing",
-    status: "running",
-    trigger: "Webhook",
-    startedAt: addSeconds(now, -60), // 1 min ago
-    // No endedAt for running
-  },
-  {
-    id: "exec_ddd444",
-    workflowId: "wf_prod_email",
-    workflowName: "Production Email Campaign",
-    deploymentId: "dep_jkl012", // Older deployment
-    status: "completed",
-    trigger: "Schedule",
-    startedAt: addSeconds(now, -86400), // 1 day ago
-    endedAt: addSeconds(now, -86335), // finished 65 seconds later
-  },
-  {
-    id: "exec_eee555",
-    workflowId: "wf_new_feature",
-    workflowName: "Beta Feature Rollout",
-    status: "cancelled",
-    trigger: "Manual",
-    startedAt: addSeconds(now, -7200), // 2 hours ago
-    endedAt: addSeconds(now, -7100), // cancelled after 100 seconds
-  },
-];
+import { API_BASE_URL } from "@/config/api";
+import { toast } from "sonner";
 
 export function ExecutionsPage() {
-  // Use useMemo to calculate duration for mock data - real data might have duration pre-calculated
-  const executions = useMemo((): Execution[] => {
-    return mockExecutionsData.map((exec) => ({
-      ...exec,
-      duration: exec.endedAt
-        ? `${Math.round((exec.endedAt.getTime() - exec.startedAt.getTime()) / 1000)}s`
-        : undefined,
-    }));
+  const [executions, setExecutions] = useState<Execution[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchExecutions = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${API_BASE_URL}/executions`, {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch executions: ${response.statusText}`);
+        }
+        const data = await response.json();
+        // Map API executions to Execution type expected by DataTable
+        const mapped: Execution[] = (data.executions || []).map((exec: any) => ({
+          id: exec.id,
+          workflowId: exec.workflowId,
+          deploymentId: exec.deploymentId || undefined, // Now available from API
+          status: exec.status === "executing" ? "running" : exec.status, // Map API status
+          startedAt: exec.createdAt ? new Date(exec.createdAt) : new Date(),
+          duration: undefined, // Will be calculated in DataTable
+        }));
+        setExecutions(mapped);
+      } catch (err) {
+        setError((err as Error).message);
+        toast.error("Failed to fetch executions. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchExecutions();
   }, []);
 
   return (
@@ -80,7 +49,18 @@ export function ExecutionsPage() {
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
         </p>
-        <DataTable columns={columns} data={executions} />
+        {isLoading ? (
+          <div className="text-center py-8">Loading executions...</div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-8">{error}</div>
+        ) : (
+          <DataTable columns={columns} data={executions} />
+        )}
+        {!isLoading && !error && (
+          <div className="text-xs text-muted-foreground mt-4">
+            Showing <strong>{executions.length}</strong> executions.
+          </div>
+        )}
       </InsetLayout>
     </TooltipProvider>
   );

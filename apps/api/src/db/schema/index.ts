@@ -209,6 +209,8 @@ export const executions = sqliteTable(
     workflowId: text("workflow_id")
       .notNull()
       .references(() => workflows.id),
+    deploymentId: text("deployment_id")
+      .references(() => deployments.id),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id),
@@ -227,6 +229,7 @@ export const executions = sqliteTable(
     index("executions_workflow_id_idx").on(table.workflowId),
     index("executions_org_id_idx").on(table.organizationId),
     index("executions_status_idx").on(table.status),
+    index("executions_deployment_id_idx").on(table.deploymentId),
   ]
 );
 
@@ -281,6 +284,10 @@ export const executionsRelations = relations(executions, ({ one }) => ({
   organization: one(organizations, {
     fields: [executions.organizationId],
     references: [organizations.id],
+  }),
+  deployment: one(deployments, {
+    fields: [executions.deploymentId],
+    references: [deployments.id],
   }),
 }));
 

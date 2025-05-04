@@ -29,6 +29,7 @@ CREATE INDEX `deployments_version_idx` ON `deployments` (`version`);--> statemen
 CREATE TABLE `executions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`workflow_id` text NOT NULL,
+	`deployment_id` text,
 	`organization_id` text NOT NULL,
 	`status` text DEFAULT 'idle' NOT NULL,
 	`data` text NOT NULL,
@@ -36,12 +37,14 @@ CREATE TABLE `executions` (
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`workflow_id`) REFERENCES `workflows`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`deployment_id`) REFERENCES `deployments`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE INDEX `executions_workflow_id_idx` ON `executions` (`workflow_id`);--> statement-breakpoint
 CREATE INDEX `executions_org_id_idx` ON `executions` (`organization_id`);--> statement-breakpoint
 CREATE INDEX `executions_status_idx` ON `executions` (`status`);--> statement-breakpoint
+CREATE INDEX `executions_deployment_id_idx` ON `executions` (`deployment_id`);--> statement-breakpoint
 CREATE TABLE `memberships` (
 	`user_id` text NOT NULL,
 	`organization_id` text NOT NULL,

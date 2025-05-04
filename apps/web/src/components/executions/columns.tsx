@@ -23,12 +23,12 @@ import {
 export type Execution = {
   id: string; // Unique execution ID
   workflowId: string; // ID of the source workflow
-  workflowName: string; // Name of the source workflow
   deploymentId?: string; // Optional: ID of the deployment used
+  // workflowName?: string; // Name of the source workflow (not in API)
   status: "running" | "completed" | "failed" | "cancelled";
-  trigger: string; // e.g., "Manual", "Schedule", "Webhook"
+  // trigger?: string; // e.g., "Manual", "Schedule", "Webhook" (not in API)
   startedAt: Date;
-  endedAt?: Date; // Optional: Only present if not running
+  // endedAt?: Date; // Optional: Only present if not running (not in API)
   duration?: string; // Optional: Calculated duration string
 };
 
@@ -47,31 +47,6 @@ function calculateDuration(
 
 export const columns: ColumnDef<Execution>[] = [
   {
-    accessorKey: "workflowName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Workflow Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const execution = row.original;
-      return (
-        <Link
-          to={`/workflows/playground/${execution.workflowId}`}
-          className="hover:underline"
-        >
-          {row.getValue("workflowName")}
-        </Link>
-      );
-    },
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
@@ -80,9 +55,38 @@ export const columns: ColumnDef<Execution>[] = [
     },
   },
   {
-    accessorKey: "trigger",
-    header: "Trigger",
-    cell: ({ row }) => <div>{row.getValue("trigger")}</div>,
+    accessorKey: "id",
+    header: "Execution ID",
+    cell: ({ row }) => {
+      const id = row.getValue("id") as string;
+      return <span className="font-mono text-xs">{id}</span>;
+    },
+  },
+  {
+    accessorKey: "workflowId",
+    header: "Workflow ID",
+    cell: ({ row }) => {
+      const workflowId = row.getValue("workflowId") as string;
+      return <span className="font-mono text-xs">{workflowId}</span>;
+    },
+  },
+  {
+    accessorKey: "deploymentId",
+    header: "Deployment",
+    enableHiding: false,
+    cell: ({ row }) => {
+      const deploymentId = row.getValue("deploymentId") as string | undefined;
+      return deploymentId && deploymentId !== "N/A" ? (
+        <Link
+          to={`/deployments/${deploymentId}`}
+          className="hover:underline font-mono text-xs"
+        >
+          {deploymentId}
+        </Link>
+      ) : (
+        <span className="text-muted-foreground">N/A</span>
+      );
+    },
   },
   {
     accessorKey: "startedAt",
@@ -107,12 +111,8 @@ export const columns: ColumnDef<Execution>[] = [
     accessorKey: "duration",
     header: "Duration",
     cell: ({ row }) => {
-      const execution = row.original;
-      const duration = calculateDuration(
-        execution.startedAt,
-        execution.endedAt
-      );
-      return <div>{duration ? duration : "-"}</div>;
+      // Always show "-" since endedAt is not available from API
+      return <div>-</div>;
     },
   },
   {
@@ -120,7 +120,6 @@ export const columns: ColumnDef<Execution>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const execution = row.original;
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -141,15 +140,7 @@ export const columns: ColumnDef<Execution>[] = [
                 View Workflow
               </Link>
             </DropdownMenuItem>
-            {execution.deploymentId && (
-              <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(execution.deploymentId!)
-                }
-              >
-                Copy Deployment ID
-              </DropdownMenuItem>
-            )}
+            {/* No deploymentId or logs available from API */}
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>View Logs</DropdownMenuItem>
             {execution.status === "running" && (

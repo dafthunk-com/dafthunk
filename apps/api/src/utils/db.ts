@@ -36,6 +36,7 @@ import * as crypto from "crypto";
 export type SaveExecutionRecord = {
   id: string;
   workflowId: string;
+  deploymentId?: string;
   userId: string;
   organizationId: string;
   status: ExecutionStatusType;
@@ -327,12 +328,13 @@ export async function saveExecution(
   record: SaveExecutionRecord
 ): Promise<WorkflowExecution> {
   const now = new Date();
-  const { nodeExecutions, userId, ...dbFields } = record;
+  const { nodeExecutions, userId, deploymentId, ...dbFields } = record;
 
   // Create the execution object that will be stored as JSON in the data field
   const executionData: WorkflowExecution = {
     id: record.id,
     workflowId: record.workflowId,
+    deploymentId: record.deploymentId,
     status: record.status,
     nodeExecutions,
     error: record.error,
@@ -341,6 +343,7 @@ export async function saveExecution(
   // Create the record to insert into the database
   const dbRecord = {
     ...dbFields,
+    deploymentId: deploymentId,
     data: executionData,
     updatedAt: record.updatedAt ?? now,
     createdAt: record.createdAt ?? now,
@@ -700,7 +703,7 @@ export async function getLatestVersionNumberByWorkflowId(
  *
  * @param db Database instance
  * @param organizationId Organization ID
- * @param options Optional filters: workflowId, limit, offset
+ * @param options Optional filters: workflowId, deploymentId, limit, offset
  * @returns Array of execution records
  */
 export async function listExecutions(
@@ -708,6 +711,7 @@ export async function listExecutions(
   organizationId: string,
   options?: {
     workflowId?: string;
+    deploymentId?: string;
     limit?: number;
     offset?: number;
   }
@@ -716,7 +720,8 @@ export async function listExecutions(
     where: (executions, { eq, and }) =>
       and(
         eq(executions.organizationId, organizationId),
-        options?.workflowId ? eq(executions.workflowId, options.workflowId) : undefined
+        options?.workflowId ? eq(executions.workflowId, options.workflowId) : undefined,
+        options?.deploymentId ? eq(executions.deploymentId, options.deploymentId) : undefined
       ),
     orderBy: (executions, { desc }) => [desc(executions.createdAt)],
     limit: options?.limit,

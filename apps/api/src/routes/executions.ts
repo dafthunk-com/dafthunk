@@ -24,6 +24,7 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
     const workflowExecution: WorkflowExecution = {
       id: execution.id,
       workflowId: execution.workflowId,
+      deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],
       error: execution.error || undefined,
@@ -39,7 +40,7 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
 executionRoutes.get("/", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const db = createDatabase(c.env.DB);
-  const { workflowId, limit, offset } = c.req.query();
+  const { workflowId, deploymentId, limit, offset } = c.req.query();
 
   // Parse pagination params
   const parsedLimit = limit ? parseInt(limit, 10) : 20;
@@ -48,6 +49,7 @@ executionRoutes.get("/", jwtAuth, async (c) => {
   // List executions with optional filtering
   const executions = await listExecutions(db, user.organizationId, {
     workflowId: workflowId || undefined,
+    deploymentId: deploymentId || undefined,
     limit: parsedLimit,
     offset: parsedOffset,
   });
@@ -58,6 +60,7 @@ executionRoutes.get("/", jwtAuth, async (c) => {
     return {
       id: execution.id,
       workflowId: execution.workflowId,
+      deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],
       error: execution.error || undefined,
