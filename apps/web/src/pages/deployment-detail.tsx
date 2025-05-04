@@ -12,8 +12,7 @@ import {
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
-import { format } from "date-fns";
-import { ArrowUpToLine, Clock, Hash, History, Workflow, GitCommitHorizontal } from "lucide-react";
+import { ArrowUpToLine, History } from "lucide-react";
 import { DeploymentHistoryTable } from "@/components/deployments/history-table";
 import {
   Dialog,
@@ -24,7 +23,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { Badge } from "@/components/ui/badge";
+import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
+import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
 
 interface WorkflowInfo {
   id: string;
@@ -115,15 +115,6 @@ export function DeploymentDetailPage() {
     }
   };
 
-  // Format a date string
-  const formatDate = (dateString: string | Date) => {
-    try {
-      return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
-    } catch (error) {
-      return String(dateString);
-    }
-  };
-
   return (
     <InsetLayout title={workflow?.name || "Workflow Deployments"}>
       {isLoading ? (
@@ -144,66 +135,19 @@ export function DeploymentDetailPage() {
 
           {currentDeployment ? (
             <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Workflow Information</CardTitle>
-                  <CardDescription>
-                    Details about the workflow being deployed
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Workflow ID
-                      </p>
-                      <p className="font-mono text-sm mt-1">{workflow.id}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Workflow Name
-                      </p>
-                      <p className="mt-1 font-medium">{workflow.name}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <WorkflowInfoCard 
+                id={workflow.id} 
+                name={workflow.name} 
+                description="Details about the workflow being deployed"
+              />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Current Deployment</CardTitle>
-                  <CardDescription>
-                    Latest deployment of this workflow
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                      <p className="text-sm text-muted-foreground flex items-center">
-                        <Hash className="mr-1 h-4 w-4" /> ID
-                      </p>
-                      <p className="font-mono text-sm mt-1">{currentDeployment.id}</p>
-                    </div>
-                  <div>
-                      <p className="text-sm text-muted-foreground">
-                        Version
-                      </p>
-                      <p className="mt-1">
-                        <Badge variant="secondary" className="gap-1">
-                          <GitCommitHorizontal className="h-3.5 w-3.5" />
-                          v{currentDeployment.version}
-                        </Badge>
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground flex items-center">
-                        <Clock className="mr-1 h-4 w-4" /> Created
-                      </p>
-                      <p className="mt-1">{formatDate(currentDeployment.createdAt)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <DeploymentInfoCard
+                id={currentDeployment.id}
+                version={currentDeployment.version}
+                createdAt={currentDeployment.createdAt}
+                title="Current Deployment"
+                description="Latest deployment of this workflow"
+              />
 
               <Card>
                 <CardHeader>

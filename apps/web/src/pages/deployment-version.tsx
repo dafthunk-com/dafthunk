@@ -2,20 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
-import { format } from "date-fns";
-import { Clock, Hash, FileCode } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
+import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams();
@@ -95,15 +87,6 @@ export function DeploymentVersionPage() {
     fetchDeployment();
   }, [deploymentId]);
 
-  // Format a date string
-  const formatDate = (dateString: string | Date) => {
-    try {
-      return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
-    } catch (error) {
-      return String(dateString);
-    }
-  };
-
   return (
     <InsetLayout title={deployment?.version ? `Version ${deployment.version}` : "Deployment"}>
       {isLoading ? (
@@ -119,64 +102,18 @@ export function DeploymentVersionPage() {
           </div>
           
           {workflow && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Workflow Information</CardTitle>
-                <CardDescription>
-                  Details about this workflow
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground flex items-center">
-                      <Hash className="mr-1 h-4 w-4" /> Workflow ID
-                    </p>
-                    <p className="font-mono text-sm mt-1">{workflow.id}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Name
-                    </p>
-                    <p className="mt-1">{workflow.name}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <WorkflowInfoCard 
+              id={workflow.id}
+              name={workflow.name}
+              description="Details about this workflow"
+            />
           )}
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Deployment Information</CardTitle>
-              <CardDescription>
-                Details about this deployment version
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <Hash className="mr-1 h-4 w-4" /> Deployment ID
-                  </p>
-                  <p className="font-mono text-sm mt-1">{deployment.id}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground flex items-center">
-                    <Clock className="mr-1 h-4 w-4" /> Deployed
-                  </p>
-                  <p className="mt-1">{formatDate(deployment.createdAt)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Version
-                  </p>
-                  <p className="mt-1">
-                    <Badge variant="secondary" className="text-xs">v{deployment.version}</Badge>
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <DeploymentInfoCard
+            id={deployment.id}
+            version={deployment.version}
+            createdAt={deployment.createdAt}
+          />
         </div>
       ) : (
         <div className="text-center py-10">

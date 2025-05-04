@@ -68,7 +68,7 @@ export const columns: ColumnDef<DeploymentWithActions>[] = [
       return (
         <Tooltip>
           <TooltipTrigger>
-            <Badge variant="secondary" className="gap-1">
+            <Badge variant="secondary" className="text-xs gap-1">
               <GitCommitHorizontal className="h-3.5 w-3.5" />
               v{version}
             </Badge>
