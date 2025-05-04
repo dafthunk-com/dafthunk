@@ -133,19 +133,6 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
               View
             </Button>
           </Link>
-          {deployment.onCreateDeployment && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 px-2"
-              onClick={() =>
-                deployment.onCreateDeployment?.(deployment.workflowId)
-              }
-            >
-              <ArrowUpToLine className="h-4 w-4 mr-1" />
-              Deploy Latest Version
-            </Button>
-          )}
         </div>
       );
     },

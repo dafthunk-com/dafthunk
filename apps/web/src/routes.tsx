@@ -6,7 +6,7 @@ import { ProtectedRoute } from "./components/protected-route.tsx";
 import { AppLayout } from "./components/layouts/app-layout.tsx";
 import { ErrorBoundary } from "./components/error-boundary";
 import { PlaygroundPage } from "./pages/playground.tsx";
-import { DeploymentsPage } from "./pages/deployments.tsx";
+import { DeploymentListPage } from "./pages/deployment-list.tsx";
 import { DeploymentDetailPage } from "./pages/deployment-detail.tsx";
 import { DeploymentVersionPage } from "./pages/deployment-version.tsx";
 import { ExecutionsPage } from "./pages/executions.tsx";
@@ -138,7 +138,7 @@ export const router = createBrowserRouter([
         }}
       >
         <ProtectedRoute>
-          <DeploymentsPage />
+          <DeploymentListPage />
         </ProtectedRoute>
       </AppLayout>
     ),

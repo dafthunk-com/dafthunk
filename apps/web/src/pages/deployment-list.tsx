@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { DataTable } from "@/components/deployments/data-table";
-import {
-  columns,
-  DeploymentWithActions,
-} from "@/components/deployments/columns";
+import { DeploymentTable, DeploymentWithActions } from "@/components/deployments/deployment-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -241,8 +237,7 @@ export function DeploymentListPage() {
           </Dialog>
         </div>
 
-        <DataTable
-          columns={columns}
+        <DeploymentTable
           data={deploymentsWithActions}
           isLoading={isLoading}
           emptyState={{
