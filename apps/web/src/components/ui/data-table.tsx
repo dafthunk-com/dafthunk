@@ -1,14 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  SortingState,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -17,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -27,7 +18,6 @@ interface DataTableProps<TData, TValue> {
     title: string;
     description: string;
   };
-  info?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -38,19 +28,11 @@ export function DataTable<TData, TValue>({
     title: "No results",
     description: "No data available.",
   },
-  info,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
   });
 
   if (isLoading) {
@@ -137,8 +119,6 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {/* Info row (optional) */}
-      {info && <div className="flex items-center justify-between">{info}</div>}
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { DashboardPage } from "./pages/dashboard";
 import { NotFoundPage } from "./pages/not-found.tsx";
 import { SquareTerminal, Target, Logs, KeyRound, User } from "lucide-react";
 import { ApiKeysPage } from "./pages/api-keys.tsx";
+import DataTableTestPage from "./pages/data-table-test";
 const workflowsSidebarItems = [
   {
     title: "Playground",
@@ -211,6 +212,15 @@ export const router = createBrowserRouter([
       </AppLayout>
     ),
     loader: editorLoader,
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/test/data-table",
+    element: (
+      <AppLayout>
+        <DataTableTestPage />
+      </AppLayout>
+    ),
     errorElement: <ErrorBoundary />,
   },
   {
