@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +48,11 @@ export const columns: ColumnDef<Execution>[] = [
     header: "Execution ID",
     cell: ({ row }) => {
       const id = row.getValue("id") as string;
-      return <span className="font-mono text-xs">{id}</span>;
+      return (
+        <Link to={`/executions/${id}`} className="font-mono text-xs hover:underline">
+          {id}
+        </Link>
+      );
     },
   },
   {
@@ -111,6 +115,12 @@ export const columns: ColumnDef<Execution>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => navigator.clipboard.writeText(execution.id)}>
               Copy Execution ID
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={`/executions/${execution.id}`}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Execution Details
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to={`/workflows/playground/${execution.workflowId}`}>

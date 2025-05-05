@@ -8,7 +8,7 @@ interface InsetLayoutProps extends HTMLAttributes<HTMLDivElement> {
 export function InsetLayout({ title, children, ...props }: InsetLayoutProps) {
   return (
     <main className="h-full">
-      <div className="h-full overflow-hidden" {...props}>
+      <div className="h-full overflow-auto" {...props}>
         {title && (
           <div className="flex justify-between items-center mb-2 border-b px-6 py-2">
             <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>

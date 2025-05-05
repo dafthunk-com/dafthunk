@@ -10,6 +10,7 @@ import { DeploymentListPage } from "./pages/deployment-list.tsx";
 import { DeploymentDetailPage } from "./pages/deployment-detail.tsx";
 import { DeploymentVersionPage } from "./pages/deployment-version.tsx";
 import { ExecutionsPage } from "./pages/executions.tsx";
+import { ExecutionDetailPage } from "./pages/execution-detail.tsx";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
 import { NotFoundPage } from "./pages/not-found.tsx";
@@ -199,6 +200,23 @@ export const router = createBrowserRouter([
       >
         <ProtectedRoute>
           <ExecutionsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/executions/:executionId",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: workflowsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <ExecutionDetailPage />
         </ProtectedRoute>
       </AppLayout>
     ),
