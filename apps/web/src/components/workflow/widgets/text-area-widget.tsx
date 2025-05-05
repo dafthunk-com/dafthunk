@@ -9,27 +9,38 @@ interface TextAreaWidgetConfig {
 }
 
 interface TextAreaWidgetProps {
-  config: TextAreaWidgetConfig;
+  config: {
+    value: string;
+    placeholder?: string;
+  };
   onChange: (value: string) => void;
+  className?: string;
   compact?: boolean;
+  readonly?: boolean;
 }
 
 export function TextAreaWidget({
   config,
   onChange,
+  className,
   compact = false,
+  readonly = false,
 }: TextAreaWidgetProps) {
-  const { value, placeholder, rows = 4 } = config;
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!readonly) {
+      onChange(e.target.value);
+    }
+  };
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", className)}>
       {!compact && <Label>Text Area</Label>}
       <Textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={rows}
-        className={cn("min-h-[80px] resize-y", compact ? "text-sm" : "")}
+        value={config.value || ""}
+        onChange={handleChange}
+        placeholder={config.placeholder || "Enter text..."}
+        className={cn(compact && "min-h-[80px] resize-y")}
+        disabled={readonly}
       />
     </div>
   );

@@ -19,6 +19,7 @@ export interface BaseWidgetProps<T extends BaseWidgetConfig> {
   onChange: (value: any) => void;
   className?: string;
   compact?: boolean;
+  readonly?: boolean;
 }
 
 export interface SliderWidgetProps extends BaseWidgetProps<SliderWidgetConfig> {

@@ -56,16 +56,20 @@ const TypeBadge = ({
   id,
   parameter,
   onInputClick,
+  readonly,
 }: {
   type: string;
   position: Position;
   id: string;
   parameter?: WorkflowParameter;
   onInputClick?: (param: WorkflowParameter) => void;
+  readonly?: boolean;
 }) => {
   const name = type.charAt(0).toUpperCase();
 
   const handleClick = (e: React.MouseEvent) => {
+    if (readonly) return;
+    
     if (position === Position.Left && parameter && onInputClick) {
       e.stopPropagation();
       onInputClick(parameter);
@@ -87,21 +91,30 @@ const TypeBadge = ({
         position={position}
         id={id}
         className="opacity-0 !w-full !h-full !bg-transparent !border-none !absolute !left-0 !top-0 !transform-none !m-0 !z-[1000]"
-        isConnectableStart={position !== Position.Left}
+        isConnectableStart={position !== Position.Left && !readonly}
+        isConnectable={!readonly}
       />
       <span
         className={cn(
-          "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] cursor-pointer transition-colors",
+          "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] transition-colors",
           {
             // Dark gray for connected parameters (both input and output)
             "bg-neutral-400 text-neutral-900 hover:bg-neutral-500 dark:bg-neutral-500 dark:text-neutral-100 dark:hover:bg-neutral-600":
-              isConnected,
+              isConnected && !readonly,
             // Medium gray for input parameters with values
             "bg-neutral-300 text-neutral-800 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700":
-              isInput && !isConnected && hasValue,
+              isInput && !isConnected && hasValue && !readonly,
             // Light gray for unconnected parameters
             "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700":
-              !isConnected && (!isInput || !hasValue),
+              !isConnected && (!isInput || !hasValue) && !readonly,
+            // Readonly styles - no hover effects
+            "bg-neutral-400 text-neutral-900 dark:bg-neutral-500 dark:text-neutral-100 cursor-default": 
+              isConnected && readonly,
+            "bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-200 cursor-default": 
+              isInput && !isConnected && hasValue && readonly,
+            "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 cursor-default": 
+              !isConnected && (!isInput || !hasValue) && readonly,
+            "cursor-pointer": !readonly
           }
         )}
         onClick={handleClick}
@@ -122,7 +135,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData } = useWorkflow();
+    const { updateNodeData, readonly } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
@@ -143,6 +156,7 @@ export const WorkflowNode = memo(
         config: any;
         onChange: (value: any) => void;
         compact?: boolean;
+        readonly?: boolean;
       }>
     > = {
       slider: SliderWidget,
@@ -164,7 +178,7 @@ export const WorkflowNode = memo(
         : null;
 
     const handleWidgetChange = (value: any) => {
-      if (!updateNodeData || !widgetConfig) return;
+      if (readonly || !updateNodeData || !widgetConfig) return;
 
       const valueInput = data.inputs.find((i) => i.id === "value");
       if (valueInput) {
@@ -180,12 +194,14 @@ export const WorkflowNode = memo(
     }, [data.name, isEditingName]);
 
     const handleInputClick = (input: WorkflowParameter) => {
+      if (readonly) return;
+      
       setSelectedInput(input);
       setInputValue(input.value !== undefined ? String(input.value) : "");
     };
 
     const handleInputChange = (value: string) => {
-      if (!selectedInput) return;
+      if (readonly || !selectedInput) return;
 
       setInputValue(value);
 
@@ -201,7 +217,8 @@ export const WorkflowNode = memo(
     };
 
     const handleClearValue = () => {
-      if (!selectedInput) return;
+      if (readonly || !selectedInput) return;
+      
       clearNodeInput(id, selectedInput.id, data.inputs, updateNodeData);
       setInputValue("");
     };
@@ -211,12 +228,15 @@ export const WorkflowNode = memo(
     };
 
     const handleNameClick = () => {
+      if (readonly) return;
+      
       setIsEditingName(true);
       setNameValue(data.name);
     };
 
     const handleNameSave = () => {
-      if (nameValue.trim() === "") return;
+      if (readonly || nameValue.trim() === "") return;
+      
       updateNodeName(id, nameValue, updateNodeData);
       setIsEditingName(false);
     };
@@ -244,20 +264,22 @@ export const WorkflowNode = memo(
           >
             <h3 className="text-xs font-medium truncate">{data.name}</h3>
             <div className="flex gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={handleNameClick}
-                    className="inline-flex items-center justify-center w-5 h-5 rounded bg-neutral-100 text-blue-500 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-blue-500 dark:hover:bg-neutral-700 nodrag"
-                    aria-label="Edit node label"
-                  >
-                    <PencilIcon className="w-3 h-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Edit Label</p>
-                </TooltipContent>
-              </Tooltip>
+              {!readonly && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleNameClick}
+                      className="inline-flex items-center justify-center w-5 h-5 rounded bg-neutral-100 text-blue-500 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-blue-500 dark:hover:bg-neutral-700 nodrag"
+                      aria-label="Edit node label"
+                    >
+                      <PencilIcon className="w-3 h-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit Label</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
           </div>
 
@@ -268,6 +290,7 @@ export const WorkflowNode = memo(
                 config: widgetConfig,
                 onChange: handleWidgetChange,
                 compact: true,
+                readonly: readonly,
               })}
             </div>
           )}
@@ -289,6 +312,7 @@ export const WorkflowNode = memo(
                       id={input.id}
                       parameter={input}
                       onInputClick={handleInputClick}
+                      readonly={readonly}
                     />
                     <p className="overflow-hidden text-ellipsis">
                       {input.name}
@@ -314,6 +338,7 @@ export const WorkflowNode = memo(
                       position={Position.Right}
                       id={output.id}
                       parameter={output}
+                      readonly={readonly}
                     />
                   </div>
                 ))}
@@ -372,8 +397,8 @@ export const WorkflowNode = memo(
 
         {/* Input Value Dialog */}
         <Dialog
-          open={selectedInput !== null}
-          onOpenChange={() => selectedInput && handleDialogClose()}
+          open={selectedInput !== null && !readonly}
+          onOpenChange={() => selectedInput && !readonly && handleDialogClose()}
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -403,6 +428,7 @@ export const WorkflowNode = memo(
                           }
                           onClick={() => handleInputChange("true")}
                           className="flex-1"
+                          disabled={readonly}
                         >
                           True
                         </Button>
@@ -412,6 +438,7 @@ export const WorkflowNode = memo(
                           }
                           onClick={() => handleInputChange("false")}
                           className="flex-1"
+                          disabled={readonly}
                         >
                           False
                         </Button>
@@ -424,8 +451,9 @@ export const WorkflowNode = memo(
                           value={inputValue}
                           onChange={(e) => handleInputChange(e.target.value)}
                           placeholder="Enter number value"
+                          disabled={readonly}
                         />
-                        {inputValue && (
+                        {inputValue && !readonly && (
                           <button
                             onClick={handleClearValue}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
@@ -443,8 +471,9 @@ export const WorkflowNode = memo(
                           onChange={(e) => handleInputChange(e.target.value)}
                           placeholder="Enter text value"
                           className="min-h-[100px] resize-y"
+                          disabled={readonly}
                         />
-                        {inputValue && (
+                        {inputValue && !readonly && (
                           <button
                             onClick={handleClearValue}
                             className="absolute right-2 top-2 text-neutral-400 hover:text-neutral-600"
@@ -461,8 +490,9 @@ export const WorkflowNode = memo(
                           value={inputValue}
                           onChange={(e) => handleInputChange(e.target.value)}
                           placeholder="Enter text value"
+                          disabled={readonly}
                         />
-                        {inputValue && (
+                        {inputValue && !readonly && (
                           <button
                             onClick={handleClearValue}
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
@@ -487,8 +517,8 @@ export const WorkflowNode = memo(
 
         {/* Label Edit Dialog */}
         <Dialog
-          open={isEditingName}
-          onOpenChange={(open) => !open && setIsEditingName(false)}
+          open={isEditingName && !readonly}
+          onOpenChange={(open) => !open && !readonly && setIsEditingName(false)}
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -507,6 +537,7 @@ export const WorkflowNode = memo(
                   value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
                   placeholder="Enter node name"
+                  disabled={readonly}
                 />
               </div>
             </div>
@@ -514,7 +545,7 @@ export const WorkflowNode = memo(
               <Button variant="outline" onClick={() => setIsEditingName(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleNameSave}>Save</Button>
+              <Button onClick={handleNameSave} disabled={readonly}>Save</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

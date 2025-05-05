@@ -1,46 +1,50 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface NumberInputWidgetConfig {
-  value: number;
-  min?: number;
-  max?: number;
-  step?: number;
-  placeholder?: string;
-}
+import { cn } from "@/utils/utils";
 
 interface NumberInputWidgetProps {
-  config: NumberInputWidgetConfig;
+  config: {
+    value: number;
+    min?: number;
+    max?: number;
+    step?: number;
+    placeholder?: string;
+  };
   onChange: (value: number) => void;
+  className?: string;
   compact?: boolean;
+  readonly?: boolean;
 }
 
 export function NumberInputWidget({
   config,
   onChange,
+  className,
   compact = false,
+  readonly = false,
 }: NumberInputWidgetProps) {
-  const { value, min, max, step, placeholder } = config;
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value === "" ? 0 : Number(e.target.value);
-    if (!isNaN(newValue)) {
-      onChange(newValue);
+    if (readonly) return;
+    
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value)) {
+      onChange(value);
     }
   };
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", className)}>
       {!compact && <Label>Number Input</Label>}
       <Input
         type="number"
-        value={value}
+        value={config.value || ""}
         onChange={handleChange}
-        min={min}
-        max={max}
-        step={step}
-        placeholder={placeholder}
-        className={compact ? "text-sm" : ""}
+        min={config.min}
+        max={config.max}
+        step={config.step}
+        placeholder={config.placeholder || "Enter number..."}
+        className={cn(compact && "h-8 text-sm")}
+        disabled={readonly}
       />
     </div>
   );

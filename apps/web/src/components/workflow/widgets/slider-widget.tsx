@@ -7,9 +7,10 @@ export function SliderWidget({
   onChange,
   className,
   compact = false,
+  readonly = false,
 }: SliderWidgetProps) {
   const handleValueChange = (values: number[]) => {
-    if (values.length > 0) {
+    if (values.length > 0 && !readonly) {
       onChange(values[0]);
     }
   };
@@ -23,6 +24,7 @@ export function SliderWidget({
         value={[config.value]}
         onValueChange={handleValueChange}
         className={cn("py-4", compact && "py-2")}
+        disabled={readonly}
       />
       <div className="flex justify-between text-xs text-neutral-500">
         <span>{config.min}</span>

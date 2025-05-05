@@ -175,7 +175,7 @@ export function WorkflowNodeInspector({
               value={localName}
               onChange={handleNameChange}
               disabled={readonly}
-              className={readonly ? "opacity-70" : ""}
+              className={readonly ? "opacity-70 cursor-not-allowed" : ""}
             />
           </div>
 
@@ -216,7 +216,10 @@ export function WorkflowNodeInspector({
                           onChange={(e) =>
                             handleInputValueChange(input.id, e.target.value)
                           }
-                          className="text-sm min-h-[80px] resize-y pr-16"
+                          className={`text-sm min-h-[80px] resize-y pr-16 ${
+                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={readonly}
                         />
                       ) : (
                         <Input
@@ -227,13 +230,16 @@ export function WorkflowNodeInspector({
                           onChange={(e) =>
                             handleInputValueChange(input.id, e.target.value)
                           }
-                          className="text-sm h-8 pr-16"
+                          className={`text-sm h-8 pr-16 ${
+                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={readonly}
                         />
                       )}
                       <div
                         className={`absolute right-2 ${input.type === "string" ? "top-2" : "top-1/2 -translate-y-1/2"} flex items-center gap-2`}
                       >
-                        {input.value !== undefined && (
+                        {input.value !== undefined && !readonly && (
                           <button
                             onClick={() => handleClearValue(input.id)}
                             className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
@@ -249,7 +255,10 @@ export function WorkflowNodeInspector({
                             handleToggleVisibility(input.id)
                           }
                           aria-label={`Toggle visibility for ${input.name}`}
-                          className="bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                          className={`bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors ${
+                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={readonly}
                         >
                           {input.hidden ? (
                             <EyeOffIcon className="h-3 w-3" />
