@@ -123,10 +123,10 @@ export const memberships = sqliteTable(
   {
     userId: text("user_id")
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: "cascade" }),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     role: text("role")
       .$type<OrganizationRoleType>()
       .notNull()
@@ -149,7 +149,7 @@ export const apiTokens = sqliteTable(
     token: text("token").notNull().unique(),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -168,7 +168,7 @@ export const workflows = sqliteTable(
     data: text("data", { mode: "json" }).$type<WorkflowType>().notNull(),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -185,8 +185,8 @@ export const deployments = sqliteTable(
     id: text("id").primaryKey(),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizations.id),
-    workflowId: text("workflow_id").references(() => workflows.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    workflowId: text("workflow_id").references(() => workflows.id, { onDelete: "cascade" }),
     version: integer("version").notNull(),
     workflowData: text("workflow_data", { mode: "json" })
       .$type<WorkflowType>()
@@ -208,11 +208,11 @@ export const executions = sqliteTable(
     id: text("id").primaryKey(),
     workflowId: text("workflow_id")
       .notNull()
-      .references(() => workflows.id),
-    deploymentId: text("deployment_id").references(() => deployments.id),
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    deploymentId: text("deployment_id").references(() => deployments.id, { onDelete: "cascade" }),
     organizationId: text("organization_id")
       .notNull()
-      .references(() => organizations.id),
+      .references(() => organizations.id, { onDelete: "cascade" }),
     status: text("status")
       .$type<ExecutionStatusType>()
       .notNull()

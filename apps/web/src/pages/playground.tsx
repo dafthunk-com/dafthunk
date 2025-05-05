@@ -1,50 +1,314 @@
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
-import { useState, useEffect } from "react";
 import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
-import {
-  createColumns,
-  useWorkflowActions,
-} from "@/components/playground/columns";
-import { CreateWorkflowDialog } from "@/components/playground/create-workflow-dialog";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Button, ButtonProps } from "@/components/ui/button";
+import {
+  PencilIcon,
+  Trash2Icon,
+  ArrowUpDown,
+  MoreHorizontal,
+  PlusIcon,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
+
+// --- Inline CreateWorkflowDialog ---
+function CreateWorkflowDialog({
+  open,
+  onOpenChange,
+  onCreateWorkflow,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreateWorkflow: (name: string) => Promise<void>;
+}) {
+  const [newWorkflowName, setNewWorkflowName] = useState("");
+
+  const handleCreateWorkflow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onCreateWorkflow(newWorkflowName);
+    setNewWorkflowName("");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Workflow</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleCreateWorkflow} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Workflow Name</Label>
+            <Input
+              id="name"
+              value={newWorkflowName}
+              onChange={(e) => setNewWorkflowName(e.target.value)}
+              placeholder="Enter workflow name"
+              className="mt-2"
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            Create Workflow
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// --- Inline useWorkflowActions ---
+function useWorkflowActions(refresh: () => void) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
+  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(null);
+  const [renameWorkflowName, setRenameWorkflowName] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+
+  const handleDeleteWorkflow = async () => {
+    if (!workflowToDelete) return;
+    setIsDeleting(true);
+    try {
+      await workflowService.delete(workflowToDelete.id);
+      setDeleteDialogOpen(false);
+      setWorkflowToDelete(null);
+      refresh();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleRenameWorkflow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!workflowToRename) return;
+    setIsRenaming(true);
+    try {
+      const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
+      await workflowService.save(workflowToRename.id, updatedWorkflow);
+      setRenameDialogOpen(false);
+      setWorkflowToRename(null);
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const deleteDialog = (
+    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Workflow</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete "
+            {workflowToDelete?.name || "Untitled Workflow"}"? This action cannot
+            be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteWorkflow}
+            disabled={isDeleting}
+          >
+            {isDeleting ? <Spinner className="h-4 w-4 mr-2" /> : null}
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const renameDialog = (
+    <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Rename Workflow</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleRenameWorkflow} className="space-y-4">
+          <div>
+            <Label htmlFor="rename-name">Workflow Name</Label>
+            <Input
+              id="rename-name"
+              value={renameWorkflowName}
+              onChange={(e) => setRenameWorkflowName(e.target.value)}
+              placeholder="Enter workflow name"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setRenameDialogOpen(false)}
+              disabled={isRenaming}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isRenaming}>
+              {isRenaming ? <Spinner className="h-4 w-4 mr-2" /> : null}
+              Rename
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+
+  return {
+    deleteDialog,
+    renameDialog,
+    openDeleteDialog: (workflow: Workflow) => {
+      setWorkflowToDelete(workflow);
+      setDeleteDialogOpen(true);
+    },
+    openRenameDialog: (workflow: Workflow) => {
+      setWorkflowToRename(workflow);
+      setRenameWorkflowName(workflow.name || "");
+      setRenameDialogOpen(true);
+    },
+  };
+}
+
+// --- Inline createColumns ---
+function createColumns(
+  openDeleteDialog: (workflow: Workflow) => void,
+  openRenameDialog: (workflow: Workflow) => void
+): ColumnDef<Workflow>[] {
+  return [
+    {
+      accessorKey: "id",
+      header: "UUID",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs">{row.original.id}</span>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="-ml-4"
+        >
+          Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        return <div className="font-medium">{name || "Untitled Workflow"}</div>;
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const workflow = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button aria-haspopup="true" size="icon" variant="ghost">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openRenameDialog(workflow);
+                }}
+              >
+                <PencilIcon className="mr-2 h-4 w-4" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openDeleteDialog(workflow);
+                }}
+                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+              >
+                <Trash2Icon className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+}
 
 export function PlaygroundPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [tableKey, setTableKey] = useState(0);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
-    useWorkflowActions();
+  const fetchWorkflows = useCallback(async () => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const fetchedWorkflows = await workflowService.getAll();
+      setWorkflows(fetchedWorkflows);
+      setTableKey((prev) => prev + 1);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
 
-  // Create columns with our action handlers
+  const {
+    deleteDialog,
+    renameDialog,
+    openDeleteDialog,
+    openRenameDialog,
+  } = useWorkflowActions(fetchWorkflows);
+
   const columns = createColumns(openDeleteDialog, openRenameDialog);
 
   useEffect(() => {
-    const fetchWorkflows = async () => {
-      if (!isAuthenticated) {
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const fetchedWorkflows = await workflowService.getAll();
-        setWorkflows(fetchedWorkflows);
-      } catch (error) {
-        console.error("Error fetching workflows:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     if (!authLoading) {
       fetchWorkflows();
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, fetchWorkflows]);
 
   const handleCreateWorkflow = async (name: string) => {
     if (!isAuthenticated) {
@@ -53,18 +317,13 @@ export function PlaygroundPage() {
     }
     try {
       const newWorkflow = await workflowService.create(name);
-      setWorkflows([...workflows, newWorkflow]);
+      setWorkflows((prev) => [...prev, newWorkflow]);
+      setTableKey((prev) => prev + 1);
       navigate(`/workflows/playground/${newWorkflow.id}`);
-    } catch (error) {
-      console.error("Error creating workflow:", error);
+    } catch {
+      // Optionally show a toast here
     }
   };
-
-  // Set up success handlers for delete and rename
-  useEffect(() => {
-    // We're just setting up callbacks here, not actually binding them
-    // The handlers will be called with these callbacks from the dialog actions
-  }, [workflows]);
 
   if (authLoading) {
     return (
@@ -79,47 +338,39 @@ export function PlaygroundPage() {
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Spinner className="h-8 w-8" />
-        <p className="text-neutral-500 mt-4">Loading workflows...</p>
-      </div>
-    );
-  }
-
-  if (workflows.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <img
-          src="/logo.svg"
-          alt="Dafthunk Logo"
-          className="h-32 mb-8 dark:invert"
-        />
-        <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
-        <p className="text-neutral-500 text-lg mt-2 mb-7">
-          Break it, fix it, prompt it, automatic, automatic, ...
-        </p>
-        <CreateWorkflowDialog onCreateWorkflow={handleCreateWorkflow} />
-      </div>
-    );
-  }
-
   return (
     <TooltipProvider>
       <InsetLayout title="Workflows">
-        <p className="text-muted-foreground">
-          Create, manage, and run your workflows. Break it, fix it, prompt it,
-          automatic.
-        </p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-sm text-muted-foreground max-w-2xl">
+            Create, manage, and run your workflows. Break it, fix it, prompt it, automatic.
+          </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
+            + Create Workflow
+          </Button>
+        </div>
         <DataTable
+          key={tableKey}
           columns={columns}
           data={workflows}
           isLoading={isLoading}
           emptyState={{
             title: "No workflows found",
-            description: "Create a new workflow to get started",
+            description: "Create a new workflow to get started.",
           }}
+          info={
+            !isLoading && (
+              <div className="text-xs text-muted-foreground">
+                Showing <strong>{workflows.length}</strong> workflows.
+              </div>
+            )
+          }
+        />
+        {/* Create Workflow Dialog */}
+        <CreateWorkflowDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onCreateWorkflow={handleCreateWorkflow}
         />
         {deleteDialog}
         {renameDialog}
