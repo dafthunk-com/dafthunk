@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { HomePage } from "./pages/home";
 import { EditorPage, editorLoader } from "./pages/editor";
 import { ProfilePage } from "./pages/profile";
@@ -60,6 +60,10 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
+    path: "/settings",
+    element: <Navigate to="/settings/profile" replace />,
+  },
+  {
     path: "/settings/profile",
     element: (
       <AppLayout
@@ -110,6 +114,10 @@ export const router = createBrowserRouter([
       </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/workflows",
+    element: <Navigate to="/workflows/playground" replace />,
   },
   {
     path: "/workflows/playground",

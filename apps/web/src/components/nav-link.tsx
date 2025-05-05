@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 interface NavLinkProps extends React.ComponentProps<typeof Link> {
   children: React.ReactNode;
   activeClassName?: string;
-  isActive?: () => boolean;
+  isActive?: (pathname: string) => boolean;
 }
 
 export function NavLink({
@@ -19,7 +19,7 @@ export function NavLink({
 
   const isActive = useMemo(() => {
     if (isActiveCustom) {
-      return isActiveCustom();
+      return isActiveCustom(pathname);
     }
     return pathname.startsWith(props.to.toString());
   }, [isActiveCustom, props.to, pathname]);
