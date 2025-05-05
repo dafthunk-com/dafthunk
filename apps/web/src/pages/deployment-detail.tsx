@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +12,7 @@ import {
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
-import { ArrowUpToLine, History, ArrowDown } from "lucide-react";
-import { createDeploymentHistoryColumns } from "@/components/deployments/deployment-history-columns";
+import { ArrowUpToLine, History, ArrowDown, Clock, Eye, GitCommitHorizontal } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
@@ -26,6 +25,76 @@ import {
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+
+// --- Inline deployment history columns and helper ---
+const formatDeploymentDate = (dateString: string | Date) => {
+  try {
+    return format(new Date(dateString), "MMM d, yyyy h:mm a");
+  } catch (_error) {
+    return String(dateString);
+  }
+};
+
+function createDeploymentHistoryColumns(currentDeploymentId: string): ColumnDef<WorkflowDeploymentVersion>[] {
+  return [
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => {
+        const deployment = row.original;
+        const isCurrent = deployment.id === currentDeploymentId;
+        return (
+          <div className="font-mono text-xs">
+            {isCurrent ? (
+              <div className="flex items-center">
+                {deployment.id}
+                <Badge variant="outline" className="ml-2 bg-green-50">
+                  Current
+                </Badge>
+              </div>
+            ) : (
+              <>{deployment.id}</>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "version",
+      header: "Version",
+      cell: ({ row }) => (
+        <Badge variant="secondary" className="gap-1">
+          <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+          {formatDeploymentDate(row.original.createdAt)}
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <Link to={`/workflows/deployments/version/${row.original.id}`}>
+          <Button size="sm" variant="ghost">
+            <Eye className="h-4 w-4 mr-1" />
+            View
+          </Button>
+        </Link>
+      ),
+    },
+  ];
+}
 
 interface WorkflowInfo {
   id: string;
