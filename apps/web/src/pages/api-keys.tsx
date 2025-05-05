@@ -206,13 +206,6 @@ export function ApiKeysPage() {
           title: "No API keys found",
           description: "Create your first key to get started.",
         }}
-        info={
-          !isLoading && (
-            <div className="text-xs text-muted-foreground">
-              Showing <strong>{apiTokens.length}</strong> API keys.
-            </div>
-          )
-        }
       />
       {/* Create Key Dialog */}
       <AlertDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

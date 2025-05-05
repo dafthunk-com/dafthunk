@@ -221,7 +221,6 @@ function createColumns(
       cell: ({ row }) => (
         <span className="font-mono text-xs">{row.original.id}</span>
       ),
-      enableSorting: false,
     },
     {
       id: "actions",

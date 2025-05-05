@@ -78,17 +78,7 @@ export const columns: ColumnDef<Execution>[] = [
   },
   {
     accessorKey: "startedAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Started At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: "Started At",
     cell: ({ row }) => {
       const date = row.getValue("startedAt") as Date;
       const formatted = format(date, "PPpp");
