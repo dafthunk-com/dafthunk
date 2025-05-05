@@ -29,7 +29,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { workflowService } from "@/services/workflowService";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { GitCommitHorizontal, Eye } from "lucide-react";
+import { GitCommitHorizontal, Eye, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -75,14 +81,19 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
     cell: ({ row }) => {
       const deployment = row.original;
       return (
-        <div className="flex items-center gap-2">
-          <Link to={`/workflows/deployments/${deployment.workflowId}`}>
-            <Button size="sm" variant="ghost" className="h-8 px-2">
-              <Eye className="h-4 w-4 mr-1" />
-              View
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
-          </Link>
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to={`/workflows/deployments/${deployment.workflowId}`}>View</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },
@@ -202,12 +213,6 @@ export function DeploymentListPage() {
             description: "Deploy a workflow to get started.",
           }}
         />
-        {!isLoading && (
-          <div className="text-xs text-muted-foreground mt-4">
-            Showing <strong>{deployments.length}</strong> workflow deployment
-            {deployments.length !== 1 ? "s" : ""}.
-          </div>
-        )}
         {/* Create Deployment Dialog */}
         <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <AlertDialogContent>

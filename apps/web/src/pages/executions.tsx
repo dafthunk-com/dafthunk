@@ -12,8 +12,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
@@ -119,10 +117,7 @@ export const columns: ColumnDef<Execution>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(execution.id)}
-            >
+            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(execution.id)}>
               Copy Execution ID
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -130,8 +125,6 @@ export const columns: ColumnDef<Execution>[] = [
                 View Workflow
               </Link>
             </DropdownMenuItem>
-            {/* No deploymentId or logs available from API */}
-            <DropdownMenuSeparator />
             <DropdownMenuItem disabled>View Logs</DropdownMenuItem>
             {execution.status === "running" && (
               <DropdownMenuItem disabled>Cancel Execution</DropdownMenuItem>
@@ -211,11 +204,6 @@ export function ExecutionsPage() {
             description: error || "No executions found.",
           }}
         />
-        {!isLoading && !error && (
-          <div className="text-xs text-muted-foreground mt-4">
-            Showing <strong>{executions.length}</strong> executions.
-          </div>
-        )}
       </InsetLayout>
     </TooltipProvider>
   );

@@ -28,6 +28,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ColumnDef } from "@tanstack/react-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // --- Inline CreateWorkflowDialog ---
 function CreateWorkflowDialog({
@@ -223,38 +229,25 @@ function createColumns(
       cell: ({ row }) => {
         const workflow = row.original;
         return (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label="View Workflow"
-              className="h-8 px-2"
-              onClick={() => navigate(`/workflows/playground/${workflow.id}`)}
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              View
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label="Rename Workflow"
-              className="h-8 px-2"
-              onClick={() => openRenameDialog(workflow)}
-            >
-              <PencilIcon className="h-4 w-4 mr-1" />
-              Rename
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              aria-label="Delete Workflow"
-              className="h-8 px-2 text-red-600 hover:bg-red-50 focus:bg-red-50"
-              onClick={() => openDeleteDialog(workflow)}
-            >
-              <Trash2Icon className="h-4 w-4 mr-1" />
-              Delete
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate(`/workflows/playground/${workflow.id}`)}>
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openDeleteDialog(workflow)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
@@ -347,13 +340,6 @@ export function PlaygroundPage() {
             title: "No workflows found",
             description: "Create a new workflow to get started.",
           }}
-          info={
-            !isLoading && (
-              <div className="text-xs text-muted-foreground">
-                Showing <strong>{workflows.length}</strong> workflows.
-              </div>
-            )
-          }
         />
         {/* Create Workflow Dialog */}
         <CreateWorkflowDialog

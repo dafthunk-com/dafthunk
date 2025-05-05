@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
-import { ArrowUpToLine, History, ArrowDown, Clock, Eye, GitCommitHorizontal } from "lucide-react";
+import { ArrowUpToLine, History, ArrowDown, Clock, Eye, GitCommitHorizontal, MoreHorizontal } from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
@@ -28,6 +28,12 @@ import { DeploymentInfoCard } from "@/components/deployments/deployment-info-car
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -85,12 +91,19 @@ function createDeploymentHistoryColumns(currentDeploymentId: string): ColumnDef<
       id: "actions",
       header: "Actions",
       cell: ({ row }) => (
-        <Link to={`/workflows/deployments/version/${row.original.id}`}>
-          <Button size="sm" variant="ghost">
-            <Eye className="h-4 w-4 mr-1" />
-            View
-          </Button>
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to={`/workflows/deployments/version/${row.original.id}`}>View</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
