@@ -1,3 +1,8 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/authContext.tsx";
+import { workflowService } from "@/services/workflowService";
+import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,15 +68,35 @@ const recentExecutions = [
 ] as const; // Use 'as const' for status typing
 
 export function DashboardPage() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCreateWorkflow = async (name: string) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const newWorkflow = await workflowService.create(name);
+      navigate(`/workflows/playground/${newWorkflow.id}`);
+    } catch {
+      // Optionally show a toast here
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <Button asChild size="sm">
-          <Link to="/workflows/playground">
-            <Plus className="mr-2 size-4" /> Create Workflow
-          </Link>
+        <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 size-4" /> Create Workflow
         </Button>
+        <CreateWorkflowDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onCreateWorkflow={handleCreateWorkflow}
+        />
       </div>
 
       {/* Stats Grid */}

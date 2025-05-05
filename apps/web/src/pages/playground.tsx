@@ -35,51 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-
-// --- Inline CreateWorkflowDialog ---
-function CreateWorkflowDialog({
-  open,
-  onOpenChange,
-  onCreateWorkflow,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCreateWorkflow: (name: string) => Promise<void>;
-}) {
-  const [newWorkflowName, setNewWorkflowName] = useState("");
-
-  const handleCreateWorkflow = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onCreateWorkflow(newWorkflowName);
-    setNewWorkflowName("");
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New Workflow</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleCreateWorkflow} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Workflow Name</Label>
-            <Input
-              id="name"
-              value={newWorkflowName}
-              onChange={(e) => setNewWorkflowName(e.target.value)}
-              placeholder="Enter workflow name"
-              className="mt-2"
-            />
-          </div>
-          <Button type="submit" className="w-full">
-            Create Workflow
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
+import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 
 // --- Inline useWorkflowActions ---
 function useWorkflowActions(refresh: () => void) {
