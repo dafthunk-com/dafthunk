@@ -14,6 +14,7 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   PlusIcon,
+  Eye,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,12 +27,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 
 // --- Inline CreateWorkflowDialog ---
@@ -204,7 +199,16 @@ function createColumns(
   openDeleteDialog: (workflow: Workflow) => void,
   openRenameDialog: (workflow: Workflow) => void
 ): ColumnDef<Workflow>[] {
+  const navigate = useNavigate();
   return [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => {
+        const name = row.getValue("name") as string;
+        return <div className="font-medium">{name || "Untitled Workflow"}</div>;
+      },
+    },
     {
       accessorKey: "id",
       header: "UUID",
@@ -214,58 +218,43 @@ function createColumns(
       enableSorting: false,
     },
     {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="-ml-4"
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => {
-        const name = row.getValue("name") as string;
-        return <div className="font-medium">{name || "Untitled Workflow"}</div>;
-      },
-    },
-    {
       id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
         const workflow = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button aria-haspopup="true" size="icon" variant="ghost">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openRenameDialog(workflow);
-                }}
-              >
-                <PencilIcon className="mr-2 h-4 w-4" />
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  openDeleteDialog(workflow);
-                }}
-                className="text-red-600 focus:text-red-600 focus:bg-red-50"
-              >
-                <Trash2Icon className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="View Workflow"
+              className="h-8 px-2"
+              onClick={() => navigate(`/workflows/playground/${workflow.id}`)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              View
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="Rename Workflow"
+              className="h-8 px-2"
+              onClick={() => openRenameDialog(workflow)}
+            >
+              <PencilIcon className="h-4 w-4 mr-1" />
+              Rename
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="Delete Workflow"
+              className="h-8 px-2 text-red-600 hover:bg-red-50 focus:bg-red-50"
+              onClick={() => openDeleteDialog(workflow)}
+            >
+              <Trash2Icon className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
         );
       },
     },
