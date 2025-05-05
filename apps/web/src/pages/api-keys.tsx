@@ -53,6 +53,7 @@ const columns: ColumnDef<ApiToken>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const token = row.original;
       return (
@@ -70,9 +71,7 @@ const columns: ColumnDef<ApiToken>[] = [
                   new CustomEvent("deleteApiToken", { detail: token.id })
                 )
               }
-              className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
               Delete Key
             </DropdownMenuItem>
           </DropdownMenuContent>

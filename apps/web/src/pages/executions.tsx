@@ -19,6 +19,7 @@ import {
   ExecutionStatusBadge,
   ExecutionStatus,
 } from "@/components/executions/execution-status-badge";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 // Represents a single run instance of a workflow
 export type Execution = {
@@ -95,6 +96,7 @@ export const columns: ColumnDef<Execution>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     enableHiding: false,
     cell: ({ row }) => {
       const execution = row.original;
@@ -130,6 +132,11 @@ export function ExecutionsPage() {
   const [executions, setExecutions] = useState<Execution[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Executions" }]);
+  }, [setBreadcrumbs]);
 
   useEffect(() => {
     const fetchExecutions = async () => {

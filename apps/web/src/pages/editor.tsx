@@ -20,6 +20,7 @@ import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { API_BASE_URL } from "@/config/api";
 import { debounce } from "@/utils/utils";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
@@ -59,6 +60,15 @@ export function EditorPage() {
   const [isProcessingWorkflow, setIsProcessingWorkflow] = useState(true);
   const [hasProcessedInitialWorkflow, setHasProcessedInitialWorkflow] =
     useState(false); // Track if initial workflow processing completed
+
+  // Add breadcrumb logic
+  usePageBreadcrumbs(
+    [
+      { label: "Playground", to: "/workflows/playground" },
+      { label: initialWorkflow?.name || "Workflow" },
+    ],
+    [initialWorkflow?.name]
+  );
 
   // Fetch node templates
   useEffect(() => {

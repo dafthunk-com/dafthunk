@@ -34,6 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 // --- Inline CreateWorkflowDialog ---
 function CreateWorkflowDialog({
@@ -242,7 +243,7 @@ function createColumns(
               <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
                 Rename
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openDeleteDialog(workflow)} className="text-red-600 focus:text-red-600 focus:bg-red-50">
+              <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -260,6 +261,7 @@ export function PlaygroundPage() {
   const [tableKey, setTableKey] = useState(0);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const fetchWorkflows = useCallback(async () => {
     if (!isAuthenticated) {
@@ -290,6 +292,10 @@ export function PlaygroundPage() {
       fetchWorkflows();
     }
   }, [isAuthenticated, authLoading, fetchWorkflows]);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Playground" }]);
+  }, [setBreadcrumbs]);
 
   const handleCreateWorkflow = async (name: string) => {
     if (!isAuthenticated) {
