@@ -26,14 +26,15 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
-interface ApiToken {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Types
 
-// Column definitions for API keys table
+type ApiToken = {
+  readonly id: string;
+  readonly name: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+};
+
 const columns: ColumnDef<ApiToken>[] = [
   {
     accessorKey: "name",
@@ -47,15 +48,13 @@ const columns: ColumnDef<ApiToken>[] = [
     header: "Created",
     cell: ({ row }) => {
       const date = row.getValue("createdAt") as string;
-      const formatted = format(new Date(date), "MMM d, yyyy");
-      return <div>{formatted}</div>;
+      return <div>{format(new Date(date), "MMM d, yyyy")}</div>;
     },
   },
   {
     id: "actions",
     cell: ({ row }) => {
       const token = row.original;
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -66,7 +65,6 @@ const columns: ColumnDef<ApiToken>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              // Using onClick instead of passing a delete function through table options meta
               onClick={() =>
                 document.dispatchEvent(
                   new CustomEvent("deleteApiToken", { detail: token.id })
@@ -89,62 +87,40 @@ export function ApiKeysPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [tableKey, setTableKey] = useState(0); // Force table re-renders
-
-  // Create key dialog state
+  const [tableKey, setTableKey] = useState(0);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [isShowKeyDialogOpen, setIsShowKeyDialogOpen] = useState(false);
 
-  // Fetch the API tokens with useCallback to prevent stale closures
-  const fetchTokens = useCallback(async () => {
+  const fetchTokens = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const response = await fetch(`${API_BASE_URL}/tokens`, {
         method: "GET",
         credentials: "include",
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch API tokens: ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(response.statusText);
       const data = await response.json();
       setApiTokens(data.tokens);
-      // Force table refresh
       setTableKey(prev => prev + 1);
-    } catch (error) {
-      console.error("Error fetching API tokens:", error);
+    } catch {
       toast.error("Failed to fetch API tokens. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Setup event listener for delete action from the table
   useEffect(() => {
-    const handleDeleteEvent = (e: CustomEvent) => {
-      if (e.detail) {
-        confirmDeleteKey(e.detail);
-      }
+    const handleDeleteEvent = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      if (custom.detail) confirmDeleteKey(custom.detail);
     };
-
-    document.addEventListener(
-      "deleteApiToken",
-      handleDeleteEvent as EventListener
-    );
-
-    return () => {
-      document.removeEventListener(
-        "deleteApiToken",
-        handleDeleteEvent as EventListener
-      );
-    };
+    document.addEventListener("deleteApiToken", handleDeleteEvent);
+    return () => document.removeEventListener("deleteApiToken", handleDeleteEvent);
   }, []);
 
-  // Load tokens on component mount
   useEffect(() => {
     fetchTokens();
   }, [fetchTokens]);
@@ -154,23 +130,17 @@ export function ApiKeysPage() {
     setIsDeleteDialogOpen(true);
   }, []);
 
-  const handleDeleteKey = useCallback(async () => {
+  const handleDeleteKey = useCallback(async (): Promise<void> => {
     if (!tokenToDelete) return;
-
     try {
       const response = await fetch(`${API_BASE_URL}/tokens/${tokenToDelete}`, {
         method: "DELETE",
         credentials: "include",
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to delete API token: ${response.statusText}`);
-      }
-
-      await fetchTokens(); // Get fresh data from server
+      if (!response.ok) throw new Error(response.statusText);
+      await fetchTokens();
       toast.success("API token deleted successfully");
-    } catch (error) {
-      console.error("Error deleting API token:", error);
+    } catch {
       toast.error("Failed to delete API token. Please try again.");
     } finally {
       setIsDeleteDialogOpen(false);
@@ -178,7 +148,7 @@ export function ApiKeysPage() {
     }
   }, [tokenToDelete, fetchTokens]);
 
-  const handleCreateKey = useCallback(async () => {
+  const handleCreateKey = useCallback(async (): Promise<void> => {
     if (!newKeyName.trim()) {
       toast.error("Key name is required");
       return;
@@ -191,18 +161,15 @@ export function ApiKeysPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newKeyName.trim() }),
       });
-      if (!response.ok) {
-        throw new Error(`Failed to create API key: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(response.statusText);
       const data = await response.json();
       setCreatedKey(data.token);
-      await fetchTokens(); // Get fresh data
+      await fetchTokens();
       setIsCreateDialogOpen(false);
       setIsShowKeyDialogOpen(true);
       setNewKeyName("");
       toast.success("API key created");
-    } catch (error) {
-      console.error("Error creating API key:", error);
+    } catch {
       toast.error("Failed to create API key. Please try again.");
     } finally {
       setIsCreating(false);
@@ -210,18 +177,14 @@ export function ApiKeysPage() {
   }, [newKeyName, fetchTokens]);
 
   const handleDialogClose = useCallback((open: boolean) => {
-    // If the dialog is closing, refresh tokens
-    if (!open && isShowKeyDialogOpen) {
-      fetchTokens();
-    }
+    if (!open && isShowKeyDialogOpen) fetchTokens();
     setIsShowKeyDialogOpen(open);
   }, [fetchTokens, isShowKeyDialogOpen]);
 
-  const handleCopyKey = useCallback(async () => {
-    if (createdKey) {
-      await navigator.clipboard.writeText(createdKey);
-      toast.success("API key copied to clipboard");
-    }
+  const handleCopyKey = useCallback(async (): Promise<void> => {
+    if (!createdKey) return;
+    await navigator.clipboard.writeText(createdKey);
+    toast.success("API key copied to clipboard");
   }, [createdKey]);
 
   return (
@@ -230,15 +193,12 @@ export function ApiKeysPage() {
         <div className="text-sm text-muted-foreground max-w-2xl">
           Create, manage, and delete API keys to control access for your applications.
         </div>
-        <Button 
-          onClick={() => setIsCreateDialogOpen(true)} 
-          size="sm"
-        >
+        <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
           + Create API Key
         </Button>
       </div>
       <DataTable
-        key={tableKey} // Force re-render with new data
+        key={tableKey}
         columns={columns}
         data={apiTokens}
         isLoading={isLoading}
@@ -254,7 +214,6 @@ export function ApiKeysPage() {
           )
         }
       />
-
       {/* Create Key Dialog */}
       <AlertDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <AlertDialogContent>
@@ -268,7 +227,7 @@ export function ApiKeysPage() {
             autoFocus
             placeholder="Key name"
             value={newKeyName}
-            onChange={(e) => setNewKeyName(e.target.value)}
+            onChange={e => setNewKeyName(e.target.value)}
             disabled={isCreating}
             maxLength={64}
           />
@@ -284,15 +243,12 @@ export function ApiKeysPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Show Key Dialog */}
       <AlertDialog open={isShowKeyDialogOpen} onOpenChange={handleDialogClose}>
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>API Key Created</AlertDialogTitle>
-            <AlertDialogDescription>
-              This is your new API key.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This is your new API key.</AlertDialogDescription>
           </AlertDialogHeader>
           <Alert variant="destructive" className="mb-4">
             <AlertTitle>Warning</AlertTitle>
@@ -320,18 +276,13 @@ export function ApiKeysPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* Delete Key Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              API key.
+              This action cannot be undone. This will permanently delete your API key.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
