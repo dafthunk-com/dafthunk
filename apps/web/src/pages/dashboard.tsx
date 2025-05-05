@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/authContext.tsx";
 import { workflowService } from "@/services/workflowService";
+import { dashboardService, DashboardStats } from "@/services/dashboardService";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,50 +28,28 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 
-// Mock data - replace with actual data fetching later
-const stats = {
-  workflows: 12,
-  deployments: 5,
-  executions: {
-    total: 152,
-    running: 1,
-    failed: 8,
-    avgTimeSeconds: 45,
-  },
-};
-
-function addSeconds(date: Date, seconds: number): Date {
-  const result = new Date(date);
-  result.setSeconds(result.getSeconds() + seconds);
-  return result;
-}
-
-const now = new Date();
-const recentExecutions = [
-  {
-    id: "exec_ccc333",
-    workflowName: "Development Image Processing",
-    status: "running",
-    startedAt: addSeconds(now, -60), // 1 min ago
-  },
-  {
-    id: "exec_bbb222",
-    workflowName: "Staging Daily Report",
-    status: "failed",
-    startedAt: addSeconds(now, -1800), // 30 mins ago
-  },
-  {
-    id: "exec_aaa111",
-    workflowName: "Production Email Campaign",
-    status: "completed",
-    startedAt: addSeconds(now, -3600), // 1 hour ago
-  },
-] as const; // Use 'as const' for status typing
-
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    dashboardService
+      .fetchDashboard()
+      .then((data) => {
+        setStats(data);
+        setError(null);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load dashboard stats");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleCreateWorkflow = async (name: string) => {
     if (!isAuthenticated) {
@@ -84,6 +63,16 @@ export function DashboardPage() {
       // Optionally show a toast here
     }
   };
+
+  if (loading) {
+    return <div className="flex flex-1 items-center justify-center">Loading dashboard...</div>;
+  }
+  if (error) {
+    return <div className="flex flex-1 items-center justify-center text-red-500">{error}</div>;
+  }
+  if (!stats) {
+    return <div className="flex flex-1 items-center justify-center">No dashboard data available.</div>;
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
@@ -207,24 +196,45 @@ export function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentExecutions.map((exec) => (
-                <TableRow key={exec.id} className="border-t hover:bg-muted/50">
-                  <TableCell className="font-medium truncate px-6 py-3">
-                    {exec.workflowName}
-                  </TableCell>
-                  <TableCell className="px-6 py-3">
-                    <ExecutionStatusBadge status={exec.status} />
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground px-6 py-3">
-                    {formatDistanceToNow(exec.startedAt, { addSuffix: true })}
-                  </TableCell>
-                  <TableCell className="text-right px-6 py-3">
-                    <Button variant="ghost" size="icon" className="size-7">
-                      <ChevronRight className="size-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {stats.recentExecutions.map((exec) => {
+                let badgeStatus: "running" | "completed" | "failed" | "cancelled";
+                switch (exec.status) {
+                  case "executing":
+                  case "running":
+                    badgeStatus = "running";
+                    break;
+                  case "completed":
+                    badgeStatus = "completed";
+                    break;
+                  case "error":
+                  case "failed":
+                    badgeStatus = "failed";
+                    break;
+                  case "cancelled":
+                    badgeStatus = "cancelled";
+                    break;
+                  default:
+                    badgeStatus = "cancelled";
+                }
+                return (
+                  <TableRow key={exec.id} className="border-t hover:bg-muted/50">
+                    <TableCell className="font-medium truncate px-6 py-3">
+                      {exec.workflowName}
+                    </TableCell>
+                    <TableCell className="px-6 py-3">
+                      <ExecutionStatusBadge status={badgeStatus} />
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-muted-foreground px-6 py-3">
+                      {formatDistanceToNow(exec.startedAt, { addSuffix: true })}
+                    </TableCell>
+                    <TableCell className="text-right px-6 py-3">
+                      <Button variant="ghost" size="icon" className="size-7">
+                        <ChevronRight className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

@@ -12,7 +12,7 @@ import health from "./routes/health";
 import tokenRoutes from "./routes/tokens";
 import deploymentRoutes from "./routes/deployments";
 import { corsMiddleware } from "./middleware/cors";
-
+import dashboardRoutes from "./routes/dashboard";
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
 
@@ -23,6 +23,7 @@ app.use("*", corsMiddleware);
 app.route("/health", health);
 app.route("/auth", auth);
 app.route("/objects", objects);
+app.route("/dashboard", dashboardRoutes);
 app.route("/workflows", workflowRoutes);
 app.route("/executions", executionRoutes);
 app.route("/types", typeRoutes);
