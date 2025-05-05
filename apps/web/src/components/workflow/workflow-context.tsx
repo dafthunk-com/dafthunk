@@ -9,14 +9,16 @@ type UpdateNodeFn = (nodeId: string, data: Partial<WorkflowNodeType>) => void;
 type UpdateEdgeFn = (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
 
 export interface WorkflowContextProps {
-  updateNodeData: UpdateNodeFn;
-  updateEdgeData: UpdateEdgeFn;
+  updateNodeData?: UpdateNodeFn;
+  updateEdgeData?: UpdateEdgeFn;
+  readonly?: boolean;
 }
 
 // Create the context with a default value
 const WorkflowContext = createContext<WorkflowContextProps>({
   updateNodeData: () => {},
   updateEdgeData: () => {},
+  readonly: false,
 });
 
 // Custom hook for using the workflow context
@@ -24,18 +26,21 @@ export const useWorkflow = () => useContext(WorkflowContext);
 
 export interface WorkflowProviderProps {
   readonly children: ReactNode;
-  readonly updateNodeData: UpdateNodeFn;
-  readonly updateEdgeData: UpdateEdgeFn;
+  readonly updateNodeData?: UpdateNodeFn;
+  readonly updateEdgeData?: UpdateEdgeFn;
+  readonly readonly?: boolean;
 }
 
 export function WorkflowProvider({
   children,
-  updateNodeData,
-  updateEdgeData,
+  updateNodeData = () => {},
+  updateEdgeData = () => {},
+  readonly = false,
 }: WorkflowProviderProps) {
   const workflowContextValue = {
     updateNodeData,
     updateEdgeData,
+    readonly,
   };
 
   return (
@@ -67,13 +72,13 @@ export const updateNodeInput = (
   inputId: string,
   value: unknown,
   inputs: readonly WorkflowParameter[],
-  updateNodeData: UpdateNodeFn
+  updateNodeData?: UpdateNodeFn
 ): readonly WorkflowParameter[] => {
   const updatedInputs = inputs.map((input) =>
     input.id === inputId ? { ...input, value } : input
   );
 
-  updateNodeData(nodeId, { inputs: updatedInputs });
+  updateNodeData?.(nodeId, { inputs: updatedInputs });
   return updatedInputs;
 };
 
@@ -81,20 +86,20 @@ export const clearNodeInput = (
   nodeId: string,
   inputId: string,
   inputs: readonly WorkflowParameter[],
-  updateNodeData: UpdateNodeFn
+  updateNodeData?: UpdateNodeFn
 ): readonly WorkflowParameter[] => {
   const updatedInputs = inputs.map((input) =>
     input.id === inputId ? { ...input, value: undefined } : input
   );
 
-  updateNodeData(nodeId, { inputs: updatedInputs });
+  updateNodeData?.(nodeId, { inputs: updatedInputs });
   return updatedInputs;
 };
 
 export const updateNodeName = (
   nodeId: string,
   name: string,
-  updateNodeData: UpdateNodeFn
+  updateNodeData?: UpdateNodeFn
 ): void => {
-  updateNodeData(nodeId, { name });
+  updateNodeData?.(nodeId, { name });
 };

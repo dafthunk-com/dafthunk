@@ -94,6 +94,7 @@ export interface WorkflowCanvasProps {
   isSidebarVisible?: boolean;
   showControls?: boolean;
   isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
+  readonly?: boolean;
 }
 
 // Workflow State Types
@@ -110,6 +111,7 @@ export interface UseWorkflowStateProps {
   onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
   onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
+  readonly?: boolean;
 }
 
 export interface UseWorkflowStateReturn {
@@ -170,11 +172,13 @@ export interface WorkflowNodeSelectorProps {
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  readonly?: boolean;
 }
 
 export interface WorkflowEdgeInspectorProps {
   edge: ReactFlowEdge<WorkflowEdgeType> | null;
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
+  readonly?: boolean;
 }
 
 export interface WorkflowSidebarProps {
@@ -182,6 +186,7 @@ export interface WorkflowSidebarProps {
   edge: ReactFlowEdge<WorkflowEdgeType> | null;
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
+  readonly?: boolean;
 }
 
 export interface WorkflowErrorProps {
@@ -201,6 +206,7 @@ export interface WorkflowBuilderProps {
     workflowId: string,
     onExecution: (execution: WorkflowExecution) => void
   ) => void | (() => void);
+  readonly?: boolean;
 }
 
 export interface TypeBadgeProps {

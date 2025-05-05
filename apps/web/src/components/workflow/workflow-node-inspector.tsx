@@ -32,6 +32,7 @@ import { DocumentWidget } from "./widgets/document-widget";
 export function WorkflowNodeInspector({
   node,
   onNodeUpdate,
+  readonly = false,
 }: WorkflowNodeInspectorProps) {
   const { updateNodeData: contextUpdateNodeData } = useWorkflow();
 
@@ -59,13 +60,15 @@ export function WorkflowNodeInspector({
   if (!node) return null;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (readonly) return;
+    
     const newName = e.target.value;
     setLocalName(newName);
     updateNodeName(node.id, newName, updateNodeData);
   };
 
   const handleInputValueChange = (inputId: string, value: string) => {
-    if (!updateNodeData) return;
+    if (readonly || !updateNodeData) return;
 
     const input = localInputs.find((i) => i.id === inputId);
     if (!input) return;
@@ -84,7 +87,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleClearValue = (inputId: string) => {
-    if (!updateNodeData) return;
+    if (readonly || !updateNodeData) return;
 
     const updatedInputs = clearNodeInput(
       node.id,
@@ -97,7 +100,7 @@ export function WorkflowNodeInspector({
   };
 
   const handleToggleVisibility = (inputId: string) => {
-    if (!updateNodeData) return;
+    if (readonly || !updateNodeData) return;
 
     const updatedInputs = localInputs.map((input) =>
       input.id === inputId ? { ...input, hidden: !input.hidden } : input
@@ -120,7 +123,7 @@ export function WorkflowNodeInspector({
     : null;
 
   const handleWidgetChange = (value: any) => {
-    if (!updateNodeData || !widgetConfig) return;
+    if (readonly || !updateNodeData || !widgetConfig) return;
 
     const valueInput = localInputs.find((i) => i.id === "value");
     if (valueInput) {
@@ -137,7 +140,7 @@ export function WorkflowNodeInspector({
 
   const widgetComponents: Record<
     string,
-    React.FC<{ config: any; onChange: (value: any) => void }>
+    React.FC<{ config: any; onChange: (value: any) => void; readonly?: boolean }>
   > = {
     slider: SliderWidget,
     "radio-group": RadioGroupWidget,
@@ -154,7 +157,9 @@ export function WorkflowNodeInspector({
   return (
     <Card className="border-none shadow-none rounded-none h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Node Properties</CardTitle>
+        <CardTitle className="text-lg">
+          {readonly ? "Node Properties (Read-only)" : "Node Properties"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -169,6 +174,8 @@ export function WorkflowNodeInspector({
               id="node-name"
               value={localName}
               onChange={handleNameChange}
+              disabled={readonly}
+              className={readonly ? "opacity-70" : ""}
             />
           </div>
 
@@ -179,6 +186,7 @@ export function WorkflowNodeInspector({
               {createElement(widgetComponents[nodeType], {
                 config: widgetConfig,
                 onChange: handleWidgetChange,
+                readonly: readonly,
               })}
             </div>
           )}

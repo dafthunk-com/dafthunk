@@ -25,6 +25,7 @@ export function useWorkflowState({
   onNodesChange: onNodesChangeCallback,
   onEdgesChange: onEdgesChangeCallback,
   validateConnection = () => true,
+  readonly = false,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
   const [nodes, setNodes, onNodesChange] =
@@ -43,6 +44,8 @@ export function useWorkflowState({
 
   // Effect to notify parent of changes for nodes
   useEffect(() => {
+    if (readonly) return;
+
     const hasNonExecutionChanges = nodes.some((node) => {
       const initialNode = initialNodes.find((n) => n.id === node.id);
       if (!initialNode) return true;
@@ -64,10 +67,12 @@ export function useWorkflowState({
     if (hasNonExecutionChanges) {
       onNodesChangeCallback?.(nodes);
     }
-  }, [nodes, onNodesChangeCallback, initialNodes]);
+  }, [nodes, onNodesChangeCallback, initialNodes, readonly]);
 
   // Effect to notify parent of changes for edges
   useEffect(() => {
+    if (readonly) return;
+
     const hasNonExecutionChanges = edges.some((edge) => {
       const initialEdge = initialEdges.find((e) => e.id === edge.id);
       if (!initialEdge) return true;
@@ -93,7 +98,7 @@ export function useWorkflowState({
     if (hasNonExecutionChanges) {
       onEdgesChangeCallback?.(edges);
     }
-  }, [edges, onEdgesChangeCallback, initialEdges]);
+  }, [edges, onEdgesChangeCallback, initialEdges, readonly]);
 
   // Effect to keep selectedNode in sync with nodes state
   useEffect(() => {
@@ -107,6 +112,24 @@ export function useWorkflowState({
       }
     }
   }, [nodes, selectedNode]);
+
+  // Custom onNodesChange handler for readonly mode
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      if (readonly) {
+        // In readonly mode, only allow selection but not position changes
+        const filteredChanges = changes.filter(
+          (change: any) => change.type !== "position"
+        );
+        if (filteredChanges.length > 0) {
+          onNodesChange(filteredChanges);
+        }
+      } else {
+        onNodesChange(changes);
+      }
+    },
+    [onNodesChange, readonly]
+  );
 
   // Handle node selection
   const handleNodeClick = useCallback((event: React.MouseEvent, node: any) => {
@@ -147,16 +170,19 @@ export function useWorkflowState({
 
   // Connection event handlers
   const onConnectStart = useCallback(() => {
+    if (readonly) return;
     setConnectionValidationState("default");
-  }, []);
+  }, [readonly]);
 
   const onConnectEnd = useCallback(() => {
+    if (readonly) return;
     setConnectionValidationState("default");
-  }, []);
+  }, [readonly]);
 
   // Function to validate connection based on type compatibility
   const isValidConnection = useCallback(
     (connection: any) => {
+      if (readonly) return false;
       if (!connection.source || !connection.target) return false;
 
       const sourceNode = nodes.find((node) => node.id === connection.source);
@@ -179,12 +205,13 @@ export function useWorkflowState({
       setConnectionValidationState(typesMatch ? "valid" : "invalid");
       return typesMatch && validateConnection(connection);
     },
-    [nodes, validateConnection]
+    [nodes, validateConnection, readonly]
   );
 
   // Handle connection
   const onConnect = useCallback(
     (connection: any) => {
+      if (readonly) return;
       if (!connection.source || !connection.target) return;
       if (!isValidConnection(connection)) return;
 
@@ -220,13 +247,14 @@ export function useWorkflowState({
         return addEdge(newEdge, updatedEdges);
       });
     },
-    [setEdges, isValidConnection]
+    [setEdges, isValidConnection, readonly]
   );
 
   // Node management
   const handleAddNode = useCallback(() => {
+    if (readonly) return;
     setIsNodeSelectorOpen(true);
-  }, []);
+  }, [readonly]);
 
   const handleNodeSelect = useCallback(
     (template: NodeTemplate) => {
@@ -403,8 +431,8 @@ export function useWorkflowState({
     reactFlowInstance,
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
-    onNodesChange,
-    onEdgesChange,
+    onNodesChange: handleNodesChange,
+    onEdgesChange: readonly ? () => {} : onEdgesChange,
     onConnect,
     onConnectStart,
     onConnectEnd,
@@ -419,9 +447,9 @@ export function useWorkflowState({
     updateNodeExecutionState,
     updateNodeExecutionOutputs,
     updateNodeExecutionError,
-    updateNodeData,
-    updateNodeOutputs,
-    updateEdgeData,
-    deleteNode,
+    updateNodeData: readonly ? () => {} : updateNodeData,
+    updateNodeOutputs: readonly ? () => {} : updateNodeOutputs,
+    updateEdgeData: readonly ? () => {} : updateEdgeData,
+    deleteNode: readonly ? () => {} : deleteNode,
   };
 }

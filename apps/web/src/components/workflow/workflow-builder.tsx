@@ -26,6 +26,7 @@ export function WorkflowBuilder({
   onEdgesChange,
   validateConnection,
   executeWorkflow,
+  readonly = false,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] =
@@ -67,13 +68,16 @@ export function WorkflowBuilder({
   } = useWorkflowState({
     initialNodes,
     initialEdges,
-    onNodesChange,
-    onEdgesChange,
+    onNodesChange: readonly ? undefined : onNodesChange,
+    onEdgesChange: readonly ? undefined : onEdgesChange,
     validateConnection,
+    readonly,
   });
 
   // Track input and output connections
   useEffect(() => {
+    if (readonly) return; // Skip connection tracking in readonly mode
+    
     const connectedInputs = new Map();
     const connectedOutputs = new Map();
 
@@ -110,7 +114,7 @@ export function WorkflowBuilder({
         });
       }
     });
-  }, [edges, nodes, updateNodeData]);
+  }, [edges, nodes, updateNodeData, readonly]);
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {
@@ -215,10 +219,9 @@ export function WorkflowBuilder({
   return (
     <ReactFlowProvider>
       <WorkflowProvider
-        updateNodeData={(nodeId, data) => {
-          updateNodeData(nodeId, data);
-        }}
-        updateEdgeData={updateEdgeData}
+        updateNodeData={readonly ? undefined : updateNodeData}
+        updateEdgeData={readonly ? undefined : updateEdgeData}
+        readonly={readonly}
       >
         <div className="w-full h-full flex">
           <div
@@ -228,21 +231,22 @@ export function WorkflowBuilder({
               nodes={nodes}
               edges={edges}
               connectionValidationState={connectionValidationState}
-              onNodesChange={handleNodesChange}
-              onEdgesChange={handleEdgesChange}
-              onConnect={onConnect}
-              onConnectStart={onConnectStart}
-              onConnectEnd={onConnectEnd}
+              onNodesChange={readonly ? () => {} : handleNodesChange}
+              onEdgesChange={readonly ? () => {} : handleEdgesChange}
+              onConnect={readonly ? () => {} : onConnect}
+              onConnectStart={readonly ? () => {} : onConnectStart}
+              onConnectEnd={readonly ? () => {} : onConnectEnd}
               onNodeClick={handleNodeClick}
               onEdgeClick={handleEdgeClick}
               onPaneClick={handlePaneClick}
               onInit={setReactFlowInstance}
-              onAddNode={handleAddNode}
-              onAction={executeWorkflow ? handleActionButtonClick : undefined}
+              onAddNode={readonly ? undefined : handleAddNode}
+              onAction={!readonly && executeWorkflow ? handleActionButtonClick : undefined}
               workflowStatus={workflowStatus}
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
+              readonly={readonly}
             />
           </div>
 
@@ -251,14 +255,15 @@ export function WorkflowBuilder({
               <WorkflowSidebar
                 node={handleSelectedNode}
                 edge={handleSelectedEdge}
-                onNodeUpdate={updateNodeData}
-                onEdgeUpdate={updateEdgeData}
+                onNodeUpdate={readonly ? undefined : updateNodeData}
+                onEdgeUpdate={readonly ? undefined : updateEdgeData}
+                readonly={readonly}
               />
             </div>
           )}
 
           <WorkflowNodeSelector
-            open={handleIsNodeSelectorOpen}
+            open={readonly ? false : handleIsNodeSelectorOpen}
             onSelect={handleNodeSelect}
             onClose={() => handleSetIsNodeSelectorOpen(false)}
             templates={nodeTemplates}

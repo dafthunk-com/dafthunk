@@ -118,16 +118,17 @@ export function WorkflowCanvas({
   isSidebarVisible,
   showControls = true,
   isValidConnection,
+  readonly = false,
 }: WorkflowCanvasProps) {
   return (
     <ReactFlow
       nodes={nodes}
       edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onConnectStart={onConnectStart}
-      onConnectEnd={onConnectEnd}
+      onNodesChange={readonly ? () => {} : onNodesChange}
+      onEdgesChange={readonly ? () => {} : onEdgesChange}
+      onConnect={readonly ? () => {} : onConnect}
+      onConnectStart={readonly ? () => {} : onConnectStart}
+      onConnectEnd={readonly ? () => {} : onConnectEnd}
       onNodeClick={onNodeClick}
       onEdgeClick={onEdgeClick}
       onPaneClick={onPaneClick}
@@ -139,7 +140,14 @@ export function WorkflowCanvas({
       onInit={onInit}
       isValidConnection={isValidConnection}
       fitView
-      className="bg-neutral-100/50"
+      className={cn("bg-neutral-100/50", {
+        "cursor-default": readonly,
+      })}
+      nodesDraggable={!readonly}
+      nodesConnectable={!readonly}
+      elementsSelectable={true}
+      selectNodesOnDrag={!readonly}
+      panOnDrag={true}
     >
       {showControls && (
         <Controls
@@ -155,7 +163,13 @@ export function WorkflowCanvas({
         className="stroke-foreground/5 opacity-50"
       />
 
-      {onAddNode && (
+      {readonly && (
+        <div className="absolute top-4 left-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm font-medium shadow-sm border border-amber-200 z-50">
+          Read-only Mode
+        </div>
+      )}
+
+      {onAddNode && !readonly && (
         <Button
           onClick={(e) => {
             e.preventDefault();
@@ -169,7 +183,7 @@ export function WorkflowCanvas({
         </Button>
       )}
 
-      {onAction && (
+      {onAction && !readonly && (
         <ActionButton onClick={onAction} workflowStatus={workflowStatus} />
       )}
 
