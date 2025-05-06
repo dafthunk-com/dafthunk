@@ -13,16 +13,14 @@ import { API_BASE_URL } from "@/config/api";
 import { AlertCircle } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { format } from "date-fns";
-import {
-  ExecutionStatusBadge,
-} from "@/components/executions/execution-status-badge";
+import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import { 
-  NodeTemplate, 
+import {
+  NodeTemplate,
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
-  WorkflowExecutionStatus as WorkflowBuilderExecutionStatus
+  WorkflowExecutionStatus as WorkflowBuilderExecutionStatus,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
@@ -44,7 +42,8 @@ export function ExecutionDetailPage() {
   const [edges, setEdges] = useState<any[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
-  const [workflowBuilderExecution, setWorkflowBuilderExecution] = useState<WorkflowBuilderExecution | null>(null);
+  const [workflowBuilderExecution, setWorkflowBuilderExecution] =
+    useState<WorkflowBuilderExecution | null>(null);
 
   // Fetch node templates/types
   useEffect(() => {
@@ -97,7 +96,7 @@ export function ExecutionDetailPage() {
           throw new Error(`Failed to fetch execution: ${response.statusText}`);
         const executionData: WorkflowExecution = await response.json();
         setExecution(executionData);
-        
+
         // Map API execution to builder execution format
         const builderExecution: WorkflowBuilderExecution = {
           status: executionData.status as WorkflowBuilderExecutionStatus,
@@ -106,17 +105,17 @@ export function ExecutionDetailPage() {
               nodeId: nodeExec.nodeId,
               status: nodeExec.status as any,
               outputs: nodeExec.outputs || {},
-              error: nodeExec.error
+              error: nodeExec.error,
             })
-          )
+          ),
         };
         setWorkflowBuilderExecution(builderExecution);
-        
+
         setBreadcrumbs([
           { label: "Executions", to: "/workflows/executions" },
           { label: `${executionId}` },
         ]);
-        
+
         // Fetch workflow info if available
         if (executionData.workflowId) {
           try {
@@ -134,7 +133,7 @@ export function ExecutionDetailPage() {
             // Continue without workflow info
           }
         }
-        
+
         // Fetch deployment/workflow structure for visualization
         if (executionData.deploymentId) {
           // Prefer deployment for exact structure
@@ -154,7 +153,7 @@ export function ExecutionDetailPage() {
             return;
           }
         }
-        
+
         // Fallback: fetch workflow structure
         if (executionData.workflowId) {
           const wfRes = await fetch(
@@ -173,12 +172,12 @@ export function ExecutionDetailPage() {
             return;
           }
         }
-        
+
         // If no structure found, clear
         setNodes([]);
         setEdges([]);
       } catch (error) {
-        console.error('Error fetching execution:', error);
+        console.error("Error fetching execution:", error);
         toast.error("Failed to fetch execution details. Please try again.");
       } finally {
         setIsLoading(false);
@@ -196,7 +195,7 @@ export function ExecutionDetailPage() {
     // Map nodeExecutions by nodeId for fast lookup
     const execMap = new Map<string, NodeExecution>();
     for (const n of nodeExecutions || []) execMap.set(n.nodeId, n);
-    
+
     // Transform nodes
     const reactFlowNodes = structureNodes.map((node) => {
       const exec = execMap.get(node.id);
@@ -227,12 +226,12 @@ export function ExecutionDetailPage() {
         },
       };
     });
-    
+
     // Transform edges
     const reactFlowEdges = Array.from(
       workflowEdgeService.convertToReactFlowEdges(structureEdges)
     );
-    
+
     setNodes(reactFlowNodes);
     setEdges(reactFlowEdges);
   }
@@ -287,17 +286,23 @@ export function ExecutionDetailPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
-                        <ExecutionStatusBadge status={execution.status as any} />
+                        <ExecutionStatusBadge
+                          status={execution.status as any}
+                        />
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Started:</span>
-                        <span>{formatDateTime(execution.startedAt as string)}</span>
+                        <span>
+                          {formatDateTime(execution.startedAt as string)}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
                           Completed:
                         </span>
-                        <span>{formatDateTime(execution.endedAt as string)}</span>
+                        <span>
+                          {formatDateTime(execution.endedAt as string)}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Duration:</span>

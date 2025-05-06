@@ -137,6 +137,7 @@ export const WorkflowNode = memo(
   }) => {
     const { updateNodeData, readonly } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
+    const [showError, setShowError] = useState(true);
     const hasOutputValues = data.outputs.some(
       (output) => output.value !== undefined
     );
@@ -345,53 +346,70 @@ export const WorkflowNode = memo(
             </div>
           </div>
 
-          {/* Output Values Section - Always visible but disabled when no outputs */}
-          <div
-            className={cn(
-              "px-2 py-1 border-t flex items-center justify-between nodrag transition-colors",
-              {
-                "cursor-pointer hover:bg-secondary/50": hasOutputValues,
-                "cursor-not-allowed opacity-60": !hasOutputValues,
-              }
-            )}
-            onClick={() => hasOutputValues && setShowOutputs(!showOutputs)}
-          >
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-              Outputs
-            </span>
-            {hasOutputValues ? (
-              showOutputs ? (
-                <ChevronUp className="h-3 w-3 text-neutral-500" />
-              ) : (
-                <ChevronDown className="h-3 w-3 text-neutral-500" />
-              )
-            ) : (
-              <ChevronDown className="h-3 w-3 text-neutral-300 dark:text-neutral-600" />
-            )}
-          </div>
+          {/* Output Values Section - Only shown when there are output values */}
+          {hasOutputValues && (
+            <>
+              <div
+                className="px-2 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
+                onClick={() => setShowOutputs(!showOutputs)}
+              >
+                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                  Outputs
+                </span>
+                {showOutputs ? (
+                  <ChevronUp className="h-3 w-3 text-neutral-500" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-neutral-500" />
+                )}
+              </div>
 
-          {hasOutputValues && showOutputs && (
-            <div className="px-2 pt-1 pb-2 border-t space-y-2">
-              {data.outputs.map(
-                (output, index) =>
-                  output.value !== undefined && (
-                    <div
-                      key={`output-value-${output.id}-${index}`}
-                      className="space-y-1"
-                    >
-                      <div className="text-xs font-medium">{output.name}</div>
-                      <WorkflowOutputRenderer output={output} compact={true} />
-                    </div>
-                  )
+              {showOutputs && (
+                <div className="px-2 pt-1 pb-2 border-t space-y-2">
+                  {data.outputs.map(
+                    (output, index) =>
+                      output.value !== undefined && (
+                        <div
+                          key={`output-value-${output.id}-${index}`}
+                          className="space-y-1"
+                        >
+                          <div className="text-xs font-medium">
+                            {output.name}
+                          </div>
+                          <WorkflowOutputRenderer
+                            output={output}
+                            compact={true}
+                          />
+                        </div>
+                      )
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
 
-          {/* Error Display */}
+          {/* Error Display - Collapsible */}
           {data.error && (
-            <div className="p-2 bg-red-50 text-red-600 text-xs border-t border-red-200 dark:bg-red-900 dark:text-red-400 dark:border-red-800">
-              <p className="m-0">{data.error}</p>
-            </div>
+            <>
+              <div
+                className="px-2 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-red-100 dark:hover:bg-red-950 transition-colors"
+                onClick={() => setShowError(!showError)}
+              >
+                <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                  Error
+                </span>
+                {showError ? (
+                  <ChevronUp className="h-3 w-3 text-red-500" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+
+              {showError && (
+                <div className="p-2 bg-red-50 text-red-600 text-xs border-t border-red-200 dark:bg-red-900 dark:text-red-400 dark:border-red-800">
+                  <p className="m-0">{data.error}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 

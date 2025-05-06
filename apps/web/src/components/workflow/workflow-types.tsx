@@ -154,10 +154,7 @@ export interface UseWorkflowStateReturn {
       ReactFlowEdge<WorkflowEdgeType>
     > | null
   ) => void;
-  updateNodeExecution: (
-    nodeId: string,
-    update: NodeExecutionUpdate
-  ) => void;
+  updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;

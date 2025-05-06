@@ -16,7 +16,6 @@ import {
   WorkflowNodeType,
   WorkflowEdgeType,
   WorkflowExecutionStatus,
-  WorkflowNodeExecution,
   WorkflowExecution,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
@@ -346,33 +345,33 @@ export function EditorPage() {
                 (await statusResponse.json()) as BackendWorkflowExecution;
               onExecution({
                 status: loadedExecution.status as WorkflowExecutionStatus,
-                nodeExecutions: loadedExecution.nodeExecutions.map(ne => ({
+                nodeExecutions: loadedExecution.nodeExecutions.map((ne) => ({
                   nodeId: ne.nodeId,
                   status: ne.status as any,
                   outputs: ne.outputs || {},
-                  error: ne.error
-                }))
+                  error: ne.error,
+                })),
               });
             } else {
               onExecution({
                 status: initialExecution.status as WorkflowExecutionStatus,
-                nodeExecutions: initialExecution.nodeExecutions.map(ne => ({
+                nodeExecutions: initialExecution.nodeExecutions.map((ne) => ({
                   nodeId: ne.nodeId,
                   status: ne.status as any,
                   outputs: ne.outputs || {},
-                  error: ne.error
-                }))
+                  error: ne.error,
+                })),
               });
             }
           } catch {
             onExecution({
               status: initialExecution.status as WorkflowExecutionStatus,
-              nodeExecutions: initialExecution.nodeExecutions.map(ne => ({
+              nodeExecutions: initialExecution.nodeExecutions.map((ne) => ({
                 nodeId: ne.nodeId,
                 status: ne.status as any,
                 outputs: ne.outputs || {},
-                error: ne.error
-              }))
+                error: ne.error,
+              })),
             });
           }
           const pollInterval = setInterval(async () => {
@@ -393,12 +392,12 @@ export function EditorPage() {
                 (await statusResponse.json()) as BackendWorkflowExecution;
               onExecution({
                 status: execution.status as WorkflowExecutionStatus,
-                nodeExecutions: execution.nodeExecutions.map(ne => ({
+                nodeExecutions: execution.nodeExecutions.map((ne) => ({
                   nodeId: ne.nodeId,
                   status: ne.status as any,
                   outputs: ne.outputs || {},
-                  error: ne.error
-                }))
+                  error: ne.error,
+                })),
               });
               if (
                 execution.status === "completed" ||
@@ -458,10 +457,13 @@ export function EditorPage() {
       workflowId: string,
       onExecution: (execution: WorkflowExecution) => void
     ) => {
-      return executeWorkflow(workflowId, (localExecution: WorkflowExecution) => {
-        // Our executeWorkflow function now already returns the correct local WorkflowExecution type
-        onExecution(localExecution);
-      });
+      return executeWorkflow(
+        workflowId,
+        (localExecution: WorkflowExecution) => {
+          // Our executeWorkflow function now already returns the correct local WorkflowExecution type
+          onExecution(localExecution);
+        }
+      );
     },
     [executeWorkflow]
   );
