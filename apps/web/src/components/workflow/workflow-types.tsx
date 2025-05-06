@@ -114,6 +114,12 @@ export interface UseWorkflowStateProps {
   readonly?: boolean;
 }
 
+export type NodeExecutionUpdate = {
+  state?: NodeExecutionState;
+  outputs?: Record<string, any>;
+  error?: string;
+};
+
 export interface UseWorkflowStateReturn {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
@@ -149,22 +155,11 @@ export interface UseWorkflowStateReturn {
       ReactFlowEdge<WorkflowEdgeType>
     > | null
   ) => void;
-  updateNodeExecutionState: (nodeId: string, state: NodeExecutionState) => void;
-  updateNodeExecutionOutputs: (
-    nodeId: string,
-    outputs: Record<string, any>
-  ) => void;
-  updateNodeExecutionError: (nodeId: string, error: string | undefined) => void;
   updateNodeExecution: (
     nodeId: string,
-    options: {
-      state?: NodeExecutionState;
-      outputs?: Record<string, any>;
-      error?: string | undefined;
-    }
+    update: NodeExecutionUpdate
   ) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
-  updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;
 }

@@ -16,6 +16,7 @@ import {
   UseWorkflowStateProps,
   UseWorkflowStateReturn,
   NodeExecutionState,
+  NodeExecutionUpdate,
 } from "./workflow-types";
 import { workflowExecutionService } from "@/services/workflowExecutionService";
 
@@ -283,74 +284,12 @@ export function useWorkflowState({
     [reactFlowInstance, setNodes]
   );
 
-  // Update node execution state without triggering save
-  const updateNodeExecutionState = useCallback(
-    (nodeId: string, state: NodeExecutionState) => {
-      setNodes((nds) => [
-        ...workflowExecutionService.updateNodesWithExecutionState(
-          nds,
-          nodeId,
-          state
-        ),
-      ]);
-
-      // Handle edge updates based on node execution state
-      const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
-      const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
-
-      setEdges((eds) => [
-        ...workflowExecutionService.updateEdgesForNodeExecution(
-          eds,
-          nodeId,
-          state,
-          connectedEdgeIds
-        ),
-      ]);
-    },
-    [edges, setNodes, setEdges]
-  );
-
-  // Node data update functions
-  const updateNodeExecutionOutputs = useCallback(
-    (nodeId: string, outputs: Record<string, any>) => {
-      setNodes((nds) => [
-        ...workflowExecutionService.updateNodesWithExecutionOutputs(
-          nds,
-          nodeId,
-          outputs
-        ),
-      ]);
-    },
-    [setNodes]
-  );
-
-  const updateNodeExecutionError = useCallback(
-    (nodeId: string, error: string | undefined) => {
-      setNodes((nds) => [
-        ...workflowExecutionService.updateNodesWithExecutionError(
-          nds,
-          nodeId,
-          error
-        ),
-      ]);
-    },
-    [setNodes]
-  );
-
   // Unified function to update node execution data
   const updateNodeExecution = useCallback(
-    (
-      nodeId: string,
-      options: {
-        state?: NodeExecutionState;
-        outputs?: Record<string, any>;
-        error?: string | undefined;
-      }
-    ) => {
-      const { state, outputs, error } = options;
+    (nodeId: string, update: NodeExecutionUpdate) => {
+      const { state, outputs, error } = update;
 
       setNodes((nds) => {
-        // Apply updates sequentially using type assertions to handle readonly arrays
         let updatedNodes = nds;
 
         if (state !== undefined) {
@@ -378,11 +317,9 @@ export function useWorkflowState({
           );
         }
 
-        // Create a mutable copy for React state update
         return [...updatedNodes];
       });
 
-      // Handle edge updates if state changed
       if (state !== undefined) {
         const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
         const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
@@ -414,33 +351,6 @@ export function useWorkflowState({
               }
             : node
         )
-      );
-    },
-    [setNodes]
-  );
-
-  const updateNodeOutputs = useCallback(
-    (nodeId: string, outputs: Record<string, any>) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id !== nodeId) return node;
-
-          const updatedOutputs = node.data.outputs.map((output) => ({
-            ...output,
-            value:
-              outputs[output.id] !== undefined
-                ? outputs[output.id]
-                : output.value,
-          }));
-
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              outputs: updatedOutputs,
-            },
-          };
-        })
       );
     },
     [setNodes]
@@ -507,12 +417,8 @@ export function useWorkflowState({
     handleAddNode,
     handleNodeSelect,
     setReactFlowInstance,
-    updateNodeExecutionState,
-    updateNodeExecutionOutputs,
-    updateNodeExecutionError,
     updateNodeExecution,
     updateNodeData: readonly ? () => {} : updateNodeData,
-    updateNodeOutputs: readonly ? () => {} : updateNodeOutputs,
     updateEdgeData: readonly ? () => {} : updateEdgeData,
     deleteNode: readonly ? () => {} : deleteNode,
   };
