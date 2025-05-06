@@ -222,7 +222,7 @@ export interface WorkflowBuilderProps {
   validateConnection?: (connection: Connection) => boolean;
   executeWorkflow?: (
     workflowId: string,
-    onExecution: (executionStatus: WorkflowExecutionStatus, nodeExecutions: WorkflowNodeExecution[]) => void
+    onExecution: (execution: WorkflowExecution) => void
   ) => void | (() => void);
   readonly?: boolean;
 }
@@ -231,4 +231,9 @@ export interface TypeBadgeProps {
   type: string;
   position: import("@xyflow/react").Position;
   id: string;
+}
+
+export interface WorkflowExecution {
+  status: WorkflowExecutionStatus;
+  nodeExecutions: WorkflowNodeExecution[];
 }

@@ -2,7 +2,7 @@ import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
 import { WorkflowCanvas } from "./workflow-canvas";
-import { WorkflowBuilderProps, WorkflowExecutionStatus, WorkflowNodeExecution } from "./workflow-types";
+import { WorkflowBuilderProps, WorkflowExecutionStatus, WorkflowNodeExecution, WorkflowExecution } from "./workflow-types";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { WorkflowProvider } from "./workflow-context";
@@ -129,17 +129,17 @@ export function WorkflowBuilder({
     resetNodeStates();
     setWorkflowStatus("executing"); // Local immediate update
 
-    return executeWorkflow(workflowId, (executionStatus: WorkflowExecutionStatus, nodeExecutions: WorkflowNodeExecution[]) => {
+    return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
       // Only update status if the new status is not 'idle' while we are 'executing',
       // or if the local status is not 'executing' anymore (e.g., already completed/errored).
       setWorkflowStatus((currentStatus) => {
-        if (currentStatus === "executing" && executionStatus === "idle") {
+        if (currentStatus === "executing" && execution.status === "idle") {
           return currentStatus; // Ignore initial idle updates while executing
         }
-        return executionStatus; // Apply other status updates
+        return execution.status; // Apply other status updates
       });
 
-      nodeExecutions.forEach((nodeExecution) => {
+      execution.nodeExecutions.forEach((nodeExecution) => {
         updateNodeExecution(nodeExecution.nodeId, {
           state: nodeExecution.status,
           outputs: nodeExecution.outputs || {},
@@ -147,10 +147,10 @@ export function WorkflowBuilder({
         });
       });
 
-      if (executionStatus === "error") {
+      if (execution.status === "error") {
         setErrorDialogState({
           open: true,
-          message: nodeExecutions.find(n => n.error)?.error || "Unknown error",
+          message: execution.nodeExecutions.find(n => n.error)?.error || "Unknown error",
         });
       }
     });
