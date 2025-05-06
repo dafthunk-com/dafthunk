@@ -5,7 +5,7 @@ import {
   Workflow,
   Parameter,
   ParameterType,
-  WorkflowExecution,
+  WorkflowExecution as BackendWorkflowExecution,
 } from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
@@ -17,6 +17,7 @@ import {
   WorkflowEdgeType,
   WorkflowExecutionStatus,
   WorkflowNodeExecution,
+  WorkflowExecution,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
@@ -331,7 +332,7 @@ export function EditorPage() {
           }
           return response.json();
         })
-        .then(async (initialExecution: WorkflowExecution) => {
+        .then(async (initialExecution: BackendWorkflowExecution) => {
           const executionId = initialExecution.id;
           try {
             const statusResponse = await fetch(
@@ -342,13 +343,37 @@ export function EditorPage() {
             );
             if (statusResponse.ok) {
               const loadedExecution =
-                (await statusResponse.json()) as WorkflowExecution;
-              onExecution(loadedExecution);
+                (await statusResponse.json()) as BackendWorkflowExecution;
+              onExecution({
+                status: loadedExecution.status as WorkflowExecutionStatus,
+                nodeExecutions: loadedExecution.nodeExecutions.map(ne => ({
+                  nodeId: ne.nodeId,
+                  status: ne.status as any,
+                  outputs: ne.outputs || {},
+                  error: ne.error
+                }))
+              });
             } else {
-              onExecution(initialExecution);
+              onExecution({
+                status: initialExecution.status as WorkflowExecutionStatus,
+                nodeExecutions: initialExecution.nodeExecutions.map(ne => ({
+                  nodeId: ne.nodeId,
+                  status: ne.status as any,
+                  outputs: ne.outputs || {},
+                  error: ne.error
+                }))
+              });
             }
           } catch {
-            onExecution(initialExecution);
+            onExecution({
+              status: initialExecution.status as WorkflowExecutionStatus,
+              nodeExecutions: initialExecution.nodeExecutions.map(ne => ({
+                nodeId: ne.nodeId,
+                status: ne.status as any,
+                outputs: ne.outputs || {},
+                error: ne.error
+              }))
+            });
           }
           const pollInterval = setInterval(async () => {
             try {
@@ -365,8 +390,16 @@ export function EditorPage() {
                 throw new Error("Failed to fetch execution status");
               }
               const execution =
-                (await statusResponse.json()) as WorkflowExecution;
-              onExecution(execution);
+                (await statusResponse.json()) as BackendWorkflowExecution;
+              onExecution({
+                status: execution.status as WorkflowExecutionStatus,
+                nodeExecutions: execution.nodeExecutions.map(ne => ({
+                  nodeId: ne.nodeId,
+                  status: ne.status as any,
+                  outputs: ne.outputs || {},
+                  error: ne.error
+                }))
+              });
               if (
                 execution.status === "completed" ||
                 execution.status === "error"
@@ -423,19 +456,11 @@ export function EditorPage() {
   const executeWorkflowWrapper = useCallback(
     (
       workflowId: string,
-      onExecution: (executionStatus: WorkflowExecutionStatus, nodeExecutions: WorkflowNodeExecution[]) => void
+      onExecution: (execution: WorkflowExecution) => void
     ) => {
-      return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
-        // Map WorkflowExecution to local types
-        const mappedNodeExecutions = execution.nodeExecutions.map(nodeExec => ({
-          nodeId: nodeExec.nodeId,
-          status: nodeExec.status as any, // Map backend status to our NodeExecutionState
-          outputs: nodeExec.outputs || {},
-          error: nodeExec.error
-        }));
-        
-        // Pass the mapped execution data to the callback
-        onExecution(execution.status as WorkflowExecutionStatus, mappedNodeExecutions);
+      return executeWorkflow(workflowId, (localExecution: WorkflowExecution) => {
+        // Our executeWorkflow function now already returns the correct local WorkflowExecution type
+        onExecution(localExecution);
       });
     },
     [executeWorkflow]
