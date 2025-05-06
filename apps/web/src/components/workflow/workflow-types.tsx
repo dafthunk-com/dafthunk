@@ -224,6 +224,7 @@ export interface WorkflowBuilderProps {
     workflowId: string,
     onExecution: (execution: WorkflowExecution) => void
   ) => void | (() => void);
+  initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
 }
 

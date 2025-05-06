@@ -25,19 +25,21 @@ export function WorkflowBuilder({
   onEdgesChange,
   validateConnection,
   executeWorkflow,
+  initialWorkflowExecution,
   readonly = false,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] =
-    useState<WorkflowExecutionStatus>("idle");
+    useState<WorkflowExecutionStatus>(initialWorkflowExecution?.status || "idle");
   const [errorDialogState, setErrorDialogState] = useState<{
     open: boolean;
     message: string;
   }>({
-    open: false,
-    message: "",
+    open: initialWorkflowExecution?.status === "error" && !!initialWorkflowExecution.nodeExecutions.find(n => n.error),
+    message: initialWorkflowExecution?.nodeExecutions.find(n => n.error)?.error || "",
   });
   const cleanupRef = useRef<(() => void) | null>(null);
+  const initializedRef = useRef(false);
 
   const {
     nodes,
@@ -112,6 +114,40 @@ export function WorkflowBuilder({
       }
     });
   }, [edges, nodes, updateNodeData, readonly]);
+
+  // Apply initial workflow execution state
+  useEffect(() => {
+    // Only apply the initial state once
+    if (initialWorkflowExecution && !initializedRef.current) {
+      initializedRef.current = true;
+      setWorkflowStatus(initialWorkflowExecution.status);
+      
+      // Apply all node execution states at once to avoid multiple re-renders
+      const nodeUpdates = initialWorkflowExecution.nodeExecutions.map(nodeExecution => ({
+        nodeId: nodeExecution.nodeId,
+        update: {
+          state: nodeExecution.status,
+          outputs: nodeExecution.outputs || {},
+          error: nodeExecution.error,
+        }
+      }));
+      
+      // Process all node updates
+      nodeUpdates.forEach(({nodeId, update}) => {
+        updateNodeExecution(nodeId, update);
+      });
+
+      if (initialWorkflowExecution.status === "error") {
+        const errorNode = initialWorkflowExecution.nodeExecutions.find(n => n.error);
+        if (errorNode) {
+          setErrorDialogState({
+            open: true,
+            message: errorNode.error || "Unknown error",
+          });
+        }
+      }
+    }
+  }, [initialWorkflowExecution]);
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {

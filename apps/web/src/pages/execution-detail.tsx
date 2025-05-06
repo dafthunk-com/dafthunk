@@ -19,7 +19,7 @@ import {
 } from "@/components/executions/execution-status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import { NodeTemplate } from "@/components/workflow/workflow-types";
+import { NodeTemplate, WorkflowExecution as WorkflowExecutionState } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
 
@@ -61,6 +61,7 @@ export function ExecutionDetailPage() {
   const [edges, setEdges] = useState<any[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
+  const [workflowExecutionState, setWorkflowExecutionState] = useState<WorkflowExecutionState | null>(null);
 
   // Fetch node templates/types
   useEffect(() => {
@@ -192,6 +193,7 @@ export function ExecutionDetailPage() {
     // Map nodeExecutions by nodeId for fast lookup
     const execMap = new Map<string, any>();
     for (const n of nodeExecutions || []) execMap.set(n.nodeId, n);
+    
     // Transform nodes
     const reactFlowNodes = structureNodes.map((node) => {
       const exec = execMap.get(node.id);
@@ -222,12 +224,43 @@ export function ExecutionDetailPage() {
         },
       };
     });
+    
     // Transform edges
     const reactFlowEdges = Array.from(
       workflowEdgeService.convertToReactFlowEdges(structureEdges)
     );
+    
     setNodes(reactFlowNodes);
     setEdges(reactFlowEdges);
+    
+    // Create workflow execution state directly from nodeExecutions
+    // Calculate overall status based on node executions
+    let overallStatus: WorkflowExecutionState["status"] = "completed";
+    
+    // If any node is in error state, the workflow is in error state
+    if (nodeExecutions.some(n => n.status === "error")) {
+      overallStatus = "error";
+    }
+    // If any node is executing, the workflow is executing
+    else if (nodeExecutions.some(n => n.status === "executing")) {
+      overallStatus = "executing";
+    }
+    // If there are no nodes or all nodes are idle, the workflow is idle
+    else if (nodeExecutions.length === 0 || nodeExecutions.every(n => n.status === "idle")) {
+      overallStatus = "idle";
+    }
+    
+    const executionState: WorkflowExecutionState = {
+      status: overallStatus,
+      nodeExecutions: nodeExecutions.map(nodeExec => ({
+        nodeId: nodeExec.nodeId,
+        status: nodeExec.status as any,
+        outputs: nodeExec.output,
+        error: nodeExec.error
+      }))
+    };
+    
+    setWorkflowExecutionState(executionState);
   }
 
   const calculateDuration = (startedAt: string, endedAt?: string) => {
@@ -361,13 +394,14 @@ export function ExecutionDetailPage() {
             </TabsContent>
             <TabsContent value="visualization" className="mt-4">
               <div className="h-[calc(100vh-280px)] border rounded-md relative">
-                {nodes.length > 0 && (
+                {nodes.length > 0 && workflowExecutionState && (
                   <WorkflowBuilder
                     workflowId={execution.id}
                     initialNodes={nodes}
                     initialEdges={edges}
                     nodeTemplates={nodeTemplates}
                     validateConnection={validateConnection}
+                    initialWorkflowExecution={workflowExecutionState}
                     readonly={true}
                   />
                 )}
