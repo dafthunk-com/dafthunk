@@ -15,6 +15,8 @@ import {
   NodeTemplate,
   WorkflowNodeType,
   WorkflowEdgeType,
+  WorkflowExecutionStatus,
+  WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
@@ -417,6 +419,28 @@ export function EditorPage() {
     []
   );
 
+  // We need to create a wrapper executeWorkflow function that maps @dafthunk/types to our local types
+  const executeWorkflowWrapper = useCallback(
+    (
+      workflowId: string,
+      onExecution: (executionStatus: WorkflowExecutionStatus, nodeExecutions: WorkflowNodeExecution[]) => void
+    ) => {
+      return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
+        // Map WorkflowExecution to local types
+        const mappedNodeExecutions = execution.nodeExecutions.map(nodeExec => ({
+          nodeId: nodeExec.nodeId,
+          status: nodeExec.status as any, // Map backend status to our NodeExecutionState
+          outputs: nodeExec.outputs || {},
+          error: nodeExec.error
+        }));
+        
+        // Pass the mapped execution data to the callback
+        onExecution(execution.status as WorkflowExecutionStatus, mappedNodeExecutions);
+      });
+    },
+    [executeWorkflow]
+  );
+
   // Handle retry loading
   const handleRetryLoading = () => {
     if (id) {
@@ -484,7 +508,7 @@ export function EditorPage() {
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
             validateConnection={validateConnection}
-            executeWorkflow={executeWorkflow}
+            executeWorkflow={executeWorkflowWrapper}
           />
         </div>
       </div>

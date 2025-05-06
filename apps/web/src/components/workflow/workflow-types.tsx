@@ -10,7 +10,6 @@ import {
   OnNodesChange,
   OnEdgesChange,
 } from "@xyflow/react";
-import { WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
 
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
@@ -197,6 +196,22 @@ export interface WorkflowErrorProps {
   details?: string;
 }
 
+export type WorkflowExecutionStatus =
+  | "idle"
+  | "executing"
+  | "completed"
+  | "error"
+  | "cancelled"
+  | "paused";
+
+// Simplified local execution type to use in the workflow builder
+export type WorkflowNodeExecution = {
+  nodeId: string;
+  status: NodeExecutionState;
+  outputs?: Record<string, any>;
+  error?: string;
+};
+
 export interface WorkflowBuilderProps {
   workflowId: string;
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
@@ -207,7 +222,7 @@ export interface WorkflowBuilderProps {
   validateConnection?: (connection: Connection) => boolean;
   executeWorkflow?: (
     workflowId: string,
-    onExecution: (execution: WorkflowExecution) => void
+    onExecution: (executionStatus: WorkflowExecutionStatus, nodeExecutions: WorkflowNodeExecution[]) => void
   ) => void | (() => void);
   readonly?: boolean;
 }

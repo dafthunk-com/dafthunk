@@ -2,7 +2,7 @@ import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
 import { WorkflowCanvas } from "./workflow-canvas";
-import { WorkflowBuilderProps } from "./workflow-types";
+import { WorkflowBuilderProps, WorkflowExecutionStatus, WorkflowNodeExecution } from "./workflow-types";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { WorkflowProvider } from "./workflow-context";
@@ -15,7 +15,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { WorkflowExecutionStatus, WorkflowExecution } from "@dafthunk/types";
 
 export function WorkflowBuilder({
   workflowId,
@@ -130,17 +129,17 @@ export function WorkflowBuilder({
     resetNodeStates();
     setWorkflowStatus("executing"); // Local immediate update
 
-    return executeWorkflow(workflowId, (execution: WorkflowExecution) => {
+    return executeWorkflow(workflowId, (executionStatus: WorkflowExecutionStatus, nodeExecutions: WorkflowNodeExecution[]) => {
       // Only update status if the new status is not 'idle' while we are 'executing',
       // or if the local status is not 'executing' anymore (e.g., already completed/errored).
       setWorkflowStatus((currentStatus) => {
-        if (currentStatus === "executing" && execution.status === "idle") {
+        if (currentStatus === "executing" && executionStatus === "idle") {
           return currentStatus; // Ignore initial idle updates while executing
         }
-        return execution.status; // Apply other status updates
+        return executionStatus; // Apply other status updates
       });
 
-      execution.nodeExecutions.forEach((nodeExecution) => {
+      nodeExecutions.forEach((nodeExecution) => {
         updateNodeExecution(nodeExecution.nodeId, {
           state: nodeExecution.status,
           outputs: nodeExecution.outputs || {},
@@ -148,10 +147,10 @@ export function WorkflowBuilder({
         });
       });
 
-      if (execution.status === "error") {
+      if (executionStatus === "error") {
         setErrorDialogState({
           open: true,
-          message: execution.error || "Unknown error",
+          message: nodeExecutions.find(n => n.error)?.error || "Unknown error",
         });
       }
     });
