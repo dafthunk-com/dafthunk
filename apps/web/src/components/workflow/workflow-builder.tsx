@@ -118,25 +118,69 @@ export function WorkflowBuilder({
   // Apply initial workflow execution state
   useEffect(() => {
     // Only apply the initial state once
-    if (initialWorkflowExecution && !initializedRef.current) {
+    if (initialWorkflowExecution && !initializedRef.current && nodes.length > 0) {
       initializedRef.current = true;
       setWorkflowStatus(initialWorkflowExecution.status);
       
-      // Apply all node execution states at once to avoid multiple re-renders
-      const nodeUpdates = initialWorkflowExecution.nodeExecutions.map(nodeExecution => ({
-        nodeId: nodeExecution.nodeId,
-        update: {
-          state: nodeExecution.status,
-          outputs: nodeExecution.outputs || {},
-          error: nodeExecution.error,
-        }
-      }));
+      console.log("Initializing workflow with execution:", initialWorkflowExecution);
       
-      // Process all node updates
-      nodeUpdates.forEach(({nodeId, update}) => {
-        updateNodeExecution(nodeId, update);
+      // Process each node execution
+      initialWorkflowExecution.nodeExecutions.forEach(nodeExec => {
+        const node = nodes.find(n => n.id === nodeExec.nodeId);
+        if (!node) {
+          console.warn(`Node not found for execution: ${nodeExec.nodeId}`);
+          return;
+        }
+        
+        console.log(`Processing node ${nodeExec.nodeId}:`, {
+          node: node.data,
+          execution: nodeExec
+        });
+        
+        // Create updated outputs with values
+        const updatedOutputs = node.data.outputs.map(output => {
+          // Try to find the output value using both id and name
+          let outputValue = undefined;
+          if (nodeExec.outputs) {
+            // First check by id
+            outputValue = nodeExec.outputs[output.id];
+            
+            // If not found, check by name
+            if (outputValue === undefined) {
+              outputValue = nodeExec.outputs[output.name];
+            }
+          }
+          
+          console.log(`Output ${output.name}:`, { 
+            original: output.value, 
+            new: outputValue,
+            nodeExecutionOutputs: nodeExec.outputs
+          });
+          
+          return {
+            ...output,
+            value: outputValue
+          };
+        });
+        
+        console.log(`Updated outputs for ${nodeExec.nodeId}:`, updatedOutputs);
+        
+        // Force the executionState to be completed even if it's not in the execution
+        // This ensures the outputs are displayed
+        const executionState = nodeExec.status === "idle" && 
+          updatedOutputs.some(o => o.value !== undefined) 
+          ? "completed" 
+          : nodeExec.status;
+        
+        // Update the node data
+        updateNodeData(nodeExec.nodeId, {
+          outputs: updatedOutputs,
+          executionState: executionState,
+          error: nodeExec.error
+        });
       });
-
+      
+      // Handle error dialog if execution failed
       if (initialWorkflowExecution.status === "error") {
         const errorNode = initialWorkflowExecution.nodeExecutions.find(n => n.error);
         if (errorNode) {
@@ -147,7 +191,7 @@ export function WorkflowBuilder({
         }
       }
     }
-  }, [initialWorkflowExecution]);
+  }, [initialWorkflowExecution, nodes, updateNodeData]);
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {

@@ -15,35 +15,18 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { format } from "date-fns";
 import {
   ExecutionStatusBadge,
-  ExecutionStatus,
 } from "@/components/executions/execution-status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import { NodeTemplate, WorkflowExecution as WorkflowExecutionState } from "@/components/workflow/workflow-types";
+import { 
+  NodeTemplate, 
+  WorkflowExecution as WorkflowBuilderExecution,
+  WorkflowNodeExecution,
+  WorkflowExecutionStatus as WorkflowBuilderExecutionStatus
+} from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
-
-interface NodeExecution {
-  nodeId: string;
-  nodeName: string;
-  status: ExecutionStatus;
-  startedAt?: string;
-  endedAt?: string;
-  input?: any;
-  output?: any;
-  error?: string;
-}
-
-interface WorkflowExecution {
-  id: string;
-  workflowId: string;
-  deploymentId?: string;
-  status: ExecutionStatus;
-  nodeExecutions: NodeExecution[];
-  error?: string;
-  startedAt: string;
-  endedAt?: string;
-}
+import { WorkflowExecution, NodeExecution } from "@dafthunk/types";
 
 interface WorkflowInfo {
   id: string;
@@ -61,7 +44,7 @@ export function ExecutionDetailPage() {
   const [edges, setEdges] = useState<any[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
-  const [workflowExecutionState, setWorkflowExecutionState] = useState<WorkflowExecutionState | null>(null);
+  const [workflowBuilderExecution, setWorkflowBuilderExecution] = useState<WorkflowBuilderExecution | null>(null);
 
   // Fetch node templates/types
   useEffect(() => {
@@ -112,12 +95,28 @@ export function ExecutionDetailPage() {
         );
         if (!response.ok)
           throw new Error(`Failed to fetch execution: ${response.statusText}`);
-        const executionData = await response.json();
+        const executionData: WorkflowExecution = await response.json();
         setExecution(executionData);
+        
+        // Map API execution to builder execution format
+        const builderExecution: WorkflowBuilderExecution = {
+          status: executionData.status as WorkflowBuilderExecutionStatus,
+          nodeExecutions: executionData.nodeExecutions.map(
+            (nodeExec: NodeExecution): WorkflowNodeExecution => ({
+              nodeId: nodeExec.nodeId,
+              status: nodeExec.status as any,
+              outputs: nodeExec.outputs || {},
+              error: nodeExec.error
+            })
+          )
+        };
+        setWorkflowBuilderExecution(builderExecution);
+        
         setBreadcrumbs([
           { label: "Executions", to: "/workflows/executions" },
           { label: `${executionId}` },
         ]);
+        
         // Fetch workflow info if available
         if (executionData.workflowId) {
           try {
@@ -135,6 +134,7 @@ export function ExecutionDetailPage() {
             // Continue without workflow info
           }
         }
+        
         // Fetch deployment/workflow structure for visualization
         if (executionData.deploymentId) {
           // Prefer deployment for exact structure
@@ -154,6 +154,7 @@ export function ExecutionDetailPage() {
             return;
           }
         }
+        
         // Fallback: fetch workflow structure
         if (executionData.workflowId) {
           const wfRes = await fetch(
@@ -172,10 +173,12 @@ export function ExecutionDetailPage() {
             return;
           }
         }
+        
         // If no structure found, clear
         setNodes([]);
         setEdges([]);
-      } catch (_error) {
+      } catch (error) {
+        console.error('Error fetching execution:', error);
         toast.error("Failed to fetch execution details. Please try again.");
       } finally {
         setIsLoading(false);
@@ -188,10 +191,10 @@ export function ExecutionDetailPage() {
   function transformStructureToReactFlow(
     structureNodes: any[],
     structureEdges: any[],
-    nodeExecutions: any[]
+    nodeExecutions: NodeExecution[]
   ) {
     // Map nodeExecutions by nodeId for fast lookup
-    const execMap = new Map<string, any>();
+    const execMap = new Map<string, NodeExecution>();
     for (const n of nodeExecutions || []) execMap.set(n.nodeId, n);
     
     // Transform nodes
@@ -207,7 +210,7 @@ export function ExecutionDetailPage() {
             id: input.name,
             type: input.type,
             name: input.name,
-            value: exec?.input?.[input.name] ?? input.value,
+            value: (exec as any)?.input?.[input.name] ?? input.value,
             hidden: input.hidden,
             required: input.required,
           })),
@@ -215,7 +218,7 @@ export function ExecutionDetailPage() {
             id: output.name,
             type: output.type,
             name: output.name,
-            value: exec?.output?.[output.name],
+            value: exec?.outputs?.[output.name],
             hidden: output.hidden,
           })),
           executionState: exec?.status || "idle",
@@ -232,35 +235,6 @@ export function ExecutionDetailPage() {
     
     setNodes(reactFlowNodes);
     setEdges(reactFlowEdges);
-    
-    // Create workflow execution state directly from nodeExecutions
-    // Calculate overall status based on node executions
-    let overallStatus: WorkflowExecutionState["status"] = "completed";
-    
-    // If any node is in error state, the workflow is in error state
-    if (nodeExecutions.some(n => n.status === "error")) {
-      overallStatus = "error";
-    }
-    // If any node is executing, the workflow is executing
-    else if (nodeExecutions.some(n => n.status === "executing")) {
-      overallStatus = "executing";
-    }
-    // If there are no nodes or all nodes are idle, the workflow is idle
-    else if (nodeExecutions.length === 0 || nodeExecutions.every(n => n.status === "idle")) {
-      overallStatus = "idle";
-    }
-    
-    const executionState: WorkflowExecutionState = {
-      status: overallStatus,
-      nodeExecutions: nodeExecutions.map(nodeExec => ({
-        nodeId: nodeExec.nodeId,
-        status: nodeExec.status as any,
-        outputs: nodeExec.output,
-        error: nodeExec.error
-      }))
-    };
-    
-    setWorkflowExecutionState(executionState);
   }
 
   const calculateDuration = (startedAt: string, endedAt?: string) => {
@@ -313,24 +287,24 @@ export function ExecutionDetailPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
-                        <ExecutionStatusBadge status={execution.status} />
+                        <ExecutionStatusBadge status={execution.status as any} />
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Started:</span>
-                        <span>{formatDateTime(execution.startedAt)}</span>
+                        <span>{formatDateTime(execution.startedAt as string)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">
                           Completed:
                         </span>
-                        <span>{formatDateTime(execution.endedAt)}</span>
+                        <span>{formatDateTime(execution.endedAt as string)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Duration:</span>
                         <span>
                           {calculateDuration(
-                            execution.startedAt,
-                            execution.endedAt
+                            execution.startedAt as string,
+                            execution.endedAt as string
                           )}
                         </span>
                       </div>
@@ -394,14 +368,14 @@ export function ExecutionDetailPage() {
             </TabsContent>
             <TabsContent value="visualization" className="mt-4">
               <div className="h-[calc(100vh-280px)] border rounded-md relative">
-                {nodes.length > 0 && workflowExecutionState && (
+                {nodes.length > 0 && workflowBuilderExecution && (
                   <WorkflowBuilder
                     workflowId={execution.id}
                     initialNodes={nodes}
                     initialEdges={edges}
                     nodeTemplates={nodeTemplates}
                     validateConnection={validateConnection}
-                    initialWorkflowExecution={workflowExecutionState}
+                    initialWorkflowExecution={workflowBuilderExecution}
                     readonly={true}
                   />
                 )}
