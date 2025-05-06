@@ -74,8 +74,8 @@ export function ExecutionDetailPage() {
 
         // Update breadcrumbs
         setBreadcrumbs([
-          { label: "Executions", to: "/executions" },
-          { label: `Execution ${executionId.substring(0, 8)}...` },
+          { label: "Executions", to: "/workflows/executions" },
+          { label: `${executionId}` },
         ]);
 
         // Fetch workflow info if available
@@ -88,13 +88,6 @@ export function ExecutionDetailPage() {
             if (workflowResponse.ok) {
               const workflowData = await workflowResponse.json();
               setWorkflow(workflowData);
-              
-              // Update breadcrumbs with workflow name
-              setBreadcrumbs([
-                { label: "Executions", to: "/executions" },
-                { label: workflowData.name, to: `/workflows/playground/${workflowData.id}` },
-                { label: `Execution ${executionId.substring(0, 8)}...` },
-              ]);
             }
           } catch (error) {
             console.error("Error fetching workflow info:", error);
@@ -137,7 +130,7 @@ export function ExecutionDetailPage() {
   };
 
   return (
-    <InsetLayout title="Execution Details">
+    <InsetLayout title={`${executionId}`}>
       {isLoading ? (
         <div className="py-10 text-center">Loading execution information...</div>
       ) : execution ? (
@@ -145,12 +138,8 @@ export function ExecutionDetailPage() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <p className="text-muted-foreground">
-                Viewing details for execution {executionId}
+                Viewing details for execution.
               </p>
-              <Button variant="outline" onClick={() => navigate("/executions")}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Executions
-              </Button>
             </div>
           </div>
 
@@ -231,12 +220,6 @@ export function ExecutionDetailPage() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg">Execution not found</p>
-          <Button
-            className="mt-4"
-            onClick={() => navigate("/executions")}
-          >
-            Back to Executions
-          </Button>
         </div>
       )}
     </InsetLayout>

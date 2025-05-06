@@ -113,24 +113,11 @@ export const columns: ColumnDef<Execution>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(execution.id)}>
-              Copy Execution ID
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to={`/executions/${execution.id}`}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Execution Details
+                View
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/workflows/playground/${execution.workflowId}`}>
-                View Workflow
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>View Logs</DropdownMenuItem>
-            {execution.status === "running" && (
-              <DropdownMenuItem disabled>Cancel Execution</DropdownMenuItem>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );
