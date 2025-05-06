@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { MoreHorizontal, Trash2, Copy } from "lucide-react";
+import { MoreHorizontal, Copy } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,7 +103,7 @@ export function ApiKeysPage() {
       if (!response.ok) throw new Error(response.statusText);
       const data = await response.json();
       setApiTokens(data.tokens);
-      setTableKey(prev => prev + 1);
+      setTableKey((prev) => prev + 1);
     } catch {
       toast.error("Failed to fetch API tokens. Please try again.");
     } finally {
@@ -117,7 +117,8 @@ export function ApiKeysPage() {
       if (custom.detail) confirmDeleteKey(custom.detail);
     };
     document.addEventListener("deleteApiToken", handleDeleteEvent);
-    return () => document.removeEventListener("deleteApiToken", handleDeleteEvent);
+    return () =>
+      document.removeEventListener("deleteApiToken", handleDeleteEvent);
   }, []);
 
   useEffect(() => {
@@ -175,10 +176,13 @@ export function ApiKeysPage() {
     }
   }, [newKeyName, fetchTokens]);
 
-  const handleDialogClose = useCallback((open: boolean) => {
-    if (!open && isShowKeyDialogOpen) fetchTokens();
-    setIsShowKeyDialogOpen(open);
-  }, [fetchTokens, isShowKeyDialogOpen]);
+  const handleDialogClose = useCallback(
+    (open: boolean) => {
+      if (!open && isShowKeyDialogOpen) fetchTokens();
+      setIsShowKeyDialogOpen(open);
+    },
+    [fetchTokens, isShowKeyDialogOpen]
+  );
 
   const handleCopyKey = useCallback(async (): Promise<void> => {
     if (!createdKey) return;
@@ -190,7 +194,8 @@ export function ApiKeysPage() {
     <InsetLayout title="API Keys">
       <div className="flex items-center justify-between mb-6">
         <div className="text-sm text-muted-foreground max-w-2xl">
-          Create, manage, and delete API keys to control access for your applications.
+          Create, manage, and delete API keys to control access for your
+          applications.
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
           + Create API Key
@@ -207,7 +212,10 @@ export function ApiKeysPage() {
         }}
       />
       {/* Create Key Dialog */}
-      <AlertDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <AlertDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Name your API key</AlertDialogTitle>
@@ -219,12 +227,14 @@ export function ApiKeysPage() {
             autoFocus
             placeholder="Key name"
             value={newKeyName}
-            onChange={e => setNewKeyName(e.target.value)}
+            onChange={(e) => setNewKeyName(e.target.value)}
             disabled={isCreating}
             maxLength={64}
           />
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setNewKeyName("")}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setNewKeyName("")}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCreateKey}
               disabled={isCreating || !newKeyName.trim()}
@@ -240,7 +250,9 @@ export function ApiKeysPage() {
         <AlertDialogContent className="max-w-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>API Key Created</AlertDialogTitle>
-            <AlertDialogDescription>This is your new API key.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This is your new API key.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <Alert variant="destructive" className="mb-4">
             <AlertTitle>Warning</AlertTitle>
@@ -249,7 +261,9 @@ export function ApiKeysPage() {
             </AlertDescription>
           </Alert>
           <div className="flex items-center gap-2 bg-muted rounded px-3 py-2 font-mono text-sm select-all overflow-x-auto w-full">
-            <span className="truncate whitespace-pre w-full block">{createdKey}</span>
+            <span className="truncate whitespace-pre w-full block">
+              {createdKey}
+            </span>
             <Button
               type="button"
               size="icon"
@@ -269,12 +283,16 @@ export function ApiKeysPage() {
         </AlertDialogContent>
       </AlertDialog>
       {/* Delete Key Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your API key.
+              This action cannot be undone. This will permanently delete your
+              API key.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

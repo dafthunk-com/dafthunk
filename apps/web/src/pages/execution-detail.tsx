@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,15 +10,16 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
-import { Clock, ArrowLeft, GitCommitHorizontal, AlertCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { AlertCircle } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { format } from "date-fns";
-import { ExecutionStatusBadge, ExecutionStatus } from "@/components/executions/execution-status-badge";
+import {
+  ExecutionStatusBadge,
+  ExecutionStatus,
+} from "@/components/executions/execution-status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import { WorkflowNodeType, WorkflowEdgeType, NodeTemplate } from "@/components/workflow/workflow-types";
+import { NodeTemplate } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
 
@@ -52,7 +52,6 @@ interface WorkflowInfo {
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams();
-  const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const [execution, setExecution] = useState<WorkflowExecution | null>(null);
@@ -89,8 +88,10 @@ export function ExecutionDetailPage() {
         }));
         setNodeTemplates(templates);
         setTemplatesError(null);
-      } catch (error) {
-        setTemplatesError("Failed to load node templates. Some nodes may not display correctly.");
+      } catch (_error) {
+        setTemplatesError(
+          "Failed to load node templates. Some nodes may not display correctly."
+        );
       }
     };
     loadNodeTemplates();
@@ -102,10 +103,14 @@ export function ExecutionDetailPage() {
       if (!executionId) return;
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/executions/${executionId}`, {
-          credentials: "include",
-        });
-        if (!response.ok) throw new Error(`Failed to fetch execution: ${response.statusText}`);
+        const response = await fetch(
+          `${API_BASE_URL}/executions/${executionId}`,
+          {
+            credentials: "include",
+          }
+        );
+        if (!response.ok)
+          throw new Error(`Failed to fetch execution: ${response.statusText}`);
         const executionData = await response.json();
         setExecution(executionData);
         setBreadcrumbs([
@@ -115,51 +120,67 @@ export function ExecutionDetailPage() {
         // Fetch workflow info if available
         if (executionData.workflowId) {
           try {
-            const workflowResponse = await fetch(`${API_BASE_URL}/workflows/${executionData.workflowId}`, {
-              credentials: "include",
-            });
+            const workflowResponse = await fetch(
+              `${API_BASE_URL}/workflows/${executionData.workflowId}`,
+              {
+                credentials: "include",
+              }
+            );
             if (workflowResponse.ok) {
               const workflowData = await workflowResponse.json();
               setWorkflow(workflowData);
             }
-          } catch (error) {
+          } catch (_error) {
             // Continue without workflow info
           }
         }
         // Fetch deployment/workflow structure for visualization
         if (executionData.deploymentId) {
           // Prefer deployment for exact structure
-          const depRes = await fetch(`${API_BASE_URL}/deployments/version/${executionData.deploymentId}`, {
-            credentials: "include",
-          });
+          const depRes = await fetch(
+            `${API_BASE_URL}/deployments/version/${executionData.deploymentId}`,
+            {
+              credentials: "include",
+            }
+          );
           if (depRes.ok) {
             const depData = await depRes.json();
-            transformStructureToReactFlow(depData.nodes, depData.edges, executionData.nodeExecutions);
+            transformStructureToReactFlow(
+              depData.nodes,
+              depData.edges,
+              executionData.nodeExecutions
+            );
             return;
           }
         }
         // Fallback: fetch workflow structure
         if (executionData.workflowId) {
-          const wfRes = await fetch(`${API_BASE_URL}/workflows/${executionData.workflowId}`, {
-            credentials: "include",
-          });
+          const wfRes = await fetch(
+            `${API_BASE_URL}/workflows/${executionData.workflowId}`,
+            {
+              credentials: "include",
+            }
+          );
           if (wfRes.ok) {
             const wfData = await wfRes.json();
-            transformStructureToReactFlow(wfData.nodes, wfData.edges, executionData.nodeExecutions);
+            transformStructureToReactFlow(
+              wfData.nodes,
+              wfData.edges,
+              executionData.nodeExecutions
+            );
             return;
           }
         }
         // If no structure found, clear
         setNodes([]);
         setEdges([]);
-      } catch (error) {
+      } catch (_error) {
         toast.error("Failed to fetch execution details. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
     fetchExecutionDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [executionId, setBreadcrumbs]);
 
   // Merge execution state into nodes
@@ -202,7 +223,9 @@ export function ExecutionDetailPage() {
       };
     });
     // Transform edges
-    const reactFlowEdges = Array.from(workflowEdgeService.convertToReactFlowEdges(structureEdges));
+    const reactFlowEdges = Array.from(
+      workflowEdgeService.convertToReactFlowEdges(structureEdges)
+    );
     setNodes(reactFlowNodes);
     setEdges(reactFlowEdges);
   }
@@ -223,7 +246,7 @@ export function ExecutionDetailPage() {
     if (!dateString) return "N/A";
     try {
       return format(new Date(dateString), "PPpp");
-    } catch (error) {
+    } catch (_error) {
       return dateString;
     }
   };
@@ -233,7 +256,9 @@ export function ExecutionDetailPage() {
   return (
     <InsetLayout title={`${executionId}`}>
       {isLoading ? (
-        <div className="py-10 text-center">Loading execution information...</div>
+        <div className="py-10 text-center">
+          Loading execution information...
+        </div>
       ) : execution ? (
         <div className="space-y-6">
           <Tabs defaultValue="status">
@@ -262,36 +287,51 @@ export function ExecutionDetailPage() {
                         <span>{formatDateTime(execution.startedAt)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Completed:</span>
+                        <span className="text-muted-foreground">
+                          Completed:
+                        </span>
                         <span>{formatDateTime(execution.endedAt)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Duration:</span>
-                        <span>{calculateDuration(execution.startedAt, execution.endedAt)}</span>
+                        <span>
+                          {calculateDuration(
+                            execution.startedAt,
+                            execution.endedAt
+                          )}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Execution ID:</span>
-                        <span className="font-mono text-xs">{execution.id}</span>
+                        <span className="text-muted-foreground">
+                          Execution ID:
+                        </span>
+                        <span className="font-mono text-xs">
+                          {execution.id}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Workflow:</span>
                         {workflow ? (
-                          <Link 
+                          <Link
                             to={`/workflows/playground/${execution.workflowId}`}
                             className="hover:underline text-primary"
                           >
                             {workflow.name}
                           </Link>
                         ) : (
-                          <span className="font-mono text-xs">{execution.workflowId}</span>
+                          <span className="font-mono text-xs">
+                            {execution.workflowId}
+                          </span>
                         )}
                       </div>
                       {execution.deploymentId && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Deployment:</span>
-                          <Link 
+                          <span className="text-muted-foreground">
+                            Deployment:
+                          </span>
+                          <Link
                             to={`/workflows/deployments/version/${execution.deploymentId}`}
                             className="hover:underline text-primary font-mono text-xs"
                           >
@@ -306,8 +346,12 @@ export function ExecutionDetailPage() {
                       <div className="flex items-start">
                         <AlertCircle className="h-5 w-5 text-destructive mr-2 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-destructive">Error</p>
-                          <p className="text-sm font-mono whitespace-pre-wrap">{execution.error}</p>
+                          <p className="font-semibold text-destructive">
+                            Error
+                          </p>
+                          <p className="text-sm font-mono whitespace-pre-wrap">
+                            {execution.error}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -329,7 +373,9 @@ export function ExecutionDetailPage() {
                 )}
                 {nodes.length === 0 && !isLoading && (
                   <div className="flex flex-col items-center justify-center h-full">
-                    <p className="text-muted-foreground">No workflow structure available</p>
+                    <p className="text-muted-foreground">
+                      No workflow structure available
+                    </p>
                   </div>
                 )}
                 {templatesError && (
@@ -348,4 +394,4 @@ export function ExecutionDetailPage() {
       )}
     </InsetLayout>
   );
-} 
+}

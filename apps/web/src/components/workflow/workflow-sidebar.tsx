@@ -24,10 +24,10 @@ export function WorkflowSidebar({
         />
       )}
       {edge && (
-        <WorkflowEdgeInspector 
-          edge={edge} 
+        <WorkflowEdgeInspector
+          edge={edge}
           onEdgeUpdate={onEdgeUpdate}
-          readonly={readonly} 
+          readonly={readonly}
         />
       )}
       {!selectedNode && !edge && (
@@ -39,7 +39,8 @@ export function WorkflowSidebar({
                 Read-only Mode
               </h3>
               <p className="text-neutral-500">
-                You can view node and edge properties, but cannot make changes in this mode.
+                You can view node and edge properties, but cannot make changes
+                in this mode.
               </p>
             </>
           ) : (

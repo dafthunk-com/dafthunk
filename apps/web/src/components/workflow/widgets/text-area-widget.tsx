@@ -2,12 +2,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/utils";
 
-interface TextAreaWidgetConfig {
-  value: string;
-  placeholder?: string;
-  rows?: number;
-}
-
 interface TextAreaWidgetProps {
   config: {
     value: string;

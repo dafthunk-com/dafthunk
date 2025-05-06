@@ -337,6 +337,69 @@ export function useWorkflowState({
     [setNodes]
   );
 
+  // Unified function to update node execution data
+  const updateNodeExecution = useCallback(
+    (
+      nodeId: string,
+      options: {
+        state?: NodeExecutionState;
+        outputs?: Record<string, any>;
+        error?: string | undefined;
+      }
+    ) => {
+      const { state, outputs, error } = options;
+
+      setNodes((nds) => {
+        // Apply updates sequentially using type assertions to handle readonly arrays
+        let updatedNodes = nds;
+
+        if (state !== undefined) {
+          updatedNodes = workflowExecutionService.updateNodesWithExecutionState(
+            updatedNodes,
+            nodeId,
+            state
+          );
+        }
+
+        if (outputs !== undefined) {
+          updatedNodes =
+            workflowExecutionService.updateNodesWithExecutionOutputs(
+              updatedNodes,
+              nodeId,
+              outputs
+            );
+        }
+
+        if (error !== undefined) {
+          updatedNodes = workflowExecutionService.updateNodesWithExecutionError(
+            updatedNodes,
+            nodeId,
+            error
+          );
+        }
+
+        // Create a mutable copy for React state update
+        return [...updatedNodes];
+      });
+
+      // Handle edge updates if state changed
+      if (state !== undefined) {
+        const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
+        const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
+
+        setEdges((eds) => [
+          ...workflowExecutionService.updateEdgesForNodeExecution(
+            eds,
+            nodeId,
+            state,
+            connectedEdgeIds
+          ),
+        ]);
+      }
+    },
+    [edges, setNodes, setEdges]
+  );
+
   const updateNodeData = useCallback(
     (nodeId: string, data: Partial<WorkflowNodeType>) => {
       setNodes((nds) =>
@@ -447,6 +510,7 @@ export function useWorkflowState({
     updateNodeExecutionState,
     updateNodeExecutionOutputs,
     updateNodeExecutionError,
+    updateNodeExecution,
     updateNodeData: readonly ? () => {} : updateNodeData,
     updateNodeOutputs: readonly ? () => {} : updateNodeOutputs,
     updateEdgeData: readonly ? () => {} : updateEdgeData,

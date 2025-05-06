@@ -1,9 +1,6 @@
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
@@ -20,17 +17,28 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6 max-w-4xl mx-auto", className)} {...props}>
+    <div
+      className={cn("flex flex-col gap-6 max-w-4xl mx-auto", className)}
+      {...props}
+    >
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
           <div className="p-6 md:p-8 flex items-center">
             <div className="flex flex-col gap-8 w-full py-8">
-
-            <a href="#" className="flex items-center gap-2 self-center font-medium">
-          <img src="/logo.svg" alt="dafthunk" className="h-16 dark:invert" />
-        </a>
+              <a
+                href="#"
+                className="flex items-center gap-2 self-center font-medium"
+              >
+                <img
+                  src="/logo.svg"
+                  alt="dafthunk"
+                  className="h-16 dark:invert"
+                />
+              </a>
               <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">Workflows no one asked for</h1>
+                <h1 className="text-2xl font-bold">
+                  Workflows no one asked for
+                </h1>
                 <p className="text-balance text-muted-foreground mt-2">
                   Break it, fix it, prompt it, automatic, automatic, ...
                 </p>

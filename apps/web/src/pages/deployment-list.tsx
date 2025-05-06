@@ -29,7 +29,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { workflowService } from "@/services/workflowService";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { GitCommitHorizontal, Eye, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, GitCommitHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,7 +90,9 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={`/workflows/deployments/${deployment.workflowId}`}>View</Link>
+              <Link to={`/workflows/deployments/${deployment.workflowId}`}>
+                View
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -165,10 +167,13 @@ export function DeploymentListPage() {
     if (!selectedWorkflowId) return;
     setIsCreating(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/deployments/${selectedWorkflowId}`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/${selectedWorkflowId}`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
       if (!response.ok) throw new Error("Failed to create deployment");
       toast.success("Deployment created successfully");
       setIsDialogOpen(false);
@@ -198,7 +203,8 @@ export function DeploymentListPage() {
       <InsetLayout title="Deployments">
         <div className="flex items-center justify-between mb-6">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            View and manage versioned snapshots of workflows ready for execution.
+            View and manage versioned snapshots of workflows ready for
+            execution.
           </div>
           <Button onClick={handleOpenDialog} size="sm">
             + Create Deployment
@@ -219,7 +225,8 @@ export function DeploymentListPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Deploy a Workflow</AlertDialogTitle>
               <AlertDialogDescription>
-                Select a workflow to create a new deployment (versioned snapshot).
+                Select a workflow to create a new deployment (versioned
+                snapshot).
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="my-4">
@@ -229,11 +236,17 @@ export function DeploymentListPage() {
                 disabled={isWorkflowsLoading}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={isWorkflowsLoading ? "Loading..." : "Select a workflow"} />
+                  <SelectValue
+                    placeholder={
+                      isWorkflowsLoading ? "Loading..." : "Select a workflow"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {workflows.length === 0 && !isWorkflowsLoading ? (
-                    <div className="px-3 py-2 text-muted-foreground text-sm">No workflows found</div>
+                    <div className="px-3 py-2 text-muted-foreground text-sm">
+                      No workflows found
+                    </div>
                   ) : (
                     workflows.map((wf) => (
                       <SelectItem key={wf.id} value={wf.id}>
@@ -250,7 +263,9 @@ export function DeploymentListPage() {
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleCreateDeployment}
-                disabled={!selectedWorkflowId || isCreating || isWorkflowsLoading}
+                disabled={
+                  !selectedWorkflowId || isCreating || isWorkflowsLoading
+                }
                 className="bg-primary hover:bg-primary/90"
               >
                 {isCreating ? <Spinner className="h-4 w-4 mr-2" /> : null}

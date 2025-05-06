@@ -25,7 +25,7 @@ export function NumberInputWidget({
 }: NumberInputWidgetProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readonly) return;
-    
+
     const value = parseFloat(e.target.value);
     if (!isNaN(value)) {
       onChange(value);

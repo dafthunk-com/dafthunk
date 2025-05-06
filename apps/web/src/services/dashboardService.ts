@@ -43,4 +43,4 @@ export const dashboardService = {
   async fetchDashboard(): Promise<DashboardStats> {
     return apiRequest<DashboardStats>("/dashboard");
   },
-}; 
+};

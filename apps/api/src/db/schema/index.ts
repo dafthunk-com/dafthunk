@@ -186,7 +186,9 @@ export const deployments = sqliteTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    workflowId: text("workflow_id").references(() => workflows.id, { onDelete: "cascade" }),
+    workflowId: text("workflow_id").references(() => workflows.id, {
+      onDelete: "cascade",
+    }),
     version: integer("version").notNull(),
     workflowData: text("workflow_data", { mode: "json" })
       .$type<WorkflowType>()
@@ -209,7 +211,9 @@ export const executions = sqliteTable(
     workflowId: text("workflow_id")
       .notNull()
       .references(() => workflows.id, { onDelete: "cascade" }),
-    deploymentId: text("deployment_id").references(() => deployments.id, { onDelete: "cascade" }),
+    deploymentId: text("deployment_id").references(() => deployments.id, {
+      onDelete: "cascade",
+    }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),

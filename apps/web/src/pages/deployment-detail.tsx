@@ -12,7 +12,14 @@ import {
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
-import { ArrowUpToLine, History, ArrowDown, Clock, Eye, GitCommitHorizontal, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpToLine,
+  History,
+  ArrowDown,
+  Clock,
+  GitCommitHorizontal,
+  MoreHorizontal,
+} from "lucide-react";
 import { DataTable } from "@/components/ui/data-table";
 import {
   Dialog,
@@ -44,7 +51,9 @@ const formatDeploymentDate = (dateString: string | Date) => {
   }
 };
 
-function createDeploymentHistoryColumns(currentDeploymentId: string): ColumnDef<WorkflowDeploymentVersion>[] {
+function createDeploymentHistoryColumns(
+  currentDeploymentId: string
+): ColumnDef<WorkflowDeploymentVersion>[] {
   return [
     {
       accessorKey: "id",
@@ -100,7 +109,9 @@ function createDeploymentHistoryColumns(currentDeploymentId: string): ColumnDef<
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={`/workflows/deployments/version/${row.original.id}`}>View</Link>
+              <Link to={`/workflows/deployments/version/${row.original.id}`}>
+                View
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

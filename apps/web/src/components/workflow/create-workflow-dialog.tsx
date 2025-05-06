@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
@@ -48,11 +53,15 @@ export function CreateWorkflowDialog({
               autoFocus
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting || !newWorkflowName.trim()}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isSubmitting || !newWorkflowName.trim()}
+          >
             {isSubmitting ? "Creating..." : "Create Workflow"}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
   );
-} 
+}

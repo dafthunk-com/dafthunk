@@ -1,7 +1,11 @@
 import { DataTable } from "@/components/ui/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
-import React from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 
@@ -18,16 +22,56 @@ export type User = {
 const users: User[] = Array.from({ length: 50 }, (_, i) => {
   const id = (i + 1).toString();
   const names = [
-    "Alice Smith", "Bob Jones", "Charlie Brown", "Dana White", "Eve Black",
-    "Frank Green", "Grace Lee", "Hank Miller", "Ivy Wilson", "Jack Taylor",
-    "Kara Adams", "Liam Clark", "Mona Davis", "Nina Evans", "Oscar Foster",
-    "Paula Garcia", "Quinn Harris", "Rita Irving", "Sam Johnson", "Tina King",
-    "Uma Lewis", "Vera Moore", "Will Nash", "Xena Owens", "Yuri Price",
-    "Zane Quinn", "Amy Reed", "Ben Stone", "Cleo Turner", "Drew Underwood",
-    "Elle Vincent", "Finn Walker", "Gina Xu", "Hugo Young", "Iris Zane",
-    "Jake Allen", "Kiki Brown", "Leo Carter", "Maya Diaz", "Nico Ellis",
-    "Ollie Fox", "Pia Grant", "Quincy Hall", "Rae Ingram", "Seth James",
-    "Tara Kim", "Ugo Lane", "Vik Moss", "Wren Neal", "Yasmin Otto"
+    "Alice Smith",
+    "Bob Jones",
+    "Charlie Brown",
+    "Dana White",
+    "Eve Black",
+    "Frank Green",
+    "Grace Lee",
+    "Hank Miller",
+    "Ivy Wilson",
+    "Jack Taylor",
+    "Kara Adams",
+    "Liam Clark",
+    "Mona Davis",
+    "Nina Evans",
+    "Oscar Foster",
+    "Paula Garcia",
+    "Quinn Harris",
+    "Rita Irving",
+    "Sam Johnson",
+    "Tina King",
+    "Uma Lewis",
+    "Vera Moore",
+    "Will Nash",
+    "Xena Owens",
+    "Yuri Price",
+    "Zane Quinn",
+    "Amy Reed",
+    "Ben Stone",
+    "Cleo Turner",
+    "Drew Underwood",
+    "Elle Vincent",
+    "Finn Walker",
+    "Gina Xu",
+    "Hugo Young",
+    "Iris Zane",
+    "Jake Allen",
+    "Kiki Brown",
+    "Leo Carter",
+    "Maya Diaz",
+    "Nico Ellis",
+    "Ollie Fox",
+    "Pia Grant",
+    "Quincy Hall",
+    "Rae Ingram",
+    "Seth James",
+    "Tara Kim",
+    "Ugo Lane",
+    "Vik Moss",
+    "Wren Neal",
+    "Yasmin Otto",
   ];
   const name = names[i % names.length];
   const email = name.toLowerCase().replace(/ /g, "") + `@example.com`;
@@ -47,19 +91,23 @@ const columns: ColumnDef<User>[] = [
   {
     accessorKey: "email",
     header: () => <span>Email</span>,
-    cell: ({ row }) => <span className="text-muted-foreground">{row.original.email}</span>,
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.email}</span>
+    ),
   },
   {
     accessorKey: "role",
     header: () => <span>Role</span>,
     cell: ({ row }) => (
-      <span className={
-        row.original.role === "admin"
-          ? "text-red-600 font-semibold"
-          : row.original.role === "user"
-          ? "text-blue-600"
-          : "text-gray-600"
-      }>
+      <span
+        className={
+          row.original.role === "admin"
+            ? "text-red-600 font-semibold"
+            : row.original.role === "user"
+              ? "text-blue-600"
+              : "text-gray-600"
+        }
+      >
         {row.original.role}
       </span>
     ),
@@ -68,7 +116,9 @@ const columns: ColumnDef<User>[] = [
     accessorKey: "isActive",
     header: () => <span>Status</span>,
     cell: ({ row }) => (
-      <span className={row.original.isActive ? "text-green-600" : "text-gray-400"}>
+      <span
+        className={row.original.isActive ? "text-green-600" : "text-gray-400"}
+      >
         {row.original.isActive ? "Active" : "Inactive"}
       </span>
     ),
@@ -76,7 +126,7 @@ const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => (
+    cell: () => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -101,4 +151,4 @@ export default function DataTableTestPage() {
       <DataTable columns={columns} data={users} />
     </div>
   );
-} 
+}

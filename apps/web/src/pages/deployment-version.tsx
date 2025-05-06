@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
-import { WorkflowDeploymentVersion, Workflow, Parameter, ParameterType } from "@dafthunk/types";
+import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
@@ -10,7 +10,11 @@ import { DeploymentInfoCard } from "@/components/deployments/deployment-info-car
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Node, Edge } from "@xyflow/react";
-import { WorkflowNodeType, WorkflowEdgeType, NodeTemplate } from "@/components/workflow/workflow-types";
+import {
+  WorkflowNodeType,
+  WorkflowEdgeType,
+  NodeTemplate,
+} from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 
 export function DeploymentVersionPage() {
@@ -134,56 +138,66 @@ export function DeploymentVersionPage() {
   };
 
   // Transform deployment nodes and edges to ReactFlow format
-  const transformDeploymentToReactFlow = useCallback((deployment: WorkflowDeploymentVersion) => {
-    try {
-      // Transform nodes
-      const reactFlowNodes: Node<WorkflowNodeType>[] = deployment.nodes.map((node) => ({
-        id: node.id,
-        type: "workflowNode",
-        position: node.position,
-        data: {
-          name: node.name,
-          inputs: node.inputs.map((input) => ({
-            id: input.name,
-            type: input.type,
-            name: input.name,
-            value: input.value,
-            hidden: input.hidden,
-            required: input.required,
-          })),
-          outputs: node.outputs.map((output) => ({
-            id: output.name,
-            type: output.type,
-            name: output.name,
-            hidden: output.hidden,
-          })),
-          executionState: "idle" as const,
-          nodeType: node.type,
-        },
-      }));
+  const transformDeploymentToReactFlow = useCallback(
+    (deployment: WorkflowDeploymentVersion) => {
+      try {
+        // Transform nodes
+        const reactFlowNodes: Node<WorkflowNodeType>[] = deployment.nodes.map(
+          (node) => ({
+            id: node.id,
+            type: "workflowNode",
+            position: node.position,
+            data: {
+              name: node.name,
+              inputs: node.inputs.map((input) => ({
+                id: input.name,
+                type: input.type,
+                name: input.name,
+                value: input.value,
+                hidden: input.hidden,
+                required: input.required,
+              })),
+              outputs: node.outputs.map((output) => ({
+                id: output.name,
+                type: output.type,
+                name: output.name,
+                hidden: output.hidden,
+              })),
+              executionState: "idle" as const,
+              nodeType: node.type,
+            },
+          })
+        );
 
-      // Transform edges
-      const reactFlowEdges: Edge<WorkflowEdgeType>[] = deployment.edges.map((edge, index) => ({
-        id: `e${index}`,
-        source: edge.source,
-        target: edge.target,
-        sourceHandle: edge.sourceOutput,
-        targetHandle: edge.targetInput,
-        type: "workflowEdge",
-        data: {
-          isValid: true,
-          sourceType: edge.sourceOutput,
-          targetType: edge.targetInput,
-        },
-      }));
+        // Transform edges
+        const reactFlowEdges: Edge<WorkflowEdgeType>[] = deployment.edges.map(
+          (edge, index) => ({
+            id: `e${index}`,
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceOutput,
+            targetHandle: edge.targetInput,
+            type: "workflowEdge",
+            data: {
+              isValid: true,
+              sourceType: edge.sourceOutput,
+              targetType: edge.targetInput,
+            },
+          })
+        );
 
-      setNodes(reactFlowNodes);
-      setEdges(reactFlowEdges);
-    } catch (error) {
-      console.error("Error transforming deployment to ReactFlow format:", error);
-      toast.error("Failed to process workflow structure.");
-    }
-  }, []);
+        setNodes(reactFlowNodes);
+        setEdges(reactFlowEdges);
+      } catch (error) {
+        console.error(
+          "Error transforming deployment to ReactFlow format:",
+          error
+        );
+        toast.error("Failed to process workflow structure.");
+      }
+    },
+    []
+  );
 
   // Load the deployment on component mount
   useEffect(() => {
@@ -216,7 +230,7 @@ export function DeploymentVersionPage() {
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="workflow">Workflow</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="details" className="space-y-6 mt-4">
               {workflow && (
                 <WorkflowInfoCard
@@ -232,7 +246,7 @@ export function DeploymentVersionPage() {
                 createdAt={deployment.createdAt}
               />
             </TabsContent>
-            
+
             <TabsContent value="workflow" className="mt-4">
               <div className="h-[calc(100vh-280px)] border rounded-md">
                 {nodes.length > 0 && (
@@ -247,7 +261,9 @@ export function DeploymentVersionPage() {
                 )}
                 {nodes.length === 0 && !isLoading && (
                   <div className="flex flex-col items-center justify-center h-full">
-                    <p className="text-muted-foreground">No workflow structure available</p>
+                    <p className="text-muted-foreground">
+                      No workflow structure available
+                    </p>
                   </div>
                 )}
                 {templatesError && (

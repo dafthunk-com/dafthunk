@@ -57,9 +57,7 @@ export function WorkflowBuilder({
     handlePaneClick,
     handleAddNode,
     handleNodeSelect,
-    updateNodeExecutionState,
-    updateNodeExecutionOutputs,
-    updateNodeExecutionError,
+    updateNodeExecution,
     setReactFlowInstance,
     connectionValidationState,
     isValidConnection,
@@ -77,7 +75,7 @@ export function WorkflowBuilder({
   // Track input and output connections
   useEffect(() => {
     if (readonly) return; // Skip connection tracking in readonly mode
-    
+
     const connectedInputs = new Map();
     const connectedOutputs = new Map();
 
@@ -118,16 +116,13 @@ export function WorkflowBuilder({
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {
-      updateNodeExecutionState(node.id, "idle");
-      updateNodeExecutionOutputs(node.id, {});
-      updateNodeExecutionError(node.id, undefined);
+      updateNodeExecution(node.id, {
+        state: "idle",
+        outputs: {},
+        error: undefined,
+      });
     });
-  }, [
-    nodes,
-    updateNodeExecutionState,
-    updateNodeExecutionOutputs,
-    updateNodeExecutionError,
-  ]);
+  }, [nodes, updateNodeExecution]);
 
   const handleExecute = useCallback(() => {
     if (!executeWorkflow) return null;
@@ -146,18 +141,11 @@ export function WorkflowBuilder({
       });
 
       execution.nodeExecutions.forEach((nodeExecution) => {
-        updateNodeExecutionState(nodeExecution.nodeId, nodeExecution.status);
-
-        if (nodeExecution.outputs) {
-          updateNodeExecutionOutputs(
-            nodeExecution.nodeId,
-            nodeExecution.outputs
-          );
-        }
-
-        if (nodeExecution.error) {
-          updateNodeExecutionError(nodeExecution.nodeId, nodeExecution.error);
-        }
+        updateNodeExecution(nodeExecution.nodeId, {
+          state: nodeExecution.status,
+          outputs: nodeExecution.outputs || {},
+          error: nodeExecution.error,
+        });
       });
 
       if (execution.status === "error") {
@@ -167,14 +155,7 @@ export function WorkflowBuilder({
         });
       }
     });
-  }, [
-    executeWorkflow,
-    workflowId,
-    resetNodeStates,
-    updateNodeExecutionState,
-    updateNodeExecutionOutputs,
-    updateNodeExecutionError,
-  ]);
+  }, [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]);
 
   const handleActionButtonClick = useCallback(
     (e: React.MouseEvent) => {
@@ -241,7 +222,11 @@ export function WorkflowBuilder({
               onPaneClick={handlePaneClick}
               onInit={setReactFlowInstance}
               onAddNode={readonly ? undefined : handleAddNode}
-              onAction={!readonly && executeWorkflow ? handleActionButtonClick : undefined}
+              onAction={
+                !readonly && executeWorkflow
+                  ? handleActionButtonClick
+                  : undefined
+              }
               workflowStatus={workflowStatus}
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}

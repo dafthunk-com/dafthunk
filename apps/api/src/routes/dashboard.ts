@@ -16,32 +16,55 @@ dashboard.get("/", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Workflows count
-  const workflows: Workflow[] = await getWorkflowsByOrganization(db, user.organizationId);
+  const workflows: Workflow[] = await getWorkflowsByOrganization(
+    db,
+    user.organizationId
+  );
   const workflowsCount = workflows.length;
 
   // Deployments count
-  const deployments = await getDeploymentsGroupedByWorkflow(db, user.organizationId);
-  const deploymentsCount = deployments.reduce((acc: number, w: { deploymentCount: number }) => acc + w.deploymentCount, 0);
+  const deployments = await getDeploymentsGroupedByWorkflow(
+    db,
+    user.organizationId
+  );
+  const deploymentsCount = deployments.reduce(
+    (acc: number, w: { deploymentCount: number }) => acc + w.deploymentCount,
+    0
+  );
 
   // Executions stats
-  const executions: Execution[] = await listExecutions(db, user.organizationId, { limit: 100 }); // limit for perf
+  const executions: Execution[] = await listExecutions(
+    db,
+    user.organizationId,
+    { limit: 100 }
+  ); // limit for perf
   const totalExecutions = executions.length;
-  const runningExecutions = executions.filter((e: Execution) => e.status === ExecutionStatus.EXECUTING).length;
-  const failedExecutions = executions.filter((e: Execution) => e.status === ExecutionStatus.ERROR).length;
-  const completedExecutions = executions.filter((e: Execution) => e.status === ExecutionStatus.COMPLETED && e.startedAt && e.endedAt);
-  const avgTimeSeconds = completedExecutions.length > 0
-    ? Math.round(
-        completedExecutions.reduce(
-          (sum: number, e: Execution) => sum + ((Number(e.endedAt) - Number(e.startedAt)) / 1000),
-          0
-        ) / completedExecutions.length
-      )
-    : 0;
+  const runningExecutions = executions.filter(
+    (e: Execution) => e.status === ExecutionStatus.EXECUTING
+  ).length;
+  const failedExecutions = executions.filter(
+    (e: Execution) => e.status === ExecutionStatus.ERROR
+  ).length;
+  const completedExecutions = executions.filter(
+    (e: Execution) =>
+      e.status === ExecutionStatus.COMPLETED && e.startedAt && e.endedAt
+  );
+  const avgTimeSeconds =
+    completedExecutions.length > 0
+      ? Math.round(
+          completedExecutions.reduce(
+            (sum: number, e: Execution) =>
+              sum + (Number(e.endedAt) - Number(e.startedAt)) / 1000,
+            0
+          ) / completedExecutions.length
+        )
+      : 0;
 
   // Recent executions (last 3)
   const recentExecutions = executions.slice(0, 3).map((e: Execution) => ({
     id: e.id,
-    workflowName: workflows.find((w: Workflow) => w.id === e.workflowId)?.name || "",
+    workflowName:
+      workflows.find((w: Workflow) => w.id === e.workflowId)?.name || "",
     status: e.status,
     startedAt: e.startedAt,
   }));
@@ -59,4 +82,4 @@ dashboard.get("/", jwtAuth, async (c) => {
   });
 });
 
-export default dashboard; 
+export default dashboard;

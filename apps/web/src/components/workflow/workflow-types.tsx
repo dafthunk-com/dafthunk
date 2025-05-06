@@ -155,6 +155,14 @@ export interface UseWorkflowStateReturn {
     outputs: Record<string, any>
   ) => void;
   updateNodeExecutionError: (nodeId: string, error: string | undefined) => void;
+  updateNodeExecution: (
+    nodeId: string,
+    options: {
+      state?: NodeExecutionState;
+      outputs?: Record<string, any>;
+      error?: string | undefined;
+    }
+  ) => void;
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   updateNodeOutputs: (nodeId: string, outputs: Record<string, any>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;

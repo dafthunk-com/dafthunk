@@ -35,10 +35,10 @@ export const workflowExecutionService = {
   },
 
   updateNodesWithExecutionState(
-    nodes: readonly ReactFlowNode<WorkflowNodeType>[],
+    nodes: ReactFlowNode<WorkflowNodeType>[],
     nodeId: string,
     state: NodeExecutionState
-  ): readonly ReactFlowNode<WorkflowNodeType>[] {
+  ): ReactFlowNode<WorkflowNodeType>[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
@@ -54,11 +54,11 @@ export const workflowExecutionService = {
   },
 
   updateEdgesForNodeExecution(
-    edges: readonly ReactFlowEdge<WorkflowEdgeType>[],
+    edges: ReactFlowEdge<WorkflowEdgeType>[],
     _nodeId: string,
     state: NodeExecutionState,
-    connectedEdgeIds: readonly string[]
-  ): readonly ReactFlowEdge<WorkflowEdgeType>[] {
+    connectedEdgeIds: string[]
+  ): ReactFlowEdge<WorkflowEdgeType>[] {
     if (state === "executing") {
       return edges.map((edge) => {
         const isConnectedToExecutingNode = connectedEdgeIds.includes(edge.id);
@@ -86,10 +86,10 @@ export const workflowExecutionService = {
   },
 
   updateNodesWithExecutionOutputs(
-    nodes: readonly ReactFlowNode<WorkflowNodeType>[],
+    nodes: ReactFlowNode<WorkflowNodeType>[],
     nodeId: string,
     outputs: Record<string, unknown>
-  ): readonly ReactFlowNode<WorkflowNodeType>[] {
+  ): ReactFlowNode<WorkflowNodeType>[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {
@@ -107,10 +107,10 @@ export const workflowExecutionService = {
   },
 
   updateNodesWithExecutionError(
-    nodes: readonly ReactFlowNode<WorkflowNodeType>[],
+    nodes: ReactFlowNode<WorkflowNodeType>[],
     nodeId: string,
     error: string | undefined
-  ): readonly ReactFlowNode<WorkflowNodeType>[] {
+  ): ReactFlowNode<WorkflowNodeType>[] {
     return nodes.map((node) =>
       node.id === nodeId
         ? {

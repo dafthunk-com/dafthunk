@@ -7,15 +7,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Button, ButtonProps } from "@/components/ui/button";
-import {
-  PencilIcon,
-  Trash2Icon,
-  ArrowUpDown,
-  MoreHorizontal,
-  PlusIcon,
-  Eye,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +16,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -41,8 +33,12 @@ import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dial
 function useWorkflowActions(refresh: () => void) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
-  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(null);
+  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
+    null
+  );
+  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
+    null
+  );
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -160,9 +156,9 @@ function useWorkflowActions(refresh: () => void) {
 // --- Inline createColumns ---
 function createColumns(
   openDeleteDialog: (workflow: Workflow) => void,
-  openRenameDialog: (workflow: Workflow) => void
+  openRenameDialog: (workflow: Workflow) => void,
+  navigate: ReturnType<typeof useNavigate>
 ): ColumnDef<Workflow>[] {
-  const navigate = useNavigate();
   return [
     {
       accessorKey: "name",
@@ -193,7 +189,9 @@ function createColumns(
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/workflows/playground/${workflow.id}`)}>
+              <DropdownMenuItem
+                onClick={() => navigate(`/workflows/playground/${workflow.id}`)}
+              >
                 View
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
@@ -234,14 +232,10 @@ export function PlaygroundPage() {
     }
   }, [isAuthenticated]);
 
-  const {
-    deleteDialog,
-    renameDialog,
-    openDeleteDialog,
-    openRenameDialog,
-  } = useWorkflowActions(fetchWorkflows);
+  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
+    useWorkflowActions(fetchWorkflows);
 
-  const columns = createColumns(openDeleteDialog, openRenameDialog);
+  const columns = createColumns(openDeleteDialog, openRenameDialog, navigate);
 
   useEffect(() => {
     if (!authLoading) {
@@ -286,7 +280,8 @@ export function PlaygroundPage() {
       <InsetLayout title="Workflows">
         <div className="flex items-center justify-between mb-6">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create, manage, and run your workflows. Break it, fix it, prompt it, automatic.
+            Create, manage, and run your workflows. Break it, fix it, prompt it,
+            automatic.
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
             + Create Workflow

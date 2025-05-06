@@ -30,7 +30,7 @@ import { ExecutionStatusBadge } from "@/components/executions/execution-status-b
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -46,7 +46,9 @@ export function DashboardPage() {
         setError(null);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load dashboard stats");
+        setError(
+          err instanceof Error ? err.message : "Failed to load dashboard stats"
+        );
       })
       .finally(() => setLoading(false));
   }, []);
@@ -65,13 +67,25 @@ export function DashboardPage() {
   };
 
   if (loading) {
-    return <div className="flex flex-1 items-center justify-center">Loading dashboard...</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        Loading dashboard...
+      </div>
+    );
   }
   if (error) {
-    return <div className="flex flex-1 items-center justify-center text-red-500">{error}</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
   }
   if (!stats) {
-    return <div className="flex flex-1 items-center justify-center">No dashboard data available.</div>;
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        No dashboard data available.
+      </div>
+    );
   }
 
   return (
@@ -197,7 +211,11 @@ export function DashboardPage() {
             </TableHeader>
             <TableBody>
               {stats.recentExecutions.map((exec) => {
-                let badgeStatus: "running" | "completed" | "failed" | "cancelled";
+                let badgeStatus:
+                  | "running"
+                  | "completed"
+                  | "failed"
+                  | "cancelled";
                 switch (exec.status) {
                   case "executing":
                   case "running":
@@ -217,7 +235,10 @@ export function DashboardPage() {
                     badgeStatus = "cancelled";
                 }
                 return (
-                  <TableRow key={exec.id} className="border-t hover:bg-muted/50">
+                  <TableRow
+                    key={exec.id}
+                    className="border-t hover:bg-muted/50"
+                  >
                     <TableCell className="font-medium truncate px-6 py-3">
                       {exec.workflowName}
                     </TableCell>

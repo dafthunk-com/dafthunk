@@ -69,7 +69,7 @@ const TypeBadge = ({
 
   const handleClick = (e: React.MouseEvent) => {
     if (readonly) return;
-    
+
     if (position === Position.Left && parameter && onInputClick) {
       e.stopPropagation();
       onInputClick(parameter);
@@ -108,13 +108,13 @@ const TypeBadge = ({
             "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700":
               !isConnected && (!isInput || !hasValue) && !readonly,
             // Readonly styles - no hover effects
-            "bg-neutral-400 text-neutral-900 dark:bg-neutral-500 dark:text-neutral-100 cursor-default": 
+            "bg-neutral-400 text-neutral-900 dark:bg-neutral-500 dark:text-neutral-100 cursor-default":
               isConnected && readonly,
-            "bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-200 cursor-default": 
+            "bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-200 cursor-default":
               isInput && !isConnected && hasValue && readonly,
-            "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 cursor-default": 
+            "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 cursor-default":
               !isConnected && (!isInput || !hasValue) && readonly,
-            "cursor-pointer": !readonly
+            "cursor-pointer": !readonly,
           }
         )}
         onClick={handleClick}
@@ -195,7 +195,7 @@ export const WorkflowNode = memo(
 
     const handleInputClick = (input: WorkflowParameter) => {
       if (readonly) return;
-      
+
       setSelectedInput(input);
       setInputValue(input.value !== undefined ? String(input.value) : "");
     };
@@ -218,7 +218,7 @@ export const WorkflowNode = memo(
 
     const handleClearValue = () => {
       if (readonly || !selectedInput) return;
-      
+
       clearNodeInput(id, selectedInput.id, data.inputs, updateNodeData);
       setInputValue("");
     };
@@ -229,14 +229,14 @@ export const WorkflowNode = memo(
 
     const handleNameClick = () => {
       if (readonly) return;
-      
+
       setIsEditingName(true);
       setNameValue(data.name);
     };
 
     const handleNameSave = () => {
       if (readonly || nameValue.trim() === "") return;
-      
+
       updateNodeName(id, nameValue, updateNodeData);
       setIsEditingName(false);
     };
@@ -545,7 +545,9 @@ export const WorkflowNode = memo(
               <Button variant="outline" onClick={() => setIsEditingName(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleNameSave} disabled={readonly}>Save</Button>
+              <Button onClick={handleNameSave} disabled={readonly}>
+                Save
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

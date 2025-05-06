@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { API_BASE_URL } from "@/config/api";
 import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Eye } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +49,10 @@ export const columns: ColumnDef<Execution>[] = [
     cell: ({ row }) => {
       const id = row.getValue("id") as string;
       return (
-        <Link to={`/executions/${id}`} className="font-mono text-xs hover:underline">
+        <Link
+          to={`/executions/${id}`}
+          className="font-mono text-xs hover:underline"
+        >
           {id}
         </Link>
       );
@@ -114,9 +117,7 @@ export const columns: ColumnDef<Execution>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={`/executions/${execution.id}`}>
-                View
-              </Link>
+              <Link to={`/executions/${execution.id}`}>View</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

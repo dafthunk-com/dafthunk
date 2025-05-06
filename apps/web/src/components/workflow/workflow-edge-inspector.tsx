@@ -2,10 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { WorkflowEdgeInspectorProps } from "./workflow-types";
 
-export function WorkflowEdgeInspector({ 
-  edge, 
-  onEdgeUpdate,
-  readonly = false 
+export function WorkflowEdgeInspector({
+  edge,
+  readonly = false,
 }: WorkflowEdgeInspectorProps) {
   if (!edge) return null;
 
@@ -13,7 +12,9 @@ export function WorkflowEdgeInspector({
     <Card className="border-none shadow-none">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">
-          {readonly ? "Connection Properties (Read-only)" : "Connection Properties"}
+          {readonly
+            ? "Connection Properties (Read-only)"
+            : "Connection Properties"}
         </CardTitle>
       </CardHeader>
       <CardContent>

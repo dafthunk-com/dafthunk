@@ -61,7 +61,7 @@ export function WorkflowNodeInspector({
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readonly) return;
-    
+
     const newName = e.target.value;
     setLocalName(newName);
     updateNodeName(node.id, newName, updateNodeData);
@@ -140,7 +140,11 @@ export function WorkflowNodeInspector({
 
   const widgetComponents: Record<
     string,
-    React.FC<{ config: any; onChange: (value: any) => void; readonly?: boolean }>
+    React.FC<{
+      config: any;
+      onChange: (value: any) => void;
+      readonly?: boolean;
+    }>
   > = {
     slider: SliderWidget,
     "radio-group": RadioGroupWidget,
