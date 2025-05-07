@@ -27,14 +27,14 @@ export function WorkflowInfoCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground flex items-center">
-              <Hash className="mr-1 h-4 w-4" /> Workflow ID
-            </p>
-            <p className="font-mono text-sm mt-1">{id}</p>
+            <p className="text-sm text-muted-foreground">Workflow Name</p>
+            <p className="mt-1 font-medium">{name}</p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Name</p>
-            <p className="mt-1 font-medium">{name}</p>
+            <p className="text-sm text-muted-foreground flex items-center">
+              <Hash className="mr-1 h-4 w-4" /> Workflow UUID
+            </p>
+            <p className="font-mono text-sm mt-1">{id}</p>
           </div>
         </div>
       </CardContent>

@@ -41,24 +41,24 @@ export function DeploymentInfoCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-muted-foreground flex items-center">
-              <Hash className="mr-1 h-4 w-4" /> Deployment ID
-            </p>
-            <p className="font-mono text-sm mt-1">{id}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground flex items-center">
-              <Clock className="mr-1 h-4 w-4" /> Deployed
-            </p>
-            <p className="mt-1">{formatDate(createdAt)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Version</p>
+            <p className="text-sm text-muted-foreground">Deployment Version</p>
             <p className="mt-1">
               <Badge variant="secondary" className="text-xs gap-1">
                 <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
               </Badge>
             </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground flex items-center">
+              <Hash className="mr-1 h-4 w-4" /> Deployment UUID
+            </p>
+            <p className="font-mono text-sm mt-1">{id}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground flex items-center">
+              <Clock className="mr-1 h-4 w-4" /> Created At
+            </p>
+            <p className="mt-1">{formatDate(createdAt)}</p>
           </div>
         </div>
       </CardContent>

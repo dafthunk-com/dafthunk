@@ -51,7 +51,7 @@ function createDeploymentHistoryColumns(
   return [
     {
       accessorKey: "id",
-      header: "ID",
+      header: "Deployment UUID",
       cell: ({ row }) => {
         const deployment = row.original;
         const isCurrent = deployment.id === currentDeploymentId;
@@ -59,13 +59,23 @@ function createDeploymentHistoryColumns(
           <div className="font-mono text-xs">
             {isCurrent ? (
               <div className="flex items-center">
-                {deployment.id}
+                <Link
+                  to={`/workflows/deployments/version/${deployment.id}`}
+                  className="hover:underline"
+                >
+                  {deployment.id}
+                </Link>
                 <Badge variant="outline" className="ml-2 bg-green-50">
                   Current
                 </Badge>
               </div>
             ) : (
-              <>{deployment.id}</>
+              <Link
+                to={`/workflows/deployments/version/${deployment.id}`}
+                className="hover:underline"
+              >
+                {deployment.id}
+              </Link>
             )}
           </div>
         );
@@ -73,21 +83,31 @@ function createDeploymentHistoryColumns(
     },
     {
       accessorKey: "version",
-      header: "Version",
+      header: "Deployment Version",
       cell: ({ row }) => (
-        <Badge variant="secondary" className="gap-1">
-          <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
-        </Badge>
+        <Link
+          to={`/workflows/deployments/version/${row.original.id}`}
+          className="hover:underline"
+        >
+          <Badge variant="secondary" className="gap-1">
+            <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
+          </Badge>
+        </Link>
       ),
     },
     {
       accessorKey: "createdAt",
-      header: "Created",
+      header: "Created At",
       cell: ({ row }) => (
-        <div className="flex items-center">
-          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-          {formatDeploymentDate(row.original.createdAt)}
-        </div>
+        <Link
+          to={`/workflows/deployments/version/${row.original.id}`}
+          className="hover:underline"
+        >
+          <div className="flex items-center">
+            <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+            {formatDeploymentDate(row.original.createdAt)}
+          </div>
+        </Link>
       ),
     },
     {
