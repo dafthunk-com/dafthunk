@@ -108,7 +108,7 @@ export function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-base font-medium">Workflows</CardTitle>
+            <CardTitle className="text-xl">Workflows</CardTitle>
             <Workflow className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -128,7 +128,7 @@ export function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-base font-medium">Deployments</CardTitle>
+            <CardTitle className="text-xl">Deployments</CardTitle>
             <Target className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -151,7 +151,7 @@ export function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-base font-medium">Executions</CardTitle>
+            <CardTitle className="text-xl">Executions</CardTitle>
             <Logs className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -196,18 +196,16 @@ export function DashboardPage() {
             accessorKey: "workflowName",
             header: "Workflow",
             cell: ({ row }) => (
-              <span className="font-medium truncate">{row.original.workflowName}</span>
+              <span className="font-medium truncate">
+                {row.original.workflowName}
+              </span>
             ),
           },
           {
             accessorKey: "status",
             header: "Status",
             cell: ({ row }) => {
-              let badgeStatus:
-                | "running"
-                | "completed"
-                | "failed"
-                | "cancelled";
+              let badgeStatus: "running" | "completed" | "failed" | "cancelled";
               switch (row.original.status) {
                 case "executing":
                 case "running":
@@ -234,7 +232,9 @@ export function DashboardPage() {
             header: "Started",
             cell: ({ row }) => (
               <span className="text-right text-xs text-muted-foreground">
-                {formatDistanceToNow(row.original.startedAt, { addSuffix: true })}
+                {formatDistanceToNow(row.original.startedAt, {
+                  addSuffix: true,
+                })}
               </span>
             ),
           },

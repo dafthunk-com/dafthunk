@@ -268,7 +268,7 @@ export function ExecutionDetailPage() {
               {/* Execution Status Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Execution Status</CardTitle>
+                  <CardTitle className="text-xl">Execution Status</CardTitle>
                   <CardDescription>
                     Current status and overview of this workflow execution
                   </CardDescription>

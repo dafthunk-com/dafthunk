@@ -90,7 +90,9 @@ export function DataTableCard<TData, TValue>({
                   className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center py-8">
-                    <h3 className="font-semibold text-lg">{emptyState.title}</h3>
+                    <h3 className="font-semibold text-lg">
+                      {emptyState.title}
+                    </h3>
                     <p className="text-muted-foreground mt-1">
                       {emptyState.description}
                     </p>
@@ -102,7 +104,10 @@ export function DataTableCard<TData, TValue>({
                 <TableRow key={row.id} className="border-t hover:bg-muted/50">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-6 py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -113,4 +118,4 @@ export function DataTableCard<TData, TValue>({
       </CardContent>
     </Card>
   );
-} 
+}

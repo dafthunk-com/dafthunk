@@ -26,7 +26,7 @@ export function DocsPage() {
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
+            <CardTitle className="text-xl">Getting Started</CardTitle>
             <CardDescription>
               Learn the basics of dafthunk and create your first workflow.
             </CardDescription>
@@ -46,7 +46,7 @@ export function DocsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>API Reference</CardTitle>
+            <CardTitle className="text-xl">API Reference</CardTitle>
             <CardDescription>
               Detailed documentation of dafthunk's API and components.
             </CardDescription>

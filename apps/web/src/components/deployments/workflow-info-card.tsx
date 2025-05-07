@@ -21,7 +21,7 @@ export function WorkflowInfoCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Workflow Information</CardTitle>
+        <CardTitle className="text-xl">Workflow Information</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
