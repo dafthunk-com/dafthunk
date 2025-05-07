@@ -100,7 +100,6 @@ function createDeploymentHistoryColumns(
       header: "Created At",
       cell: ({ row }) => (
         <div className="flex items-center">
-          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
           {formatDeploymentDate(row.original.createdAt)}
         </div>
       ),

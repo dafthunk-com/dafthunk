@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Hash } from "lucide-react";
+import { IdCard, Workflow } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface WorkflowInfoCardProps {
@@ -30,7 +30,9 @@ export function WorkflowInfoCard({
           {/* First Column - Name */}
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">Workflow Name</p>
+              <p className="text-sm text-muted-foreground flex items-center">
+                <Workflow className="mr-1 h-4 w-4" /> Workflow Name
+              </p>
               <p className="mt-1">
                 <Link
                   to={`/workflows/playground/${id}`}
@@ -46,7 +48,7 @@ export function WorkflowInfoCard({
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground flex items-center">
-                <Hash className="mr-1 h-4 w-4" /> Workflow UUID
+                <IdCard className="mr-1 h-4 w-4" /> Workflow UUID
               </p>
               <p className="mt-1">
                 <Link

@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Clock, Hash, GitCommitHorizontal, AlertCircle } from "lucide-react";
+import { Clock, IdCard, Workflow, AlertCircle, Play } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { ExecutionStatusBadge } from "./execution-status-badge";
@@ -74,7 +74,7 @@ export function ExecutionInfoCard({
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground flex items-center">
-                <GitCommitHorizontal className="mr-1 h-4 w-4" /> Workflow Name
+                <Workflow className="mr-1 h-4 w-4" /> Workflow Name
               </p>
               <p className="mt-1">
                 {workflowName ? (
@@ -91,7 +91,7 @@ export function ExecutionInfoCard({
             </div>
             <div>
               <p className="text-sm text-muted-foreground flex items-center">
-                <GitCommitHorizontal className="mr-1 h-4 w-4" /> Workflow UUID
+                <IdCard className="mr-1 h-4 w-4" /> Workflow UUID
               </p>
               <p className="mt-1">
                 <Link
@@ -105,7 +105,7 @@ export function ExecutionInfoCard({
             {deploymentId && (
               <div>
                 <p className="text-sm text-muted-foreground flex items-center">
-                  <GitCommitHorizontal className="mr-1 h-4 w-4" /> Deployment UUID
+                  <IdCard className="mr-1 h-4 w-4" /> Deployment UUID
                 </p>
                 <p className="mt-1">
                   <Link
@@ -119,7 +119,7 @@ export function ExecutionInfoCard({
             )}
             <div>
               <p className="text-sm text-muted-foreground flex items-center">
-                <Hash className="mr-1 h-4 w-4" /> Execution UUID
+                <IdCard className="mr-1 h-4 w-4" /> Execution UUID
               </p>
               <p className="mt-1">
                 <Link
