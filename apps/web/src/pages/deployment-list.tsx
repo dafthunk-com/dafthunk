@@ -41,24 +41,16 @@ import {
 type DeploymentWithActions = WorkflowDeployment & {
   onViewLatest?: (workflowId: string) => void;
   onCreateDeployment?: (workflowId: string) => void;
-  onRunLatest?: (deploymentId: string) => void;
+  onExecute?: (deploymentId: string) => void;
 };
 
 const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
-    cell: ({ row }) => {
-      const workflowId = row.original.workflowId;
-      return (
-        <Link
-          to={`/workflows/deployments/${workflowId}`}
-          className="hover:underline"
-        >
-          <div className="font-medium">{row.getValue("workflowName")}</div>
-        </Link>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("workflowName")}</div>
+    ),
   },
   {
     accessorKey: "latestVersion",
@@ -70,14 +62,9 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
         : "1.0";
       return (
         <TooltipProvider>
-          <Link
-            to={`/workflows/deployments/version/${deployment.latestDeploymentId}`}
-            className="hover:opacity-80"
-          >
-            <Badge variant="secondary" className="text-xs gap-1">
-              <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
-            </Badge>
-          </Link>
+          <Badge variant="secondary" className="text-xs gap-1">
+            <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
+          </Badge>
         </TooltipProvider>
       );
     },
@@ -85,17 +72,9 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "deploymentCount",
     header: "Number of Deployments",
-    cell: ({ row }) => {
-      const workflowId = row.original.workflowId;
-      return (
-        <Link
-          to={`/workflows/deployments/${workflowId}`}
-          className="hover:opacity-80"
-        >
-          <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
-        </Link>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
+    ),
   },
   {
     id: "actions",
@@ -103,29 +82,29 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       const deployment = row.original;
       return (
         <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link to={`/workflows/deployments/${deployment.workflowId}`}>
-                  View
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  deployment.onRunLatest?.(deployment.latestDeploymentId || "")
-                }
-                disabled={!deployment.latestDeploymentId}
-              >
-                Execute
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to={`/workflows/deployments/${deployment.workflowId}`}>
+                View
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                deployment.onExecute?.(deployment.latestDeploymentId || "")
+              }
+              disabled={!deployment.latestDeploymentId}
+            >
+              Execute
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         </div>
       );
     },
@@ -216,7 +195,7 @@ export function DeploymentListPage() {
     navigate(`/workflows/deployments/${workflowId}`);
   };
 
-  const handleRunLatest = async (deploymentId: string) => {
+  const handleExecute = async (deploymentId: string) => {
     if (!deploymentId) return;
     try {
       await fetch(
@@ -239,7 +218,7 @@ export function DeploymentListPage() {
       ...deployment,
       onViewLatest: handleViewDeployment,
       onCreateDeployment: () => {},
-      onRunLatest: handleRunLatest,
+      onExecute: handleExecute,
     })
   );
 
