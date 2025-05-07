@@ -37,7 +37,6 @@ export function ExecutionDetailPage() {
 
   const [execution, setExecution] = useState<WorkflowExecution | null>(null);
   const [workflow, setWorkflow] = useState<WorkflowInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
@@ -85,7 +84,6 @@ export function ExecutionDetailPage() {
     const fetchExecutionDetails = async () => {
       if (!executionId) return;
       try {
-        setIsLoading(true);
         const response = await fetch(
           `${API_BASE_URL}/executions/${executionId}`,
           {
@@ -179,8 +177,6 @@ export function ExecutionDetailPage() {
       } catch (error) {
         console.error("Error fetching execution:", error);
         toast.error("Failed to fetch execution details. Please try again.");
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchExecutionDetails();
@@ -261,11 +257,7 @@ export function ExecutionDetailPage() {
 
   return (
     <InsetLayout title={`${executionId}`}>
-      {isLoading ? (
-        <div className="py-10 text-center">
-          Loading execution information...
-        </div>
-      ) : execution ? (
+      {execution ? (
         <div className="space-y-6">
           <Tabs defaultValue="status">
             <TabsList>
@@ -384,7 +376,7 @@ export function ExecutionDetailPage() {
                     readonly={true}
                   />
                 )}
-                {nodes.length === 0 && !isLoading && (
+                {nodes.length === 0 && (
                   <div className="flex flex-col items-center justify-center h-full">
                     <p className="text-muted-foreground">
                       No workflow structure available

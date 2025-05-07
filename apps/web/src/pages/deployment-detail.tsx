@@ -136,8 +136,6 @@ export function DeploymentDetailPage() {
   const [deploymentHistory, setDeploymentHistory] = useState<
     WorkflowDeploymentVersion[]
   >([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
@@ -147,7 +145,6 @@ export function DeploymentDetailPage() {
     if (!workflowId) return;
 
     try {
-      setIsHistoryLoading(true);
       const response = await fetch(
         `${API_BASE_URL}/deployments/history/${workflowId}`,
         {
@@ -181,9 +178,6 @@ export function DeploymentDetailPage() {
     } catch (error) {
       console.error("Error fetching deployment history:", error);
       toast.error("Failed to fetch deployment history. Please try again.");
-    } finally {
-      setIsHistoryLoading(false);
-      setIsLoading(false);
     }
   };
 
@@ -249,9 +243,7 @@ export function DeploymentDetailPage() {
 
   return (
     <InsetLayout title={workflow?.name || "Workflow Deployments"}>
-      {isLoading ? (
-        <div className="py-10 text-center">Loading workflow information...</div>
-      ) : workflow ? (
+      {workflow ? (
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -298,7 +290,6 @@ export function DeploymentDetailPage() {
                         currentDeployment.id
                       )}
                       data={displayDeployments}
-                      isLoading={isHistoryLoading}
                       emptyState={{
                         title: "No deployment history",
                         description: "No deployment history found.",

@@ -128,7 +128,6 @@ export const columns: ColumnDef<Execution>[] = [
 
 export function ExecutionsPage() {
   const [executions, setExecutions] = useState<Execution[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
@@ -138,7 +137,6 @@ export function ExecutionsPage() {
 
   useEffect(() => {
     const fetchExecutions = async () => {
-      setIsLoading(true);
       setError(null);
       try {
         const response = await fetch(`${API_BASE_URL}/executions`, {
@@ -177,8 +175,6 @@ export function ExecutionsPage() {
       } catch (err) {
         setError((err as Error).message);
         toast.error("Failed to fetch executions. Please try again.");
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchExecutions();
@@ -193,7 +189,6 @@ export function ExecutionsPage() {
         <DataTable
           columns={columns}
           data={executions}
-          isLoading={isLoading}
           emptyState={{
             title: error ? "Error" : "No executions",
             description: error || "No executions found.",

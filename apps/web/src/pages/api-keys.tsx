@@ -83,7 +83,6 @@ const columns: ColumnDef<ApiToken>[] = [
 
 export function ApiKeysPage() {
   const [apiTokens, setApiTokens] = useState<ApiToken[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
@@ -94,7 +93,6 @@ export function ApiKeysPage() {
   const [isShowKeyDialogOpen, setIsShowKeyDialogOpen] = useState(false);
 
   const fetchTokens = useCallback(async (): Promise<void> => {
-    setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/tokens`, {
         method: "GET",
@@ -106,8 +104,6 @@ export function ApiKeysPage() {
       setTableKey((prev) => prev + 1);
     } catch {
       toast.error("Failed to fetch API tokens. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -205,7 +201,6 @@ export function ApiKeysPage() {
         key={tableKey}
         columns={columns}
         data={apiTokens}
-        isLoading={isLoading}
         emptyState={{
           title: "No API keys found",
           description: "Create your first key to get started.",

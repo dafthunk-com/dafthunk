@@ -22,7 +22,6 @@ export function DeploymentVersionPage() {
   const [deployment, setDeployment] =
     useState<WorkflowDeploymentVersion | null>(null);
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
@@ -106,7 +105,6 @@ export function DeploymentVersionPage() {
     if (!deploymentId) return;
 
     try {
-      setIsLoading(true);
       const response = await fetch(
         `${API_BASE_URL}/deployments/version/${deploymentId}`,
         {
@@ -132,8 +130,6 @@ export function DeploymentVersionPage() {
     } catch (error) {
       console.error("Error fetching deployment:", error);
       toast.error("Failed to fetch deployment. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -213,9 +209,7 @@ export function DeploymentVersionPage() {
         deployment?.version ? `Version ${deployment.version}` : "Deployment"
       }
     >
-      {isLoading ? (
-        <div className="py-10 text-center">Loading deployment details...</div>
-      ) : deployment ? (
+      {deployment ? (
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -259,7 +253,7 @@ export function DeploymentVersionPage() {
                     readonly={true}
                   />
                 )}
-                {nodes.length === 0 && !isLoading && (
+                {nodes.length === 0 && (
                   <div className="flex flex-col items-center justify-center h-full">
                     <p className="text-muted-foreground">
                       No workflow structure available

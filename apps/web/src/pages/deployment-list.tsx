@@ -105,7 +105,6 @@ export function DeploymentListPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const [deployments, setDeployments] = useState<WorkflowDeployment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState("");
@@ -120,7 +119,6 @@ export function DeploymentListPage() {
   // Fetch the deployments
   const fetchDeployments = useCallback(async () => {
     try {
-      setIsLoading(true);
       const response = await fetch(`${API_BASE_URL}/deployments`, {
         method: "GET",
         credentials: "include",
@@ -133,8 +131,6 @@ export function DeploymentListPage() {
     } catch (error) {
       console.error("Error fetching deployments:", error);
       toast.error("Failed to fetch deployments. Please try again.");
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -213,7 +209,6 @@ export function DeploymentListPage() {
         <DataTable
           columns={columns}
           data={deploymentsWithActions}
-          isLoading={isLoading}
           emptyState={{
             title: "No deployments found",
             description: "Deploy a workflow to get started.",

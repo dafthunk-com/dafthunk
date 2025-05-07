@@ -18,7 +18,6 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  isLoading?: boolean;
   emptyState?: {
     title: string;
     description: string;
@@ -28,7 +27,6 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  isLoading = false,
   emptyState = {
     title: "No results",
     description: "No data available.",
@@ -39,22 +37,6 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-
-  if (isLoading) {
-    return (
-      <div className="border rounded-md">
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                Loading...
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
 
   if (data.length === 0) {
     return (
