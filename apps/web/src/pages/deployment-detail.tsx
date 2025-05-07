@@ -124,8 +124,30 @@ function createDeploymentHistoryColumns(
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 <Link to={`/workflows/deployments/version/${row.original.id}`}>
-                  View
+                  View Version
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    const response = await fetch(
+                      `${API_BASE_URL}/deployments/version/${row.original.id}/execute`,
+                      {
+                        method: "GET",
+                        credentials: "include",
+                      }
+                    );
+                    if (!response.ok) {
+                      throw new Error(`Failed to execute deployment: ${response.statusText}`);
+                    }
+                    toast.success("Deployment executed successfully");
+                  } catch (error) {
+                    console.error("Error executing deployment:", error);
+                    toast.error("Failed to execute deployment. Please try again.");
+                  }
+                }}
+              >
+                Execute Version
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

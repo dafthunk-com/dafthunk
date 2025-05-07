@@ -139,7 +139,7 @@ export const columns: ColumnDef<Execution>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/executions/${execution.id}`}>View</Link>
+                <Link to={`/workflows/executions/${execution.id}`}>View</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

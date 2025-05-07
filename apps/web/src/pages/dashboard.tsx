@@ -76,7 +76,7 @@ export function DashboardPage() {
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 size-4" /> Create Workflow
         </Button>
         <CreateWorkflowDialog

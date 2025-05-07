@@ -16,6 +16,8 @@ import {
   NodeTemplate,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
+import { Button } from "@/components/ui/button";
+import { Play } from "lucide-react";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams();
@@ -203,6 +205,29 @@ export function DeploymentVersionPage() {
   // Create a simple validate connection function (read-only mode)
   const validateConnection = useCallback(() => false, []);
 
+  const executeDeployment = async () => {
+    if (!deploymentId) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to execute deployment: ${response.statusText}`);
+      }
+
+      toast.success("Deployment executed successfully");
+    } catch (error) {
+      console.error("Error executing deployment:", error);
+      toast.error("Failed to execute deployment. Please try again.");
+    }
+  };
+
   return (
     <InsetLayout
       title={
@@ -216,6 +241,10 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
+              <Button onClick={executeDeployment}>
+                <Play className="mr-2 h-4 w-4" />
+                Execute Version
+              </Button>
             </div>
           </div>
 

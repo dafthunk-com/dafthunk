@@ -8,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -210,13 +210,13 @@ function createColumns(
                     navigate(`/workflows/playground/${workflow.id}`)
                   }
                 >
-                  View
+                  Edit Workflow
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
-                  Rename
+                  Rename Workflow
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
-                  Delete
+                  Delete Workflow
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -295,8 +295,9 @@ export function PlaygroundPage() {
             Create, manage, and run your workflows. Break it, fix it, prompt it,
             automatic.
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
-            + Create Workflow
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Workflow
           </Button>
         </div>
         <DataTable

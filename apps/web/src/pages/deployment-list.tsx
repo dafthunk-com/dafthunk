@@ -134,7 +134,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
                 <Link to={`/workflows/deployments/${deployment.workflowId}`}>
-                  View
+                  View Deployed Versions
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -143,7 +143,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
                 }
                 disabled={!deployment.latestDeploymentId}
               >
-                Execute
+                Execute Latest Version
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
