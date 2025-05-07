@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Hash } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface WorkflowInfoCardProps {
   id: string;
@@ -25,16 +26,37 @@ export function WorkflowInfoCard({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground">Workflow Name</p>
-            <p className="mt-1 font-medium">{name}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* First Column - Name */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Workflow Name</p>
+              <p className="mt-1">
+                <Link
+                  to={`/workflows/playground/${id}`}
+                  className="hover:underline font-medium"
+                >
+                  {name}
+                </Link>
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground flex items-center">
-              <Hash className="mr-1 h-4 w-4" /> Workflow UUID
-            </p>
-            <p className="font-mono text-sm mt-1">{id}</p>
+
+          {/* Second Column - UUID */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground flex items-center">
+                <Hash className="mr-1 h-4 w-4" /> Workflow UUID
+              </p>
+              <p className="mt-1">
+                <Link
+                  to={`/workflows/playground/${id}`}
+                  className="hover:underline font-mono text-xs"
+                >
+                  {id}
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </CardContent>

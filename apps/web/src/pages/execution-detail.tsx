@@ -25,6 +25,7 @@ import {
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
 import { WorkflowExecution, NodeExecution } from "@dafthunk/types";
+import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 
 interface WorkflowInfo {
   id: string;
@@ -265,103 +266,16 @@ export function ExecutionDetailPage() {
               <TabsTrigger value="visualization">Visualization</TabsTrigger>
             </TabsList>
             <TabsContent value="status" className="space-y-6 mt-4">
-              {/* Execution Status Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">Execution Status</CardTitle>
-                  <CardDescription>
-                    Current status and overview of this workflow execution
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Status:</span>
-                        <ExecutionStatusBadge
-                          status={execution.status as any}
-                        />
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Started:</span>
-                        <span>
-                          {formatDateTime(execution.startedAt as string)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Completed:
-                        </span>
-                        <span>
-                          {formatDateTime(execution.endedAt as string)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Duration:</span>
-                        <span>
-                          {calculateDuration(
-                            execution.startedAt as string,
-                            execution.endedAt as string
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Execution ID:
-                        </span>
-                        <span className="font-mono text-xs">
-                          {execution.id}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Workflow:</span>
-                        {workflow ? (
-                          <Link
-                            to={`/workflows/playground/${execution.workflowId}`}
-                            className="hover:underline text-primary"
-                          >
-                            {workflow.name}
-                          </Link>
-                        ) : (
-                          <span className="font-mono text-xs">
-                            {execution.workflowId}
-                          </span>
-                        )}
-                      </div>
-                      {execution.deploymentId && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Deployment:
-                          </span>
-                          <Link
-                            to={`/workflows/deployments/version/${execution.deploymentId}`}
-                            className="hover:underline text-primary font-mono text-xs"
-                          >
-                            {execution.deploymentId}
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {execution.error && (
-                    <div className="mt-4 p-3 border border-destructive/20 bg-destructive/10 rounded-md">
-                      <div className="flex items-start">
-                        <AlertCircle className="h-5 w-5 text-destructive mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-semibold text-destructive">
-                            Error
-                          </p>
-                          <p className="text-sm font-mono whitespace-pre-wrap">
-                            {execution.error}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <ExecutionInfoCard
+                id={execution.id}
+                status={execution.status}
+                startedAt={execution.startedAt}
+                endedAt={execution.endedAt}
+                workflowId={execution.workflowId}
+                workflowName={workflow?.name}
+                deploymentId={execution.deploymentId}
+                error={execution.error}
+              />
             </TabsContent>
             <TabsContent value="visualization" className="mt-4">
               <div className="h-[calc(100vh-280px)] border rounded-md relative">

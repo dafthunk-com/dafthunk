@@ -99,15 +99,10 @@ function createDeploymentHistoryColumns(
       accessorKey: "createdAt",
       header: "Created At",
       cell: ({ row }) => (
-        <Link
-          to={`/workflows/deployments/version/${row.original.id}`}
-          className="hover:underline"
-        >
-          <div className="flex items-center">
-            <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-            {formatDeploymentDate(row.original.createdAt)}
-          </div>
-        </Link>
+        <div className="flex items-center">
+          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+          {formatDeploymentDate(row.original.createdAt)}
+        </div>
       ),
     },
     {
