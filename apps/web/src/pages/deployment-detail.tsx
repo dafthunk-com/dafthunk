@@ -12,6 +12,7 @@ import {
   Clock,
   GitCommitHorizontal,
   MoreHorizontal,
+  Play,
 } from "lucide-react";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import {
@@ -209,6 +210,29 @@ export function DeploymentDetailPage() {
     }
   };
 
+  const executeLatestVersion = async () => {
+    if (!currentDeployment?.id) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/deployments/version/${currentDeployment.id}/execute`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to execute deployment: ${response.statusText}`);
+      }
+
+      toast.success("Deployment executed successfully");
+    } catch (error) {
+      console.error("Error executing deployment:", error);
+      toast.error("Failed to execute deployment. Please try again.");
+    }
+  };
+
   // Show only most recent 3 deployments unless expanded
   const displayDeployments = expandedHistory
     ? deploymentHistory
@@ -244,10 +268,19 @@ export function DeploymentDetailPage() {
               <p className="text-muted-foreground">
                 Manage deployments for this workflow
               </p>
-              <Button onClick={() => setIsDeployDialogOpen(true)}>
-                <ArrowUpToLine className="mr-2 h-4 w-4" />
-                Deploy Latest Version
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsDeployDialogOpen(true)}>
+                  <ArrowUpToLine className="mr-2 h-4 w-4" />
+                  Deploy Latest Version
+                </Button>
+                <Button
+                  onClick={executeLatestVersion}
+                  disabled={!currentDeployment}
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  Execute Latest Version
+                </Button>
+              </div>
             </div>
           </div>
 

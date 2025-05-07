@@ -29,7 +29,12 @@ import { Spinner } from "@/components/ui/spinner";
 import { workflowService } from "@/services/workflowService";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, GitCommitHorizontal, Play } from "lucide-react";
+import {
+  MoreHorizontal,
+  GitCommitHorizontal,
+  Play,
+  ArrowUpToLine,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,9 +53,33 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("workflowName")}</div>
-    ),
+    cell: ({ row }) => {
+      const workflowName = row.getValue("workflowName") as string;
+      const workflowId = row.original.workflowId;
+      return (
+        <Link
+          to={`/workflows/playground/${workflowId}`}
+          className="hover:underline"
+        >
+          {workflowName}
+        </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "workflowId",
+    header: "Workflow UUID",
+    cell: ({ row }) => {
+      const workflowId = row.original.workflowId;
+      return (
+        <Link
+          to={`/workflows/playground/${workflowId}`}
+          className="font-mono text-xs hover:underline"
+        >
+          {workflowId}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "latestVersion",
@@ -62,9 +91,14 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
         : "1.0";
       return (
         <TooltipProvider>
-          <Badge variant="secondary" className="text-xs gap-1">
-            <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
-          </Badge>
+          <Link
+            to={`/workflows/deployments/version/${deployment.latestDeploymentId}`}
+            className="hover:underline"
+          >
+            <Badge variant="secondary" className="text-xs gap-1">
+              <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
+            </Badge>
+          </Link>
         </TooltipProvider>
       );
     },
@@ -72,9 +106,17 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "deploymentCount",
     header: "Number of Deployments",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
-    ),
+    cell: ({ row }) => {
+      const deployment = row.original;
+      return (
+        <Link
+          to={`/workflows/deployments/${deployment.workflowId}`}
+          className="hover:underline"
+        >
+          <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
+        </Link>
+      );
+    },
   },
   {
     id: "actions",
@@ -82,29 +124,29 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       const deployment = row.original;
       return (
         <div className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/workflows/deployments/${deployment.workflowId}`}>
-                View
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                deployment.onExecute?.(deployment.latestDeploymentId || "")
-              }
-              disabled={!deployment.latestDeploymentId}
-            >
-              Execute
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to={`/workflows/deployments/${deployment.workflowId}`}>
+                  View
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  deployment.onExecute?.(deployment.latestDeploymentId || "")
+                }
+                disabled={!deployment.latestDeploymentId}
+              >
+                Execute
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },
@@ -230,8 +272,9 @@ export function DeploymentListPage() {
             View and manage versioned snapshots of workflows ready for
             execution.
           </div>
-          <Button onClick={handleOpenDialog} size="sm">
-            + Create Deployment
+          <Button onClick={handleOpenDialog}>
+            <ArrowUpToLine className="mr-2 h-4 w-4" />
+            Deploy Workflow
           </Button>
         </div>
         <DataTable
