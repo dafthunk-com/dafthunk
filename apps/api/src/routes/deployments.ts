@@ -3,6 +3,7 @@ import {
   Workflow as WorkflowType,
   WorkflowDeployment,
   WorkflowDeploymentVersion,
+  Node,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
@@ -15,6 +16,7 @@ import {
   getDeploymentsGroupedByWorkflow,
   getDeploymentsByWorkflowId,
   getLatestVersionNumberByWorkflowId,
+  saveExecution,
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 
@@ -212,6 +214,77 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
     },
     deployments: deploymentVersions,
   });
+});
+
+/**
+ * GET /deployments/version/:deploymentUUID/execute
+ * Executes a specific deployment version
+ */
+deploymentRoutes.get("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const deploymentUUID = c.req.param("deploymentUUID");
+  const db = createDatabase(c.env.DB);
+
+  const monitorProgress =
+    new URL(c.req.url).searchParams.get("monitorProgress") === "true";
+
+  // Get the deployment
+  const deployment = await getDeploymentById(
+    db,
+    deploymentUUID,
+    user.organizationId
+  );
+
+  if (!deployment) {
+    return c.json({ error: "Deployment not found" }, 404);
+  }
+
+  const workflowData = deployment.workflowData as WorkflowType;
+
+  // Trigger the runtime and get the instance id
+  const instance = await c.env.EXECUTE.create({
+    params: {
+      userId: user.sub,
+      organizationId: user.organizationId,
+      workflow: {
+        id: deployment.workflowId || "",
+        name: workflowData.name,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      },
+      monitorProgress,
+    },
+  });
+  const executionId = instance.id;
+
+  // Build initial nodeExecutions (all idle)
+  const nodeExecutions = workflowData.nodes.map((node: Node) => ({
+    nodeId: node.id,
+    status: "idle" as const,
+  }));
+
+  // Save initial execution record
+  await saveExecution(db, {
+    id: executionId,
+    workflowId: deployment.workflowId || "",
+    deploymentId: deployment.id,
+    userId: user.sub,
+    organizationId: user.organizationId,
+    status: "executing",
+    nodeExecutions,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  // Return the initial WorkflowExecution object
+  const initialExecution = {
+    id: executionId,
+    workflowId: deployment.workflowId,
+    deploymentId: deployment.id,
+    status: "executing",
+    nodeExecutions,
+  };
+  return c.json(initialExecution, 201);
 });
 
 export default deploymentRoutes;

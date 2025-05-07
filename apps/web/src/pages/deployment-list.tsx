@@ -29,7 +29,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { workflowService } from "@/services/workflowService";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, GitCommitHorizontal } from "lucide-react";
+import { MoreHorizontal, GitCommitHorizontal, Play } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,7 @@ import {
 type DeploymentWithActions = WorkflowDeployment & {
   onViewLatest?: (workflowId: string) => void;
   onCreateDeployment?: (workflowId: string) => void;
+  onRunLatest?: (deploymentId: string) => void;
 };
 
 const columns: ColumnDef<DeploymentWithActions>[] = [
@@ -93,6 +94,13 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
               <Link to={`/workflows/deployments/${deployment.workflowId}`}>
                 View
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => deployment.onRunLatest?.(deployment.latestDeploymentId || "")}
+              disabled={!deployment.latestDeploymentId}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Run Latest
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -185,12 +193,29 @@ export function DeploymentListPage() {
     navigate(`/workflows/deployments/${workflowId}`);
   };
 
+  const handleRunLatest = async (deploymentId: string) => {
+    if (!deploymentId) return;
+    try {
+      await fetch(
+        `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+    } catch (error) {
+      console.error("Error executing deployment:", error);
+      toast.error("Failed to execute deployment");
+    }
+  };
+
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = deployments.map(
     (deployment) => ({
       ...deployment,
       onViewLatest: handleViewDeployment,
       onCreateDeployment: () => {},
+      onRunLatest: handleRunLatest,
     })
   );
 
