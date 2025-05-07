@@ -46,6 +46,7 @@ export type RuntimeParams = {
   userId: string;
   organizationId: string;
   monitorProgress?: boolean;
+  deploymentId?: string;
 };
 
 export type RuntimeState = {
@@ -97,7 +98,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     let executionRecord: WorkflowExecution = {
       id: instanceId,
-      workflowId: workflow.id,
+      workflowId: event.payload.workflow.id,
+      deploymentId: event.payload.deploymentId,
       status: "idle",
       nodeExecutions: [],
       startedAt: undefined,

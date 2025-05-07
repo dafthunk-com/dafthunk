@@ -25,10 +25,9 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 export type Execution = {
   id: string; // Unique execution ID
   workflowId: string; // ID of the source workflow
+  workflowName: string; // Name of the source workflow
   deploymentId?: string; // Optional: ID of the deployment used
-  // workflowName?: string; // Name of the source workflow (not in API)
   status: "running" | "completed" | "failed" | "cancelled";
-  // trigger?: string; // e.g., "Manual", "Schedule", "Webhook" (not in API)
   startedAt: Date;
   endedAt?: Date;
   duration?: string; // Optional: Calculated duration string
@@ -36,21 +35,62 @@ export type Execution = {
 
 export const columns: ColumnDef<Execution>[] = [
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "workflowName",
+    header: "Workflow Name",
     cell: ({ row }) => {
-      const status = row.getValue("status") as ExecutionStatus;
-      return <ExecutionStatusBadge status={status} />;
+      const workflowName = row.getValue("workflowName") as string;
+      const workflowId = row.getValue("workflowId") as string;
+      return (
+        <Link
+          to={`/workflows/playground/${workflowId}`}
+          className="hover:underline"
+        >
+          {workflowName}
+        </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "workflowId",
+    header: "Workflow UUID",
+    cell: ({ row }) => {
+      const workflowId = row.getValue("workflowId") as string;
+      return (
+        <Link
+          to={`/workflows/playground/${workflowId}`}
+          className="font-mono text-xs hover:underline"
+        >
+          {workflowId}
+        </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "deploymentId",
+    header: "Deployment UUID",
+    enableHiding: false,
+    cell: ({ row }) => {
+      const deploymentId = row.getValue("deploymentId") as string | undefined;
+      return deploymentId && deploymentId !== "N/A" ? (
+        <Link
+          to={`/workflows/deployments/version/${deploymentId}`}
+          className="hover:underline font-mono text-xs"
+        >
+          {deploymentId}
+        </Link>
+      ) : (
+        <span className="text-muted-foreground">N/A</span>
+      );
     },
   },
   {
     accessorKey: "id",
-    header: "Execution ID",
+    header: "Execution UUID",
     cell: ({ row }) => {
       const id = row.getValue("id") as string;
       return (
         <Link
-          to={`/executions/${id}`}
+          to={`/workflows/executions/${id}`}
           className="font-mono text-xs hover:underline"
         >
           {id}
@@ -59,29 +99,11 @@ export const columns: ColumnDef<Execution>[] = [
     },
   },
   {
-    accessorKey: "workflowId",
-    header: "Workflow ID",
+    accessorKey: "status",
+    header: "Execution Status",
     cell: ({ row }) => {
-      const workflowId = row.getValue("workflowId") as string;
-      return <span className="font-mono text-xs">{workflowId}</span>;
-    },
-  },
-  {
-    accessorKey: "deploymentId",
-    header: "Deployment ID",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const deploymentId = row.getValue("deploymentId") as string | undefined;
-      return deploymentId && deploymentId !== "N/A" ? (
-        <Link
-          to={`/deployments/${deploymentId}`}
-          className="hover:underline font-mono text-xs"
-        >
-          {deploymentId}
-        </Link>
-      ) : (
-        <span className="text-muted-foreground">N/A</span>
-      );
+      const status = row.getValue("status") as ExecutionStatus;
+      return <ExecutionStatusBadge status={status} />;
     },
   },
   {
@@ -103,24 +125,25 @@ export const columns: ColumnDef<Execution>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
     enableHiding: false,
     cell: ({ row }) => {
       const execution = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/executions/${execution.id}`}>View</Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to={`/executions/${execution.id}`}>View</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },
@@ -161,6 +184,7 @@ export function ExecutionsPage() {
           return {
             id: exec.id,
             workflowId: exec.workflowId,
+            workflowName: exec.workflowName,
             deploymentId: exec.deploymentId || undefined,
             status,
             startedAt: startedAt || new Date(),

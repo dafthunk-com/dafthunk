@@ -53,10 +53,10 @@ const columns: ColumnDef<ApiToken>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }) => {
       const token = row.original;
       return (
+        <div className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -74,8 +74,9 @@ const columns: ColumnDef<ApiToken>[] = [
             >
               Delete Key
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },

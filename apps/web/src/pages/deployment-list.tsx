@@ -78,10 +78,10 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }) => {
       const deployment = row.original;
       return (
+        <div className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -106,6 +106,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       );
     },
   },

@@ -119,6 +119,7 @@ export type WorkflowExecutionStatus =
 export interface WorkflowExecution {
   id: string;
   workflowId: string;
+  workflowName?: string;
   deploymentId?: string;
   status: WorkflowExecutionStatus;
   error?: string;

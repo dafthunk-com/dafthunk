@@ -91,8 +91,8 @@ function createDeploymentHistoryColumns(
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row }) => (
+        <div className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -106,8 +106,9 @@ function createDeploymentHistoryColumns(
                 View
               </Link>
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
     },
   ];

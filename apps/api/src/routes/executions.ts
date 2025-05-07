@@ -5,6 +5,8 @@ import { createDatabase } from "../db";
 import { jwtAuth } from "../auth";
 import { getExecutionById } from "../utils/db";
 import { listExecutions } from "../utils/db";
+import { workflows } from "../db";
+import { eq, inArray } from "drizzle-orm";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -20,10 +22,17 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
       return c.json({ error: "Execution not found" }, 404);
     }
 
+    // Get workflow name
+    const [workflow] = await db
+      .select({ name: workflows.name })
+      .from(workflows)
+      .where(eq(workflows.id, execution.workflowId));
+
     const executionData = execution.data as WorkflowExecution;
     const workflowExecution: WorkflowExecution = {
       id: execution.id,
       workflowId: execution.workflowId,
+      workflowName: workflow?.name || "Unknown Workflow",
       deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],
@@ -56,12 +65,22 @@ executionRoutes.get("/", jwtAuth, async (c) => {
     offset: parsedOffset,
   });
 
+  // Get workflow names for all executions
+  const workflowIds = [...new Set(executions.map(e => e.workflowId))];
+  const workflowNames = await db
+    .select({ id: workflows.id, name: workflows.name })
+    .from(workflows)
+    .where(inArray(workflows.id, workflowIds));
+  
+  const workflowMap = new Map(workflowNames.map(w => [w.id, w.name]));
+
   // Map to WorkflowExecution type
   const results = executions.map((execution) => {
     const executionData = execution.data as WorkflowExecution;
     return {
       id: execution.id,
       workflowId: execution.workflowId,
+      workflowName: workflowMap.get(execution.workflowId) || "Unknown Workflow",
       deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],

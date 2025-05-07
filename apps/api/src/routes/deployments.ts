@@ -253,6 +253,7 @@ deploymentRoutes.get("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
         edges: workflowData.edges,
       },
       monitorProgress,
+      deploymentId: deployment.id,
     },
   });
   const executionId = instance.id;

@@ -162,7 +162,7 @@ function createColumns(
   return [
     {
       accessorKey: "name",
-      header: "Name",
+      header: "Workflow Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
         return <div className="font-medium">{name || "Untitled Workflow"}</div>;
@@ -170,38 +170,39 @@ function createColumns(
     },
     {
       accessorKey: "id",
-      header: "UUID",
+      header: "Workflow UUID",
       cell: ({ row }) => (
         <span className="font-mono text-xs">{row.original.id}</span>
       ),
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row }) => {
         const workflow = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => navigate(`/workflows/playground/${workflow.id}`)}
-              >
-                View
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => navigate(`/workflows/playground/${workflow.id}`)}
+                >
+                  View
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },

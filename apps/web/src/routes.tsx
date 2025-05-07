@@ -206,7 +206,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/executions/:executionId",
+    path: "/workflows/executions/:executionId",
     element: (
       <AppLayout
         sidebar={{

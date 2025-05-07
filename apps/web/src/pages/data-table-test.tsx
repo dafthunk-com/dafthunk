@@ -125,8 +125,8 @@ const columns: ColumnDef<User>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
     cell: () => (
+      <div className="text-right">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -138,8 +138,9 @@ const columns: ColumnDef<User>[] = [
           <DropdownMenuItem onClick={() => {}}>View</DropdownMenuItem>
           <DropdownMenuItem onClick={() => {}}>Edit</DropdownMenuItem>
           <DropdownMenuItem onClick={() => {}}>Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
   },
 ];
