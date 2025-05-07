@@ -28,6 +28,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { DataTableCard } from "@/components/ui/data-table-card";
+import { ColumnDef } from "@tanstack/react-table";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -192,20 +193,22 @@ export function DashboardPage() {
         }}
         columns={[
           {
+            accessorKey: "workflowName",
             header: "Workflow",
-            cell: (exec) => (
-              <span className="font-medium truncate">{exec.workflowName}</span>
+            cell: ({ row }) => (
+              <span className="font-medium truncate">{row.original.workflowName}</span>
             ),
           },
           {
+            accessorKey: "status",
             header: "Status",
-            cell: (exec) => {
+            cell: ({ row }) => {
               let badgeStatus:
                 | "running"
                 | "completed"
                 | "failed"
                 | "cancelled";
-              switch (exec.status) {
+              switch (row.original.status) {
                 case "executing":
                 case "running":
                   badgeStatus = "running";
@@ -227,10 +230,11 @@ export function DashboardPage() {
             },
           },
           {
+            accessorKey: "startedAt",
             header: "Started",
-            cell: (exec) => (
+            cell: ({ row }) => (
               <span className="text-right text-xs text-muted-foreground">
-                {formatDistanceToNow(exec.startedAt, { addSuffix: true })}
+                {formatDistanceToNow(row.original.startedAt, { addSuffix: true })}
               </span>
             ),
           },

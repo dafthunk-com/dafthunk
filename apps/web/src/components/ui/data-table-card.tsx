@@ -10,17 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 
-interface DataTableCardProps<TData> {
+interface DataTableCardProps<TData, TValue> {
   title?: ReactNode;
   viewAllLink?: {
     to: string;
     text?: string;
   };
-  columns: {
-    header: string;
-    cell: (item: TData) => ReactNode;
-  }[];
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
   emptyState?: {
     title: string;
@@ -28,7 +31,7 @@ interface DataTableCardProps<TData> {
   };
 }
 
-export function DataTableCard<TData>({
+export function DataTableCard<TData, TValue>({
   title,
   viewAllLink,
   columns,
@@ -37,7 +40,13 @@ export function DataTableCard<TData>({
     title: "No results",
     description: "No data available.",
   },
-}: DataTableCardProps<TData>) {
+}: DataTableCardProps<TData, TValue>) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
     <Card>
       {(title || viewAllLink) && (
@@ -55,16 +64,23 @@ export function DataTableCard<TData>({
       <CardContent className="p-0">
         <Table>
           <TableHeader>
-            <TableRow className="border-b-0">
-              {columns.map((column, index) => (
-                <TableHead
-                  key={index}
-                  className="px-6 h-10 text-xs text-muted-foreground"
-                >
-                  {column.header}
-                </TableHead>
-              ))}
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="border-b-0">
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="px-6 h-10 text-xs text-muted-foreground"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
@@ -82,14 +98,11 @@ export function DataTableCard<TData>({
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((item, rowIndex) => (
-                <TableRow key={rowIndex} className="border-t hover:bg-muted/50">
-                  {columns.map((column, colIndex) => (
-                    <TableCell
-                      key={colIndex}
-                      className="px-6 py-3"
-                    >
-                      {column.cell(item)}
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} className="border-t hover:bg-muted/50">
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="px-6 py-3">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>

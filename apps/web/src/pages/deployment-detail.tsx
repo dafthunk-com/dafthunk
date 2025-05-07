@@ -40,6 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ColumnDef } from "@tanstack/react-table";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -52,11 +53,13 @@ const formatDeploymentDate = (dateString: string | Date) => {
 
 function createDeploymentHistoryColumns(
   currentDeploymentId: string
-) {
+): ColumnDef<WorkflowDeploymentVersion>[] {
   return [
     {
+      accessorKey: "id",
       header: "ID",
-      cell: (deployment: WorkflowDeploymentVersion) => {
+      cell: ({ row }) => {
+        const deployment = row.original;
         const isCurrent = deployment.id === currentDeploymentId;
         return (
           <div className="font-mono text-xs">
@@ -75,25 +78,28 @@ function createDeploymentHistoryColumns(
       },
     },
     {
+      accessorKey: "version",
       header: "Version",
-      cell: (deployment: WorkflowDeploymentVersion) => (
+      cell: ({ row }) => (
         <Badge variant="secondary" className="gap-1">
-          <GitCommitHorizontal className="h-3.5 w-3.5" />v{deployment.version}
+          <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
         </Badge>
       ),
     },
     {
+      accessorKey: "createdAt",
       header: "Created",
-      cell: (deployment: WorkflowDeploymentVersion) => (
+      cell: ({ row }) => (
         <div className="flex items-center">
           <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-          {formatDeploymentDate(deployment.createdAt)}
+          {formatDeploymentDate(row.original.createdAt)}
         </div>
       ),
     },
     {
+      id: "actions",
       header: "Actions",
-      cell: (deployment: WorkflowDeploymentVersion) => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -103,7 +109,7 @@ function createDeploymentHistoryColumns(
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={`/workflows/deployments/version/${deployment.id}`}>
+              <Link to={`/workflows/deployments/version/${row.original.id}`}>
                 View
               </Link>
             </DropdownMenuItem>
