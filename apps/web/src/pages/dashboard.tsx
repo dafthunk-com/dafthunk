@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
+import { DataTableCard } from "@/components/ui/data-table-card";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -183,83 +184,63 @@ export function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <CardTitle className="text-xl">Recent Executions</CardTitle>
-          <Button variant="ghost" size="sm" asChild className="-mr-2 h-8">
-            <Link to="/workflows/executions" className="text-sm">
-              View All
-              <ArrowRight className="ml-1 size-4" />
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b-0">
-                <TableHead className="px-6 h-10 text-xs text-muted-foreground">
-                  Workflow
-                </TableHead>
-                <TableHead className="px-6 h-10 text-xs text-muted-foreground">
-                  Status
-                </TableHead>
-                <TableHead className="text-right px-6 h-10 text-xs text-muted-foreground">
-                  Started
-                </TableHead>
-                <TableHead className="w-[50px] px-6 h-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {stats.recentExecutions.map((exec) => {
-                let badgeStatus:
-                  | "running"
-                  | "completed"
-                  | "failed"
-                  | "cancelled";
-                switch (exec.status) {
-                  case "executing":
-                  case "running":
-                    badgeStatus = "running";
-                    break;
-                  case "completed":
-                    badgeStatus = "completed";
-                    break;
-                  case "error":
-                  case "failed":
-                    badgeStatus = "failed";
-                    break;
-                  case "cancelled":
-                    badgeStatus = "cancelled";
-                    break;
-                  default:
-                    badgeStatus = "cancelled";
-                }
-                return (
-                  <TableRow
-                    key={exec.id}
-                    className="border-t hover:bg-muted/50"
-                  >
-                    <TableCell className="font-medium truncate px-6 py-3">
-                      {exec.workflowName}
-                    </TableCell>
-                    <TableCell className="px-6 py-3">
-                      <ExecutionStatusBadge status={badgeStatus} />
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground px-6 py-3">
-                      {formatDistanceToNow(exec.startedAt, { addSuffix: true })}
-                    </TableCell>
-                    <TableCell className="text-right px-6 py-3">
-                      <Button variant="ghost" size="icon" className="size-7">
-                        <ChevronRight className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <DataTableCard
+        title="Recent Executions"
+        viewAllLink={{
+          to: "/workflows/executions",
+          text: "View All",
+        }}
+        columns={[
+          {
+            header: "Workflow",
+            cell: (exec) => (
+              <span className="font-medium truncate">{exec.workflowName}</span>
+            ),
+          },
+          {
+            header: "Status",
+            cell: (exec) => {
+              let badgeStatus:
+                | "running"
+                | "completed"
+                | "failed"
+                | "cancelled";
+              switch (exec.status) {
+                case "executing":
+                case "running":
+                  badgeStatus = "running";
+                  break;
+                case "completed":
+                  badgeStatus = "completed";
+                  break;
+                case "error":
+                case "failed":
+                  badgeStatus = "failed";
+                  break;
+                case "cancelled":
+                  badgeStatus = "cancelled";
+                  break;
+                default:
+                  badgeStatus = "cancelled";
+              }
+              return <ExecutionStatusBadge status={badgeStatus} />;
+            },
+          },
+          {
+            header: "Started",
+            cell: (exec) => (
+              <span className="text-right text-xs text-muted-foreground">
+                {formatDistanceToNow(exec.startedAt, { addSuffix: true })}
+              </span>
+            ),
+          },
+        ]}
+        data={stats.recentExecutions}
+        emptyState={{
+          title: "No executions",
+          description: "There are no recent executions to display.",
+        }}
+      />
     </div>
   );
 }
