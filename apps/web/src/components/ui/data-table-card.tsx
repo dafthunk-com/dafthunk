@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Table,
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/table";
 
 interface DataTableCardProps<TData> {
-  title?: string;
+  title?: ReactNode;
   viewAllLink?: {
     to: string;
     text?: string;
@@ -48,7 +47,6 @@ export function DataTableCard<TData>({
             <Button variant="ghost" size="sm" asChild className="-mr-2 h-8">
               <Link to={viewAllLink.to} className="text-sm">
                 {viewAllLink.text || "View All"}
-                <ArrowRight className="ml-1 size-4" />
               </Link>
             </Button>
           )}
@@ -66,14 +64,13 @@ export function DataTableCard<TData>({
                   {column.header}
                 </TableHead>
               ))}
-              <TableHead className="w-[50px] px-6 h-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + 1}
+                  colSpan={columns.length}
                   className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center py-8">
@@ -95,11 +92,6 @@ export function DataTableCard<TData>({
                       {column.cell(item)}
                     </TableCell>
                   ))}
-                  <TableCell className="text-right px-6 py-3">
-                    <Button variant="ghost" size="icon" className="size-7">
-                      <ArrowRight className="size-4" />
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))
             )}

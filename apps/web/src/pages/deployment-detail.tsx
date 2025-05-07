@@ -20,7 +20,7 @@ import {
   GitCommitHorizontal,
   MoreHorizontal,
 } from "lucide-react";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTableCard } from "@/components/ui/data-table-card";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,6 @@ import {
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
-import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import {
@@ -53,13 +52,11 @@ const formatDeploymentDate = (dateString: string | Date) => {
 
 function createDeploymentHistoryColumns(
   currentDeploymentId: string
-): ColumnDef<WorkflowDeploymentVersion>[] {
+) {
   return [
     {
-      accessorKey: "id",
       header: "ID",
-      cell: ({ row }) => {
-        const deployment = row.original;
+      cell: (deployment: WorkflowDeploymentVersion) => {
         const isCurrent = deployment.id === currentDeploymentId;
         return (
           <div className="font-mono text-xs">
@@ -78,28 +75,25 @@ function createDeploymentHistoryColumns(
       },
     },
     {
-      accessorKey: "version",
       header: "Version",
-      cell: ({ row }) => (
+      cell: (deployment: WorkflowDeploymentVersion) => (
         <Badge variant="secondary" className="gap-1">
-          <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
+          <GitCommitHorizontal className="h-3.5 w-3.5" />v{deployment.version}
         </Badge>
       ),
     },
     {
-      accessorKey: "createdAt",
       header: "Created",
-      cell: ({ row }) => (
+      cell: (deployment: WorkflowDeploymentVersion) => (
         <div className="flex items-center">
           <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-          {formatDeploymentDate(row.original.createdAt)}
+          {formatDeploymentDate(deployment.createdAt)}
         </div>
       ),
     },
     {
-      id: "actions",
       header: "Actions",
-      cell: ({ row }) => (
+      cell: (deployment: WorkflowDeploymentVersion) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -109,7 +103,7 @@ function createDeploymentHistoryColumns(
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={`/workflows/deployments/version/${row.original.id}`}>
+              <Link to={`/workflows/deployments/version/${deployment.id}`}>
                 View
               </Link>
             </DropdownMenuItem>
@@ -273,32 +267,21 @@ export function DeploymentDetailPage() {
                 description="Latest deployment of this workflow"
               />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
+              <DataTableCard
+                title={
+                  <div className="flex items-center">
                     <History className="mr-2 h-4 w-4" />
                     Deployment History
-                  </CardTitle>
-                  <CardDescription>
-                    Previous versions of this workflow
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <DataTable
-                      columns={createDeploymentHistoryColumns(
-                        currentDeployment.id
-                      )}
-                      data={displayDeployments}
-                      emptyState={{
-                        title: "No deployment history",
-                        description: "No deployment history found.",
-                      }}
-                    />
-                    {showMoreButton}
                   </div>
-                </CardContent>
-              </Card>
+                }
+                columns={createDeploymentHistoryColumns(currentDeployment.id)}
+                data={displayDeployments}
+                emptyState={{
+                  title: "No deployment history",
+                  description: "No deployment history found.",
+                }}
+              />
+              {showMoreButton}
             </>
           ) : (
             <div className="text-center py-10">
