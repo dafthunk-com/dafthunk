@@ -7,28 +7,10 @@ import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dial
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Workflow,
-  Target,
-  Logs,
-  Plus,
-  Clock,
-  AlertCircle,
-  ChevronRight,
-  ArrowRight,
-} from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Workflow, Target, Logs, Plus, Clock, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { DataTableCard } from "@/components/ui/data-table-card";
-import { ColumnDef } from "@tanstack/react-table";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

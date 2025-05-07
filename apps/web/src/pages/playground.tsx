@@ -210,7 +210,6 @@ function createColumns(
 
 export function PlaygroundPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -219,17 +218,11 @@ export function PlaygroundPage() {
 
   const fetchWorkflows = useCallback(async () => {
     if (!isAuthenticated) {
-      setIsLoading(false);
       return;
     }
-    setIsLoading(true);
-    try {
-      const fetchedWorkflows = await workflowService.getAll();
-      setWorkflows(fetchedWorkflows);
-      setTableKey((prev) => prev + 1);
-    } finally {
-      setIsLoading(false);
-    }
+    const fetchedWorkflows = await workflowService.getAll();
+    setWorkflows(fetchedWorkflows);
+    setTableKey((prev) => prev + 1);
   }, [isAuthenticated]);
 
   const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
@@ -291,7 +284,6 @@ export function PlaygroundPage() {
           key={tableKey}
           columns={columns}
           data={workflows}
-          isLoading={isLoading}
           emptyState={{
             title: "No workflows found",
             description: "Create a new workflow to get started.",

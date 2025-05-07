@@ -2,13 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { toast } from "sonner";
 import { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
