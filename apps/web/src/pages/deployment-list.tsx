@@ -96,7 +96,9 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => deployment.onRunLatest?.(deployment.latestDeploymentId || "")}
+              onClick={() =>
+                deployment.onRunLatest?.(deployment.latestDeploymentId || "")
+              }
               disabled={!deployment.latestDeploymentId}
             >
               <Play className="h-4 w-4 mr-2" />
@@ -203,6 +205,7 @@ export function DeploymentListPage() {
           credentials: "include",
         }
       );
+      toast.success("Deployment executed successfully");
     } catch (error) {
       console.error("Error executing deployment:", error);
       toast.error("Failed to execute deployment");

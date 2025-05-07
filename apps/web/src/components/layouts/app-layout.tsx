@@ -6,6 +6,7 @@ import { NavMainProps } from "@/components/sidebar/nav-main";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { PageProvider } from "@/components/page-context";
+import { Toaster } from "sonner";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -43,6 +44,7 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
     <PageProvider>
       <div className="flex h-screen w-screen overflow-hidden flex-col">
         <AppHeader />
+        <Toaster />
         <div className="flex flex-1 overflow-hidden">
           {sidebar ? (
             <Sidebar.SidebarProvider>
