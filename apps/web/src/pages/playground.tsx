@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
 import { workflowService } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext.tsx";
@@ -165,15 +165,31 @@ function createColumns(
       header: "Workflow Name",
       cell: ({ row }) => {
         const name = row.getValue("name") as string;
-        return <div className="font-medium">{name || "Untitled Workflow"}</div>;
+        const workflowId = row.original.id;
+        return (
+          <Link
+            to={`/workflows/playground/${workflowId}`}
+            className="hover:underline"
+          >
+            <div className="font-medium">{name || "Untitled Workflow"}</div>
+          </Link>
+        );
       },
     },
     {
       accessorKey: "id",
       header: "Workflow UUID",
-      cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.original.id}</span>
-      ),
+      cell: ({ row }) => {
+        const workflowId = row.original.id;
+        return (
+          <Link
+            to={`/workflows/playground/${workflowId}`}
+            className="font-mono text-xs hover:underline"
+          >
+            {workflowId}
+          </Link>
+        );
+      },
     },
     {
       id: "actions",
@@ -190,7 +206,9 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onClick={() => navigate(`/workflows/playground/${workflow.id}`)}
+                  onClick={() =>
+                    navigate(`/workflows/playground/${workflow.id}`)
+                  }
                 >
                   View
                 </DropdownMenuItem>

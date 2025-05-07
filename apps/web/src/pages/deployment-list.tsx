@@ -48,9 +48,17 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("workflowName")}</div>
-    ),
+    cell: ({ row }) => {
+      const workflowId = row.original.workflowId;
+      return (
+        <Link
+          to={`/workflows/deployments/${workflowId}`}
+          className="hover:underline"
+        >
+          <div className="font-medium">{row.getValue("workflowName")}</div>
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "latestVersion",
@@ -62,9 +70,14 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
         : "1.0";
       return (
         <TooltipProvider>
-          <Badge variant="secondary" className="text-xs gap-1">
-            <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
-          </Badge>
+          <Link
+            to={`/workflows/deployments/version/${deployment.latestDeploymentId}`}
+            className="hover:opacity-80"
+          >
+            <Badge variant="secondary" className="text-xs gap-1">
+              <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
+            </Badge>
+          </Link>
         </TooltipProvider>
       );
     },
@@ -72,9 +85,17 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   {
     accessorKey: "deploymentCount",
     header: "Number of Deployments",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
-    ),
+    cell: ({ row }) => {
+      const workflowId = row.original.workflowId;
+      return (
+        <Link
+          to={`/workflows/deployments/${workflowId}`}
+          className="hover:opacity-80"
+        >
+          <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
+        </Link>
+      );
+    },
   },
   {
     id: "actions",
@@ -82,30 +103,29 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       const deployment = row.original;
       return (
         <div className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/workflows/deployments/${deployment.workflowId}`}>
-                View
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                deployment.onRunLatest?.(deployment.latestDeploymentId || "")
-              }
-              disabled={!deployment.latestDeploymentId}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Run Latest
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to={`/workflows/deployments/${deployment.workflowId}`}>
+                  View
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  deployment.onRunLatest?.(deployment.latestDeploymentId || "")
+                }
+                disabled={!deployment.latestDeploymentId}
+              >
+                Execute
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },

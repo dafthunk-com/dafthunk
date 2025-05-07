@@ -57,23 +57,23 @@ const columns: ColumnDef<ApiToken>[] = [
       const token = row.original;
       return (
         <div className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button aria-haspopup="true" size="icon" variant="ghost">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                document.dispatchEvent(
-                  new CustomEvent("deleteApiToken", { detail: token.id })
-                )
-              }
-            >
-              Delete Key
-            </DropdownMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button aria-haspopup="true" size="icon" variant="ghost">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() =>
+                  document.dispatchEvent(
+                    new CustomEvent("deleteApiToken", { detail: token.id })
+                  )
+                }
+              >
+                Delete Key
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
