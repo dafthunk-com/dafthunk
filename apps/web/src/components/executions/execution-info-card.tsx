@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Clock, IdCard, Workflow, AlertCircle, Play } from "lucide-react";
+import { Clock, IdCard, Workflow, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { ExecutionStatusBadge } from "./execution-status-badge";
@@ -14,8 +14,8 @@ import { WorkflowExecutionStatus } from "@dafthunk/types";
 interface ExecutionInfoCardProps {
   id: string;
   status: WorkflowExecutionStatus;
-  startedAt: string | Date;
-  endedAt?: string | Date;
+  startedAt: Date;
+  endedAt?: Date;
   workflowId: string;
   workflowName?: string;
   deploymentId?: string;
@@ -45,7 +45,10 @@ export function ExecutionInfoCard({
     }
   };
 
-  const calculateDuration = (startedAt: string | Date, endedAt?: string | Date) => {
+  const calculateDuration = (
+    startedAt: string | Date,
+    endedAt?: string | Date
+  ) => {
     if (!startedAt) return "N/A";
     const start = new Date(startedAt);
     const end = endedAt ? new Date(endedAt) : new Date();
@@ -168,4 +171,4 @@ export function ExecutionInfoCard({
       </CardContent>
     </Card>
   );
-} 
+}

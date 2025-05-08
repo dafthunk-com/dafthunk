@@ -174,10 +174,7 @@ function useWorkflowActions(refresh: () => void) {
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleDeployWorkflow}
-            disabled={isDeploying}
-          >
+          <Button onClick={handleDeployWorkflow} disabled={isDeploying}>
             {isDeploying ? <Spinner className="h-4 w-4 mr-2" /> : null}
             Deploy
           </Button>
@@ -206,20 +203,20 @@ function useWorkflowActions(refresh: () => void) {
     deployWorkflow: (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Get current workflow from URL
       const path = window.location.pathname;
-      const parts = path.split('/');
+      const parts = path.split("/");
       const workflowId = parts[parts.length - 1];
-      
+
       // Get workflow by ID and open deploy dialog
-      workflowService.getById(workflowId).then(workflow => {
+      workflowService.getById(workflowId).then((workflow) => {
         if (workflow) {
           setWorkflowToDeploy(workflow);
           setDeployDialogOpen(true);
         }
       });
-    }
+    },
   };
 }
 
@@ -318,17 +315,21 @@ export function PlaygroundPage() {
     setTableKey((prev) => prev + 1);
   }, [isAuthenticated]);
 
-  const { 
-    deleteDialog, 
-    renameDialog, 
+  const {
+    deleteDialog,
+    renameDialog,
     deployDialog,
-    openDeleteDialog, 
+    openDeleteDialog,
     openRenameDialog,
     openDeployDialog,
-    deployWorkflow
   } = useWorkflowActions(fetchWorkflows);
 
-  const columns = createColumns(openDeleteDialog, openRenameDialog, openDeployDialog, navigate);
+  const columns = createColumns(
+    openDeleteDialog,
+    openRenameDialog,
+    openDeployDialog,
+    navigate
+  );
 
   useEffect(() => {
     if (!authLoading) {

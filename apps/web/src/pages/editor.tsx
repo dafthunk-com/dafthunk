@@ -63,7 +63,6 @@ export function EditorPage() {
   const [isProcessingWorkflow, setIsProcessingWorkflow] = useState(true);
   const [hasProcessedInitialWorkflow, setHasProcessedInitialWorkflow] =
     useState(false); // Track if initial workflow processing completed
-  const [isDeploying, setIsDeploying] = useState(false);
 
   // Add breadcrumb logic
   usePageBreadcrumbs(
@@ -478,25 +477,23 @@ export function EditorPage() {
   };
 
   // Handle workflow deployment
-  const handleDeployWorkflow = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!id) return;
-    setIsDeploying(true);
-    
-    workflowService.deploy(id)
-      .then(() => {
-        toast.success("Workflow deployed successfully");
-      })
-      .catch((error) => {
-        console.error("Error deploying workflow:", error);
-        toast.error("Failed to deploy workflow. Please try again.");
-      })
-      .finally(() => {
-        setIsDeploying(false);
-      });
-  }, [id]);
+  const handleDeployWorkflow = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!id) return;
+      workflowService
+        .deploy(id)
+        .then(() => {
+          toast.success("Workflow deployed successfully");
+        })
+        .catch((error) => {
+          console.error("Error deploying workflow:", error);
+          toast.error("Failed to deploy workflow. Please try again.");
+        });
+    },
+    [id]
+  );
 
   // Show error if loading failed
   if (loadError) {

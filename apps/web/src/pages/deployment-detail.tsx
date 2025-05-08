@@ -9,7 +9,6 @@ import {
   ArrowUpToLine,
   History,
   ArrowDown,
-  Clock,
   GitCommitHorizontal,
   MoreHorizontal,
   Play,
@@ -90,7 +89,8 @@ function createDeploymentHistoryColumns(
           className="hover:underline"
         >
           <Badge variant="secondary" className="gap-1">
-            <GitCommitHorizontal className="h-3.5 w-3.5" />v{row.original.version}
+            <GitCommitHorizontal className="h-3.5 w-3.5" />v
+            {row.original.version}
           </Badge>
         </Link>
       ),
@@ -132,12 +132,16 @@ function createDeploymentHistoryColumns(
                       }
                     );
                     if (!response.ok) {
-                      throw new Error(`Failed to execute deployment: ${response.statusText}`);
+                      throw new Error(
+                        `Failed to execute deployment: ${response.statusText}`
+                      );
                     }
                     toast.success("Deployment executed successfully");
                   } catch (error) {
                     console.error("Error executing deployment:", error);
-                    toast.error("Failed to execute deployment. Please try again.");
+                    toast.error(
+                      "Failed to execute deployment. Please try again."
+                    );
                   }
                 }}
               >

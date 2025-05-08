@@ -32,7 +32,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   MoreHorizontal,
   GitCommitHorizontal,
-  Play,
   ArrowUpToLine,
 } from "lucide-react";
 import {

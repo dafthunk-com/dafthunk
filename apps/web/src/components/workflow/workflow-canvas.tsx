@@ -9,7 +9,15 @@ import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
-import { Plus, Play, X, PanelLeftClose, PanelLeft, Square, ArrowUpToLine } from "lucide-react";
+import {
+  Plus,
+  Play,
+  X,
+  PanelLeftClose,
+  PanelLeft,
+  Square,
+  ArrowUpToLine,
+} from "lucide-react";
 import { cn } from "@/utils/utils";
 import "@xyflow/react/dist/style.css";
 import { WorkflowExecutionStatus } from "@dafthunk/types";
@@ -200,9 +208,7 @@ export function WorkflowCanvas({
         <ActionButton onClick={onAction} workflowStatus={workflowStatus} />
       )}
 
-      {onDeploy && !readonly && (
-        <DeployButton onClick={onDeploy} />
-      )}
+      {onDeploy && !readonly && <DeployButton onClick={onDeploy} />}
 
       {onToggleSidebar && isSidebarVisible !== undefined && (
         <SidebarToggle

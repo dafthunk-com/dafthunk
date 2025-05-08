@@ -6,7 +6,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, IdCard, ArrowUpToLine, GitCommitHorizontal } from "lucide-react";
+import {
+  Clock,
+  IdCard,
+  ArrowUpToLine,
+  GitCommitHorizontal,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 
@@ -46,8 +51,9 @@ export function DeploymentInfoCard({
           {/* First Column - References */}
           <div className="space-y-4">
             <div>
-            <p className="text-sm text-muted-foreground flex items-center">
-                <GitCommitHorizontal className="mr-1 h-4 w-4" /> Deployment Version
+              <p className="text-sm text-muted-foreground flex items-center">
+                <GitCommitHorizontal className="mr-1 h-4 w-4" /> Deployment
+                Version
               </p>
               <p className="mt-1">
                 <Link

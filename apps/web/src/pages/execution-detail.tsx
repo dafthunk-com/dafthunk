@@ -1,19 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
-import { AlertCircle } from "lucide-react";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { format } from "date-fns";
-import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import {
@@ -232,27 +222,6 @@ export function ExecutionDetailPage() {
     setNodes(reactFlowNodes);
     setEdges(reactFlowEdges);
   }
-
-  const calculateDuration = (startedAt: string, endedAt?: string) => {
-    if (!startedAt) return "N/A";
-    const start = new Date(startedAt);
-    const end = endedAt ? new Date(endedAt) : new Date();
-    const durationMs = end.getTime() - start.getTime();
-    const seconds = Math.floor(durationMs / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
-  };
-
-  const formatDateTime = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    try {
-      return format(new Date(dateString), "PPpp");
-    } catch (_error) {
-      return dateString;
-    }
-  };
 
   const validateConnection = () => false;
 

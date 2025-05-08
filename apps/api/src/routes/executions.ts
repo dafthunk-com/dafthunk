@@ -66,13 +66,13 @@ executionRoutes.get("/", jwtAuth, async (c) => {
   });
 
   // Get workflow names for all executions
-  const workflowIds = [...new Set(executions.map(e => e.workflowId))];
+  const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
   const workflowNames = await db
     .select({ id: workflows.id, name: workflows.name })
     .from(workflows)
     .where(inArray(workflows.id, workflowIds));
-  
-  const workflowMap = new Map(workflowNames.map(w => [w.id, w.name]));
+
+  const workflowMap = new Map(workflowNames.map((w) => [w.id, w.name]));
 
   // Map to WorkflowExecution type
   const results = executions.map((execution) => {

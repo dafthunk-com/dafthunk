@@ -328,7 +328,9 @@ export function WorkflowBuilder({
                   ? handleActionButtonClick
                   : undefined
               }
-              onDeploy={!readonly && onDeployWorkflow ? onDeployWorkflow : undefined}
+              onDeploy={
+                !readonly && onDeployWorkflow ? onDeployWorkflow : undefined
+              }
               workflowStatus={workflowStatus}
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
