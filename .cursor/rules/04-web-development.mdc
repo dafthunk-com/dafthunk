@@ -1,0 +1,156 @@
+---
+description: 
+globs: apps/web/src/**
+alwaysApply: false
+---
+# Web application
+
+## Guidelines
+
+1. Always write complete, functional components using `tsx` with a default export named after the `Component`.
+2. Use Tailwind CSS classes for styling and accessibility best practices.
+3. Prefer `shadcn/ui` and `lucide-react` if appropriate.
+4. All code should work in a Vite + React + TypeScript setup.
+5. Include only one file per code block. Avoid multi-file outputs.
+6. Use Vitest for testing; include test blocks where relevant.
+7. Use `import type` when importing types from libraries.
+8. Avoid dynamic imports, external APIs, or CDN usage unless requested.
+9. Escaped JSX characters like `<`, `>`, `{`, and `}` must be in string literals.
+
+## Code block structure
+
+Use the following format for code blocks:
+
+```tsx project="ProjectName" file="path/to/file.tsx" type="react"
+export default function Component() {
+  // your component here
+}
+```
+
+## Examples
+
+Good Example: React component using Tailwind and `shadcn/ui`
+```tsx project="ButtonExample" file="Button.tsx" type="react"
+import { Button } from "@/components/ui/button"
+
+export default function Component() {
+  return <Button className="text-primary">Click me</Button>
+}
+```
+
+Bad Example: Missing export, bad styling, incorrect file structure
+```tsx
+function Button() {
+  return <button style={{ color: 'blue' }}>Click</button>
+}
+// Missing `export default`
+// Uses inline styles instead of Tailwind
+// No project/file/type metadata
+```
+
+Good Example: Test file using Vitest
+```ts project="AddTest" file="add.test.ts" type="code"
+import { describe, it, expect } from "vitest"
+import { add } from "./add"
+
+describe("add", () => {
+  it("adds two numbers", () => {
+    expect(add(2, 3)).toBe(5)
+  })
+})
+```
+
+Bad Example: Jest used instead of Vitest
+```ts
+import { test, expect } from "@jest/globals"
+
+test("adds numbers", () => {
+  expect(add(2, 3)).toBe(5)
+})
+// This is incorrect because the project uses Vitest, not Jest
+```
+
+## React Loading State Best Practices
+
+Prefer a single `isLoading` state when:
+- All data must be available before rendering.
+- The UI isn't meaningful until all fetches complete.
+- You want to show a global spinner or loading screen.
+
+Example:
+```tsx
+const [isLoading, setIsLoading] = useState(true)
+
+useEffect(() => {
+  Promise.all([fetchA(), fetchB(), fetchC()])
+    .then(([a, b, c]) => {
+      setDataA(a)
+      setDataB(b)
+      setDataC(c)
+    })
+    .finally(() => setIsLoading(false))
+}, [])
+```
+
+Use multiple `isLoadingX` states only when:
+- You are asked to load parts of the UI independently.
+- It's acceptable for parts of the UI to appear before others.
+
+Example:
+```tsx
+const [isLoadingA, setIsLoadingA] = useState(true)
+const [isLoadingB, setIsLoadingB] = useState(true)
+
+// Fetch dataA and dataB separately
+```
+
+Best Practice:
+"Prefer showing meaningful parts of the UI as soon as possible, but avoid janky partial loading unless each section can truly stand on its own."
+
+Avoid:
+- Overcomplicating state logic with too many flags.
+- Tightly coupling data fetching to UI components.
+- Omitting proper error handling and fallback UIs.
+
+## React Hook Usage Best Practices
+
+useEffect:
+- Avoid by default. Ask: can this logic exist outside React?
+- Always include dependencies; don't silence lint rules.
+- Use an inner async function if needed:
+
+```tsx
+useEffect(() => {
+  const load = async () => {
+    const res = await fetchData()
+    setData(res)
+  }
+  load()
+}, [])
+```
+
+- Avoid setting derived state inside useEffect. Prefer deriving it during render.
+
+useMemo:
+- Use only for expensive calculations to avoid unnecessary recalculations.
+- Not needed for simple or fast operations.
+
+```tsx
+const filteredItems = useMemo(() => {
+  return items.filter(i => i.active)
+}, [items])
+```
+
+useCallback:
+- Useful when passing callbacks to memoized child components.
+- Prevents unnecessary re-renders due to function identity changes.
+
+useRef:
+- Use for storing mutable values that persist without triggering re-renders.
+- Useful for DOM element references (e.g., input focus).
+- Don't overuse for general state—it can lead to bugs.
+
+General Rules:
+- Never call hooks inside conditions, loops, or nested functions.
+- Always call hooks at the top level of your component.
+- Group and co-locate related hooks to make code easier to read and maintain.

@@ -3,35 +3,57 @@ description: Coding standards, naming, testing & style rules
 globs: 
 alwaysApply: true
 ---
+# Development Guidelines
 
-#### General
+## General
+- Write **correct, DRY, bug-free** code — leave **no TODOs**.
+- Prefer **functional components** and **hooks**; use **TypeScript** types/interfaces consistently.
+- Use **early returns** to reduce nesting.
+- Choose **descriptive names** for variables, functions, and components.
 
-- Write **correct, DRY, bug-free** code; leave **no TODOs**.  
-- Prefer functional components & hooks; use TypeScript types/interfaces everywhere.  
-- Early-return to reduce nesting; use descriptive names.
+## Typing
+- Use **strict TypeScript**: avoid `any`, `unknown`, and implicit `any`.
+- Prefer `type` aliases over `interface`, unless extension is required.
+- Always type:
+  - Props
+  - State
+  - Event handlers
+  - Returned values
+- Favor **`readonly`** and **`as const`** assertions for immutability and safety.
+- Narrow types when possible (e.g., `'small' | 'medium' | 'large'` instead of `string`).
+- Use utility types like `Partial`, `Pick`, `Omit` thoughtfully to improve clarity and type safety.
 
-#### Typing
+## Styling
+- Use **Tailwind CSS** exclusively — do not use external CSS or styled-components.
+- Use the `cn` utility from `@/lib/utils` for conditional class names.
+  - Avoid ternaries in className strings.
 
-- Use **strict TypeScript**; no `any`, `unknown`, or implicit `any`.  
-- Prefer **types** (`type`) over **interfaces** unless extending is needed.  
-- Always type props, state, event handlers, and returned values explicitly.  
-- Favor **readonly** and **const assertions** (`as const`) where appropriate.  
-- Narrow types as much as possible (e.g., specific string literals instead of `string`).  
-- Use utility types (`Partial`, `Pick`, `Omit`, etc.) thoughtfully to enhance type safety.
+## Naming Conventions
+- **kebab-case** for file names (e.g., `my-component.tsx`).
+- **camelCase** for hooks and utility functions (e.g., `useMyHook`, `formatDate`).
+- Prefix event handlers with `handle` (e.g., `handleSubmit`, `handleClick`).
 
-#### Styling
+## Testing & QA
+- Write tests using **Vitest**.
+- Cover critical paths, edge cases, and user-facing logic.
+- Provide fallback UI and error boundaries where appropriate.
 
-- Style exclusively with **Tailwind classes**; never external CSS files.  
-- Use the `cn` helper from `@/lib/utils` for conditional classes (avoid ternaries).
+## REST API Best Practices
 
-#### Naming conventions
+### Shared Types
+- Define shared types in: `packages/types/src/index.ts`
+- Use them:
+  - To serialize data in API routes (backend).
+  - To deserialize and validate data on the frontend.
+- This ensures **type safety and consistency** across backend and frontend.
 
-- Kebab-case file names for components.  
-- camelCase for hooks (`useX`) and utilities.  
-- Prefix event handlers with `handle` (e.g. `handleClick`).
+### Statelessness
+- REST APIs must be **stateless**:
+  - Each request must be self-contained.
+  - The server must not depend on in-memory or session state.
+- Clients manage session (e.g., cookies, auth headers, tokens).
+- Use headers or tokens to communicate user context, not prior API calls.
 
-#### Testing & QA
-
-- Write comprehensive tests in **Vitest**; cover critical paths and edge cases.  
-- Supply error handling & fallback UI.
-
+#### Benefits
+- Enables better scalability and server independence.
+- Reduces bugs and improves debuggability by avoiding implicit state.

@@ -14,7 +14,7 @@ import { WorkflowExecutionStatus } from "@dafthunk/types";
 interface ExecutionInfoCardProps {
   id: string;
   status: WorkflowExecutionStatus;
-  startedAt: Date;
+  startedAt?: Date;
   endedAt?: Date;
   workflowId: string;
   workflowName?: string;
@@ -46,10 +46,10 @@ export function ExecutionInfoCard({
   };
 
   const calculateDuration = (
-    startedAt: string | Date,
+    startedAt?: string | Date,
     endedAt?: string | Date
   ) => {
-    if (!startedAt) return "N/A";
+    if (!startedAt || !endedAt) return "N/A";
     const start = new Date(startedAt);
     const end = endedAt ? new Date(endedAt) : new Date();
     const durationMs = end.getTime() - start.getTime();

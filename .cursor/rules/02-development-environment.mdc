@@ -3,12 +3,18 @@ description: Tooling & environment constants for the project
 globs: 
 alwaysApply: true
 ---
+# Tech Stack Overview
 
-This repository uses:
+This repository uses the following technologies and tools:
 
-- **pnpm** for package management & workspaces.  
-- **Vite** for fast dev/build.  
-- **TypeScript**, **React 18**, **React Router v6**, **React Flow**, **TailwindCSS**, **Shadcn UI**.  
-- **Vitest** for unit/integration tests.
-- **Cloudflare** for deployment (edge-optimised).
-- **Hono** for rest api development.
+- **pnpm** for fast and efficient package management with workspace support.
+- **Vite** as the build tool and dev server for lightning-fast development.
+- **TypeScript** for static typing and enhanced developer experience.
+- **React 18** for building interactive user interfaces.
+- **React Router v6** for declarative client-side routing.
+- **React Flow** for rendering interactive node-based diagrams.
+- **Tailwind CSS** for utility-first styling.
+- **shadcn/ui** for headless, accessible component primitives.
+- **Vitest** for unit and integration testing.
+- **Hono** for lightweight, expressive REST API development.
+- **Cloudflare** for edge-optimized deployment and performance.

@@ -1,0 +1,104 @@
+---
+description: 
+globs: apps/api/src/**
+alwaysApply: false
+---
+# REST API 
+
+## Routing & Handler Structure
+
+- **Define routes inline for simplicity**  
+  Avoid traditional "controller" layers. Use route handlers directly with Hono for better type inference and simpler structure.
+
+  ```ts
+  app.get('/books/:id', (c) => {
+    const id = c.req.param('id');
+    return c.json({ id });
+  });
+  ```
+
+- **Modularize routes by feature**  
+  Use `app.route()` to separate route logic into distinct modules.
+
+  ```ts
+  // routes/books.ts
+  import { Hono } from 'hono';
+
+  const books = new Hono();
+
+  books.get('/', (c) => c.json(['book1', 'book2']));
+  books.get('/:id', (c) => c.json({ id: c.req.param('id') }));
+
+  export default books;
+
+  // main.ts
+  import books from './routes/books';
+  const app = new Hono();
+  app.route('/books', books);
+  ```
+
+## Type Safety & Validation with Zod
+
+- **Use Zod for schema validation**  
+  Combine `zod` and `@hono/zod-validator` for strict runtime and compile-time validation.
+
+  ```ts
+  import { z } from 'zod';
+  import { zValidator } from '@hono/zod-validator';
+
+  const userSchema = z.object({
+    name: z.string(),
+  });
+
+  app.post('/users', zValidator('json', userSchema), (c) => {
+    const data = c.req.valid('json');
+    return c.json({ message: `Hello, ${data.name}` });
+  });
+  ```
+
+- **Always validate request bodies, query params, and route params** to prevent runtime issues and improve DX.
+
+## Middleware Usage
+
+- **Built-in Middleware**  
+  Use Hono's middleware for logging, CORS, etc.
+
+  ```ts
+  import { logger } from 'hono/logger';
+  import { cors } from 'hono/cors';
+
+  app.use('*', logger());
+  app.use('*', cors());
+  ```
+
+- **Custom Middleware for Auth, etc.**
+
+  ```ts
+  app.use('/protected/*', async (c, next) => {
+    const auth = c.req.header('Authorization');
+    if (!auth) return c.text('Unauthorized', 401);
+    await next();
+  });
+  ```
+
+## Error Handling
+
+- **Global error handler**
+
+  ```ts
+  app.onError((err, c) => {
+    console.error(err);
+    return c.text('Internal Server Error', 500);
+  });
+  ```
+
+- **Custom 404 handler**
+
+  ```ts
+  app.notFound((c) => c.text('Not Found', 404));
+  ```
+
+## 6. Deployment Considerations
+
+- **Built for the edge**  
+  Hono is ideal for Cloudflare Workers — it uses Web Standard APIs and avoids Node.js-only features.

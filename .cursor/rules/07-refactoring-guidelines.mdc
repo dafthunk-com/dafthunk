@@ -1,0 +1,11 @@
+---
+description: Refactoring guidelines
+globs: 
+alwaysApply: false
+---
+## Refactoring guidelines
+
+- Design it twice: Prototype at least two distinct solutions before committing to one. Compare trade-offs.
+- Working ≠ finished: Once the feature works, refactor and polish until interfaces are as minimal and clear as possible.
+- Decide big things early, small things late: Make early decisions about architecture (e.g., module boundaries, concurrency model). Defer naming and fine-tuning.
+- Example-driven APIs: Write the calling code you *wish* you could write. Then, design the actual implementation to make that interface real.
