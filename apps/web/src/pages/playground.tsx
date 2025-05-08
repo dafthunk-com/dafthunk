@@ -33,15 +33,20 @@ import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dial
 function useWorkflowActions(refresh: () => void) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [deployDialogOpen, setDeployDialogOpen] = useState(false);
   const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
     null
   );
   const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
     null
   );
+  const [workflowToDeploy, setWorkflowToDeploy] = useState<Workflow | null>(
+    null
+  );
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
 
   const handleDeleteWorkflow = async () => {
     if (!workflowToDelete) return;
@@ -67,6 +72,19 @@ function useWorkflowActions(refresh: () => void) {
       setWorkflowToRename(null);
     } finally {
       setIsRenaming(false);
+    }
+  };
+
+  const handleDeployWorkflow = async () => {
+    if (!workflowToDeploy) return;
+    setIsDeploying(true);
+    try {
+      // TODO: Implement the actual deployment logic
+      await workflowService.deploy(workflowToDeploy.id);
+      setDeployDialogOpen(false);
+      setWorkflowToDeploy(null);
+    } finally {
+      setIsDeploying(false);
     }
   };
 
@@ -138,9 +156,40 @@ function useWorkflowActions(refresh: () => void) {
     </Dialog>
   );
 
+  const deployDialog = (
+    <Dialog open={deployDialogOpen} onOpenChange={setDeployDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Deploy Workflow</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to deploy "
+            {workflowToDeploy?.name || "Untitled Workflow"}"?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setDeployDialogOpen(false)}
+            disabled={isDeploying}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeployWorkflow}
+            disabled={isDeploying}
+          >
+            {isDeploying ? <Spinner className="h-4 w-4 mr-2" /> : null}
+            Deploy
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return {
     deleteDialog,
     renameDialog,
+    deployDialog,
     openDeleteDialog: (workflow: Workflow) => {
       setWorkflowToDelete(workflow);
       setDeleteDialogOpen(true);
@@ -150,6 +199,27 @@ function useWorkflowActions(refresh: () => void) {
       setRenameWorkflowName(workflow.name || "");
       setRenameDialogOpen(true);
     },
+    openDeployDialog: (workflow: Workflow) => {
+      setWorkflowToDeploy(workflow);
+      setDeployDialogOpen(true);
+    },
+    deployWorkflow: (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Get current workflow from URL
+      const path = window.location.pathname;
+      const parts = path.split('/');
+      const workflowId = parts[parts.length - 1];
+      
+      // Get workflow by ID and open deploy dialog
+      workflowService.getById(workflowId).then(workflow => {
+        if (workflow) {
+          setWorkflowToDeploy(workflow);
+          setDeployDialogOpen(true);
+        }
+      });
+    }
   };
 }
 
@@ -157,6 +227,7 @@ function useWorkflowActions(refresh: () => void) {
 function createColumns(
   openDeleteDialog: (workflow: Workflow) => void,
   openRenameDialog: (workflow: Workflow) => void,
+  openDeployDialog: (workflow: Workflow) => void,
   navigate: ReturnType<typeof useNavigate>
 ): ColumnDef<Workflow>[] {
   return [
@@ -215,6 +286,9 @@ function createColumns(
                 <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
                   Rename Workflow
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openDeployDialog(workflow)}>
+                  Deploy Workflow
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(workflow)}>
                   Delete Workflow
                 </DropdownMenuItem>
@@ -244,10 +318,17 @@ export function PlaygroundPage() {
     setTableKey((prev) => prev + 1);
   }, [isAuthenticated]);
 
-  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
-    useWorkflowActions(fetchWorkflows);
+  const { 
+    deleteDialog, 
+    renameDialog, 
+    deployDialog,
+    openDeleteDialog, 
+    openRenameDialog,
+    openDeployDialog,
+    deployWorkflow
+  } = useWorkflowActions(fetchWorkflows);
 
-  const columns = createColumns(openDeleteDialog, openRenameDialog, navigate);
+  const columns = createColumns(openDeleteDialog, openRenameDialog, openDeployDialog, navigate);
 
   useEffect(() => {
     if (!authLoading) {
@@ -317,6 +398,7 @@ export function PlaygroundPage() {
         />
         {deleteDialog}
         {renameDialog}
+        {deployDialog}
       </InsetLayout>
     </TooltipProvider>
   );

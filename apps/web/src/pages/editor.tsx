@@ -23,6 +23,7 @@ import { WorkflowError } from "@/components/workflow/workflow-error";
 import { API_BASE_URL } from "@/config/api";
 import { debounce } from "@/utils/utils";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { toast } from "sonner";
 
 // Default empty workflow structure
 const emptyWorkflow: Workflow = {
@@ -62,6 +63,7 @@ export function EditorPage() {
   const [isProcessingWorkflow, setIsProcessingWorkflow] = useState(true);
   const [hasProcessedInitialWorkflow, setHasProcessedInitialWorkflow] =
     useState(false); // Track if initial workflow processing completed
+  const [isDeploying, setIsDeploying] = useState(false);
 
   // Add breadcrumb logic
   usePageBreadcrumbs(
@@ -475,6 +477,27 @@ export function EditorPage() {
     }
   };
 
+  // Handle workflow deployment
+  const handleDeployWorkflow = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!id) return;
+    setIsDeploying(true);
+    
+    workflowService.deploy(id)
+      .then(() => {
+        toast.success("Workflow deployed successfully");
+      })
+      .catch((error) => {
+        console.error("Error deploying workflow:", error);
+        toast.error("Failed to deploy workflow. Please try again.");
+      })
+      .finally(() => {
+        setIsDeploying(false);
+      });
+  }, [id]);
+
   // Show error if loading failed
   if (loadError) {
     return <WorkflowError message={loadError} onRetry={handleRetryLoading} />;
@@ -536,6 +559,7 @@ export function EditorPage() {
             onEdgesChange={handleEdgesChange}
             validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
+            onDeployWorkflow={handleDeployWorkflow}
           />
         </div>
       </div>

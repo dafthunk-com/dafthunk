@@ -88,6 +88,7 @@ export interface WorkflowCanvasProps {
   ) => void;
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
+  onDeploy?: (e: React.MouseEvent) => void;
   workflowStatus?: WorkflowExecutionStatus;
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
@@ -223,6 +224,7 @@ export interface WorkflowBuilderProps {
   ) => void | (() => void);
   initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
+  onDeployWorkflow?: (e: React.MouseEvent) => void;
 }
 
 export interface TypeBadgeProps {

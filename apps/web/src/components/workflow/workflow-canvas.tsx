@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
 import { WorkflowCanvasProps } from "./workflow-types";
-import { Plus, Play, X, PanelLeftClose, PanelLeft, Square } from "lucide-react";
+import { Plus, Play, X, PanelLeftClose, PanelLeft, Square, ArrowUpToLine } from "lucide-react";
 import { cn } from "@/utils/utils";
 import "@xyflow/react/dist/style.css";
 import { WorkflowExecutionStatus } from "@dafthunk/types";
@@ -68,12 +68,24 @@ function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
     <Button
       onClick={onClick}
       className={cn(
-        "absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0",
+        "absolute top-4 right-28 z-50 rounded-full shadow-lg h-10 w-10 p-0",
         config.className
       )}
       title={config.title}
     >
       {config.icon}
+    </Button>
+  );
+}
+
+function DeployButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <Button
+      onClick={onClick}
+      className="absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+      title="Deploy Workflow"
+    >
+      <ArrowUpToLine className="w-6 h-6" />
     </Button>
   );
 }
@@ -113,6 +125,7 @@ export function WorkflowCanvas({
   onInit,
   onAddNode,
   onAction,
+  onDeploy,
   workflowStatus = "idle",
   onToggleSidebar,
   isSidebarVisible,
@@ -185,6 +198,10 @@ export function WorkflowCanvas({
 
       {onAction && !readonly && (
         <ActionButton onClick={onAction} workflowStatus={workflowStatus} />
+      )}
+
+      {onDeploy && !readonly && (
+        <DeployButton onClick={onDeploy} />
       )}
 
       {onToggleSidebar && isSidebarVisible !== undefined && (

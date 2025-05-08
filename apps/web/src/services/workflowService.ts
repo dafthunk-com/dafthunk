@@ -73,6 +73,11 @@ export const workflowService = {
     }
   },
 
+  // Get a workflow by ID (alias for load)
+  async getById(id: string): Promise<Workflow> {
+    return this.load(id);
+  },
+
   // Save a workflow
   async save(id: string, workflow: Workflow): Promise<Workflow> {
     try {
@@ -94,6 +99,18 @@ export const workflowService = {
       throw error instanceof Error
         ? error
         : new Error("Failed to delete workflow");
+    }
+  },
+
+  // Deploy a workflow
+  async deploy(id: string): Promise<void> {
+    try {
+      await apiRequest<void>(`/deployments/${id}`, "POST");
+    } catch (error) {
+      console.error("Error deploying workflow:", error);
+      throw error instanceof Error
+        ? error
+        : new Error("Failed to deploy workflow");
     }
   },
 };

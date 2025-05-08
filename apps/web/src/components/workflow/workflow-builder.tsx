@@ -31,6 +31,7 @@ export function WorkflowBuilder({
   executeWorkflow,
   initialWorkflowExecution,
   readonly = false,
+  onDeployWorkflow,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
@@ -327,6 +328,7 @@ export function WorkflowBuilder({
                   ? handleActionButtonClick
                   : undefined
               }
+              onDeploy={!readonly && onDeployWorkflow ? onDeployWorkflow : undefined}
               workflowStatus={workflowStatus}
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
