@@ -124,10 +124,10 @@ export interface WorkflowExecution {
   status: WorkflowExecutionStatus;
   error?: string;
   nodeExecutions: NodeExecution[];
-  /** Timestamp when execution actually started (ISO string or Date) */
-  startedAt?: string | Date;
-  /** Timestamp when execution ended (ISO string or Date) */
-  endedAt?: string | Date;
+  /** Timestamp when execution actually started */
+  startedAt?: Date;
+  /** Timestamp when execution ended */
+  endedAt?: Date;
 }
 
 /**
