@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Workflow,
@@ -147,92 +147,91 @@ export function EditorPage() {
 
   // Debounced save function
   const debouncedSave = useCallback(
-    debounce(
-      async (
-        currentNodes: Node<WorkflowNodeType>[],
-        currentEdges: Edge<WorkflowEdgeType>[]
-      ) => {
-        if (!id || !currentWorkflow) return;
+    async (
+      currentNodes: Node<WorkflowNodeType>[],
+      currentEdges: Edge<WorkflowEdgeType>[]
+    ) => {
+      if (!id || !currentWorkflow) return;
 
-        try {
-          if (
-            currentNodes.some(
-              (node) => node.data.executionState === "executing"
-            )
-          ) {
-            console.log(
-              "Workflow is executing, but still saving legitimate changes"
-            );
-          }
-
-          const workflowNodes = currentNodes.map((node) => {
-            const incomingEdges = currentEdges.filter(
-              (edge) => edge.target === node.id
-            );
-            return {
-              id: node.id,
-              name: node.data.name,
-              type: node.data.nodeType || "default",
-              position: node.position,
-              inputs: node.data.inputs.map((input) => {
-                const isConnected = incomingEdges.some(
-                  (edge) => edge.targetHandle === input.id
-                );
-                const parameter: Parameter = {
-                  name: input.id,
-                  type: input.type as ParameterType["type"],
-                  description: input.name,
-                  hidden: input.hidden,
-                  required: input.required,
-                };
-                if (!isConnected && input.value !== undefined) {
-                  (parameter as any).value = input.value;
-                }
-                return parameter;
-              }),
-              outputs: node.data.outputs.map((output) => {
-                const parameter: Parameter = {
-                  name: output.id,
-                  type: output.type as ParameterType["type"],
-                  description: output.name,
-                  hidden: output.hidden,
-                };
-                return parameter;
-              }),
-            };
-          });
-
-          const workflowEdges = currentEdges.map((edge) => ({
-            source: edge.source,
-            target: edge.target,
-            sourceOutput: edge.sourceHandle || "",
-            targetInput: edge.targetHandle || "",
-          }));
-
-          const workflowToSave: Workflow = {
-            ...currentWorkflow,
-            id: id,
-            name: currentWorkflow.name,
-            nodes: workflowNodes,
-            edges: workflowEdges,
-          };
-
-          if (workflowNodes.length === 0 && currentWorkflow.nodes.length > 0) {
-            console.warn(
-              "Attempted to save an empty node list, aborting save."
-            );
-            return;
-          }
-
-          console.log("Saving workflow:", id);
-          await workflowService.save(id, workflowToSave);
-        } catch (error) {
-          console.error("Error saving workflow:", error);
+      try {
+        if (
+          currentNodes.some((node) => node.data.executionState === "executing")
+        ) {
+          console.log(
+            "Workflow is executing, but still saving legitimate changes"
+          );
         }
-      },
-      1000
-    ),
+
+        const workflowNodes = currentNodes.map((node) => {
+          const incomingEdges = currentEdges.filter(
+            (edge) => edge.target === node.id
+          );
+          return {
+            id: node.id,
+            name: node.data.name,
+            type: node.data.nodeType || "default",
+            position: node.position,
+            inputs: node.data.inputs.map((input) => {
+              const isConnected = incomingEdges.some(
+                (edge) => edge.targetHandle === input.id
+              );
+              const parameter: Parameter = {
+                name: input.id,
+                type: input.type as ParameterType["type"],
+                description: input.name,
+                hidden: input.hidden,
+                required: input.required,
+              };
+              if (!isConnected && input.value !== undefined) {
+                (parameter as any).value = input.value;
+              }
+              return parameter;
+            }),
+            outputs: node.data.outputs.map((output) => {
+              const parameter: Parameter = {
+                name: output.id,
+                type: output.type as ParameterType["type"],
+                description: output.name,
+                hidden: output.hidden,
+              };
+              return parameter;
+            }),
+          };
+        });
+
+        const workflowEdges = currentEdges.map((edge) => ({
+          source: edge.source,
+          target: edge.target,
+          sourceOutput: edge.sourceHandle || "",
+          targetInput: edge.targetHandle || "",
+        }));
+
+        const workflowToSave: Workflow = {
+          ...currentWorkflow,
+          id: id,
+          name: currentWorkflow.name,
+          nodes: workflowNodes,
+          edges: workflowEdges,
+        };
+
+        if (workflowNodes.length === 0 && currentWorkflow.nodes.length > 0) {
+          console.warn("Attempted to save an empty node list, aborting save.");
+          return;
+        }
+
+        console.log("Saving workflow:", id);
+        await workflowService.save(id, workflowToSave);
+      } catch (error) {
+        console.error("Error saving workflow:", error);
+      }
+    },
     [id, currentWorkflow]
+  );
+
+  // Create a debounced version of the save function
+  const debouncedSaveWithDelay = useMemo(
+    () => debounce(debouncedSave, 1000),
+    [debouncedSave]
   );
 
   // Handle node changes
@@ -240,10 +239,10 @@ export function EditorPage() {
     (updatedNodes: Node<WorkflowNodeType>[]) => {
       setNodes(updatedNodes);
       if (updatedNodes.length > 0) {
-        debouncedSave(updatedNodes, edges);
+        debouncedSaveWithDelay(updatedNodes, edges);
       }
     },
-    [edges, debouncedSave]
+    [edges, debouncedSaveWithDelay]
   );
 
   // Handle edge changes
@@ -251,10 +250,10 @@ export function EditorPage() {
     (updatedEdges: Edge<WorkflowEdgeType>[]) => {
       setEdges(updatedEdges);
       if (nodes.length > 0) {
-        debouncedSave(nodes, updatedEdges);
+        debouncedSaveWithDelay(nodes, updatedEdges);
       }
     },
-    [nodes, debouncedSave]
+    [nodes, debouncedSaveWithDelay]
   );
 
   // Validate connections based on type compatibility
