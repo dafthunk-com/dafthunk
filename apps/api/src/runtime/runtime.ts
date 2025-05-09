@@ -110,6 +110,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     try {
       // Prepare workflow (validation + ordering).
+      // @ts-ignore
       runtimeState = await step.do(
         "initialise workflow",
         Runtime.defaultStepConfig,
@@ -128,7 +129,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         runtimeState = await step.do(
           `run node ${nodeIdentifier}`,
           Runtime.defaultStepConfig,
-          async () => this.executeNode(runtimeState, nodeIdentifier, httpRequest)
+          async () =>
+            this.executeNode(
+              runtimeState,
+              nodeIdentifier,
+              organizationId,
+              instanceId,
+              httpRequest
+            )
         );
 
         // Persist progress after each node if monitoring is enabled
@@ -216,6 +224,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private async executeNode(
     runtimeState: RuntimeState,
     nodeIdentifier: string,
+    organizationId: string,
+    executionId: string,
     httpRequest?: HttpRequest
   ): Promise<RuntimeState> {
     const node = runtimeState.workflow.nodes.find(
@@ -274,7 +284,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         const outputsForRuntime = await this.mapNodeToRuntimeOutputs(
           runtimeState,
           nodeIdentifier,
-          result.outputs ?? {}
+          result.outputs ?? {},
+          organizationId,
+          executionId
         );
         runtimeState.nodeOutputs.set(
           nodeIdentifier,
@@ -406,7 +418,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private async mapNodeToRuntimeOutputs(
     runtimeState: RuntimeState,
     nodeIdentifier: string,
-    outputsFromNode: Record<string, unknown>
+    outputsFromNode: Record<string, unknown>,
+    organizationId: string,
+    executionId: string
   ): Promise<Record<string, unknown>> {
     const node = runtimeState.workflow.nodes.find(
       (n) => n.id === nodeIdentifier
@@ -421,7 +435,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const value = outputsFromNode[name];
       if (value === undefined || value === null) continue;
 
-      processed[name] = await nodeToApiParameter(type, value, objectStore);
+      processed[name] = await nodeToApiParameter(
+        type,
+        value,
+        objectStore,
+        organizationId,
+        executionId
+      );
     }
     return processed;
   }

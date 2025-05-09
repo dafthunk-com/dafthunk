@@ -225,6 +225,9 @@ export const executions = sqliteTable(
       .$type<WorkflowExecutionType>()
       .notNull(),
     error: text("error"),
+    visibility: text("visibility", { enum: ["public", "private"] })
+      .notNull()
+      .default("private"),
     startedAt: integer("started_at", { mode: "timestamp" }),
     endedAt: integer("ended_at", { mode: "timestamp" }),
     createdAt: createCreatedAt(),

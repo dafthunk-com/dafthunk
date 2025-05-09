@@ -7,6 +7,7 @@ import { getExecutionById } from "../utils/db";
 import { listExecutions } from "../utils/db";
 import { workflows } from "../db";
 import { eq, inArray } from "drizzle-orm";
+import { executions as executionsTable } from "../db/schema";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -91,6 +92,62 @@ executionRoutes.get("/", jwtAuth, async (c) => {
   });
 
   return c.json({ executions: results });
+});
+
+executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const id = c.req.param("id");
+  const db = createDatabase(c.env.DB);
+
+  try {
+    const execution = await getExecutionById(db, id, user.organizationId);
+
+    if (!execution) {
+      return c.json({ error: "Execution not found" }, 404);
+    }
+
+    if (execution.organizationId !== user.organizationId) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    await db
+      .update(executionsTable)
+      .set({ visibility: "public", updatedAt: new Date() })
+      .where(eq(executionsTable.id, id));
+
+    return c.json({ message: "Execution set to public" });
+  } catch (error) {
+    console.error("Error setting execution to public:", error);
+    return c.json({ error: "Failed to set execution to public" }, 500);
+  }
+});
+
+executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const id = c.req.param("id");
+  const db = createDatabase(c.env.DB);
+
+  try {
+    const execution = await getExecutionById(db, id, user.organizationId);
+
+    if (!execution) {
+      return c.json({ error: "Execution not found" }, 404);
+    }
+
+    if (execution.organizationId !== user.organizationId) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    await db
+      .update(executionsTable)
+      .set({ visibility: "private", updatedAt: new Date() })
+      .where(eq(executionsTable.id, id));
+
+    return c.json({ message: "Execution set to private" });
+  } catch (error) {
+    console.error("Error setting execution to private:", error);
+    return c.json({ error: "Failed to set execution to private" }, 500);
+  }
 });
 
 export default executionRoutes;

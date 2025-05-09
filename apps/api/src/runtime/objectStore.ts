@@ -1,5 +1,5 @@
 import { v7 as uuid } from "uuid";
-import type { R2Bucket } from "@cloudflare/workers-types";
+import type { R2Bucket, R2Object } from "@cloudflare/workers-types";
 import { ObjectReference, Workflow, WorkflowExecution } from "@dafthunk/types";
 
 export interface StoreObject {
@@ -25,11 +25,13 @@ export class ObjectStore {
    */
   async writeObject(
     data: Uint8Array,
-    mimeType: string
+    mimeType: string,
+    organizationId: string,
+    executionId?: string
   ): Promise<ObjectReference> {
     try {
       console.log(
-        `ObjectStore.write: Starting to write object of type ${mimeType}, size: ${data.length} bytes`
+        `ObjectStore.write: Starting to write object of type ${mimeType}, size: ${data.length} bytes for organization ${organizationId}${executionId ? `, execution ${executionId}` : ""}`
       );
 
       if (!this.bucket) {
@@ -44,15 +46,22 @@ export class ObjectStore {
         `ObjectStore.write: Attempting to store object with key ${key}`
       );
 
+      const customMetadataForR2: { [key: string]: string } = {
+        id,
+        createdAt: new Date().toISOString(),
+        organizationId,
+      };
+
+      if (executionId) {
+        customMetadataForR2.executionId = executionId;
+      }
+
       const writeResult = await this.bucket.put(key, data, {
         httpMetadata: {
           contentType: mimeType,
           cacheControl: "public, max-age=31536000",
         },
-        customMetadata: {
-          id,
-          createdAt: new Date().toISOString(),
-        },
+        customMetadata: customMetadataForR2,
       });
 
       console.log(
@@ -72,7 +81,10 @@ export class ObjectStore {
   /**
    * Read an object from storage using its reference
    */
-  async readObject(reference: ObjectReference): Promise<Uint8Array> {
+  async readObject(reference: ObjectReference): Promise<{
+    data: Uint8Array;
+    metadata: R2Object["customMetadata"];
+  } | null> {
     try {
       console.log(
         `ObjectStore.read: Attempting to read object with id ${reference.id}`
@@ -91,7 +103,7 @@ export class ObjectStore {
       if (!object) {
         console.log(`ObjectStore.readObject: Object not found with key ${key}`);
         console.error(`ObjectStore.read: Object not found: ${reference.id}`);
-        throw new Error(`Object not found: ${reference.id}`);
+        return null;
       }
 
       console.log(
@@ -102,7 +114,10 @@ export class ObjectStore {
       console.log(
         `ObjectStore.read: Successfully read object ${reference.id}, size: ${data.byteLength} bytes`
       );
-      return new Uint8Array(data);
+      return {
+        data: new Uint8Array(data),
+        metadata: object.customMetadata,
+      };
     } catch (error) {
       console.error(
         `ObjectStore.read: Failed to read object ${reference.id}:`,

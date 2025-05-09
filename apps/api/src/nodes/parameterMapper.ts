@@ -94,12 +94,22 @@ const converters = {
       typeof value === "boolean" ? value : undefined,
   },
   image: {
-    nodeToApi: async (value: NodeParameterValue, objectStore: ObjectStore) => {
+    nodeToApi: async (
+      value: NodeParameterValue,
+      objectStore: ObjectStore,
+      organizationId: string,
+      executionId?: string
+    ) => {
       if (!isImageParameter(value)) return undefined;
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
-      return await objectStore.writeObject(data, blob.type);
+      return await objectStore.writeObject(
+        data,
+        blob.type,
+        organizationId,
+        executionId
+      );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
       if (
@@ -109,20 +119,31 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const data = await objectStore.readObject(value as ObjectReference);
+      const result = await objectStore.readObject(value as ObjectReference);
+      if (!result) return undefined;
       return {
-        data,
+        data: result.data,
         mimeType: (value as ObjectReference).mimeType,
       } as NodeImageParameter;
     },
   },
   document: {
-    nodeToApi: async (value: NodeParameterValue, objectStore: ObjectStore) => {
+    nodeToApi: async (
+      value: NodeParameterValue,
+      objectStore: ObjectStore,
+      organizationId: string,
+      executionId?: string
+    ) => {
       if (!isDocumentParameter(value)) return undefined;
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
-      return await objectStore.writeObject(data, blob.type);
+      return await objectStore.writeObject(
+        data,
+        blob.type,
+        organizationId,
+        executionId
+      );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
       if (
@@ -132,20 +153,31 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const data = await objectStore.readObject(value as ObjectReference);
+      const result = await objectStore.readObject(value as ObjectReference);
+      if (!result) return undefined;
       return {
-        data,
+        data: result.data,
         mimeType: (value as ObjectReference).mimeType,
       } as NodeDocumentParameter;
     },
   },
   audio: {
-    nodeToApi: async (value: NodeParameterValue, objectStore: ObjectStore) => {
+    nodeToApi: async (
+      value: NodeParameterValue,
+      objectStore: ObjectStore,
+      organizationId: string,
+      executionId?: string
+    ) => {
       if (!isAudioParameter(value)) return undefined;
       const blob = new Blob([value.data], { type: value.mimeType });
       const buffer = await blob.arrayBuffer();
       const data = new Uint8Array(buffer);
-      return await objectStore.writeObject(data, blob.type);
+      return await objectStore.writeObject(
+        data,
+        blob.type,
+        organizationId,
+        executionId
+      );
     },
     apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
       if (
@@ -155,9 +187,10 @@ const converters = {
         !("mimeType" in value)
       )
         return undefined;
-      const data = await objectStore.readObject(value as ObjectReference);
+      const result = await objectStore.readObject(value as ObjectReference);
+      if (!result) return undefined;
       return {
-        data,
+        data: result.data,
         mimeType: (value as ObjectReference).mimeType,
       } as NodeAudioParameter;
     },
@@ -181,16 +214,53 @@ type ParameterType = keyof typeof converters;
 export async function nodeToApiParameter(
   type: ParameterType,
   value: NodeParameterValue,
-  objectStore?: ObjectStore
+  objectStore?: ObjectStore,
+  organizationId?: string,
+  executionId?: string
 ): Promise<ApiParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
-  if (converter.nodeToApi.length === 2) {
-    // expects objectStore
+
+  const fn = converter.nodeToApi;
+
+  if (fn.length >= 3) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
-    return await (converter.nodeToApi as any)(value, objectStore);
+    if (!organizationId)
+      throw new Error(
+        `organizationId required for object storage for type: ${type}`
+      );
+
+    if (type === "image" || type === "document" || type === "audio") {
+      return await (
+        fn as (
+          v: NodeParameterValue,
+          os: ObjectStore,
+          orgId: string,
+          execId?: string
+        ) => Promise<ApiParameterValue>
+      )(value, objectStore, organizationId, executionId);
+    } else {
+      return await (
+        fn as (
+          v: NodeParameterValue,
+          os: ObjectStore,
+          orgId: string
+        ) => Promise<ApiParameterValue>
+      )(value, objectStore, organizationId);
+    }
+  } else if (fn.length === 2) {
+    if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
+    return await (
+      fn as (
+        v: NodeParameterValue,
+        os: ObjectStore
+      ) => Promise<ApiParameterValue>
+    )(value, objectStore);
+  } else {
+    return await (fn as (v: NodeParameterValue) => Promise<ApiParameterValue>)(
+      value
+    );
   }
-  return await (converter.nodeToApi as any)(value);
 }
 
 export async function apiToNodeParameter(
