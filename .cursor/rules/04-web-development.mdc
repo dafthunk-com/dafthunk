@@ -70,42 +70,61 @@ test("adds numbers", () => {
 // This is incorrect because the project uses Vitest, not Jest
 ```
 
-## React Loading State Best Practices
+## React Loading State Best Practices with SWR
 
-Prefer a single `isLoading` state when:
-- All data must be available before rendering.
-- The UI isn't meaningful until all fetches complete.
-- You want to show a global spinner or loading screen.
+When fetching data in React components, use the library SWR (`stale-while-revalidate`) for its benefits in caching, revalidation, and focus tracking. The primary approach should be to consolidate related data fetching for a view into a single `useSWR` call.
 
-Example:
+This approach is preferred when:
+- All data is necessary for the component to render meaningfully.
+- You want a unified loading state for a set of related data.
+- Simplicity in state management for data fetching is desired.
+
+Example: Using a single `useSWR` to fetch multiple related resources.
 ```tsx
-const [isLoading, setIsLoading] = useState(true)
+import useSWR from 'swr';
 
-useEffect(() => {
-  Promise.all([fetchA(), fetchB(), fetchC()])
-    .then(([a, b, c]) => {
-      setDataA(a)
-      setDataB(b)
-      setDataC(c)
-    })
-    .finally(() => setIsLoading(false))
-}, [])
+export default function MyDashboard() {
+  // The key is an array of the individual resource keys/URLs.
+  const { data, error, isLoading } = useSWR(
+    ['/api/resourceA', '/api/resourceB'], // Unique keys for SWR
+    async (keys: [string, string]) => {
+        const [keyA, keyB] = keys;
+        const [resourceA, resourceB] = await Promise.all([
+            fetchResourceA(keyA),
+            fetchResourceB(keyB),
+        ]);
+        return { resourceA, resourceB };
+    };
+  );
+
+  if (isLoading) return <p>Loading dashboard data...</p>;
+  if (error) return <p>Error loading data: {error.message}</p>;
+  // data will be { resourceA: {...}, resourceB: {...} }
+
+  return (
+    <div>
+      <h2>Dashboard</h2>
+      {data && (
+        <>
+          <section>
+            <h3>Resource A</h3>
+            <p>{data.resourceA.content}</p>
+          </section>
+          <section>
+            <h3>Resource B</h3>
+            <p>{data.resourceB.data}</p>
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
 ```
 
-Use multiple `isLoadingX` states only when:
-- You are asked to load parts of the UI independently.
-- It's acceptable for parts of the UI to appear before others.
-
-Example:
-```tsx
-const [isLoadingA, setIsLoadingA] = useState(true)
-const [isLoadingB, setIsLoadingB] = useState(true)
-
-// Fetch dataA and dataB separately
-```
+By using a single `useSWR` call with a fetcher that handles multiple requests (e.g., via `Promise.all`), you maintain a single `isLoading` and `error` state for the entire set of data required by the view. This simplifies the component logic and provides a more coherent loading experience.
 
 Best Practice:
-"Prefer showing meaningful parts of the UI as soon as possible, but avoid janky partial loading unless each section can truly stand on its own."
+"Prefer showing meaningful parts of the UI as soon as possible by fetching all necessary data for a view with a single, consolidated `useSWR` call. This avoids janky partial loading and simplifies state management unless specific sections truly require independent data fetching lifecycles."
 
 Avoid:
 - Overcomplicating state logic with too many flags.
