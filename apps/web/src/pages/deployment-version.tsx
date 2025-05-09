@@ -133,7 +133,7 @@ export function DeploymentVersionPage() {
       const response = await fetch(
         `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
         {
-          method: "GET",
+          method: "POST",
           credentials: "include",
         }
       );

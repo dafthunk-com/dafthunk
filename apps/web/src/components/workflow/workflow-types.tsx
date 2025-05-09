@@ -10,6 +10,7 @@ import {
   OnNodesChange,
   OnEdgesChange,
 } from "@xyflow/react";
+import type { ParameterType } from "@dafthunk/types";
 
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
@@ -20,11 +21,15 @@ export interface AudioData {
   mimeType: string;
 }
 
+// Define InputOutputType using ParameterType
+export type InputOutputType = ParameterType["type"] | "any" | "unknown";
+
 // Parameter Types
 export interface WorkflowParameter {
   id: string;
-  type: string;
+  type: InputOutputType;
   name: string;
+  description?: string;
   value?: any;
   isConnected?: boolean;
   hidden?: boolean;
@@ -237,4 +242,5 @@ export interface TypeBadgeProps {
 export interface WorkflowExecution {
   status: WorkflowExecutionStatus;
   nodeExecutions: WorkflowNodeExecution[];
+  error?: string;
 }

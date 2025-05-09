@@ -217,10 +217,10 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
 });
 
 /**
- * GET /deployments/version/:deploymentUUID/execute
+ * POST /deployments/version/:deploymentUUID/execute
  * Executes a specific deployment version
  */
-deploymentRoutes.get("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
+deploymentRoutes.post("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const deploymentUUID = c.req.param("deploymentUUID");
   const db = createDatabase(c.env.DB);

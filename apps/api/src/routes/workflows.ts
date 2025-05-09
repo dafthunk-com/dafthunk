@@ -188,7 +188,7 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
   return c.json({ id: deletedWorkflow.id });
 });
 
-workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
+workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);

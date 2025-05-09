@@ -129,7 +129,7 @@ function createDeploymentHistoryColumns(
                     const response = await fetch(
                       `${API_BASE_URL}/deployments/version/${row.original.id}/execute`,
                       {
-                        method: "GET",
+                        method: "POST",
                         credentials: "include",
                       }
                     );
@@ -237,7 +237,7 @@ export function DeploymentDetailPage() {
       const response = await fetch(
         `${API_BASE_URL}/deployments/version/${currentDeployment.id}/execute`,
         {
-          method: "GET",
+          method: "POST",
           credentials: "include",
         }
       );

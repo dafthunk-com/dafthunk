@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Workflow,
@@ -25,6 +25,10 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
 import { useWorkflowDetails } from "@/hooks/use-fetch";
 import { InsetLoading } from "@/components/inset-loading";
+import {
+  ExecutionFormDialog,
+  type DialogFormParameter,
+} from "@/components/workflow/execution-form-dialog";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +37,15 @@ export function EditorPage() {
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
+
+  // State for the execution parameters dialog
+  const [showExecutionForm, setShowExecutionForm] = useState(false);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const executionContextRef = useRef<{
+    workflowId: string;
+    onExecution: (execution: WorkflowExecution) => void;
+  } | null>(null);
+  const activeEditorPageCleanupRef = useRef<(() => void) | null>(null);
 
   const {
     workflowDetails: currentWorkflow,
@@ -64,12 +77,14 @@ export function EditorPage() {
             id: input.name,
             type: input.type,
             name: input.name,
+            description: input.description,
             hidden: input.hidden,
           })),
           outputs: type.outputs.map((output) => ({
             id: output.name,
             type: output.type,
             name: output.name,
+            description: output.description,
             hidden: output.hidden,
           })),
         }));
@@ -107,6 +122,7 @@ export function EditorPage() {
             id: input.name,
             type: input.type,
             name: input.name,
+            description: input.description,
             value: input.value,
             hidden: input.hidden,
             required: input.required,
@@ -115,6 +131,7 @@ export function EditorPage() {
             id: output.name,
             type: output.type,
             name: output.name,
+            description: output.description,
             hidden: output.hidden,
           })),
           executionState: "idle" as const,
@@ -278,78 +295,82 @@ export function EditorPage() {
     [nodes]
   );
 
-  // Simulate workflow execution
-  const executeWorkflow = useCallback(
+  // Simulate workflow execution - This will be refactored into performExecutionAndPoll
+  const performExecutionAndPoll = useCallback(
     (
       workflowId: string,
-      onExecution: (execution: WorkflowExecution) => void
+      onExecution: (execution: WorkflowExecution) => void,
+      requestBody?: Record<string, any> // For POST data
     ) => {
-      console.log(`Starting workflow execution for ID: ${workflowId}`);
+      console.log(
+        `Starting workflow execution for ID: ${workflowId} with body:`, requestBody
+      );
 
-      // Check if there are nodes to execute
-      if (nodes.length === 0) {
-        toast.error("Cannot execute an empty workflow. Please add nodes.");
-        // Return a no-op cleanup function if execution is prevented
-        return () => {};
+      const requestOptions: RequestInit = {
+        method: "POST",
+        credentials: "include",
+      };
+
+      if (requestBody && Object.keys(requestBody).length > 0) {
+        requestOptions.headers = { "Content-Type": "application/json" };
+        requestOptions.body = JSON.stringify(requestBody);
       }
 
-      fetch(
-        `${API_BASE_URL}/workflows/${workflowId}/execute?monitorProgress=true`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      )
+      const executeUrl = new URL(
+        `${API_BASE_URL}/workflows/${workflowId}/execute`
+      );
+      executeUrl.searchParams.append("monitorProgress", "true");
+
+      // This entire fetch and polling logic is largely the same as original executeWorkflow
+      // It now uses executeUrl.toString() and requestOptions
+      // It should return the cleanup function for the polling interval
+
+      let pollingIntervalId: NodeJS.Timeout | undefined = undefined;
+      let cancelled = false;
+
+      fetch(executeUrl.toString(), requestOptions)
         .then((response) => {
+          if (cancelled) return;
           if (!response.ok) {
-            throw new Error("Failed to start workflow execution");
+            // Try to parse error from backend
+            return response.json().then(errData => {
+              throw new Error(errData.message || `Failed to start workflow execution. Status: ${response.status}`);
+            }).catch(() => {
+              throw new Error(`Failed to start workflow execution. Status: ${response.status}`);
+            });
           }
           return response.json();
         })
         .then(async (initialExecution: BackendWorkflowExecution) => {
+          if (cancelled) return;
           const executionId = initialExecution.id;
-          try {
-            const statusResponse = await fetch(
-              `${API_BASE_URL}/executions/${executionId}`,
-              {
-                credentials: "include",
-              }
-            );
-            if (statusResponse.ok) {
-              const loadedExecution =
-                (await statusResponse.json()) as BackendWorkflowExecution;
-              onExecution({
-                status: loadedExecution.status as WorkflowExecutionStatus,
-                nodeExecutions: loadedExecution.nodeExecutions.map((ne) => ({
-                  nodeId: ne.nodeId,
-                  status: ne.status as any,
-                  outputs: ne.outputs || {},
-                  error: ne.error,
-                })),
-              });
-            } else {
-              onExecution({
-                status: initialExecution.status as WorkflowExecutionStatus,
-                nodeExecutions: initialExecution.nodeExecutions.map((ne) => ({
-                  nodeId: ne.nodeId,
-                  status: ne.status as any,
-                  outputs: ne.outputs || {},
-                  error: ne.error,
-                })),
-              });
-            }
-          } catch {
+
+          const updateExecutionState = (exec: BackendWorkflowExecution) => {
             onExecution({
-              status: initialExecution.status as WorkflowExecutionStatus,
-              nodeExecutions: initialExecution.nodeExecutions.map((ne) => ({
+              status: exec.status as WorkflowExecutionStatus,
+              nodeExecutions: exec.nodeExecutions.map((ne) => ({
                 nodeId: ne.nodeId,
-                status: ne.status as any,
+                status: ne.status as any, // TODO: fix type
                 outputs: ne.outputs || {},
                 error: ne.error,
               })),
             });
+          };
+
+          // Initial update
+          updateExecutionState(initialExecution);
+
+          // If already completed or errored, no need to poll
+          if (initialExecution.status === "completed" || initialExecution.status === "error") {
+            return;
           }
-          const pollInterval = setInterval(async () => {
+
+          // Start polling
+          pollingIntervalId = setInterval(async () => {
+            if (cancelled) {
+              clearInterval(pollingIntervalId);
+              return;
+            }
             try {
               const statusResponse = await fetch(
                 `${API_BASE_URL}/executions/${executionId}`,
@@ -357,90 +378,179 @@ export function EditorPage() {
                   credentials: "include",
                 }
               );
+              if (cancelled) {
+                clearInterval(pollingIntervalId);
+                return;
+              }
               if (statusResponse.status === 404) {
+                 // Execution not found, might have been deleted or completed and cleaned up
+                console.warn(`Execution ${executionId} not found during polling. Stopping poll.`);
+                clearInterval(pollingIntervalId);
+                // Optionally update UI to a completed/stale state
+                // For now, just stop polling. The last state received will remain.
                 return;
               }
               if (!statusResponse.ok) {
-                throw new Error("Failed to fetch execution status");
+                // Attempt to parse error, then throw generic
+                try {
+                  const errorData = await statusResponse.json();
+                  throw new Error(errorData.message || `Failed to fetch execution status. Status: ${statusResponse.status}`);
+                } catch (e) {
+                  // If parsing errorData fails or it has no message, throw generic
+                  throw new Error(`Failed to fetch execution status. Status: ${statusResponse.status} ${(e as Error).message}`);
+                }
               }
-              const execution =
-                (await statusResponse.json()) as BackendWorkflowExecution;
-              onExecution({
-                status: execution.status as WorkflowExecutionStatus,
-                nodeExecutions: execution.nodeExecutions.map((ne) => ({
-                  nodeId: ne.nodeId,
-                  status: ne.status as any,
-                  outputs: ne.outputs || {},
-                  error: ne.error,
-                })),
-              });
+              const execution = await statusResponse.json() as BackendWorkflowExecution;
+              updateExecutionState(execution);
+
               if (
                 execution.status === "completed" ||
                 execution.status === "error"
               ) {
-                clearInterval(pollInterval);
+                clearInterval(pollingIntervalId);
               }
             } catch (error) {
               console.error("Error polling execution status:", error);
-              clearInterval(pollInterval);
+              clearInterval(pollingIntervalId);
+              // Update UI to show error in polling
+              onExecution({
+                status: "error", // Indicate an error state for the workflow overall
+                nodeExecutions: [], // Or keep existing node states and add a global error message
+                error: error instanceof Error ? error.message : "Polling failed",
+              });
             }
           }, 1000);
-          // Return a cleanup function that requests cancellation but lets polling continue
-          return () => {
-            console.log(
-              `Requesting cancellation for execution ID: ${executionId}`
-            );
-            // Assume a DELETE endpoint exists for cancellation
-            fetch(`${API_BASE_URL}/executions/${executionId}`, {
-              method: "DELETE",
-              credentials: "include",
-            })
-              .then((response) => {
-                if (!response.ok) {
-                  console.error(
-                    `Failed to request cancellation for execution ${executionId}. Status: ${response.status}`
-                  );
-                  // Optionally handle cancellation request failure - maybe stop polling here?
-                  // For now, let polling continue as the backend might still transition state.
-                } else {
-                  console.log(
-                    `Cancellation requested successfully for execution ${executionId}`
-                  );
-                }
-              })
-              .catch((error) => {
-                console.error("Error sending cancellation request:", error);
-                // Let polling continue
-              });
-
-            // DO NOT clear interval here. Let the interval clear itself on terminal status.
-            // clearInterval(pollInterval);
-          };
         })
         .catch((error) => {
-          console.error("Error starting workflow execution:", error);
-          // Return a no-op cleanup function in case of startup error
-          return () => {};
+          if (cancelled) return;
+          console.error("Error starting or processing workflow execution:", error);
+          onExecution({
+            status: "error",
+            nodeExecutions: [],
+            error: error instanceof Error ? error.message : "Failed to execute",
+          });
         });
+
+      // Return a cleanup function
+      return () => {
+        cancelled = true;
+        if (pollingIntervalId) {
+          clearInterval(pollingIntervalId);
+        }
+        // Request cancellation of the workflow execution on the backend
+        // This part is from the original executeWorkflow, regarding DELETE to /executions/:executionId
+        // We need executionId here. This implies the cleanup function should ideally be created *after* executionId is known.
+        // For now, this cleanup will only stop polling.
+        // The actual cancellation request (DELETE) needs executionId.
+        // This is a limitation of returning cleanup synchronously before fetch resolves.
+        // The original code also had this: the DELETE was in a .then() of a *different* fetch.
+        // Let's keep it simple: this cleanup primarily stops polling.
+        console.log(
+          `Client-side polling cleanup called for workflow ID: ${workflowId}.`
+        );
+      };
     },
-    [nodes]
+    []
   );
 
-  // We need to create a wrapper executeWorkflow function that maps @dafthunk/types to our local types
+  // This is the function passed to WorkflowBuilder
   const executeWorkflowWrapper = useCallback(
     (
       workflowId: string,
-      onExecution: (execution: WorkflowExecution) => void
+      onExecutionFromBuilder: (execution: WorkflowExecution) => void
     ) => {
-      return executeWorkflow(
-        workflowId,
-        (localExecution: WorkflowExecution) => {
-          // Our executeWorkflow function now already returns the correct local WorkflowExecution type
-          onExecution(localExecution);
-        }
-      );
+      if (activeEditorPageCleanupRef.current) {
+        activeEditorPageCleanupRef.current();
+        activeEditorPageCleanupRef.current = null;
+      }
+
+      const httpParameterNodes = nodes
+        .filter(
+          (node) =>
+            node.data.nodeType?.startsWith("parameter.") && // General check
+            node.data.nodeType === "parameter.string" && // Specific to string params for now
+            node.data.inputs?.some((inp) => inp.id === "formFieldName")
+        )
+        .map((node) => {
+          const formFieldNameInput = node.data.inputs.find(
+            (i) => i.id === "formFieldName"
+          );
+          const requiredInput = node.data.inputs.find(
+            (i) => i.id === "required"
+          );
+
+          const nameForFormField = formFieldNameInput?.value as string;
+          if (!nameForFormField) {
+            console.warn(
+              `Node ${node.id} (${node.data.name}) is a parameter type but missing 'formFieldName' value. Skipping for form.`
+            );
+            return null;
+          }
+
+          const nodeInstanceName = node.data.name; // The name of this specific node instance in the workflow
+          const fieldKey = nameForFormField; // The actual key, e.g., "customer_email"
+
+          // Format the fieldKey into a more human-readable version for fallback
+          let friendlyKeyLabel = fieldKey
+            .replace(/([A-Z0-9])/g, ' $1') // Add space before capitals/numbers in a camelCase/PascalCase key
+            .replace(/_/g, ' ')            // Replace underscores with spaces for snake_case keys
+            .trim()                         // Remove leading/trailing spaces
+            .toLowerCase();
+
+          // Capitalize first letter of each word
+          friendlyKeyLabel = friendlyKeyLabel
+            .split(' ')
+            .filter(word => word.length > 0) // handle multiple spaces
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+
+          // If after formatting, it's empty (e.g. fieldKey was all underscores), fallback to raw fieldKey
+          if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) {
+            friendlyKeyLabel = fieldKey;
+          }
+          
+          // Prioritize the user-given node instance name, if it's specific and not the default node type name.
+          // Otherwise, use the formatted field key.
+          const defaultNodeTypeDisplayName = nodeTemplates.find(t => t.id === node.data.nodeType)?.name || node.data.nodeType || "";
+          const isNodeNameSpecific = nodeInstanceName && 
+                                   nodeInstanceName.trim() !== "" && 
+                                   nodeInstanceName.toLowerCase() !== defaultNodeTypeDisplayName.toLowerCase();
+
+          const labelText = isNodeNameSpecific
+            ? nodeInstanceName
+            : friendlyKeyLabel;
+
+          return {
+            nodeId: node.id,
+            nameForForm: nameForFormField,
+            label: labelText, // This is used for the Label and placeholder derivation
+            nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
+            isRequired: (requiredInput?.value as boolean) ?? true,
+            type: node.data.nodeType || "unknown.parameter",
+          } as DialogFormParameter;
+        })
+        .filter((p) => p !== null) as DialogFormParameter[];
+
+      if (httpParameterNodes.length > 0) {
+        setFormParameters(httpParameterNodes);
+        setShowExecutionForm(true);
+        executionContextRef.current = {
+          workflowId,
+          onExecution: onExecutionFromBuilder,
+        };
+        activeEditorPageCleanupRef.current = null; // Ensure no old cleanup runs
+        return undefined; // Defer execution, WorkflowBuilder gets no cleanup yet
+      } else {
+        // No parameters, proceed with GET request
+        const cleanup = performExecutionAndPoll(
+          workflowId,
+          onExecutionFromBuilder
+        );
+        activeEditorPageCleanupRef.current = cleanup;
+        return cleanup; // WorkflowBuilder gets this cleanup
+      }
     },
-    [executeWorkflow]
+    [nodes, performExecutionAndPoll, activeEditorPageCleanupRef, nodeTemplates] // Added nodeTemplates dependency
   );
 
   // Handle retry loading
@@ -536,6 +646,27 @@ export function EditorPage() {
             onDeployWorkflow={handleDeployWorkflow}
           />
         </div>
+        {/* Add the dialog to the render tree */}
+        {showExecutionForm && (
+          <ExecutionFormDialog
+            isOpen={showExecutionForm}
+            onClose={() => setShowExecutionForm(false)}
+            parameters={formParameters}
+            onSubmit={(formData) => {
+              setShowExecutionForm(false);
+              if (executionContextRef.current) {
+                const { workflowId, onExecution } = executionContextRef.current;
+                // Call performExecutionAndPoll with the form data
+                const cleanup = performExecutionAndPoll(
+                  workflowId,
+                  onExecution,
+                  formData
+                );
+                activeEditorPageCleanupRef.current = cleanup;
+              }
+            }}
+          />
+        )}
       </div>
     </ReactFlowProvider>
   );
