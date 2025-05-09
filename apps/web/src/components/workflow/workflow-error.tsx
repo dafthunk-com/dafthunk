@@ -11,8 +11,10 @@ export function WorkflowError({ message, onRetry }: WorkflowErrorProps) {
   return (
     <div className="w-full h-full flex items-center justify-center p-6">
       <Alert variant="destructive" className="max-w-md">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error loading workflow</AlertTitle>
+        <AlertCircle className="size-4 inline-block mr-2 mb-1" />
+        <AlertTitle className="inline-block mb-0">
+          Error loading workflow
+        </AlertTitle>
         <AlertDescription className="mt-2">
           {message || "Failed to load workflow. Please try again."}
         </AlertDescription>

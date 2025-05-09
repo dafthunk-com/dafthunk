@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/authContext.tsx";
-import { Spinner } from "@/components/ui/spinner.tsx";
+import { PageLoading } from "@/components/page-loading";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,11 +15,7 @@ export function ProtectedRoute({
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Spinner className="h-8 w-8" />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (!isAuthenticated) {

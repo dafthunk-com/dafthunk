@@ -1,116 +1,55 @@
+import { apiRequest } from "@/utils/api";
 import { Workflow } from "@dafthunk/types";
-import { API_BASE_URL } from "../config/api";
-
-type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
-
-/**
- * Creates a properly configured fetch request
- */
-async function apiRequest<T>(
-  endpoint: string,
-  method: HttpMethod = "GET",
-  body?: object
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-
-  const response = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    ...(body && { body: JSON.stringify(body) }),
-  });
-
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error(`Resource not found: ${endpoint}`);
-    } else if (response.status === 401 || response.status === 403) {
-      throw new Error("Unauthorized access");
-    } else {
-      throw new Error(`API request failed: ${response.statusText}`);
-    }
-  }
-
-  return response.json();
-}
+import { mutate } from "swr";
 
 export const workflowService = {
-  // Get all workflows
   async getAll(): Promise<Workflow[]> {
-    try {
-      const data = await apiRequest<{ workflows: Workflow[] }>("/workflows");
-      return data.workflows;
-    } catch (error) {
-      console.error("Error fetching workflows:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to fetch workflows");
-    }
+    return await apiRequest<{ workflows: Workflow[] }>("/workflows", {
+      method: "GET",
+      errorMessage: "Failed to get all workflows",
+    }).then((data) => data.workflows);
   },
 
-  // Create a new workflow
-  async create(name: string): Promise<Workflow> {
-    try {
-      return await apiRequest<Workflow>("/workflows", "POST", { name });
-    } catch (error) {
-      console.error("Error creating workflow:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to create workflow");
-    }
-  },
-
-  // Load a workflow by ID
-  async load(id: string): Promise<Workflow> {
-    try {
-      return await apiRequest<Workflow>(`/workflows/${id}`);
-    } catch (error) {
-      console.error("Error loading workflow:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to fetch workflow");
-    }
-  },
-
-  // Get a workflow by ID (alias for load)
   async getById(id: string): Promise<Workflow> {
-    return this.load(id);
+    return await apiRequest<Workflow>(`/workflows/${id}`, {
+      method: "GET",
+      errorMessage: "Failed to load workflow",
+    });
   },
 
-  // Save a workflow
+  async create(name: string): Promise<Workflow> {
+    const res = await apiRequest<Workflow>("/workflows", {
+      method: "POST",
+      body: { name },
+      errorMessage: "Failed to create workflow",
+    });
+    mutate("/workflows");
+    return res;
+  },
+
   async save(id: string, workflow: Workflow): Promise<Workflow> {
-    try {
-      return await apiRequest<Workflow>(`/workflows/${id}`, "PUT", workflow);
-    } catch (error) {
-      console.error("Error saving workflow:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to save workflow");
-    }
+    const res = await apiRequest<Workflow>(`/workflows/${id}`, {
+      method: "PUT",
+      body: workflow,
+      errorMessage: "Failed to save workflow",
+    });
+    mutate("/workflows");
+    return res;
   },
 
-  // Delete a workflow
   async delete(id: string): Promise<void> {
-    try {
-      await apiRequest<void>(`/workflows/${id}`, "DELETE");
-    } catch (error) {
-      console.error("Error deleting workflow:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to delete workflow");
-    }
+    await apiRequest<void>(`/workflows/${id}`, {
+      method: "DELETE",
+      errorMessage: "Failed to delete workflow",
+    });
+    mutate("/workflows");
   },
 
-  // Deploy a workflow
   async deploy(id: string): Promise<void> {
-    try {
-      await apiRequest<void>(`/deployments/${id}`, "POST");
-    } catch (error) {
-      console.error("Error deploying workflow:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to deploy workflow");
-    }
+    await apiRequest<void>(`/deployments/${id}`, {
+      method: "POST",
+      errorMessage: "Failed to deploy workflow",
+    });
+    mutate("/deployments");
   },
 };

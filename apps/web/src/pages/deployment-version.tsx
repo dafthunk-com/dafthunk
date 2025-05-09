@@ -2,146 +2,69 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
-import { WorkflowDeploymentVersion, Workflow } from "@dafthunk/types";
+import type { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Node, Edge } from "@xyflow/react";
-import {
+import type { Node, Edge } from "@xyflow/react";
+import type {
   WorkflowNodeType,
   WorkflowEdgeType,
-  NodeTemplate,
 } from "@/components/workflow/workflow-types";
-import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import { PageLoading } from "@/components/page-loading";
+import { useFetch } from "@/hooks/use-fetch";
 
 export function DeploymentVersionPage() {
-  const { deploymentId = "" } = useParams();
-  const [deployment, setDeployment] =
-    useState<WorkflowDeploymentVersion | null>(null);
-  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  const { deploymentId = "" } = useParams<{ deploymentId: string }>();
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
-  const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
-  const [templatesError, setTemplatesError] = useState<string | null>(null);
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
-  // Fetch node templates/types
-  useEffect(() => {
-    const loadNodeTemplates = async () => {
-      try {
-        const types = await fetchNodeTypes();
-        const templates: NodeTemplate[] = types.map((type) => ({
-          id: type.id,
-          type: type.id,
-          name: type.name,
-          description: type.description || "",
-          category: type.category,
-          inputs: type.inputs.map((input) => ({
-            id: input.name,
-            type: input.type,
-            name: input.name,
-            hidden: input.hidden,
-          })),
-          outputs: type.outputs.map((output) => ({
-            id: output.name,
-            type: output.type,
-            name: output.name,
-            hidden: output.hidden,
-          })),
-        }));
-        setNodeTemplates(templates);
-        setTemplatesError(null);
-      } catch (error) {
-        console.error("Failed to load node templates:", error);
-        setTemplatesError(
-          "Failed to load node templates. Some nodes may not display correctly."
-        );
-      }
-    };
+  const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
+    useFetch.useNodeTemplates();
 
-    loadNodeTemplates();
-  }, []);
+  const {
+    deploymentVersion,
+    deploymentVersionError,
+    isDeploymentVersionLoading,
+    mutateDeploymentVersion,
+  } = useFetch.useDeploymentVersion(deploymentId);
 
-  // Fetch the workflow data
-  const fetchWorkflow = async (workflowId: string) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/workflows/${workflowId}`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch workflow: ${response.statusText}`);
-      }
-
-      const workflowData = await response.json();
-      setWorkflow(workflowData);
-    } catch (error) {
-      console.error("Error fetching workflow:", error);
-      toast.error("Failed to fetch workflow details.");
-    }
-  };
+  // Use the new hook for Workflow Details
+  const { workflowDetails, workflowDetailsError, isWorkflowDetailsLoading } =
+    useFetch.useWorkflowDetails(deploymentVersion?.workflowId);
 
   // Update breadcrumbs when both workflow and deployment are available
   useEffect(() => {
-    if (workflow && deployment) {
+    if (workflowDetails && deploymentVersion) {
       setBreadcrumbs([
         { label: "Deployments", to: "/workflows/deployments" },
         {
-          label: workflow.name,
-          to: `/workflows/deployments/${workflow.id}`,
+          label: workflowDetails.name,
+          to: `/workflows/deployments/${workflowDetails.id}`,
         },
-        { label: `v${deployment.version}` },
+        { label: `v${deploymentVersion.version}` },
+      ]);
+    } else if (deploymentVersion) {
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { label: `v${deploymentVersion.version}` },
       ]);
     }
-  }, [workflow, deployment, setBreadcrumbs]);
+  }, [workflowDetails, deploymentVersion, setBreadcrumbs]);
 
-  // Fetch the specific deployment version
-  const fetchDeployment = async () => {
-    if (!deploymentId) return;
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/deployments/version/${deploymentId}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch deployment: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setDeployment(data);
-
-      // Transform nodes and edges to ReactFlow format
-      transformDeploymentToReactFlow(data);
-
-      // Fetch workflow data once we have the workflowId
-      if (data.workflowId) {
-        await fetchWorkflow(data.workflowId);
-      }
-    } catch (error) {
-      console.error("Error fetching deployment:", error);
-      toast.error("Failed to fetch deployment. Please try again.");
-    }
-  };
-
-  // Transform deployment nodes and edges to ReactFlow format
   const transformDeploymentToReactFlow = useCallback(
-    (deployment: WorkflowDeploymentVersion) => {
+    (currentDeploymentData: WorkflowDeploymentVersion) => {
+      if (!currentDeploymentData) return;
       try {
-        // Transform nodes
-        const reactFlowNodes: Node<WorkflowNodeType>[] = deployment.nodes.map(
-          (node) => ({
+        const reactFlowNodes: Node<WorkflowNodeType>[] =
+          currentDeploymentData.nodes.map((node) => ({
             id: node.id,
             type: "workflowNode",
             position: node.position,
@@ -164,12 +87,9 @@ export function DeploymentVersionPage() {
               executionState: "idle" as const,
               nodeType: node.type,
             },
-          })
-        );
-
-        // Transform edges
-        const reactFlowEdges: Edge<WorkflowEdgeType>[] = deployment.edges.map(
-          (edge, index) => ({
+          }));
+        const reactFlowEdges: Edge<WorkflowEdgeType>[] =
+          currentDeploymentData.edges.map((edge, index) => ({
             id: `e${index}`,
             source: edge.source,
             target: edge.target,
@@ -181,9 +101,7 @@ export function DeploymentVersionPage() {
               sourceType: edge.sourceOutput,
               targetType: edge.targetInput,
             },
-          })
-        );
-
+          }));
         setNodes(reactFlowNodes);
         setEdges(reactFlowEdges);
       } catch (error) {
@@ -197,17 +115,16 @@ export function DeploymentVersionPage() {
     []
   );
 
-  // Load the deployment on component mount
   useEffect(() => {
-    fetchDeployment();
-  }, [deploymentId]);
+    if (deploymentVersion) {
+      transformDeploymentToReactFlow(deploymentVersion);
+    }
+  }, [deploymentVersion, transformDeploymentToReactFlow]);
 
-  // Create a simple validate connection function (read-only mode)
   const validateConnection = useCallback(() => false, []);
 
   const executeDeployment = async () => {
     if (!deploymentId) return;
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
@@ -216,32 +133,63 @@ export function DeploymentVersionPage() {
           credentials: "include",
         }
       );
-
       if (!response.ok) {
-        throw new Error(`Failed to execute deployment: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Failed to execute deployment: ${response.statusText}`
+        );
       }
-
       toast.success("Deployment executed successfully");
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error("Failed to execute deployment. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to execute deployment. Please try again."
+      );
     }
   };
+
+  if (
+    isDeploymentVersionLoading ||
+    isNodeTemplatesLoading ||
+    isWorkflowDetailsLoading
+  ) {
+    return <PageLoading />;
+  }
+
+  if (deploymentVersionError) {
+    return (
+      <InsetLayout title="Error">
+        <div className="flex flex-col items-center justify-center h-full text-red-500">
+          <p>
+            Failed to load deployment details: {deploymentVersionError.message}
+          </p>
+          <Button onClick={() => mutateDeploymentVersion()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </InsetLayout>
+    );
+  }
 
   return (
     <InsetLayout
       title={
-        deployment?.version ? `Version ${deployment.version}` : "Deployment"
+        deploymentVersion?.version
+          ? `Version ${deploymentVersion.version}`
+          : "Deployment"
       }
     >
-      {deployment ? (
+      {deploymentVersion ? (
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
-              <Button onClick={executeDeployment}>
+              <Button onClick={executeDeployment} disabled={!deploymentId}>
                 <Play className="mr-2 h-4 w-4" />
                 Execute Version
               </Button>
@@ -255,43 +203,51 @@ export function DeploymentVersionPage() {
             </TabsList>
 
             <TabsContent value="details" className="space-y-6 mt-4">
-              {workflow && (
+              {workflowDetails && (
                 <WorkflowInfoCard
-                  id={workflow.id}
-                  name={workflow.name}
+                  id={workflowDetails.id}
+                  name={workflowDetails.name}
                   description="Details about this workflow"
                 />
               )}
+              {isWorkflowDetailsLoading && !workflowDetails && (
+                <p>Loading workflow details...</p>
+              )}
+              {workflowDetailsError && (
+                <p className="text-red-500">
+                  Error loading workflow details: {workflowDetailsError.message}
+                </p>
+              )}
 
               <DeploymentInfoCard
-                id={deployment.id}
-                version={deployment.version}
-                createdAt={deployment.createdAt}
+                id={deploymentVersion.id}
+                version={deploymentVersion.version}
+                createdAt={deploymentVersion.createdAt}
               />
             </TabsContent>
 
             <TabsContent value="workflow" className="mt-4">
               <div className="h-[calc(100vh-280px)] border rounded-md">
-                {nodes.length > 0 && (
+                {nodes.length > 0 && nodeTemplates && (
                   <WorkflowBuilder
-                    workflowId={deployment.id}
+                    workflowId={deploymentVersion.id}
                     initialNodes={nodes}
                     initialEdges={edges}
-                    nodeTemplates={nodeTemplates}
+                    nodeTemplates={nodeTemplates || []}
                     validateConnection={validateConnection}
                     readonly={true}
                   />
                 )}
-                {nodes.length === 0 && (
+                {(nodes.length === 0 || !nodeTemplates) && (
                   <div className="flex flex-col items-center justify-center h-full">
                     <p className="text-muted-foreground">
-                      No workflow structure available
+                      No workflow structure available or templates not loaded.
                     </p>
                   </div>
                 )}
-                {templatesError && (
+                {nodeTemplatesError && (
                   <div className="absolute top-4 right-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm">
-                    {templatesError}
+                    Error loading node templates: {nodeTemplatesError.message}
                   </div>
                 )}
               </div>

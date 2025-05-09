@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/components/authContext.tsx";
 import { workflowService } from "@/services/workflowService";
-import { dashboardService, DashboardStats } from "@/services/dashboardService";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,37 +9,21 @@ import { Workflow, Target, Logs, Plus, Clock, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { DataTableCard } from "@/components/ui/data-table-card";
+import { PageLoading } from "@/components/page-loading";
+import { useFetch } from "@/hooks/use-fetch";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    dashboardService
-      .fetchDashboard()
-      .then((data) => {
-        setStats(data);
-        setError(null);
-      })
-      .catch((err) => {
-        setError(
-          err instanceof Error ? err.message : "Failed to load dashboard stats"
-        );
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    dashboardStats,
+    dashboardStatsError,
+    isDashboardStatsLoading,
+    mutateDashboardStats,
+  } = useFetch.useDashboardStats();
 
   const handleCreateWorkflow = async (name: string) => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
     try {
       const newWorkflow = await workflowService.create(name);
       navigate(`/workflows/playground/${newWorkflow.id}`);
@@ -50,23 +32,31 @@ export function DashboardPage() {
     }
   };
 
-  if (loading) {
+  if (isDashboardStatsLoading) {
+    return <PageLoading />;
+  }
+
+  if (dashboardStatsError) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        Loading dashboard...
+      <div className="flex flex-1 items-center justify-center text-red-500 p-4 md:p-6 lg:p-8">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">
+            Error Loading Dashboard
+          </h2>
+          <p className="text-sm mb-4">
+            {dashboardStatsError instanceof Error
+              ? dashboardStatsError.message
+              : "An unexpected error occurred."}
+          </p>
+          <Button onClick={() => mutateDashboardStats()}>Retry</Button>
+        </div>
       </div>
     );
   }
-  if (error) {
+
+  if (!dashboardStats) {
     return (
-      <div className="flex flex-1 items-center justify-center text-red-500">
-        {error}
-      </div>
-    );
-  }
-  if (!stats) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center p-4 md:p-6 lg:p-8">
         No dashboard data available.
       </div>
     );
@@ -94,7 +84,7 @@ export function DashboardPage() {
             <Workflow className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">{stats.workflows}</div>
+            <div className="text-4xl font-bold">{dashboardStats.workflows}</div>
             <p className="text-xs text-muted-foreground pt-1">
               Total workflows created
             </p>
@@ -114,12 +104,14 @@ export function DashboardPage() {
             <Target className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">{stats.deployments}</div>
+            <div className="text-4xl font-bold">
+              {dashboardStats.deployments}
+            </div>
             <p className="text-xs text-muted-foreground pt-1">
               Active deployments
             </p>
             <div className="text-xs text-muted-foreground mt-1">
-              Latest version: v{stats.deployments > 0 ? 3 : 0}
+              Latest version: v{dashboardStats.deployments > 0 ? 3 : 0}
             </div>
             <Button
               variant="outline"
@@ -137,21 +129,25 @@ export function DashboardPage() {
             <Logs className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">{stats.executions.total}</div>
+            <div className="text-4xl font-bold">
+              {dashboardStats.executions.total}
+            </div>
             <div className="text-xs text-muted-foreground pt-1 flex gap-3">
               <div className="flex items-center gap-1">
                 <span className="flex size-2 translate-y-px rounded-full bg-blue-500" />
-                <span>{stats.executions.running} running</span>
+                <span>{dashboardStats.executions.running} running</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="flex items-center gap-1">
                   <AlertCircle className="size-3 text-red-500" />
-                  {stats.executions.failed} failed
+                  {dashboardStats.executions.failed} failed
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="size-3" />
-                <span>Avg. time: {stats.executions.avgTimeSeconds}s</span>
+                <span>
+                  Avg. time: {dashboardStats.executions.avgTimeSeconds}s
+                </span>
               </div>
             </div>
             <Button
@@ -221,7 +217,7 @@ export function DashboardPage() {
             ),
           },
         ]}
-        data={stats.recentExecutions}
+        data={dashboardStats.recentExecutions}
         emptyState={{
           title: "No executions",
           description: "There are no recent executions to display.",

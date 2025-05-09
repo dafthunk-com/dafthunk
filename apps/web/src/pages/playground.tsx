@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
 import { workflowService } from "@/services/workflowService";
-import { useAuth } from "@/components/authContext.tsx";
 import { Spinner } from "@/components/ui/spinner";
+import { PageLoading } from "@/components/page-loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -28,9 +28,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-
+import { useFetch } from "@/hooks/use-fetch";
 // --- Inline useWorkflowActions ---
-function useWorkflowActions(refresh: () => void) {
+function useWorkflowActions(
+  refreshWorkflows: () => Promise<Workflow[] | undefined>
+) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
@@ -55,7 +57,7 @@ function useWorkflowActions(refresh: () => void) {
       await workflowService.delete(workflowToDelete.id);
       setDeleteDialogOpen(false);
       setWorkflowToDelete(null);
-      refresh();
+      refreshWorkflows();
     } finally {
       setIsDeleting(false);
     }
@@ -70,6 +72,7 @@ function useWorkflowActions(refresh: () => void) {
       await workflowService.save(workflowToRename.id, updatedWorkflow);
       setRenameDialogOpen(false);
       setWorkflowToRename(null);
+      refreshWorkflows();
     } finally {
       setIsRenaming(false);
     }
@@ -83,6 +86,7 @@ function useWorkflowActions(refresh: () => void) {
       await workflowService.deploy(workflowToDeploy.id);
       setDeployDialogOpen(false);
       setWorkflowToDeploy(null);
+      refreshWorkflows();
     } finally {
       setIsDeploying(false);
     }
@@ -299,21 +303,12 @@ function createColumns(
 }
 
 export function PlaygroundPage() {
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [tableKey, setTableKey] = useState(0);
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
-  const fetchWorkflows = useCallback(async () => {
-    if (!isAuthenticated) {
-      return;
-    }
-    const fetchedWorkflows = await workflowService.getAll();
-    setWorkflows(fetchedWorkflows);
-    setTableKey((prev) => prev + 1);
-  }, [isAuthenticated]);
+  const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
+    useFetch.useWorkflows();
 
   const {
     deleteDialog,
@@ -322,7 +317,7 @@ export function PlaygroundPage() {
     openDeleteDialog,
     openRenameDialog,
     openDeployDialog,
-  } = useWorkflowActions(fetchWorkflows);
+  } = useWorkflowActions(mutateWorkflows);
 
   const columns = createColumns(
     openDeleteDialog,
@@ -332,41 +327,38 @@ export function PlaygroundPage() {
   );
 
   useEffect(() => {
-    if (!authLoading) {
-      fetchWorkflows();
-    }
-  }, [isAuthenticated, authLoading, fetchWorkflows]);
-
-  useEffect(() => {
     setBreadcrumbs([{ label: "Playground" }]);
   }, [setBreadcrumbs]);
 
   const handleCreateWorkflow = async (name: string) => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
     try {
       const newWorkflow = await workflowService.create(name);
-      setWorkflows((prev) => [...prev, newWorkflow]);
-      setTableKey((prev) => prev + 1);
+      mutateWorkflows(
+        (currentWorkflows) =>
+          currentWorkflows ? [...currentWorkflows, newWorkflow] : [newWorkflow],
+        false
+      );
       navigate(`/workflows/playground/${newWorkflow.id}`);
     } catch {
       // Optionally show a toast here
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Spinner className="h-8 w-8" />
-      </div>
-    );
+  if (isWorkflowsLoading) {
+    return <PageLoading />;
   }
 
-  if (!isAuthenticated) {
-    navigate("/login");
-    return null;
+  if (workflowsError) {
+    return (
+      <InsetLayout title="Workflows">
+        <div className="flex flex-col items-center justify-center h-full text-red-500">
+          <p>Error loading workflows.</p>
+          <Button onClick={() => mutateWorkflows()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </InsetLayout>
+    );
   }
 
   return (
@@ -383,15 +375,13 @@ export function PlaygroundPage() {
           </Button>
         </div>
         <DataTable
-          key={tableKey}
           columns={columns}
-          data={workflows}
+          data={workflows || []}
           emptyState={{
             title: "No workflows found",
             description: "Create a new workflow to get started.",
           }}
         />
-        {/* Create Workflow Dialog */}
         <CreateWorkflowDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}

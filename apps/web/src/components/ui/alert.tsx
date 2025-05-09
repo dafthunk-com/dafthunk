@@ -14,7 +14,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         "relative w-full rounded-lg border p-4",
         {
           "bg-background text-foreground": variant === "default",
-          "border-red-500 bg-red-50 text-red-600": variant === "destructive",
+          "border-red-500 bg-red-50 text-red-600 dark:bg-red-900 dark:text-red-50":
+            variant === "destructive",
         },
         className
       )}

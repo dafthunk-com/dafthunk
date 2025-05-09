@@ -34,7 +34,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
-
+import { PageLoading } from "@/components/page-loading";
+import { useFetch } from "@/hooks/use-fetch";
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
   try {
@@ -64,7 +65,7 @@ function createDeploymentHistoryColumns(
                 >
                   {deployment.id}
                 </Link>
-                <Badge variant="outline" className="ml-2 bg-green-50">
+                <Badge variant="outline" className="ml-2">
                   Current
                 </Badge>
               </div>
@@ -155,71 +156,42 @@ function createDeploymentHistoryColumns(
   ];
 }
 
-interface WorkflowInfo {
-  id: string;
-  name: string;
-}
-
 export function DeploymentDetailPage() {
-  const { workflowId } = useParams();
+  const { workflowId } = useParams<{ workflowId: string }>();
   const navigate = useNavigate();
+
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
-  const [workflow, setWorkflow] = useState<WorkflowInfo | null>(null);
-  const [currentDeployment, setCurrentDeployment] =
-    useState<WorkflowDeploymentVersion | null>(null);
-  const [deploymentHistory, setDeploymentHistory] = useState<
-    WorkflowDeploymentVersion[]
-  >([]);
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
 
-  // Fetch the deployment history for this workflow
-  const fetchDeploymentHistory = async () => {
-    if (!workflowId) return;
+  const {
+    deploymentHistory,
+    deploymentHistoryError,
+    isDeploymentHistoryLoading,
+    mutateDeploymentHistory,
+  } = useFetch.useDeploymentHistory(workflowId!);
 
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/deployments/history/${workflowId}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+  const workflow = deploymentHistory?.workflow;
+  const currentDeployment =
+    deploymentHistory && deploymentHistory?.deployments.length > 0
+      ? deploymentHistory.deployments[0]
+      : null;
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch deployment history: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      setWorkflow(data.workflow);
-      setDeploymentHistory(data.deployments);
-
-      // Update breadcrumbs with workflow name
-      if (data.workflow) {
-        setBreadcrumbs([
-          { label: "Deployments", to: "/workflows/deployments" },
-          { label: data.workflow.name },
-        ]);
-      }
-
-      if (data.deployments.length > 0) {
-        // Set the first deployment (latest) as the current one
-        setCurrentDeployment(data.deployments[0]);
-      }
-    } catch (error) {
-      console.error("Error fetching deployment history:", error);
-      toast.error("Failed to fetch deployment history. Please try again.");
-    }
-  };
-
-  // Load the deployment history on component mount
   useEffect(() => {
-    fetchDeploymentHistory();
-  }, [workflowId]);
+    if (workflow) {
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { label: workflow.name },
+      ]);
+    } else {
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        { label: "Detail" },
+      ]);
+    }
+  }, [workflow, setBreadcrumbs]);
 
   const deployWorkflow = async () => {
     if (!workflowId) return;
@@ -235,16 +207,23 @@ export function DeploymentDetailPage() {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to deploy workflow: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Failed to deploy workflow: ${response.statusText}`
+        );
       }
 
       toast.success("Workflow deployed successfully");
-
       setIsDeployDialogOpen(false);
-      fetchDeploymentHistory();
+      mutateDeploymentHistory();
     } catch (error) {
       console.error("Error deploying workflow:", error);
-      toast.error("Failed to deploy workflow. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to deploy workflow. Please try again."
+      );
     } finally {
       setIsDeploying(false);
     }
@@ -263,41 +242,67 @@ export function DeploymentDetailPage() {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to execute deployment: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Failed to execute deployment: ${response.statusText}`
+        );
       }
 
       toast.success("Deployment executed successfully");
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error("Failed to execute deployment. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to execute deployment. Please try again."
+      );
     }
   };
 
-  // Show only most recent 3 deployments unless expanded
   const displayDeployments = expandedHistory
-    ? deploymentHistory
-    : deploymentHistory.slice(0, 3);
+    ? deploymentHistory?.deployments || []
+    : deploymentHistory?.deployments.slice(0, 3) || [];
 
-  // Only show the "Show more" button if there are more than 3 deployments
-  const showMoreButton = deploymentHistory.length > 3 && (
-    <div className="flex justify-center mt-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setExpandedHistory(!expandedHistory)}
-        className="text-xs"
-      >
-        {expandedHistory ? (
-          "Show Less"
-        ) : (
-          <>
-            Show All ({deploymentHistory.length}) Deployments
-            <ArrowDown className="ml-1 h-3 w-3" />
-          </>
-        )}
-      </Button>
-    </div>
-  );
+  const showMoreButton = deploymentHistory?.deployments.length &&
+    deploymentHistory?.deployments.length > 3 && (
+      <div className="flex justify-center mt-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setExpandedHistory(!expandedHistory)}
+          className="text-xs"
+        >
+          {expandedHistory ? (
+            "Show Less"
+          ) : (
+            <>
+              Show All ({deploymentHistory?.deployments.length}) Deployments
+              <ArrowDown className="ml-1 h-3 w-3" />
+            </>
+          )}
+        </Button>
+      </div>
+    );
+
+  if (isDeploymentHistoryLoading) {
+    return <PageLoading />;
+  }
+
+  if (deploymentHistoryError) {
+    return (
+      <InsetLayout title="Error">
+        <div className="flex flex-col items-center justify-center h-full text-red-500">
+          <p className="mb-2">
+            Error loading deployment details: {deploymentHistoryError.message}
+          </p>
+          <Button onClick={() => mutateDeploymentHistory()} className="mt-2">
+            Retry
+          </Button>
+        </div>
+      </InsetLayout>
+    );
+  }
 
   return (
     <InsetLayout title={workflow?.name || "Workflow Deployments"}>

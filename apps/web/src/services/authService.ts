@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/config/api";
+import { apiRequest } from "@/utils/api";
 
 export type User = {
   readonly id: string;
@@ -24,11 +25,11 @@ export const authService = {
   // Check if the user is authenticated
   async checkAuth(): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/protected`, {
+      const response = await apiRequest<boolean>("/auth/protected", {
         method: "GET",
-        credentials: "include", // Important for cookies
+        errorMessage: "Failed to check authentication",
       });
-      return response.ok;
+      return response;
     } catch (_) {
       console.log("Authentication check failed");
       return false;
@@ -38,16 +39,11 @@ export const authService = {
   // Get the current user information
   async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/user`, {
+      const response = await apiRequest<{ user: User }>("/auth/user", {
         method: "GET",
-        credentials: "include", // Important for cookies
+        errorMessage: "Failed to get user info",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        return data.user;
-      }
-      return null;
+      return response.user;
     } catch (error) {
       console.error("Failed to get user info:", error);
       return null;

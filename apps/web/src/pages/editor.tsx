@@ -1,6 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
-import { useLoaderData, useParams, useNavigate } from "react-router-dom";
-import type { LoaderFunctionArgs } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Workflow,
   Parameter,
@@ -24,53 +23,30 @@ import { API_BASE_URL } from "@/config/api";
 import { debounce } from "@/utils/utils";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
-
-// Default empty workflow structure
-const emptyWorkflow: Workflow = {
-  id: "",
-  name: "New Workflow",
-  nodes: [],
-  edges: [],
-};
-
-// Loader function for React Router
-export async function editorLoader({ params }: LoaderFunctionArgs) {
-  const { id } = params;
-  if (!id) {
-    return { workflow: emptyWorkflow };
-  }
-
-  try {
-    const workflow = await workflowService.load(id);
-    return { workflow: workflow };
-  } catch (error) {
-    throw new Error(
-      `Failed to load workflow: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-  }
-}
+import { useFetch } from "@/hooks/use-fetch";
+import { PageLoading } from "@/components/page-loading";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
-  const { workflow: initialWorkflow } =
-    (useLoaderData() as { workflow: Workflow } | undefined) ?? {};
   const navigate = useNavigate();
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
   const [templatesError, setTemplatesError] = useState<string | null>(null);
-  const [isProcessingWorkflow, setIsProcessingWorkflow] = useState(true);
-  const [hasProcessedInitialWorkflow, setHasProcessedInitialWorkflow] =
-    useState(false); // Track if initial workflow processing completed
+
+  const {
+    workflowDetails: currentWorkflow,
+    workflowDetailsError,
+    isWorkflowDetailsLoading,
+  } = useFetch.useWorkflowDetails(id!);
 
   // Add breadcrumb logic
   usePageBreadcrumbs(
     [
       { label: "Playground", to: "/workflows/playground" },
-      { label: initialWorkflow?.name || "Workflow" },
+      { label: currentWorkflow?.name || "Workflow" },
     ],
-    [initialWorkflow?.name]
+    [currentWorkflow?.name]
   );
 
   // Fetch node templates
@@ -111,23 +87,17 @@ export function EditorPage() {
 
   // Convert the initial workflow (only if it exists)
   useEffect(() => {
-    // Only set 'not found' error if we haven't processed a valid workflow yet.
-    // This prevents the error flash during exit transitions.
-    if (!initialWorkflow && !hasProcessedInitialWorkflow) {
-      setIsProcessingWorkflow(false);
-      setLoadError("Workflow data not found or invalid.");
+    // If workflowDetails is loading or not yet available, or if there's an error, do nothing.
+    if (isWorkflowDetailsLoading || !currentWorkflow || workflowDetailsError) {
+      // If there is an error, it will be handled by the main return block
+      // If it's loading, it will also be handled there.
+      // If currentWorkflow is undefined (e.g. new workflow not yet created, or invalid ID),
+      // we don't want to process, allow loading/error states to handle.
       return;
     }
 
-    // If initialWorkflow becomes undefined *after* initial processing, just bail out.
-    if (!initialWorkflow) {
-      setIsProcessingWorkflow(false); // Ensure loading state is cleared
-      return;
-    }
-
-    setIsProcessingWorkflow(true);
     try {
-      const reactFlowNodes = initialWorkflow.nodes.map((node) => ({
+      const reactFlowNodes = currentWorkflow.nodes.map((node) => ({
         id: node.id,
         type: "workflowNode",
         position: node.position,
@@ -152,7 +122,7 @@ export function EditorPage() {
         },
       }));
 
-      const reactFlowEdges = initialWorkflow.edges.map((edge, index) => ({
+      const reactFlowEdges = currentWorkflow.edges.map((edge, index) => ({
         id: `e${index}`,
         source: edge.source,
         target: edge.target,
@@ -168,15 +138,12 @@ export function EditorPage() {
 
       setNodes(reactFlowNodes);
       setEdges(reactFlowEdges);
-      setLoadError(null);
-      setHasProcessedInitialWorkflow(true); // Mark initial processing as complete
     } catch (error) {
       console.error("Error processing workflow data:", error);
-      setLoadError("Failed to process workflow data");
-    } finally {
-      setIsProcessingWorkflow(false);
+      // Error during processing of valid data, could set a specific state if needed
+      // For now, relying on workflowDetailsError for load-time errors.
     }
-  }, [initialWorkflow, hasProcessedInitialWorkflow]); // Add hasProcessedInitialWorkflow to dependency array
+  }, [currentWorkflow, isWorkflowDetailsLoading, workflowDetailsError]);
 
   // Debounced save function
   const debouncedSave = useCallback(
@@ -185,7 +152,7 @@ export function EditorPage() {
         currentNodes: Node<WorkflowNodeType>[],
         currentEdges: Edge<WorkflowEdgeType>[]
       ) => {
-        if (!id || !initialWorkflow) return;
+        if (!id || !currentWorkflow) return;
 
         try {
           if (
@@ -243,14 +210,14 @@ export function EditorPage() {
           }));
 
           const workflowToSave: Workflow = {
-            ...initialWorkflow,
+            ...currentWorkflow,
             id: id,
-            name: initialWorkflow.name,
+            name: currentWorkflow.name,
             nodes: workflowNodes,
             edges: workflowEdges,
           };
 
-          if (workflowNodes.length === 0 && initialWorkflow.nodes.length > 0) {
+          if (workflowNodes.length === 0 && currentWorkflow.nodes.length > 0) {
             console.warn(
               "Attempted to save an empty node list, aborting save."
             );
@@ -265,7 +232,7 @@ export function EditorPage() {
       },
       1000
     ),
-    [id, initialWorkflow]
+    [id, currentWorkflow]
   );
 
   // Handle node changes
@@ -496,11 +463,16 @@ export function EditorPage() {
   );
 
   // Show error if loading failed
-  if (loadError) {
-    return <WorkflowError message={loadError} onRetry={handleRetryLoading} />;
+  if (workflowDetailsError) {
+    return (
+      <WorkflowError
+        message={workflowDetailsError.message || "Failed to load workflow."}
+        onRetry={handleRetryLoading}
+      />
+    );
   }
 
-  // Show error if processing workflow data failed
+  // Show error if processing workflow data failed (templates error)
   if (templatesError) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
@@ -516,31 +488,29 @@ export function EditorPage() {
   }
 
   // Show loading state if templates aren't ready OR workflow is being processed
-  const showLoading =
-    nodeTemplates.length === 0 || (initialWorkflow && isProcessingWorkflow);
+  const showNodeTemplatesLoading =
+    nodeTemplates.length === 0 && !templatesError;
 
-  if (showLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading workflow editor...</p>
-        </div>
-      </div>
-    );
+  if (isWorkflowDetailsLoading || showNodeTemplatesLoading) {
+    return <PageLoading />;
   }
 
   // Handle case where initialWorkflow is null/undefined after loading checks (e.g., new workflow)
+  // This logic might need adjustment or removal based on how `useWorkflowDetails` handles non-existent IDs.
+  // For now, if `currentWorkflow` is null/undefined and not loading and no error, it might mean a new workflow or an issue.
+  // The WorkflowBuilder should ideally handle an empty/new workflow state.
   if (
-    !initialWorkflow &&
-    !showLoading &&
-    !loadError &&
-    !hasProcessedInitialWorkflow
+    !currentWorkflow &&
+    !isWorkflowDetailsLoading &&
+    !workflowDetailsError &&
+    !showNodeTemplatesLoading
   ) {
-    // This path might indicate a genuine loading issue not caught elsewhere,
-    // or potentially the state for a brand new workflow before loader returns emptyWorkflow.
-    // If loader guarantees emptyWorkflow, this might be redundant.
-    // Consider adding specific handling or logging if needed.
+    return (
+      <WorkflowError
+        message={`Workflow with ID "${id}" not found.`}
+        onRetry={() => navigate("/workflows/playground")}
+      />
+    );
   }
 
   return (

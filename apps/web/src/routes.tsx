@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { HomePage } from "./pages/home";
-import { EditorPage, editorLoader } from "./pages/editor";
+import { EditorPage } from "./pages/editor";
 import { ProfilePage } from "./pages/profile";
 import { ProtectedRoute } from "./components/protected-route.tsx";
 import { AppLayout } from "./components/layouts/app-layout.tsx";
@@ -102,7 +102,9 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: (
       <AppLayout>
-        <DashboardPage />
+        <ProtectedRoute>
+          <DashboardPage />
+        </ProtectedRoute>
       </AppLayout>
     ),
     errorElement: <ErrorBoundary />,
@@ -237,7 +239,6 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    loader: editorLoader,
     errorElement: <ErrorBoundary />,
   },
   {

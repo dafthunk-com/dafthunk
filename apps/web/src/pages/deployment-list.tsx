@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { WorkflowDeployment, Workflow } from "@dafthunk/types";
+import type { WorkflowDeployment } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { workflowService } from "@/services/workflowService";
-import { ColumnDef } from "@tanstack/react-table";
+import { PageLoading } from "@/components/page-loading";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import {
   MoreHorizontal,
@@ -40,6 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useFetch } from "@/hooks/use-fetch";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -155,61 +156,30 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
 export function DeploymentListPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const [deployments, setDeployments] = useState<WorkflowDeployment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [isWorkflowsLoading, setIsWorkflowsLoading] = useState(false);
 
   // Set breadcrumbs on component mount
   useEffect(() => {
     setBreadcrumbs([{ label: "Deployments" }]);
   }, [setBreadcrumbs]);
 
-  // Fetch the deployments
-  const fetchDeployments = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/deployments`, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch deployments: ${response.statusText}`);
-      }
-      const data = await response.json();
-      setDeployments(data.workflows);
-    } catch (error) {
-      console.error("Error fetching deployments:", error);
-      toast.error("Failed to fetch deployments. Please try again.");
-    }
-  }, []);
+  const {
+    deployments,
+    deploymentsError,
+    isDeploymentsLoading,
+    mutateDeployments,
+  } = useFetch.useDeployments();
 
-  useEffect(() => {
-    fetchDeployments();
-  }, [fetchDeployments]);
+  const { workflows, workflowsError, isWorkflowsLoading } =
+    useFetch.useWorkflows();
 
-  // Fetch all workflows for the select
-  const fetchWorkflows = useCallback(async () => {
-    setIsWorkflowsLoading(true);
-    try {
-      const all = await workflowService.getAll();
-      setWorkflows(all);
-    } catch {
-      toast.error("Failed to fetch workflows");
-    } finally {
-      setIsWorkflowsLoading(false);
-    }
-  }, []);
-
-  // Open dialog and fetch workflows
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
     setSelectedWorkflowId("");
-    fetchWorkflows();
   };
 
-  // Create deployment
   const handleCreateDeployment = async () => {
     if (!selectedWorkflowId) return;
     setIsCreating(true);
@@ -221,12 +191,17 @@ export function DeploymentListPage() {
           credentials: "include",
         }
       );
-      if (!response.ok) throw new Error("Failed to create deployment");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to create deployment");
+      }
       toast.success("Deployment created successfully");
       setIsDialogOpen(false);
-      fetchDeployments();
-    } catch {
-      toast.error("Failed to create deployment");
+      mutateDeployments();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create deployment"
+      );
     } finally {
       setIsCreating(false);
     }
@@ -239,29 +214,52 @@ export function DeploymentListPage() {
   const handleExecute = async (deploymentId: string) => {
     if (!deploymentId) return;
     try {
-      await fetch(
+      const response = await fetch(
         `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
         {
           method: "GET",
           credentials: "include",
         }
       );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to execute deployment");
+      }
       toast.success("Deployment executed successfully");
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error("Failed to execute deployment");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to execute deployment"
+      );
     }
   };
 
   // Add actions to the deployments
-  const deploymentsWithActions: DeploymentWithActions[] = deployments.map(
-    (deployment) => ({
-      ...deployment,
-      onViewLatest: handleViewDeployment,
-      onCreateDeployment: () => {},
-      onExecute: handleExecute,
-    })
-  );
+  const deploymentsWithActions: DeploymentWithActions[] = (
+    deployments || []
+  ).map((deployment) => ({
+    ...deployment,
+    onViewLatest: handleViewDeployment,
+    onCreateDeployment: () => {},
+    onExecute: handleExecute,
+  }));
+
+  if (isDeploymentsLoading) {
+    return <PageLoading />;
+  }
+
+  if (deploymentsError) {
+    return (
+      <InsetLayout title="Deployments">
+        <div className="flex flex-col items-center justify-center h-full text-red-500">
+          <p>Error loading deployments: {deploymentsError.message}</p>
+          <Button onClick={() => mutateDeployments()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </InsetLayout>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -298,24 +296,30 @@ export function DeploymentListPage() {
               <Select
                 value={selectedWorkflowId}
                 onValueChange={setSelectedWorkflowId}
-                disabled={isWorkflowsLoading}
+                disabled={isWorkflowsLoading || isCreating}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
                     placeholder={
-                      isWorkflowsLoading ? "Loading..." : "Select a workflow"
+                      isWorkflowsLoading
+                        ? "Loading workflows..."
+                        : "Select a workflow"
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {workflows.length === 0 && !isWorkflowsLoading ? (
+                  {workflowsError ? (
+                    <div className="px-3 py-2 text-red-500 text-sm">
+                      Error loading workflows: {workflowsError.message}
+                    </div>
+                  ) : (workflows || []).length === 0 && !isWorkflowsLoading ? (
                     <div className="px-3 py-2 text-muted-foreground text-sm">
-                      No workflows found
+                      No workflows available or found.
                     </div>
                   ) : (
-                    workflows.map((wf) => (
+                    (workflows || []).map((wf) => (
                       <SelectItem key={wf.id} value={wf.id}>
-                        {wf.name}
+                        {wf.name || "Untitled Workflow"}
                       </SelectItem>
                     ))
                   )}

@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { API_BASE_URL } from "@/config/api";
-import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
@@ -20,6 +18,8 @@ import {
   ExecutionStatus,
 } from "@/components/executions/execution-status-badge";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { useFetch } from "@/hooks/use-fetch";
+import { toast } from "sonner";
 
 // Represents a single run instance of a workflow
 export type Execution = {
@@ -39,10 +39,10 @@ export const columns: ColumnDef<Execution>[] = [
     header: "Workflow Name",
     cell: ({ row }) => {
       const workflowName = row.getValue("workflowName") as string;
-      const workflowId = row.getValue("workflowId") as string;
+      const execution = row.original as Execution;
       return (
         <Link
-          to={`/workflows/playground/${workflowId}`}
+          to={`/workflows/playground/${execution.workflowId}`}
           className="hover:underline"
         >
           {workflowName}
@@ -111,7 +111,7 @@ export const columns: ColumnDef<Execution>[] = [
     header: "Started At",
     cell: ({ row }) => {
       const date = row.getValue("startedAt") as Date;
-      const formatted = format(date, "PPpp");
+      const formatted = date ? format(date, "PPpp") : "Loading...";
       return <div className="font-medium">{formatted}</div>;
     },
   },
@@ -150,59 +150,32 @@ export const columns: ColumnDef<Execution>[] = [
 ];
 
 export function ExecutionsPage() {
-  const [executions, setExecutions] = useState<Execution[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { executions, executionsError, isExecutionsLoading } =
+    useFetch.useExecutions();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Executions" }]);
   }, [setBreadcrumbs]);
 
   useEffect(() => {
-    const fetchExecutions = async () => {
-      setError(null);
-      try {
-        const response = await fetch(`${API_BASE_URL}/executions`, {
-          credentials: "include",
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch executions: ${response.statusText}`);
-        }
-        const data = await response.json();
-        // Map API executions to Execution type expected by DataTable
-        const mapped: Execution[] = (data.executions || []).map((exec: any) => {
-          const startedAt = exec.startedAt
-            ? new Date(exec.startedAt)
-            : undefined;
-          const endedAt = exec.endedAt ? new Date(exec.endedAt) : undefined;
-          const status: Execution["status"] =
-            exec.status === "executing"
-              ? "running"
-              : exec.status === "error"
-                ? "failed"
-                : exec.status;
-          return {
-            id: exec.id,
-            workflowId: exec.workflowId,
-            workflowName: exec.workflowName,
-            deploymentId: exec.deploymentId || undefined,
-            status,
-            startedAt: startedAt || new Date(),
-            duration:
-              startedAt && endedAt
-                ? `${Math.round((endedAt.getTime() - startedAt.getTime()) / 1000)}s`
-                : undefined,
-            endedAt,
-          };
-        });
-        setExecutions(mapped);
-      } catch (err) {
-        setError((err as Error).message);
-        toast.error("Failed to fetch executions. Please try again.");
-      }
-    };
-    fetchExecutions();
-  }, []);
+    if (executionsError) {
+      toast.error(
+        `Failed to fetch executions: ${executionsError.message}. Please try again.`
+      );
+    }
+  }, [executionsError]);
+
+  if (isExecutionsLoading && !executions) {
+    return (
+      <InsetLayout title="Executions">
+        <p className="text-muted-foreground mb-4">
+          Monitor the execution history of your workflows.
+        </p>
+        <p>Loading executions...</p>
+      </InsetLayout>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -212,10 +185,10 @@ export function ExecutionsPage() {
         </p>
         <DataTable
           columns={columns}
-          data={executions}
+          data={executions || []}
           emptyState={{
-            title: error ? "Error" : "No executions",
-            description: error || "No executions found.",
+            title: executionsError ? "Error" : "No executions",
+            description: executionsError?.message || "No executions found.",
           }}
         />
       </InsetLayout>
