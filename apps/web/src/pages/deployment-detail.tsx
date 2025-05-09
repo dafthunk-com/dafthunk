@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
@@ -35,8 +35,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
-import { useDeploymentHistory } from "@/hooks/use-fetch";
+import {
+  useDeploymentHistory,
+  useNodeTemplates
+} from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
+import {
+  ExecutionFormDialog,
+  type DialogFormParameter
+} from "@/components/workflow/execution-form-dialog";
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
   try {
@@ -47,7 +54,8 @@ const formatDeploymentDate = (dateString: string | Date) => {
 };
 
 function createDeploymentHistoryColumns(
-  currentDeploymentId: string
+  currentDeploymentId: string,
+  onExecute: (deploymentId: string, nodes: WorkflowDeploymentVersion["nodes"]) => void
 ): ColumnDef<WorkflowDeploymentVersion>[] {
   return [
     {
@@ -125,26 +133,7 @@ function createDeploymentHistoryColumns(
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={async () => {
-                  try {
-                    const response = await fetch(
-                      `${API_BASE_URL}/deployments/version/${row.original.id}/execute`,
-                      {
-                        method: "POST",
-                        credentials: "include",
-                      }
-                    );
-                    if (!response.ok) {
-                      throw new Error(
-                        `Failed to execute deployment: ${response.statusText}`
-                      );
-                    }
-                    toast.success("Deployment executed successfully");
-                  } catch (error) {
-                    console.error("Error executing deployment:", error);
-                    toast.error(
-                      "Failed to execute deployment. Please try again."
-                    );
-                  }
+                  onExecute(row.original.id, row.original.nodes);
                 }}
               >
                 Execute Version
@@ -161,7 +150,12 @@ export function DeploymentDetailPage() {
   const { workflowId } = useParams<{ workflowId: string }>();
   const navigate = useNavigate();
 
+  const [showExecutionForm, setShowExecutionForm] = useState(false);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const executionContextRef = useRef<{ deploymentId: string } | null>(null);
+
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { nodeTemplates } = useNodeTemplates();
 
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -230,35 +224,86 @@ export function DeploymentDetailPage() {
     }
   };
 
-  const executeLatestVersion = async () => {
-    if (!currentDeployment?.id) return;
-
+  const performActualDeploymentExecutionOnPage = async (deploymentId: string, requestBody?: Record<string, any>) => {
+    if (!deploymentId) return;
+    toast.info("Initiating deployment execution...");
     try {
       const response = await fetch(
-        `${API_BASE_URL}/deployments/version/${currentDeployment.id}/execute`,
+        `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
         {
           method: "POST",
           credentials: "include",
+          headers: requestBody && Object.keys(requestBody).length > 0 ? { "Content-Type": "application/json" } : {},
+          body: requestBody && Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : undefined,
         }
       );
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Failed to execute deployment: ${response.statusText}`
-        );
+        throw new Error(errorData.message || `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`);
       }
-
-      toast.success("Deployment executed successfully");
+      const executionResult = await response.json();
+      toast.success(`Deployment execution started successfully. Execution ID: ${executionResult.id}`);
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to execute deployment. Please try again."
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to execute deployment. Please try again.");
     }
+  };
+  
+  const handleGenericExecute = useCallback((deploymentId: string, deploymentNodes: WorkflowDeploymentVersion["nodes"]) => {
+    if (!deploymentNodes) {
+      toast.error("Deployment nodes not available for parameter checking.");
+      performActualDeploymentExecutionOnPage(deploymentId, {}); 
+      return;
+    }
+
+    const httpParameterNodes = (deploymentNodes || [])
+      .filter(node => 
+        node.type?.startsWith("parameter.") && 
+        node.type === "parameter.string" && 
+        node.inputs?.some(inp => inp.name === "formFieldName")
+      )
+      .map(node => {
+        const formFieldNameInput = node.inputs.find(i => i.name === "formFieldName");
+        const requiredInput = node.inputs.find(i => i.name === "required");
+        const nameForFormField = formFieldNameInput?.value as string;
+        if (!nameForFormField) return null;
+
+        const nodeInstanceName = node.name;
+        const fieldKey = nameForFormField;
+        let friendlyKeyLabel = fieldKey.replace(/([A-Z0-9])/g, ' $1').replace(/_/g, ' ').trim().toLowerCase();
+        friendlyKeyLabel = friendlyKeyLabel.split(' ').filter(w=>w.length>0).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) friendlyKeyLabel = fieldKey;
+
+        const defaultNodeTypeDisplayName = nodeTemplates?.find(t => t.id === node.type)?.name || node.type || "";
+        const isNodeNameSpecific = nodeInstanceName && nodeInstanceName.trim() !== "" && nodeInstanceName.toLowerCase() !== defaultNodeTypeDisplayName.toLowerCase();
+        const labelText = isNodeNameSpecific ? nodeInstanceName : friendlyKeyLabel;
+
+        return {
+          nodeId: node.id,
+          nameForForm: nameForFormField,
+          label: labelText,
+          nodeName: node.name || "Parameter Node",
+          isRequired: (requiredInput?.value as boolean) ?? true,
+          type: node.type || "unknown.parameter",
+        } as DialogFormParameter;
+      })
+      .filter(p => p !== null) as DialogFormParameter[];
+
+    if (httpParameterNodes.length > 0) {
+      setFormParameters(httpParameterNodes);
+      executionContextRef.current = { deploymentId };
+      setShowExecutionForm(true);
+    } else {
+      performActualDeploymentExecutionOnPage(deploymentId, {});
+    }
+  }, [nodeTemplates, performActualDeploymentExecutionOnPage]);
+
+  const executeLatestVersion = async () => {
+    if (!currentDeployment?.id || !currentDeployment.nodes) {
+      toast.error("Latest deployment or its nodes are not available.");
+      return;
+    }
+    handleGenericExecute(currentDeployment.id, currentDeployment.nodes);
   };
 
   const displayDeployments = expandedHistory
@@ -347,7 +392,7 @@ export function DeploymentDetailPage() {
                     Deployment History
                   </div>
                 }
-                columns={createDeploymentHistoryColumns(currentDeployment.id)}
+                columns={createDeploymentHistoryColumns(currentDeployment.id, handleGenericExecute)}
                 data={displayDeployments}
                 emptyState={{
                   title: "No deployment history",
@@ -403,6 +448,21 @@ export function DeploymentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Execution Parameters Dialog */}
+      {showExecutionForm && (
+        <ExecutionFormDialog
+          isOpen={showExecutionForm}
+          onClose={() => setShowExecutionForm(false)}
+          parameters={formParameters}
+          onSubmit={(formData) => {
+            setShowExecutionForm(false);
+            if (executionContextRef.current) {
+              performActualDeploymentExecutionOnPage(executionContextRef.current.deploymentId, formData);
+            }
+          }}
+        />
+      )}
     </InsetLayout>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
@@ -40,8 +40,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeployments, useWorkflows } from "@/hooks/use-fetch";
+import { useDeployments, useWorkflows, useNodeTemplates } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
+import { deploymentService } from "@/services/deploymentService";
+import {
+  ExecutionFormDialog,
+  type DialogFormParameter
+} from "@/components/workflow/execution-form-dialog";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -157,6 +162,13 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
 export function DeploymentListPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
+  // Dialog state
+  const [showExecutionForm, setShowExecutionForm] = useState(false);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const executionContextRef = useRef<{ deploymentId: string } | null>(null);
+  const [isExecutingId, setIsExecutingId] = useState<string | null>(null);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -174,6 +186,8 @@ export function DeploymentListPage() {
   } = useDeployments();
 
   const { workflows, workflowsError, isWorkflowsLoading } = useWorkflows();
+
+  const { nodeTemplates } = useNodeTemplates();
 
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
@@ -211,28 +225,97 @@ export function DeploymentListPage() {
     navigate(`/workflows/deployments/${workflowId}`);
   };
 
-  const handleExecute = async (deploymentId: string) => {
-    if (!deploymentId) return;
+  // Shared execution logic for this page
+  const performActualDeploymentExecutionOnPage = async (deploymentId: string, requestBody?: Record<string, any>) => {
+    setIsExecutingId(deploymentId);
+    toast.info("Initiating deployment execution...");
     try {
       const response = await fetch(
         `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
         {
           method: "POST",
           credentials: "include",
+          headers: requestBody && Object.keys(requestBody).length > 0 ? { "Content-Type": "application/json" } : {},
+          body: requestBody && Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : undefined,
         }
       );
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to execute deployment");
+        throw new Error(errorData.message || `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`);
       }
-      toast.success("Deployment executed successfully");
+      const executionResult = await response.json();
+      toast.success(`Deployment execution started successfully. Execution ID: ${executionResult.id}`);
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to execute deployment"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to execute deployment. Please try again.");
+    } finally {
+      setIsExecutingId(null);
     }
   };
+
+  const handleExecute = useCallback(async (deploymentId: string | null) => {
+    if (!deploymentId) {
+      toast.error("Deployment ID is not available.");
+      return;
+    }
+    setIsExecutingId(deploymentId);
+
+    try {
+      // Step 1: Fetch the specific deployment version to get its nodes
+      const deploymentVersionData = await deploymentService.getVersion(deploymentId);
+      if (!deploymentVersionData || !deploymentVersionData.nodes) {
+        toast.error("Could not fetch deployment details or nodes are missing.");
+        setIsExecutingId(null);
+        return;
+      }
+
+      // Step 2: Scan nodes for parameters (similar to other pages)
+      const httpParameterNodes = (deploymentVersionData.nodes || [])
+        .filter(node => 
+          node.type?.startsWith("parameter.") && 
+          node.type === "parameter.string" && 
+          node.inputs?.some(inp => inp.name === "formFieldName")
+        )
+        .map(node => {
+          const formFieldNameInput = node.inputs.find(i => i.name === "formFieldName");
+          const requiredInput = node.inputs.find(i => i.name === "required");
+          const nameForFormField = formFieldNameInput?.value as string;
+          if (!nameForFormField) return null;
+
+          const nodeInstanceName = node.name;
+          const fieldKey = nameForFormField;
+          let friendlyKeyLabel = fieldKey.replace(/([A-Z0-9])/g, ' $1').replace(/_/g, ' ').trim().toLowerCase();
+          friendlyKeyLabel = friendlyKeyLabel.split(' ').filter(w=>w.length>0).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+          if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) friendlyKeyLabel = fieldKey;
+          
+          const defaultNodeTypeDisplayName = nodeTemplates?.find(t => t.id === node.type)?.name || node.type || "";
+          const isNodeNameSpecific = nodeInstanceName && nodeInstanceName.trim() !== "" && nodeInstanceName.toLowerCase() !== defaultNodeTypeDisplayName.toLowerCase();
+          const labelText = isNodeNameSpecific ? nodeInstanceName : friendlyKeyLabel;
+
+          return {
+            nodeId: node.id,
+            nameForForm: nameForFormField,
+            label: labelText,
+            nodeName: node.name || "Parameter Node",
+            isRequired: (requiredInput?.value as boolean) ?? true,
+            type: node.type || "unknown.parameter",
+          } as DialogFormParameter;
+        })
+        .filter(p => p !== null) as DialogFormParameter[];
+
+      if (httpParameterNodes.length > 0) {
+        setFormParameters(httpParameterNodes);
+        executionContextRef.current = { deploymentId };
+        setShowExecutionForm(true);
+      } else {
+        performActualDeploymentExecutionOnPage(deploymentId, {});
+      }
+
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to prepare execution. Could not fetch deployment details.");
+      setIsExecutingId(null);
+    }
+  }, [nodeTemplates, performActualDeploymentExecutionOnPage]);
 
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = (
@@ -334,6 +417,26 @@ export function DeploymentListPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Execution Parameters Dialog */}
+        {showExecutionForm && (
+          <ExecutionFormDialog
+            isOpen={showExecutionForm}
+            onClose={() => {
+              setShowExecutionForm(false);
+              setIsExecutingId(null);
+            }}
+            parameters={formParameters}
+            onSubmit={(formData) => {
+              setShowExecutionForm(false);
+              if (executionContextRef.current) {
+                performActualDeploymentExecutionOnPage(executionContextRef.current.deploymentId, formData);
+              } else {
+                setIsExecutingId(null);
+              }
+            }}
+          />
+        )}
       </InsetLayout>
     </TooltipProvider>
   );
