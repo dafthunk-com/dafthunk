@@ -20,6 +20,8 @@ import {
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useExecutions } from "@/hooks/use-fetch";
 import { toast } from "sonner";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetError } from "@/components/inset-error";
 
 // Represents a single run instance of a workflow
 export type Execution = {
@@ -151,7 +153,14 @@ export const columns: ColumnDef<Execution>[] = [
 
 export function ExecutionsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const { executions, executionsError, isExecutionsLoading } = useExecutions();
+  const {
+    paginatedExecutions,
+    executionsError,
+    isExecutionsInitialLoading,
+    isExecutionsLoadingMore,
+    isExecutionsReachingEnd,
+    executionsObserverTargetRef,
+  } = useExecutions();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Executions" }]);
@@ -165,14 +174,11 @@ export function ExecutionsPage() {
     }
   }, [executionsError]);
 
-  if (isExecutionsLoading && !executions) {
+  if (isExecutionsInitialLoading) {
+    return <InsetLoading title="Executions" />;
+  } else if (executionsError) {
     return (
-      <InsetLayout title="Executions">
-        <p className="text-muted-foreground mb-4">
-          Monitor the execution history of your workflows.
-        </p>
-        <p>Loading executions...</p>
-      </InsetLayout>
+      <InsetError title="Executions" errorMessage={executionsError.message} />
     );
   }
 
@@ -184,12 +190,26 @@ export function ExecutionsPage() {
         </p>
         <DataTable
           columns={columns}
-          data={executions || []}
+          data={paginatedExecutions}
           emptyState={{
-            title: executionsError ? "Error" : "No executions",
-            description: executionsError?.message || "No executions found.",
+            title: executionsError
+              ? "Error"
+              : paginatedExecutions.length === 0
+                ? "No executions"
+                : "No results",
+            description:
+              executionsError?.message ||
+              (paginatedExecutions.length === 0
+                ? "No executions found."
+                : "No executions match your criteria."),
           }}
         />
+        <div className="flex justify-center mt-4">
+          {isExecutionsLoadingMore && <p>Loading more...</p>}
+        </div>
+        {!isExecutionsReachingEnd && !isExecutionsInitialLoading && (
+          <div ref={executionsObserverTargetRef} style={{ height: "1px" }} />
+        )}
       </InsetLayout>
     </TooltipProvider>
   );

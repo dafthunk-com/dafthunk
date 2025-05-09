@@ -14,6 +14,7 @@ import type {
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import type { Execution } from "@/pages/executions";
 import useSWR from "swr";
+import { useInfinatePagination } from "./use-infinate-pagination";
 
 export type DashboardStats = {
   workflows: number;
@@ -31,6 +32,8 @@ export type DashboardStats = {
     startedAt: number;
   }>;
 };
+
+export const PAGE_SIZE = 20;
 
 export const useWorkflows = () => {
   const { data, error, isLoading, mutate } = useSWR<Workflow[]>(
@@ -151,16 +154,48 @@ export const useDashboardStats = () => {
 };
 
 export const useExecutions = () => {
-  const { data, error, isLoading, mutate } = useSWR<Execution[]>(
-    "/executions",
-    executionsService.getAll
-  );
+  const getKey = (
+    pageIndex: number,
+    previousPageData: Execution[] | null
+  ): string | null => {
+    if (
+      previousPageData &&
+      (!previousPageData.length || previousPageData.length < PAGE_SIZE)
+    ) {
+      return null;
+    }
+    const offset = pageIndex * PAGE_SIZE;
+    return `/executions?offset=${offset}&limit=${PAGE_SIZE}`;
+  };
+
+  const fetcher = async (url: string): Promise<Execution[]> => {
+    const params = new URLSearchParams(url.substring(url.indexOf("?") + 1));
+    const offset = parseInt(params.get("offset") || "0", 10);
+    const limit = parseInt(params.get("limit") || String(PAGE_SIZE), 10);
+    return executionsService.getAll({ offset, limit });
+  };
+
+  const {
+    paginatedData,
+    error,
+    isInitialLoading,
+    isLoadingMore,
+    mutate,
+    isReachingEnd,
+    observerTargetRef,
+  } = useInfinatePagination<Execution>(getKey, fetcher, {
+    pageSize: PAGE_SIZE,
+    revalidateFirstPage: false,
+  });
 
   return {
-    executions: data,
+    paginatedExecutions: paginatedData,
     executionsError: error,
-    isExecutionsLoading: isLoading,
+    isExecutionsInitialLoading: isInitialLoading,
+    isExecutionsLoadingMore: isLoadingMore,
     mutateExecutions: mutate,
+    isExecutionsReachingEnd: isReachingEnd,
+    executionsObserverTargetRef: observerTargetRef,
   };
 };
 

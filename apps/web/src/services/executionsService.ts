@@ -12,7 +12,7 @@ interface ApiExecution {
   endedAt?: string; // ISO date string
 }
 
-interface ApiResponse {
+interface ApiExecutionsResponse {
   executions: ApiExecution[];
 }
 
@@ -51,8 +51,13 @@ const transformExecution = (apiExec: ApiExecution): Execution => {
 };
 
 export const executionsService = {
-  async getAll(): Promise<Execution[]> {
-    const data = await apiRequest<ApiResponse>("/executions", {
+  async getAll(params: {
+    offset: number;
+    limit: number;
+  }): Promise<Execution[]> {
+    const { offset, limit } = params;
+    const url = `/executions?offset=${offset}&limit=${limit}`;
+    const data = await apiRequest<ApiExecutionsResponse>(url, {
       method: "GET",
       errorMessage: "Failed to fetch executions list",
     });
