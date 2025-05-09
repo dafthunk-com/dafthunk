@@ -9,19 +9,16 @@ import { Workflow, Target, Logs, Plus, Clock, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { DataTableCard } from "@/components/ui/data-table-card";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
 import { useFetch } from "@/hooks/use-fetch";
+import { InsetError } from "@/components/inset-error";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  const {
-    dashboardStats,
-    dashboardStatsError,
-    isDashboardStatsLoading,
-    mutateDashboardStats,
-  } = useFetch.useDashboardStats();
+  const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
+    useFetch.useDashboardStats();
 
   const handleCreateWorkflow = async (name: string) => {
     try {
@@ -33,25 +30,9 @@ export function DashboardPage() {
   };
 
   if (isDashboardStatsLoading) {
-    return <PageLoading />;
-  }
-
-  if (dashboardStatsError) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-red-500 p-4 md:p-6 lg:p-8">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">
-            Error Loading Dashboard
-          </h2>
-          <p className="text-sm mb-4">
-            {dashboardStatsError instanceof Error
-              ? dashboardStatsError.message
-              : "An unexpected error occurred."}
-          </p>
-          <Button onClick={() => mutateDashboardStats()}>Retry</Button>
-        </div>
-      </div>
-    );
+    return <InsetLoading />;
+  } else if (dashboardStatsError) {
+    return <InsetError errorMessage={dashboardStatsError.message} />;
   }
 
   if (!dashboardStats) {

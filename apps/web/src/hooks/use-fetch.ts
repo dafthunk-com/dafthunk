@@ -1,7 +1,8 @@
 import { workflowService } from "@/services/workflowService";
 import { deploymentService } from "@/services/deploymentService";
 import { executionsService } from "@/services/executionsService";
-import type { Execution } from "@/pages/executions";
+import { apiKeysService } from "@/services/apiKeysService";
+import type { ApiToken } from "@/services/apiKeysService";
 import { apiRequest } from "@/utils/api";
 import type {
   Workflow,
@@ -11,6 +12,7 @@ import type {
   NodeType,
 } from "@dafthunk/types";
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
+import type { Execution } from "@/pages/executions";
 import useSWR from "swr";
 
 export type DashboardStats = {
@@ -175,6 +177,20 @@ export const useFetch = {
       executionDetailsError: error,
       isExecutionDetailsLoading: isLoading,
       mutateExecutionDetails: mutate,
+    };
+  },
+
+  useApiKeys() {
+    const { data, error, isLoading, mutate } = useSWR<ApiToken[]>(
+      "/tokens",
+      apiKeysService.getAll
+    );
+
+    return {
+      apiKeys: data,
+      apiKeysError: error,
+      isApiKeysLoading: isLoading,
+      mutateApiKeys: mutate,
     };
   },
 };

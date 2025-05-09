@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFetch } from "@/hooks/use-fetch";
+import { InsetError } from "@/components/inset-error";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -245,19 +246,10 @@ export function DeploymentListPage() {
   }));
 
   if (isDeploymentsLoading) {
-    return <PageLoading />;
-  }
-
-  if (deploymentsError) {
+    return <InsetLoading title="Deployments" />;
+  } else if (deploymentsError) {
     return (
-      <InsetLayout title="Deployments">
-        <div className="flex flex-col items-center justify-center h-full text-red-500">
-          <p>Error loading deployments: {deploymentsError.message}</p>
-          <Button onClick={() => mutateDeployments()} className="mt-4">
-            Retry
-          </Button>
-        </div>
-      </InsetLayout>
+      <InsetError title="Deployments" errorMessage={deploymentsError.message} />
     );
   }
 

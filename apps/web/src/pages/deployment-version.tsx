@@ -16,7 +16,7 @@ import type {
 } from "@/components/workflow/workflow-types";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
 import { useFetch } from "@/hooks/use-fetch";
 
 export function DeploymentVersionPage() {
@@ -156,7 +156,7 @@ export function DeploymentVersionPage() {
     isNodeTemplatesLoading ||
     isWorkflowDetailsLoading
   ) {
-    return <PageLoading />;
+    return <InsetLoading title="Deployment" />;
   }
 
   if (deploymentVersionError) {

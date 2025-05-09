@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useAuth } from "@/components/authContext.tsx";
 import { useNavigate } from "react-router-dom";
-import { Spinner } from "@/components/ui/spinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAvatarUrl, getInitials } from "@/utils/userUtils";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetError } from "@/components/inset-error";
 
 // Helper function to format provider name
 const formatProviderName = (provider: string) => {
@@ -19,7 +20,7 @@ const formatRoleName = (role: string | undefined) => {
 };
 
 export function ProfilePage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,12 +30,9 @@ export function ProfilePage() {
   }, [isLoading, isAuthenticated, navigate]);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <Spinner className="h-8 w-8" />
-        <p className="text-neutral-500 mt-4">Loading profile...</p>
-      </div>
-    );
+    return <InsetLoading title="Profile" />;
+  } else if (error) {
+    return <InsetError title="Profile" errorMessage={error.message} />;
   }
 
   if (!user) {

@@ -13,7 +13,8 @@ import type {
 import { workflowEdgeService } from "@/services/workflowEdgeService";
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetError } from "@/components/inset-error";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -150,19 +151,13 @@ export function ExecutionDetailPage() {
     isStructureOverallLoading ||
     isNodeTemplatesLoading
   ) {
-    return <PageLoading />;
-  }
-
-  if (executionDetailsError) {
+    return <InsetLoading title="Execution Details" />;
+  } else if (executionDetailsError) {
     return (
-      <InsetLayout title="Error">
-        <div className="text-center py-10">
-          <p className="text-lg text-destructive">Error loading execution.</p>
-          <p className="text-sm text-muted-foreground">
-            {executionDetailsError.message}
-          </p>
-        </div>
-      </InsetLayout>
+      <InsetError
+        title="Execution Details"
+        errorMessage={executionDetailsError.message}
+      />
     );
   }
 

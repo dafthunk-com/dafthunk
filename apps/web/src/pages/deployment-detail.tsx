@@ -34,8 +34,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
 import { useFetch } from "@/hooks/use-fetch";
+import { InsetError } from "@/components/inset-error";
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
   try {
@@ -286,21 +287,15 @@ export function DeploymentDetailPage() {
     );
 
   if (isDeploymentHistoryLoading) {
-    return <PageLoading />;
-  }
-
-  if (deploymentHistoryError) {
+    return <InsetLoading title={workflow?.name || "Workflow Deployments"} />;
+  } else if (deploymentHistoryError) {
     return (
-      <InsetLayout title="Error">
-        <div className="flex flex-col items-center justify-center h-full text-red-500">
-          <p className="mb-2">
-            Error loading deployment details: {deploymentHistoryError.message}
-          </p>
-          <Button onClick={() => mutateDeploymentHistory()} className="mt-2">
-            Retry
-          </Button>
-        </div>
-      </InsetLayout>
+      <InsetError
+        title="Workflow Deployments"
+        errorMessage={
+          "Error loading deployment details: " + deploymentHistoryError.message
+        }
+      />
     );
   }
 

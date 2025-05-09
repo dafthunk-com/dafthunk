@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Workflow } from "@dafthunk/types";
 import { workflowService } from "@/services/workflowService";
 import { Spinner } from "@/components/ui/spinner";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DataTable } from "@/components/ui/data-table";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -29,6 +29,7 @@ import {
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { useFetch } from "@/hooks/use-fetch";
+import { InsetError } from "@/components/inset-error";
 // --- Inline useWorkflowActions ---
 function useWorkflowActions(
   refreshWorkflows: () => Promise<Workflow[] | undefined>
@@ -345,19 +346,10 @@ export function PlaygroundPage() {
   };
 
   if (isWorkflowsLoading) {
-    return <PageLoading />;
-  }
-
-  if (workflowsError) {
+    return <InsetLoading title="Workflows" />;
+  } else if (workflowsError) {
     return (
-      <InsetLayout title="Workflows">
-        <div className="flex flex-col items-center justify-center h-full text-red-500">
-          <p>Error loading workflows.</p>
-          <Button onClick={() => mutateWorkflows()} className="mt-4">
-            Retry
-          </Button>
-        </div>
-      </InsetLayout>
+      <InsetError title="Workflows" errorMessage={workflowsError.message} />
     );
   }
 

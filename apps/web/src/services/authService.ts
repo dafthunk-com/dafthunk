@@ -1,5 +1,7 @@
 import { API_BASE_URL } from "@/config/api";
 import { apiRequest } from "@/utils/api";
+import { mutate } from "swr";
+import { AUTH_USER_KEY } from "@/components/authContext";
 
 export type User = {
   readonly id: string;
@@ -64,6 +66,9 @@ export const authService = {
         credentials: "include", // Important for cookies
       });
 
+      // Invalidate SWR cache before redirecting
+      mutate(AUTH_USER_KEY, null, { revalidate: false });
+
       // Check if the response is a redirect
       if (response.redirected) {
         window.location.href = response.url;
@@ -85,6 +90,10 @@ export const authService = {
         method: "POST",
         credentials: "include",
       });
+
+      // Invalidate SWR cache before redirecting
+      mutate(AUTH_USER_KEY, null, { revalidate: false });
+
       if (response.redirected) {
         window.location.href = response.url;
       } else {

@@ -23,7 +23,7 @@ export const workflowService = {
       body: { name },
       errorMessage: "Failed to create workflow",
     });
-    mutate("/workflows");
+    await mutate("/workflows");
     return res;
   },
 
@@ -33,7 +33,7 @@ export const workflowService = {
       body: workflow,
       errorMessage: "Failed to save workflow",
     });
-    mutate("/workflows");
+    await mutate("/workflows");
     return res;
   },
 
@@ -42,7 +42,7 @@ export const workflowService = {
       method: "DELETE",
       errorMessage: "Failed to delete workflow",
     });
-    mutate("/workflows");
+    await mutate("/workflows");
   },
 
   async deploy(id: string): Promise<void> {
@@ -50,6 +50,6 @@ export const workflowService = {
       method: "POST",
       errorMessage: "Failed to deploy workflow",
     });
-    mutate("/deployments");
+    await mutate("/deployments");
   },
 };

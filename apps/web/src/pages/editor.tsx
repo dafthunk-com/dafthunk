@@ -24,7 +24,7 @@ import { debounce } from "@/utils/utils";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
 import { useFetch } from "@/hooks/use-fetch";
-import { PageLoading } from "@/components/page-loading";
+import { InsetLoading } from "@/components/inset-loading";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -492,7 +492,7 @@ export function EditorPage() {
     nodeTemplates.length === 0 && !templatesError;
 
   if (isWorkflowDetailsLoading || showNodeTemplatesLoading) {
-    return <PageLoading />;
+    return <InsetLoading />;
   }
 
   // Handle case where initialWorkflow is null/undefined after loading checks (e.g., new workflow)

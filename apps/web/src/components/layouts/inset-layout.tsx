@@ -1,11 +1,18 @@
 import { HTMLAttributes, ReactNode } from "react";
+import { cn } from "@/utils/utils";
 
 interface InsetLayoutProps extends HTMLAttributes<HTMLDivElement> {
   title?: string;
   children: ReactNode;
+  childrenClassName?: string;
 }
 
-export function InsetLayout({ title, children, ...props }: InsetLayoutProps) {
+export function InsetLayout({
+  title,
+  children,
+  childrenClassName,
+  ...props
+}: InsetLayoutProps) {
   return (
     <main className="h-full">
       <div className="h-full overflow-auto" {...props}>
@@ -14,7 +21,7 @@ export function InsetLayout({ title, children, ...props }: InsetLayoutProps) {
             <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           </div>
         )}
-        <div className="px-6 py-4">{children}</div>
+        <div className={cn("px-6 py-4", childrenClassName)}>{children}</div>
       </div>
     </main>
   );
