@@ -38,6 +38,7 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],
       error: execution.error || undefined,
+      visibility: execution.visibility,
       startedAt: execution.startedAt ?? executionData.startedAt,
       endedAt: execution.endedAt ?? executionData.endedAt,
     };
@@ -86,6 +87,7 @@ executionRoutes.get("/", jwtAuth, async (c) => {
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],
       error: execution.error || undefined,
+      visibility: execution.visibility,
       startedAt: execution.startedAt ?? executionData.startedAt,
       endedAt: execution.endedAt ?? executionData.endedAt,
     };

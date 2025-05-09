@@ -3,7 +3,7 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import { Eye, EyeOff, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,35 +13,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
-import {
-  ExecutionStatusBadge,
-  ExecutionStatus,
-} from "@/components/executions/execution-status-badge";
+import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useExecutions } from "@/hooks/use-fetch";
 import { toast } from "sonner";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
+import type { WorkflowExecution } from "@dafthunk/types";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/utils/utils";
 
-// Represents a single run instance of a workflow
-export type Execution = {
-  id: string; // Unique execution ID
-  workflowId: string; // ID of the source workflow
-  workflowName: string; // Name of the source workflow
-  deploymentId?: string; // Optional: ID of the deployment used
-  status: "running" | "completed" | "failed" | "cancelled";
-  startedAt: Date;
-  endedAt?: Date;
-  duration?: string; // Optional: Calculated duration string
-};
-
-export const columns: ColumnDef<Execution>[] = [
+export const columns: ColumnDef<WorkflowExecution>[] = [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
     cell: ({ row }) => {
       const workflowName = row.getValue("workflowName") as string;
-      const execution = row.original as Execution;
+      const execution = row.original as WorkflowExecution;
       return (
         <Link
           to={`/workflows/playground/${execution.workflowId}`}
@@ -104,8 +92,35 @@ export const columns: ColumnDef<Execution>[] = [
     accessorKey: "status",
     header: "Execution Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as ExecutionStatus;
+      const status = row.getValue("status") as WorkflowExecution["status"];
       return <ExecutionStatusBadge status={status} />;
+    },
+  },
+  {
+    accessorKey: "visibility",
+    header: "Visibility",
+    cell: ({ row }) => {
+      const visibility = row.getValue(
+        "visibility"
+      ) as WorkflowExecution["visibility"];
+      return (
+        <Badge
+          variant="outline"
+          className={cn(
+            "capitalize",
+            visibility === "public"
+              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              : "bg-gray-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
+          )}
+        >
+          {visibility === "public" ? (
+            <Eye className="mr-1 size-3" />
+          ) : (
+            <EyeOff className="mr-1 size-3" />
+          )}
+          {visibility}
+        </Badge>
+      );
     },
   },
   {

@@ -5,15 +5,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Clock, IdCard, Workflow, AlertCircle } from "lucide-react";
+import {
+  Clock,
+  IdCard,
+  Workflow,
+  AlertCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { ExecutionStatusBadge } from "./execution-status-badge";
 import { WorkflowExecutionStatus } from "@dafthunk/types";
+import { Badge } from "../ui/badge";
+import { cn } from "@/utils/utils";
 
 interface ExecutionInfoCardProps {
   id: string;
   status: WorkflowExecutionStatus;
+  visibility: "public" | "private";
   startedAt?: Date;
   endedAt?: Date;
   workflowId: string;
@@ -27,6 +37,7 @@ interface ExecutionInfoCardProps {
 export function ExecutionInfoCard({
   id,
   status,
+  visibility,
   startedAt,
   endedAt,
   workflowId,
@@ -68,7 +79,27 @@ export function ExecutionInfoCard({
             <CardTitle className="text-xl">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          <ExecutionStatusBadge status={status as any} />
+          <div className="flex items-center space-x-2">
+            {visibility && (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "capitalize",
+                  visibility === "public"
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    : "bg-gray-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
+                )}
+              >
+                {visibility === "public" ? (
+                  <Eye className="mr-1 size-3" />
+                ) : (
+                  <EyeOff className="mr-1 size-3" />
+                )}
+                {visibility}
+              </Badge>
+            )}
+            <ExecutionStatusBadge status={status as any} />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

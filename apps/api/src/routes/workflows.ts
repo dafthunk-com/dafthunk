@@ -250,6 +250,7 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
     organizationId: user.organizationId,
     status: "idle",
     nodeExecutions,
+    visibility: "private",
     createdAt: new Date(),
     updatedAt: new Date(),
   });

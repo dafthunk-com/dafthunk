@@ -1,6 +1,7 @@
 import useSWRInfinite, {
   SWRInfiniteConfiguration,
   SWRInfiniteKeyLoader,
+  SWRInfiniteFetcher,
 } from "swr/infinite";
 import { useRef, useEffect } from "react";
 
@@ -33,8 +34,8 @@ export interface UsePaginationResult<Data = any, Error = any> {
 }
 
 export function useInfinatePagination<Data = any, Error = any>(
-  getKey: (index: number, previousPageData: Data[] | null) => string | null,
-  fetcher: (key: string) => Promise<Data[]>,
+  getKey: SWRInfiniteKeyLoader<Data[], string | null>,
+  fetcher: SWRInfiniteFetcher<Data[], any>,
   options: UsePaginationOptions<Data, Error>
 ): UsePaginationResult<Data, Error> {
   const { pageSize, ...swrOptions } = options;

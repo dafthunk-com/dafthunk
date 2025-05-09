@@ -41,6 +41,7 @@ export type SaveExecutionRecord = {
   organizationId: string;
   status: ExecutionStatusType;
   nodeExecutions: any[];
+  visibility: "public" | "private";
   error?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -340,6 +341,7 @@ export async function saveExecution(
     status: record.status,
     nodeExecutions,
     error: record.error,
+    visibility: record.visibility,
     startedAt: record.startedAt,
     endedAt: record.endedAt,
   };

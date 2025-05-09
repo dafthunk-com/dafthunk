@@ -19,7 +19,7 @@ export const corsMiddleware = (
         ? ["Upgrade-Insecure-Requests"]
         : []),
     ],
-    allowMethods: ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH"],
     exposeHeaders: ["Content-Length", "X-Content-Type-Options"],
     maxAge: 600,
     credentials: true,

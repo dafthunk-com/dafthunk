@@ -3,7 +3,7 @@ import { API_BASE_URL } from "@/config/api";
 export const apiRequest = async <T>(
   endpoint: string,
   options: {
-    method?: "GET" | "POST" | "PUT" | "DELETE";
+    method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
     body?: object;
     errorMessage?: string;
   } = {}

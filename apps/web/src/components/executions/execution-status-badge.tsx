@@ -7,10 +7,9 @@ import {
 } from "lucide-react";
 import type { VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/utils";
+import type { WorkflowExecution } from "@dafthunk/types";
 
 // Define the possible status types explicitly
-export type ExecutionStatus = "running" | "completed" | "failed" | "cancelled";
-
 // Define the structure for status information
 type StatusInfo = {
   icon: React.ElementType;
@@ -19,8 +18,8 @@ type StatusInfo = {
 };
 
 // Map status to visual properties
-const statusMap: Record<ExecutionStatus, StatusInfo> = {
-  running: {
+const statusMap: Record<WorkflowExecution["status"], StatusInfo> = {
+  executing: {
     icon: CircleDashed,
     color: "text-blue-500",
     variant: "translucent-active",
@@ -30,7 +29,7 @@ const statusMap: Record<ExecutionStatus, StatusInfo> = {
     color: "text-green-500",
     variant: "translucent-success",
   },
-  failed: {
+  error: {
     icon: AlertCircle,
     color: "text-red-500",
     variant: "translucent-error",
@@ -40,15 +39,25 @@ const statusMap: Record<ExecutionStatus, StatusInfo> = {
     color: "text-gray-500",
     variant: "translucent-inactive",
   },
+  idle: {
+    icon: CircleDashed,
+    color: "text-blue-500",
+    variant: "translucent-active",
+  },
+  paused: {
+    icon: CircleDashed,
+    color: "text-blue-500",
+    variant: "translucent-active",
+  },
 };
 
 // Define component props
 type ExecutionStatusBadgeProps = {
-  status: ExecutionStatus;
+  status: WorkflowExecution["status"];
 };
 
 export function ExecutionStatusBadge({ status }: ExecutionStatusBadgeProps) {
-  const statusInfo = statusMap[status] ?? statusMap["cancelled"]; // Default for safety
+  const statusInfo = statusMap[status] ?? statusMap["idle"];
   const Icon = statusInfo.icon;
 
   return (
@@ -58,9 +67,9 @@ export function ExecutionStatusBadge({ status }: ExecutionStatusBadgeProps) {
     >
       <Icon
         className={cn(
-          "size-3 me-1",
+          "size-3 mr-0.5",
           statusInfo.color,
-          status === "running" ? "animate-spin" : ""
+          status === "executing" ? "animate-spin" : ""
         )}
       />
       <span>{status}</span>

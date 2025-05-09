@@ -10,16 +10,19 @@ import {
   useDeploymentVersion,
 } from "@/hooks/use-fetch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
+import { executionsService } from "@/services/executionsService";
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
+import { Eye, EyeOff } from "lucide-react";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -29,6 +32,7 @@ export function ExecutionDetailPage() {
     executionDetails: execution,
     executionDetailsError,
     isExecutionDetailsLoading,
+    mutateExecutionDetails,
   } = useExecutionDetails(executionId);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
@@ -66,6 +70,8 @@ export function ExecutionDetailPage() {
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);
+
+  const [isVisibilityUpdating, setIsVisibilityUpdating] = useState(false);
 
   useEffect(() => {
     if (executionId) {
@@ -151,6 +157,30 @@ export function ExecutionDetailPage() {
 
   const validateConnection = () => false;
 
+  const handleToggleVisibility = async () => {
+    if (!execution) return;
+    setIsVisibilityUpdating(true);
+    const newVisibility =
+      execution.visibility === "public" ? "private" : "public";
+    try {
+      if (newVisibility === "public") {
+        await executionsService.setExecutionPublic(execution.id);
+        toast.success("Execution successfully made public.");
+      } else {
+        await executionsService.setExecutionPrivate(execution.id);
+        toast.success("Execution successfully made private.");
+      }
+      mutateExecutionDetails();
+    } catch (error) {
+      toast.error(
+        `Failed to update visibility: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+    setIsVisibilityUpdating(false);
+  };
+
   if (
     isExecutionDetailsLoading ||
     isStructureOverallLoading ||
@@ -180,14 +210,35 @@ export function ExecutionDetailPage() {
     <InsetLayout title={`${executionId}`}>
       <div className="space-y-6">
         <Tabs defaultValue="status">
-          <TabsList>
-            <TabsTrigger value="status">Status</TabsTrigger>
-            <TabsTrigger value="visualization">Visualization</TabsTrigger>
-          </TabsList>
-          <TabsContent value="status" className="space-y-6 mt-4">
+          <div className="flex justify-between items-center mb-4">
+            <TabsList>
+              <TabsTrigger value="status">Status</TabsTrigger>
+              <TabsTrigger value="visualization">Visualization</TabsTrigger>
+            </TabsList>
+            {execution && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleToggleVisibility}
+                disabled={isVisibilityUpdating}
+                className="ml-4"
+              >
+                {execution.visibility === "public" ? (
+                  <EyeOff className="mr-1 h-4 w-4" />
+                ) : (
+                  <Eye className="mr-1 h-4 w-4" />
+                )}
+                {execution.visibility === "public"
+                  ? "Make Private"
+                  : "Make Public"}
+              </Button>
+            )}
+          </div>
+          <TabsContent value="status" className="space-y-6 mt-0">
             <ExecutionInfoCard
               id={execution.id}
               status={execution.status}
+              visibility={execution.visibility}
               startedAt={execution.startedAt}
               endedAt={execution.endedAt}
               workflowId={execution.workflowId}
@@ -196,8 +247,8 @@ export function ExecutionDetailPage() {
               error={execution.error}
             />
           </TabsContent>
-          <TabsContent value="visualization" className="mt-4">
-            <div className="h-[calc(100vh-280px)] border rounded-md relative">
+          <TabsContent value="visualization" className="mt-0">
+            <div className="h-[calc(100vh-300px)] border rounded-md relative">
               {reactFlowNodes.length > 0 &&
               workflowBuilderExecution &&
               nodeTemplates ? (
@@ -220,7 +271,7 @@ export function ExecutionDetailPage() {
                 </div>
               )}
               {nodeTemplatesError && (
-                <div className="absolute top-4 right-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm">
+                <div className="absolute top-4 right-4 bg-amber-100 dark:bg-yellow-700 dark:text-yellow-100 px-3 py-1 rounded-md text-amber-800 text-sm">
                   {`Error loading node templates: ${nodeTemplatesError.message}`}
                 </div>
               )}

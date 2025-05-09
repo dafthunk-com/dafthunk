@@ -1,67 +1,22 @@
 import { apiRequest } from "@/utils/api";
-import type { Execution } from "@/pages/executions";
 import type { WorkflowExecution } from "@dafthunk/types";
-
-interface ApiExecution {
-  id: string;
-  workflowId: string;
-  workflowName: string;
-  deploymentId?: string;
-  status: "executing" | "completed" | "error" | "cancelled"; // API specific status
-  startedAt: string; // ISO date string
-  endedAt?: string; // ISO date string
-}
+import { mutate } from "swr";
 
 interface ApiExecutionsResponse {
-  executions: ApiExecution[];
+  executions: WorkflowExecution[];
 }
-
-// Helper to transform API execution to frontend Execution type
-const transformExecution = (apiExec: ApiExecution): Execution => {
-  const startedAt = apiExec.startedAt
-    ? new Date(apiExec.startedAt)
-    : new Date(); // Fallback for startedAt
-  const endedAt = apiExec.endedAt ? new Date(apiExec.endedAt) : undefined;
-
-  let status: Execution["status"];
-  switch (apiExec.status) {
-    case "executing":
-      status = "running";
-      break;
-    case "error":
-      status = "failed";
-      break;
-    default:
-      status = apiExec.status;
-  }
-
-  return {
-    id: apiExec.id,
-    workflowId: apiExec.workflowId,
-    workflowName: apiExec.workflowName,
-    deploymentId: apiExec.deploymentId || undefined, // Ensure undefined if not present
-    status,
-    startedAt,
-    endedAt,
-    duration:
-      startedAt && endedAt
-        ? `${Math.round((endedAt.getTime() - startedAt.getTime()) / 1000)}s`
-        : undefined,
-  };
-};
-
 export const executionsService = {
   async getAll(params: {
     offset: number;
     limit: number;
-  }): Promise<Execution[]> {
+  }): Promise<WorkflowExecution[]> {
     const { offset, limit } = params;
     const url = `/executions?offset=${offset}&limit=${limit}`;
     const data = await apiRequest<ApiExecutionsResponse>(url, {
       method: "GET",
       errorMessage: "Failed to fetch executions list",
     });
-    return (data.executions || []).map(transformExecution);
+    return data.executions;
   },
 
   async getById(executionId: string): Promise<WorkflowExecution> {
@@ -71,5 +26,29 @@ export const executionsService = {
       method: "GET",
       errorMessage: `Failed to fetch execution details for ID: ${executionId}`,
     });
+  },
+
+  async setExecutionPublic(executionId: string): Promise<void> {
+    await apiRequest(`/executions/${executionId}/share/public`, {
+      method: "PATCH",
+      errorMessage: `Failed to set execution ${executionId} to public`,
+    });
+    await mutate(
+      (key) => typeof key === "string" && key.startsWith("/executions"),
+      undefined,
+      { revalidate: true }
+    );
+  },
+
+  async setExecutionPrivate(executionId: string): Promise<void> {
+    await apiRequest(`/executions/${executionId}/share/private`, {
+      method: "PATCH",
+      errorMessage: `Failed to set execution ${executionId} to private`,
+    });
+    await mutate(
+      (key) => typeof key === "string" && key.startsWith("/executions"),
+      undefined,
+      { revalidate: true }
+    );
   },
 };

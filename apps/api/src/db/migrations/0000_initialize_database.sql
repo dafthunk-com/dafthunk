@@ -34,6 +34,7 @@ CREATE TABLE `executions` (
 	`status` text DEFAULT 'idle' NOT NULL,
 	`data` text NOT NULL,
 	`error` text,
+	`visibility` text DEFAULT 'private' NOT NULL,
 	`started_at` integer,
 	`ended_at` integer,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,

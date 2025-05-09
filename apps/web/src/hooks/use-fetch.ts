@@ -12,7 +12,6 @@ import type {
   NodeType,
 } from "@dafthunk/types";
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
-import type { Execution } from "@/pages/executions";
 import useSWR from "swr";
 import { useInfinatePagination } from "./use-infinate-pagination";
 
@@ -156,7 +155,7 @@ export const useDashboardStats = () => {
 export const useExecutions = () => {
   const getKey = (
     pageIndex: number,
-    previousPageData: Execution[] | null
+    previousPageData: WorkflowExecution[] | null
   ): string | null => {
     if (
       previousPageData &&
@@ -168,7 +167,7 @@ export const useExecutions = () => {
     return `/executions?offset=${offset}&limit=${PAGE_SIZE}`;
   };
 
-  const fetcher = async (url: string): Promise<Execution[]> => {
+  const fetcher = async (url: string): Promise<WorkflowExecution[]> => {
     const params = new URLSearchParams(url.substring(url.indexOf("?") + 1));
     const offset = parseInt(params.get("offset") || "0", 10);
     const limit = parseInt(params.get("limit") || String(PAGE_SIZE), 10);
@@ -183,9 +182,11 @@ export const useExecutions = () => {
     mutate,
     isReachingEnd,
     observerTargetRef,
-  } = useInfinatePagination<Execution>(getKey, fetcher, {
+  } = useInfinatePagination<WorkflowExecution>(getKey, fetcher, {
     pageSize: PAGE_SIZE,
     revalidateFirstPage: false,
+    revalidateOnMount: true,
+    refreshInterval: 10000,
   });
 
   return {

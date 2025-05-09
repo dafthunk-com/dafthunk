@@ -289,6 +289,7 @@ deploymentRoutes.get("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
     userId: user.sub,
     organizationId: user.organizationId,
     status: "executing",
+    visibility: "private",
     nodeExecutions,
     createdAt: new Date(),
     updatedAt: new Date(),

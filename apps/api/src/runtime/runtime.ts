@@ -104,6 +104,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       deploymentId: event.payload.deploymentId,
       status: "idle",
       nodeExecutions: [],
+      visibility: "private",
       startedAt: undefined,
       endedAt: undefined,
     } as WorkflowExecution;
@@ -534,6 +535,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         status: executionStatus as ExecutionStatusType,
         nodeExecutions: nodeExecutionList,
         error: errorMsg,
+        visibility: "private",
         updatedAt: new Date(),
         startedAt,
         endedAt,
@@ -549,6 +551,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       status: executionStatus,
       nodeExecutions: nodeExecutionList,
       error: errorMsg,
+      visibility: "private",
       startedAt,
       endedAt,
     };
