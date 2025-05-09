@@ -30,6 +30,85 @@ import {
   type DialogFormParameter,
 } from "@/components/workflow/execution-form-dialog";
 
+// Helper function to extract and format parameters for the execution dialog
+function extractDialogParametersFromNodes(
+  nodes: Node<WorkflowNodeType>[],
+  nodeTemplates: NodeTemplate[]
+): DialogFormParameter[] {
+  return nodes
+    .filter(
+      (node) =>
+        node.data.nodeType?.startsWith("parameter.") &&
+        // TODO: Should this be more generic if other param types (e.g. number, boolean) are supported by the form?
+        node.data.nodeType === "parameter.string" &&
+        node.data.inputs?.some((inp) => inp.id === "formFieldName")
+    )
+    .map((node) => {
+      const formFieldNameInput = node.data.inputs.find(
+        (i) => i.id === "formFieldName"
+      );
+      const requiredInput = node.data.inputs.find(
+        (i) => i.id === "required"
+      );
+
+      const nameForFormField = formFieldNameInput?.value as string;
+      if (!nameForFormField) {
+        console.warn(
+          `Node ${node.id} (${node.data.name}) is a parameter type but missing 'formFieldName' value. Skipping for form.`
+        );
+        return null;
+      }
+
+      const nodeInstanceName = node.data.name; // The name of this specific node instance in the workflow
+      const fieldKey = nameForFormField; // The actual key, e.g., "customer_email"
+
+      // Format the fieldKey into a more human-readable version for fallback
+      let friendlyKeyLabel = fieldKey
+        .replace(/([A-Z0-9])/g, " $1") // Add space before capitals/numbers in a camelCase/PascalCase key
+        .replace(/_/g, " ") // Replace underscores with spaces for snake_case keys
+        .trim() // Remove leading/trailing spaces
+        .toLowerCase();
+
+      // Capitalize first letter of each word
+      friendlyKeyLabel = friendlyKeyLabel
+        .split(" ")
+        .filter((word) => word.length > 0) // handle multiple spaces
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+      // If after formatting, it's empty (e.g. fieldKey was all underscores), fallback to raw fieldKey
+      if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) {
+        friendlyKeyLabel = fieldKey;
+      }
+
+      // Prioritize the user-given node instance name, if it's specific and not the default node type name.
+      // Otherwise, use the formatted field key.
+      const defaultNodeTypeDisplayName =
+        nodeTemplates.find((t) => t.id === node.data.nodeType)?.name ||
+        node.data.nodeType ||
+        "";
+      const isNodeNameSpecific =
+        nodeInstanceName &&
+        nodeInstanceName.trim() !== "" &&
+        nodeInstanceName.toLowerCase() !==
+          defaultNodeTypeDisplayName.toLowerCase();
+
+      const labelText = isNodeNameSpecific
+        ? nodeInstanceName
+        : friendlyKeyLabel;
+
+      return {
+        nodeId: node.id,
+        nameForForm: nameForFormField,
+        label: labelText, // This is used for the Label and placeholder derivation
+        nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
+        isRequired: (requiredInput?.value as boolean) ?? true,
+        type: node.data.nodeType || "unknown.parameter",
+      } as DialogFormParameter;
+    })
+    .filter((p) => p !== null) as DialogFormParameter[];
+}
+
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -464,72 +543,7 @@ export function EditorPage() {
         activeEditorPageCleanupRef.current = null;
       }
 
-      const httpParameterNodes = nodes
-        .filter(
-          (node) =>
-            node.data.nodeType?.startsWith("parameter.") && // General check
-            node.data.nodeType === "parameter.string" && // Specific to string params for now
-            node.data.inputs?.some((inp) => inp.id === "formFieldName")
-        )
-        .map((node) => {
-          const formFieldNameInput = node.data.inputs.find(
-            (i) => i.id === "formFieldName"
-          );
-          const requiredInput = node.data.inputs.find(
-            (i) => i.id === "required"
-          );
-
-          const nameForFormField = formFieldNameInput?.value as string;
-          if (!nameForFormField) {
-            console.warn(
-              `Node ${node.id} (${node.data.name}) is a parameter type but missing 'formFieldName' value. Skipping for form.`
-            );
-            return null;
-          }
-
-          const nodeInstanceName = node.data.name; // The name of this specific node instance in the workflow
-          const fieldKey = nameForFormField; // The actual key, e.g., "customer_email"
-
-          // Format the fieldKey into a more human-readable version for fallback
-          let friendlyKeyLabel = fieldKey
-            .replace(/([A-Z0-9])/g, ' $1') // Add space before capitals/numbers in a camelCase/PascalCase key
-            .replace(/_/g, ' ')            // Replace underscores with spaces for snake_case keys
-            .trim()                         // Remove leading/trailing spaces
-            .toLowerCase();
-
-          // Capitalize first letter of each word
-          friendlyKeyLabel = friendlyKeyLabel
-            .split(' ')
-            .filter(word => word.length > 0) // handle multiple spaces
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-
-          // If after formatting, it's empty (e.g. fieldKey was all underscores), fallback to raw fieldKey
-          if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) {
-            friendlyKeyLabel = fieldKey;
-          }
-          
-          // Prioritize the user-given node instance name, if it's specific and not the default node type name.
-          // Otherwise, use the formatted field key.
-          const defaultNodeTypeDisplayName = nodeTemplates.find(t => t.id === node.data.nodeType)?.name || node.data.nodeType || "";
-          const isNodeNameSpecific = nodeInstanceName && 
-                                   nodeInstanceName.trim() !== "" && 
-                                   nodeInstanceName.toLowerCase() !== defaultNodeTypeDisplayName.toLowerCase();
-
-          const labelText = isNodeNameSpecific
-            ? nodeInstanceName
-            : friendlyKeyLabel;
-
-          return {
-            nodeId: node.id,
-            nameForForm: nameForFormField,
-            label: labelText, // This is used for the Label and placeholder derivation
-            nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
-            isRequired: (requiredInput?.value as boolean) ?? true,
-            type: node.data.nodeType || "unknown.parameter",
-          } as DialogFormParameter;
-        })
-        .filter((p) => p !== null) as DialogFormParameter[];
+      const httpParameterNodes = extractDialogParametersFromNodes(nodes, nodeTemplates);
 
       if (httpParameterNodes.length > 0) {
         setFormParameters(httpParameterNodes);
