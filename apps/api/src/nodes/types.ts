@@ -83,11 +83,18 @@ export type Parameter = {
   required?: boolean;
 } & ParameterType;
 
+export interface HttpRequest {
+  headers: Record<string, string>;
+  params: Record<string, string>;
+  body: any;
+}
+
 export interface NodeContext {
   nodeId: string;
   workflowId: string;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
+  httpRequest?: HttpRequest;
   env: {
     AI: Ai;
     TWILIO_ACCOUNT_SID: string;

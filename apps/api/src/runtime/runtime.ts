@@ -17,7 +17,7 @@ import {
 } from "@dafthunk/types";
 import { validateWorkflow } from "../utils/workflows";
 import { NodeRegistry } from "../nodes/nodeRegistry";
-import { NodeContext } from "../nodes/types";
+import { NodeContext, HttpRequest } from "../nodes/types";
 import { ObjectStore } from "./objectStore";
 import { createDatabase, ExecutionStatusType } from "../db";
 import {
@@ -47,6 +47,7 @@ export type RuntimeParams = {
   organizationId: string;
   monitorProgress?: boolean;
   deploymentId?: string;
+  httpRequest?: HttpRequest;
 };
 
 export type RuntimeState = {
@@ -83,6 +84,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       userId,
       organizationId,
       monitorProgress = false,
+      httpRequest,
     } = event.payload;
     const instanceId = event.instanceId;
 
@@ -126,7 +128,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         runtimeState = await step.do(
           `run node ${nodeIdentifier}`,
           Runtime.defaultStepConfig,
-          async () => this.executeNode(runtimeState, nodeIdentifier)
+          async () => this.executeNode(runtimeState, nodeIdentifier, httpRequest)
         );
 
         // Persist progress after each node if monitoring is enabled
@@ -213,7 +215,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    */
   private async executeNode(
     runtimeState: RuntimeState,
-    nodeIdentifier: string
+    nodeIdentifier: string,
+    httpRequest?: HttpRequest
   ): Promise<RuntimeState> {
     const node = runtimeState.workflow.nodes.find(
       (n): boolean => n.id === nodeIdentifier
@@ -250,6 +253,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         nodeId: nodeIdentifier,
         workflowId: runtimeState.workflow.id,
         inputs: processedInputs,
+        httpRequest,
         // No progress feedback in this implementation.
         onProgress: () => {},
         env: {

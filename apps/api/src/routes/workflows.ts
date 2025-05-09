@@ -203,6 +203,18 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
 
   const workflowData = workflow.data as WorkflowType;
 
+  // Extract HTTP request information
+  const headers = c.req.header();
+  const params = { id };
+
+  // Get request body if it exists
+  let body: any = undefined;
+  try {
+    body = await c.req.json();
+  } catch {
+    // No body or invalid JSON
+  }
+
   // Trigger the runtime and get the instance id
   const instance = await c.env.EXECUTE.create({
     params: {
@@ -215,6 +227,11 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
         edges: workflowData.edges,
       },
       monitorProgress,
+      httpRequest: {
+        headers,
+        params,
+        body,
+      },
     },
   });
   const executionId = instance.id;

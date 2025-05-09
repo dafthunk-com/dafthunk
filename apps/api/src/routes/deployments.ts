@@ -241,6 +241,18 @@ deploymentRoutes.get("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
 
   const workflowData = deployment.workflowData as WorkflowType;
 
+  // Extract HTTP request information
+  const headers = c.req.header();
+  const params = { deploymentUUID };
+
+  // Get request body if it exists
+  let body: any = undefined;
+  try {
+    body = await c.req.json();
+  } catch {
+    // No body or invalid JSON
+  }
+
   // Trigger the runtime and get the instance id
   const instance = await c.env.EXECUTE.create({
     params: {
@@ -254,6 +266,11 @@ deploymentRoutes.get("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
       },
       monitorProgress,
       deploymentId: deployment.id,
+      httpRequest: {
+        headers,
+        params,
+        body,
+      },
     },
   });
   const executionId = instance.id;
