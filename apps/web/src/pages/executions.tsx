@@ -18,7 +18,7 @@ import {
   ExecutionStatus,
 } from "@/components/executions/execution-status-badge";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useFetch } from "@/hooks/use-fetch";
+import { useExecutions } from "@/hooks/use-fetch";
 import { toast } from "sonner";
 
 // Represents a single run instance of a workflow
@@ -151,8 +151,7 @@ export const columns: ColumnDef<Execution>[] = [
 
 export function ExecutionsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const { executions, executionsError, isExecutionsLoading } =
-    useFetch.useExecutions();
+  const { executions, executionsError, isExecutionsLoading } = useExecutions();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Executions" }]);

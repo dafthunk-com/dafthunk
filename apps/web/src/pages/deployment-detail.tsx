@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
-import { useFetch } from "@/hooks/use-fetch";
+import { useDeploymentHistory } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -172,7 +172,7 @@ export function DeploymentDetailPage() {
     deploymentHistoryError,
     isDeploymentHistoryLoading,
     mutateDeploymentHistory,
-  } = useFetch.useDeploymentHistory(workflowId!);
+  } = useDeploymentHistory(workflowId!);
 
   const workflow = deploymentHistory?.workflow;
   const currentDeployment =

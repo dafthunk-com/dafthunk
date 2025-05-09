@@ -40,7 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useFetch } from "@/hooks/use-fetch";
+import { useDeployments, useWorkflows } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 
 // --- Inline columns and type ---
@@ -171,10 +171,9 @@ export function DeploymentListPage() {
     deploymentsError,
     isDeploymentsLoading,
     mutateDeployments,
-  } = useFetch.useDeployments();
+  } = useDeployments();
 
-  const { workflows, workflowsError, isWorkflowsLoading } =
-    useFetch.useWorkflows();
+  const { workflows, workflowsError, isWorkflowsLoading } = useWorkflows();
 
   const handleOpenDialog = () => {
     setIsDialogOpen(true);

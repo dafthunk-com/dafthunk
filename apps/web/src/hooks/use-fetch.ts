@@ -32,165 +32,162 @@ export type DashboardStats = {
   }>;
 };
 
-export const useFetch = {
-  useWorkflows() {
-    const { data, error, isLoading, mutate } = useSWR<Workflow[]>(
-      "/workflows",
-      workflowService.getAll
-    );
+export const useWorkflows = () => {
+  const { data, error, isLoading, mutate } = useSWR<Workflow[]>(
+    "/workflows",
+    workflowService.getAll
+  );
 
-    return {
-      workflows: data,
-      workflowsError: error,
-      isWorkflowsLoading: isLoading,
-      mutateWorkflows: mutate,
-    };
-  },
+  return {
+    workflows: data,
+    workflowsError: error,
+    isWorkflowsLoading: isLoading,
+    mutateWorkflows: mutate,
+  };
+};
 
-  useWorkflowDetails(workflowId?: string) {
-    const { data, error, isLoading, mutate } = useSWR<Workflow>(
-      workflowId ? `/workflows/${workflowId}` : null,
-      () => workflowService.getById(workflowId!)
-    );
+export const useWorkflowDetails = (workflowId?: string) => {
+  const { data, error, isLoading, mutate } = useSWR<Workflow>(
+    workflowId ? `/workflows/${workflowId}` : null,
+    () => workflowService.getById(workflowId!)
+  );
 
-    return {
-      workflowDetails: data,
-      workflowDetailsError: error,
-      isWorkflowDetailsLoading: isLoading,
-      mutateWorkflowDetails: mutate,
-    };
-  },
+  return {
+    workflowDetails: data,
+    workflowDetailsError: error,
+    isWorkflowDetailsLoading: isLoading,
+    mutateWorkflowDetails: mutate,
+  };
+};
 
-  useDeployments() {
-    const { data, error, isLoading, mutate } = useSWR<WorkflowDeployment[]>(
-      "/deployments",
-      deploymentService.getAll
-    );
+export const useDeployments = () => {
+  const { data, error, isLoading, mutate } = useSWR<WorkflowDeployment[]>(
+    "/deployments",
+    deploymentService.getAll
+  );
 
-    return {
-      deployments: data,
-      deploymentsError: error,
-      isDeploymentsLoading: isLoading,
-      mutateDeployments: mutate,
-    };
-  },
+  return {
+    deployments: data,
+    deploymentsError: error,
+    isDeploymentsLoading: isLoading,
+    mutateDeployments: mutate,
+  };
+};
 
-  useDeploymentVersion(deploymentId?: string) {
-    const { data, error, isLoading, mutate } =
-      useSWR<WorkflowDeploymentVersion>(
-        deploymentId ? `/deployments/version/${deploymentId}` : null,
-        () => deploymentService.getVersion(deploymentId!)
-      );
+export const useDeploymentVersion = (deploymentId?: string) => {
+  const { data, error, isLoading, mutate } = useSWR<WorkflowDeploymentVersion>(
+    deploymentId ? `/deployments/version/${deploymentId}` : null,
+    () => deploymentService.getVersion(deploymentId!)
+  );
 
-    return {
-      deploymentVersion: data,
-      deploymentVersionError: error,
-      isDeploymentVersionLoading: isLoading,
-      mutateDeploymentVersion: mutate,
-    };
-  },
+  return {
+    deploymentVersion: data,
+    deploymentVersionError: error,
+    isDeploymentVersionLoading: isLoading,
+    mutateDeploymentVersion: mutate,
+  };
+};
 
-  useDeploymentHistory(workflowId: string) {
-    const { data, error, isLoading, mutate } = useSWR(
-      `/deployments/history/${workflowId}`,
-      () => deploymentService.getHistory(workflowId)
-    );
+export const useDeploymentHistory = (workflowId: string) => {
+  const { data, error, isLoading, mutate } = useSWR(
+    `/deployments/history/${workflowId}`,
+    () => deploymentService.getHistory(workflowId)
+  );
 
-    return {
-      deploymentHistory: data,
-      deploymentHistoryError: error,
-      isDeploymentHistoryLoading: isLoading,
-      mutateDeploymentHistory: mutate,
-    };
-  },
+  return {
+    deploymentHistory: data,
+    deploymentHistoryError: error,
+    isDeploymentHistoryLoading: isLoading,
+    mutateDeploymentHistory: mutate,
+  };
+};
 
-  useNodeTemplates() {
-    const { data, error, isLoading } = useSWR<NodeTemplate[], Error, string>(
-      "/types",
-      (key) =>
-        apiRequest<NodeType[]>(key).then((types) =>
-          types.map((type) => ({
-            id: type.id,
-            type: type.id,
-            name: type.name,
-            description: type.description || "",
-            category: type.category,
-            inputs: type.inputs.map((input) => ({
-              id: input.name,
-              type: input.type,
-              name: input.name,
-              hidden: input.hidden,
-            })),
-            outputs: type.outputs.map((output) => ({
-              id: output.name,
-              type: output.type,
-              name: output.name,
-              hidden: output.hidden,
-            })),
-          }))
-        )
-    );
+export const useNodeTemplates = () => {
+  const { data, error, isLoading } = useSWR<NodeTemplate[], Error, string>(
+    "/types",
+    (key) =>
+      apiRequest<NodeType[]>(key).then((types) =>
+        types.map((type) => ({
+          id: type.id,
+          type: type.id,
+          name: type.name,
+          description: type.description || "",
+          category: type.category,
+          inputs: type.inputs.map((input) => ({
+            id: input.name,
+            type: input.type,
+            name: input.name,
+            hidden: input.hidden,
+          })),
+          outputs: type.outputs.map((output) => ({
+            id: output.name,
+            type: output.type,
+            name: output.name,
+            hidden: output.hidden,
+          })),
+        }))
+      )
+  );
 
-    return {
-      nodeTemplates: data,
-      nodeTemplatesError: error,
-      isNodeTemplatesLoading: isLoading,
-    };
-  },
+  return {
+    nodeTemplates: data,
+    nodeTemplatesError: error,
+    isNodeTemplatesLoading: isLoading,
+  };
+};
 
-  useDashboardStats() {
-    const { data, error, isLoading, mutate } = useSWR<DashboardStats>(
-      "/dashboard",
-      apiRequest
-    );
+export const useDashboardStats = () => {
+  const { data, error, isLoading, mutate } = useSWR<DashboardStats>(
+    "/dashboard",
+    apiRequest
+  );
 
-    return {
-      dashboardStats: data,
-      dashboardStatsError: error,
-      isDashboardStatsLoading: isLoading,
-      mutateDashboardStats: mutate,
-    };
-  },
+  return {
+    dashboardStats: data,
+    dashboardStatsError: error,
+    isDashboardStatsLoading: isLoading,
+    mutateDashboardStats: mutate,
+  };
+};
 
-  useExecutions() {
-    const { data, error, isLoading, mutate } = useSWR<Execution[]>(
-      "/executions",
-      executionsService.getAll
-    );
+export const useExecutions = () => {
+  const { data, error, isLoading, mutate } = useSWR<Execution[]>(
+    "/executions",
+    executionsService.getAll
+  );
 
-    return {
-      executions: data,
-      executionsError: error,
-      isExecutionsLoading: isLoading,
-      mutateExecutions: mutate,
-    };
-  },
+  return {
+    executions: data,
+    executionsError: error,
+    isExecutionsLoading: isLoading,
+    mutateExecutions: mutate,
+  };
+};
 
-  useExecutionDetails(executionId?: string) {
-    const { data, error, isLoading, mutate } = useSWR<WorkflowExecution>(
-      executionId ? `/executions/${executionId}` : null,
-      () => executionsService.getById(executionId!)
-    );
+export const useExecutionDetails = (executionId?: string) => {
+  const { data, error, isLoading, mutate } = useSWR<WorkflowExecution>(
+    executionId ? `/executions/${executionId}` : null,
+    () => executionsService.getById(executionId!)
+  );
 
-    return {
-      executionDetails: data,
-      executionDetailsError: error,
-      isExecutionDetailsLoading: isLoading,
-      mutateExecutionDetails: mutate,
-    };
-  },
+  return {
+    executionDetails: data,
+    executionDetailsError: error,
+    isExecutionDetailsLoading: isLoading,
+    mutateExecutionDetails: mutate,
+  };
+};
 
-  useApiKeys() {
-    const { data, error, isLoading, mutate } = useSWR<ApiToken[]>(
-      "/tokens",
-      apiKeysService.getAll
-    );
+export const useApiKeys = () => {
+  const { data, error, isLoading, mutate } = useSWR<ApiToken[]>(
+    "/tokens",
+    apiKeysService.getAll
+  );
 
-    return {
-      apiKeys: data,
-      apiKeysError: error,
-      isApiKeysLoading: isLoading,
-      mutateApiKeys: mutate,
-    };
-  },
+  return {
+    apiKeys: data,
+    apiKeysError: error,
+    isApiKeysLoading: isLoading,
+    mutateApiKeys: mutate,
+  };
 };

@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-import { useFetch } from "@/hooks/use-fetch";
+import { useWorkflows } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 // --- Inline useWorkflowActions ---
 function useWorkflowActions(
@@ -309,7 +309,7 @@ export function PlaygroundPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
-    useFetch.useWorkflows();
+    useWorkflows();
 
   const {
     deleteDialog,

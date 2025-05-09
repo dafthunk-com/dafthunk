@@ -24,7 +24,7 @@ import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useFetch } from "@/hooks/use-fetch";
+import { useApiKeys } from "@/hooks/use-fetch";
 import type { ApiToken } from "@/services/apiKeysService";
 import { apiKeysService } from "@/services/apiKeysService";
 import { InsetLoading } from "@/components/inset-loading";
@@ -80,7 +80,7 @@ const columns: ColumnDef<ApiToken>[] = [
 ];
 
 export function ApiKeysPage() {
-  const { apiKeys, apiKeysError, isApiKeysLoading } = useFetch.useApiKeys();
+  const { apiKeys, apiKeysError, isApiKeysLoading } = useApiKeys();
 
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

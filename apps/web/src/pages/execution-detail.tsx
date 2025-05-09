@@ -3,7 +3,12 @@ import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useFetch } from "@/hooks/use-fetch";
+import {
+  useExecutionDetails,
+  useNodeTemplates,
+  useWorkflowDetails,
+  useDeploymentVersion,
+} from "@/hooks/use-fetch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
@@ -24,24 +29,24 @@ export function ExecutionDetailPage() {
     executionDetails: execution,
     executionDetailsError,
     isExecutionDetailsLoading,
-  } = useFetch.useExecutionDetails(executionId);
+  } = useExecutionDetails(executionId);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
-    useFetch.useNodeTemplates();
+    useNodeTemplates();
 
-  const { workflowDetails: workflowInfo } = useFetch.useWorkflowDetails(
+  const { workflowDetails: workflowInfo } = useWorkflowDetails(
     execution?.workflowId
   );
 
   const {
     deploymentVersion: deploymentStructureSource,
     isDeploymentVersionLoading: isDeploymentStructureLoading,
-  } = useFetch.useDeploymentVersion(execution?.deploymentId);
+  } = useDeploymentVersion(execution?.deploymentId);
 
   const {
     workflowDetails: workflowStructureSourceFromDetails,
     isWorkflowDetailsLoading: isWorkflowStructureDetailsLoading,
-  } = useFetch.useWorkflowDetails(
+  } = useWorkflowDetails(
     execution?.deploymentId ? undefined : execution?.workflowId
   );
 

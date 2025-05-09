@@ -10,7 +10,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { InsetLoading } from "@/components/inset-loading";
-import { useFetch } from "@/hooks/use-fetch";
+import { useDashboardStats } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 
 export function DashboardPage() {
@@ -18,7 +18,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
 
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
-    useFetch.useDashboardStats();
+    useDashboardStats();
 
   const handleCreateWorkflow = async (name: string) => {
     try {

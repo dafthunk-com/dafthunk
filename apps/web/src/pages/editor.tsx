@@ -23,7 +23,7 @@ import { API_BASE_URL } from "@/config/api";
 import { debounce } from "@/utils/utils";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
-import { useFetch } from "@/hooks/use-fetch";
+import { useWorkflowDetails } from "@/hooks/use-fetch";
 import { InsetLoading } from "@/components/inset-loading";
 
 export function EditorPage() {
@@ -38,7 +38,7 @@ export function EditorPage() {
     workflowDetails: currentWorkflow,
     workflowDetailsError,
     isWorkflowDetailsLoading,
-  } = useFetch.useWorkflowDetails(id!);
+  } = useWorkflowDetails(id!);
 
   // Add breadcrumb logic
   usePageBreadcrumbs(

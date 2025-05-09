@@ -17,7 +17,11 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
-import { useFetch } from "@/hooks/use-fetch";
+import {
+  useNodeTemplates,
+  useDeploymentVersion,
+  useWorkflowDetails,
+} from "@/hooks/use-fetch";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -27,18 +31,18 @@ export function DeploymentVersionPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
-    useFetch.useNodeTemplates();
+    useNodeTemplates();
 
   const {
     deploymentVersion,
     deploymentVersionError,
     isDeploymentVersionLoading,
     mutateDeploymentVersion,
-  } = useFetch.useDeploymentVersion(deploymentId);
+  } = useDeploymentVersion(deploymentId);
 
   // Use the new hook for Workflow Details
   const { workflowDetails, workflowDetailsError, isWorkflowDetailsLoading } =
-    useFetch.useWorkflowDetails(deploymentVersion?.workflowId);
+    useWorkflowDetails(deploymentVersion?.workflowId);
 
   // Update breadcrumbs when both workflow and deployment are available
   useEffect(() => {
