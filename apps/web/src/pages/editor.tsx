@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
+import type {
   Workflow,
   Parameter,
   ParameterType,
@@ -8,14 +8,15 @@ import {
 } from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { workflowService } from "@/services/workflowService";
-import { Node, Edge, Connection } from "@xyflow/react";
+import type { Node, Edge, Connection } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import {
+import type {
   NodeTemplate,
   WorkflowNodeType,
   WorkflowEdgeType,
   WorkflowExecutionStatus,
   WorkflowExecution,
+  NodeExecutionState,
 } from "@/components/workflow/workflow-types";
 import { fetchNodeTypes } from "@/services/workflowNodeService";
 import { WorkflowError } from "@/components/workflow/workflow-error";
@@ -29,85 +30,10 @@ import {
   ExecutionFormDialog,
   type DialogFormParameter,
 } from "@/components/workflow/execution-form-dialog";
+import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 // Helper function to extract and format parameters for the execution dialog
-function extractDialogParametersFromNodes(
-  nodes: Node<WorkflowNodeType>[],
-  nodeTemplates: NodeTemplate[]
-): DialogFormParameter[] {
-  return nodes
-    .filter(
-      (node) =>
-        node.data.nodeType?.startsWith("parameter.") &&
-        // TODO: Should this be more generic if other param types (e.g. number, boolean) are supported by the form?
-        node.data.nodeType === "parameter.string" &&
-        node.data.inputs?.some((inp) => inp.id === "formFieldName")
-    )
-    .map((node) => {
-      const formFieldNameInput = node.data.inputs.find(
-        (i) => i.id === "formFieldName"
-      );
-      const requiredInput = node.data.inputs.find(
-        (i) => i.id === "required"
-      );
-
-      const nameForFormField = formFieldNameInput?.value as string;
-      if (!nameForFormField) {
-        console.warn(
-          `Node ${node.id} (${node.data.name}) is a parameter type but missing 'formFieldName' value. Skipping for form.`
-        );
-        return null;
-      }
-
-      const nodeInstanceName = node.data.name; // The name of this specific node instance in the workflow
-      const fieldKey = nameForFormField; // The actual key, e.g., "customer_email"
-
-      // Format the fieldKey into a more human-readable version for fallback
-      let friendlyKeyLabel = fieldKey
-        .replace(/([A-Z0-9])/g, " $1") // Add space before capitals/numbers in a camelCase/PascalCase key
-        .replace(/_/g, " ") // Replace underscores with spaces for snake_case keys
-        .trim() // Remove leading/trailing spaces
-        .toLowerCase();
-
-      // Capitalize first letter of each word
-      friendlyKeyLabel = friendlyKeyLabel
-        .split(" ")
-        .filter((word) => word.length > 0) // handle multiple spaces
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-
-      // If after formatting, it's empty (e.g. fieldKey was all underscores), fallback to raw fieldKey
-      if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) {
-        friendlyKeyLabel = fieldKey;
-      }
-
-      // Prioritize the user-given node instance name, if it's specific and not the default node type name.
-      // Otherwise, use the formatted field key.
-      const defaultNodeTypeDisplayName =
-        nodeTemplates.find((t) => t.id === node.data.nodeType)?.name ||
-        node.data.nodeType ||
-        "";
-      const isNodeNameSpecific =
-        nodeInstanceName &&
-        nodeInstanceName.trim() !== "" &&
-        nodeInstanceName.toLowerCase() !==
-          defaultNodeTypeDisplayName.toLowerCase();
-
-      const labelText = isNodeNameSpecific
-        ? nodeInstanceName
-        : friendlyKeyLabel;
-
-      return {
-        nodeId: node.id,
-        nameForForm: nameForFormField,
-        label: labelText, // This is used for the Label and placeholder derivation
-        nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
-        isRequired: (requiredInput?.value as boolean) ?? true,
-        type: node.data.nodeType || "unknown.parameter",
-      } as DialogFormParameter;
-    })
-    .filter((p) => p !== null) as DialogFormParameter[];
-}
+// function extractDialogParametersFromNodes(...) // Entire function removed
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -271,17 +197,19 @@ export function EditorPage() {
               const isConnected = incomingEdges.some(
                 (edge) => edge.targetHandle === input.id
               );
-              const parameter: Parameter = {
+              // Explicitly type `parameter` to allow for `value` assignment from `input.value` (which is `any`),
+              // then cast to the strict `Parameter` type for the final array.
+              const parameterBase: Omit<Parameter, 'value'> & { value?: any } = {
                 name: input.id,
                 type: input.type as ParameterType["type"],
                 description: input.name,
                 hidden: input.hidden,
                 required: input.required,
               };
-              if (!isConnected && input.value !== undefined) {
-                (parameter as any).value = input.value;
+              if (!isConnected && typeof input.value !== 'undefined') {
+                parameterBase.value = input.value;
               }
-              return parameter;
+              return parameterBase as Parameter;
             }),
             outputs: node.data.outputs.map((output) => {
               const parameter: Parameter = {
@@ -408,15 +336,18 @@ export function EditorPage() {
       let cancelled = false;
 
       fetch(executeUrl.toString(), requestOptions)
-        .then((response) => {
+        .then(async (response) => {
           if (cancelled) return;
           if (!response.ok) {
-            // Try to parse error from backend
-            return response.json().then(errData => {
-              throw new Error(errData.message || `Failed to start workflow execution. Status: ${response.status}`);
-            }).catch(() => {
-              throw new Error(`Failed to start workflow execution. Status: ${response.status}`);
-            });
+            let errorMessage = `Failed to start workflow execution. Status: ${response.status}`;
+            try {
+              const errData = await response.json();
+              errorMessage = errData.message || errorMessage;
+            } catch (jsonError) {
+              // Ignore JSON parsing error, use the status-based message
+              console.warn("Could not parse error response JSON:", jsonError);
+            }
+            throw new Error(errorMessage);
           }
           return response.json();
         })
@@ -429,7 +360,7 @@ export function EditorPage() {
               status: exec.status as WorkflowExecutionStatus,
               nodeExecutions: exec.nodeExecutions.map((ne) => ({
                 nodeId: ne.nodeId,
-                status: ne.status as any, // TODO: fix type
+                status: ne.status as NodeExecutionState,
                 outputs: ne.outputs || {},
                 error: ne.error,
               })),
@@ -470,14 +401,14 @@ export function EditorPage() {
                 return;
               }
               if (!statusResponse.ok) {
-                // Attempt to parse error, then throw generic
+                let errorMessage = `Failed to fetch execution status. Status: ${statusResponse.status}`;
                 try {
                   const errorData = await statusResponse.json();
-                  throw new Error(errorData.message || `Failed to fetch execution status. Status: ${statusResponse.status}`);
-                } catch (e) {
-                  // If parsing errorData fails or it has no message, throw generic
-                  throw new Error(`Failed to fetch execution status. Status: ${statusResponse.status} ${(e as Error).message}`);
+                  errorMessage = errorData.message || errorMessage;
+                } catch (jsonError) {
+                  console.warn("Could not parse status error response JSON:", jsonError);
                 }
+                throw new Error(errorMessage);
               }
               const execution = await statusResponse.json() as BackendWorkflowExecution;
               updateExecutionState(execution);

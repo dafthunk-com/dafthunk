@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { WorkflowDeploymentVersion } from "@dafthunk/types";
+import type { WorkflowDeploymentVersion, Node as BackendNode, Parameter as BackendParameter } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import {
   ArrowUpToLine,
@@ -33,7 +33,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
 import {
   useDeploymentHistory,
@@ -44,6 +44,9 @@ import {
   ExecutionFormDialog,
   type DialogFormParameter
 } from "@/components/workflow/execution-form-dialog";
+import { extractDialogParametersFromNodes } from "@/utils/utils";
+import type { Node } from "@xyflow/react";
+import type { WorkflowNodeType, WorkflowParameter } from "@/components/workflow/workflow-types.tsx";
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
   try {
@@ -55,7 +58,7 @@ const formatDeploymentDate = (dateString: string | Date) => {
 
 function createDeploymentHistoryColumns(
   currentDeploymentId: string,
-  onExecute: (deploymentId: string, nodes: WorkflowDeploymentVersion["nodes"]) => void
+  onExecute: (deploymentId: string, nodes: BackendNode[]) => void
 ): ColumnDef<WorkflowDeploymentVersion>[] {
   return [
     {
@@ -174,6 +177,36 @@ export function DeploymentDetailPage() {
       ? deploymentHistory.deployments[0]
       : null;
 
+  const adaptDeploymentNodesToReactFlowNodes = useCallback(
+    (backendNodes: BackendNode[]): Node<WorkflowNodeType>[] => {
+      return (backendNodes || []).map(depNode => {
+        const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map((param: BackendParameter) => {
+          return {
+            id: param.name,
+            name: param.name,
+            type: param.type,
+            value: (param as any).value,
+            description: param.description,
+            hidden: param.hidden,
+            required: param.required,
+          };
+        });
+
+        return {
+          id: depNode.id,
+          type: 'workflowNode',
+          position: depNode.position || { x: 0, y: 0 },
+          data: {
+            nodeType: depNode.type,
+            name: depNode.name,
+            inputs: adaptedInputs,
+            outputs: [],
+            executionState: 'idle',
+          },
+        } as Node<WorkflowNodeType>;
+      });
+    }, []);
+
   useEffect(() => {
     if (workflow) {
       setBreadcrumbs([
@@ -249,45 +282,15 @@ export function DeploymentDetailPage() {
     }
   };
   
-  const handleGenericExecute = useCallback((deploymentId: string, deploymentNodes: WorkflowDeploymentVersion["nodes"]) => {
-    if (!deploymentNodes) {
+  const handleGenericExecute = useCallback((deploymentId: string, backendDeploymentNodes: BackendNode[]) => {
+    if (!backendDeploymentNodes) {
       toast.error("Deployment nodes not available for parameter checking.");
       performActualDeploymentExecutionOnPage(deploymentId, {}); 
       return;
     }
-
-    const httpParameterNodes = (deploymentNodes || [])
-      .filter(node => 
-        node.type?.startsWith("parameter.") && 
-        node.type === "parameter.string" && 
-        node.inputs?.some(inp => inp.name === "formFieldName")
-      )
-      .map(node => {
-        const formFieldNameInput = node.inputs.find(i => i.name === "formFieldName");
-        const requiredInput = node.inputs.find(i => i.name === "required");
-        const nameForFormField = formFieldNameInput?.value as string;
-        if (!nameForFormField) return null;
-
-        const nodeInstanceName = node.name;
-        const fieldKey = nameForFormField;
-        let friendlyKeyLabel = fieldKey.replace(/([A-Z0-9])/g, ' $1').replace(/_/g, ' ').trim().toLowerCase();
-        friendlyKeyLabel = friendlyKeyLabel.split(' ').filter(w=>w.length>0).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) friendlyKeyLabel = fieldKey;
-
-        const defaultNodeTypeDisplayName = nodeTemplates?.find(t => t.id === node.type)?.name || node.type || "";
-        const isNodeNameSpecific = nodeInstanceName && nodeInstanceName.trim() !== "" && nodeInstanceName.toLowerCase() !== defaultNodeTypeDisplayName.toLowerCase();
-        const labelText = isNodeNameSpecific ? nodeInstanceName : friendlyKeyLabel;
-
-        return {
-          nodeId: node.id,
-          nameForForm: nameForFormField,
-          label: labelText,
-          nodeName: node.name || "Parameter Node",
-          isRequired: (requiredInput?.value as boolean) ?? true,
-          type: node.type || "unknown.parameter",
-        } as DialogFormParameter;
-      })
-      .filter(p => p !== null) as DialogFormParameter[];
+    const currentTemplates = nodeTemplates || [];
+    const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(backendDeploymentNodes);
+    const httpParameterNodes = extractDialogParametersFromNodes(adaptedNodes, currentTemplates);
 
     if (httpParameterNodes.length > 0) {
       setFormParameters(httpParameterNodes);
@@ -296,7 +299,7 @@ export function DeploymentDetailPage() {
     } else {
       performActualDeploymentExecutionOnPage(deploymentId, {});
     }
-  }, [nodeTemplates, performActualDeploymentExecutionOnPage]);
+  }, [nodeTemplates, performActualDeploymentExecutionOnPage, adaptDeploymentNodesToReactFlowNodes]);
 
   const executeLatestVersion = async () => {
     if (!currentDeployment?.id || !currentDeployment.nodes) {

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
-import type { WorkflowDeploymentVersion } from "@dafthunk/types";
+import type { WorkflowDeploymentVersion, Node as BackendNode, Parameter as BackendParameter } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
@@ -13,7 +13,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   WorkflowNodeType,
   WorkflowEdgeType,
-} from "@/components/workflow/workflow-types";
+  WorkflowParameter} from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
@@ -23,6 +23,7 @@ import {
   useWorkflowDetails,
 } from "@/hooks/use-fetch";
 import { ExecutionFormDialog, type DialogFormParameter } from "@/components/workflow/execution-form-dialog";
+import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -49,6 +50,37 @@ export function DeploymentVersionPage() {
   // Use the new hook for Workflow Details
   const { workflowDetails, workflowDetailsError, isWorkflowDetailsLoading } =
     useWorkflowDetails(deploymentVersion?.workflowId);
+
+  // Adapter function to convert BackendNode to ReactFlowNode for the utility function
+  const adaptDeploymentNodesToReactFlowNodes = useCallback(
+    (backendNodes: BackendNode[]): Node<WorkflowNodeType>[] => {
+      return (backendNodes || []).map(depNode => {
+        const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map((param: BackendParameter) => {
+          return {
+            id: param.name,
+            name: param.name,
+            type: param.type,
+            value: (param as any).value,
+            description: param.description,
+            hidden: param.hidden,
+            required: param.required,
+          };
+        });
+
+        return {
+          id: depNode.id,
+          type: 'workflowNode',
+          position: depNode.position || { x: 0, y: 0 },
+          data: {
+            nodeType: depNode.type,
+            name: depNode.name,
+            inputs: adaptedInputs,
+            outputs: [],
+            executionState: 'idle',
+          },
+        } as Node<WorkflowNodeType>;
+      });
+    }, []);
 
   // Update breadcrumbs when both workflow and deployment are available
   useEffect(() => {
@@ -177,45 +209,10 @@ export function DeploymentVersionPage() {
       return;
     }
 
-    const httpParameterNodes = (deploymentVersion.nodes || [])
-      .filter(
-        (node) =>
-          node.type?.startsWith("parameter.") &&
-          node.type === "parameter.string" &&
-          node.inputs?.some((inp) => inp.name === "formFieldName")
-      )
-      .map((node) => {
-        const formFieldNameInput = node.inputs.find(
-          (i) => i.name === "formFieldName"
-        );
-        const requiredInput = node.inputs.find(
-          (i) => i.name === "required"
-        );
-
-        const nameForFormField = formFieldNameInput?.value as string;
-        if (!nameForFormField) return null;
-
-        const nodeInstanceName = node.name;
-        const fieldKey = nameForFormField;
-        let friendlyKeyLabel = fieldKey
-          .replace(/([A-Z0-9])/g, ' $1').replace(/_/g, ' ').trim().toLowerCase();
-        friendlyKeyLabel = friendlyKeyLabel.split(' ').filter(w => w.length > 0).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        if (friendlyKeyLabel.length === 0 && fieldKey.length > 0) friendlyKeyLabel = fieldKey;
-        
-        const defaultNodeTypeDisplayName = nodeTemplates?.find(t => t.id === node.type)?.name || node.type || "";
-        const isNodeNameSpecific = nodeInstanceName && nodeInstanceName.trim() !== "" && nodeInstanceName.toLowerCase() !== defaultNodeTypeDisplayName.toLowerCase();
-        const labelText = isNodeNameSpecific ? nodeInstanceName : friendlyKeyLabel;
-
-        return {
-          nodeId: node.id,
-          nameForForm: nameForFormField,
-          label: labelText,
-          nodeName: node.name || "Parameter Node",
-          isRequired: (requiredInput?.value as boolean) ?? true,
-          type: node.type || "unknown.parameter",
-        } as DialogFormParameter;
-      })
-      .filter((p) => p !== null) as DialogFormParameter[];
+    // Use the adapter and utility function
+    const currentTemplates = nodeTemplates || [];
+    const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(deploymentVersion.nodes);
+    const httpParameterNodes = extractDialogParametersFromNodes(adaptedNodes, currentTemplates);
 
     if (httpParameterNodes.length > 0) {
       setFormParameters(httpParameterNodes);
@@ -224,7 +221,7 @@ export function DeploymentVersionPage() {
     } else {
       performActualDeploymentExecution(deploymentVersion.id, {});
     }
-  }, [deploymentVersion, nodeTemplates, performActualDeploymentExecution]);
+  }, [deploymentVersion, nodeTemplates, performActualDeploymentExecution, adaptDeploymentNodesToReactFlowNodes]);
 
   if (
     isDeploymentVersionLoading ||
