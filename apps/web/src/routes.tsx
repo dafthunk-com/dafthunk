@@ -6,7 +6,7 @@ import { ProtectedRoute } from "./components/protected-route.tsx";
 import { AppLayout } from "./components/layouts/app-layout.tsx";
 import { ErrorBoundary } from "./components/error-boundary";
 import { PlaygroundPage } from "./pages/playground.tsx";
-import { DeploymentListPage } from "./pages/deployment-list.tsx";
+import { DeploymentListPage } from "./pages/deployments.tsx";
 import { DeploymentDetailPage } from "./pages/deployment-detail.tsx";
 import { DeploymentVersionPage } from "./pages/deployment-version.tsx";
 import { ExecutionsPage } from "./pages/executions.tsx";
