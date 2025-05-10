@@ -61,6 +61,9 @@ import { CloudflareBrowserPdfNode } from "./net/cloudflareBrowserPdfNode";
 import { CloudflareBrowserScrapeNode } from "./net/cloudflareBrowserScrapeNode";
 import { CloudflareBrowserSnapshotNode } from "./net/cloudflareBrowserSnapshotNode";
 import { StringParameterNode } from "./parameter/stringParameterNode";
+import { NumberParameterNode } from "./parameter/numberParameterNode";
+import { BooleanParameterNode } from "./parameter/booleanParameterNode";
+import { JsonBodyNode } from "./parameter/jsonBodyNode";
 
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
@@ -86,6 +89,9 @@ export class NodeRegistry {
   private constructor() {
     // Register parameter nodes
     this.registerImplementation(StringParameterNode);
+    this.registerImplementation(NumberParameterNode);
+    this.registerImplementation(BooleanParameterNode);
+    this.registerImplementation(JsonBodyNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);
     this.registerImplementation(MultiplicationNode);

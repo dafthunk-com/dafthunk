@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Describes the structure of parameters passed to the dialog
 export type DialogFormParameter = {
@@ -36,24 +37,56 @@ type ExecutionFormDialogProps = {
 const createValidationSchema = (parameters: DialogFormParameter[]) => {
   const schemaShape: Record<string, z.ZodTypeAny> = {};
   parameters.forEach((param) => {
-    // Currently only handles string parameters; extendable for other types
     if (param.type.startsWith("parameter.string")) {
-      let validator: z.ZodTypeAny; // Declare as ZodTypeAny
-      const stringBase = z.string().trim(); // Base string validator
+      let validator: z.ZodTypeAny;
+      const stringBase = z.string().trim();
 
       if (param.isRequired) {
         validator = stringBase.min(1, {
           message: `${param.label} is required.`,
         });
       } else {
-        // For optional fields, allow empty string, then transform to undefined
         validator = stringBase
           .optional()
           .transform((val) => (val === "" || val === null ? undefined : val));
       }
       schemaShape[param.nameForForm] = validator;
+    } else if (param.type.startsWith("parameter.number")) {
+      // Number parameter validation
+      let validator: z.ZodTypeAny;
+
+      if (param.isRequired) {
+        validator = z.preprocess(
+          (val) => (val === "" ? undefined : Number(val)),
+          z
+            .number({
+              invalid_type_error: `${param.label} must be a number`,
+            })
+            .min(1, {
+              message: `${param.label} is required.`,
+            })
+        );
+      } else {
+        validator = z.preprocess(
+          (val) => (val === "" ? undefined : Number(val)),
+          z
+            .number({
+              invalid_type_error: `${param.label} must be a number`,
+            })
+            .optional()
+        );
+      }
+      schemaShape[param.nameForForm] = validator;
+    } else if (param.type.startsWith("parameter.boolean")) {
+      // Boolean parameter validation
+      if (param.isRequired) {
+        schemaShape[param.nameForForm] = z.boolean({
+          required_error: `${param.label} is required.`,
+        });
+      } else {
+        schemaShape[param.nameForForm] = z.boolean().optional();
+      }
     }
-    // TODO: Add validation for other parameter types (e.g., number, boolean)
   });
   return z.object(schemaShape);
 };
@@ -66,6 +99,12 @@ export function ExecutionFormDialog({
 }: ExecutionFormDialogProps) {
   const validationSchema = createValidationSchema(parameters);
 
+  // Check if the form has any required fields
+  const hasRequiredFields = useMemo(
+    () => parameters.some((param) => param.isRequired),
+    [parameters]
+  );
+
   const {
     control,
     handleSubmit,
@@ -76,7 +115,14 @@ export function ExecutionFormDialog({
     mode: "onChange", // Validate on change to enable/disable submit button
     defaultValues: parameters.reduce(
       (acc, param) => {
-        acc[param.nameForForm] = ""; // Initialize with empty strings
+        // Set appropriate default values based on parameter type
+        if (param.type.startsWith("parameter.boolean")) {
+          acc[param.nameForForm] = false;
+        } else if (param.type.startsWith("parameter.number")) {
+          acc[param.nameForForm] = ""; // Empty string for number inputs
+        } else {
+          acc[param.nameForForm] = ""; // Default for strings
+        }
         return acc;
       },
       {} as Record<string, any>
@@ -88,7 +134,14 @@ export function ExecutionFormDialog({
     if (isOpen) {
       const defaultValues = parameters.reduce(
         (acc, param) => {
-          acc[param.nameForForm] = "";
+          // Set appropriate default values based on parameter type
+          if (param.type.startsWith("parameter.boolean")) {
+            acc[param.nameForForm] = false;
+          } else if (param.type.startsWith("parameter.number")) {
+            acc[param.nameForForm] = "";
+          } else {
+            acc[param.nameForForm] = "";
+          }
           return acc;
         },
         {} as Record<string, any>
@@ -121,6 +174,12 @@ export function ExecutionFormDialog({
           <AlertDialogTitle>Workflow Execution Parameters</AlertDialogTitle>
           <AlertDialogDescription>
             Please provide the required parameters to run this workflow.
+            {!hasRequiredFields && (
+              <span className="block mt-1 text-sm">
+                All fields are optional. You can run the workflow without
+                providing any parameters.
+              </span>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form onSubmit={handleSubmit(processSubmit)} id="executionParamsForm">
@@ -133,18 +192,52 @@ export function ExecutionFormDialog({
                     <span className="text-destructive font-medium">*</span>
                   )}
                 </Label>
+
                 <Controller
                   name={param.nameForForm}
                   control={control}
-                  render={({ field }) => (
-                    <Input
-                      id={param.nameForForm}
-                      {...field}
-                      placeholder={`Enter ${param.label.toLowerCase()}`}
-                      className="w-full"
-                    />
-                  )}
+                  render={({ field }) => {
+                    // Render different input components based on parameter type
+                    if (param.type.startsWith("parameter.boolean")) {
+                      return (
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Checkbox
+                            id={param.nameForForm}
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                          <label
+                            htmlFor={param.nameForForm}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {field.value ? "Yes" : "No"}
+                          </label>
+                        </div>
+                      );
+                    } else if (param.type.startsWith("parameter.number")) {
+                      return (
+                        <Input
+                          id={param.nameForForm}
+                          {...field}
+                          type="number"
+                          placeholder={`Enter ${param.label.toLowerCase()}`}
+                          className="w-full"
+                        />
+                      );
+                    } else {
+                      // Default string input
+                      return (
+                        <Input
+                          id={param.nameForForm}
+                          {...field}
+                          placeholder={`Enter ${param.label.toLowerCase()}`}
+                          className="w-full"
+                        />
+                      );
+                    }
+                  }}
                 />
+
                 <p className="text-xs text-muted-foreground">
                   (Node: "{param.nodeName}", Field: "{param.nameForForm}")
                 </p>
@@ -162,7 +255,7 @@ export function ExecutionFormDialog({
           <Button
             type="submit"
             form="executionParamsForm"
-            disabled={!isDirty || !isValid}
+            disabled={hasRequiredFields ? !isDirty || !isValid : !isValid}
           >
             Run Workflow
           </Button>
