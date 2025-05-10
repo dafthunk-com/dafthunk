@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Head } from "@/components/head/Head";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { useNodeTemplates, usePublicExecutionDetails } from "@/hooks/use-fetch";
@@ -15,6 +14,7 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { API_BASE_URL } from "@/config/api";
+import { MetaHead } from "@/components/meta-head";
 
 export function SharedExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -104,18 +104,18 @@ export function SharedExecutionPage() {
       };
     }, [execution]);
 
-  const ogImageUrl = executionId
-    ? `${API_BASE_URL}/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
-    : "";
-  const pageUrl = executionId
-    ? `${window.location.origin}/shared/executions/${executionId}`
-    : window.location.href;
   const pageTitle = execution
     ? `Execution: ${execution.workflowName || execution.id}`
     : "Shared Execution";
   const pageDescription = execution
     ? `Details for workflow execution: ${execution.workflowName || execution.id}`
     : "View the details of a shared workflow execution.";
+  const ogImageUrl = executionId
+    ? `${API_BASE_URL}/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
+    : "";
+  const pageUrl = executionId
+    ? `${window.location.origin}/shared/executions/${executionId}`
+    : window.location.href;
 
   if (isLoadingExecution || isNodeTemplatesLoading) {
     return <InsetLoading title="Execution" />;
@@ -127,24 +127,25 @@ export function SharedExecutionPage() {
     return <InsetError title="Execution" errorMessage="Execution Not Found" />;
   }
 
+  console.log(execution);
+
+  const metaTags = [
+    { name: "description", content: pageDescription },
+    { property: "og:image", content: ogImageUrl },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: pageUrl },
+    { property: "og:title", content: pageTitle },
+    { property: "og:description", content: pageDescription },
+    { property: "twitter:card", content: "summary_large_image" },
+    { property: "twitter:url", content: pageUrl },
+    { property: "twitter:title", content: pageTitle },
+    { property: "twitter:description", content: pageDescription },
+    { property: "twitter:image", content: ogImageUrl },
+  ];
+
   return (
     <>
-      <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={pageUrl} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={pageUrl} />
-        <meta property="twitter:title" content={pageTitle} />
-        <meta property="twitter:description" content={pageDescription} />
-        {ogImageUrl && <meta property="twitter:image" content={ogImageUrl} />}
-      </Head>
+      <MetaHead title={pageTitle} tags={metaTags} />
       <InsetLayout
         title={pageTitle}
         titleRight={<ExecutionStatusBadge status={execution.status} />}
