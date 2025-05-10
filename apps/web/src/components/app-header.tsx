@@ -21,29 +21,35 @@ export function AppHeader() {
       </div>
       <div className="flex items-center gap-2">
         <nav className="flex items-center gap-2">
-          {isAuthenticated && (
+          {isAuthenticated ? (
+            <>
+              <NavLink
+                to="/dashboard"
+                className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+                activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/workflows"
+                className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+                activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+              >
+                Workflows
+              </NavLink>
+            </>
+          ) : (
             <NavLink
-              to="/dashboard"
-              isActive={(pathname) => pathname.startsWith("/dashboard")}
+              to="/"
+              isActive={(pathname) => pathname === "/"}
               className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
               activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
             >
-              Dashboard
-            </NavLink>
-          )}
-          {isAuthenticated && (
-            <NavLink
-              to="/workflows"
-              isActive={(pathname) => pathname.startsWith("/workflows")}
-              className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-              activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
-            >
-              Workflows
+              Login
             </NavLink>
           )}
           <NavLink
             to="/docs"
-            isActive={(pathname) => pathname.startsWith("/docs")}
             className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
             activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
           >
@@ -52,7 +58,6 @@ export function AppHeader() {
           {isAuthenticated && (
             <NavLink
               to="/settings"
-              isActive={(pathname) => pathname.startsWith("/settings")}
               className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
               activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
             >

@@ -17,9 +17,11 @@ export function InsetError({ title, errorMessage }: InsetErrorProps) {
   return (
     <InsetLayout
       title={title}
-      className="flex flex-1 items-center justify-center h-full w-full text-red-500"
+      className="overflow-hidden h-full"
+      titleClassName="mb-0 relative"
+      childrenClassName="flex flex-col flex-1 items-center justify-center h-full w-full text-center text-red-500 p-0"
     >
-      <p className="mb-2">{errorMessage}</p>
+      <p className="mb-2 max-w-md">{errorMessage}</p>
       <Button onClick={handleRetry} className="mt-2">
         Retry
       </Button>

@@ -17,6 +17,8 @@ import { NotFoundPage } from "./pages/not-found.tsx";
 import { SquareTerminal, Target, Logs, KeyRound, User } from "lucide-react";
 import { ApiKeysPage } from "./pages/api-keys.tsx";
 import DataTableTestPage from "./pages/data-table-test";
+import { SharedExecutionPage } from "./pages/shared-execution.tsx";
+
 const workflowsSidebarItems = [
   {
     title: "Playground",
@@ -246,6 +248,15 @@ export const router = createBrowserRouter([
     element: (
       <AppLayout>
         <DataTableTestPage />
+      </AppLayout>
+    ),
+    errorElement: <ErrorBoundary />,
+  },
+  {
+    path: "/share/execution/:executionId",
+    element: (
+      <AppLayout>
+        <SharedExecutionPage />
       </AppLayout>
     ),
     errorElement: <ErrorBoundary />,

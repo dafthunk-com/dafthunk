@@ -14,6 +14,7 @@ import type {
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import useSWR from "swr";
 import { useInfinatePagination } from "./use-infinate-pagination";
+import type { PublicExecutionWithStructure } from "@/services/executionsService";
 
 export type DashboardStats = {
   workflows: number;
@@ -184,9 +185,9 @@ export const useExecutions = () => {
     observerTargetRef,
   } = useInfinatePagination<WorkflowExecution>(getKey, fetcher, {
     pageSize: PAGE_SIZE,
-    revalidateFirstPage: false,
+    revalidateFirstPage: true,
     revalidateOnMount: true,
-    refreshInterval: 10000,
+    refreshInterval: 5000,
   });
 
   return {
@@ -211,6 +212,21 @@ export const useExecutionDetails = (executionId?: string) => {
     executionDetailsError: error,
     isExecutionDetailsLoading: isLoading,
     mutateExecutionDetails: mutate,
+  };
+};
+
+export const usePublicExecutionDetails = (executionId?: string) => {
+  const { data, error, isLoading, mutate } =
+    useSWR<PublicExecutionWithStructure>(
+      executionId ? `/executions/public/${executionId}` : null,
+      () => executionsService.getPublicById(executionId!)
+    );
+
+  return {
+    publicExecutionDetails: data,
+    publicExecutionDetailsError: error,
+    isPublicExecutionDetailsLoading: isLoading,
+    mutatePublicExecutionDetails: mutate,
   };
 };
 

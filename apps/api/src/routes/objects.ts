@@ -9,7 +9,7 @@ import { eq } from "drizzle-orm";
 
 const objects = new Hono<ApiContext>();
 
-objects.get("/", jwtAuth, async (c) => {
+objects.get("/", async (c) => {
   const url = new URL(c.req.url);
   const objectId = url.searchParams.get("id");
   const mimeType = url.searchParams.get("mimeType");
@@ -17,13 +17,6 @@ objects.get("/", jwtAuth, async (c) => {
   if (!objectId || !mimeType) {
     return c.text("Missing required parameters: id and mimeType", 400);
   }
-
-  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organizationId) {
-    console.error("Organization ID not found in auth context for GET /objects");
-    return c.text("Unauthorized: Organization ID is missing", 401);
-  }
-  const userOrganizationId = authPayload.organizationId;
 
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);
@@ -51,7 +44,11 @@ objects.get("/", jwtAuth, async (c) => {
       }
 
       if (execution.visibility === "private") {
-        if (execution.organizationId !== userOrganizationId) {
+        const authPayload = c.get("jwtPayload") as CustomJWTPayload;
+        if (!authPayload || !authPayload.organizationId) {
+          return c.text("Unauthorized: Organization ID is missing", 401);
+        }
+        if (execution.organizationId !== authPayload.organizationId) {
           return c.text(
             "Forbidden: You do not have access to this object via its execution",
             403
@@ -59,7 +56,11 @@ objects.get("/", jwtAuth, async (c) => {
         }
       }
     } else {
-      if (metadata?.organizationId !== userOrganizationId) {
+      const authPayload = c.get("jwtPayload") as CustomJWTPayload;
+      if (!authPayload || !authPayload.organizationId) {
+        return c.text("Unauthorized: Organization ID is missing", 401);
+      }
+      if (metadata?.organizationId !== authPayload.organizationId) {
         return c.text("Forbidden: You do not have access to this object", 403);
       }
     }

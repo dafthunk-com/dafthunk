@@ -1,10 +1,16 @@
 import { apiRequest } from "@/utils/api";
-import type { WorkflowExecution } from "@dafthunk/types";
+import type { WorkflowExecution, Node, Edge } from "@dafthunk/types";
 import { mutate } from "swr";
+
+export interface PublicExecutionWithStructure extends WorkflowExecution {
+  nodes?: Node[];
+  edges?: Edge[];
+}
 
 interface ApiExecutionsResponse {
   executions: WorkflowExecution[];
 }
+
 export const executionsService = {
   async getAll(params: {
     offset: number;
@@ -20,12 +26,22 @@ export const executionsService = {
   },
 
   async getById(executionId: string): Promise<WorkflowExecution> {
-    // The ExecutionDetailPage directly casts the JSON response to WorkflowExecution,
-    // so we assume the API returns this structure directly for this endpoint.
     return await apiRequest<WorkflowExecution>(`/executions/${executionId}`, {
       method: "GET",
       errorMessage: `Failed to fetch execution details for ID: ${executionId}`,
     });
+  },
+
+  async getPublicById(
+    executionId: string
+  ): Promise<PublicExecutionWithStructure> {
+    return await apiRequest<PublicExecutionWithStructure>(
+      `/executions/public/${executionId}`,
+      {
+        method: "GET",
+        errorMessage: `Failed to fetch public execution details for ID: ${executionId}`,
+      }
+    );
   },
 
   async setExecutionPublic(executionId: string): Promise<void> {
@@ -34,9 +50,7 @@ export const executionsService = {
       errorMessage: `Failed to set execution ${executionId} to public`,
     });
     await mutate(
-      (key) => typeof key === "string" && key.startsWith("/executions"),
-      undefined,
-      { revalidate: true }
+      (key) => typeof key === "string" && key.startsWith("/executions")
     );
   },
 
@@ -46,9 +60,7 @@ export const executionsService = {
       errorMessage: `Failed to set execution ${executionId} to private`,
     });
     await mutate(
-      (key) => typeof key === "string" && key.startsWith("/executions"),
-      undefined,
-      { revalidate: true }
+      (key) => typeof key === "string" && key.startsWith("/executions")
     );
   },
 };

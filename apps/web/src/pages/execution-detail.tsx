@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
@@ -23,6 +23,7 @@ import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import { Eye, EyeOff } from "lucide-react";
+import { Share2 } from "lucide-react";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -32,7 +33,6 @@ export function ExecutionDetailPage() {
     executionDetails: execution,
     executionDetailsError,
     isExecutionDetailsLoading,
-    mutateExecutionDetails,
   } = useExecutionDetails(executionId);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
@@ -170,7 +170,6 @@ export function ExecutionDetailPage() {
         await executionsService.setExecutionPrivate(execution.id);
         toast.success("Execution successfully made private.");
       }
-      mutateExecutionDetails();
     } catch (error) {
       toast.error(
         `Failed to update visibility: ${
@@ -216,22 +215,35 @@ export function ExecutionDetailPage() {
               <TabsTrigger value="visualization">Visualization</TabsTrigger>
             </TabsList>
             {execution && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleVisibility}
-                disabled={isVisibilityUpdating}
-                className="ml-4"
-              >
-                {execution.visibility === "public" ? (
-                  <EyeOff className="mr-1 h-4 w-4" />
-                ) : (
-                  <Eye className="mr-1 h-4 w-4" />
+              <div className="flex items-center space-x-2">
+                {execution.visibility === "public" && executionId && (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link
+                      to={`/share/execution/${executionId}`}
+                      target="_blank"
+                    >
+                      <Share2 className="mr-1 h-4 w-4" />
+                      Share
+                    </Link>
+                  </Button>
                 )}
-                {execution.visibility === "public"
-                  ? "Make Private"
-                  : "Make Public"}
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleVisibility}
+                  disabled={isVisibilityUpdating}
+                  className="ml-0"
+                >
+                  {execution.visibility === "public" ? (
+                    <EyeOff className="mr-1 h-4 w-4" />
+                  ) : (
+                    <Eye className="mr-1 h-4 w-4" />
+                  )}
+                  {execution.visibility === "public"
+                    ? "Make Private"
+                    : "Make Public"}
+                </Button>
+              </div>
             )}
           </div>
           <TabsContent value="status" className="space-y-6 mt-0">

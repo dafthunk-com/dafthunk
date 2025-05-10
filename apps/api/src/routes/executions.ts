@@ -1,13 +1,18 @@
 import { Hono } from "hono";
-import { WorkflowExecution, WorkflowExecutionStatus } from "@dafthunk/types";
+import {
+  WorkflowExecution,
+  WorkflowExecutionStatus,
+  Workflow as WorkflowStructureType,
+} from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
 import { jwtAuth } from "../auth";
 import { getExecutionById } from "../utils/db";
 import { listExecutions } from "../utils/db";
 import { workflows } from "../db";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 import { executions as executionsTable } from "../db/schema";
+import { getWorkflowById } from "../utils/db";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -149,6 +154,68 @@ executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
   } catch (error) {
     console.error("Error setting execution to private:", error);
     return c.json({ error: "Failed to set execution to private" }, 500);
+  }
+});
+
+executionRoutes.get("/public/:id", async (c) => {
+  const id = c.req.param("id");
+  const db = createDatabase(c.env.DB);
+
+  try {
+    const [executionRecord] = await db
+      .select()
+      .from(executionsTable)
+      .where(
+        and(
+          eq(executionsTable.id, id),
+          eq(executionsTable.visibility, "public")
+        )
+      );
+
+    if (!executionRecord) {
+      return c.json({ error: "Execution not found or not public" }, 404);
+    }
+
+    let workflowNodes: WorkflowStructureType["nodes"] = [];
+    let workflowEdges: WorkflowStructureType["edges"] = [];
+    let workflowName = "Unknown Workflow";
+
+    const workflowRecord = await getWorkflowById(
+      db,
+      executionRecord.workflowId,
+      executionRecord.organizationId
+    );
+
+    if (workflowRecord) {
+      const workflowDataFromDb = workflowRecord.data as WorkflowStructureType;
+      workflowNodes = workflowDataFromDb.nodes || [];
+      workflowEdges = workflowDataFromDb.edges || [];
+      workflowName = workflowRecord.name || workflowName;
+    }
+
+    const executionData = executionRecord.data as WorkflowExecution;
+    const responseExecution: WorkflowExecution & {
+      nodes?: any[];
+      edges?: any[];
+    } = {
+      id: executionRecord.id,
+      workflowId: executionRecord.workflowId,
+      workflowName: workflowName,
+      deploymentId: executionRecord.deploymentId ?? undefined,
+      status: executionRecord.status as WorkflowExecutionStatus,
+      nodeExecutions: executionData.nodeExecutions || [],
+      error: executionRecord.error || undefined,
+      visibility: executionRecord.visibility,
+      startedAt: executionRecord.startedAt ?? executionData.startedAt,
+      endedAt: executionRecord.endedAt ?? executionData.endedAt,
+      nodes: workflowNodes,
+      edges: workflowEdges,
+    };
+
+    return c.json(responseExecution);
+  } catch (error) {
+    console.error("Error retrieving public execution:", error);
+    return c.json({ error: "Failed to retrieve public execution" }, 500);
   }
 });
 
