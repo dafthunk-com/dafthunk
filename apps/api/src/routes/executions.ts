@@ -112,7 +112,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
       .select({
         id: executionsTable.id,
         organizationId: executionsTable.organizationId,
-        ogImageGeneratedAt: executionsTable.ogImageGeneratedAt,
+        ogImageGenerated: executionsTable.ogImageGenerated,
       })
       .from(executionsTable)
       .where(
@@ -131,7 +131,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
       .set({ visibility: "public", updatedAt: new Date() })
       .where(eq(executionsTable.id, executionId));
 
-    if (!execution.ogImageGeneratedAt && c.env.BROWSER) {
+    if (!execution.ogImageGenerated && c.env.BROWSER) {
       try {
         await generateExecutionOgImage({
           env: c.env,
@@ -140,10 +140,10 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
 
         await db
           .update(executionsTable)
-          .set({ ogImageGeneratedAt: new Date(), updatedAt: new Date() })
+          .set({ ogImageGenerated: true, updatedAt: new Date() })
           .where(eq(executionsTable.id, executionId));
         console.log(
-          `Execution ${executionId} updated with OG image generation timestamp.`
+          `Execution ${executionId} updated with OG image generation status.`
         );
       } catch (error) {
         console.error(

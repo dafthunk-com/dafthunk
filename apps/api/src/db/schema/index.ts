@@ -232,9 +232,9 @@ export const executions = sqliteTable(
     endedAt: integer("ended_at", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
-    ogImageGeneratedAt: integer("og_image_generated_at", {
-      mode: "timestamp_ms",
-    }),
+    ogImageGenerated: integer("og_image_generated", {
+      mode: "boolean",
+    }).default(false),
   },
   (table) => [
     index("executions_workflow_id_idx").on(table.workflowId),
