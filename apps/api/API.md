@@ -25,6 +25,24 @@ Provides health check for the API.
   - `200 OK`: `{ "status": "ok", "version": "1.0.0", "timestamp": "YYYY-MM-DDTHH:mm:ss.sssZ" }`
 - **Types**: `N/A`
 
+## Robots.txt
+
+Provides a `robots.txt` file to guide web crawlers.
+
+### `GET /robots.txt`
+
+- **Purpose**: Returns the `robots.txt` file.
+- **Authentication**: Not Required (Public).
+- **Input**: None.
+- **Output**:
+  - `200 OK`: The content of the `robots.txt` file with `Content-Type: text/plain`.
+    ```
+    User-agent: *
+    Allow: /objects/
+    Disallow: /
+    ```
+- **Types**: `N/A`
+
 ## Authentication
 
 Authentication is handled via JWT (JSON Web Tokens) stored in an HTTP-only cookie (`dafthunk_session`). Most endpoints require authentication. Login is performed via OAuth providers (GitHub, Google).
