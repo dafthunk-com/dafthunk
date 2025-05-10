@@ -4,8 +4,14 @@ import type { Node } from "@xyflow/react";
 import type {
   NodeTemplate,
   WorkflowNodeType,
+  WorkflowParameter,
+  InputOutputType,
 } from "@/components/workflow/workflow-types.tsx";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
+import type {
+  Node as BackendNode,
+  Parameter as BackendParameter,
+} from "@dafthunk/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,9 +43,7 @@ export function extractDialogParametersFromNodes(
       const formFieldNameInput = node.data.inputs.find(
         (i) => i.id === "formFieldName"
       );
-      const requiredInput = node.data.inputs.find(
-        (i) => i.id === "required"
-      );
+      const requiredInput = node.data.inputs.find((i) => i.id === "required");
 
       const nameForFormField = formFieldNameInput?.value as string;
       if (!nameForFormField) {
@@ -64,9 +68,7 @@ export function extractDialogParametersFromNodes(
         nodeInstanceName.toLowerCase() !==
           defaultNodeTypeDisplayName.toLowerCase();
 
-      const labelText = isNodeNameSpecific
-        ? nodeInstanceName
-        : fieldKey; // Use fieldKey directly instead of friendlyKeyLabel
+      const labelText = isNodeNameSpecific ? nodeInstanceName : fieldKey; // Use fieldKey directly instead of friendlyKeyLabel
 
       return {
         nodeId: node.id,
@@ -78,4 +80,53 @@ export function extractDialogParametersFromNodes(
       } as DialogFormParameter;
     })
     .filter((p): p is DialogFormParameter => p !== null); // Type guard for filtering nulls
+}
+
+// Helper function to convert backend nodes to ReactFlow nodes
+export function adaptDeploymentNodesToReactFlowNodes(
+  backendNodes: BackendNode[]
+): Node<WorkflowNodeType>[] {
+  return (backendNodes || []).map((depNode) => {
+    const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map(
+      (param: BackendParameter) => {
+        return {
+          id: param.name,
+          name: param.name,
+          type: param.type as InputOutputType,
+          value: param.value,
+          required: param.required,
+          description: param.description,
+          hidden: param.hidden,
+        };
+      }
+    );
+
+    const adaptedOutputs: WorkflowParameter[] = (depNode.outputs || []).map(
+      (param: BackendParameter) => {
+        return {
+          id: param.name,
+          name: param.name,
+          type: param.type as InputOutputType,
+          value: param.value,
+          required: param.required,
+          description: param.description,
+          hidden: param.hidden,
+        };
+      }
+    );
+
+    return {
+      id: depNode.id,
+      type: "workflowNode",
+      position: depNode.position || { x: 0, y: 0 },
+      data: {
+        id: depNode.id,
+        name: depNode.name,
+        nodeType: depNode.type,
+        inputs: adaptedInputs,
+        outputs: adaptedOutputs,
+        executionState: "idle",
+      },
+    } as Node<WorkflowNodeType>;
+  });
 }

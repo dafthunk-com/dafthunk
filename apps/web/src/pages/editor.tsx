@@ -30,7 +30,10 @@ import {
   ExecutionFormDialog,
   type DialogFormParameter,
 } from "@/components/workflow/execution-form-dialog";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
+import {
+  extractDialogParametersFromNodes,
+  adaptDeploymentNodesToReactFlowNodes,
+} from "@/utils/utils";
 
 // Helper function to extract and format parameters for the execution dialog
 // function extractDialogParametersFromNodes(...) // Entire function removed
@@ -45,7 +48,9 @@ export function EditorPage() {
 
   // State for the execution parameters dialog
   const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
+    []
+  );
   const executionContextRef = useRef<{
     workflowId: string;
     onExecution: (execution: WorkflowExecution) => void;
@@ -117,32 +122,9 @@ export function EditorPage() {
     }
 
     try {
-      const reactFlowNodes = currentWorkflow.nodes.map((node) => ({
-        id: node.id,
-        type: "workflowNode",
-        position: node.position,
-        data: {
-          name: node.name,
-          inputs: node.inputs.map((input) => ({
-            id: input.name,
-            type: input.type,
-            name: input.name,
-            description: input.description,
-            value: input.value,
-            hidden: input.hidden,
-            required: input.required,
-          })),
-          outputs: node.outputs.map((output) => ({
-            id: output.name,
-            type: output.type,
-            name: output.name,
-            description: output.description,
-            hidden: output.hidden,
-          })),
-          executionState: "idle" as const,
-          nodeType: node.type,
-        },
-      }));
+      const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
+        currentWorkflow.nodes
+      );
 
       const reactFlowEdges = currentWorkflow.edges.map((edge, index) => ({
         id: `e${index}`,
@@ -199,14 +181,15 @@ export function EditorPage() {
               );
               // Explicitly type `parameter` to allow for `value` assignment from `input.value` (which is `any`),
               // then cast to the strict `Parameter` type for the final array.
-              const parameterBase: Omit<Parameter, 'value'> & { value?: any } = {
-                name: input.id,
-                type: input.type as ParameterType["type"],
-                description: input.name,
-                hidden: input.hidden,
-                required: input.required,
-              };
-              if (!isConnected && typeof input.value !== 'undefined') {
+              const parameterBase: Omit<Parameter, "value"> & { value?: any } =
+                {
+                  name: input.id,
+                  type: input.type as ParameterType["type"],
+                  description: input.name,
+                  hidden: input.hidden,
+                  required: input.required,
+                };
+              if (!isConnected && typeof input.value !== "undefined") {
                 parameterBase.value = input.value;
               }
               return parameterBase as Parameter;
@@ -310,7 +293,8 @@ export function EditorPage() {
       requestBody?: Record<string, any> // For POST data
     ) => {
       console.log(
-        `Starting workflow execution for ID: ${workflowId} with body:`, requestBody
+        `Starting workflow execution for ID: ${workflowId} with body:`,
+        requestBody
       );
 
       const requestOptions: RequestInit = {
@@ -371,7 +355,10 @@ export function EditorPage() {
           updateExecutionState(initialExecution);
 
           // If already completed or errored, no need to poll
-          if (initialExecution.status === "completed" || initialExecution.status === "error") {
+          if (
+            initialExecution.status === "completed" ||
+            initialExecution.status === "error"
+          ) {
             return;
           }
 
@@ -393,8 +380,10 @@ export function EditorPage() {
                 return;
               }
               if (statusResponse.status === 404) {
-                 // Execution not found, might have been deleted or completed and cleaned up
-                console.warn(`Execution ${executionId} not found during polling. Stopping poll.`);
+                // Execution not found, might have been deleted or completed and cleaned up
+                console.warn(
+                  `Execution ${executionId} not found during polling. Stopping poll.`
+                );
                 clearInterval(pollingIntervalId);
                 // Optionally update UI to a completed/stale state
                 // For now, just stop polling. The last state received will remain.
@@ -406,11 +395,15 @@ export function EditorPage() {
                   const errorData = await statusResponse.json();
                   errorMessage = errorData.message || errorMessage;
                 } catch (jsonError) {
-                  console.warn("Could not parse status error response JSON:", jsonError);
+                  console.warn(
+                    "Could not parse status error response JSON:",
+                    jsonError
+                  );
                 }
                 throw new Error(errorMessage);
               }
-              const execution = await statusResponse.json() as BackendWorkflowExecution;
+              const execution =
+                (await statusResponse.json()) as BackendWorkflowExecution;
               updateExecutionState(execution);
 
               if (
@@ -426,14 +419,18 @@ export function EditorPage() {
               onExecution({
                 status: "error", // Indicate an error state for the workflow overall
                 nodeExecutions: [], // Or keep existing node states and add a global error message
-                error: error instanceof Error ? error.message : "Polling failed",
+                error:
+                  error instanceof Error ? error.message : "Polling failed",
               });
             }
           }, 1000);
         })
         .catch((error) => {
           if (cancelled) return;
-          console.error("Error starting or processing workflow execution:", error);
+          console.error(
+            "Error starting or processing workflow execution:",
+            error
+          );
           onExecution({
             status: "error",
             nodeExecutions: [],
@@ -474,7 +471,10 @@ export function EditorPage() {
         activeEditorPageCleanupRef.current = null;
       }
 
-      const httpParameterNodes = extractDialogParametersFromNodes(nodes, nodeTemplates);
+      const httpParameterNodes = extractDialogParametersFromNodes(
+        nodes,
+        nodeTemplates
+      );
 
       if (httpParameterNodes.length > 0) {
         setFormParameters(httpParameterNodes);

@@ -220,90 +220,94 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
  * POST /deployments/version/:deploymentUUID/execute
  * Executes a specific deployment version
  */
-deploymentRoutes.post("/version/:deploymentUUID/execute", jwtAuth, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
-  const deploymentUUID = c.req.param("deploymentUUID");
-  const db = createDatabase(c.env.DB);
+deploymentRoutes.post(
+  "/version/:deploymentUUID/execute",
+  jwtAuth,
+  async (c) => {
+    const user = c.get("jwtPayload") as CustomJWTPayload;
+    const deploymentUUID = c.req.param("deploymentUUID");
+    const db = createDatabase(c.env.DB);
 
-  const monitorProgress =
-    new URL(c.req.url).searchParams.get("monitorProgress") === "true";
+    const monitorProgress =
+      new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
-  // Get the deployment
-  const deployment = await getDeploymentById(
-    db,
-    deploymentUUID,
-    user.organizationId
-  );
+    // Get the deployment
+    const deployment = await getDeploymentById(
+      db,
+      deploymentUUID,
+      user.organizationId
+    );
 
-  if (!deployment) {
-    return c.json({ error: "Deployment not found" }, 404);
-  }
+    if (!deployment) {
+      return c.json({ error: "Deployment not found" }, 404);
+    }
 
-  const workflowData = deployment.workflowData as WorkflowType;
+    const workflowData = deployment.workflowData as WorkflowType;
 
-  // Extract HTTP request information
-  const headers = c.req.header();
-  const params = { deploymentUUID };
+    // Extract HTTP request information
+    const headers = c.req.header();
+    const params = { deploymentUUID };
 
-  // Get request body if it exists
-  let body: any = undefined;
-  try {
-    body = await c.req.json();
-  } catch {
-    // No body or invalid JSON
-  }
+    // Get request body if it exists
+    let body: any = undefined;
+    try {
+      body = await c.req.json();
+    } catch {
+      // No body or invalid JSON
+    }
 
-  // Trigger the runtime and get the instance id
-  const instance = await c.env.EXECUTE.create({
-    params: {
+    // Trigger the runtime and get the instance id
+    const instance = await c.env.EXECUTE.create({
+      params: {
+        userId: user.sub,
+        organizationId: user.organizationId,
+        workflow: {
+          id: deployment.workflowId || "",
+          name: workflowData.name,
+          nodes: workflowData.nodes,
+          edges: workflowData.edges,
+        },
+        monitorProgress,
+        deploymentId: deployment.id,
+        httpRequest: {
+          headers,
+          params,
+          body,
+        },
+      },
+    });
+    const executionId = instance.id;
+
+    // Build initial nodeExecutions (all idle)
+    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
+      nodeId: node.id,
+      status: "idle" as const,
+    }));
+
+    // Save initial execution record
+    await saveExecution(db, {
+      id: executionId,
+      workflowId: deployment.workflowId || "",
+      deploymentId: deployment.id,
       userId: user.sub,
       organizationId: user.organizationId,
-      workflow: {
-        id: deployment.workflowId || "",
-        name: workflowData.name,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
-      },
-      monitorProgress,
+      status: "executing",
+      visibility: "private",
+      nodeExecutions,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Return the initial WorkflowExecution object
+    const initialExecution = {
+      id: executionId,
+      workflowId: deployment.workflowId,
       deploymentId: deployment.id,
-      httpRequest: {
-        headers,
-        params,
-        body,
-      },
-    },
-  });
-  const executionId = instance.id;
-
-  // Build initial nodeExecutions (all idle)
-  const nodeExecutions = workflowData.nodes.map((node: Node) => ({
-    nodeId: node.id,
-    status: "idle" as const,
-  }));
-
-  // Save initial execution record
-  await saveExecution(db, {
-    id: executionId,
-    workflowId: deployment.workflowId || "",
-    deploymentId: deployment.id,
-    userId: user.sub,
-    organizationId: user.organizationId,
-    status: "executing",
-    visibility: "private",
-    nodeExecutions,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
-  // Return the initial WorkflowExecution object
-  const initialExecution = {
-    id: executionId,
-    workflowId: deployment.workflowId,
-    deploymentId: deployment.id,
-    status: "executing",
-    nodeExecutions,
-  };
-  return c.json(initialExecution, 201);
-});
+      status: "executing",
+      nodeExecutions,
+    };
+    return c.json(initialExecution, 201);
+  }
+);
 
 export default deploymentRoutes;

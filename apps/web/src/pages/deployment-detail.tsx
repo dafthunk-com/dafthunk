@@ -3,7 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { WorkflowDeploymentVersion, Node as BackendNode, Parameter as BackendParameter } from "@dafthunk/types";
+import type {
+  WorkflowDeploymentVersion,
+  Node as BackendNode,
+} from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import {
   ArrowUpToLine,
@@ -35,18 +38,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
-import {
-  useDeploymentHistory,
-  useNodeTemplates
-} from "@/hooks/use-fetch";
+import { useDeploymentHistory, useNodeTemplates } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 import {
   ExecutionFormDialog,
-  type DialogFormParameter
+  type DialogFormParameter,
 } from "@/components/workflow/execution-form-dialog";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
-import type { Node } from "@xyflow/react";
-import type { WorkflowNodeType, WorkflowParameter } from "@/components/workflow/workflow-types.tsx";
+import {
+  extractDialogParametersFromNodes,
+  adaptDeploymentNodesToReactFlowNodes,
+} from "@/utils/utils";
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
   try {
@@ -154,7 +155,9 @@ export function DeploymentDetailPage() {
   const navigate = useNavigate();
 
   const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
+    []
+  );
   const executionContextRef = useRef<{ deploymentId: string } | null>(null);
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
@@ -176,36 +179,6 @@ export function DeploymentDetailPage() {
     deploymentHistory && deploymentHistory?.deployments.length > 0
       ? deploymentHistory.deployments[0]
       : null;
-
-  const adaptDeploymentNodesToReactFlowNodes = useCallback(
-    (backendNodes: BackendNode[]): Node<WorkflowNodeType>[] => {
-      return (backendNodes || []).map(depNode => {
-        const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map((param: BackendParameter) => {
-          return {
-            id: param.name,
-            name: param.name,
-            type: param.type,
-            value: (param as any).value,
-            description: param.description,
-            hidden: param.hidden,
-            required: param.required,
-          };
-        });
-
-        return {
-          id: depNode.id,
-          type: 'workflowNode',
-          position: depNode.position || { x: 0, y: 0 },
-          data: {
-            nodeType: depNode.type,
-            name: depNode.name,
-            inputs: adaptedInputs,
-            outputs: [],
-            executionState: 'idle',
-          },
-        } as Node<WorkflowNodeType>;
-      });
-    }, []);
 
   useEffect(() => {
     if (workflow) {
@@ -257,7 +230,10 @@ export function DeploymentDetailPage() {
     }
   };
 
-  const performActualDeploymentExecutionOnPage = async (deploymentId: string, requestBody?: Record<string, any>) => {
+  const performActualDeploymentExecutionOnPage = async (
+    deploymentId: string,
+    requestBody?: Record<string, any>
+  ) => {
     if (!deploymentId) return;
     toast.info("Initiating deployment execution...");
     try {
@@ -266,40 +242,67 @@ export function DeploymentDetailPage() {
         {
           method: "POST",
           credentials: "include",
-          headers: requestBody && Object.keys(requestBody).length > 0 ? { "Content-Type": "application/json" } : {},
-          body: requestBody && Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : undefined,
+          headers:
+            requestBody && Object.keys(requestBody).length > 0
+              ? { "Content-Type": "application/json" }
+              : {},
+          body:
+            requestBody && Object.keys(requestBody).length > 0
+              ? JSON.stringify(requestBody)
+              : undefined,
         }
       );
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`);
+        throw new Error(
+          errorData.message ||
+            `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`
+        );
       }
       const executionResult = await response.json();
-      toast.success(`Deployment execution started successfully. Execution ID: ${executionResult.id}`);
+      toast.success(
+        `Deployment execution started successfully. Execution ID: ${executionResult.id}`
+      );
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to execute deployment. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to execute deployment. Please try again."
+      );
     }
   };
-  
-  const handleGenericExecute = useCallback((deploymentId: string, backendDeploymentNodes: BackendNode[]) => {
-    if (!backendDeploymentNodes) {
-      toast.error("Deployment nodes not available for parameter checking.");
-      performActualDeploymentExecutionOnPage(deploymentId, {}); 
-      return;
-    }
-    const currentTemplates = nodeTemplates || [];
-    const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(backendDeploymentNodes);
-    const httpParameterNodes = extractDialogParametersFromNodes(adaptedNodes, currentTemplates);
 
-    if (httpParameterNodes.length > 0) {
-      setFormParameters(httpParameterNodes);
-      executionContextRef.current = { deploymentId };
-      setShowExecutionForm(true);
-    } else {
-      performActualDeploymentExecutionOnPage(deploymentId, {});
-    }
-  }, [nodeTemplates, performActualDeploymentExecutionOnPage, adaptDeploymentNodesToReactFlowNodes]);
+  const handleGenericExecute = useCallback(
+    (deploymentId: string, backendDeploymentNodes: BackendNode[]) => {
+      if (!backendDeploymentNodes) {
+        toast.error("Deployment nodes not available for parameter checking.");
+        performActualDeploymentExecutionOnPage(deploymentId, {});
+        return;
+      }
+      const currentTemplates = nodeTemplates || [];
+      const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
+        backendDeploymentNodes
+      );
+      const httpParameterNodes = extractDialogParametersFromNodes(
+        adaptedNodes,
+        currentTemplates
+      );
+
+      if (httpParameterNodes.length > 0) {
+        setFormParameters(httpParameterNodes);
+        executionContextRef.current = { deploymentId };
+        setShowExecutionForm(true);
+      } else {
+        performActualDeploymentExecutionOnPage(deploymentId, {});
+      }
+    },
+    [
+      nodeTemplates,
+      performActualDeploymentExecutionOnPage,
+      adaptDeploymentNodesToReactFlowNodes,
+    ]
+  );
 
   const executeLatestVersion = async () => {
     if (!currentDeployment?.id || !currentDeployment.nodes) {
@@ -395,7 +398,10 @@ export function DeploymentDetailPage() {
                     Deployment History
                   </div>
                 }
-                columns={createDeploymentHistoryColumns(currentDeployment.id, handleGenericExecute)}
+                columns={createDeploymentHistoryColumns(
+                  currentDeployment.id,
+                  handleGenericExecute
+                )}
                 data={displayDeployments}
                 emptyState={{
                   title: "No deployment history",
@@ -461,7 +467,10 @@ export function DeploymentDetailPage() {
           onSubmit={(formData) => {
             setShowExecutionForm(false);
             if (executionContextRef.current) {
-              performActualDeploymentExecutionOnPage(executionContextRef.current.deploymentId, formData);
+              performActualDeploymentExecutionOnPage(
+                executionContextRef.current.deploymentId,
+                formData
+              );
             }
           }}
         />

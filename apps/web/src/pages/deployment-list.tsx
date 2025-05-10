@@ -4,7 +4,7 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import type { WorkflowDeployment, Node as BackendNode, Parameter as BackendParameter } from "@dafthunk/types";
+import type { WorkflowDeployment } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Button } from "@/components/ui/button";
@@ -40,16 +40,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeployments, useWorkflows, useNodeTemplates } from "@/hooks/use-fetch";
+import {
+  useDeployments,
+  useWorkflows,
+  useNodeTemplates,
+} from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 import { deploymentService } from "@/services/deploymentService";
 import {
   ExecutionFormDialog,
-  type DialogFormParameter
+  type DialogFormParameter,
 } from "@/components/workflow/execution-form-dialog";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
-import type { Node } from "@xyflow/react";
-import type { WorkflowNodeType, WorkflowParameter } from "@/components/workflow/workflow-types.tsx";
+import {
+  extractDialogParametersFromNodes,
+  adaptDeploymentNodesToReactFlowNodes,
+} from "@/utils/utils";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -168,9 +173,10 @@ export function DeploymentListPage() {
 
   // Dialog state
   const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
+    []
+  );
   const executionContextRef = useRef<{ deploymentId: string } | null>(null);
-  const [isExecutingId, setIsExecutingId] = useState<string | null>(null);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState("");
@@ -191,37 +197,6 @@ export function DeploymentListPage() {
   const { workflows, workflowsError, isWorkflowsLoading } = useWorkflows();
 
   const { nodeTemplates } = useNodeTemplates();
-
-  // Adapter function to convert BackendNode to ReactFlowNode for the utility function
-  const adaptDeploymentNodesToReactFlowNodes = useCallback(
-    (backendNodes: BackendNode[]): Node<WorkflowNodeType>[] => {
-      return (backendNodes || []).map(depNode => {
-        const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map((param: BackendParameter) => {
-          return {
-            id: param.name,
-            name: param.name,
-            type: param.type,
-            value: (param as any).value,
-            description: param.description,
-            hidden: param.hidden,
-            required: param.required,
-          };
-        });
-
-        return {
-          id: depNode.id,
-          type: 'workflowNode',
-          position: depNode.position || { x: 0, y: 0 },
-          data: {
-            nodeType: depNode.type,
-            name: depNode.name,
-            inputs: adaptedInputs,
-            outputs: [],
-            executionState: 'idle',
-          },
-        } as Node<WorkflowNodeType>;
-      });
-    }, []);
 
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
@@ -260,8 +235,10 @@ export function DeploymentListPage() {
   };
 
   // Shared execution logic for this page
-  const performActualDeploymentExecutionOnPage = async (deploymentId: string, requestBody?: Record<string, any>) => {
-    setIsExecutingId(deploymentId);
+  const performActualDeploymentExecutionOnPage = async (
+    deploymentId: string,
+    requestBody?: Record<string, any>
+  ) => {
     toast.info("Initiating deployment execution...");
     try {
       const response = await fetch(
@@ -269,58 +246,86 @@ export function DeploymentListPage() {
         {
           method: "POST",
           credentials: "include",
-          headers: requestBody && Object.keys(requestBody).length > 0 ? { "Content-Type": "application/json" } : {},
-          body: requestBody && Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : undefined,
+          headers:
+            requestBody && Object.keys(requestBody).length > 0
+              ? { "Content-Type": "application/json" }
+              : {},
+          body:
+            requestBody && Object.keys(requestBody).length > 0
+              ? JSON.stringify(requestBody)
+              : undefined,
         }
       );
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`);
+        throw new Error(
+          errorData.message ||
+            `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`
+        );
       }
       const executionResult = await response.json();
-      toast.success(`Deployment execution started successfully. Execution ID: ${executionResult.id}`);
+      toast.success(
+        `Deployment execution started successfully. Execution ID: ${executionResult.id}`
+      );
     } catch (error) {
       console.error("Error executing deployment:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to execute deployment. Please try again.");
-    } finally {
-      setIsExecutingId(null);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to execute deployment. Please try again."
+      );
     }
   };
 
-  const handleExecute = useCallback(async (deploymentId: string | null) => {
-    if (!deploymentId) {
-      toast.error("Deployment ID is not available.");
-      return;
-    }
-    setIsExecutingId(deploymentId);
-
-    try {
-      // Step 1: Fetch the specific deployment version to get its nodes
-      const deploymentVersionData = await deploymentService.getVersion(deploymentId);
-      if (!deploymentVersionData || !deploymentVersionData.nodes) {
-        toast.error("Could not fetch deployment details or nodes are missing.");
-        setIsExecutingId(null);
+  const handleExecute = useCallback(
+    async (deploymentId: string | null) => {
+      if (!deploymentId) {
+        toast.error("Deployment ID is not available.");
         return;
       }
 
-      // Step 2: Use the adapter and utility function
-      const currentTemplates = nodeTemplates || [];
-      const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(deploymentVersionData.nodes);
-      const httpParameterNodes = extractDialogParametersFromNodes(adaptedNodes, currentTemplates);
+      try {
+        // Step 1: Fetch the specific deployment version to get its nodes
+        const deploymentVersionData =
+          await deploymentService.getVersion(deploymentId);
+        if (!deploymentVersionData || !deploymentVersionData.nodes) {
+          toast.error(
+            "Could not fetch deployment details or nodes are missing."
+          );
+          return;
+        }
 
-      if (httpParameterNodes.length > 0) {
-        setFormParameters(httpParameterNodes);
-        executionContextRef.current = { deploymentId };
-        setShowExecutionForm(true);
-      } else {
-        performActualDeploymentExecutionOnPage(deploymentId, {});
+        // Step 2: Use the adapter and utility function
+        const currentTemplates = nodeTemplates || [];
+        const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
+          deploymentVersionData.nodes
+        );
+        const httpParameterNodes = extractDialogParametersFromNodes(
+          adaptedNodes,
+          currentTemplates
+        );
+
+        if (httpParameterNodes.length > 0) {
+          setFormParameters(httpParameterNodes);
+          executionContextRef.current = { deploymentId };
+          setShowExecutionForm(true);
+        } else {
+          performActualDeploymentExecutionOnPage(deploymentId, {});
+        }
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to prepare execution. Could not fetch deployment details."
+        );
       }
-
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to prepare execution. Could not fetch deployment details.");
-      setIsExecutingId(null);
-    }
-  }, [nodeTemplates, performActualDeploymentExecutionOnPage, adaptDeploymentNodesToReactFlowNodes]);
+    },
+    [
+      nodeTemplates,
+      performActualDeploymentExecutionOnPage,
+      adaptDeploymentNodesToReactFlowNodes,
+    ]
+  );
 
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = (
@@ -429,15 +434,15 @@ export function DeploymentListPage() {
             isOpen={showExecutionForm}
             onClose={() => {
               setShowExecutionForm(false);
-              setIsExecutingId(null);
             }}
             parameters={formParameters}
             onSubmit={(formData) => {
               setShowExecutionForm(false);
               if (executionContextRef.current) {
-                performActualDeploymentExecutionOnPage(executionContextRef.current.deploymentId, formData);
-              } else {
-                setIsExecutingId(null);
+                performActualDeploymentExecutionOnPage(
+                  executionContextRef.current.deploymentId,
+                  formData
+                );
               }
             }}
           />

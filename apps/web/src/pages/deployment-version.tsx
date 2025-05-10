@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
-import type { WorkflowDeploymentVersion, Node as BackendNode, Parameter as BackendParameter } from "@dafthunk/types";
+import type { WorkflowDeploymentVersion } from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
@@ -13,7 +13,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   WorkflowNodeType,
   WorkflowEdgeType,
-  WorkflowParameter} from "@/components/workflow/workflow-types.tsx";
+} from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
@@ -22,8 +22,14 @@ import {
   useDeploymentVersion,
   useWorkflowDetails,
 } from "@/hooks/use-fetch";
-import { ExecutionFormDialog, type DialogFormParameter } from "@/components/workflow/execution-form-dialog";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
+import {
+  ExecutionFormDialog,
+  type DialogFormParameter,
+} from "@/components/workflow/execution-form-dialog";
+import {
+  extractDialogParametersFromNodes,
+  adaptDeploymentNodesToReactFlowNodes,
+} from "@/utils/utils";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -32,7 +38,9 @@ export function DeploymentVersionPage() {
 
   // State for execution dialog
   const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
+    []
+  );
   const executionContextRef = useRef<{ deploymentId: string } | null>(null);
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
@@ -50,37 +58,6 @@ export function DeploymentVersionPage() {
   // Use the new hook for Workflow Details
   const { workflowDetails, workflowDetailsError, isWorkflowDetailsLoading } =
     useWorkflowDetails(deploymentVersion?.workflowId);
-
-  // Adapter function to convert BackendNode to ReactFlowNode for the utility function
-  const adaptDeploymentNodesToReactFlowNodes = useCallback(
-    (backendNodes: BackendNode[]): Node<WorkflowNodeType>[] => {
-      return (backendNodes || []).map(depNode => {
-        const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map((param: BackendParameter) => {
-          return {
-            id: param.name,
-            name: param.name,
-            type: param.type,
-            value: (param as any).value,
-            description: param.description,
-            hidden: param.hidden,
-            required: param.required,
-          };
-        });
-
-        return {
-          id: depNode.id,
-          type: 'workflowNode',
-          position: depNode.position || { x: 0, y: 0 },
-          data: {
-            nodeType: depNode.type,
-            name: depNode.name,
-            inputs: adaptedInputs,
-            outputs: [],
-            executionState: 'idle',
-          },
-        } as Node<WorkflowNodeType>;
-      });
-    }, []);
 
   // Update breadcrumbs when both workflow and deployment are available
   useEffect(() => {
@@ -163,10 +140,25 @@ export function DeploymentVersionPage() {
     }
   }, [deploymentVersion, transformDeploymentToReactFlow]);
 
+  useEffect(() => {
+    if (!deploymentVersion) return;
+    try {
+      const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
+        deploymentVersion.nodes
+      );
+      setNodes(adaptedNodes);
+    } catch (error) {
+      console.error("Error adapting nodes:", error);
+    }
+  }, [deploymentVersion]);
+
   const validateConnection = useCallback(() => false, []);
 
   // Renamed original executeDeployment to this, to be called by dialog or directly
-  const performActualDeploymentExecution = async (execDeploymentId: string, requestBody?: Record<string, any>) => {
+  const performActualDeploymentExecution = async (
+    execDeploymentId: string,
+    requestBody?: Record<string, any>
+  ) => {
     if (!execDeploymentId) return;
     toast.info("Initiating deployment execution...");
     try {
@@ -175,8 +167,14 @@ export function DeploymentVersionPage() {
         {
           method: "POST",
           credentials: "include",
-          headers: requestBody && Object.keys(requestBody).length > 0 ? { "Content-Type": "application/json" } : {},
-          body: requestBody && Object.keys(requestBody).length > 0 ? JSON.stringify(requestBody) : undefined,
+          headers:
+            requestBody && Object.keys(requestBody).length > 0
+              ? { "Content-Type": "application/json" }
+              : {},
+          body:
+            requestBody && Object.keys(requestBody).length > 0
+              ? JSON.stringify(requestBody)
+              : undefined,
         }
       );
       if (!response.ok) {
@@ -191,7 +189,9 @@ export function DeploymentVersionPage() {
       // For a deployed version execution, we might want to navigate to an executions page or show more detailed feedback.
       // For now, just a success toast.
       const executionResult = await response.json();
-      toast.success(`Deployment execution started successfully. Execution ID: ${executionResult.id}`);
+      toast.success(
+        `Deployment execution started successfully. Execution ID: ${executionResult.id}`
+      );
       // Optionally, navigate: navigate(`/workflows/executions/${executionResult.id}`);
     } catch (error) {
       console.error("Error executing deployment:", error);
@@ -211,8 +211,13 @@ export function DeploymentVersionPage() {
 
     // Use the adapter and utility function
     const currentTemplates = nodeTemplates || [];
-    const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(deploymentVersion.nodes);
-    const httpParameterNodes = extractDialogParametersFromNodes(adaptedNodes, currentTemplates);
+    const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
+      deploymentVersion.nodes
+    );
+    const httpParameterNodes = extractDialogParametersFromNodes(
+      adaptedNodes,
+      currentTemplates
+    );
 
     if (httpParameterNodes.length > 0) {
       setFormParameters(httpParameterNodes);
@@ -221,7 +226,12 @@ export function DeploymentVersionPage() {
     } else {
       performActualDeploymentExecution(deploymentVersion.id, {});
     }
-  }, [deploymentVersion, nodeTemplates, performActualDeploymentExecution, adaptDeploymentNodesToReactFlowNodes]);
+  }, [
+    deploymentVersion,
+    nodeTemplates,
+    performActualDeploymentExecution,
+    adaptDeploymentNodesToReactFlowNodes,
+  ]);
 
   if (
     isDeploymentVersionLoading ||
@@ -261,7 +271,14 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
-              <Button onClick={handleExecuteDeploymentClick} disabled={!deploymentId || !deploymentVersion?.nodes || isNodeTemplatesLoading}>
+              <Button
+                onClick={handleExecuteDeploymentClick}
+                disabled={
+                  !deploymentId ||
+                  !deploymentVersion?.nodes ||
+                  isNodeTemplatesLoading
+                }
+              >
                 <Play className="mr-2 h-4 w-4" />
                 Execute Version
               </Button>
@@ -339,7 +356,10 @@ export function DeploymentVersionPage() {
           onSubmit={(formData) => {
             setShowExecutionForm(false);
             if (executionContextRef.current) {
-              performActualDeploymentExecution(executionContextRef.current.deploymentId, formData);
+              performActualDeploymentExecution(
+                executionContextRef.current.deploymentId,
+                formData
+              );
             }
           }}
         />

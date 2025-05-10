@@ -74,31 +74,40 @@ export function ExecutionFormDialog({
   } = useForm<Record<string, any>>({
     resolver: zodResolver(validationSchema),
     mode: "onChange", // Validate on change to enable/disable submit button
-    defaultValues: parameters.reduce((acc, param) => {
-      acc[param.nameForForm] = ""; // Initialize with empty strings
-      return acc;
-    }, {} as Record<string, any>),
+    defaultValues: parameters.reduce(
+      (acc, param) => {
+        acc[param.nameForForm] = ""; // Initialize with empty strings
+        return acc;
+      },
+      {} as Record<string, any>
+    ),
   });
 
   // Reset form when dialog opens or parameters change
   useEffect(() => {
     if (isOpen) {
-      const defaultValues = parameters.reduce((acc, param) => {
-        acc[param.nameForForm] = "";
-        return acc;
-      }, {} as Record<string, any>);
+      const defaultValues = parameters.reduce(
+        (acc, param) => {
+          acc[param.nameForForm] = "";
+          return acc;
+        },
+        {} as Record<string, any>
+      );
       reset(defaultValues);
     }
   }, [isOpen, parameters, reset]);
 
   const processSubmit: SubmitHandler<Record<string, any>> = (data) => {
     // Filter out undefined values before submitting
-    const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as Record<string, any>);
+    const filteredData = Object.entries(data).reduce(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, any>
+    );
     onSubmit(filteredData);
     onClose(); // Close dialog after submission
   };
@@ -136,7 +145,7 @@ export function ExecutionFormDialog({
                     />
                   )}
                 />
-                 <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   (Node: "{param.nodeName}", Field: "{param.nameForForm}")
                 </p>
                 {errors[param.nameForForm] && (
