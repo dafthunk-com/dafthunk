@@ -136,6 +136,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
         await generateExecutionOgImage({
           env: c.env,
           executionId: executionId,
+          organizationId: user.organizationId,
         });
 
         await db

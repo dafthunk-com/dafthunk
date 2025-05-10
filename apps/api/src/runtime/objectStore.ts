@@ -29,21 +29,41 @@ export class ObjectStore {
     organizationId: string,
     executionId?: string
   ): Promise<ObjectReference> {
+    const id = uuid();
+    return this.writeObjectWithId(
+      id,
+      data,
+      mimeType,
+      organizationId,
+      executionId
+    );
+  }
+
+  /**
+   * Write a binary object to storage and return a reference
+   */
+  async writeObjectWithId(
+    id: string,
+    data: Uint8Array,
+    mimeType: string,
+    organizationId: string,
+    executionId?: string
+  ): Promise<ObjectReference> {
     try {
       console.log(
-        `ObjectStore.write: Starting to write object of type ${mimeType}, size: ${data.length} bytes for organization ${organizationId}${executionId ? `, execution ${executionId}` : ""}`
+        `ObjectStore.writeObjectWithId: Starting to write object with id ${id}`
       );
 
       if (!this.bucket) {
-        console.error("ObjectStore.write: R2 bucket is not initialized");
+        console.error(
+          "ObjectStore.writeObjectWithId: R2 bucket is not initialized"
+        );
         throw new Error("R2 bucket is not initialized");
       }
 
-      const id = uuid();
       const key = `objects/${id}/object.data`;
-
       console.log(
-        `ObjectStore.write: Attempting to store object with key ${key}`
+        `ObjectStore.writeObjectWithId: Attempting to store object with key ${key}`
       );
 
       const customMetadataForR2: { [key: string]: string } = {
@@ -65,7 +85,7 @@ export class ObjectStore {
       });
 
       console.log(
-        `ObjectStore.write: Successfully stored object ${id}, etag: ${writeResult?.etag || "unknown"}`
+        `ObjectStore.writeObjectWithId: Successfully stored object ${id}, etag: ${writeResult?.etag || "unknown"}`
       );
 
       return {
@@ -73,7 +93,10 @@ export class ObjectStore {
         mimeType: mimeType,
       };
     } catch (error) {
-      console.error("ObjectStore.write: Failed to write object to R2:", error);
+      console.error(
+        "ObjectStore.writeObjectWithId: Failed to write object to R2:",
+        error
+      );
       throw error;
     }
   }

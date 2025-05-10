@@ -1,5 +1,6 @@
 import puppeteer from "@cloudflare/puppeteer";
 import { type Bindings } from "../context"; // To get R2Bucket and Fetcher types if needed
+import { ObjectStore } from "../runtime/objectStore";
 
 const OG_IMAGE_WIDTH = 1200;
 const OG_IMAGE_HEIGHT = 630;
@@ -7,6 +8,7 @@ const OG_IMAGE_HEIGHT = 630;
 interface OgImageGeneratorParams {
   env: Pick<Bindings, "BROWSER" | "WEB_HOST" | "BUCKET">;
   executionId: string;
+  organizationId: string;
   sharedExecutionPath?: string; // e.g., "/share/executions/"
 }
 
@@ -17,6 +19,7 @@ interface OgImageGeneratorParams {
 export async function generateExecutionOgImage({
   env,
   executionId,
+  organizationId,
   sharedExecutionPath = "/share/executions/", // Default path
 }: OgImageGeneratorParams): Promise<string> {
   let browser = null;
@@ -40,15 +43,26 @@ export async function generateExecutionOgImage({
       type: "jpeg",
       quality: 80,
     });
-    const r2Key = `og-images/${executionId}.jpg`;
 
-    console.log(`[ogImageGenerator] Saving OG Image to R2 with key: ${r2Key}`);
-    await env.BUCKET.put(r2Key, screenshotBuffer, {
-      httpMetadata: { contentType: "image/jpeg" },
-    });
-    console.log("[ogImageGenerator] OG Image saved successfully.");
+    const objectStore = new ObjectStore(env.BUCKET);
+    const mimeType = "image/jpeg";
 
-    return r2Key;
+    console.log(
+      `[ogImageGenerator] Saving OG Image to R2 via ObjectStore for execution: ${executionId}`
+    );
+    const referenceId = `og-execution-${executionId}`;
+    const objectReference = await objectStore.writeObjectWithId(
+      referenceId,
+      screenshotBuffer,
+      mimeType,
+      organizationId,
+      executionId
+    );
+    console.log(
+      `[ogImageGenerator] OG Image saved successfully. Object ID: ${objectReference.id}`
+    );
+
+    return objectReference.id;
   } catch (error) {
     console.error(
       `[ogImageGenerator] Error during OG image generation for ${executionId}: ${error}`

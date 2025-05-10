@@ -105,7 +105,7 @@ export function SharedExecutionPage() {
     }, [execution]);
 
   const ogImageUrl = executionId
-    ? `${API_BASE_URL}/objects?id=og-images/${executionId}.jpg&mimeType=image/jpeg`
+    ? `${API_BASE_URL}/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
     : "";
   const pageUrl = executionId
     ? `${window.location.origin}/shared/executions/${executionId}`
