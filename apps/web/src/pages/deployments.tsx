@@ -163,7 +163,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
   },
 ];
 
-export function DeploymentListPage() {
+export function DeploymentsPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
