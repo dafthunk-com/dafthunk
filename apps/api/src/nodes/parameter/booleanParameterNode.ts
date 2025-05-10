@@ -79,22 +79,34 @@ export class BooleanParameterNode extends ExecutableNode {
 
       // Parse the value as a boolean
       let boolValue: boolean;
-      
+
       if (typeof rawValue === "boolean") {
         boolValue = rawValue;
       } else if (typeof rawValue === "string") {
         const lowercaseValue = rawValue.toLowerCase().trim();
-        if (lowercaseValue === "true" || lowercaseValue === "1" || lowercaseValue === "yes") {
+        if (
+          lowercaseValue === "true" ||
+          lowercaseValue === "1" ||
+          lowercaseValue === "yes"
+        ) {
           boolValue = true;
-        } else if (lowercaseValue === "false" || lowercaseValue === "0" || lowercaseValue === "no") {
+        } else if (
+          lowercaseValue === "false" ||
+          lowercaseValue === "0" ||
+          lowercaseValue === "no"
+        ) {
           boolValue = false;
         } else {
-          throw new Error(`Form field "${formFieldName}" must be a valid boolean value (true/false, 1/0, yes/no)`);
+          throw new Error(
+            `Form field "${formFieldName}" must be a valid boolean value (true/false, 1/0, yes/no)`
+          );
         }
       } else if (typeof rawValue === "number") {
         boolValue = rawValue !== 0;
       } else {
-        throw new Error(`Form field "${formFieldName}" must be a valid boolean value`);
+        throw new Error(
+          `Form field "${formFieldName}" must be a valid boolean value`
+        );
       }
 
       return this.createSuccessResult({
@@ -106,4 +118,4 @@ export class BooleanParameterNode extends ExecutableNode {
       );
     }
   }
-} 
+}

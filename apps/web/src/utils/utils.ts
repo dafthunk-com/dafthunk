@@ -36,14 +36,33 @@ export function extractDialogParametersFromNodes(
   return nodes
     .filter(
       (node) =>
+        // Include parameter.json nodes and other parameter nodes
         node.data.nodeType?.startsWith("parameter.") &&
-        node.data.inputs?.some((inp) => inp.id === "formFieldName")
+        (node.data.nodeType === "parameter.json" ||
+          node.data.inputs?.some((inp) => inp.id === "formFieldName"))
     )
     .map((node) => {
+      const requiredInput = node.data.inputs.find((i) => i.id === "required");
+      const isRequired = (requiredInput?.value as boolean) ?? true;
+
+      // Special handling for JSON body node which doesn't use formFieldName
+      if (node.data.nodeType === "parameter.json") {
+        const nodeInstanceName = node.data.name || "JSON Body";
+
+        return {
+          nodeId: node.id,
+          nameForForm: "__jsonBody__", // Special name that will be used to identify this as the request body
+          label: nodeInstanceName, // Use the node name as label
+          nodeName: node.data.name || "JSON Body",
+          isRequired: isRequired,
+          type: "parameter.json",
+        } as DialogFormParameter;
+      }
+
+      // Original logic for other parameter types
       const formFieldNameInput = node.data.inputs.find(
         (i) => i.id === "formFieldName"
       );
-      const requiredInput = node.data.inputs.find((i) => i.id === "required");
 
       const nameForFormField = formFieldNameInput?.value as string;
       if (!nameForFormField) {
@@ -75,7 +94,7 @@ export function extractDialogParametersFromNodes(
         nameForForm: nameForFormField,
         label: labelText, // This is used for the Label and placeholder derivation
         nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
-        isRequired: (requiredInput?.value as boolean) ?? true,
+        isRequired: isRequired,
         type: node.data.nodeType || "unknown.parameter",
       } as DialogFormParameter;
     })

@@ -60,6 +60,7 @@ export function useWorkflowExecutor(
   const executionContextRef = useRef<{
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
+    jsonBodyNode?: Node<WorkflowNodeType>;
   } | null>(null);
 
   const activeExecutionCleanupRef = useRef<(() => void) | null>(null);
@@ -240,20 +241,44 @@ export function useWorkflowExecutor(
         return undefined;
       }
 
+      // Check for parameter.json nodes
+      const jsonBodyNode = uiNodes.find(
+        (node) => node.data.nodeType === "parameter.json"
+      );
+
+      // Check if JSON body is required
+      const isJsonBodyRequired = jsonBodyNode
+        ? ((jsonBodyNode.data.inputs.find((input) => input.id === "required")
+            ?.value ?? true) as boolean)
+        : false;
+
+      // Extract regular form parameters (non-JSON)
       const httpParameterNodes = extractDialogParametersFromNodes(
         uiNodes,
         nodeTemplatesData
       );
 
       if (httpParameterNodes.length > 0) {
+        // If we have form parameters, show the form
         setFormParameters(httpParameterNodes);
         setIsExecutionFormVisible(true);
         executionContextRef.current = {
           id,
           onExecution,
+          // Store the JSON body node if it exists
+          jsonBodyNode: jsonBodyNode,
         };
         return undefined;
+      } else if (jsonBodyNode) {
+        // No form parameters but we have a JSON body node
+
+        // Always include a non-empty JSON object when JSON body is required
+        // This avoids the "JSON body is required but not provided" error
+        const defaultJsonBody = isJsonBodyRequired ? { data: {} } : {};
+
+        return performExecutionAndPoll(id, onExecution, defaultJsonBody);
       } else {
+        // No parameters at all
         return performExecutionAndPoll(id, onExecution);
       }
     },
@@ -264,8 +289,38 @@ export function useWorkflowExecutor(
     (formData: Record<string, any>) => {
       setIsExecutionFormVisible(false);
       if (executionContextRef.current) {
-        const { id, onExecution } = executionContextRef.current;
-        performExecutionAndPoll(id, onExecution, formData);
+        const { id, onExecution, jsonBodyNode } = executionContextRef.current;
+
+        // Check if we have the special JSON body parameter
+        if ("__jsonBody__" in formData && jsonBodyNode) {
+          // Extract the JSON body from the form data
+          const jsonBody = formData.__jsonBody__;
+
+          // Remove the special field so we only keep regular form parameters
+          const { __jsonBody__, ...regularFormData } = formData;
+
+          // If we have a valid JSON body, use it as the request body
+          // Otherwise, use the regular form data
+          if (jsonBody && typeof jsonBody === "object") {
+            // Use the JSON itself as the request body
+            performExecutionAndPoll(id, onExecution, jsonBody);
+          } else if (Object.keys(regularFormData).length > 0) {
+            // Fall back to form data if we have other parameters
+            performExecutionAndPoll(id, onExecution, regularFormData);
+          } else {
+            // If the JSON body is required but no valid JSON was provided,
+            // use an empty object to avoid "JSON body is required but not provided" errors
+            const isJsonBodyRequired = (jsonBodyNode.data.inputs.find(
+              (input) => input.id === "required"
+            )?.value ?? true) as boolean;
+
+            const defaultBody = isJsonBodyRequired ? { data: {} } : {};
+            performExecutionAndPoll(id, onExecution, defaultBody);
+          }
+        } else {
+          // No JSON body parameter, use form data as usual
+          performExecutionAndPoll(id, onExecution, formData);
+        }
       }
       executionContextRef.current = null;
     },

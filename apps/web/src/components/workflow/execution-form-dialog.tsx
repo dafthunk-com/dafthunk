@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useEffect, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 
 // Describes the structure of parameters passed to the dialog
 export type DialogFormParameter = {
@@ -31,6 +32,17 @@ type ExecutionFormDialogProps = {
   onClose: () => void;
   onSubmit: (formData: Record<string, any>) => void;
   parameters: DialogFormParameter[];
+};
+
+// Validates if a string is valid JSON
+const isValidJson = (str: string) => {
+  if (!str.trim()) return false;
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (_error) {
+    return false;
+  }
 };
 
 // Dynamically builds a Zod validation schema based on the parameters
@@ -86,6 +98,29 @@ const createValidationSchema = (parameters: DialogFormParameter[]) => {
       } else {
         schemaShape[param.nameForForm] = z.boolean().optional();
       }
+    } else if (param.type.startsWith("parameter.json")) {
+      // JSON parameter validation
+      let validator: z.ZodTypeAny;
+
+      if (param.isRequired) {
+        validator = z
+          .string()
+          .min(1, { message: `${param.label} is required.` })
+          .refine(isValidJson, {
+            message: "Please enter valid JSON",
+          })
+          .transform((val) => JSON.parse(val));
+      } else {
+        validator = z
+          .string()
+          .optional()
+          .transform((val) => {
+            if (!val || val.trim() === "") return undefined;
+            if (!isValidJson(val)) return undefined;
+            return JSON.parse(val);
+          });
+      }
+      schemaShape[param.nameForForm] = validator;
     }
   });
   return z.object(schemaShape);
@@ -118,6 +153,8 @@ export function ExecutionFormDialog({
         // Set appropriate default values based on parameter type
         if (param.type.startsWith("parameter.boolean")) {
           acc[param.nameForForm] = false;
+        } else if (param.type.startsWith("parameter.json")) {
+          acc[param.nameForForm] = ""; // Empty string for JSON
         } else if (param.type.startsWith("parameter.number")) {
           acc[param.nameForForm] = ""; // Empty string for number inputs
         } else {
@@ -137,6 +174,8 @@ export function ExecutionFormDialog({
           // Set appropriate default values based on parameter type
           if (param.type.startsWith("parameter.boolean")) {
             acc[param.nameForForm] = false;
+          } else if (param.type.startsWith("parameter.json")) {
+            acc[param.nameForForm] = "";
           } else if (param.type.startsWith("parameter.number")) {
             acc[param.nameForForm] = "";
           } else {
@@ -223,6 +262,22 @@ export function ExecutionFormDialog({
                           placeholder={`Enter ${param.label.toLowerCase()}`}
                           className="w-full"
                         />
+                      );
+                    } else if (param.type.startsWith("parameter.json")) {
+                      return (
+                        <div>
+                          <Textarea
+                            id={param.nameForForm}
+                            {...field}
+                            placeholder={`Enter valid JSON, e.g., {"key": "value"}`}
+                            className="w-full font-mono text-sm h-32 resize-y"
+                          />
+                          {!param.isRequired && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Leave empty for no JSON body
+                            </p>
+                          )}
+                        </div>
                       );
                     } else {
                       // Default string input
