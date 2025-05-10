@@ -24,6 +24,7 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import { Eye, EyeOff } from "lucide-react";
 import { Share2 } from "lucide-react";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -227,22 +228,24 @@ export function ExecutionDetailPage() {
                     </Link>
                   </Button>
                 )}
-                <Button
+                <LoadingButton
                   variant="outline"
                   size="sm"
                   onClick={handleToggleVisibility}
-                  disabled={isVisibilityUpdating}
                   className="ml-0"
+                  isLoading={isVisibilityUpdating}
+                  icon={
+                    execution.visibility === "public" ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )
+                  }
                 >
-                  {execution.visibility === "public" ? (
-                    <EyeOff className="mr-1 h-4 w-4" />
-                  ) : (
-                    <Eye className="mr-1 h-4 w-4" />
-                  )}
                   {execution.visibility === "public"
                     ? "Make Private"
                     : "Make Public"}
-                </Button>
+                </LoadingButton>
               </div>
             )}
           </div>
