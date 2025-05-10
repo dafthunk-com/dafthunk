@@ -92,9 +92,6 @@ export function DashboardPage() {
             <p className="text-xs text-muted-foreground pt-1">
               Active deployments
             </p>
-            <div className="text-xs text-muted-foreground mt-1">
-              Latest version: v{dashboardStats.deployments > 0 ? 3 : 0}
-            </div>
             <Button
               variant="outline"
               size="sm"

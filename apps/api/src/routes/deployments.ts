@@ -17,10 +17,56 @@ import {
   getDeploymentsByWorkflowId,
   getLatestVersionNumberByWorkflowId,
   saveExecution,
+  verifyApiToken,
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
+import { Context } from "hono";
 
-const deploymentRoutes = new Hono<ApiContext>();
+// Extend the ApiContext with our custom variable
+type ExtendedApiContext = ApiContext & {
+  Variables: {
+    jwtPayload?: CustomJWTPayload;
+    organizationId?: string;
+  };
+};
+
+const deploymentRoutes = new Hono<ExtendedApiContext>();
+
+// API key authentication middleware
+const apiKeyAuth = async (c: Context<ExtendedApiContext>, next: () => Promise<void>) => {
+  const authHeader = c.req.header("Authorization");
+  
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return c.json({ error: "API key is required" }, 401);
+  }
+  
+  const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
+  const db = createDatabase(c.env.DB);
+  
+  const organizationId = await verifyApiToken(db, apiKey);
+  
+  if (!organizationId) {
+    return c.json({ error: "Invalid API key" }, 401);
+  }
+  
+  // Store the organization ID in the context for later use
+  c.set("organizationId", organizationId);
+  
+  await next();
+};
+
+// Middleware that allows either JWT or API key authentication
+const authMiddleware = async (c: Context<ExtendedApiContext>, next: () => Promise<void>) => {
+  const authHeader = c.req.header("Authorization");
+  
+  // If Authorization header is present, try API key auth
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return apiKeyAuth(c, next);
+  }
+  
+  // Otherwise, use JWT auth
+  return jwtAuth(c, next);
+};
 
 /**
  * GET /deployments
@@ -219,12 +265,31 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
 /**
  * POST /deployments/version/:deploymentUUID/execute
  * Executes a specific deployment version
+ * Supports both JWT and API key authentication
  */
 deploymentRoutes.post(
   "/version/:deploymentUUID/execute",
-  jwtAuth,
+  authMiddleware,
   async (c) => {
-    const user = c.get("jwtPayload") as CustomJWTPayload;
+    // Get organization ID from either JWT or API key auth
+    let organizationId: string;
+    let userId: string;
+    
+    const jwtPayload = c.get("jwtPayload");
+    if (jwtPayload) {
+      // Authentication was via JWT
+      organizationId = jwtPayload.organizationId;
+      userId = jwtPayload.sub;
+    } else {
+      // Authentication was via API key
+      const orgId = c.get("organizationId");
+      if (!orgId) {
+        return c.json({ error: "Organization ID not found" }, 500);
+      }
+      organizationId = orgId;
+      userId = "api"; // Use a placeholder for API-triggered executions
+    }
+    
     const deploymentUUID = c.req.param("deploymentUUID");
     const db = createDatabase(c.env.DB);
 
@@ -235,7 +300,7 @@ deploymentRoutes.post(
     const deployment = await getDeploymentById(
       db,
       deploymentUUID,
-      user.organizationId
+      organizationId
     );
 
     if (!deployment) {
@@ -259,8 +324,8 @@ deploymentRoutes.post(
     // Trigger the runtime and get the instance id
     const instance = await c.env.EXECUTE.create({
       params: {
-        userId: user.sub,
-        organizationId: user.organizationId,
+        userId,
+        organizationId,
         workflow: {
           id: deployment.workflowId || "",
           name: workflowData.name,
@@ -289,8 +354,8 @@ deploymentRoutes.post(
       id: executionId,
       workflowId: deployment.workflowId || "",
       deploymentId: deployment.id,
-      userId: user.sub,
-      organizationId: user.organizationId,
+      userId,
+      organizationId,
       status: "executing",
       visibility: "private",
       nodeExecutions,

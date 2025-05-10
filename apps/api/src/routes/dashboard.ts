@@ -33,7 +33,7 @@ dashboard.get("/", jwtAuth, async (c) => {
   const executions: Execution[] = await listExecutions(
     db,
     user.organizationId,
-    { limit: 100 }
+    { limit: 10 }
   ); // limit for perf
   const totalExecutions = executions.length;
   const runningExecutions = executions.filter(
@@ -57,8 +57,8 @@ dashboard.get("/", jwtAuth, async (c) => {
         )
       : 0;
 
-  // Recent executions (last 3)
-  const recentExecutions = executions.slice(0, 3).map((e: Execution) => ({
+  // Recent executions (last 10)
+  const recentExecutions = executions.slice(0, 10).map((e: Execution) => ({
     id: e.id,
     workflowName: workflows.find((w) => w.id === e.workflowId)?.name || "",
     status: e.status,
