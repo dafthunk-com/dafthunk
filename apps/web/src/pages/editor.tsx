@@ -92,7 +92,8 @@ export function EditorPage() {
     submitExecutionForm,
     closeExecutionForm,
   } = useWorkflowExecutor({
-    executeUrlFn: (workflowId) => `${API_BASE_URL}/workflows/${workflowId}/execute`
+    executeUrlFn: (workflowId) =>
+      `${API_BASE_URL}/workflows/${workflowId}/execute`,
   });
 
   usePageBreadcrumbs(

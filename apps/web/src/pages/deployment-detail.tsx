@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
@@ -40,14 +40,11 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
 import { useDeploymentHistory, useNodeTemplates } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
-import {
-  ExecutionFormDialog,
-  type DialogFormParameter,
-} from "@/components/workflow/execution-form-dialog";
-import {
-  extractDialogParametersFromNodes,
-  adaptDeploymentNodesToReactFlowNodes,
-} from "@/utils/utils";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
+import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
+
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
   try {
@@ -154,18 +151,24 @@ export function DeploymentDetailPage() {
   const { workflowId } = useParams<{ workflowId: string }>();
   const navigate = useNavigate();
 
-  const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
-    []
-  );
-  const executionContextRef = useRef<{ deploymentId: string } | null>(null);
-
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { nodeTemplates } = useNodeTemplates();
 
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
+
+  // Configure the workflow executor with the deployment execution URL
+  const {
+    executeWorkflow,
+    isExecutionFormVisible,
+    executionFormParameters,
+    submitExecutionForm,
+    closeExecutionForm,
+  } = useWorkflowExecutor({
+    executeUrlFn: (deploymentId) =>
+      `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
+  });
 
   const {
     deploymentHistory,
@@ -230,78 +233,35 @@ export function DeploymentDetailPage() {
     }
   };
 
-  const performActualDeploymentExecutionOnPage = async (
-    deploymentId: string,
-    requestBody?: Record<string, any>
-  ) => {
-    if (!deploymentId) return;
-    toast.info("Initiating deployment execution...");
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers:
-            requestBody && Object.keys(requestBody).length > 0
-              ? { "Content-Type": "application/json" }
-              : {},
-          body:
-            requestBody && Object.keys(requestBody).length > 0
-              ? JSON.stringify(requestBody)
-              : undefined,
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`
-        );
-      }
-      const executionResult = await response.json();
-      toast.success(
-        `Deployment execution started successfully. Execution ID: ${executionResult.id}`
-      );
-    } catch (error) {
-      console.error("Error executing deployment:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to execute deployment. Please try again."
-      );
+  // Handle execution result to show toast notifications
+  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
+    if (execution.status === "completed") {
+      toast.success("Deployment execution completed successfully");
+    } else if (execution.status === "error") {
+      toast.error(`Execution error: ${execution.error || "Unknown error"}`);
     }
-  };
+  }, []);
 
   const handleGenericExecute = useCallback(
     (deploymentId: string, backendDeploymentNodes: BackendNode[]) => {
       if (!backendDeploymentNodes) {
         toast.error("Deployment nodes not available for parameter checking.");
-        performActualDeploymentExecutionOnPage(deploymentId, {});
         return;
       }
-      const currentTemplates = nodeTemplates || [];
+
+      toast.info("Preparing deployment execution...");
       const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
         backendDeploymentNodes
       );
-      const httpParameterNodes = extractDialogParametersFromNodes(
-        adaptedNodes,
-        currentTemplates
-      );
 
-      if (httpParameterNodes.length > 0) {
-        setFormParameters(httpParameterNodes);
-        executionContextRef.current = { deploymentId };
-        setShowExecutionForm(true);
-      } else {
-        performActualDeploymentExecutionOnPage(deploymentId, {});
-      }
+      executeWorkflow(
+        deploymentId,
+        handleExecutionUpdate,
+        adaptedNodes,
+        nodeTemplates || []
+      );
     },
-    [
-      nodeTemplates,
-      performActualDeploymentExecutionOnPage,
-      adaptDeploymentNodesToReactFlowNodes,
-    ]
+    [nodeTemplates, executeWorkflow, handleExecutionUpdate]
   );
 
   const executeLatestVersion = async () => {
@@ -459,20 +419,12 @@ export function DeploymentDetailPage() {
       </Dialog>
 
       {/* Execution Parameters Dialog */}
-      {showExecutionForm && (
+      {isExecutionFormVisible && (
         <ExecutionFormDialog
-          isOpen={showExecutionForm}
-          onClose={() => setShowExecutionForm(false)}
-          parameters={formParameters}
-          onSubmit={(formData) => {
-            setShowExecutionForm(false);
-            if (executionContextRef.current) {
-              performActualDeploymentExecutionOnPage(
-                executionContextRef.current.deploymentId,
-                formData
-              );
-            }
-          }}
+          isOpen={isExecutionFormVisible}
+          onClose={closeExecutionForm}
+          parameters={executionFormParameters}
+          onSubmit={submitExecutionForm}
         />
       )}
     </InsetLayout>

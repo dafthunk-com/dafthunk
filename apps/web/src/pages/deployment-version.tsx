@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   WorkflowNodeType,
   WorkflowEdgeType,
+  WorkflowExecution,
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
@@ -22,28 +23,28 @@ import {
   useDeploymentVersion,
   useWorkflowDetails,
 } from "@/hooks/use-fetch";
-import {
-  ExecutionFormDialog,
-  type DialogFormParameter,
-} from "@/components/workflow/execution-form-dialog";
-import {
-  extractDialogParametersFromNodes,
-  adaptDeploymentNodesToReactFlowNodes,
-} from "@/utils/utils";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
 
-  // State for execution dialog
-  const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
-    []
-  );
-  const executionContextRef = useRef<{ deploymentId: string } | null>(null);
-
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
+  // Configure the workflow executor with the deployment execution URL
+  const {
+    executeWorkflow,
+    isExecutionFormVisible,
+    executionFormParameters,
+    submitExecutionForm,
+    closeExecutionForm,
+  } = useWorkflowExecutor({
+    executeUrlFn: (deploymentId) =>
+      `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
+  });
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
     useNodeTemplates();
@@ -154,83 +155,40 @@ export function DeploymentVersionPage() {
 
   const validateConnection = useCallback(() => false, []);
 
-  // Renamed original executeDeployment to this, to be called by dialog or directly
-  const performActualDeploymentExecution = async (
-    execDeploymentId: string,
-    requestBody?: Record<string, any>
-  ) => {
-    if (!execDeploymentId) return;
-    toast.info("Initiating deployment execution...");
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/deployments/version/${execDeploymentId}/execute`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers:
-            requestBody && Object.keys(requestBody).length > 0
-              ? { "Content-Type": "application/json" }
-              : {},
-          body:
-            requestBody && Object.keys(requestBody).length > 0
-              ? JSON.stringify(requestBody)
-              : undefined,
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Failed to execute deployment: ${response.statusText} (Status: ${response.status})`
-        );
-      }
-      // Assuming the response on 2xx is minimal or just a success indicator, not new execution data to process here.
-      // The backend /execute endpoint now returns the initial execution object (201).
-      // For a deployed version execution, we might want to navigate to an executions page or show more detailed feedback.
-      // For now, just a success toast.
-      const executionResult = await response.json();
-      toast.success(
-        `Deployment execution started successfully. Execution ID: ${executionResult.id}`
-      );
-      // Optionally, navigate: navigate(`/workflows/executions/${executionResult.id}`);
-    } catch (error) {
-      console.error("Error executing deployment:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to execute deployment. Please try again."
-      );
+  // Handle execution result to show toast notifications
+  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
+    if (execution.status === "completed") {
+      toast.success("Deployment execution completed successfully");
+    } else if (execution.status === "error") {
+      toast.error(`Execution error: ${execution.error || "Unknown error"}`);
     }
-  };
+  }, []);
 
-  const handleExecuteDeploymentClick = useCallback(async () => {
+  const handleExecuteDeploymentClick = useCallback(() => {
     if (!deploymentVersion || !deploymentVersion.nodes) {
       toast.error("Deployment data or nodes not available.");
       return;
     }
 
-    // Use the adapter and utility function
-    const currentTemplates = nodeTemplates || [];
+    toast.info("Preparing deployment execution...");
+
+    // Use the adapter to convert backend nodes to ReactFlow format
     const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
       deploymentVersion.nodes
     );
-    const httpParameterNodes = extractDialogParametersFromNodes(
-      adaptedNodes,
-      currentTemplates
-    );
 
-    if (httpParameterNodes.length > 0) {
-      setFormParameters(httpParameterNodes);
-      executionContextRef.current = { deploymentId: deploymentVersion.id };
-      setShowExecutionForm(true);
-    } else {
-      performActualDeploymentExecution(deploymentVersion.id, {});
-    }
+    // Execute the workflow using the hook
+    executeWorkflow(
+      deploymentVersion.id,
+      handleExecutionUpdate,
+      adaptedNodes,
+      nodeTemplates || []
+    );
   }, [
     deploymentVersion,
     nodeTemplates,
-    performActualDeploymentExecution,
-    adaptDeploymentNodesToReactFlowNodes,
+    executeWorkflow,
+    handleExecutionUpdate,
   ]);
 
   if (
@@ -348,20 +306,14 @@ export function DeploymentVersionPage() {
           <p className="text-lg">Deployment not found</p>
         </div>
       )}
-      {showExecutionForm && deploymentVersion && (
+
+      {/* Execution Parameters Dialog */}
+      {isExecutionFormVisible && (
         <ExecutionFormDialog
-          isOpen={showExecutionForm}
-          onClose={() => setShowExecutionForm(false)}
-          parameters={formParameters}
-          onSubmit={(formData) => {
-            setShowExecutionForm(false);
-            if (executionContextRef.current) {
-              performActualDeploymentExecution(
-                executionContextRef.current.deploymentId,
-                formData
-              );
-            }
-          }}
+          isOpen={isExecutionFormVisible}
+          onClose={closeExecutionForm}
+          parameters={executionFormParameters}
+          onSubmit={submitExecutionForm}
         />
       )}
     </InsetLayout>

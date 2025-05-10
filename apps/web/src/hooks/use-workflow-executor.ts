@@ -14,7 +14,7 @@ import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 /**
  * @interface UseWorkflowExecutorOptions
- * @property executeUrlFn - Required function that provides the execution URL. 
+ * @property executeUrlFn - Required function that provides the execution URL.
  *   This ensures explicit URL construction for all execution types.
  */
 export interface UseWorkflowExecutorOptions {
@@ -49,7 +49,9 @@ export interface UseWorkflowExecutorReturn {
  * Can be used for both workflow executions and deployment executions by providing the appropriate
  * execution URL function.
  */
-export function useWorkflowExecutor(options: UseWorkflowExecutorOptions): UseWorkflowExecutorReturn {
+export function useWorkflowExecutor(
+  options: UseWorkflowExecutorOptions
+): UseWorkflowExecutorReturn {
   const [isExecutionFormVisible, setIsExecutionFormVisible] = useState(false);
   const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
     []
@@ -68,10 +70,7 @@ export function useWorkflowExecutor(options: UseWorkflowExecutorOptions): UseWor
       onExecutionUpdate: (execution: WorkflowExecution) => void,
       requestBody?: Record<string, any>
     ): (() => void) => {
-      console.log(
-        `Starting execution for ID: ${id} with body:`,
-        requestBody
-      );
+      console.log(`Starting execution for ID: ${id} with body:`, requestBody);
 
       const requestOptions: RequestInit = {
         method: "POST",
@@ -95,9 +94,7 @@ export function useWorkflowExecutor(options: UseWorkflowExecutorOptions): UseWor
         if (pollingIntervalId) {
           clearInterval(pollingIntervalId);
         }
-        console.log(
-          `Client-side polling cleanup called for ID: ${id}.`
-        );
+        console.log(`Client-side polling cleanup called for ID: ${id}.`);
         activeExecutionCleanupRef.current = null;
       };
       activeExecutionCleanupRef.current = cleanup;
@@ -205,10 +202,7 @@ export function useWorkflowExecutor(options: UseWorkflowExecutorOptions): UseWor
         })
         .catch((error) => {
           if (cancelled) return;
-          console.error(
-            "Error starting or processing execution:",
-            error
-          );
+          console.error("Error starting or processing execution:", error);
           onExecutionUpdate({
             status: "error",
             nodeExecutions: [],

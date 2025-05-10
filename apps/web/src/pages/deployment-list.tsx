@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
@@ -47,14 +47,8 @@ import {
 } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 import { deploymentService } from "@/services/deploymentService";
-import {
-  ExecutionFormDialog,
-  type DialogFormParameter,
-} from "@/components/workflow/execution-form-dialog";
-import {
-  extractDialogParametersFromNodes,
-  adaptDeploymentNodesToReactFlowNodes,
-} from "@/utils/utils";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
 
@@ -197,8 +191,8 @@ export function DeploymentListPage() {
     submitExecutionForm,
     closeExecutionForm,
   } = useWorkflowExecutor({
-    executeUrlFn: (deploymentId) => 
-      `${API_BASE_URL}/deployments/version/${deploymentId}/execute`
+    executeUrlFn: (deploymentId) =>
+      `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
   });
 
   // Dialog state for workflow deployment
