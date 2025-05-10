@@ -285,6 +285,14 @@ export function EditorPage() {
       onExecution: (execution: WorkflowExecution) => void
     ) => {
       console.log(`Starting workflow execution for ID: ${workflowId}`);
+
+      // Check if there are nodes to execute
+      if (nodes.length === 0) {
+        toast.error("Cannot execute an empty workflow. Please add nodes.");
+        // Return a no-op cleanup function if execution is prevented
+        return () => {};
+      }
+
       fetch(
         `${API_BASE_URL}/workflows/${workflowId}/execute?monitorProgress=true`,
         {
@@ -415,7 +423,7 @@ export function EditorPage() {
           return () => {};
         });
     },
-    []
+    [nodes]
   );
 
   // We need to create a wrapper executeWorkflow function that maps @dafthunk/types to our local types

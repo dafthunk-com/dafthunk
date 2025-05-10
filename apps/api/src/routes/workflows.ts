@@ -203,6 +203,17 @@ workflowRoutes.get("/:id/execute", jwtAuth, async (c) => {
 
   const workflowData = workflow.data as WorkflowType;
 
+  // Validate if workflow has nodes
+  if (!workflowData.nodes || workflowData.nodes.length === 0) {
+    return c.json(
+      {
+        error:
+          "Cannot execute an empty workflow. Please add nodes to the workflow.",
+      },
+      400
+    );
+  }
+
   // Extract HTTP request information
   const headers = c.req.header();
   const params = { id };

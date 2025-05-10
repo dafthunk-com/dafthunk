@@ -33,9 +33,14 @@ const edgeTypes = {
 type ActionButtonProps = {
   onClick: (e: React.MouseEvent) => void;
   workflowStatus: WorkflowExecutionStatus;
+  disabled?: boolean;
 };
 
-function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
+function ActionButton({
+  onClick,
+  workflowStatus,
+  disabled,
+}: ActionButtonProps) {
   const statusConfig = {
     idle: {
       icon: <Play className="w-6 h-6" />,
@@ -75,9 +80,11 @@ function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
   return (
     <Button
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         "absolute top-4 right-28 z-50 rounded-full shadow-lg h-10 w-10 p-0",
-        config.className
+        config.className,
+        { "opacity-50 cursor-not-allowed": disabled }
       )}
       title={config.title}
     >
@@ -86,11 +93,21 @@ function ActionButton({ onClick, workflowStatus }: ActionButtonProps) {
   );
 }
 
-function DeployButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
+function DeployButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
   return (
     <Button
       onClick={onClick}
-      className="absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+      disabled={disabled}
+      className={cn(
+        "absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700 text-white",
+        { "opacity-50 cursor-not-allowed": disabled }
+      )}
       title="Deploy Workflow"
     >
       <ArrowUpToLine className="w-6 h-6" />
@@ -205,10 +222,16 @@ export function WorkflowCanvas({
       )}
 
       {onAction && !readonly && (
-        <ActionButton onClick={onAction} workflowStatus={workflowStatus} />
+        <ActionButton
+          onClick={onAction}
+          workflowStatus={workflowStatus}
+          disabled={nodes.length === 0}
+        />
       )}
 
-      {onDeploy && !readonly && <DeployButton onClick={onDeploy} />}
+      {onDeploy && !readonly && (
+        <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
+      )}
 
       {onToggleSidebar && isSidebarVisible !== undefined && (
         <SidebarToggle
