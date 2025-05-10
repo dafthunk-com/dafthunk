@@ -12,6 +12,7 @@ export interface WorkflowContextProps {
   updateNodeData?: UpdateNodeFn;
   updateEdgeData?: UpdateEdgeFn;
   readonly?: boolean;
+  expandedOutputs?: boolean;
 }
 
 // Create the context with a default value
@@ -29,6 +30,7 @@ export interface WorkflowProviderProps {
   readonly updateNodeData?: UpdateNodeFn;
   readonly updateEdgeData?: UpdateEdgeFn;
   readonly readonly?: boolean;
+  readonly expandedOutputs?: boolean;
 }
 
 export function WorkflowProvider({
@@ -36,11 +38,13 @@ export function WorkflowProvider({
   updateNodeData = () => {},
   updateEdgeData = () => {},
   readonly = false,
+  expandedOutputs = false,
 }: WorkflowProviderProps) {
   const workflowContextValue = {
     updateNodeData,
     updateEdgeData,
     readonly,
+    expandedOutputs,
   };
 
   return (

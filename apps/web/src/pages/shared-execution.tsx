@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { useNodeTemplates, usePublicExecutionDetails } from "@/hooks/use-fetch";
@@ -15,9 +15,12 @@ import { InsetError } from "@/components/inset-error";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { API_BASE_URL } from "@/config/api";
 import { MetaHead } from "@/components/meta-head";
+import { AppLayout } from "@/components/layouts/app-layout";
 
 export function SharedExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();
+  const [searchParams] = useSearchParams();
+  const fullscreen = searchParams.has("fullscreen");
 
   const {
     publicExecutionDetails: execution,
@@ -118,16 +121,26 @@ export function SharedExecutionPage() {
     : window.location.href;
 
   if (isLoadingExecution || isNodeTemplatesLoading) {
-    return <InsetLoading title="Execution" />;
+    return (
+      <div className="h-screen w-screen">
+        <InsetLoading />
+      </div>
+    );
   } else if (error) {
-    return <InsetError title="Execution" errorMessage={error.message} />;
+    return (
+      <AppLayout>
+        <InsetError title="Execution" errorMessage={error.message} />
+      </AppLayout>
+    );
   }
 
   if (!execution) {
-    return <InsetError title="Execution" errorMessage="Execution Not Found" />;
+    return (
+      <AppLayout>
+        <InsetError title="Execution" errorMessage="Execution Not Found" />
+      </AppLayout>
+    );
   }
-
-  console.log(execution);
 
   const metaTags = [
     { name: "description", content: pageDescription },
@@ -143,8 +156,21 @@ export function SharedExecutionPage() {
     { property: "twitter:image", content: ogImageUrl },
   ];
 
-  return (
-    <>
+  return fullscreen ? (
+    <div className="h-screen w-screen relative">
+      <WorkflowBuilder
+        workflowId={execution.workflowId || execution.id}
+        initialNodes={reactFlowNodes}
+        initialEdges={reactFlowEdges}
+        nodeTemplates={nodeTemplates}
+        validateConnection={() => false}
+        initialWorkflowExecution={workflowBuilderExecution || undefined}
+        readonly={true}
+        expandedOutputs={true}
+      />
+    </div>
+  ) : (
+    <AppLayout>
       <MetaHead title={pageTitle} tags={metaTags} />
       <InsetLayout
         title={pageTitle}
@@ -161,8 +187,9 @@ export function SharedExecutionPage() {
           validateConnection={() => false}
           initialWorkflowExecution={workflowBuilderExecution || undefined}
           readonly={true}
+          expandedOutputs={true}
         />
       </InsetLayout>
-    </>
+    </AppLayout>
   );
 }

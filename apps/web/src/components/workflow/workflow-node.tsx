@@ -135,7 +135,7 @@ export const WorkflowNode = memo(
     selected?: boolean;
     id: string;
   }) => {
-    const { updateNodeData, readonly } = useWorkflow();
+    const { updateNodeData, readonly, expandedOutputs } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(true);
     const hasOutputValues = data.outputs.some(
@@ -146,6 +146,13 @@ export const WorkflowNode = memo(
     const [inputValue, setInputValue] = useState<string>("");
     const [isEditingName, setIsEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(data.name);
+
+    // Initialize showOutputs based on expandedOutputs and hasOutputValues
+    useEffect(() => {
+      if (expandedOutputs && hasOutputValues) {
+        setShowOutputs(true);
+      }
+    }, [expandedOutputs, hasOutputValues]);
 
     // Get node type
     const nodeType = data.nodeType || "";

@@ -225,6 +225,7 @@ export interface WorkflowBuilderProps {
   initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
+  expandedOutputs?: boolean;
 }
 
 export interface TypeBadgeProps {

@@ -32,7 +32,7 @@ export async function generateExecutionOgImage({
     browser = await puppeteer.launch(env.BROWSER as any);
     const page = await browser.newPage();
 
-    const targetUrl = `${env.WEB_HOST}${sharedExecutionPath}${executionId}`;
+    const targetUrl = `${env.WEB_HOST}${sharedExecutionPath}${executionId}?fullscreen`;
     console.log(`[ogImageGenerator] Navigating to ${targetUrl} for screenshot`);
 
     await page.setViewport({ width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT });

@@ -32,6 +32,7 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   readonly = false,
   onDeployWorkflow,
+  expandedOutputs = false,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
@@ -304,6 +305,7 @@ export function WorkflowBuilder({
         updateNodeData={readonly ? undefined : updateNodeData}
         updateEdgeData={readonly ? undefined : updateEdgeData}
         readonly={readonly}
+        expandedOutputs={expandedOutputs}
       >
         <div className="w-full h-full flex">
           <div
