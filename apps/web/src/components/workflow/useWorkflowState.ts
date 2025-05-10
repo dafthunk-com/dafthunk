@@ -43,6 +43,35 @@ export function useWorkflowState({
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
 
+  // Effect to update nodes when initialNodes prop changes
+  useEffect(() => {
+    // Prevent resetting nodes if initialNodes is empty and nodes already exist
+    // This can happen during initial load sequences.
+    if (initialNodes.length === 0 && nodes.length > 0 && !readonly) {
+      // Allow resetting if it's a deliberate empty array after having nodes
+      // For readonly, we always want to reflect initialNodes.
+    } else {
+      // Deep comparison might be too expensive.
+      // React Flow's setNodes should handle memoization if the array instance is the same.
+      // Consider a more sophisticated check if performance issues arise.
+      if (JSON.stringify(nodes) !== JSON.stringify(initialNodes)) {
+        setNodes(initialNodes);
+      }
+    }
+  }, [initialNodes, setNodes, nodes, readonly]);
+
+  // Effect to update edges when initialEdges prop changes
+  useEffect(() => {
+    // Similar to nodes, prevent resetting edges unnecessarily.
+    if (initialEdges.length === 0 && edges.length > 0 && !readonly) {
+      // Allow resetting for deliberate empty array.
+    } else {
+      if (JSON.stringify(edges) !== JSON.stringify(initialEdges)) {
+        setEdges(initialEdges);
+      }
+    }
+  }, [initialEdges, setEdges, edges, readonly]);
+
   // Effect to notify parent of changes for nodes
   useEffect(() => {
     if (readonly) return;
