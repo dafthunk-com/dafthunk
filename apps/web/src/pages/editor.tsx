@@ -1,16 +1,16 @@
-import { useCallback, useState, useMemo, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import type {
-  WorkflowExecution as BackendWorkflowExecution,
-} from "@dafthunk/types";
+import type { WorkflowExecution as BackendWorkflowExecution } from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import type { Connection } from "@xyflow/react";
+import type { Connection, Node, Edge } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import type {
   WorkflowExecutionStatus,
   WorkflowExecution,
   NodeExecutionState,
-} from "@/components/workflow/workflow-types";
+  WorkflowNodeType,
+  WorkflowEdgeType,
+} from "@/components/workflow/workflow-types.tsx";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
@@ -23,15 +23,14 @@ import {
   ExecutionFormDialog,
   type DialogFormParameter,
 } from "@/components/workflow/execution-form-dialog";
-import {
-  extractDialogParametersFromNodes,
-} from "@/utils/utils";
+import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { nodeTemplates, isLoadingTemplates, templatesError } = useNodeTemplates();
+  const { nodeTemplates, isLoadingTemplates, templatesError } =
+    useNodeTemplates();
 
   const {
     workflowDetails: currentWorkflow,
@@ -39,13 +38,20 @@ export function EditorPage() {
     isWorkflowDetailsLoading,
   } = useWorkflowDetails(id!);
 
+  const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
+    []
+  );
+  const [latestUiEdges, setLatestUiEdges] = useState<Edge<WorkflowEdgeType>[]>(
+    []
+  );
+
   const {
-    nodes,
-    edges,
-    onNodesChange,
-    onEdgesChange,
+    nodes: initialNodesForUI,
+    edges: initialEdgesForUI,
     isInitializing: isWorkflowInitializing,
     processingError: workflowProcessingError,
+    savingError: workflowSavingError,
+    saveWorkflow,
   } = useEditableWorkflow({
     workflowId: id,
     currentWorkflow,
@@ -53,8 +59,42 @@ export function EditorPage() {
     workflowDetailsError,
   });
 
+  useEffect(() => {
+    if (initialNodesForUI) {
+      setLatestUiNodes(initialNodesForUI);
+    }
+  }, [initialNodesForUI]);
+
+  useEffect(() => {
+    if (initialEdgesForUI) {
+      setLatestUiEdges(initialEdgesForUI);
+    }
+  }, [initialEdgesForUI]);
+
+  const handleUiNodesChanged = useCallback(
+    (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
+      setLatestUiNodes(updatedNodesFromUI);
+      if (currentWorkflow) {
+        saveWorkflow(updatedNodesFromUI, latestUiEdges, currentWorkflow);
+      }
+    },
+    [latestUiEdges, saveWorkflow, currentWorkflow]
+  );
+
+  const handleUiEdgesChanged = useCallback(
+    (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
+      setLatestUiEdges(updatedEdgesFromUI);
+      if (currentWorkflow) {
+        saveWorkflow(latestUiNodes, updatedEdgesFromUI, currentWorkflow);
+      }
+    },
+    [latestUiNodes, saveWorkflow, currentWorkflow]
+  );
+
   const [showExecutionForm, setShowExecutionForm] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
+    []
+  );
   const executionContextRef = useRef<{
     workflowId: string;
     onExecution: (execution: WorkflowExecution) => void;
@@ -71,8 +111,12 @@ export function EditorPage() {
 
   const validateConnection = useCallback(
     (connection: Connection) => {
-      const sourceNode = nodes.find((node) => node.id === connection.source);
-      const targetNode = nodes.find((node) => node.id === connection.target);
+      const sourceNode = latestUiNodes.find(
+        (node) => node.id === connection.source
+      );
+      const targetNode = latestUiNodes.find(
+        (node) => node.id === connection.target
+      );
       if (!sourceNode || !targetNode) return false;
       const sourceOutput = sourceNode.data.outputs.find(
         (output) => output.id === connection.sourceHandle
@@ -87,7 +131,7 @@ export function EditorPage() {
         targetInput.type === "any"
       );
     },
-    [nodes]
+    [latestUiNodes]
   );
 
   const performExecutionAndPoll = useCallback(
@@ -254,7 +298,7 @@ export function EditorPage() {
       }
 
       const httpParameterNodes = extractDialogParametersFromNodes(
-        nodes,
+        latestUiNodes,
         nodeTemplates
       );
 
@@ -276,7 +320,12 @@ export function EditorPage() {
         return cleanup;
       }
     },
-    [nodes, nodeTemplates, performExecutionAndPoll, activeEditorPageCleanupRef]
+    [
+      latestUiNodes,
+      nodeTemplates,
+      performExecutionAndPoll,
+      activeEditorPageCleanupRef,
+    ]
   );
 
   const handleRetryLoading = () => {
@@ -290,7 +339,7 @@ export function EditorPage() {
       e.preventDefault();
       e.stopPropagation();
       if (!id) return;
-      import("@/services/workflowService").then(module => {
+      import("@/services/workflowService").then((module) => {
         module.workflowService
           .deploy(id)
           .then(() => {
@@ -300,7 +349,7 @@ export function EditorPage() {
             console.error("Error deploying workflow:", error);
             toast.error("Failed to deploy workflow. Please try again.");
           });
-      })
+      });
     },
     [id]
   );
@@ -308,7 +357,9 @@ export function EditorPage() {
   if (workflowDetailsError) {
     return (
       <WorkflowError
-        message={workflowDetailsError.message || "Failed to load workflow details."}
+        message={
+          workflowDetailsError.message || "Failed to load workflow details."
+        }
         onRetry={handleRetryLoading}
       />
     );
@@ -322,7 +373,7 @@ export function EditorPage() {
       />
     );
   }
-  
+
   if (workflowProcessingError) {
     return (
       <WorkflowError
@@ -332,7 +383,15 @@ export function EditorPage() {
     );
   }
 
-  if (isWorkflowInitializing || isLoadingTemplates) {
+  if (workflowSavingError) {
+    toast.error(`Workflow saving error: ${workflowSavingError}`);
+  }
+
+  if (
+    isWorkflowDetailsLoading ||
+    isLoadingTemplates ||
+    isWorkflowInitializing
+  ) {
     return <InsetLoading />;
   }
 
@@ -351,17 +410,21 @@ export function EditorPage() {
     );
   }
 
+  if (!initialNodesForUI || !initialEdgesForUI) {
+    return <InsetLoading />;
+  }
+
   return (
     <ReactFlowProvider>
       <div className="h-full w-full flex flex-col relative">
         <div className="h-full w-full flex-grow">
           <WorkflowBuilder
             workflowId={id || ""}
-            initialNodes={nodes}
-            initialEdges={edges}
+            initialNodes={initialNodesForUI}
+            initialEdges={initialEdgesForUI}
             nodeTemplates={nodeTemplates}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
+            onNodesChange={handleUiNodesChanged}
+            onEdgesChange={handleUiEdgesChanged}
             validateConnection={validateConnection}
             executeWorkflow={executeWorkflowWrapper}
             onDeployWorkflow={handleDeployWorkflow}
@@ -375,7 +438,8 @@ export function EditorPage() {
             onSubmit={(formData) => {
               setShowExecutionForm(false);
               if (executionContextRef.current) {
-                const { workflowId: execWfId, onExecution } = executionContextRef.current;
+                const { workflowId: execWfId, onExecution } =
+                  executionContextRef.current;
                 const cleanup = performExecutionAndPoll(
                   execWfId,
                   onExecution,

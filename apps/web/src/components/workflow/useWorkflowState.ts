@@ -24,8 +24,8 @@ import { workflowExecutionService } from "@/services/workflowExecutionService";
 export function useWorkflowState({
   initialNodes = [],
   initialEdges = [],
-  onNodesChange: onNodesChangeCallback,
-  onEdgesChange: onEdgesChangeCallback,
+  onNodesChangePersist: onNodesChangePersistCallback,
+  onEdgesChangePersist: onEdgesChangePersistCallback,
   validateConnection = () => true,
   readonly = false,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
@@ -88,34 +88,29 @@ export function useWorkflowState({
   useEffect(() => {
     if (readonly) return;
 
-    // 1. Check if the number of nodes has changed.
     const nodeCountChanged = nodes.length !== initialNodes.length;
-
-    // 2. Check if any existing node's position or non-execution data has changed,
-    // or if a new node has been added (which would be caught by initialNodes.find returning undefined).
     const hasDataOrPositionChanges = nodes.some((node) => {
       const initialNode = initialNodes.find((n) => n.id === node.id);
-      if (!initialNode) return true; // New node added
+      if (!initialNode) return true;
 
       if (
         node.position.x !== initialNode.position.x ||
         node.position.y !== initialNode.position.y
       ) {
-        return true; // Position changed
+        return true;
       }
 
       const nodeData = workflowExecutionService.stripExecutionFields(node.data);
       const initialNodeData = workflowExecutionService.stripExecutionFields(
         initialNode.data
       );
-      return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData); // Data changed
+      return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
     });
 
-    // If either the count changed OR data/position of existing nodes changed, propagate.
     if (nodeCountChanged || hasDataOrPositionChanges) {
-      onNodesChangeCallback?.(nodes);
+      onNodesChangePersistCallback?.(nodes);
     }
-  }, [nodes, onNodesChangeCallback, initialNodes, readonly]);
+  }, [nodes, onNodesChangePersistCallback, initialNodes, readonly]);
 
   // Effect to notify parent of changes for edges
   useEffect(() => {
@@ -144,9 +139,9 @@ export function useWorkflowState({
     });
 
     if (hasNonExecutionChanges) {
-      onEdgesChangeCallback?.(edges);
+      onEdgesChangePersistCallback?.(edges);
     }
-  }, [edges, onEdgesChangeCallback, initialEdges, readonly]);
+  }, [edges, onEdgesChangePersistCallback, initialEdges, readonly]);
 
   // Effect to keep selectedNode in sync with nodes state
   useEffect(() => {
@@ -170,13 +165,11 @@ export function useWorkflowState({
   }, [nodes, selectedNode]);
 
   // Custom onNodesChange handler for readonly mode
-  const handleNodesChange = useCallback(
-    (changes: NodeChange<ReactFlowNode<WorkflowNodeType>>[]) => {
+  const handleNodesChangeInternal = useCallback(
+    (changes: any) => {
       if (readonly) {
-        // In readonly mode, only allow selection changes.
-        // Other changes like position, dimensions, remove are disallowed.
-        const selectionChanges = changes.filter(
-          (change) => change.type === "select"
+        const filteredChanges = changes.filter(
+          (change: any) => change.type !== "position"
         );
         if (selectionChanges.length > 0) {
           onNodesChange(selectionChanges);
@@ -461,7 +454,7 @@ export function useWorkflowState({
     reactFlowInstance,
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
-    onNodesChange: handleNodesChange,
+    onNodesChange: handleNodesChangeInternal,
     onEdgesChange: readonly ? () => {} : onEdgesChange,
     onConnect,
     onConnectStart,

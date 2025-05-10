@@ -113,8 +113,8 @@ export interface WorkflowData {
 export interface UseWorkflowStateProps {
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
-  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
-  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
+  onNodesChangePersist?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
+  onEdgesChangePersist?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
   readonly?: boolean;
 }

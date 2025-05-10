@@ -2,11 +2,11 @@ import { WorkflowSidebar } from "./workflow-sidebar";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
 import { WorkflowCanvas } from "./workflow-canvas";
-import {
+import type {
   WorkflowBuilderProps,
   WorkflowExecutionStatus,
   WorkflowExecution,
-} from "./workflow-types";
+} from "./workflow-types.tsx";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { WorkflowProvider } from "./workflow-context";
@@ -25,8 +25,8 @@ export function WorkflowBuilder({
   initialNodes = [],
   initialEdges = [],
   nodeTemplates = [],
-  onNodesChange,
-  onEdgesChange,
+  onNodesChange: onNodesChangeFromParent,
+  onEdgesChange: onEdgesChangeFromParent,
   validateConnection,
   executeWorkflow,
   initialWorkflowExecution,
@@ -59,8 +59,8 @@ export function WorkflowBuilder({
     selectedEdge: handleSelectedEdge,
     isNodeSelectorOpen: handleIsNodeSelectorOpen,
     setIsNodeSelectorOpen: handleSetIsNodeSelectorOpen,
-    onNodesChange: handleNodesChange,
-    onEdgesChange: handleEdgesChange,
+    onNodesChange,
+    onEdgesChange,
     onConnect,
     onConnectStart,
     onConnectEnd,
@@ -78,8 +78,8 @@ export function WorkflowBuilder({
   } = useWorkflowState({
     initialNodes,
     initialEdges,
-    onNodesChange: readonly ? undefined : onNodesChange,
-    onEdgesChange: readonly ? undefined : onEdgesChange,
+    onNodesChangePersist: onNodesChangeFromParent,
+    onEdgesChangePersist: onEdgesChangeFromParent,
     validateConnection,
     readonly,
   });
@@ -315,8 +315,8 @@ export function WorkflowBuilder({
               nodes={nodes}
               edges={edges}
               connectionValidationState={connectionValidationState}
-              onNodesChange={readonly ? () => {} : handleNodesChange}
-              onEdgesChange={readonly ? () => {} : handleEdgesChange}
+              onNodesChange={readonly ? () => {} : onNodesChange}
+              onEdgesChange={readonly ? () => {} : onEdgesChange}
               onConnect={readonly ? () => {} : onConnect}
               onConnectStart={readonly ? () => {} : onConnectStart}
               onConnectEnd={readonly ? () => {} : onConnectEnd}

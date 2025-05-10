@@ -48,4 +48,4 @@ export function useNodeTemplates() {
   }, []);
 
   return { nodeTemplates, isLoadingTemplates, templatesError };
-} 
+}
