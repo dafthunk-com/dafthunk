@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   useNodesState,
   useEdgesState,
@@ -7,6 +7,7 @@ import {
   Node as ReactFlowNode,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
+  NodeChange,
 } from "@xyflow/react";
 import {
   WorkflowNodeType,
@@ -43,34 +44,45 @@ export function useWorkflowState({
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
 
+  const nodesRef = useRef(initialNodes);
+  const edgesRef = useRef(initialEdges);
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
+
   // Effect to update nodes when initialNodes prop changes
   useEffect(() => {
-    // Prevent resetting nodes if initialNodes is empty and nodes already exist
+    // Prevent resetting nodes if initialNodes is empty and nodesRef.current already exist (and not readonly)
     // This can happen during initial load sequences.
-    if (initialNodes.length === 0 && nodes.length > 0 && !readonly) {
+    if (!readonly && initialNodes.length === 0 && nodesRef.current.length > 0) {
       // Allow resetting if it's a deliberate empty array after having nodes
       // For readonly, we always want to reflect initialNodes.
     } else {
       // Deep comparison might be too expensive.
       // React Flow's setNodes should handle memoization if the array instance is the same.
       // Consider a more sophisticated check if performance issues arise.
-      if (JSON.stringify(nodes) !== JSON.stringify(initialNodes)) {
+      if (JSON.stringify(nodesRef.current) !== JSON.stringify(initialNodes)) {
         setNodes(initialNodes);
       }
     }
-  }, [initialNodes, setNodes, nodes, readonly]);
+  }, [initialNodes, readonly, setNodes]); // Removed nodes, relying on nodesRef.current
 
   // Effect to update edges when initialEdges prop changes
   useEffect(() => {
     // Similar to nodes, prevent resetting edges unnecessarily.
-    if (initialEdges.length === 0 && edges.length > 0 && !readonly) {
+    if (!readonly && initialEdges.length === 0 && edgesRef.current.length > 0) {
       // Allow resetting for deliberate empty array.
     } else {
-      if (JSON.stringify(edges) !== JSON.stringify(initialEdges)) {
+      if (JSON.stringify(edgesRef.current) !== JSON.stringify(initialEdges)) {
         setEdges(initialEdges);
       }
     }
-  }, [initialEdges, setEdges, edges, readonly]);
+  }, [initialEdges, readonly, setEdges]); // Removed edges, relying on edgesRef.current
 
   // Effect to notify parent of changes for nodes
   useEffect(() => {
@@ -133,27 +145,37 @@ export function useWorkflowState({
   // Effect to keep selectedNode in sync with nodes state
   useEffect(() => {
     if (selectedNode) {
-      const updatedNode = nodes.find((node) => node.id === selectedNode.id);
-      if (
-        updatedNode &&
-        JSON.stringify(updatedNode) !== JSON.stringify(selectedNode)
-      ) {
-        setSelectedNode(updatedNode);
+      const updatedNodeInCurrentNodes = nodes.find(
+        (node) => node.id === selectedNode.id
+      );
+      if (updatedNodeInCurrentNodes) {
+        // Node still exists, check if its data has changed compared to our selectedNode state
+        if (
+          JSON.stringify(updatedNodeInCurrentNodes) !==
+          JSON.stringify(selectedNode)
+        ) {
+          setSelectedNode(updatedNodeInCurrentNodes);
+        }
+      } else {
+        // Node with selectedNode.id no longer exists in the nodes array
+        setSelectedNode(null);
       }
     }
   }, [nodes, selectedNode]);
 
   // Custom onNodesChange handler for readonly mode
   const handleNodesChange = useCallback(
-    (changes: any) => {
+    (changes: NodeChange<ReactFlowNode<WorkflowNodeType>>[]) => {
       if (readonly) {
-        // In readonly mode, only allow selection but not position changes
-        const filteredChanges = changes.filter(
-          (change: any) => change.type !== "position"
+        // In readonly mode, only allow selection changes.
+        // Other changes like position, dimensions, remove are disallowed.
+        const selectionChanges = changes.filter(
+          (change) => change.type === "select"
         );
-        if (filteredChanges.length > 0) {
-          onNodesChange(filteredChanges);
+        if (selectionChanges.length > 0) {
+          onNodesChange(selectionChanges);
         }
+        // If there are only non-selection changes, we effectively ignore them.
       } else {
         onNodesChange(changes);
       }
