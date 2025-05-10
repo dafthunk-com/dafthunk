@@ -12,7 +12,7 @@ export class StringParameterNode extends ExecutableNode {
     icon: "text",
     inputs: [
       {
-        name: "formFieldName",
+        name: "name",
         type: "string",
         description:
           "The name of the form field to extract from the HTTP request body",
@@ -43,7 +43,7 @@ export class StringParameterNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const formFieldName = this.node.inputs.find(
-        (input) => input.name === "formFieldName"
+        (input) => input.name === "name"
       )?.value as string;
       if (!formFieldName) {
         throw new Error("Form field name is required");

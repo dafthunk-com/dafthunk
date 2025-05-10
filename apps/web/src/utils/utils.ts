@@ -39,13 +39,13 @@ export function extractDialogParametersFromNodes(
         // Include parameter.json nodes and other parameter nodes
         node.data.nodeType?.startsWith("parameter.") &&
         (node.data.nodeType === "parameter.json" ||
-          node.data.inputs?.some((inp) => inp.id === "formFieldName"))
+          node.data.inputs?.some((inp) => inp.id === "name"))
     )
     .map((node) => {
       const requiredInput = node.data.inputs.find((i) => i.id === "required");
       const isRequired = (requiredInput?.value as boolean) ?? true;
 
-      // Special handling for JSON body node which doesn't use formFieldName
+      // Special handling for JSON body node which doesn't use name
       if (node.data.nodeType === "parameter.json") {
         const nodeInstanceName = node.data.name || "JSON Body";
 
@@ -60,23 +60,23 @@ export function extractDialogParametersFromNodes(
       }
 
       // Original logic for other parameter types
-      const formFieldNameInput = node.data.inputs.find(
-        (i) => i.id === "formFieldName"
+      const nameInput = node.data.inputs.find(
+        (i) => i.id === "name"
       );
 
-      const nameForFormField = formFieldNameInput?.value as string;
-      if (!nameForFormField) {
+      const fieldName = nameInput?.value as string;
+      if (!fieldName) {
         console.warn(
-          `Node ${node.id} (${node.data.name}) is a parameter type but missing 'formFieldName' value. Skipping for form.`
+          `Node ${node.id} (${node.data.name}) is a parameter type but missing 'name' value. Skipping for form.`
         );
         return null;
       }
 
       const nodeInstanceName = node.data.name; // The name of this specific node instance in the workflow
-      const fieldKey = nameForFormField; // The actual key, e.g., "customer_email"
+      const fieldKey = fieldName; // The actual key, e.g., 'customer_email'
 
       // Prioritize the user-given node instance name, if it's specific and not the default node type name.
-      // Otherwise, use the fieldKey (formFieldName).
+      // Otherwise, use the fieldKey (name).
       const defaultNodeTypeDisplayName =
         nodeTemplates.find((t) => t.id === node.data.nodeType)?.name ||
         node.data.nodeType ||
@@ -91,7 +91,7 @@ export function extractDialogParametersFromNodes(
 
       return {
         nodeId: node.id,
-        nameForForm: nameForFormField,
+        nameForForm: fieldName,
         label: labelText, // This is used for the Label and placeholder derivation
         nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
         isRequired: isRequired,
