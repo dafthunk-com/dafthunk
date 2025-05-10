@@ -13,6 +13,15 @@ import { API_BASE_URL } from "@/config/api";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 /**
+ * @interface UseWorkflowExecutorOptions
+ * @property executeUrlFn - Required function that provides the execution URL. 
+ *   This ensures explicit URL construction for all execution types.
+ */
+export interface UseWorkflowExecutorOptions {
+  executeUrlFn: (id: string) => string;
+}
+
+/**
  * @interface UseWorkflowExecutorReturn
  * @property executeWorkflow - Function to initiate a workflow execution. It handles showing a parameter form if needed.
  *   Takes workflowId, onExecution callback, current UI nodes, and node templates.
@@ -24,7 +33,7 @@ import { extractDialogParametersFromNodes } from "@/utils/utils";
  */
 export interface UseWorkflowExecutorReturn {
   executeWorkflow: (
-    workflowId: string,
+    id: string,
     onExecution: (execution: WorkflowExecution) => void,
     uiNodes: Node<WorkflowNodeType>[],
     nodeTemplates: NodeTemplate[]
@@ -37,15 +46,17 @@ export interface UseWorkflowExecutorReturn {
 
 /**
  * Custom hook to manage workflow execution, including parameter forms and status polling.
+ * Can be used for both workflow executions and deployment executions by providing the appropriate
+ * execution URL function.
  */
-export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
+export function useWorkflowExecutor(options: UseWorkflowExecutorOptions): UseWorkflowExecutorReturn {
   const [isExecutionFormVisible, setIsExecutionFormVisible] = useState(false);
   const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
     []
   );
 
   const executionContextRef = useRef<{
-    workflowId: string;
+    id: string;
     onExecution: (execution: WorkflowExecution) => void;
   } | null>(null);
 
@@ -53,12 +64,12 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
 
   const performExecutionAndPoll = useCallback(
     (
-      workflowId: string,
+      id: string,
       onExecutionUpdate: (execution: WorkflowExecution) => void,
       requestBody?: Record<string, any>
     ): (() => void) => {
       console.log(
-        `Starting workflow execution for ID: ${workflowId} with body:`,
+        `Starting execution for ID: ${id} with body:`,
         requestBody
       );
 
@@ -72,9 +83,8 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
         requestOptions.body = JSON.stringify(requestBody);
       }
 
-      const executeUrl = new URL(
-        `${API_BASE_URL}/workflows/${workflowId}/execute`
-      );
+      // Use the provided URL function to generate the execution endpoint
+      const executeUrl = new URL(options.executeUrlFn(id));
       executeUrl.searchParams.append("monitorProgress", "true");
 
       let pollingIntervalId: NodeJS.Timeout | undefined = undefined;
@@ -86,7 +96,7 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
           clearInterval(pollingIntervalId);
         }
         console.log(
-          `Client-side polling cleanup called for workflow ID: ${workflowId}.`
+          `Client-side polling cleanup called for ID: ${id}.`
         );
         activeExecutionCleanupRef.current = null;
       };
@@ -96,7 +106,7 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
         .then(async (response) => {
           if (cancelled) return;
           if (!response.ok) {
-            let errorMessage = `Failed to start workflow execution. Status: ${response.status}`;
+            let errorMessage = `Failed to start execution. Status: ${response.status}`;
             try {
               const errData = await response.json();
               errorMessage = errData.message || errorMessage;
@@ -196,7 +206,7 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
         .catch((error) => {
           if (cancelled) return;
           console.error(
-            "Error starting or processing workflow execution:",
+            "Error starting or processing execution:",
             error
           );
           onExecutionUpdate({
@@ -210,12 +220,12 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
 
       return cleanup;
     },
-    []
+    [options]
   );
 
   const executeWorkflow = useCallback(
     (
-      workflowId: string,
+      id: string,
       onExecution: (execution: WorkflowExecution) => void,
       uiNodes: Node<WorkflowNodeType>[],
       nodeTemplatesData: NodeTemplate[] | undefined
@@ -245,12 +255,12 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
         setFormParameters(httpParameterNodes);
         setIsExecutionFormVisible(true);
         executionContextRef.current = {
-          workflowId,
+          id,
           onExecution,
         };
         return undefined;
       } else {
-        return performExecutionAndPoll(workflowId, onExecution);
+        return performExecutionAndPoll(id, onExecution);
       }
     },
     [performExecutionAndPoll]
@@ -260,8 +270,8 @@ export function useWorkflowExecutor(): UseWorkflowExecutorReturn {
     (formData: Record<string, any>) => {
       setIsExecutionFormVisible(false);
       if (executionContextRef.current) {
-        const { workflowId, onExecution } = executionContextRef.current;
-        performExecutionAndPoll(workflowId, onExecution, formData);
+        const { id, onExecution } = executionContextRef.current;
+        performExecutionAndPoll(id, onExecution, formData);
       }
       executionContextRef.current = null;
     },

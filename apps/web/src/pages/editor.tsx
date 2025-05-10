@@ -17,6 +17,7 @@ import { useNodeTemplates } from "@/hooks/use-node-templates";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
+import { API_BASE_URL } from "@/config/api";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +91,9 @@ export function EditorPage() {
     executionFormParameters,
     submitExecutionForm,
     closeExecutionForm,
-  } = useWorkflowExecutor();
+  } = useWorkflowExecutor({
+    executeUrlFn: (workflowId) => `${API_BASE_URL}/workflows/${workflowId}/execute`
+  });
 
   usePageBreadcrumbs(
     [
