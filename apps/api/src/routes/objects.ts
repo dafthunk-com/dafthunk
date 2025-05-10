@@ -2,14 +2,14 @@ import { Hono } from "hono";
 import { ObjectStore } from "../runtime/objectStore";
 import { ObjectReference } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { jwtAuth } from "../auth";
+import { jwtAuth, optionalJwtAuth } from "../auth";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 const objects = new Hono<ApiContext>();
 
-objects.get("/", async (c) => {
+objects.get("/", optionalJwtAuth, async (c) => {
   const url = new URL(c.req.url);
   const objectId = url.searchParams.get("id");
   const mimeType = url.searchParams.get("mimeType");

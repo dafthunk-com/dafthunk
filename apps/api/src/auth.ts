@@ -1,9 +1,9 @@
 import { Context, Hono } from "hono";
 import { jwt } from "hono/jwt";
-import { setCookie, deleteCookie } from "hono/cookie";
+import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
-import { SignJWT } from "jose";
+import { SignJWT, jwtVerify } from "jose";
 import { Provider, Plan, UserRole } from "./db/schema";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload } from "./context";
@@ -39,6 +39,27 @@ export const jwtAuth = (c: Context<ApiContext>, next: () => Promise<void>) => {
     secret: c.env.JWT_SECRET,
     cookie: JWT_SECRET_TOKEN_NAME,
   })(c, next);
+};
+
+// Optional JWT Auth middleware
+export const optionalJwtAuth = async (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) => {
+  const token = getCookie(c, JWT_SECRET_TOKEN_NAME);
+
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
+      const { payload } = await jwtVerify(token, secret);
+      c.set("jwtPayload", payload as CustomJWTPayload);
+    } catch (error) {
+      // Invalid token, proceed without setting jwtPayload
+      // Optionally log the error for debugging
+      console.warn("Optional JWT Auth: Invalid token received.", error);
+    }
+  }
+  await next();
 };
 
 // Create auth router
