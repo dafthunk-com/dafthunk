@@ -1,15 +1,12 @@
 import { useCallback, useState, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type {
-  Workflow,
   WorkflowExecution as BackendWorkflowExecution,
 } from "@dafthunk/types";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import type { Node, Edge, Connection } from "@xyflow/react";
+import type { Connection } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import type {
-  WorkflowNodeType,
-  WorkflowEdgeType,
   WorkflowExecutionStatus,
   WorkflowExecution,
   NodeExecutionState,

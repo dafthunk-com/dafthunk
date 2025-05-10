@@ -88,25 +88,31 @@ export function useWorkflowState({
   useEffect(() => {
     if (readonly) return;
 
-    const hasNonExecutionChanges = nodes.some((node) => {
+    // 1. Check if the number of nodes has changed.
+    const nodeCountChanged = nodes.length !== initialNodes.length;
+
+    // 2. Check if any existing node's position or non-execution data has changed,
+    // or if a new node has been added (which would be caught by initialNodes.find returning undefined).
+    const hasDataOrPositionChanges = nodes.some((node) => {
       const initialNode = initialNodes.find((n) => n.id === node.id);
-      if (!initialNode) return true;
+      if (!initialNode) return true; // New node added
 
       if (
         node.position.x !== initialNode.position.x ||
         node.position.y !== initialNode.position.y
-      )
-        return true;
+      ) {
+        return true; // Position changed
+      }
 
       const nodeData = workflowExecutionService.stripExecutionFields(node.data);
       const initialNodeData = workflowExecutionService.stripExecutionFields(
         initialNode.data
       );
-
-      return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
+      return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData); // Data changed
     });
 
-    if (hasNonExecutionChanges) {
+    // If either the count changed OR data/position of existing nodes changed, propagate.
+    if (nodeCountChanged || hasDataOrPositionChanges) {
       onNodesChangeCallback?.(nodes);
     }
   }, [nodes, onNodesChangeCallback, initialNodes, readonly]);

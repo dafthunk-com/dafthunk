@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type {
   Node,
   Edge,
-  // OnNodesChange, // Will use specific type for clarity
-  // OnEdgesChange,
 } from '@xyflow/react';
 import type {
   WorkflowNodeType,
@@ -163,11 +161,6 @@ export function useEditableWorkflow({
           edges: workflowEdges,
         };
 
-        if (workflowNodes.length === 0 && workflowToUpdate.nodes.length > 0) {
-          console.warn('Attempted to save an empty node list, aborting save.');
-          return;
-        }
-
         console.log('Saving workflow via useEditableWorkflow:', workflowId);
         await workflowService.save(workflowId, workflowToSave);
       } catch (error) {
@@ -193,7 +186,7 @@ export function useEditableWorkflow({
   const onNodesChange = useCallback(
     (updatedNodes: Node<WorkflowNodeType>[]) => {
       setNodes(updatedNodes);
-      if (currentWorkflow && updatedNodes.length > 0) {
+      if (currentWorkflow) {
         debouncedSaveWithDelay(updatedNodes, edges, currentWorkflow);
       }
     },
