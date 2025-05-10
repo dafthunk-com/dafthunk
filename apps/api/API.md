@@ -12,6 +12,19 @@ The codebase utilizes two distinct sets of type definitions located in `apps/api
 
 In essence, `api/types.ts` deals with the _external interface and storage representation_, while `nodes/types.ts` deals with the _internal execution data format_.
 
+## Health
+
+Provides health check for the API.
+
+### `GET /health/health`
+
+- **Purpose**: Checks the operational status of the API.
+- **Authentication**: Not Required (Public).
+- **Input**: None.
+- **Output**:
+  - `200 OK`: `{ "status": "ok", "version": "1.0.0", "timestamp": "YYYY-MM-DDTHH:mm:ss.sssZ" }`
+- **Types**: `N/A`
+
 ## Authentication
 
 Authentication is handled via JWT (JSON Web Tokens) stored in an HTTP-only cookie (`dafthunk_session`). Most endpoints require authentication. Login is performed via OAuth providers (GitHub, Google).
@@ -39,7 +52,7 @@ Authentication is handled via JWT (JSON Web Tokens) stored in an HTTP-only cooki
 ### `GET /auth/logout`
 
 - **Purpose**: Clears the authentication cookie and redirects the user to the web host.
-- **Authentication**: Not Required.
+- **Authentication**: Not Required (Public).
 - **Input**: None.
 - **Output**:
   - `302 Found`: Redirects to the `WEB_HOST`.
@@ -48,7 +61,7 @@ Authentication is handled via JWT (JSON Web Tokens) stored in an HTTP-only cooki
 ### `GET /auth/login/github`
 
 - **Purpose**: Initiates the GitHub OAuth login flow. Handles the callback, creates/updates the user in the database, sets the authentication cookie, and redirects to the web host.
-- **Authentication**: Not Required.
+- **Authentication**: Not Required (Public).
 - **Input**: Standard OAuth parameters handled by the provider middleware.
 - **Output**:
   - `302 Found`: Redirects to GitHub for authorization, then redirects back to the callback URL, and finally redirects to the `WEB_HOST` after successful login.
@@ -58,7 +71,7 @@ Authentication is handled via JWT (JSON Web Tokens) stored in an HTTP-only cooki
 ### `GET /auth/login/google`
 
 - **Purpose**: Initiates the Google OAuth login flow. Handles the callback, creates/updates the user in the database, sets the authentication cookie, and redirects to the web host.
-- **Authentication**: Not Required.
+- **Authentication**: Not Required (Public).
 - **Input**: Standard OAuth parameters handled by the provider middleware.
 - **Output**:
   - `302 Found`: Redirects to Google for authorization, then redirects back to the callback URL, and finally redirects to the `WEB_HOST` after successful login.
@@ -72,7 +85,7 @@ Handles the storage and retrieval of binary data (images, documents, audio) used
 ### `GET /objects`
 
 - **Purpose**: Retrieves a binary object previously stored.
-- **Authentication**: Required.
+- **Authentication**: Conditional. Public if the object is part of a public execution; otherwise, Required.
 - **Input**:
   - Query Parameters:
     - `id` (string, required): The unique ID of the object to retrieve.
@@ -105,7 +118,7 @@ Provides information about the available node types for building workflows.
 ### `GET /types`
 
 - **Purpose**: Retrieves a list of all available node types that can be used in the workflow editor.
-- **Authentication**: Required.
+- **Authentication**: Not Required (Public).
 - **Input**: None.
 - **Output**:
   - `200 OK`: `NodeType[]` - An array of available node type definitions.
@@ -203,3 +216,181 @@ Endpoints for managing user workflows (creating, reading, updating, deleting, ex
     - `execution-complete`: `data` = `{ timestamp: number }`
     - `execution-error`: `data` = `{ error: string, timestamp: number }`
   - Uses `ParameterValue` from `apps/api/src/lib/api/types.ts` for `node-complete` outputs.
+
+## Executions
+
+Endpoints for managing and retrieving workflow execution details.
+
+### `GET /executions`
+
+- **Purpose**: Lists executions for the authenticated user, with optional filters.
+- **Authentication**: Required.
+- **Input**:
+  - Query Parameters:
+    - `workflowId` (string, optional): Filter executions by workflow ID.
+    - `deploymentId` (string, optional): Filter executions by deployment ID.
+    - `limit` (number, optional, default: 20): Number of executions to return.
+    - `offset` (number, optional, default: 0): Offset for pagination.
+- **Output**:
+  - `200 OK`: `{ "executions": WorkflowExecution[] }`
+- **Types**: `WorkflowExecution` (from `@dafthunk/types`)
+
+### `GET /executions/:id`
+
+- **Purpose**: Retrieves a specific execution by its ID.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `id` (string, required): The ID of the execution.
+- **Output**:
+  - `200 OK`: `WorkflowExecution`
+  - `404 Not Found`: If execution not found.
+- **Types**: `WorkflowExecution` (from `@dafthunk/types`)
+
+### `PATCH /executions/:id/share/public`
+
+- **Purpose**: Sets an execution's visibility to public.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `id` (string, required): The ID of the execution.
+- **Output**:
+  - `200 OK`: `{ "message": "Execution set to public" }`
+  - `404 Not Found`: If execution not found.
+- **Types**: `N/A`
+
+### `PATCH /executions/:id/share/private`
+
+- **Purpose**: Sets an execution's visibility to private.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `id` (string, required): The ID of the execution.
+- **Output**:
+  - `200 OK`: `{ "message": "Execution set to private" }`
+  - `404 Not Found`: If execution not found.
+- **Types**: `N/A`
+
+### `GET /executions/public/:id`
+
+- **Purpose**: Retrieves a public execution by its ID, including its workflow structure.
+- **Authentication**: Not Required (Public).
+- **Input**:
+  - Path Parameter: `id` (string, required): The ID of the public execution.
+- **Output**:
+  - `200 OK`: `WorkflowExecution & { nodes?: any[]; edges?: any[] }`
+  - `404 Not Found`: If execution not found or not public.
+- **Types**: `WorkflowExecution` (from `@dafthunk/types`)
+
+## Deployments
+
+Endpoints for managing workflow deployments.
+
+### `GET /deployments`
+
+- **Purpose**: Retrieves deployments grouped by workflow, including counts and latest deployment ID for each.
+- **Authentication**: Required.
+- **Output**:
+  - `200 OK`: `{ "workflows": WorkflowDeployment[] }`
+- **Types**: `WorkflowDeployment` (from `@dafthunk/types`)
+
+### `GET /deployments/:workflowUUID`
+
+- **Purpose**: Retrieves the latest deployment for a specific workflow.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `workflowUUID` (string, required): The UUID of the workflow.
+- **Output**:
+  - `200 OK`: `WorkflowDeploymentVersion`
+  - `404 Not Found`: If workflow or deployment not found.
+- **Types**: `WorkflowDeploymentVersion` (from `@dafthunk/types`)
+
+### `POST /deployments/:workflowUUID`
+
+- **Purpose**: Creates a new deployment version for a specific workflow.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `workflowUUID` (string, required): The UUID of the workflow.
+- **Output**:
+  - `201 Created`: `WorkflowDeploymentVersion`
+  - `404 Not Found`: If workflow not found.
+- **Types**: `WorkflowDeploymentVersion` (from `@dafthunk/types`)
+
+### `GET /deployments/version/:deploymentUUID`
+
+- **Purpose**: Retrieves a specific deployment version by its UUID.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `deploymentUUID` (string, required): The UUID of the deployment version.
+- **Output**:
+  - `200 OK`: `WorkflowDeploymentVersion`
+  - `404 Not Found`: If deployment not found.
+- **Types**: `WorkflowDeploymentVersion` (from `@dafthunk/types`)
+
+### `GET /deployments/version/:deploymentUUID/execute`
+
+- **Purpose**: Executes a specific deployment version.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `deploymentUUID` (string, required): The UUID of the deployment version.
+  - Query Parameters:
+    - `monitorProgress` (boolean, optional): If true, implies SSE might be used (behavior based on implementation).
+  - Body: (any, optional) - Request body to be passed to the workflow.
+- **Output**:
+  - `200 OK` or `text/event-stream` for SSE.
+  - `404 Not Found`: If deployment not found.
+- **Types**: Varies (JSON or SSE events)
+
+### `GET /deployments/history/:workflowUUID`
+
+- **Purpose**: Retrieves all deployment versions for a specific workflow.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `workflowUUID` (string, required): The UUID of the workflow.
+- **Output**:
+  - `200 OK`: `{ "workflow": { "id": string, "name": string }, "deployments": WorkflowDeploymentVersion[] }`
+  - `404 Not Found`: If workflow not found.
+- **Types**: `WorkflowDeploymentVersion` (from `@dafthunk/types`)
+
+## API Tokens
+
+Endpoints for managing API tokens for programmatic access. All token routes require authentication.
+
+### `GET /tokens`
+
+- **Purpose**: Lists all API tokens for the authenticated user's organization.
+- **Authentication**: Required.
+- **Output**:
+  - `200 OK`: `{ "tokens": ApiTokenRecord[] }` (structure of ApiTokenRecord would typically include id, name, createdAt, lastUsedAt etc., but not the token itself)
+- **Types**: `N/A` (Define `ApiTokenRecord` if specific structure known)
+
+### `POST /tokens`
+
+- **Purpose**: Creates a new API token. The actual token value is only returned on creation.
+- **Authentication**: Required.
+- **Input**:
+  - `Content-Type`: `application/json`
+  - Body: `{ "name": string }`
+- **Output**:
+  - `201 Created`: `{ "token": string, "tokenRecord": ApiTokenRecord }`
+- **Types**: `N/A`
+
+### `DELETE /tokens/:id`
+
+- **Purpose**: Deletes an API token by its ID.
+- **Authentication**: Required.
+- **Input**:
+  - Path Parameter: `id` (string, required): The ID of the token to delete.
+- **Output**:
+  - `200 OK`: `{ "success": true }`
+  - `404 Not Found`: If token not found.
+- **Types**: `N/A`
+
+## Dashboard
+
+Endpoints for retrieving aggregated data for the user's dashboard.
+
+### `GET /dashboard`
+
+- **Purpose**: Retrieves aggregated statistics for the user's organization (workflow counts, deployment counts, execution stats, recent executions).
+- **Authentication**: Required.
+- **Output**:
+  - `200 OK`: `{ workflows: number, deployments: number, executions: { total: number, running: number, failed: number, avgTimeSeconds: number }, recentExecutions: RecentExecutionInfo[] }`
+- **Types**: `N/A` (Define `RecentExecutionInfo` if specific structure known)
