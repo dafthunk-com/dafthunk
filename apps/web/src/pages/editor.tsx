@@ -34,6 +34,7 @@ import {
   extractDialogParametersFromNodes,
   adaptDeploymentNodesToReactFlowNodes,
 } from "@/utils/utils";
+import { useNodeTemplates } from "@/hooks/use-node-templates";
 
 // Helper function to extract and format parameters for the execution dialog
 // function extractDialogParametersFromNodes(...) // Entire function removed
@@ -43,8 +44,7 @@ export function EditorPage() {
   const navigate = useNavigate();
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
-  const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([]);
-  const [templatesError, setTemplatesError] = useState<string | null>(null);
+  const { nodeTemplates, isLoadingTemplates, templatesError } = useNodeTemplates();
 
   // State for the execution parameters dialog
   const [showExecutionForm, setShowExecutionForm] = useState(false);
@@ -71,44 +71,6 @@ export function EditorPage() {
     ],
     [currentWorkflow?.name]
   );
-
-  // Fetch node templates
-  useEffect(() => {
-    const loadNodeTemplates = async () => {
-      try {
-        const types = await fetchNodeTypes();
-        const templates: NodeTemplate[] = types.map((type) => ({
-          id: type.id,
-          type: type.id,
-          name: type.name,
-          description: type.description || "",
-          category: type.category,
-          inputs: type.inputs.map((input) => ({
-            id: input.name,
-            type: input.type,
-            name: input.name,
-            description: input.description,
-            hidden: input.hidden,
-          })),
-          outputs: type.outputs.map((output) => ({
-            id: output.name,
-            type: output.type,
-            name: output.name,
-            description: output.description,
-            hidden: output.hidden,
-          })),
-        }));
-        setNodeTemplates(templates);
-        setTemplatesError(null);
-      } catch (_) {
-        setTemplatesError(
-          "Failed to load node templates. Please try again later."
-        );
-      }
-    };
-
-    loadNodeTemplates();
-  }, []);
 
   // Convert the initial workflow (only if it exists)
   useEffect(() => {
@@ -550,10 +512,7 @@ export function EditorPage() {
   }
 
   // Show loading state if templates aren't ready OR workflow is being processed
-  const showNodeTemplatesLoading =
-    nodeTemplates.length === 0 && !templatesError;
-
-  if (isWorkflowDetailsLoading || showNodeTemplatesLoading) {
+  if (isWorkflowDetailsLoading || isLoadingTemplates) {
     return <InsetLoading />;
   }
 
@@ -565,7 +524,7 @@ export function EditorPage() {
     !currentWorkflow &&
     !isWorkflowDetailsLoading &&
     !workflowDetailsError &&
-    !showNodeTemplatesLoading
+    !isLoadingTemplates
   ) {
     return (
       <WorkflowError
