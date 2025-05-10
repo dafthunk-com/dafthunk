@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { ApiContext } from "../context";
-const { getWorkflowsByOrganization } = require("../utils/db");
-const { getDeploymentsGroupedByWorkflow } = require("../utils/db");
-const { listExecutions } = require("../utils/db");
-const { jwtAuth } = require("../auth");
-const { createDatabase } = require("../db");
-const { ExecutionStatus } = require("../db/schema");
-import type { Workflow, Execution } from "../db/schema";
+import { getWorkflowsByOrganization } from "../utils/db";
+import { getDeploymentsGroupedByWorkflow } from "../utils/db";
+import { listExecutions } from "../utils/db";
+import { jwtAuth } from "../auth";
+import { createDatabase } from "../db";
+import { ExecutionStatus } from "../db/schema";
+import type { Execution } from "../db/schema";
 
 const dashboard = new Hono<ApiContext>();
 
@@ -16,10 +16,7 @@ dashboard.get("/", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Workflows count
-  const workflows: Workflow[] = await getWorkflowsByOrganization(
-    db,
-    user.organizationId
-  );
+  const workflows = await getWorkflowsByOrganization(db, user.organizationId);
   const workflowsCount = workflows.length;
 
   // Deployments count
@@ -63,8 +60,7 @@ dashboard.get("/", jwtAuth, async (c) => {
   // Recent executions (last 3)
   const recentExecutions = executions.slice(0, 3).map((e: Execution) => ({
     id: e.id,
-    workflowName:
-      workflows.find((w: Workflow) => w.id === e.workflowId)?.name || "",
+    workflowName: workflows.find((w) => w.id === e.workflowId)?.name || "",
     status: e.status,
     startedAt: e.startedAt,
   }));

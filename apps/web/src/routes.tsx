@@ -253,7 +253,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/share/execution/:executionId",
+    path: "/share/executions/:executionId",
     element: (
       <AppLayout>
         <SharedExecutionPage />

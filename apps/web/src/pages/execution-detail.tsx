@@ -219,7 +219,7 @@ export function ExecutionDetailPage() {
                 {execution.visibility === "public" && executionId && (
                   <Button variant="outline" size="sm" asChild>
                     <Link
-                      to={`/share/execution/${executionId}`}
+                      to={`/share/executions/${executionId}`}
                       target="_blank"
                     >
                       <Share2 className="mr-1 h-4 w-4" />

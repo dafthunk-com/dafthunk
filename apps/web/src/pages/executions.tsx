@@ -22,6 +22,7 @@ import { InsetError } from "@/components/inset-error";
 import type { WorkflowExecution } from "@dafthunk/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/utils/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 export const columns: ColumnDef<WorkflowExecution>[] = [
   {
@@ -220,7 +221,7 @@ export function ExecutionsPage() {
           }}
         />
         <div className="flex justify-center mt-4">
-          {isExecutionsLoadingMore && <p>Loading more...</p>}
+          {isExecutionsLoadingMore && <Spinner />}
         </div>
         {!isExecutionsReachingEnd && !isExecutionsInitialLoading && (
           <div ref={executionsObserverTargetRef} style={{ height: "1px" }} />

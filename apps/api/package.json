@@ -5,17 +5,21 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev --live-reload --port 3001",
+    "dev:preview": "wrangler dev --remote --port 3001",
     "test": "vitest run",
     "lint": "pnpm run format:check && eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:reset": "wrangler d1 execute DB --local --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS api_tokens; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS deployments; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS memberships; DROP TABLE IF EXISTS organizations; DROP TABLE IF EXISTS users;\"",
     "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:preview:reset": "wrangler d1 execute DB --remote --preview --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS api_tokens; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS deployments; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS memberships; DROP TABLE IF EXISTS organizations; DROP TABLE IF EXISTS users;\"",
+    "db:preview:migrate": "wrangler d1 migrations apply DB --remote --preview",
     "db:generate": "drizzle-kit generate",
     "db:prod:migrate": "wrangler d1 migrations apply DB --remote --env production",
     "db:prod:reset": "wrangler d1 execute DB --remote --env production --command=\"DROP TABLE IF EXISTS d1_migrations; DROP TABLE IF EXISTS api_tokens; DROP TABLE IF EXISTS executions; DROP TABLE IF EXISTS deployments; DROP TABLE IF EXISTS workflows; DROP TABLE IF EXISTS memberships; DROP TABLE IF EXISTS organizations; DROP TABLE IF EXISTS users;\" && wrangler d1 migrations apply DB --remote --env production"
   },
   "devDependencies": {
+    "@cloudflare/puppeteer": "^1.0.2",
     "@cloudflare/workers-types": "^4.20250504.0",
     "@eslint/js": "^9.26.0",
     "@types/node": "^22.15.3",

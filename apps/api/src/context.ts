@@ -1,6 +1,7 @@
 import { JWTPayload } from "jose";
 import { RuntimeParams } from "./runtime/runtime";
 import { Workflow } from "@cloudflare/workers-types";
+import { Fetcher } from "@cloudflare/workers-types";
 
 export interface CustomJWTPayload extends JWTPayload {
   sub: string;
@@ -35,6 +36,7 @@ export interface Bindings {
   TWILIO_PHONE_NUMBER: string;
   SENDGRID_API_KEY: string;
   SENDGRID_DEFAULT_FROM: string;
+  BROWSER: Fetcher | null;
 }
 
 export interface Variables {

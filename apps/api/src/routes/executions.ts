@@ -13,6 +13,7 @@ import { workflows } from "../db";
 import { eq, inArray, and } from "drizzle-orm";
 import { executions as executionsTable } from "../db/schema";
 import { getWorkflowById } from "../utils/db";
+import { generateExecutionOgImage } from "../utils/ogImageGenerator";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -103,24 +104,53 @@ executionRoutes.get("/", jwtAuth, async (c) => {
 
 executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
-  const id = c.req.param("id");
+  const executionId = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
   try {
-    const execution = await getExecutionById(db, id, user.organizationId);
+    const [execution] = await db
+      .select({
+        id: executionsTable.id,
+        organizationId: executionsTable.organizationId,
+        ogImageGeneratedAt: executionsTable.ogImageGeneratedAt,
+      })
+      .from(executionsTable)
+      .where(
+        and(
+          eq(executionsTable.id, executionId),
+          eq(executionsTable.organizationId, user.organizationId)
+        )
+      );
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    if (execution.organizationId !== user.organizationId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
-
     await db
       .update(executionsTable)
       .set({ visibility: "public", updatedAt: new Date() })
-      .where(eq(executionsTable.id, id));
+      .where(eq(executionsTable.id, executionId));
+
+    if (!execution.ogImageGeneratedAt && c.env.BROWSER) {
+      try {
+        await generateExecutionOgImage({
+          env: c.env,
+          executionId: executionId,
+        });
+
+        await db
+          .update(executionsTable)
+          .set({ ogImageGeneratedAt: new Date(), updatedAt: new Date() })
+          .where(eq(executionsTable.id, executionId));
+        console.log(
+          `Execution ${executionId} updated with OG image generation timestamp.`
+        );
+      } catch (error) {
+        console.error(
+          `OG image generation step failed for execution ${executionId}, but execution is now public. Error: ${error}`
+        );
+      }
+    }
 
     return c.json({ message: "Execution set to public" });
   } catch (error) {

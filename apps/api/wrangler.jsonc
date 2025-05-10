@@ -12,13 +12,6 @@
     "enabled": true,
     "head_sampling_rate": 1,
   },
-  "workflows": [
-    {
-      "name": "workflows-starter",
-      "binding": "EXECUTE",
-      "class_name": "Runtime",
-    },
-  ],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -39,6 +32,8 @@
       "binding": "DB",
       "database_name": "workflow-development",
       "database_id": "a89e76fb-ac20-49fc-a797-6a0f08a1dfd7",
+      // TODO: Update this to the correct preview database id
+      "preview_database_id": "01b80cb4-7115-47e0-a26c-f7970e1a6605",
       "migrations_dir": "./src/db/migrations",
     },
   ],
@@ -46,13 +41,23 @@
     {
       "binding": "BUCKET",
       "bucket_name": "workflow-development",
+      // TODO: Update this to the correct preview bucket name
+      "preview_bucket_name": "workflow-development-preview",
     },
   ],
   "kv_namespaces": [
     {
       "binding": "KV",
       "id": "868c7fd3732e42c4ad1c6f65939d1bfc",
-      "preview_id": "868c7fd3732e42c4ad1c6f65939d1bfc",
+      // TODO: Update this to the correct preview kv namespace id
+      "preview_id": "e1547dbff039449eb2eb89dbc9a0376c",
+    },
+  ],
+  "workflows": [
+    {
+      "name": "workflows-starter",
+      "binding": "EXECUTE",
+      "class_name": "Runtime",
     },
   ],
 
@@ -78,6 +83,9 @@
           "class_name": "Runtime",
         },
       ],
+      "browser": {
+        "binding": "BROWSER",
+      },
       "ai": {
         "binding": "AI",
       },

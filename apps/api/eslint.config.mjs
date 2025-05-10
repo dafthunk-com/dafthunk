@@ -4,6 +4,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
+  { ignores: ["dist", ".wrangler/**", "node_modules/**"] },
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
     plugins: { js },

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Head } from "@/components/head/Head";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { useNodeTemplates, usePublicExecutionDetails } from "@/hooks/use-fetch";
@@ -13,6 +14,7 @@ import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
+import { API_BASE_URL } from "@/config/api";
 
 export function SharedExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -102,7 +104,18 @@ export function SharedExecutionPage() {
       };
     }, [execution]);
 
-  const validateConnection = () => false; // Read-only
+  const ogImageUrl = executionId
+    ? `${API_BASE_URL}/objects?id=og-images/${executionId}.jpg&mimeType=image/jpeg`
+    : "";
+  const pageUrl = executionId
+    ? `${window.location.origin}/shared/executions/${executionId}`
+    : window.location.href;
+  const pageTitle = execution
+    ? `Execution: ${execution.workflowName || execution.id}`
+    : "Shared Execution";
+  const pageDescription = execution
+    ? `Details for workflow execution: ${execution.workflowName || execution.id}`
+    : "View the details of a shared workflow execution.";
 
   if (isLoadingExecution || isNodeTemplatesLoading) {
     return <InsetLoading title="Execution" />;
@@ -115,22 +128,40 @@ export function SharedExecutionPage() {
   }
 
   return (
-    <InsetLayout
-      title={`Execution: ${execution.workflowName || execution.id}`}
-      titleRight={<ExecutionStatusBadge status={execution.status} />}
-      className="overflow-hidden relative h-full"
-      titleClassName="relative mb-0"
-      childrenClassName="h-full w-full p-0"
-    >
-      <WorkflowBuilder
-        workflowId={execution.workflowId || execution.id}
-        initialNodes={reactFlowNodes}
-        initialEdges={reactFlowEdges}
-        nodeTemplates={nodeTemplates}
-        validateConnection={validateConnection}
-        initialWorkflowExecution={workflowBuilderExecution || undefined}
-        readonly={true}
-      />
-    </InsetLayout>
+    <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={pageUrl} />
+        <meta property="twitter:title" content={pageTitle} />
+        <meta property="twitter:description" content={pageDescription} />
+        {ogImageUrl && <meta property="twitter:image" content={ogImageUrl} />}
+      </Head>
+      <InsetLayout
+        title={pageTitle}
+        titleRight={<ExecutionStatusBadge status={execution.status} />}
+        className="overflow-hidden relative h-full"
+        titleClassName="relative mb-0"
+        childrenClassName="h-full w-full p-0"
+      >
+        <WorkflowBuilder
+          workflowId={execution.workflowId || execution.id}
+          initialNodes={reactFlowNodes}
+          initialEdges={reactFlowEdges}
+          nodeTemplates={nodeTemplates}
+          validateConnection={() => false}
+          initialWorkflowExecution={workflowBuilderExecution || undefined}
+          readonly={true}
+        />
+      </InsetLayout>
+    </>
   );
 }
