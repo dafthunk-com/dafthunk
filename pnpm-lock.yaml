@@ -93,7 +93,7 @@ importers:
   apps/web:
     dependencies:
       '@dafthunk/types':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/types
       '@dnd-kit/core':
         specifier: ^6.3.1
