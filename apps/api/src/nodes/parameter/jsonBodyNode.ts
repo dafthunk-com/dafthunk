@@ -5,7 +5,7 @@ export class JsonBodyNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "body.json",
     id: "body.json",
-    name: "HTTP JSON Body",
+    name: "JSON Body",
     description: "Extracts JSON data from the body of the HTTP request.",
     category: "Parameter",
     icon: "braces",

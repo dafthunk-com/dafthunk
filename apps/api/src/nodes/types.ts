@@ -84,9 +84,12 @@ export type Parameter = {
 } & ParameterType;
 
 export interface HttpRequest {
-  headers: Record<string, string>;
-  params: Record<string, string>;
-  body: any;
+  url?: string;
+  method?: string;
+  headers?: Record<string, string>;
+  query?: Record<string, string>;
+  body?: any;
+  formData?: Record<string, string | File>;
 }
 
 export interface NodeContext {

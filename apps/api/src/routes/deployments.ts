@@ -316,10 +316,20 @@ deploymentRoutes.post(
     const workflowData = deployment.workflowData as WorkflowType;
 
     // Extract HTTP request information
+    const url = c.req.url;
+    const method = c.req.method;
     const headers = c.req.header();
-    const params = { deploymentUUID };
+    const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
+    
+    // Try to parse form data
+    let formData: Record<string, string | File> | undefined;
+    try {
+      formData = Object.fromEntries(await c.req.formData());
+    } catch {
+      // No form data or invalid form data
+    }
 
-    // Get request body if it exists
+    // Try to parse JSON body
     let body: any = undefined;
     try {
       body = await c.req.json();
@@ -341,8 +351,11 @@ deploymentRoutes.post(
         monitorProgress,
         deploymentId: deployment.id,
         httpRequest: {
+          url,
+          method,
           headers,
-          params,
+          query,
+          formData,
           body,
         },
       },

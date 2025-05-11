@@ -5,9 +5,9 @@ export class NumberParameterNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "parameter.number",
     id: "parameter.number",
-    name: "HTTP Form Number Parameter",
+    name: "Number Parameter",
     description:
-      "Extracts a number parameter from the HTTP request's form data. The parameter will be looked up in the request body using the specified name.",
+      "Extracts a number parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",
     icon: "calculator",
     inputs: [
@@ -15,14 +15,14 @@ export class NumberParameterNode extends ExecutableNode {
         name: "name",
         type: "string",
         description:
-          "The name of the form field to extract from the HTTP request body",
+          "The name of the parameter to extract from the HTTP request",
         required: true,
       },
       {
         name: "required",
         type: "boolean",
         description:
-          "Whether the form field is required. If false, undefined will be returned when the field is missing",
+          "Whether the parameter is required. If false, undefined will be returned when missing",
         value: true,
       },
     ],
@@ -31,7 +31,7 @@ export class NumberParameterNode extends ExecutableNode {
         name: "value",
         type: "number",
         description:
-          "The number value from the form field, or undefined if the field is optional and not provided",
+          "The number value from the parameter, or undefined if optional and not provided",
       },
     ],
   };
@@ -42,11 +42,11 @@ export class NumberParameterNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const formFieldName = this.node.inputs.find(
+      const paramName = this.node.inputs.find(
         (input) => input.name === "name"
       )?.value as string;
-      if (!formFieldName) {
-        throw new Error("Form field name is required");
+      if (!paramName) {
+        throw new Error("Parameter name is required");
       }
 
       const isRequired =
@@ -64,12 +64,12 @@ export class NumberParameterNode extends ExecutableNode {
         });
       }
 
-      // Try to get the value from the request body (form data)
-      const rawValue = context.httpRequest.body?.[formFieldName];
+      // Try to get the value from the request body (form data or JSON)
+      const rawValue = context.httpRequest?.formData?.[paramName] ?? context.httpRequest?.body?.[paramName];
       if (rawValue === undefined) {
         if (isRequired) {
           throw new Error(
-            `Form field "${formFieldName}" is required but not provided in the request`
+            `Parameter "${paramName}" is required but not provided in the request`
           );
         }
         return this.createSuccessResult({
@@ -80,7 +80,7 @@ export class NumberParameterNode extends ExecutableNode {
       // Parse the value as a number
       const numValue = Number(rawValue);
       if (isNaN(numValue)) {
-        throw new Error(`Form field "${formFieldName}" must be a valid number`);
+        throw new Error(`Parameter "${paramName}" must be a valid number`);
       }
 
       return this.createSuccessResult({

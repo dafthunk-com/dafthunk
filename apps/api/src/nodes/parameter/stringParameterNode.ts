@@ -5,9 +5,9 @@ export class StringParameterNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     type: "parameter.string",
     id: "parameter.string",
-    name: "HTTP Form String Parameter",
+    name: "String Parameter",
     description:
-      "Extracts a string parameter from the HTTP request's form data. The parameter will be looked up in the request body using the specified name.",
+      "Extracts a string parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",
     icon: "text",
     inputs: [
@@ -15,14 +15,14 @@ export class StringParameterNode extends ExecutableNode {
         name: "name",
         type: "string",
         description:
-          "The name of the form field to extract from the HTTP request body",
+          "The name of the parameter to extract from the HTTP request",
         required: true,
       },
       {
         name: "required",
         type: "boolean",
         description:
-          "Whether the form field is required. If false, undefined will be returned when the field is missing",
+          "Whether the parameter is required. If false, undefined will be returned when missing",
         value: true,
       },
     ],
@@ -31,7 +31,7 @@ export class StringParameterNode extends ExecutableNode {
         name: "value",
         type: "string",
         description:
-          "The string value from the form field, or undefined if the field is optional and not provided",
+          "The string value from the parameter, or undefined if optional and not provided",
       },
     ],
   };
@@ -42,11 +42,11 @@ export class StringParameterNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const formFieldName = this.node.inputs.find(
+      const paramName = this.node.inputs.find(
         (input) => input.name === "name"
       )?.value as string;
-      if (!formFieldName) {
-        throw new Error("Form field name is required");
+      if (!paramName) {
+        throw new Error("Parameter name is required");
       }
 
       const isRequired =
@@ -64,12 +64,12 @@ export class StringParameterNode extends ExecutableNode {
         });
       }
 
-      // Try to get the value from the request body (form data)
-      const value = context.httpRequest.body?.[formFieldName];
+      // Try to get the value from the request body (form data or JSON)
+      const value = context.httpRequest?.formData?.[paramName] ?? context.httpRequest?.body?.[paramName];
       if (value === undefined) {
         if (isRequired) {
           throw new Error(
-            `Form field "${formFieldName}" is required but not provided in the request`
+            `Parameter "${paramName}" is required but not provided in the request`
           );
         }
         return this.createSuccessResult({
@@ -78,7 +78,7 @@ export class StringParameterNode extends ExecutableNode {
       }
 
       if (typeof value !== "string") {
-        throw new Error(`Form field "${formFieldName}" must be a string`);
+        throw new Error(`Parameter "${paramName}" must be a string`);
       }
 
       return this.createSuccessResult({
