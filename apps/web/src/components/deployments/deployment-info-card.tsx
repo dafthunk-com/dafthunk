@@ -55,7 +55,7 @@ export function DeploymentInfoCard({
                 <GitCommitHorizontal className="mr-1 h-4 w-4" /> Deployment
                 Version
               </p>
-              <p className="mt-1">
+              <div className="mt-1">
                 <Link
                   to={`/workflows/deployments/version/${id}`}
                   className="hover:underline"
@@ -64,7 +64,7 @@ export function DeploymentInfoCard({
                     <GitCommitHorizontal className="h-3.5 w-3.5" />v{version}
                   </Badge>
                 </Link>
-              </p>
+              </div>
             </div>
             <div>
               <p className="text-sm text-muted-foreground flex items-center">

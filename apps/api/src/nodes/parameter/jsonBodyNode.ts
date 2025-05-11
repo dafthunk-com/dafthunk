@@ -3,8 +3,8 @@ import { ExecutableNode, NodeContext } from "../types";
 
 export class JsonBodyNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "parameter.json",
-    id: "parameter.json",
+    type: "body.json",
+    id: "body.json",
     name: "HTTP JSON Body",
     description: "Extracts JSON data from the body of the HTTP request.",
     category: "Parameter",

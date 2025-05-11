@@ -241,9 +241,9 @@ export function useWorkflowExecutor(
         return undefined;
       }
 
-      // Check for parameter.json nodes
+      // Check for body.json nodes
       const jsonBodyNode = uiNodes.find(
-        (node) => node.data.nodeType === "parameter.json"
+        (node) => node.data.nodeType === "body.json"
       );
 
       // Check if JSON body is required
@@ -252,14 +252,14 @@ export function useWorkflowExecutor(
             ?.value ?? true) as boolean)
         : false;
 
-      // Extract regular form parameters (non-JSON)
+      // Extract all parameters (including body.json)
       const httpParameterNodes = extractDialogParametersFromNodes(
         uiNodes,
         nodeTemplatesData
       );
 
       if (httpParameterNodes.length > 0) {
-        // If we have form parameters, show the form
+        // If we have parameters, show the form
         setFormParameters(httpParameterNodes);
         setIsExecutionFormVisible(true);
         executionContextRef.current = {
@@ -291,13 +291,15 @@ export function useWorkflowExecutor(
       if (executionContextRef.current) {
         const { id, onExecution, jsonBodyNode } = executionContextRef.current;
 
-        // Check if we have the special JSON body parameter
-        if ("__jsonBody__" in formData && jsonBodyNode) {
+        // Check if we have a JSON body parameter
+        const hasJsonBodyParam = jsonBodyNode && "requestBody" in formData;
+        
+        if (hasJsonBodyParam) {
           // Extract the JSON body from the form data
-          const jsonBody = formData.__jsonBody__;
+          const jsonBody = formData.requestBody;
 
           // Remove the special field so we only keep regular form parameters
-          const { __jsonBody__, ...regularFormData } = formData;
+          const { requestBody, ...regularFormData } = formData;
 
           // If we have a valid JSON body, use it as the request body
           // Otherwise, use the regular form data

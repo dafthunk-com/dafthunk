@@ -28,6 +28,7 @@ import {
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import {
@@ -44,6 +45,8 @@ import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
+import type { Node } from "@xyflow/react";
+import type { WorkflowNodeType } from "@/components/workflow/workflow-types.tsx";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -350,6 +353,14 @@ export function DeploymentDetailPage() {
                 title="Current Deployment"
                 description="Latest deployment of this workflow"
               />
+
+              {nodeTemplates && (
+                <ApiIntegrationCard 
+                  deploymentId={currentDeployment.id} 
+                  nodes={adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes)}
+                  nodeTemplates={nodeTemplates}
+                />
+              )}
 
               <DataTableCard
                 title={

@@ -7,6 +7,7 @@ import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Node, Edge } from "@xyflow/react";
@@ -14,6 +15,7 @@ import type {
   WorkflowNodeType,
   WorkflowEdgeType,
   WorkflowExecution,
+  NodeTemplate,
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
@@ -271,6 +273,14 @@ export function DeploymentVersionPage() {
                 version={deploymentVersion.version}
                 createdAt={deploymentVersion.createdAt}
               />
+              
+              {nodeTemplates && (
+                <ApiIntegrationCard 
+                  deploymentId={deploymentVersion.id} 
+                  nodes={nodes}
+                  nodeTemplates={nodeTemplates}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="workflow" className="mt-4">
