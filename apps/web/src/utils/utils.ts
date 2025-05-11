@@ -37,8 +37,8 @@ export function extractDialogParametersFromNodes(
     .filter(
       (node) =>
         // Include body.json nodes and parameter.* nodes
-        (node.data.nodeType === "body.json" || 
-         node.data.nodeType?.startsWith("parameter."))
+        node.data.nodeType === "body.json" ||
+        node.data.nodeType?.startsWith("parameter.")
     )
     .map((node) => {
       const requiredInput = node.data.inputs.find((i) => i.id === "required");

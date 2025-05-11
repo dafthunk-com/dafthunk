@@ -33,37 +33,43 @@ type ExtendedApiContext = ApiContext & {
 const deploymentRoutes = new Hono<ExtendedApiContext>();
 
 // API key authentication middleware
-const apiKeyAuth = async (c: Context<ExtendedApiContext>, next: () => Promise<void>) => {
+const apiKeyAuth = async (
+  c: Context<ExtendedApiContext>,
+  next: () => Promise<void>
+) => {
   const authHeader = c.req.header("Authorization");
-  
+
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return c.json({ error: "API key is required" }, 401);
   }
-  
+
   const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
   const db = createDatabase(c.env.DB);
-  
+
   const organizationId = await verifyApiToken(db, apiKey);
-  
+
   if (!organizationId) {
     return c.json({ error: "Invalid API key" }, 401);
   }
-  
+
   // Store the organization ID in the context for later use
   c.set("organizationId", organizationId);
-  
+
   await next();
 };
 
 // Middleware that allows either JWT or API key authentication
-const authMiddleware = async (c: Context<ExtendedApiContext>, next: () => Promise<void>) => {
+const authMiddleware = async (
+  c: Context<ExtendedApiContext>,
+  next: () => Promise<void>
+) => {
   const authHeader = c.req.header("Authorization");
-  
+
   // If Authorization header is present, try API key auth
   if (authHeader && authHeader.startsWith("Bearer ")) {
     return apiKeyAuth(c, next);
   }
-  
+
   // Otherwise, use JWT auth
   return jwtAuth(c, next);
 };
@@ -274,7 +280,7 @@ deploymentRoutes.post(
     // Get organization ID from either JWT or API key auth
     let organizationId: string;
     let userId: string;
-    
+
     const jwtPayload = c.get("jwtPayload");
     if (jwtPayload) {
       // Authentication was via JWT
@@ -289,7 +295,7 @@ deploymentRoutes.post(
       organizationId = orgId;
       userId = "api"; // Use a placeholder for API-triggered executions
     }
-    
+
     const deploymentUUID = c.req.param("deploymentUUID");
     const db = createDatabase(c.env.DB);
 

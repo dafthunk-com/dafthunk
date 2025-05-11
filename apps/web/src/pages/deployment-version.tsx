@@ -15,7 +15,6 @@ import type {
   WorkflowNodeType,
   WorkflowEdgeType,
   WorkflowExecution,
-  NodeTemplate,
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
@@ -273,10 +272,10 @@ export function DeploymentVersionPage() {
                 version={deploymentVersion.version}
                 createdAt={deploymentVersion.createdAt}
               />
-              
+
               {nodeTemplates && (
-                <ApiIntegrationCard 
-                  deploymentId={deploymentVersion.id} 
+                <ApiIntegrationCard
+                  deploymentId={deploymentVersion.id}
                   nodes={nodes}
                   nodeTemplates={nodeTemplates}
                 />
