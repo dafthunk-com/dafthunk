@@ -437,7 +437,7 @@ export async function createApiToken(
 
   // Return both the raw token (only shown once) and the record
   return {
-    rawToken: `${rawToken}`, // Prefix for easier identification
+    rawToken: rawToken, // The plain token value without any prefix
     token: tokenRecord,
   };
 }
@@ -453,17 +453,12 @@ export async function verifyApiToken(
   db: ReturnType<typeof createDatabase>,
   providedToken: string
 ): Promise<string | null> {
-  // Remove prefix if present
-  const tokenValue = providedToken.startsWith("")
-    ? providedToken.substring(5)
-    : providedToken;
-
-  // Hash the provided token
+  // Hash the provided token directly without attempting to handle any prefix
   const hashedToken = crypto
     .createHash("sha256")
-    .update(tokenValue)
+    .update(providedToken)
     .digest("hex");
-
+    
   // Find the token in the database
   const [token] = await db
     .select({
