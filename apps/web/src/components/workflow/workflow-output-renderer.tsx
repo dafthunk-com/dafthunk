@@ -15,13 +15,8 @@ export const formatOutputValue = (value: any, type: string): string => {
   if (value === undefined || value === null) return "";
 
   try {
-    if (
-      type === "binary" ||
-      type === "audio" ||
-      type === "image" ||
-      type === "document"
-    ) {
-      return ""; // Don't display binary data as text
+    if (type === "audio" || type === "image" || type === "document") {
+      return ""; // Don't display data as text for types handled by dedicated renderers
     } else if (type === "json" || type === "array") {
       return JSON.stringify(value, null, 2);
     } else if (type === "boolean") {
@@ -176,37 +171,6 @@ const DocumentRenderer = ({
   );
 };
 
-// Binary output renderer
-const BinaryRenderer = ({
-  output,
-  objectUrl,
-  compact,
-}: {
-  output: WorkflowParameter;
-  objectUrl: string;
-  compact?: boolean;
-}) => (
-  <div
-    className={
-      compact
-        ? "text-xs text-neutral-500 p-1 mt-1 flex justify-between items-center"
-        : "relative w-full p-2 flex items-center justify-between rounded-lg border bg-secondary/50"
-    }
-  >
-    <p className={compact ? "" : "text-sm text-muted-foreground"}>
-      Binary data ({output.value.mimeType})
-    </p>
-    <a
-      href={objectUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-xs text-blue-500 hover:underline"
-    >
-      Download
-    </a>
-  </div>
-);
-
 // Text output renderer
 const TextRenderer = ({
   value,
@@ -232,28 +196,90 @@ export function WorkflowOutputRenderer({
 }: WorkflowOutputRendererProps) {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [documentError, setDocumentError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (output.type === "audio" && output.value) {
-      try {
-        if (isObjectReference(output.value)) {
-          setAudioUrl(createObjectUrl(output.value));
-          setAudioError(null);
-        } else {
-          throw new Error("Invalid audio reference format");
+    // Reset states when output changes
+    setAudioUrl(null);
+    setAudioError(null);
+    setImageUrl(null);
+    setImageError(null);
+    setDocumentUrl(null);
+    setDocumentError(null);
+
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+
+    if (output.value) {
+      if (output.type === "audio") {
+        try {
+          if (isObjectReference(output.value)) {
+            const url = createObjectUrl(output.value);
+            setAudioUrl(url);
+            objectUrlRef.current = url;
+          } else {
+            throw new Error("Invalid audio reference format");
+          }
+        } catch (error) {
+          console.error("Error processing audio data:", error);
+          setAudioError(
+            error instanceof Error
+              ? error.message
+              : "Unknown error loading audio"
+          );
         }
-      } catch (error) {
-        console.error("Error processing audio data:", error);
-        setAudioError(
-          error instanceof Error
-            ? error.message
-            : "Failed to process audio data"
-        );
-        setAudioUrl(null);
+      } else if (output.type === "image") {
+        try {
+          if (isObjectReference(output.value)) {
+            const url = createObjectUrl(output.value);
+            setImageUrl(url);
+            objectUrlRef.current = url;
+          } else {
+            throw new Error("Invalid image reference format");
+          }
+        } catch (error) {
+          console.error("Error processing image data:", error);
+          setImageError(
+            error instanceof Error
+              ? error.message
+              : "Unknown error loading image"
+          );
+        }
+      } else if (output.type === "document") {
+        try {
+          if (isObjectReference(output.value)) {
+            const url = createObjectUrl(output.value);
+            setDocumentUrl(url);
+            objectUrlRef.current = url;
+          } else {
+            throw new Error("Invalid document reference format");
+          }
+        } catch (error) {
+          console.error("Error processing document data:", error);
+          setDocumentError(
+            error instanceof Error
+              ? error.message
+              : "Unknown error loading document"
+          );
+        }
       }
     }
-  }, [output.value, output.type]);
+
+    // Cleanup function
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, [output.type, output.value]);
 
   const handleAudioError = (
     e: React.SyntheticEvent<HTMLAudioElement, Event>
@@ -269,28 +295,17 @@ export function WorkflowOutputRenderer({
 
   // Handle image output
   if (output.type === "image" && output.value) {
-    try {
-      if (isObjectReference(output.value)) {
-        return (
-          <ImageRenderer
-            output={output}
-            compact={compact}
-            objectUrl={createObjectUrl(output.value)}
-          />
-        );
-      }
+    if (imageError) {
+      return <ErrorMessage message={imageError} compact={compact} />;
+    }
+    if (imageUrl) {
       return (
-        <ErrorMessage
-          message="Invalid image reference format"
-          compact={compact}
-        />
-      );
-    } catch (error) {
-      console.error("Error processing image data:", error);
-      return (
-        <ErrorMessage message="Error processing image data" compact={compact} />
+        <ImageRenderer output={output} compact={compact} objectUrl={imageUrl} />
       );
     }
+    // If output.value is present, useEffect should have set either imageUrl or imageError.
+    // Returning null if neither is ready, assuming useEffect will update.
+    return null;
   }
 
   // Handle audio output
@@ -314,50 +329,21 @@ export function WorkflowOutputRenderer({
 
   // Handle document output
   if (output.type === "document" && output.value) {
-    try {
-      if (isObjectReference(output.value)) {
-        return (
-          <DocumentRenderer
-            output={output}
-            objectUrl={createObjectUrl(output.value)}
-            compact={compact}
-          />
-        );
-      }
-      return (
-        <ErrorMessage
-          message="Invalid document reference format"
-          compact={compact}
-        />
-      );
-    } catch (error) {
-      console.error("Error processing document data:", error);
-      return (
-        <ErrorMessage
-          message="Error processing document data"
-          compact={compact}
-        />
-      );
+    if (documentError) {
+      return <ErrorMessage message={documentError} compact={compact} />;
     }
-  }
-
-  // Handle binary output
-  if (output.type === "binary" && output.value) {
-    if (isObjectReference(output.value)) {
+    if (documentUrl) {
       return (
-        <BinaryRenderer
+        <DocumentRenderer
           output={output}
-          objectUrl={createObjectUrl(output.value)}
+          objectUrl={documentUrl}
           compact={compact}
         />
       );
     }
-    return (
-      <ErrorMessage
-        message="Invalid binary reference format"
-        compact={compact}
-      />
-    );
+    // If output.value is present, useEffect should have set either documentUrl or documentError.
+    // Returning null if neither is ready, assuming useEffect will update.
+    return null;
   }
 
   // Handle text-based output

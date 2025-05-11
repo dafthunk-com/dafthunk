@@ -7,7 +7,6 @@ import {
   Node as ReactFlowNode,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
-  NodeChange,
 } from "@xyflow/react";
 import {
   WorkflowNodeType,
@@ -171,8 +170,8 @@ export function useWorkflowState({
         const filteredChanges = changes.filter(
           (change: any) => change.type !== "position"
         );
-        if (selectionChanges.length > 0) {
-          onNodesChange(selectionChanges);
+        if (filteredChanges.length > 0) {
+          onNodesChange(filteredChanges);
         }
         // If there are only non-selection changes, we effectively ignore them.
       } else {

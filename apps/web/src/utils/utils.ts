@@ -60,9 +60,7 @@ export function extractDialogParametersFromNodes(
       }
 
       // Original logic for other parameter types
-      const nameInput = node.data.inputs.find(
-        (i) => i.id === "name"
-      );
+      const nameInput = node.data.inputs.find((i) => i.id === "name");
 
       const fieldName = nameInput?.value as string;
       if (!fieldName) {

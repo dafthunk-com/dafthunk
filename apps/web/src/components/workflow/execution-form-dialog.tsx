@@ -10,7 +10,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  SubmitHandler,
+  type Resolver,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useEffect, useMemo } from "react";
@@ -133,6 +138,7 @@ export function ExecutionFormDialog({
   parameters,
 }: ExecutionFormDialogProps) {
   const validationSchema = createValidationSchema(parameters);
+  type FormValues = Record<string, any>;
 
   // Check if the form has any required fields
   const hasRequiredFields = useMemo(
@@ -145,61 +151,53 @@ export function ExecutionFormDialog({
     handleSubmit,
     reset,
     formState: { errors, isDirty, isValid },
-  } = useForm<Record<string, any>>({
-    resolver: zodResolver(validationSchema),
+  } = useForm<FormValues>({
+    // @ts-ignore: TS2589: Type instantiation is excessively deep and possibly infinite.
+    resolver: zodResolver(validationSchema) as unknown as Resolver<FormValues>,
     mode: "onChange", // Validate on change to enable/disable submit button
-    defaultValues: parameters.reduce(
-      (acc, param) => {
-        // Set appropriate default values based on parameter type
-        if (param.type.startsWith("parameter.boolean")) {
-          acc[param.nameForForm] = false;
-        } else if (param.type.startsWith("parameter.json")) {
-          acc[param.nameForForm] = ""; // Empty string for JSON
-        } else if (param.type.startsWith("parameter.number")) {
-          acc[param.nameForForm] = ""; // Empty string for number inputs
-        } else {
-          acc[param.nameForForm] = ""; // Default for strings
-        }
-        return acc;
-      },
-      {} as Record<string, any>
-    ),
+    defaultValues: parameters.reduce((acc, param) => {
+      // Set appropriate default values based on parameter type
+      if (param.type.startsWith("parameter.boolean")) {
+        acc[param.nameForForm] = false;
+      } else if (param.type.startsWith("parameter.json")) {
+        acc[param.nameForForm] = ""; // Empty string for JSON
+      } else if (param.type.startsWith("parameter.number")) {
+        acc[param.nameForForm] = ""; // Empty string for number inputs
+      } else {
+        acc[param.nameForForm] = ""; // Default for strings
+      }
+      return acc;
+    }, {} as FormValues),
   });
 
   // Reset form when dialog opens or parameters change
   useEffect(() => {
     if (isOpen) {
-      const defaultValues = parameters.reduce(
-        (acc, param) => {
-          // Set appropriate default values based on parameter type
-          if (param.type.startsWith("parameter.boolean")) {
-            acc[param.nameForForm] = false;
-          } else if (param.type.startsWith("parameter.json")) {
-            acc[param.nameForForm] = "";
-          } else if (param.type.startsWith("parameter.number")) {
-            acc[param.nameForForm] = "";
-          } else {
-            acc[param.nameForForm] = "";
-          }
-          return acc;
-        },
-        {} as Record<string, any>
-      );
+      const defaultValues = parameters.reduce((acc, param) => {
+        // Set appropriate default values based on parameter type
+        if (param.type.startsWith("parameter.boolean")) {
+          acc[param.nameForForm] = false;
+        } else if (param.type.startsWith("parameter.json")) {
+          acc[param.nameForForm] = "";
+        } else if (param.type.startsWith("parameter.number")) {
+          acc[param.nameForForm] = "";
+        } else {
+          acc[param.nameForForm] = "";
+        }
+        return acc;
+      }, {} as FormValues);
       reset(defaultValues);
     }
   }, [isOpen, parameters, reset]);
 
-  const processSubmit: SubmitHandler<Record<string, any>> = (data) => {
+  const processSubmit: SubmitHandler<FormValues> = (data) => {
     // Filter out undefined values before submitting
-    const filteredData = Object.entries(data).reduce(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
-      },
-      {} as Record<string, any>
-    );
+    const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {} as FormValues);
     onSubmit(filteredData);
     onClose(); // Close dialog after submission
   };

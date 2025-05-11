@@ -12,6 +12,7 @@ import { DataTableCard } from "@/components/ui/data-table-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { useDashboardStats } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
+import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -164,25 +165,8 @@ export function DashboardPage() {
             accessorKey: "status",
             header: "Status",
             cell: ({ row }) => {
-              let badgeStatus: "running" | "completed" | "failed" | "cancelled";
-              switch (row.original.status) {
-                case "executing":
-                case "running":
-                  badgeStatus = "running";
-                  break;
-                case "completed":
-                  badgeStatus = "completed";
-                  break;
-                case "error":
-                case "failed":
-                  badgeStatus = "failed";
-                  break;
-                case "cancelled":
-                  badgeStatus = "cancelled";
-                  break;
-                default:
-                  badgeStatus = "cancelled";
-              }
+              const badgeStatus = row.original
+                .status as WorkflowExecutionStatus;
               return <ExecutionStatusBadge status={badgeStatus} />;
             },
           },
