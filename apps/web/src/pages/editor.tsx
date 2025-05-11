@@ -11,9 +11,8 @@ import type {
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
-import { useWorkflowDetails } from "@/hooks/use-fetch";
+import { useWorkflowDetails, useNodeTemplates } from "@/hooks/use-fetch";
 import { InsetLoading } from "@/components/inset-loading";
-import { useNodeTemplates } from "@/hooks/use-node-templates";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
@@ -23,7 +22,7 @@ export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { nodeTemplates, isLoadingTemplates, templatesError } =
+  const { nodeTemplates, isNodeTemplatesLoading, nodeTemplatesError } =
     useNodeTemplates();
 
   const {
@@ -181,10 +180,10 @@ export function EditorPage() {
     );
   }
 
-  if (templatesError) {
+  if (nodeTemplatesError) {
     return (
       <WorkflowError
-        message={templatesError}
+        message={nodeTemplatesError.message}
         onRetry={() => window.location.reload()}
       />
     );
@@ -205,7 +204,7 @@ export function EditorPage() {
 
   if (
     isWorkflowDetailsLoading ||
-    isLoadingTemplates ||
+    isNodeTemplatesLoading ||
     isWorkflowInitializing
   ) {
     return <InsetLoading />;
@@ -215,7 +214,8 @@ export function EditorPage() {
     !currentWorkflow &&
     !isWorkflowDetailsLoading &&
     !workflowDetailsError &&
-    !isLoadingTemplates &&
+    !isNodeTemplatesLoading &&
+    !nodeTemplatesError &&
     !isWorkflowInitializing
   ) {
     return (
