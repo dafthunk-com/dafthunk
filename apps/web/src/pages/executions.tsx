@@ -200,7 +200,10 @@ export function ExecutionsPage() {
 
   return (
     <TooltipProvider>
-      <InsetLayout title="Executions">
+      <InsetLayout
+        title="Executions"
+        titleRight={isExecutionsLoadingMore && <Spinner />}
+      >
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
         </p>
@@ -220,9 +223,6 @@ export function ExecutionsPage() {
                 : "No executions match your criteria."),
           }}
         />
-        <div className="flex justify-center mt-4">
-          {isExecutionsLoadingMore && <Spinner />}
-        </div>
         {!isExecutionsReachingEnd && !isExecutionsInitialLoading && (
           <div ref={executionsObserverTargetRef} style={{ height: "1px" }} />
         )}
