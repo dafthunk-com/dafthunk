@@ -250,11 +250,11 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
   // Build initial nodeExecutions (all idle)
   const nodeExecutions = workflowData.nodes.map((node: Node) => ({
     nodeId: node.id,
-    status: "idle" as const,
+    status: "idle",
   }));
 
   // Save initial execution record
-  await saveExecution(db, {
+  const initialExecution = await saveExecution(db, {
     id: executionId,
     workflowId: workflow.id,
     userId: user.sub,
@@ -266,14 +266,15 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
     updatedAt: new Date(),
   });
 
-  // Return the initial WorkflowExecution object
-  const initialExecution = {
-    id: executionId,
-    workflowId: workflow.id,
-    status: "idle",
-    nodeExecutions,
-  };
-  return c.json(initialExecution, 201);
+  return c.json(
+    {
+      id: initialExecution.id,
+      workflowId: initialExecution.workflowId,
+      status: initialExecution.status,
+      nodeExecutions: initialExecution.nodeExecutions,
+    },
+    201
+  );
 });
 
 export default workflowRoutes;

@@ -8,7 +8,7 @@ export class NumberParameterNode extends ExecutableNode {
     name: "HTTP Form Number Parameter",
     description:
       "Extracts a number parameter from the HTTP request's form data. The parameter will be looked up in the request body using the specified name.",
-    category: "parameter",
+    category: "Parameter",
     icon: "calculator",
     inputs: [
       {

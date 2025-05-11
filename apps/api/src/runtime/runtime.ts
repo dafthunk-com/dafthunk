@@ -118,8 +118,23 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         async () => this.initialiseWorkflow(workflow)
       );
 
-      // Set startedAt timestamp when execution actually begins
-      executionRecord.startedAt = new Date();
+      const initialStartedAt = new Date();
+
+      // Persist the "executing" status and startedAt time immediately
+      executionRecord = await step.do(
+        "persist initial execution status",
+        Runtime.defaultStepConfig,
+        async () =>
+          this.saveExecutionState(
+            userId,
+            organizationId,
+            workflow.id,
+            instanceId,
+            runtimeState, // runtimeState.status is "executing", executedNodes is empty
+            initialStartedAt,
+            undefined // endedAt is not yet set
+          )
+      );
 
       // Execute nodes sequentially.
       for (const nodeIdentifier of runtimeState.sortedNodes) {
