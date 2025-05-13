@@ -5,6 +5,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiKey, ApiKeyWithSecret, CreateApiKeyRequest, CreateApiKeyResponse, DeleteApiKeyResponse, ListApiKeysResponse } from "@dafthunk/types";
 
 // Create a new Hono instance for API keys endpoints
 const apiKeyRoutes = new Hono<ApiContext>();
@@ -23,7 +24,8 @@ apiKeyRoutes.get("/", async (c) => {
 
   try {
     const apiKeys = await getApiKeys(db, user.organization.id);
-    return c.json({ apiKeys });
+    const response: ListApiKeysResponse = { apiKeys };
+    return c.json(response);
   } catch (error) {
     console.error("Error fetching API keys:", error);
     return c.json({ error: "Failed to fetch API keys" }, 500);
@@ -41,7 +43,7 @@ apiKeyRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "API key name is required"),
-    })
+    }) as z.ZodType<CreateApiKeyRequest>
   ),
   async (c) => {
     const user = c.get("jwtPayload") as CustomJWTPayload;
@@ -51,18 +53,15 @@ apiKeyRoutes.post(
     try {
       const result = await createApiKey(db, user.organization.id, name);
 
-      // Return both the raw API key (only shown once) and the API key record
-      return c.json(
-        {
-          apiKey: result.rawApiKey,
-          apiKeyRecord: {
-            id: result.apiKey.id,
-            name: result.apiKey.name,
-            createdAt: result.apiKey.createdAt,
-          },
-        },
-        201
-      );
+      const apiKeyWithSecret: ApiKeyWithSecret = {
+        apiKey: result.rawApiKey,
+        id: result.apiKey.id,
+        name: result.apiKey.name,
+        createdAt: result.apiKey.createdAt,
+      };
+
+      const response: CreateApiKeyResponse = { apiKey: apiKeyWithSecret };
+      return c.json(response, 201);
     } catch (error) {
       console.error("Error creating API key:", error);
       return c.json({ error: "Failed to create API key" }, 500);
@@ -82,9 +81,11 @@ apiKeyRoutes.delete("/:id", async (c) => {
 
   try {
     const success = await deleteApiKey(db, apiKeyId, user.organization.id);
-
+    
+    const response: DeleteApiKeyResponse = { success };
+    
     if (success) {
-      return c.json({ success: true });
+      return c.json(response);
     } else {
       return c.json({ error: "API key not found" }, 404);
     }
