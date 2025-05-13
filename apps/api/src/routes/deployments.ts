@@ -284,7 +284,7 @@ deploymentRoutes.post(
     const jwtPayload = c.get("jwtPayload");
     if (jwtPayload) {
       // Authentication was via JWT
-      organizationId = jwtPayload.organizationId;
+      organizationId = jwtPayload.organization.id;
       userId = jwtPayload.sub;
     } else {
       // Authentication was via API key

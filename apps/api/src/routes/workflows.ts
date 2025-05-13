@@ -185,6 +185,10 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
 
   const deletedWorkflow = await deleteWorkflow(db, id, user.organization.id);
 
+  if (!deletedWorkflow) {
+    return c.json({ error: "Failed to delete workflow" }, 500);
+  }
+
   return c.json({ id: deletedWorkflow.id });
 });
 
@@ -216,7 +220,17 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
 
   // Extract HTTP request information
   const headers = c.req.header();
-  const params = { id };
+  const url = c.req.url;
+  const method = c.req.method;
+  const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
+
+  // Try to parse form data
+  let formData: Record<string, string | File> | undefined;
+  try {
+    formData = Object.fromEntries(await c.req.formData());
+  } catch {
+    // No form data or invalid form data
+  }
 
   // Get request body if it exists
   let body: any = undefined;
@@ -239,8 +253,11 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
       },
       monitorProgress,
       httpRequest: {
+        url,
+        method,
         headers,
-        params,
+        query,
+        formData,
         body,
       },
     },
