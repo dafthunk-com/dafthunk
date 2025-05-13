@@ -27,8 +27,32 @@ import {
   WorkflowDeployment,
 } from "@dafthunk/types";
 import { ExecutionStatusType } from "../db/schema";
-import { nanoid } from "nanoid";
+import { uuidv7 } from "uuidv7";
 import * as crypto from "crypto";
+
+/**
+ * Generate a URL-friendly handle from a name with a random suffix
+ * 
+ * @param name The name to convert into a handle
+ * @param withRandomSuffix Whether to add a random suffix (default: true)
+ * @returns A URL-friendly handle with a random suffix
+ */
+export function createHandle(name: string, withRandomSuffix: boolean = true): string {
+  // Convert to lowercase and replace spaces with hyphens
+  const baseHandle = name.toLowerCase().replace(/\s+/g, "-");
+  
+  // Replace any non-alphanumeric characters (except hyphens) with empty string
+  const cleanedHandle = baseHandle.replace(/[^a-z0-9-]/g, "");
+  
+  // Add a random suffix if requested
+  if (withRandomSuffix) {
+    // Generate a random 6-character alphanumeric suffix
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    return `${cleanedHandle}-${randomSuffix}`;
+  }
+  
+  return cleanedHandle;
+}
 
 /**
  * Data required to save an execution record
@@ -77,71 +101,57 @@ export async function saveUser(
 ): Promise<string> {
   const now = new Date();
 
-  // Insert or update user
-  await db
-    .insert(users)
-    .values({
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      provider: userData.provider as ProviderType,
-      githubId: userData.githubId,
-      googleId: userData.googleId,
-      avatarUrl: userData.avatarUrl,
-      plan: (userData.plan as PlanType) || Plan.TRIAL,
-      role: (userData.role as UserRoleType) || UserRole.USER,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      target: users.id,
-      set: {
-        name: userData.name,
-        email: userData.email,
-        githubId: userData.githubId,
-        googleId: userData.googleId,
-        avatarUrl: userData.avatarUrl,
-        plan: (userData.plan as PlanType) || Plan.TRIAL,
-        role: (userData.role as UserRoleType) || UserRole.USER,
-        updatedAt: now,
-      },
-    });
-
-  // Check if user already exists in any organization
-  const existingMemberships = await db
-    .select()
-    .from(memberships)
-    .where(sql`${memberships.userId} = ${userData.id}`);
-
-  // If user has no organizations, create a personal one
-  if (existingMemberships.length === 0) {
-    const orgId = nanoid();
-
-    // Create personal organization
-    const newOrg: NewOrganization = {
-      id: orgId,
-      name: `Personal`,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await db.insert(organizations).values(newOrg);
-
-    // Create membership with owner role
-    const newMembership: NewMembership = {
-      userId: userData.id,
-      organizationId: orgId,
-      role: OrganizationRole.OWNER,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await db.insert(memberships).values(newMembership);
-
-    return orgId;
+  // Check if user already exists
+  const existingUser = await getUserById(db, userData.id);
+  
+  if (existingUser) {
+    // User exists, return their organization ID
+    return existingUser.organizationId;
   }
 
-  return existingMemberships[0].organizationId;
+  // User doesn't exist, create a new organization
+  const organizationId = uuidv7();
+  const handle = createHandle(userData.name);
+
+  // Create personal organization
+  const organization: NewOrganization = {
+    id: organizationId,
+    name: `Personal`,
+    handle,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await db.insert(organizations).values(organization);
+
+  // Create new user with the organization ID
+  await db.insert(users).values({
+    id: userData.id,
+    name: userData.name,
+    email: userData.email,
+    provider: userData.provider as ProviderType,
+    githubId: userData.githubId,
+    googleId: userData.googleId,
+    avatarUrl: userData.avatarUrl,
+    organizationId: organizationId,
+    plan: (userData.plan as PlanType) || Plan.TRIAL,
+    role: (userData.role as UserRoleType) || UserRole.USER,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  // Create membership with owner role
+  const newMembership: NewMembership = {
+    userId: userData.id,
+    organizationId: organizationId,
+    role: OrganizationRole.OWNER,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await db.insert(memberships).values(newMembership);
+
+  return organizationId;
 }
 
 /**
@@ -410,7 +420,7 @@ export async function createApiToken(
   organizationId: string,
   name: string
 ) {
-  const id = nanoid();
+  const id = uuidv7();
   const now = new Date();
 
   // Generate a secure random token
