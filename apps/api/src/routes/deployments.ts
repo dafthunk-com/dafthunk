@@ -84,7 +84,7 @@ deploymentRoutes.get("/", jwtAuth, async (c) => {
 
   const groupedDeployments = await getDeploymentsGroupedByWorkflow(
     db,
-    user.organizationId
+    user.organization.id
   );
 
   // Transform to match WorkflowDeployment type
@@ -105,7 +105,7 @@ deploymentRoutes.get("/version/:deploymentUUID", jwtAuth, async (c) => {
   const deployment = await getDeploymentById(
     db,
     deploymentUUID,
-    user.organizationId
+    user.organization.id
   );
 
   if (!deployment) {
@@ -138,7 +138,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(db, workflowUUID, user.organizationId);
+  const workflow = await getWorkflowById(db, workflowUUID, user.organization.id);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -147,7 +147,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   const deployment = await getLatestDeploymentByWorkflowId(
     db,
     workflowUUID,
-    user.organizationId
+    user.organization.id
   );
 
   if (!deployment) {
@@ -181,7 +181,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   const now = new Date();
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(db, workflowUUID, user.organizationId);
+  const workflow = await getWorkflowById(db, workflowUUID, user.organization.id);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -193,7 +193,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
     (await getLatestVersionNumberByWorkflowId(
       db,
       workflowUUID,
-      user.organizationId
+      user.organization.id
     )) || 0;
   const newVersion = latestVersion + 1;
 
@@ -201,7 +201,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   const deploymentId = uuid();
   const newDeployment = await createDeployment(db, {
     id: deploymentId,
-    organizationId: user.organizationId,
+    organizationId: user.organization.id,
     workflowId: workflowUUID,
     version: newVersion,
     workflowData: workflowData,
@@ -233,7 +233,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(db, workflowUUID, user.organizationId);
+  const workflow = await getWorkflowById(db, workflowUUID, user.organization.id);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -242,7 +242,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
   const deploymentsList = await getDeploymentsByWorkflowId(
     db,
     workflowUUID,
-    user.organizationId
+    user.organization.id
   );
 
   // Transform to match WorkflowDeploymentVersion type

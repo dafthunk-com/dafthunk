@@ -22,7 +22,7 @@ tokenRoutes.get("/", async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    const tokens = await getApiTokens(db, user.organizationId);
+    const tokens = await getApiTokens(db, user.organization.id);
     return c.json({ tokens });
   } catch (error) {
     console.error("Error fetching API tokens:", error);
@@ -49,7 +49,7 @@ tokenRoutes.post(
     const { name } = c.req.valid("json");
 
     try {
-      const result = await createApiToken(db, user.organizationId, name);
+      const result = await createApiToken(db, user.organization.id, name);
 
       // Return both the raw token (only shown once) and the token record
       return c.json(
@@ -81,7 +81,7 @@ tokenRoutes.delete("/:id", async (c) => {
   const tokenId = c.req.param("id");
 
   try {
-    const success = await deleteApiToken(db, tokenId, user.organizationId);
+    const success = await deleteApiToken(db, tokenId, user.organization.id);
 
     if (success) {
       return c.json({ success: true });

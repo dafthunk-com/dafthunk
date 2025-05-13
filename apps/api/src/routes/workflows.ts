@@ -22,7 +22,7 @@ workflowRoutes.get("/", jwtAuth, async (c) => {
 
   const allWorkflows = await getWorkflowsByOrganization(
     db,
-    user.organizationId
+    user.organization.id
   );
 
   return c.json({ workflows: allWorkflows });
@@ -44,7 +44,7 @@ workflowRoutes.post("/", jwtAuth, async (c) => {
     id: workflowData.id,
     name: workflowData.name,
     data: workflowData,
-    organizationId: user.organizationId,
+    organizationId: user.organization.id,
     createdAt: now,
     updatedAt: now,
   };
@@ -77,7 +77,7 @@ workflowRoutes.get("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const workflow = await getWorkflowById(db, id, user.organizationId);
+  const workflow = await getWorkflowById(db, id, user.organization.id);
 
   if (!workflow) {
     return c.text("Workflow not found", 404);
@@ -100,7 +100,7 @@ workflowRoutes.put("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const existingWorkflow = await getWorkflowById(db, id, user.organizationId);
+  const existingWorkflow = await getWorkflowById(db, id, user.organization.id);
 
   if (!existingWorkflow) {
     return c.text("Workflow not found", 404);
@@ -154,7 +154,7 @@ workflowRoutes.put("/:id", jwtAuth, async (c) => {
     edges: Array.isArray(data.edges) ? data.edges : [],
   };
 
-  const updatedWorkflow = await updateWorkflow(db, id, user.organizationId, {
+  const updatedWorkflow = await updateWorkflow(db, id, user.organization.id, {
     name: data.name,
     data: updatedWorkflowData,
     updatedAt: now,
@@ -177,13 +177,13 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const existingWorkflow = await getWorkflowById(db, id, user.organizationId);
+  const existingWorkflow = await getWorkflowById(db, id, user.organization.id);
 
   if (!existingWorkflow) {
     return c.text("Workflow not found", 404);
   }
 
-  const deletedWorkflow = await deleteWorkflow(db, id, user.organizationId);
+  const deletedWorkflow = await deleteWorkflow(db, id, user.organization.id);
 
   return c.json({ id: deletedWorkflow.id });
 });
@@ -195,7 +195,7 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
 
   const monitorProgress =
     new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-  const workflow = await getWorkflowById(db, id, user.organizationId);
+  const workflow = await getWorkflowById(db, id, user.organization.id);
 
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -230,7 +230,7 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
   const instance = await c.env.EXECUTE.create({
     params: {
       userId: user.sub,
-      organizationId: user.organizationId,
+      organizationId: user.organization.id,
       workflow: {
         id: workflow.id,
         name: workflow.name,
@@ -258,7 +258,7 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
     id: executionId,
     workflowId: workflow.id,
     userId: user.sub,
-    organizationId: user.organizationId,
+    organizationId: user.organization.id,
     status: "idle",
     nodeExecutions,
     visibility: "private",

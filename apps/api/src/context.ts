@@ -2,6 +2,14 @@ import { JWTPayload } from "jose";
 import { RuntimeParams } from "./runtime/runtime";
 import { Workflow } from "@cloudflare/workers-types";
 import { Fetcher } from "@cloudflare/workers-types";
+import { OrganizationRoleType } from "./db/schema";
+
+export interface OrganizationInfo {
+  id: string;
+  name: string;
+  handle: string;
+  role: OrganizationRoleType;
+}
 
 export interface CustomJWTPayload extends JWTPayload {
   sub: string;
@@ -11,7 +19,7 @@ export interface CustomJWTPayload extends JWTPayload {
   avatarUrl?: string;
   plan: string;
   role: string;
-  organizationId: string;
+  organization: OrganizationInfo;
   iat?: number;
   exp?: number;
 }

@@ -6,8 +6,8 @@ import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT, jwtVerify } from "jose";
 import { Provider, Plan, UserRole } from "./db/schema";
 import { createDatabase } from "./db";
-import { ApiContext, CustomJWTPayload } from "./context";
-import { saveUser } from "./utils/db";
+import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
+import { saveUser, getUserOrganizations } from "./utils/db";
 
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";
@@ -107,6 +107,21 @@ auth.get(
       role: UserRole.USER,
     });
 
+    // Get organization details
+    const userOrgs = await getUserOrganizations(db, userId);
+    if (!userOrgs || userOrgs.length === 0) {
+      return c.json({ error: "Failed to retrieve user organization" }, 500);
+    }
+
+    // Use the first organization (which should be the personal one for new users)
+    const org = userOrgs[0];
+    const organizationInfo: OrganizationInfo = {
+      id: org.organization.id,
+      name: org.organization.name,
+      handle: org.organization.handle,
+      role: org.role,
+    };
+
     const jwtToken = await createJWT(
       {
         sub: userId,
@@ -116,7 +131,7 @@ auth.get(
         avatarUrl,
         plan: "free",
         role: "user",
-        organizationId,
+        organization: organizationInfo,
       },
       c.env.JWT_SECRET
     );
@@ -167,6 +182,21 @@ auth.get(
       role: UserRole.USER,
     });
 
+    // Get organization details
+    const userOrgs = await getUserOrganizations(db, userId);
+    if (!userOrgs || userOrgs.length === 0) {
+      return c.json({ error: "Failed to retrieve user organization" }, 500);
+    }
+
+    // Use the first organization (which should be the personal one for new users)
+    const org = userOrgs[0];
+    const organizationInfo: OrganizationInfo = {
+      id: org.organization.id,
+      name: org.organization.name,
+      handle: org.organization.handle,
+      role: org.role,
+    };
+
     const jwtToken = await createJWT(
       {
         sub: userId,
@@ -176,7 +206,7 @@ auth.get(
         avatarUrl: avatarUrl || undefined,
         plan: "free",
         role: "user",
-        organizationId,
+        organization: organizationInfo,
       },
       c.env.JWT_SECRET
     );

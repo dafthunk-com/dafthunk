@@ -23,7 +23,7 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    const execution = await getExecutionById(db, id, user.organizationId);
+    const execution = await getExecutionById(db, id, user.organization.id);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
@@ -66,7 +66,7 @@ executionRoutes.get("/", jwtAuth, async (c) => {
   const parsedOffset = offset ? parseInt(offset, 10) : 0;
 
   // List executions with optional filtering
-  const executions = await listExecutions(db, user.organizationId, {
+  const executions = await listExecutions(db, user.organization.id, {
     workflowId: workflowId || undefined,
     deploymentId: deploymentId || undefined,
     limit: parsedLimit,
@@ -118,7 +118,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
       .where(
         and(
           eq(executionsTable.id, executionId),
-          eq(executionsTable.organizationId, user.organizationId)
+          eq(executionsTable.organizationId, user.organization.id)
         )
       );
 
@@ -136,7 +136,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
         await generateExecutionOgImage({
           env: c.env,
           executionId: executionId,
-          organizationId: user.organizationId,
+          organizationId: user.organization.id,
         });
 
         await db
@@ -166,13 +166,13 @@ executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    const execution = await getExecutionById(db, id, user.organizationId);
+    const execution = await getExecutionById(db, id, user.organization.id);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    if (execution.organizationId !== user.organizationId) {
+    if (execution.organizationId !== user.organization.id) {
       return c.json({ error: "Forbidden" }, 403);
     }
 
