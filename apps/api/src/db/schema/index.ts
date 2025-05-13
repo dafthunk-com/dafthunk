@@ -80,6 +80,18 @@ const createUpdatedAt = () =>
  * SCHEMA DEFINITION
  */
 
+// Organizations - Collaborative workspaces for teams
+export const organizations = sqliteTable(
+  "organizations",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [index("organizations_name_idx").on(table.name)]
+);
+
 // Users - System users with authentication and subscription details
 export const users = sqliteTable(
   "users",
@@ -91,6 +103,7 @@ export const users = sqliteTable(
     githubId: text("github_id"),
     googleId: text("google_id"),
     avatarUrl: text("avatar_url"),
+    organizationId: text("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
     plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
     role: text("role").$type<UserRoleType>().notNull().default(UserRole.USER),
     createdAt: createCreatedAt(),
@@ -102,19 +115,8 @@ export const users = sqliteTable(
       table.githubId,
       table.googleId
     ),
+    index("users_organization_id_idx").on(table.organizationId),
   ]
-);
-
-// Organizations - Collaborative workspaces for teams
-export const organizations = sqliteTable(
-  "organizations",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    createdAt: createCreatedAt(),
-    updatedAt: createUpdatedAt(),
-  },
-  (table) => [index("organizations_name_idx").on(table.name)]
 );
 
 // Memberships - Join table for users and organizations (many-to-many)
@@ -248,16 +250,21 @@ export const executions = sqliteTable(
  * RELATION DEFINITIONS
  */
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   memberships: many(memberships),
+  organization: one(organizations, {
+    fields: [users.organizationId],
+    references: [organizations.id],
+  }),
 }));
 
-export const organizationsRelations = relations(organizations, ({ many }) => ({
+export const organizationsRelations = relations(organizations, ({ many, one }) => ({
   memberships: many(memberships),
   workflows: many(workflows),
   executions: many(executions),
   deployments: many(deployments),
   apiTokens: many(apiTokens),
+  users: many(users),
 }));
 
 export const membershipsRelations = relations(memberships, ({ one }) => ({
