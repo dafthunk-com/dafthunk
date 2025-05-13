@@ -14,23 +14,6 @@ import useSWR from "swr";
 import { useInfinatePagination } from "./use-infinate-pagination";
 import type { PublicExecutionWithStructure } from "@/services/executionsService";
 
-export type DashboardStats = {
-  workflows: number;
-  deployments: number;
-  executions: {
-    total: number;
-    running: number;
-    failed: number;
-    avgTimeSeconds: number;
-  };
-  recentExecutions: Array<{
-    id: string;
-    workflowName: string;
-    status: string;
-    startedAt: number;
-  }>;
-};
-
 export const PAGE_SIZE = 20;
 
 export const useWorkflows = () => {
@@ -134,20 +117,6 @@ export const useNodeTemplates = () => {
     nodeTemplates: data,
     nodeTemplatesError: error,
     isNodeTemplatesLoading: isLoading,
-  };
-};
-
-export const useDashboardStats = () => {
-  const { data, error, isLoading, mutate } = useSWR<DashboardStats>(
-    "/dashboard",
-    apiRequest
-  );
-
-  return {
-    dashboardStats: data,
-    dashboardStatsError: error,
-    isDashboardStatsLoading: isLoading,
-    mutateDashboardStats: mutate,
   };
 };
 

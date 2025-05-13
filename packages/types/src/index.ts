@@ -1,5 +1,8 @@
 // Types for workflows
 
+// Export all dashboard types
+export * from './dashboard';
+
 /**
  * Reference to an object stored in the runtime store
  */

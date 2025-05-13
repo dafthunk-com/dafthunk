@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { workflowService } from "@/services/workflowService";
+import { useDashboard } from "@/services/dashboardService";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,6 @@ import { formatDistanceToNow } from "date-fns";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { InsetLoading } from "@/components/inset-loading";
-import { useDashboardStats } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
 
@@ -19,7 +19,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
 
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
-    useDashboardStats();
+    useDashboard();
 
   const handleCreateWorkflow = async (name: string) => {
     try {
