@@ -92,7 +92,8 @@ export const organizations = sqliteTable(
   },
   (table) => [
     index("organizations_name_idx").on(table.name),
-    index("organizations_handle_idx").on(table.handle)
+    index("organizations_handle_idx").on(table.handle),
+    index("organizations_created_at_idx").on(table.createdAt)
   ]
 );
 
@@ -120,6 +121,11 @@ export const users = sqliteTable(
       table.googleId
     ),
     index("users_organization_id_idx").on(table.organizationId),
+    index("users_email_idx").on(table.email),
+    index("users_name_idx").on(table.name),
+    index("users_plan_idx").on(table.plan),
+    index("users_role_idx").on(table.role),
+    index("users_created_at_idx").on(table.createdAt)
   ]
 );
 
@@ -143,6 +149,9 @@ export const memberships = sqliteTable(
   (table) => [
     primaryKey({ columns: [table.userId, table.organizationId] }),
     index("memberships_role_idx").on(table.role),
+    index("memberships_user_id_idx").on(table.userId),
+    index("memberships_org_id_idx").on(table.organizationId),
+    index("memberships_created_at_idx").on(table.createdAt)
   ]
 );
 
@@ -162,6 +171,7 @@ export const apiTokens = sqliteTable(
   (table) => [
     index("api_tokens_name_idx").on(table.name),
     index("api_tokens_org_id_idx").on(table.organizationId),
+    index("api_tokens_created_at_idx").on(table.createdAt)
   ]
 );
 
@@ -181,6 +191,8 @@ export const workflows = sqliteTable(
   (table) => [
     index("workflows_name_idx").on(table.name),
     index("workflows_org_id_idx").on(table.organizationId),
+    index("workflows_created_at_idx").on(table.createdAt),
+    index("workflows_updated_at_idx").on(table.updatedAt)
   ]
 );
 
@@ -206,6 +218,9 @@ export const deployments = sqliteTable(
     index("deployments_org_id_idx").on(table.organizationId),
     index("deployments_workflow_id_idx").on(table.workflowId),
     index("deployments_version_idx").on(table.version),
+    index("deployments_created_at_idx").on(table.createdAt),
+    // Composite index for finding latest deployment per workflow
+    index("deployments_workflow_version_idx").on(table.workflowId, table.version)
   ]
 );
 
@@ -247,6 +262,13 @@ export const executions = sqliteTable(
     index("executions_org_id_idx").on(table.organizationId),
     index("executions_status_idx").on(table.status),
     index("executions_deployment_id_idx").on(table.deploymentId),
+    index("executions_created_at_idx").on(table.createdAt),
+    index("executions_started_at_idx").on(table.startedAt),
+    index("executions_ended_at_idx").on(table.endedAt),
+    index("executions_visibility_idx").on(table.visibility),
+    // Composite indexes for common query patterns
+    index("executions_org_status_idx").on(table.organizationId, table.status),
+    index("executions_workflow_status_idx").on(table.workflowId, table.status)
   ]
 );
 
