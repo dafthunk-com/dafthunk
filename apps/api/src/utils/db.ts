@@ -7,50 +7,56 @@ import {
   organizations,
   memberships,
   apiTokens,
-  type NewWorkflow,
+  deployments,
+  OrganizationRole,
+  Plan,
+  UserRole,
+  type User,
   type Workflow,
+  type NewWorkflow,
   type NewOrganization,
   type NewMembership,
   type NewApiToken,
-  Plan,
-  UserRole,
-  OrganizationRole,
-  type ProviderType,
+  type NewDeployment,
+  type ExecutionStatusType,
   type PlanType,
   type UserRoleType,
-  deployments,
-  type NewDeployment,
+  type ProviderType,
+  type Execution,
+  type Deployment,
 } from "../db";
 import {
   Workflow as WorkflowType,
   WorkflowExecution,
   WorkflowDeployment,
 } from "@dafthunk/types";
-import { ExecutionStatusType } from "../db/schema";
 import { uuidv7 } from "uuidv7";
 import * as crypto from "crypto";
 
 /**
  * Generate a URL-friendly handle from a name with a random suffix
- * 
+ *
  * @param name The name to convert into a handle
  * @param withRandomSuffix Whether to add a random suffix (default: true)
  * @returns A URL-friendly handle with a random suffix
  */
-export function createHandle(name: string, withRandomSuffix: boolean = true): string {
+export function createHandle(
+  name: string,
+  withRandomSuffix: boolean = true
+): string {
   // Convert to lowercase and replace spaces with hyphens
   const baseHandle = name.toLowerCase().replace(/\s+/g, "-");
-  
+
   // Replace any non-alphanumeric characters (except hyphens) with empty string
   const cleanedHandle = baseHandle.replace(/[^a-z0-9-]/g, "");
-  
+
   // Add a random suffix if requested
   if (withRandomSuffix) {
     // Generate a random 6-character alphanumeric suffix
     const randomSuffix = Math.random().toString(36).substring(2, 8);
     return `${cleanedHandle}-${randomSuffix}`;
   }
-  
+
   return cleanedHandle;
 }
 
@@ -103,7 +109,7 @@ export async function saveUser(
 
   // Check if user already exists
   const existingUser = await getUserById(db, userData.id);
-  
+
   if (existingUser) {
     // User exists, return their organization ID
     return existingUser.organizationId;
@@ -164,7 +170,7 @@ export async function saveUser(
 export async function getUserById(
   db: ReturnType<typeof createDatabase>,
   id: string
-) {
+): Promise<User | undefined> {
   const [user] = await db.select().from(users).where(eq(users.id, id));
 
   return user;
@@ -225,14 +231,13 @@ export async function getWorkflowById(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-) {
+): Promise<Workflow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
     .where(
       and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
     );
-
   return workflow;
 }
 
@@ -246,7 +251,7 @@ export async function getWorkflowById(
 export async function createWorkflow(
   db: ReturnType<typeof createDatabase>,
   newWorkflow: NewWorkflow
-) {
+): Promise<Workflow> {
   const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
 
   return workflow;
@@ -266,7 +271,7 @@ export async function updateWorkflow(
   id: string,
   organizationId: string,
   data: Partial<Workflow> & { data: WorkflowType }
-) {
+): Promise<Workflow> {
   const [workflow] = await db
     .update(workflows)
     .set(data)
@@ -290,7 +295,7 @@ export async function deleteWorkflow(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-) {
+): Promise<Workflow | undefined> {
   const [workflow] = await db
     .delete(workflows)
     .where(
@@ -317,7 +322,7 @@ export async function getExecutionById(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-) {
+): Promise<Execution | undefined> {
   const execution = await db
     .select()
     .from(executions)
@@ -391,7 +396,7 @@ export async function updateExecutionStatus(
   organizationId: string,
   status: ExecutionStatusType,
   errorMessage?: string
-) {
+): Promise<Execution> {
   const [execution] = await db
     .update(executions)
     .set({
@@ -468,7 +473,7 @@ export async function verifyApiToken(
     .createHash("sha256")
     .update(providedToken)
     .digest("hex");
-    
+
   // Find the token in the database
   const [token] = await db
     .select({
@@ -545,7 +550,7 @@ export async function getLatestDeploymentByWorkflowId(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
-) {
+): Promise<Deployment | undefined> {
   const [deployment] = await db
     .select()
     .from(deployments)
@@ -573,7 +578,7 @@ export async function getDeploymentById(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-) {
+): Promise<Deployment | undefined> {
   const [deployment] = await db
     .select()
     .from(deployments)
@@ -597,7 +602,7 @@ export async function getDeploymentById(
 export async function createDeployment(
   db: ReturnType<typeof createDatabase>,
   newDeployment: NewDeployment
-) {
+): Promise<Deployment> {
   await db.insert(deployments).values(newDeployment);
 
   const [deployment] = await db
@@ -670,7 +675,7 @@ export async function getDeploymentsByWorkflowId(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
-) {
+): Promise<Deployment[]> {
   return db
     .select()
     .from(deployments)
@@ -728,7 +733,7 @@ export async function listExecutions(
     limit?: number;
     offset?: number;
   }
-) {
+): Promise<Execution[]> {
   return db.query.executions.findMany({
     where: (executions, { eq, and }) =>
       and(

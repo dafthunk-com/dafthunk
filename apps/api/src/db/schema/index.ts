@@ -93,7 +93,7 @@ export const organizations = sqliteTable(
   (table) => [
     index("organizations_name_idx").on(table.name),
     index("organizations_handle_idx").on(table.handle),
-    index("organizations_created_at_idx").on(table.createdAt)
+    index("organizations_created_at_idx").on(table.createdAt),
   ]
 );
 
@@ -108,7 +108,9 @@ export const users = sqliteTable(
     githubId: text("github_id"),
     googleId: text("google_id"),
     avatarUrl: text("avatar_url"),
-    organizationId: text("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
     plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
     role: text("role").$type<UserRoleType>().notNull().default(UserRole.USER),
     createdAt: createCreatedAt(),
@@ -125,7 +127,7 @@ export const users = sqliteTable(
     index("users_name_idx").on(table.name),
     index("users_plan_idx").on(table.plan),
     index("users_role_idx").on(table.role),
-    index("users_created_at_idx").on(table.createdAt)
+    index("users_created_at_idx").on(table.createdAt),
   ]
 );
 
@@ -151,7 +153,7 @@ export const memberships = sqliteTable(
     index("memberships_role_idx").on(table.role),
     index("memberships_user_id_idx").on(table.userId),
     index("memberships_organization_id_idx").on(table.organizationId),
-    index("memberships_created_at_idx").on(table.createdAt)
+    index("memberships_created_at_idx").on(table.createdAt),
   ]
 );
 
@@ -171,7 +173,7 @@ export const apiTokens = sqliteTable(
   (table) => [
     index("api_tokens_name_idx").on(table.name),
     index("api_tokens_organization_id_idx").on(table.organizationId),
-    index("api_tokens_created_at_idx").on(table.createdAt)
+    index("api_tokens_created_at_idx").on(table.createdAt),
   ]
 );
 
@@ -192,7 +194,7 @@ export const workflows = sqliteTable(
     index("workflows_name_idx").on(table.name),
     index("workflows_organization_id_idx").on(table.organizationId),
     index("workflows_created_at_idx").on(table.createdAt),
-    index("workflows_updated_at_idx").on(table.updatedAt)
+    index("workflows_updated_at_idx").on(table.updatedAt),
   ]
 );
 
@@ -220,7 +222,10 @@ export const deployments = sqliteTable(
     index("deployments_version_idx").on(table.version),
     index("deployments_created_at_idx").on(table.createdAt),
     // Composite index for finding latest deployment per workflow
-    index("deployments_workflow_id_version_idx").on(table.workflowId, table.version)
+    index("deployments_workflow_id_version_idx").on(
+      table.workflowId,
+      table.version
+    ),
   ]
 );
 
@@ -267,8 +272,14 @@ export const executions = sqliteTable(
     index("executions_ended_at_idx").on(table.endedAt),
     index("executions_visibility_idx").on(table.visibility),
     // Composite indexes for common query patterns
-    index("executions_organization_id_status_idx").on(table.organizationId, table.status),
-    index("executions_workflow_id_status_idx").on(table.workflowId, table.status)
+    index("executions_organization_id_status_idx").on(
+      table.organizationId,
+      table.status
+    ),
+    index("executions_workflow_id_status_idx").on(
+      table.workflowId,
+      table.status
+    ),
   ]
 );
 
@@ -284,14 +295,17 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   }),
 }));
 
-export const organizationsRelations = relations(organizations, ({ many, one }) => ({
-  memberships: many(memberships),
-  workflows: many(workflows),
-  executions: many(executions),
-  deployments: many(deployments),
-  apiTokens: many(apiTokens),
-  users: many(users),
-}));
+export const organizationsRelations = relations(
+  organizations,
+  ({ many, one }) => ({
+    memberships: many(memberships),
+    workflows: many(workflows),
+    executions: many(executions),
+    deployments: many(deployments),
+    apiTokens: many(apiTokens),
+    users: many(users),
+  })
+);
 
 export const membershipsRelations = relations(memberships, ({ one }) => ({
   user: one(users, {

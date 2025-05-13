@@ -42,9 +42,8 @@ export class StringParameterNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const paramName = this.node.inputs.find(
-        (input) => input.name === "name"
-      )?.value as string;
+      const paramName = this.node.inputs.find((input) => input.name === "name")
+        ?.value as string;
       if (!paramName) {
         throw new Error("Parameter name is required");
       }
@@ -65,7 +64,9 @@ export class StringParameterNode extends ExecutableNode {
       }
 
       // Try to get the value from the request body (form data or JSON)
-      const value = context.httpRequest?.formData?.[paramName] ?? context.httpRequest?.body?.[paramName];
+      const value =
+        context.httpRequest?.formData?.[paramName] ??
+        context.httpRequest?.body?.[paramName];
       if (value === undefined) {
         if (isRequired) {
           throw new Error(

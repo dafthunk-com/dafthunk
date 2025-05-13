@@ -320,7 +320,7 @@ deploymentRoutes.post(
     const method = c.req.method;
     const headers = c.req.header();
     const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
-    
+
     // Try to parse form data
     let formData: Record<string, string | File> | undefined;
     try {
