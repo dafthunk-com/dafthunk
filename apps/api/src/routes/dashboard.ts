@@ -16,18 +16,21 @@ dashboard.use("*", jwtAuth);
 
 /**
  * GET /:orgHandle/dashboard
- * 
+ *
  * Get dashboard statistics for the organization
  */
 dashboard.get("/", async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   if (!user) return c.json({ error: "Unauthorized" }, 401);
-  
+
   const db = createDatabase(c.env.DB);
 
   try {
     // Workflows count
-    const workflows = await getWorkflowsByOrganization(db, user.organization.id);
+    const workflows = await getWorkflowsByOrganization(
+      db,
+      user.organization.id
+    );
     const workflowsCount = workflows.length;
 
     // Deployments count

@@ -5,7 +5,14 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { ApiKey, ApiKeyWithSecret, CreateApiKeyRequest, CreateApiKeyResponse, DeleteApiKeyResponse, ListApiKeysResponse } from "@dafthunk/types";
+import {
+  ApiKey,
+  ApiKeyWithSecret,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  DeleteApiKeyResponse,
+  ListApiKeysResponse,
+} from "@dafthunk/types";
 
 // Create a new Hono instance for API keys endpoints
 const apiKeyRoutes = new Hono<ApiContext>();
@@ -81,9 +88,9 @@ apiKeyRoutes.delete("/:id", async (c) => {
 
   try {
     const success = await deleteApiKey(db, apiKeyId, user.organization.id);
-    
+
     const response: DeleteApiKeyResponse = { success };
-    
+
     if (success) {
       return c.json(response);
     } else {

@@ -138,7 +138,11 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(db, workflowUUID, user.organization.id);
+  const workflow = await getWorkflowById(
+    db,
+    workflowUUID,
+    user.organization.id
+  );
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -181,7 +185,11 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   const now = new Date();
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(db, workflowUUID, user.organization.id);
+  const workflow = await getWorkflowById(
+    db,
+    workflowUUID,
+    user.organization.id
+  );
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -233,7 +241,11 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(db, workflowUUID, user.organization.id);
+  const workflow = await getWorkflowById(
+    db,
+    workflowUUID,
+    user.organization.id
+  );
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }

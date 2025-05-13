@@ -529,9 +529,7 @@ export async function deleteApiKey(
   // Try to delete the key by its ID and organization
   const [deletedApiKey] = await db
     .delete(apiKeys)
-    .where(
-      and(eq(apiKeys.id, id), eq(apiKeys.organizationId, organizationId))
-    )
+    .where(and(eq(apiKeys.id, id), eq(apiKeys.organizationId, organizationId)))
     .returning({ id: apiKeys.id });
 
   // If we got a record back, it was deleted successfully
