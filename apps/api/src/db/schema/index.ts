@@ -157,13 +157,13 @@ export const memberships = sqliteTable(
   ]
 );
 
-// API Tokens - Authentication tokens associated with organizations
-export const apiTokens = sqliteTable(
-  "api_tokens",
+// API Keys - Authentication keys associated with organizations
+export const apiKeys = sqliteTable(
+  "api_keys",
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    token: text("token").notNull().unique(),
+    key: text("key").notNull().unique(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -171,9 +171,9 @@ export const apiTokens = sqliteTable(
     updatedAt: createUpdatedAt(),
   },
   (table) => [
-    index("api_tokens_name_idx").on(table.name),
-    index("api_tokens_organization_id_idx").on(table.organizationId),
-    index("api_tokens_created_at_idx").on(table.createdAt),
+    index("api_keys_name_idx").on(table.name),
+    index("api_keys_organization_id_idx").on(table.organizationId),
+    index("api_keys_created_at_idx").on(table.createdAt),
   ]
 );
 
@@ -302,7 +302,7 @@ export const organizationsRelations = relations(
     workflows: many(workflows),
     executions: many(executions),
     deployments: many(deployments),
-    apiTokens: many(apiTokens),
+    apiKeys: many(apiKeys),
     users: many(users),
   })
 );
@@ -318,9 +318,9 @@ export const membershipsRelations = relations(memberships, ({ one }) => ({
   }),
 }));
 
-export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
   organization: one(organizations, {
-    fields: [apiTokens.organizationId],
+    fields: [apiKeys.organizationId],
     references: [organizations.id],
   }),
 }));
@@ -387,8 +387,8 @@ export type NewMembership = typeof memberships.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export type ApiToken = typeof apiTokens.$inferSelect;
-export type NewApiToken = typeof apiTokens.$inferInsert;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
 
 export type Workflow = typeof workflows.$inferSelect;
 export type NewWorkflow = typeof workflows.$inferInsert;

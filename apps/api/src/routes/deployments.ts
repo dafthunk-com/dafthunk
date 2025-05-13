@@ -17,7 +17,7 @@ import {
   getDeploymentsByWorkflowId,
   getLatestVersionNumberByWorkflowId,
   saveExecution,
-  verifyApiToken,
+  verifyApiKey,
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 import { Context } from "hono";
@@ -46,7 +46,7 @@ const apiKeyAuth = async (
   const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
   const db = createDatabase(c.env.DB);
 
-  const organizationId = await verifyApiToken(db, apiKey);
+  const organizationId = await verifyApiKey(db, apiKey);
 
   if (!organizationId) {
     return c.json({ error: "Invalid API key" }, 401);

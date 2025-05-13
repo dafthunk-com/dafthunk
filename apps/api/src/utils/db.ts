@@ -6,7 +6,7 @@ import {
   users,
   organizations,
   memberships,
-  apiTokens,
+  apiKeys,
   deployments,
   OrganizationRole,
   Plan,
@@ -16,7 +16,7 @@ import {
   type NewWorkflow,
   type NewOrganization,
   type NewMembership,
-  type NewApiToken,
+  type NewApiKey,
   type NewDeployment,
   type ExecutionStatusType,
   type PlanType,
@@ -413,14 +413,14 @@ export async function updateExecutionStatus(
 }
 
 /**
- * Create a new API token for an organization
+ * Create a new API key for an organization
  *
  * @param db Database instance
  * @param organizationId Organization ID
- * @param name Descriptive name for the token
- * @returns Object containing the raw token (shown only once) and the token record
+ * @param name Descriptive name for the key
+ * @returns Object containing the raw key (shown only once) and the key record
  */
-export async function createApiToken(
+export async function createApiKey(
   db: ReturnType<typeof createDatabase>,
   organizationId: string,
   name: string
@@ -428,114 +428,114 @@ export async function createApiToken(
   const id = uuidv7();
   const now = new Date();
 
-  // Generate a secure random token
-  const rawToken = crypto.randomBytes(32).toString("hex");
+  // Generate a secure random key
+  const rawApiKey = crypto.randomBytes(32).toString("hex");
 
-  // Hash the token for storage
-  const hashedToken = crypto
+  // Hash the key for storage
+  const hashedApiKey = crypto
     .createHash("sha256")
-    .update(rawToken)
+    .update(rawApiKey)
     .digest("hex");
 
-  // Create the token record
-  const newToken: NewApiToken = {
+  // Create the key record
+  const newApiKey: NewApiKey = {
     id,
     name,
-    token: hashedToken,
+    key: hashedApiKey,
     organizationId,
     createdAt: now,
     updatedAt: now,
   };
 
-  // Insert the token record
-  const [tokenRecord] = await db.insert(apiTokens).values(newToken).returning();
+  // Insert the key record
+  const [apiKeyRecord] = await db.insert(apiKeys).values(newApiKey).returning();
 
-  // Return both the raw token (only shown once) and the record
+  // Return both the raw key (only shown once) and the record
   return {
-    rawToken: rawToken, // The plain token value without any prefix
-    token: tokenRecord,
+    rawApiKey: rawApiKey, // The plain key value without any prefix
+    apiKey: apiKeyRecord,
   };
 }
 
 /**
- * Verify an API token
+ * Verify an API key
  *
  * @param db Database instance
- * @param providedToken The token provided in the request
- * @returns The organization ID if token is valid, null otherwise
+ * @param providedApiKey The key provided in the request
+ * @returns The organization ID if key is valid, null otherwise
  */
-export async function verifyApiToken(
+export async function verifyApiKey(
   db: ReturnType<typeof createDatabase>,
-  providedToken: string
+  providedApiKey: string
 ): Promise<string | null> {
-  // Hash the provided token directly without attempting to handle any prefix
-  const hashedToken = crypto
+  // Hash the provided key directly without attempting to handle any prefix
+  const hashedApiKey = crypto
     .createHash("sha256")
-    .update(providedToken)
+    .update(providedApiKey)
     .digest("hex");
 
-  // Find the token in the database
-  const [token] = await db
+  // Find the key in the database
+  const [apiKey] = await db
     .select({
-      id: apiTokens.id,
-      organizationId: apiTokens.organizationId,
+      id: apiKeys.id,
+      organizationId: apiKeys.organizationId,
     })
-    .from(apiTokens)
-    .where(eq(apiTokens.token, hashedToken));
+    .from(apiKeys)
+    .where(eq(apiKeys.key, hashedApiKey));
 
-  // Check if token exists
-  if (!token) {
+  // Check if key exists
+  if (!apiKey) {
     return null;
   }
 
-  return token.organizationId;
+  return apiKey.organizationId;
 }
 
 /**
- * List API tokens for an organization
+ * List API keys for an organization
  *
  * @param db Database instance
  * @param organizationId Organization ID
- * @returns Array of API token records (without the token hash)
+ * @returns Array of API key records (without the key hash)
  */
-export async function getApiTokens(
+export async function getApiKeys(
   db: ReturnType<typeof createDatabase>,
   organizationId: string
 ) {
   return db
     .select({
-      id: apiTokens.id,
-      name: apiTokens.name,
-      createdAt: apiTokens.createdAt,
-      updatedAt: apiTokens.updatedAt,
+      id: apiKeys.id,
+      name: apiKeys.name,
+      createdAt: apiKeys.createdAt,
+      updatedAt: apiKeys.updatedAt,
     })
-    .from(apiTokens)
-    .where(eq(apiTokens.organizationId, organizationId));
+    .from(apiKeys)
+    .where(eq(apiKeys.organizationId, organizationId));
 }
 
 /**
- * Delete an API token
+ * Delete an API key
  *
  * @param db Database instance
- * @param id Token ID
+ * @param id Key ID
  * @param organizationId Organization ID
- * @returns True if token was deleted, false if not found
+ * @returns True if key was deleted, false if not found
  */
-export async function deleteApiToken(
+export async function deleteApiKey(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
 ): Promise<boolean> {
-  // Try to delete the token by its ID and organization
-  const [deletedToken] = await db
-    .delete(apiTokens)
+  // Try to delete the key by its ID and organization
+  const [deletedApiKey] = await db
+    .delete(apiKeys)
     .where(
-      and(eq(apiTokens.id, id), eq(apiTokens.organizationId, organizationId))
+      and(eq(apiKeys.id, id), eq(apiKeys.organizationId, organizationId))
     )
-    .returning({ id: apiTokens.id });
+    .returning({ id: apiKeys.id });
 
   // If we got a record back, it was deleted successfully
-  return !!deletedToken;
+  return !!deletedApiKey;
 }
 
 /**

@@ -9,7 +9,7 @@ import workflowRoutes from "./routes/workflows";
 import executionRoutes from "./routes/executions";
 import typeRoutes from "./routes/types";
 import health from "./routes/health";
-import tokenRoutes from "./routes/tokens";
+import apiKeyRoutes from "./routes/apiKeys";
 import deploymentRoutes from "./routes/deployments";
 import robotsRoutes from "./routes/robots";
 import { corsMiddleware } from "./middleware/cors";
@@ -28,7 +28,7 @@ app.route("/dashboard", dashboardRoutes);
 app.route("/workflows", workflowRoutes);
 app.route("/executions", executionRoutes);
 app.route("/types", typeRoutes);
-app.route("/tokens", tokenRoutes);
+app.route("/api-keys", apiKeyRoutes);
 app.route("/deployments", deploymentRoutes);
 app.route("/robots.txt", robotsRoutes);
 

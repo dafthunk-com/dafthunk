@@ -1,17 +1,17 @@
-CREATE TABLE `api_tokens` (
+CREATE TABLE `api_keys` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
-	`token` text NOT NULL,
+	`key` text NOT NULL,
 	`organization_id` text NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `api_tokens_token_unique` ON `api_tokens` (`token`);--> statement-breakpoint
-CREATE INDEX `api_tokens_name_idx` ON `api_tokens` (`name`);--> statement-breakpoint
-CREATE INDEX `api_tokens_organization_id_idx` ON `api_tokens` (`organization_id`);--> statement-breakpoint
-CREATE INDEX `api_tokens_created_at_idx` ON `api_tokens` (`created_at`);--> statement-breakpoint
+CREATE UNIQUE INDEX `api_keys_key_unique` ON `api_keys` (`key`);--> statement-breakpoint
+CREATE INDEX `api_keys_name_idx` ON `api_keys` (`name`);--> statement-breakpoint
+CREATE INDEX `api_keys_organization_id_idx` ON `api_keys` (`organization_id`);--> statement-breakpoint
+CREATE INDEX `api_keys_created_at_idx` ON `api_keys` (`created_at`);--> statement-breakpoint
 CREATE TABLE `deployments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`organization_id` text NOT NULL,
