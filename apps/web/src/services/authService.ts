@@ -3,17 +3,27 @@ import { apiRequest } from "@/utils/api";
 import { mutate } from "swr";
 import { AUTH_USER_KEY } from "@/components/authContext";
 
-export type User = {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string | null;
-  readonly provider: string;
-  readonly avatarUrl?: string | null;
-  readonly plan?: string;
-  readonly role?: string;
-  readonly githubId?: string | null;
-  readonly googleId?: string | null;
-};
+export type OrganizationRoleType = "member" | "admin" | "owner";
+
+export interface OrganizationInfo {
+  id: string;
+  name: string;
+  handle: string;
+  role: OrganizationRoleType;
+}
+
+export interface User {
+  sub: string;
+  name: string;
+  email?: string;
+  provider: string;
+  avatarUrl?: string;
+  plan: string;
+  role: string;
+  organization: OrganizationInfo;
+  iat?: number;
+  exp?: number;
+}
 
 export type TokenInfo = {
   readonly expiresIn: number;

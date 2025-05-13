@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode } from "react";
 import useSWR from "swr";
-import { authService, User, type AuthProvider } from "@/services/authService";
+import { authService, User, type AuthProvider, OrganizationInfo } from "@/services/authService";
 
 export const AUTH_USER_KEY = "/auth/user";
 
@@ -9,6 +9,7 @@ type AuthContextType = {
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
   readonly error: Error | null;
+  readonly organization: OrganizationInfo | null;
   login: (provider: AuthProvider) => Promise<void>;
   logout: () => Promise<void>;
   logoutAllSessions: () => Promise<void>;
@@ -26,6 +27,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useSWR<User | null>(AUTH_USER_KEY, authService.getCurrentUser);
 
   const isAuthenticated = !!user;
+  
+  // Extract organization information
+  const organization = user?.organization || null;
 
   const refreshUserContext = async (): Promise<void> => {
     await mutateUser();
@@ -53,7 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user || null,
         isAuthenticated,
         isLoading,
-        error: error,
+        error,
+        organization,
         login,
         logout,
         logoutAllSessions,
