@@ -86,10 +86,14 @@ export const organizations = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    handle: text("handle").notNull().unique(),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
-  (table) => [index("organizations_name_idx").on(table.name)]
+  (table) => [
+    index("organizations_name_idx").on(table.name),
+    index("organizations_handle_idx").on(table.handle)
+  ]
 );
 
 // Users - System users with authentication and subscription details
