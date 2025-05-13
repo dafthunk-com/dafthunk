@@ -24,13 +24,13 @@ import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useApiKeys } from "@/hooks/use-fetch";
-import type { ApiToken } from "@/services/apiKeysService";
-import { apiKeysService } from "@/services/apiKeysService";
+import { createApiKey, deleteApiKey, useApiKeys } from "@/services/apiKeysService";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
+import { useAuth } from "@/components/authContext";
+import { ApiKey } from "@dafthunk/types";
 
-const columns: ColumnDef<ApiToken>[] = [
+const columns: ColumnDef<ApiKey>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -49,7 +49,7 @@ const columns: ColumnDef<ApiToken>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const token = row.original;
+      const apiKey = row.original;
       return (
         <div className="text-right">
           <DropdownMenu>
@@ -64,7 +64,7 @@ const columns: ColumnDef<ApiToken>[] = [
                 onClick={() =>
                   document.dispatchEvent(
                     new CustomEvent("deleteApiTokenTrigger", {
-                      detail: token.id,
+                      detail: apiKey.id,
                     })
                   )
                 }
@@ -80,7 +80,8 @@ const columns: ColumnDef<ApiToken>[] = [
 ];
 
 export function ApiKeysPage() {
-  const { apiKeys, apiKeysError, isApiKeysLoading } = useApiKeys();
+  const { apiKeys, apiKeysError, isApiKeysLoading, mutateApiKeys } = useApiKeys();
+  const { organization } = useAuth();
 
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -104,11 +105,12 @@ export function ApiKeysPage() {
   }, []);
 
   const handleDeleteKey = useCallback(async (): Promise<void> => {
-    if (!tokenToDelete) return;
+    if (!tokenToDelete || !organization?.handle) return;
     setIsProcessing(true);
     try {
-      await apiKeysService.delete(tokenToDelete);
+      await deleteApiKey(tokenToDelete, organization.handle);
       toast.success("API key deleted successfully");
+      await mutateApiKeys();
     } catch (error) {
       toast.error("Failed to delete API key. Please try again.");
       console.error("Delete API Key Error:", error);
@@ -117,28 +119,29 @@ export function ApiKeysPage() {
       setTokenToDelete(null);
       setIsProcessing(false);
     }
-  }, [tokenToDelete]);
+  }, [tokenToDelete, organization?.handle, mutateApiKeys]);
 
   const handleCreateKey = useCallback(async (): Promise<void> => {
-    if (!newKeyName.trim()) {
+    if (!newKeyName.trim() || !organization?.handle) {
       toast.error("Key name is required");
       return;
     }
     setIsProcessing(true);
     try {
-      const newKeyString = await apiKeysService.create(newKeyName.trim());
-      setCreatedKeyToShow(newKeyString);
+      const newKey = await createApiKey(newKeyName.trim(), organization.handle);
+      setCreatedKeyToShow(newKey.apiKey);
       setIsCreateDialogOpen(false);
       setIsShowKeyDialogOpen(true);
       setNewKeyName("");
       toast.success("API key created");
+      await mutateApiKeys();
     } catch (error) {
       toast.error("Failed to create API key. Please try again.");
       console.error("Create API Key Error:", error);
     } finally {
       setIsProcessing(false);
     }
-  }, [newKeyName]);
+  }, [newKeyName, organization?.handle, mutateApiKeys]);
 
   const handleShowKeyDialogClose = useCallback((open: boolean) => {
     setIsShowKeyDialogOpen(open);

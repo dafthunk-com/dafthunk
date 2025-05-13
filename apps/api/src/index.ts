@@ -28,9 +28,10 @@ app.route("/dashboard", dashboardRoutes);
 app.route("/workflows", workflowRoutes);
 app.route("/executions", executionRoutes);
 app.route("/types", typeRoutes);
-app.route("/api-keys", apiKeyRoutes);
 app.route("/deployments", deploymentRoutes);
 app.route("/robots.txt", robotsRoutes);
+
+app.route("/:orgHandle/api-keys", apiKeyRoutes);
 
 export default {
   fetch: app.fetch,

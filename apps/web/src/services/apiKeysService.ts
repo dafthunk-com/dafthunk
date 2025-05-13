@@ -1,71 +1,77 @@
-import { apiRequest } from "@/utils/api";
-import { mutate } from "swr";
+import useSWR from 'swr';
+import { ApiKey, ApiKeyWithSecret, CreateApiKeyResponse, DeleteApiKeyResponse, ListApiKeysResponse } from '@dafthunk/types';
+import { useAuth } from '@/components/authContext';
+import { makeOrgRequest } from './utils';
 
-// Matches the ApiToken type in ApiKeysPage.tsx
-// Consider moving to @dafthunk/types if used elsewhere
-export interface ApiToken {
-  readonly id: string;
-  readonly name: string;
-  readonly createdAt: Date; // Transformed from string
-  readonly updatedAt: Date; // Transformed from string
-  // lastUsedAt?: Date; // If API provides this
-  // permissions?: string[]; // If API provides this
+// Base endpoint for API keys
+const API_ENDPOINT_BASE = '/api-keys';
+
+interface UseApiKeys {
+  apiKeys: ApiKey[];
+  apiKeysError: Error | null;
+  isApiKeysLoading: boolean;
+  mutateApiKeys: () => Promise<any>;
 }
 
-// Raw API response for a single token when listing
-interface RawApiToken {
-  readonly id: string;
-  readonly name: string;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
+/**
+ * Hook to list all API keys for the current organization
+ */
+export const useApiKeys = (): UseApiKeys => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
 
-interface FetchTokensResponse {
-  tokens: RawApiToken[];
-}
+  // Create a unique SWR key that includes the organization handle
+  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+  
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    swrKey && orgHandle ? async () => {
+      const response = await makeOrgRequest<ListApiKeysResponse>(
+        orgHandle,
+        API_ENDPOINT_BASE,
+        ''
+      );
+      return response.apiKeys;
+    } : null
+  );
 
-interface CreateTokenPayload {
-  name: string;
-}
+  return {
+    apiKeys: data || [],
+    apiKeysError: error || null,
+    isApiKeysLoading: isLoading,
+    mutateApiKeys: mutate,
+  };
+};
 
-// The API returns { token: "actual_key_string" }
-interface CreateTokenResponse {
-  token: string; // This is the actual secret key, not the ApiToken object
-  // It might also return the created token object, adjust if needed
-  // createdTokenObject?: RawApiToken;
-}
+/**
+ * Create a new API key for the current organization
+ */
+export const createApiKey = async (name: string, orgHandle: string): Promise<ApiKeyWithSecret> => {
+  const response = await makeOrgRequest<CreateApiKeyResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    '',
+    {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }
+  );
+  
+  return response.apiKey;
+};
 
-const transformRawToken = (rawToken: RawApiToken): ApiToken => ({
-  ...rawToken,
-  createdAt: new Date(rawToken.createdAt),
-  updatedAt: new Date(rawToken.updatedAt),
-});
-
-export const apiKeysService = {
-  async getAll(): Promise<ApiToken[]> {
-    const response = await apiRequest<FetchTokensResponse>("/tokens", {
-      method: "GET",
-      errorMessage: "Failed to fetch API keys",
-    });
-    return (response.tokens || []).map(transformRawToken);
-  },
-
-  async create(name: string): Promise<string> {
-    const payload: CreateTokenPayload = { name };
-    const response = await apiRequest<CreateTokenResponse>("/tokens", {
-      method: "POST",
-      body: payload,
-      errorMessage: "Failed to create API key",
-    });
-    await mutate("/tokens");
-    return response.token; // Returns the actual key string
-  },
-
-  async delete(tokenId: string): Promise<void> {
-    await apiRequest<void>(`/tokens/${tokenId}`, {
-      method: "DELETE",
-      errorMessage: "Failed to delete API key",
-    });
-    await mutate("/tokens");
-  },
+/**
+ * Delete an API key from the current organization
+ */
+export const deleteApiKey = async (id: string, orgHandle: string): Promise<boolean> => {
+  const response = await makeOrgRequest<DeleteApiKeyResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${id}`,
+    {
+      method: 'DELETE',
+    }
+  );
+  
+  return response.success;
 };

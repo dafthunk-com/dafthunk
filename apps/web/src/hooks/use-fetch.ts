@@ -1,8 +1,6 @@
 import { workflowService } from "@/services/workflowService";
 import { deploymentService } from "@/services/deploymentService";
 import { executionsService } from "@/services/executionsService";
-import { apiKeysService } from "@/services/apiKeysService";
-import type { ApiToken } from "@/services/apiKeysService";
 import { apiRequest } from "@/utils/api";
 import type {
   Workflow,
@@ -227,19 +225,5 @@ export const usePublicExecutionDetails = (executionId?: string) => {
     publicExecutionDetailsError: error,
     isPublicExecutionDetailsLoading: isLoading,
     mutatePublicExecutionDetails: mutate,
-  };
-};
-
-export const useApiKeys = () => {
-  const { data, error, isLoading, mutate } = useSWR<ApiToken[]>(
-    "/tokens",
-    apiKeysService.getAll
-  );
-
-  return {
-    apiKeys: data,
-    apiKeysError: error,
-    isApiKeysLoading: isLoading,
-    mutateApiKeys: mutate,
   };
 };
