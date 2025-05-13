@@ -14,10 +14,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/components/authContext";
 
 export function OrganizationSwitcher() {
-  const currentOrganization = "Personal";
-  const organizations = ["Personal"];
+  const { organization } = useAuth();
+  
+  // Use organization name from auth context, fallback to "Personal" if not available
+  const currentOrganization = organization?.name || "Personal";
+  
+  // For now, we just have one organization, but we'll keep the dropdown
+  // In the future, this could fetch all available organizations for the user
+  const organizations = [currentOrganization];
 
   const { open } = useSidebar();
 
@@ -37,6 +44,9 @@ export function OrganizationSwitcher() {
                 <>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-semibold">{currentOrganization}</span>
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {organization?.role || "owner"}
+                    </span>
                   </div>
                   <ChevronsUpDown className="ml-auto size-4 text-neutral-500 dark:text-neutral-400" />
                 </>
