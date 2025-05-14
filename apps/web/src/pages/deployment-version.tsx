@@ -18,7 +18,6 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Play, ChevronDown } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
-import { useNodeTemplates, useDeploymentVersion } from "@/hooks/use-fetch";
 import { useWorkflow } from "@/services/workflowService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
@@ -32,6 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeploymentVersion } from "@/services/deploymentService";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -41,6 +41,9 @@ export function DeploymentVersionPage() {
   const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+
+  // Use empty node templates array since we're in readonly mode
+  const nodeTemplates = [];
 
   // Create wrapper functions to handle organization context
   const executeDeploymentWithOrg = useCallback(
@@ -89,9 +92,6 @@ export function DeploymentVersionPage() {
     executeWorkflowFn: executeDeploymentWithOrg,
     getExecutionFn: getExecutionWithOrg
   });
-
-  const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
-    useNodeTemplates();
 
   const {
     deploymentVersion,
@@ -232,7 +232,7 @@ export function DeploymentVersionPage() {
       deploymentVersion.id,
       handleExecutionUpdate,
       adaptedNodes,
-      nodeTemplates || []
+      nodeTemplates
     );
   }, [
     deploymentVersion,
@@ -271,7 +271,6 @@ export function DeploymentVersionPage() {
 
   if (
     isDeploymentVersionLoading ||
-    isNodeTemplatesLoading ||
     isWorkflowLoading
   ) {
     return <InsetLoading title="Deployment" />;
@@ -312,8 +311,7 @@ export function DeploymentVersionPage() {
                   <Button
                     disabled={
                       !deploymentId ||
-                      !deploymentVersion?.nodes ||
-                      isNodeTemplatesLoading
+                      !deploymentVersion?.nodes
                     }
                   >
                     <Play className="mr-2 h-4 w-4" />
@@ -387,7 +385,7 @@ export function DeploymentVersionPage() {
                 createdAt={deploymentVersion.createdAt}
               />
 
-              {nodeTemplates && (
+              {deploymentVersion && (
                 <ApiIntegrationCard
                   deploymentId={deploymentVersion.id}
                   nodes={nodes}
@@ -398,26 +396,21 @@ export function DeploymentVersionPage() {
 
             <TabsContent value="workflow" className="mt-4">
               <div className="h-[calc(100vh-280px)] border rounded-md">
-                {nodes.length > 0 && nodeTemplates && (
+                {nodes.length > 0 && (
                   <WorkflowBuilder
                     workflowId={deploymentVersion.id}
                     initialNodes={nodes}
                     initialEdges={edges}
-                    nodeTemplates={nodeTemplates || []}
+                    nodeTemplates={nodeTemplates}
                     validateConnection={validateConnection}
                     readonly={true}
                   />
                 )}
-                {(nodes.length === 0 || !nodeTemplates) && (
+                {nodes.length === 0 && (
                   <div className="flex flex-col items-center justify-center h-full">
                     <p className="text-muted-foreground">
                       No workflow structure available or templates not loaded.
                     </p>
-                  </div>
-                )}
-                {nodeTemplatesError && (
-                  <div className="absolute top-4 right-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm">
-                    Error loading node templates: {nodeTemplatesError.message}
                   </div>
                 )}
               </div>

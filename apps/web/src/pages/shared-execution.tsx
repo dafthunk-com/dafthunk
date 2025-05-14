@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
-import { useNodeTemplates } from "@/hooks/use-fetch";
 import { usePublicExecution } from "@/services/executionsService";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
@@ -28,20 +27,12 @@ export function SharedExecutionPage() {
     publicExecutionError: error,
     isPublicExecutionLoading: isLoadingExecution,
   } = usePublicExecution(executionId || null);
-
-  const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
-    useNodeTemplates();
+  
+  // Use empty node templates array since we're in readonly mode
+  const nodeTemplates = [];
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (nodeTemplatesError) {
-      toast.error(
-        `Failed to load node templates: ${nodeTemplatesError.message}`
-      );
-    }
-  }, [nodeTemplatesError]);
 
   useEffect(() => {
     if (
@@ -121,7 +112,7 @@ export function SharedExecutionPage() {
     ? `${window.location.origin}/shared/executions/${executionId}`
     : window.location.href;
 
-  if (isLoadingExecution || isNodeTemplatesLoading) {
+  if (isLoadingExecution) {
     return (
       <div className="h-screen w-screen">
         <InsetLoading />

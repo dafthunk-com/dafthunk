@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
-import { useNodeTemplates } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
@@ -160,7 +159,9 @@ export function DeploymentDetailPage() {
   const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const { nodeTemplates } = useNodeTemplates();
+  
+  // Use empty node templates array since we're in readonly mode
+  const nodeTemplates = [];
 
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -289,7 +290,7 @@ export function DeploymentDetailPage() {
         deploymentId,
         handleExecutionUpdate,
         adaptedNodes,
-        nodeTemplates || []
+        nodeTemplates
       );
     },
     [nodeTemplates, executeWorkflow, handleExecutionUpdate]
@@ -381,7 +382,7 @@ export function DeploymentDetailPage() {
                 description="Latest deployment of this workflow"
               />
 
-              {nodeTemplates && (
+              {currentDeployment && (
                 <ApiIntegrationCard
                   deploymentId={currentDeployment.id}
                   nodes={adaptDeploymentNodesToReactFlowNodes(

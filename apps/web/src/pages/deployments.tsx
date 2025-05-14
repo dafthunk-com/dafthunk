@@ -42,10 +42,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNodeTemplates, useDeployments } from "@/hooks/use-fetch";
 import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
-import { createDeployment, executeDeployment } from "@/services/deploymentService";
+import { createDeployment, executeDeployment, useDeployments } from "@/services/deploymentService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor, getExecution } from "@/services/executionsService";
@@ -183,8 +182,9 @@ export function DeploymentsPage() {
   } = useDeployments();
 
   const { workflows, workflowsError, isWorkflowsLoading } = useWorkflows();
-
-  const { nodeTemplates } = useNodeTemplates();
+  
+  // Use empty node templates array since we're in readonly mode
+  const nodeTemplates = [];
 
   // Create a wrapper function for executeDeployment that handles the organization context
   const executeDeploymentWithOrg = useCallback(
@@ -313,7 +313,6 @@ export function DeploymentsPage() {
         }
 
         // Use the adapter and utility function
-        const currentTemplates = nodeTemplates || [];
         const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
           deploymentVersion.nodes
         );
@@ -326,7 +325,7 @@ export function DeploymentsPage() {
           deploymentId,
           handleExecutionUpdate,
           adaptedNodes,
-          currentTemplates
+          nodeTemplates
         );
       } catch (error) {
         toast.error(

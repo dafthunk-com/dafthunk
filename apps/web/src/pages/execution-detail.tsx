@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useNodeTemplates } from "@/hooks/use-fetch";
 import { useWorkflow } from "@/services/workflowService";
 import { useDeploymentVersion } from "@/services/deploymentService";
 import {
@@ -39,9 +38,9 @@ export function ExecutionDetailPage() {
     isExecutionLoading: isExecutionDetailsLoading,
     mutateExecution: mutateExecutionDetails,
   } = useExecution(executionId || null);
-
-  const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
-    useNodeTemplates();
+  
+  // Use empty node templates array since we're in readonly mode
+  const nodeTemplates = [];
 
   const { workflow: workflowInfo } = useWorkflow(execution?.workflowId || null);
 
@@ -104,12 +103,7 @@ export function ExecutionDetailPage() {
         `Failed to fetch execution details: ${executionDetailsError.message}`
       );
     }
-    if (nodeTemplatesError) {
-      toast.error(
-        `Failed to load node templates: ${nodeTemplatesError.message}`
-      );
-    }
-  }, [executionDetailsError, nodeTemplatesError]);
+  }, [executionDetailsError]);
 
   useEffect(() => {
     if (finalStructure && execution?.nodeExecutions) {
@@ -208,8 +202,7 @@ export function ExecutionDetailPage() {
 
   if (
     isExecutionDetailsLoading ||
-    isStructureOverallLoading ||
-    isNodeTemplatesLoading
+    isStructureOverallLoading
   ) {
     return <InsetLoading title="Execution Details" />;
   } else if (executionDetailsError) {
@@ -291,7 +284,7 @@ export function ExecutionDetailPage() {
             <div className="h-[calc(100vh-300px)] border rounded-md relative">
               {reactFlowNodes.length > 0 &&
               workflowBuilderExecution &&
-              nodeTemplates ? (
+              nodeTemplates !== undefined ? (
                 <WorkflowBuilder
                   workflowId={execution.workflowId || execution.id}
                   initialNodes={reactFlowNodes}
@@ -304,15 +297,10 @@ export function ExecutionDetailPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-full">
                   <p className="text-muted-foreground">
-                    {isStructureOverallLoading || isNodeTemplatesLoading
+                    {isStructureOverallLoading
                       ? "Loading workflow data..."
                       : "No workflow structure available or still loading components."}
                   </p>
-                </div>
-              )}
-              {nodeTemplatesError && (
-                <div className="absolute top-4 right-4 bg-amber-100 dark:bg-yellow-700 dark:text-yellow-100 px-3 py-1 rounded-md text-amber-800 text-sm">
-                  {`Error loading node templates: ${nodeTemplatesError.message}`}
                 </div>
               )}
             </div>
