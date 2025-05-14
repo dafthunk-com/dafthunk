@@ -1,16 +1,38 @@
+// Core workflow types
 
+/**
+ * Represents an object reference with ID and MIME type
+ */
 export interface ObjectReference {
     id: string;
     mimeType: string;
   }
   
+  /**
+   * Primitive value types
+   */
   export type PrimitiveValue = string | number | boolean | null | undefined;
+  
+  /**
+   * JSON value types
+   */
   export type JsonValue = PrimitiveValue | JsonObject | JsonArray;
+  
+  /**
+   * JSON object type
+   */
   export interface JsonObject {
     [key: string]: JsonValue;
   }
+  
+  /**
+   * JSON array type
+   */
   export type JsonArray = Array<JsonValue>;
   
+  /**
+   * Parameter type definitions for workflow nodes
+   */
   export type ParameterType =
     | {
         type: "string";
@@ -45,8 +67,14 @@ export interface ObjectReference {
         value?: ObjectReference;
       };
   
+  /**
+   * Parameter value type
+   */
   export type ParameterValue = ParameterType["value"];
   
+  /**
+   * Represents a parameter with metadata and type information
+   */
   export type Parameter = {
     name: string;
     description?: string;
@@ -54,6 +82,9 @@ export interface ObjectReference {
     required?: boolean;
   } & ParameterType;
   
+  /**
+   * Represents a node type definition
+   */
   export interface NodeType {
     id: string;
     name: string;
@@ -65,11 +96,17 @@ export interface ObjectReference {
     outputs: Parameter[];
   }
   
+  /**
+   * Represents a position in the workflow canvas
+   */
   export interface Position {
     x: number;
     y: number;
   }
   
+  /**
+   * Represents a node in a workflow
+   */
   export interface Node {
     id: string;
     name: string;
@@ -81,6 +118,9 @@ export interface ObjectReference {
     error?: string;
   }
   
+  /**
+   * Represents an edge connecting two nodes in a workflow
+   */
   export interface Edge {
     source: string;
     target: string;
@@ -88,6 +128,9 @@ export interface ObjectReference {
     targetInput: string;
   }
   
+  /**
+   * Represents a workflow as stored in the database
+   */
   export interface Workflow {
     id: string;
     name: string;
@@ -95,8 +138,22 @@ export interface ObjectReference {
     edges: Edge[];
   }
   
+  /**
+   * Represents a workflow with additional metadata
+   */
+  export interface WorkflowWithMetadata extends Workflow {
+    createdAt: Date;
+    updatedAt: Date;
+  }
+  
+  /**
+   * Possible node execution statuses
+   */
   export type NodeExecutionStatus = "idle" | "executing" | "completed" | "error";
   
+  /**
+   * Represents the execution state of a single node
+   */
   export interface NodeExecution {
     nodeId: string;
     status: NodeExecutionStatus;
@@ -104,6 +161,9 @@ export interface ObjectReference {
     outputs?: Record<string, ParameterValue>;
   }
   
+  /**
+   * Possible workflow execution statuses
+   */
   export type WorkflowExecutionStatus =
     | "idle"
     | "executing"
@@ -112,6 +172,9 @@ export interface ObjectReference {
     | "cancelled"
     | "paused";
   
+  /**
+   * Represents a workflow execution
+   */
   export interface WorkflowExecution {
     id: string;
     workflowId: string;
@@ -151,5 +214,71 @@ export interface ObjectReference {
     updatedAt: string | Date;
     nodes: Node[];
     edges: Edge[];
+  }
+  
+  // Request and Response types
+  
+  /**
+   * Request to create a new workflow
+   */
+  export interface CreateWorkflowRequest {
+    name: string;
+    nodes: Node[];
+    edges: Edge[];
+  }
+  
+  /**
+   * Response when creating a new workflow
+   */
+  export type CreateWorkflowResponse = WorkflowWithMetadata;
+  
+  /**
+   * Response for listing workflows
+   */
+  export interface ListWorkflowsResponse {
+    workflows: WorkflowWithMetadata[];
+  }
+  
+  /**
+   * Response when getting a workflow by ID
+   */
+  export type GetWorkflowResponse = WorkflowWithMetadata;
+  
+  /**
+   * Request to update a workflow
+   */
+  export interface UpdateWorkflowRequest {
+    name: string;
+    nodes: Node[];
+    edges: Edge[];
+  }
+  
+  /**
+   * Response when updating a workflow
+   */
+  export type UpdateWorkflowResponse = WorkflowWithMetadata;
+  
+  /**
+   * Response when deleting a workflow
+   */
+  export interface DeleteWorkflowResponse {
+    id: string;
+  }
+  
+  /**
+   * Request to execute a workflow
+   */
+  export interface ExecuteWorkflowRequest {
+    monitorProgress?: boolean;
+  }
+  
+  /**
+   * Response when executing a workflow
+   */
+  export interface ExecuteWorkflowResponse {
+    id: string;
+    workflowId: string;
+    status: WorkflowExecutionStatus;
+    nodeExecutions: NodeExecution[];
   }
   

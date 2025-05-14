@@ -29,6 +29,7 @@ import {
   Workflow as WorkflowType,
   WorkflowExecution,
   WorkflowDeployment,
+  NodeExecution,
 } from "@dafthunk/types";
 import { uuidv7 } from "uuidv7";
 import * as crypto from "crypto";
@@ -70,7 +71,7 @@ export type SaveExecutionRecord = {
   userId: string;
   organizationId: string;
   status: ExecutionStatusType;
-  nodeExecutions: any[];
+  nodeExecutions: NodeExecution[];
   visibility: "public" | "private";
   error?: string;
   createdAt?: Date;
