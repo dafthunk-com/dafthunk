@@ -44,10 +44,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
-import { createDeployment, executeDeployment, useDeployments } from "@/services/deploymentService";
+import {
+  createDeployment,
+  executeDeployment,
+  useDeployments,
+} from "@/services/deploymentService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor, getExecution } from "@/services/executionsService";
+import { useWorkflowExecutor, getExecution } from "@/services/executionService";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
 import { useAuth } from "@/components/authContext";
 import { makeOrgRequest } from "@/services/utils";
@@ -182,7 +186,7 @@ export function DeploymentsPage() {
   } = useDeployments();
 
   const { workflows, workflowsError, isWorkflowsLoading } = useWorkflows();
-  
+
   // Use empty node templates array since we're in readonly mode
   const nodeTemplates = [];
 
@@ -192,13 +196,13 @@ export function DeploymentsPage() {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
-      
+
       // Execute the deployment with parameters
       const response = await executeDeployment(deploymentId, orgHandle, {
         monitorProgress: true,
-        parameters: parameters || {} // Always provide at least an empty object
+        parameters: parameters || {}, // Always provide at least an empty object
       });
-      
+
       // Transform ExecuteDeploymentResponse to WorkflowExecution
       return {
         ...response,
@@ -215,7 +219,7 @@ export function DeploymentsPage() {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
-      
+
       // Use the execution service to get execution status
       const execution = await getExecution(executionId, orgHandle);
       return execution;
@@ -232,7 +236,7 @@ export function DeploymentsPage() {
     closeExecutionForm,
   } = useWorkflowExecutor({
     executeWorkflowFn: executeDeploymentWithOrg,
-    getExecutionFn: getExecutionWithOrg
+    getExecutionFn: getExecutionWithOrg,
   });
 
   // Dialog state for workflow deployment

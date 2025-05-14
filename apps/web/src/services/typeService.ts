@@ -4,13 +4,11 @@ import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
 import { WorkflowNodeType } from "@/components/workflow/workflow-types";
 import useSWR from "swr";
 import { makeOrgRequest } from "./utils";
+import { useAuth } from "@/components/authContext";
 
 // Base endpoint for node types
-const API_ENDPOINT = "/types";
+const API_ENDPOINT_BASE = "/types";
 
-/**
- * Interface for the useNodeTypes hook return value
- */
 interface UseNodeTypes {
   nodeTypes: NodeType[];
   nodeTypesError: Error | null;
@@ -19,28 +17,25 @@ interface UseNodeTypes {
 }
 
 /**
- * Hook to fetch all available node types for a specific organization
- * @param orgHandle The organization handle
+ * Hook to fetch all available node types for the current organization
  */
-export const useNodeTypes = (orgHandle: string | undefined): UseNodeTypes => {
+export const useNodeTypes = (): UseNodeTypes => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+
   // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT}` : null;
+  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
     swrKey && orgHandle
       ? async () => {
-          try {
-            const response = await makeOrgRequest<GetNodeTypesResponse>(
-              orgHandle,
-              API_ENDPOINT,
-              ""
-            );
-            return response.nodeTypes;
-          } catch (err) {
-            console.error("Error fetching node types:", err);
-            throw err;
-          }
+          const response = await makeOrgRequest<GetNodeTypesResponse>(
+            orgHandle,
+            API_ENDPOINT_BASE,
+            ""
+          );
+          return response.nodeTypes;
         }
       : null
   );
@@ -109,16 +104,16 @@ export function updateNodeExecutionState(
 }
 
 /**
- * Fetch all available node types for a specific organization
- * @param orgHandle The organization handle
+ * Legacy function to fetch available node types from the API
+ * @deprecated Use useNodeTypes hook instead
  */
-export const fetchNodeTypes = async (
+export async function fetchNodeTypes(
   orgHandle: string
-): Promise<NodeType[]> => {
+): Promise<readonly NodeType[]> {
   try {
     const response = await makeOrgRequest<GetNodeTypesResponse>(
       orgHandle,
-      API_ENDPOINT,
+      API_ENDPOINT_BASE,
       ""
     );
     return response.nodeTypes;
@@ -128,4 +123,4 @@ export const fetchNodeTypes = async (
       `Failed to load node types: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
-};
+}

@@ -196,7 +196,7 @@ export const executeDeployment = async (
   }
 
   const queryParams = options?.monitorProgress ? "?monitorProgress=true" : "";
-  
+
   // Create the request body with just the parameters
   // For deployment endpoints, the parameters must be the root body
   const requestBody = options?.parameters || {};

@@ -12,16 +12,13 @@ import type {
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
-import { useNodeTypes } from "@/services/workflowNodeService";
+import { useNodeTypes } from "@/services/typeService";
 import {
   useWorkflow,
   deployWorkflow,
   executeWorkflow,
 } from "@/services/workflowService";
-import {
-  getExecution,
-  useWorkflowExecutor,
-} from "@/services/executionsService";
+import { getExecution, useWorkflowExecutor } from "@/services/executionService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
@@ -34,27 +31,28 @@ export function EditorPage() {
   const orgHandle = organization?.handle || "";
 
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes();
-  
+
   // Transform nodeTypes to NodeTemplate format expected by WorkflowBuilder
-  const nodeTemplates: NodeTemplate[] = nodeTypes?.map((type) => ({
-    id: type.id,
-    type: type.id,
-    name: type.name,
-    description: type.description || "",
-    category: type.category,
-    inputs: type.inputs.map((input) => ({
-      id: input.name,
-      type: input.type,
-      name: input.name,
-      hidden: input.hidden,
-    })),
-    outputs: type.outputs.map((output) => ({
-      id: output.name,
-      type: output.type,
-      name: output.name,
-      hidden: output.hidden,
-    })),
-  })) || [];
+  const nodeTemplates: NodeTemplate[] =
+    nodeTypes?.map((type) => ({
+      id: type.id,
+      type: type.id,
+      name: type.name,
+      description: type.description || "",
+      category: type.category,
+      inputs: type.inputs.map((input) => ({
+        id: input.name,
+        type: input.type,
+        name: input.name,
+        hidden: input.hidden,
+      })),
+      outputs: type.outputs.map((output) => ({
+        id: output.name,
+        type: output.type,
+        name: output.name,
+        hidden: output.hidden,
+      })),
+    })) || [];
 
   const {
     workflow: currentWorkflow,
@@ -123,7 +121,12 @@ export function EditorPage() {
       }
 
       // Execute the workflow
-      const response = await executeWorkflow(workflowId, orgHandle, true, parameters);
+      const response = await executeWorkflow(
+        workflowId,
+        orgHandle,
+        true,
+        parameters
+      );
 
       // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
       // Using type assertion to ensure the result matches WorkflowExecution

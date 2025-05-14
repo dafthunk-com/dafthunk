@@ -8,8 +8,6 @@ import {
   GetDeploymentVersionResponse,
   GetWorkflowDeploymentsResponse,
   ExecuteDeploymentResponse,
-  ExecutionRuntimeParams,
-  HttpRequestInfo,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";

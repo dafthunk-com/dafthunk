@@ -21,9 +21,8 @@ import { InsetLoading } from "@/components/inset-loading";
 import { useWorkflow } from "@/services/workflowService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor, getExecution } from "@/services/executionsService";
+import { useWorkflowExecutor, getExecution } from "@/services/executionService";
 import { executeDeployment } from "@/services/deploymentService";
-import type { ExecuteDeploymentOptions } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
 import {
   DropdownMenu,
@@ -51,13 +50,13 @@ export function DeploymentVersionPage() {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
-      
+
       // Execute the deployment
       const response = await executeDeployment(deploymentId, orgHandle, {
         monitorProgress: true,
-        parameters
+        parameters,
       });
-      
+
       // Transform ExecuteDeploymentResponse to WorkflowExecution
       return {
         ...response,
@@ -74,7 +73,7 @@ export function DeploymentVersionPage() {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
-      
+
       // Use the execution service to get execution status
       return await getExecution(executionId, orgHandle);
     },
@@ -90,7 +89,7 @@ export function DeploymentVersionPage() {
     closeExecutionForm,
   } = useWorkflowExecutor({
     executeWorkflowFn: executeDeploymentWithOrg,
-    getExecutionFn: getExecutionWithOrg
+    getExecutionFn: getExecutionWithOrg,
   });
 
   const {
@@ -253,14 +252,10 @@ export function DeploymentVersionPage() {
 
     try {
       // Use an empty object for parameters to ensure we're sending a valid JSON object
-      const result = await executeDeployment(
-        deploymentVersion.id,
-        orgHandle,
-        {
-          monitorProgress: true,
-          parameters: {} // Always provide an empty object for parameters
-        }
-      );
+      const result = await executeDeployment(deploymentVersion.id, orgHandle, {
+        monitorProgress: true,
+        parameters: {}, // Always provide an empty object for parameters
+      });
       toast.success(`Execution started with ID: ${result.id}`);
     } catch (error) {
       toast.error(
@@ -269,10 +264,7 @@ export function DeploymentVersionPage() {
     }
   }, [deploymentVersion, orgHandle]);
 
-  if (
-    isDeploymentVersionLoading ||
-    isWorkflowLoading
-  ) {
+  if (isDeploymentVersionLoading || isWorkflowLoading) {
     return <InsetLoading title="Deployment" />;
   }
 
@@ -308,12 +300,7 @@ export function DeploymentVersionPage() {
               </p>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    disabled={
-                      !deploymentId ||
-                      !deploymentVersion?.nodes
-                    }
-                  >
+                  <Button disabled={!deploymentId || !deploymentVersion?.nodes}>
                     <Play className="mr-2 h-4 w-4" />
                     Execute Version
                     <ChevronDown className="ml-2 h-4 w-4" />
@@ -336,7 +323,7 @@ export function DeploymentVersionPage() {
                           {
                             monitorProgress: true,
                             parameters: {}, // Always provide an empty object for parameters
-                            debugMode: true
+                            debugMode: true,
                           }
                         );
                         toast.success(

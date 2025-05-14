@@ -182,9 +182,6 @@ export function useWorkflowExecutor(
             return;
           }
 
-          // Use the provided status polling function or fall back to getExecution
-          const getStatusFn = options.getExecutionFn || getExecution;
-
           pollingIntervalId = setInterval(async () => {
             if (cancelled) {
               clearInterval(pollingIntervalId);

@@ -3,13 +3,17 @@ import { useParams, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useWorkflow } from "@/services/workflowService";
+import {
+  useWorkflow,
+  convertToReactFlowEdges,
+  validateConnection,
+} from "@/services/workflowService";
 import { useDeploymentVersion } from "@/services/deploymentService";
 import {
   useExecution,
   setExecutionPublic,
   setExecutionPrivate,
-} from "@/services/executionsService";
+} from "@/services/executionService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
@@ -17,7 +21,6 @@ import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
-import { workflowEdgeService } from "@/services/workflowEdgeService";
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetLoading } from "@/components/inset-loading";
@@ -38,7 +41,7 @@ export function ExecutionDetailPage() {
     isExecutionLoading: isExecutionDetailsLoading,
     mutateExecution: mutateExecutionDetails,
   } = useExecution(executionId || null);
-  
+
   // Use empty node templates array since we're in readonly mode
   const nodeTemplates = [];
 
@@ -140,7 +143,7 @@ export function ExecutionDetailPage() {
       setReactFlowNodes(rNodes);
 
       const rEdges = Array.from(
-        workflowEdgeService.convertToReactFlowEdges(finalStructure.edges || [])
+        convertToReactFlowEdges(finalStructure.edges || [])
       );
       setReactFlowEdges(rEdges);
     } else {
@@ -165,7 +168,11 @@ export function ExecutionDetailPage() {
       };
     }, [execution]);
 
-  const validateConnection = () => false;
+  const handleValidateConnection = useMemo(
+    () => (connection: any) =>
+      validateConnection(connection, reactFlowEdges).status === "valid",
+    [reactFlowEdges]
+  );
 
   const handleToggleVisibility = async () => {
     if (!execution || !executionId || !organization?.handle) return;
@@ -200,10 +207,7 @@ export function ExecutionDetailPage() {
     setIsVisibilityUpdating(false);
   };
 
-  if (
-    isExecutionDetailsLoading ||
-    isStructureOverallLoading
-  ) {
+  if (isExecutionDetailsLoading || isStructureOverallLoading) {
     return <InsetLoading title="Execution Details" />;
   } else if (executionDetailsError) {
     return (
@@ -290,7 +294,7 @@ export function ExecutionDetailPage() {
                   initialNodes={reactFlowNodes}
                   initialEdges={reactFlowEdges}
                   nodeTemplates={nodeTemplates}
-                  validateConnection={validateConnection}
+                  validateConnection={handleValidateConnection}
                   initialWorkflowExecution={workflowBuilderExecution}
                   readonly={true}
                 />

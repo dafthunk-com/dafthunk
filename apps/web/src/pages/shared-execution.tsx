@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { toast } from "sonner";
-import { usePublicExecution } from "@/services/executionsService";
+import { usePublicExecution } from "@/services/executionService";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
-import { workflowEdgeService } from "@/services/workflowEdgeService";
+import {
+  convertToReactFlowEdges,
+  validateConnection,
+} from "@/services/workflowService";
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
@@ -27,7 +29,7 @@ export function SharedExecutionPage() {
     publicExecutionError: error,
     isPublicExecutionLoading: isLoadingExecution,
   } = usePublicExecution(executionId || null);
-  
+
   // Use empty node templates array since we're in readonly mode
   const nodeTemplates = [];
 
@@ -73,15 +75,19 @@ export function SharedExecutionPage() {
       }));
       setReactFlowNodes(rNodes);
 
-      const rEdges = Array.from(
-        workflowEdgeService.convertToReactFlowEdges(execution.edges || [])
-      );
+      const rEdges = Array.from(convertToReactFlowEdges(execution.edges || []));
       setReactFlowEdges(rEdges);
     } else {
       setReactFlowNodes([]);
       setReactFlowEdges([]);
     }
   }, [execution]);
+
+  const handleValidateConnection = useMemo(
+    () => (connection: any) =>
+      validateConnection(connection, reactFlowEdges).status === "valid",
+    [reactFlowEdges]
+  );
 
   const workflowBuilderExecution =
     useMemo<WorkflowBuilderExecution | null>(() => {
@@ -155,7 +161,7 @@ export function SharedExecutionPage() {
         initialNodes={reactFlowNodes}
         initialEdges={reactFlowEdges}
         nodeTemplates={nodeTemplates}
-        validateConnection={() => false}
+        validateConnection={handleValidateConnection}
         initialWorkflowExecution={workflowBuilderExecution || undefined}
         readonly={true}
         expandedOutputs={true}
@@ -176,7 +182,7 @@ export function SharedExecutionPage() {
           initialNodes={reactFlowNodes}
           initialEdges={reactFlowEdges}
           nodeTemplates={nodeTemplates}
-          validateConnection={() => false}
+          validateConnection={handleValidateConnection}
           initialWorkflowExecution={workflowBuilderExecution || undefined}
           readonly={true}
           expandedOutputs={true}

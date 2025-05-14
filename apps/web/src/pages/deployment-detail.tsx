@@ -41,7 +41,7 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor, getExecution } from "@/services/executionsService";
+import { useWorkflowExecutor, getExecution } from "@/services/executionService";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
 import {
   createDeployment,
@@ -159,7 +159,7 @@ export function DeploymentDetailPage() {
   const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  
+
   // Use empty node templates array since we're in readonly mode
   const nodeTemplates = [];
 
@@ -173,13 +173,13 @@ export function DeploymentDetailPage() {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
-      
+
       // Execute the deployment
       const response = await executeDeployment(deploymentId, orgHandle, {
         monitorProgress: true,
-        parameters
+        parameters,
       });
-      
+
       // Transform ExecuteDeploymentResponse to WorkflowExecution
       return {
         ...response,
@@ -196,7 +196,7 @@ export function DeploymentDetailPage() {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
-      
+
       // Use the execution service to get execution status
       return await getExecution(executionId, orgHandle);
     },
@@ -212,7 +212,7 @@ export function DeploymentDetailPage() {
     closeExecutionForm,
   } = useWorkflowExecutor({
     executeWorkflowFn: executeDeploymentWithOrg,
-    getExecutionFn: getExecutionWithOrg
+    getExecutionFn: getExecutionWithOrg,
   });
 
   const {
