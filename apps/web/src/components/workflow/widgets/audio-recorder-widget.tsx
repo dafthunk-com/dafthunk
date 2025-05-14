@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Mic, Square, Trash2 } from "lucide-react";
-import { uploadBinaryData, createObjectUrl } from "@/services/objectService";
-import { isObjectReference } from "@/services/objectService";
+import { useObjectService, isObjectReference } from "@/services/objectService";
 
 interface AudioRecorderConfig {
   value: any; // Now stores an object reference
@@ -30,6 +29,7 @@ export function AudioRecorderWidget({
     config?.value && isObjectReference(config.value) ? config.value : null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const { uploadBinaryData, createObjectUrl } = useObjectService();
 
   useEffect(() => {
     return () => {

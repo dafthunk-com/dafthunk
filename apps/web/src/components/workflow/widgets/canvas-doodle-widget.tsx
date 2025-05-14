@@ -2,11 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eraser, Save } from "lucide-react";
-import {
-  uploadBinaryData,
-  createObjectUrl,
-  isObjectReference,
-} from "@/services/objectService";
+import { isObjectReference, useObjectService } from "@/services/objectService";
+import { useAuth } from "@/components/authContext";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference
@@ -35,6 +32,8 @@ export function CanvasDoodleWidget({
   } | null>(
     config?.value && isObjectReference(config.value) ? config.value : null
   );
+  const { createObjectUrl, uploadBinaryData } = useObjectService();
+  const { isAuthenticated, organization } = useAuth();
 
   // Initialize canvas and load existing drawing
   useEffect(() => {
@@ -95,7 +94,7 @@ export function CanvasDoodleWidget({
       };
       img.src = createObjectUrl(imageReference);
     }
-  }, [imageReference, strokeColor, strokeWidth]);
+  }, [imageReference, strokeColor, strokeWidth, createObjectUrl]);
 
   // Get canvas coordinates
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -119,6 +118,13 @@ export function CanvasDoodleWidget({
     try {
       setIsUploading(true);
 
+      // Check if the user is authenticated
+      if (!isAuthenticated || !organization?.handle) {
+        console.error("Authentication required or missing organization handle");
+        setIsUploading(false);
+        return;
+      }
+
       // Convert canvas to blob
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
@@ -141,8 +147,6 @@ export function CanvasDoodleWidget({
       setImageReference(reference);
 
       // Pass the reference directly to the parent
-      // The ImageValue class will validate the format
-      console.log("Saving canvas with reference:", reference);
       onChange(reference);
 
       setIsUploading(false);

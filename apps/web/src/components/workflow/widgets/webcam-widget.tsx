@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Camera, X } from "lucide-react";
-import { uploadBinaryData, createObjectUrl } from "@/services/objectService";
+import { useObjectService } from "@/services/objectService";
 
 interface WebcamConfig {
   value: any; // Stores an object reference with id and mimeType or null
@@ -29,6 +29,7 @@ export function WebcamWidget({
       : null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const { uploadBinaryData, createObjectUrl } = useObjectService();
 
   useEffect(() => {
     if (!imageReference) {

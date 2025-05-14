@@ -1,4 +1,4 @@
-import { createObjectUrl, isObjectReference } from "@/services/objectService";
+import { isObjectReference, useObjectService } from "@/services/objectService";
 import { WorkflowParameter } from "./workflow-types";
 import { useEffect, useRef, useState } from "react";
 
@@ -199,6 +199,7 @@ export function WorkflowOutputRenderer({
   const [documentError, setDocumentError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
+  const { createObjectUrl } = useObjectService();
 
   useEffect(() => {
     // Reset states when output changes
@@ -276,7 +277,7 @@ export function WorkflowOutputRenderer({
         objectUrlRef.current = null;
       }
     };
-  }, [output.type, output.value]);
+  }, [output.type, output.value, createObjectUrl]);
 
   const handleAudioError = (
     e: React.SyntheticEvent<HTMLAudioElement, Event>

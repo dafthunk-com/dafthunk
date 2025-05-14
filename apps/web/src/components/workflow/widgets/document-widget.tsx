@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { File, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
-import { uploadBinaryData, isObjectReference } from "@/services/objectService";
+import { useObjectService, isObjectReference } from "@/services/objectService";
 
 export interface DocumentConfig {
   value: any; // Now stores an object reference
@@ -29,6 +29,7 @@ export function DocumentWidget({
     return null;
   });
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const { uploadBinaryData } = useObjectService();
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>

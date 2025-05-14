@@ -52,10 +52,10 @@ objects.get("/", optionalJwtAuth, async (c) => {
 
       if (execution.visibility === "private") {
         const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-        if (!authPayload || !authPayload.organizationId) {
+        if (!authPayload || !authPayload.organization.id) {
           return c.text("Unauthorized: Organization ID is missing", 401);
         }
-        if (execution.organizationId !== authPayload.organizationId) {
+        if (execution.organizationId !== authPayload.organization.id) {
           return c.text(
             "Forbidden: You do not have access to this object via its execution",
             403
@@ -64,10 +64,10 @@ objects.get("/", optionalJwtAuth, async (c) => {
       }
     } else {
       const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-      if (!authPayload || !authPayload.organizationId) {
+      if (!authPayload || !authPayload.organization.id) {
         return c.text("Unauthorized: Organization ID is missing", 401);
       }
-      if (metadata?.organizationId !== authPayload.organizationId) {
+      if (metadata?.organizationId !== authPayload.organization.id) {
         return c.text("Forbidden: You do not have access to this object", 403);
       }
     }
@@ -101,7 +101,7 @@ objects.post("/", jwtAuth, async (c) => {
   }
 
   const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organizationId) {
+  if (!authPayload || !authPayload.organization.id) {
     console.error("Organization ID not found in auth context");
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
@@ -134,7 +134,7 @@ objects.delete("/:id", jwtAuth, async (c) => {
   }
 
   const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organizationId) {
+  if (!authPayload || !authPayload.organization.id) {
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
 
@@ -152,7 +152,7 @@ objects.delete("/:id", jwtAuth, async (c) => {
     const { metadata } = result;
 
     // Check if the object belongs to the user's organization
-    if (metadata?.organizationId !== authPayload.organizationId) {
+    if (metadata?.organizationId !== authPayload.organization.id) {
       return c.text(
         "Forbidden: You do not have access to delete this object",
         403
@@ -178,7 +178,7 @@ objects.get("/metadata/:id", jwtAuth, async (c) => {
   }
 
   const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organizationId) {
+  if (!authPayload || !authPayload.organization.id) {
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
 
@@ -195,7 +195,7 @@ objects.get("/metadata/:id", jwtAuth, async (c) => {
     const { metadata } = result;
 
     // Check if the object belongs to the user's organization
-    if (metadata?.organizationId !== authPayload.organizationId) {
+    if (metadata?.organizationId !== authPayload.organization.id) {
       return c.text(
         "Forbidden: You do not have access to this object's metadata",
         403
@@ -224,11 +224,11 @@ objects.get("/metadata/:id", jwtAuth, async (c) => {
 
 objects.get("/list", jwtAuth, async (c) => {
   const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organizationId) {
+  if (!authPayload || !authPayload.organization.id) {
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
 
-  const organizationId = String(authPayload.organizationId);
+  const organizationId = String(authPayload.organization.id);
 
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);
