@@ -25,12 +25,12 @@ app.route("/health", health);
 app.route("/auth", auth);
 app.route("/objects", objects);
 app.route("/workflows", workflowRoutes);
-app.route("/deployments", deploymentRoutes);
 app.route("/types", typeRoutes);
 app.route("/robots.txt", robotsRoutes);
 
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
 app.route("/:orgHandle/dashboard", dashboardRoutes);
+app.route("/:orgHandle/deployments", deploymentRoutes);
 app.route("/:orgHandle/executions", executionRoutes);
 
 

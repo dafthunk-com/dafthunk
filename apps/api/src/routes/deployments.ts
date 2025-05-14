@@ -4,6 +4,12 @@ import {
   WorkflowDeployment,
   WorkflowDeploymentVersion,
   Node,
+  ListDeploymentsResponse,
+  GetDeploymentVersionResponse,
+  GetWorkflowDeploymentsResponse,
+  ExecuteDeploymentResponse,
+  ExecutionRuntimeParams,
+  HttpRequestInfo
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
@@ -90,7 +96,8 @@ deploymentRoutes.get("/", jwtAuth, async (c) => {
   // Transform to match WorkflowDeployment type
   const typedDeployments: WorkflowDeployment[] = groupedDeployments;
 
-  return c.json({ workflows: typedDeployments });
+  const response: ListDeploymentsResponse = { workflows: typedDeployments };
+  return c.json(response);
 });
 
 /**
@@ -115,7 +122,7 @@ deploymentRoutes.get("/version/:deploymentUUID", jwtAuth, async (c) => {
   const workflowData = deployment.workflowData as WorkflowType;
 
   // Transform to match WorkflowDeploymentVersion type
-  const deploymentVersion: WorkflowDeploymentVersion = {
+  const deploymentVersion: GetDeploymentVersionResponse = {
     id: deployment.id,
     workflowId: deployment.workflowId || "",
     version: deployment.version,
@@ -161,7 +168,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   const workflowData = deployment.workflowData as WorkflowType;
 
   // Transform to match WorkflowDeploymentVersion type
-  const deploymentVersion: WorkflowDeploymentVersion = {
+  const deploymentVersion: GetDeploymentVersionResponse = {
     id: deployment.id,
     workflowId: deployment.workflowId || "",
     version: deployment.version,
@@ -271,13 +278,15 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
     };
   });
 
-  return c.json({
+  const response: GetWorkflowDeploymentsResponse = {
     workflow: {
       id: workflow.id,
       name: workflow.name,
     },
     deployments: deploymentVersions,
-  });
+  };
+
+  return c.json(response);
 });
 
 /**
@@ -349,6 +358,15 @@ deploymentRoutes.post(
       // No body or invalid JSON
     }
 
+    const httpRequest: HttpRequestInfo = {
+      url,
+      method,
+      headers,
+      query,
+      formData,
+      body,
+    };
+
     // Trigger the runtime and get the instance id
     const instance = await c.env.EXECUTE.create({
       params: {
@@ -362,15 +380,8 @@ deploymentRoutes.post(
         },
         monitorProgress,
         deploymentId: deployment.id,
-        httpRequest: {
-          url,
-          method,
-          headers,
-          query,
-          formData,
-          body,
-        },
-      },
+        httpRequest,
+      } as ExecutionRuntimeParams,
     });
     const executionId = instance.id;
 
@@ -395,14 +406,15 @@ deploymentRoutes.post(
     });
 
     // Return the initial WorkflowExecution object
-    const initialExecution = {
+    const response: ExecuteDeploymentResponse = {
       id: executionId,
-      workflowId: deployment.workflowId,
+      workflowId: deployment.workflowId || "",
       deploymentId: deployment.id,
       status: "executing",
       nodeExecutions,
     };
-    return c.json(initialExecution, 201);
+    
+    return c.json(response, 201);
   }
 );
 
