@@ -24,7 +24,6 @@ app.use("*", corsMiddleware);
 app.route("/health", health);
 app.route("/auth", auth);
 app.route("/objects", objects);
-app.route("/types", typeRoutes);
 app.route("/robots.txt", robotsRoutes);
 
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
@@ -32,6 +31,7 @@ app.route("/:orgHandle/dashboard", dashboardRoutes);
 app.route("/:orgHandle/deployments", deploymentRoutes);
 app.route("/:orgHandle/executions", executionRoutes);
 app.route("/:orgHandle/workflows", workflowRoutes);
+app.route("/:orgHandle/types", typeRoutes);
 
 export default {
   fetch: app.fetch,
