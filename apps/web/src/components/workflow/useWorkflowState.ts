@@ -18,13 +18,11 @@ import {
   NodeExecutionState,
   NodeExecutionUpdate,
 } from "./workflow-types";
-import { updateNodeExecutionState } from "@/services/workflowService";
 
 // Helper functions to replace workflowNodeStateService
-const stripExecutionFields = (data: WorkflowNodeType): Omit<
-  WorkflowNodeType,
-  "executionState" | "error"
-> & {
+const stripExecutionFields = (
+  data: WorkflowNodeType
+): Omit<WorkflowNodeType, "executionState" | "error"> & {
   outputs: Omit<WorkflowNodeType["outputs"][number], "value" | "isConnected">[];
   inputs: Omit<WorkflowNodeType["inputs"][number], "isConnected">[];
 } => {
@@ -483,12 +481,7 @@ export function useWorkflowState({
         const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
 
         setEdges((eds) => [
-          ...updateEdgesForNodeExecution(
-            eds,
-            nodeId,
-            state,
-            connectedEdgeIds
-          ),
+          ...updateEdgesForNodeExecution(eds, nodeId, state, connectedEdgeIds),
         ]);
       }
     },

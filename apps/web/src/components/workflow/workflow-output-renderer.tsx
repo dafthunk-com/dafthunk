@@ -1,7 +1,4 @@
-import {
-  createObjectUrl,
-  isObjectReference,
-} from "@/services/workflowObjectService";
+import { createObjectUrl, isObjectReference } from "@/services/objectService";
 import { WorkflowParameter } from "./workflow-types";
 import { useEffect, useRef, useState } from "react";
 

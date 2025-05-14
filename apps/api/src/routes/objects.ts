@@ -1,6 +1,13 @@
 import { Hono } from "hono";
 import { ObjectStore } from "../runtime/objectStore";
-import { ObjectReference } from "@dafthunk/types";
+import {
+  ObjectReference,
+  UploadObjectResponse,
+  DeleteObjectResponse,
+  GetObjectMetadataResponse,
+  ListObjectsResponse,
+  ObjectMetadata,
+} from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { jwtAuth, optionalJwtAuth } from "../auth";
 import { createDatabase } from "../db";
@@ -98,7 +105,7 @@ objects.post("/", jwtAuth, async (c) => {
     console.error("Organization ID not found in auth context");
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
-  const organizationId = authPayload.organizationId;
+  const organizationId = authPayload.organization.id;
 
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);
@@ -110,10 +117,128 @@ objects.post("/", jwtAuth, async (c) => {
       organizationId
     );
 
-    return c.json({ reference });
+    const response: UploadObjectResponse = { reference };
+    return c.json(response);
   } catch (error) {
     console.error("Object storage error:", error);
     return c.text("Error storing object", 500);
+  }
+});
+
+objects.delete("/:id", jwtAuth, async (c) => {
+  const objectId = c.req.param("id");
+  const mimeType = c.req.query("mimeType");
+
+  if (!objectId || !mimeType) {
+    return c.text("Missing required parameters: id and mimeType", 400);
+  }
+
+  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
+  if (!authPayload || !authPayload.organizationId) {
+    return c.text("Unauthorized: Organization ID is missing", 401);
+  }
+
+  try {
+    const objectStore = new ObjectStore(c.env.BUCKET);
+    const reference: ObjectReference = { id: objectId, mimeType };
+
+    // Check if the object exists and if the user has permission to delete it
+    const result = await objectStore.readObject(reference);
+
+    if (!result) {
+      return c.text("Object not found", 404);
+    }
+
+    const { metadata } = result;
+
+    // Check if the object belongs to the user's organization
+    if (metadata?.organizationId !== authPayload.organizationId) {
+      return c.text(
+        "Forbidden: You do not have access to delete this object",
+        403
+      );
+    }
+
+    await objectStore.deleteObject(reference);
+
+    const response: DeleteObjectResponse = { success: true };
+    return c.json(response);
+  } catch (error) {
+    console.error("Object deletion error:", error);
+    return c.text("Error deleting object", 500);
+  }
+});
+
+objects.get("/metadata/:id", jwtAuth, async (c) => {
+  const objectId = c.req.param("id");
+  const mimeType = c.req.query("mimeType");
+
+  if (!objectId || !mimeType) {
+    return c.text("Missing required parameters: id and mimeType", 400);
+  }
+
+  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
+  if (!authPayload || !authPayload.organizationId) {
+    return c.text("Unauthorized: Organization ID is missing", 401);
+  }
+
+  try {
+    const objectStore = new ObjectStore(c.env.BUCKET);
+    const reference: ObjectReference = { id: objectId, mimeType };
+
+    const result = await objectStore.readObject(reference);
+
+    if (!result) {
+      return c.text("Object not found", 404);
+    }
+
+    const { metadata } = result;
+
+    // Check if the object belongs to the user's organization
+    if (metadata?.organizationId !== authPayload.organizationId) {
+      return c.text(
+        "Forbidden: You do not have access to this object's metadata",
+        403
+      );
+    }
+
+    // Create metadata object from R2 metadata
+    const objectMetadata: ObjectMetadata = {
+      id: objectId,
+      mimeType,
+      size: result.data.length,
+      createdAt: metadata?.createdAt
+        ? new Date(metadata.createdAt)
+        : new Date(),
+      organizationId: metadata?.organizationId || "",
+      executionId: metadata?.executionId,
+    };
+
+    const response: GetObjectMetadataResponse = { metadata: objectMetadata };
+    return c.json(response);
+  } catch (error) {
+    console.error("Object metadata retrieval error:", error);
+    return c.text("Error retrieving object metadata", 500);
+  }
+});
+
+objects.get("/list", jwtAuth, async (c) => {
+  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
+  if (!authPayload || !authPayload.organizationId) {
+    return c.text("Unauthorized: Organization ID is missing", 401);
+  }
+
+  const organizationId = String(authPayload.organizationId);
+
+  try {
+    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectList = await objectStore.listObjects(organizationId);
+
+    const response: ListObjectsResponse = { objects: objectList };
+    return c.json(response);
+  } catch (error) {
+    console.error("Object listing error:", error);
+    return c.text("Error listing objects", 500);
   }
 });
 

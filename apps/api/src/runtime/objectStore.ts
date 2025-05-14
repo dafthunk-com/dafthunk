@@ -182,6 +182,72 @@ export class ObjectStore {
   }
 
   /**
+   * List objects for an organization
+   */
+  async listObjects(organizationId: string): Promise<
+    {
+      id: string;
+      mimeType: string;
+      size: number;
+      createdAt: Date;
+      organizationId: string;
+      executionId?: string;
+    }[]
+  > {
+    try {
+      console.log(
+        `ObjectStore.listObjects: Listing objects for organization ${organizationId}`
+      );
+
+      if (!this.bucket) {
+        console.error("ObjectStore.listObjects: R2 bucket is not initialized");
+        throw new Error("R2 bucket is not initialized");
+      }
+
+      const prefix = "objects/";
+      const objects = await this.bucket.list({ prefix });
+
+      const filteredObjects = [];
+
+      // Filter objects by organizationId and parse metadata
+      for (const obj of objects.objects) {
+        if (obj.customMetadata?.organizationId === organizationId) {
+          // Extract object ID from the key path (objects/{id}/object.data)
+          const keyParts = obj.key.split("/");
+          const id = keyParts[1]; // The ID should be in the second position
+
+          // We don't know the MIME type from the listing, so we use the content-type from httpMetadata
+          const mimeType =
+            obj.httpMetadata?.contentType || "application/octet-stream";
+
+          filteredObjects.push({
+            id,
+            mimeType,
+            size: obj.size,
+            createdAt: obj.customMetadata?.createdAt
+              ? new Date(obj.customMetadata.createdAt)
+              : new Date(),
+            organizationId,
+            executionId: obj.customMetadata?.executionId,
+          });
+        }
+      }
+
+      console.log(
+        `ObjectStore.listObjects: Found ${filteredObjects.length} objects for organization ${organizationId}`
+      );
+
+      return filteredObjects;
+    } catch (error) {
+      console.error(
+        `ObjectStore.listObjects: Failed to list objects for organization ${organizationId}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Write a workflow to storage
    */
   async writeWorkflow(workflow: Workflow): Promise<string> {
