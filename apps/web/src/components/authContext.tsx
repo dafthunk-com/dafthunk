@@ -1,6 +1,11 @@
 import { createContext, useContext, ReactNode } from "react";
 import useSWR from "swr";
-import { authService, User, type AuthProvider, OrganizationInfo } from "@/services/authService";
+import {
+  authService,
+  User,
+  type AuthProvider,
+  OrganizationInfo,
+} from "@/services/authService";
 
 export const AUTH_USER_KEY = "/auth/user";
 
@@ -27,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useSWR<User | null>(AUTH_USER_KEY, authService.getCurrentUser);
 
   const isAuthenticated = !!user;
-  
+
   // Extract organization information
   const organization = user?.organization || null;
 

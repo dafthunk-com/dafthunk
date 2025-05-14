@@ -9,7 +9,7 @@ import {
   GetWorkflowDeploymentsResponse,
   ExecuteDeploymentResponse,
   ExecutionRuntimeParams,
-  HttpRequestInfo
+  HttpRequestInfo,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
@@ -413,7 +413,7 @@ deploymentRoutes.post(
       status: "executing",
       nodeExecutions,
     };
-    
+
     return c.json(response, 201);
   }
 );

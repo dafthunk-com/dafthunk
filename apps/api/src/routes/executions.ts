@@ -8,7 +8,7 @@ import {
   GetExecutionResponse,
   PublicExecutionWithStructure,
   GetPublicExecutionResponse,
-  UpdateExecutionVisibilityResponse
+  UpdateExecutionVisibilityResponse,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
@@ -80,7 +80,11 @@ executionRoutes.get("/", jwtAuth, async (c) => {
     offset: parsedOffset,
   };
 
-  const executions = await listExecutions(db, user.organization.id, queryParams);
+  const executions = await listExecutions(
+    db,
+    user.organization.id,
+    queryParams
+  );
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
@@ -163,9 +167,9 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
       }
     }
 
-    const response: UpdateExecutionVisibilityResponse = { 
-      success: true, 
-      message: "Execution set to public" 
+    const response: UpdateExecutionVisibilityResponse = {
+      success: true,
+      message: "Execution set to public",
     };
     return c.json(response);
   } catch (error) {
@@ -195,9 +199,9 @@ executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
       .set({ visibility: "private", updatedAt: new Date() })
       .where(eq(executionsTable.id, id));
 
-    const response: UpdateExecutionVisibilityResponse = { 
-      success: true, 
-      message: "Execution set to private" 
+    const response: UpdateExecutionVisibilityResponse = {
+      success: true,
+      message: "Execution set to private",
     };
     return c.json(response);
   } catch (error) {
@@ -258,7 +262,9 @@ executionRoutes.get("/public/:id", async (c) => {
       edges: workflowEdges,
     };
 
-    const response: GetPublicExecutionResponse = { execution: responseExecution };
+    const response: GetPublicExecutionResponse = {
+      execution: responseExecution,
+    };
     return c.json(response);
   } catch (error) {
     console.error("Error retrieving public execution:", error);

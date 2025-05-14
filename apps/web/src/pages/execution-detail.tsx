@@ -8,7 +8,11 @@ import {
   useWorkflowDetails,
   useDeploymentVersion,
 } from "@/hooks/use-fetch";
-import { useExecution, setExecutionPublic, setExecutionPrivate } from "@/services/executionsService";
+import {
+  useExecution,
+  setExecutionPublic,
+  setExecutionPrivate,
+} from "@/services/executionsService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
@@ -35,7 +39,7 @@ export function ExecutionDetailPage() {
     execution,
     executionError: executionDetailsError,
     isExecutionLoading: isExecutionDetailsLoading,
-    mutateExecution: mutateExecutionDetails
+    mutateExecution: mutateExecutionDetails,
   } = useExecution(executionId || null);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
@@ -162,19 +166,20 @@ export function ExecutionDetailPage() {
 
   const handleToggleVisibility = async () => {
     if (!execution || !executionId || !organization?.handle) return;
-    
+
     setIsVisibilityUpdating(true);
-    const newVisibility = execution.visibility === "public" ? "private" : "public";
-    
+    const newVisibility =
+      execution.visibility === "public" ? "private" : "public";
+
     try {
       let success = false;
-      
+
       if (newVisibility === "public") {
         success = await setExecutionPublic(executionId, organization.handle);
       } else {
         success = await setExecutionPrivate(executionId, organization.handle);
       }
-      
+
       if (success) {
         toast.success(`Execution successfully made ${newVisibility}.`);
         mutateExecutionDetails();
@@ -188,7 +193,7 @@ export function ExecutionDetailPage() {
         }`
       );
     }
-    
+
     setIsVisibilityUpdating(false);
   };
 

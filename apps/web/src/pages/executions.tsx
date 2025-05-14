@@ -179,20 +179,22 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
 export function ExecutionsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // Get filter values from URL
   const workflowId = searchParams.get("workflowId") || undefined;
   const deploymentId = searchParams.get("deploymentId") || undefined;
-  
+
   // Local state for filter inputs
-  const [filterValues, setFilterValues] = useState<Partial<ListExecutionsRequest>>({
+  const [filterValues, setFilterValues] = useState<
+    Partial<ListExecutionsRequest>
+  >({
     workflowId,
-    deploymentId
+    deploymentId,
   });
-  
+
   // Filter dialog state
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  
+
   const {
     paginatedExecutions,
     executionsError,
@@ -203,11 +205,11 @@ export function ExecutionsPage() {
   } = usePaginatedExecutions(workflowId, deploymentId);
 
   // Get error message in a type-safe way
-  const errorMessage = executionsError 
-    ? executionsError instanceof Error 
-      ? executionsError.message 
-      : 'Unknown error' 
-    : '';
+  const errorMessage = executionsError
+    ? executionsError instanceof Error
+      ? executionsError.message
+      : "Unknown error"
+    : "";
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Executions" }]);
@@ -220,39 +222,37 @@ export function ExecutionsPage() {
       );
     }
   }, [executionsError, errorMessage]);
-  
+
   // Apply filters
   const handleApplyFilters = () => {
     const newParams = new URLSearchParams();
-    
+
     if (filterValues.workflowId) {
       newParams.set("workflowId", filterValues.workflowId);
     }
-    
+
     if (filterValues.deploymentId) {
       newParams.set("deploymentId", filterValues.deploymentId);
     }
-    
+
     setSearchParams(newParams);
     setIsFilterOpen(false);
   };
-  
+
   // Clear all filters
   const handleClearFilters = () => {
     setFilterValues({});
     setSearchParams(new URLSearchParams());
     setIsFilterOpen(false);
   };
-  
+
   // Check if filters are active
   const hasActiveFilters = Boolean(workflowId || deploymentId);
 
   if (isExecutionsInitialLoading) {
     return <InsetLoading title="Executions" />;
   } else if (executionsError) {
-    return (
-      <InsetError title="Executions" errorMessage={errorMessage} />
-    );
+    return <InsetError title="Executions" errorMessage={errorMessage} />;
   }
 
   return (
@@ -264,16 +264,23 @@ export function ExecutionsPage() {
             {isExecutionsLoadingMore && <Spinner className="h-4 w-4" />}
             <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <DialogTrigger asChild>
-                <Button 
-                  variant={hasActiveFilters ? "default" : "outline"} 
+                <Button
+                  variant={hasActiveFilters ? "default" : "outline"}
                   size="sm"
                   className={hasActiveFilters ? "bg-primary" : ""}
                 >
                   <Filter className="h-4 w-4 mr-2" />
                   Filter
                   {hasActiveFilters && (
-                    <Badge variant="outline" className="ml-2 bg-background text-foreground">
-                      {Object.values({ workflowId, deploymentId }).filter(Boolean).length}
+                    <Badge
+                      variant="outline"
+                      className="ml-2 bg-background text-foreground"
+                    >
+                      {
+                        Object.values({ workflowId, deploymentId }).filter(
+                          Boolean
+                        ).length
+                      }
                     </Badge>
                   )}
                 </Button>
@@ -289,8 +296,11 @@ export function ExecutionsPage() {
                       id="workflowId"
                       placeholder="Filter by workflow ID"
                       value={filterValues.workflowId || ""}
-                      onChange={(e) => 
-                        setFilterValues(prev => ({ ...prev, workflowId: e.target.value || undefined }))
+                      onChange={(e) =>
+                        setFilterValues((prev) => ({
+                          ...prev,
+                          workflowId: e.target.value || undefined,
+                        }))
                       }
                     />
                   </div>
@@ -300,13 +310,20 @@ export function ExecutionsPage() {
                       id="deploymentId"
                       placeholder="Filter by deployment ID"
                       value={filterValues.deploymentId || ""}
-                      onChange={(e) => 
-                        setFilterValues(prev => ({ ...prev, deploymentId: e.target.value || undefined }))
+                      onChange={(e) =>
+                        setFilterValues((prev) => ({
+                          ...prev,
+                          deploymentId: e.target.value || undefined,
+                        }))
                       }
                     />
                   </div>
                   <div className="flex justify-between pt-2">
-                    <Button variant="outline" size="sm" onClick={handleClearFilters}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearFilters}
+                    >
                       <X className="h-4 w-4 mr-2" />
                       Reset
                     </Button>
@@ -323,9 +340,7 @@ export function ExecutionsPage() {
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
           {hasActiveFilters && (
-            <span className="ml-2 text-primary">
-              (Filtered results)
-            </span>
+            <span className="ml-2 text-primary">(Filtered results)</span>
           )}
         </p>
         <DataTable
@@ -335,16 +350,17 @@ export function ExecutionsPage() {
             title: executionsError
               ? "Error"
               : paginatedExecutions.length === 0
-                ? hasActiveFilters ? "No matching executions" : "No executions"
+                ? hasActiveFilters
+                  ? "No matching executions"
+                  : "No executions"
                 : "No results",
-            description:
-              executionsError
-                ? errorMessage
-                : (paginatedExecutions.length === 0
-                  ? hasActiveFilters 
-                    ? "No executions match your filter criteria."
-                    : "No executions found." 
-                  : "No executions match your criteria."),
+            description: executionsError
+              ? errorMessage
+              : paginatedExecutions.length === 0
+                ? hasActiveFilters
+                  ? "No executions match your filter criteria."
+                  : "No executions found."
+                : "No executions match your criteria.",
           }}
         />
         {!isExecutionsReachingEnd && !isExecutionsInitialLoading && (

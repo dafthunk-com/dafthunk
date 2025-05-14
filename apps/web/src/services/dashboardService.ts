@@ -1,10 +1,10 @@
-import useSWR from 'swr';
-import { DashboardStats, DashboardStatsResponse } from '@dafthunk/types';
-import { useAuth } from '@/components/authContext';
-import { makeOrgRequest } from './utils';
+import useSWR from "swr";
+import { DashboardStats, DashboardStatsResponse } from "@dafthunk/types";
+import { useAuth } from "@/components/authContext";
+import { makeOrgRequest } from "./utils";
 
 // Base endpoint for dashboard data
-const API_ENDPOINT_BASE = '/dashboard';
+const API_ENDPOINT_BASE = "/dashboard";
 
 interface UseDashboard {
   dashboardStats: DashboardStats | null;
@@ -22,17 +22,19 @@ export const useDashboard = (): UseDashboard => {
 
   // Create a unique SWR key that includes the organization handle
   const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
-  
+
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,
-    swrKey && orgHandle ? async () => {
-      const response = await makeOrgRequest<DashboardStatsResponse>(
-        orgHandle,
-        API_ENDPOINT_BASE,
-        ''
-      );
-      return response.stats;
-    } : null
+    swrKey && orgHandle
+      ? async () => {
+          const response = await makeOrgRequest<DashboardStatsResponse>(
+            orgHandle,
+            API_ENDPOINT_BASE,
+            ""
+          );
+          return response.stats;
+        }
+      : null
   );
 
   return {
@@ -41,4 +43,4 @@ export const useDashboard = (): UseDashboard => {
     isDashboardStatsLoading: isLoading,
     mutateDashboardStats: mutate,
   };
-}; 
+};

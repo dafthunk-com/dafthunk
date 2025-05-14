@@ -4,10 +4,9 @@ import { setCookie, deleteCookie, getCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT, jwtVerify } from "jose";
-import { Provider, Plan, UserRole } from "./db/schema";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
-import { saveUser, getUserOrganizations } from "./utils/db";
+import { getUserOrganizations } from "./utils/db";
 
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";
@@ -96,16 +95,6 @@ auth.get(
     const avatarUrl = user.avatar_url;
 
     const db = createDatabase(c.env.DB);
-    const organizationId = await saveUser(db, {
-      id: userId,
-      name: userName,
-      email: userEmail ?? undefined,
-      provider: Provider.GITHUB,
-      githubId: userId,
-      avatarUrl,
-      plan: Plan.FREE,
-      role: UserRole.USER,
-    });
 
     // Get organization details
     const userOrgs = await getUserOrganizations(db, userId);
@@ -171,16 +160,6 @@ auth.get(
     const avatarUrl = user.picture;
 
     const db = createDatabase(c.env.DB);
-    const organizationId = await saveUser(db, {
-      id: userId,
-      name: userName,
-      email: userEmail,
-      provider: Provider.GOOGLE,
-      googleId: userId,
-      avatarUrl,
-      plan: Plan.FREE,
-      role: UserRole.USER,
-    });
 
     // Get organization details
     const userOrgs = await getUserOrganizations(db, userId);

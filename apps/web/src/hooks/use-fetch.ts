@@ -1,26 +1,28 @@
 import { workflowService } from "@/services/workflowService";
-import { deploymentService } from "@/services/deploymentService";
-import { 
-  useExecution, 
-  usePublicExecution, 
-  usePaginatedExecutions,
-  EXECUTIONS_PAGE_SIZE,
-  type PublicExecutionWithStructure
-} from "@/services/executionsService";
 import { apiRequest } from "@/utils/api";
-import type {
-  Workflow,
-  WorkflowDeployment,
-  WorkflowDeploymentVersion,
-  WorkflowExecution,
-  NodeType,
-} from "@dafthunk/types";
+import type { Workflow, NodeType } from "@dafthunk/types";
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import useSWR from "swr";
-import { useInfinatePagination } from "./use-infinate-pagination";
+
+// Re-export deployments hooks for backward compatibility
+export {
+  useDeployments,
+  useDeploymentVersion,
+  useDeploymentHistory,
+} from "@/services/deploymentService";
+
+// Re-export executions hooks for backward compatibility
+export {
+  useExecutionDetails,
+  usePublicExecutionDetails,
+  useExecutions,
+} from "@/services/executionsService";
 
 export const PAGE_SIZE = 20;
 
+/**
+ * Hook to fetch all workflows
+ */
 export const useWorkflows = () => {
   const { data, error, isLoading, mutate } = useSWR<Workflow[]>(
     "/workflows",
@@ -35,6 +37,9 @@ export const useWorkflows = () => {
   };
 };
 
+/**
+ * Hook to fetch a specific workflow by ID
+ */
 export const useWorkflowDetails = (workflowId?: string) => {
   const { data, error, isLoading, mutate } = useSWR<Workflow>(
     workflowId ? `/workflows/${workflowId}` : null,
@@ -49,48 +54,9 @@ export const useWorkflowDetails = (workflowId?: string) => {
   };
 };
 
-export const useDeployments = () => {
-  const { data, error, isLoading, mutate } = useSWR<WorkflowDeployment[]>(
-    "/deployments",
-    deploymentService.getAll
-  );
-
-  return {
-    deployments: data,
-    deploymentsError: error,
-    isDeploymentsLoading: isLoading,
-    mutateDeployments: mutate,
-  };
-};
-
-export const useDeploymentVersion = (deploymentId?: string) => {
-  const { data, error, isLoading, mutate } = useSWR<WorkflowDeploymentVersion>(
-    deploymentId ? `/deployments/version/${deploymentId}` : null,
-    () => deploymentService.getVersion(deploymentId!)
-  );
-
-  return {
-    deploymentVersion: data,
-    deploymentVersionError: error,
-    isDeploymentVersionLoading: isLoading,
-    mutateDeploymentVersion: mutate,
-  };
-};
-
-export const useDeploymentHistory = (workflowId: string) => {
-  const { data, error, isLoading, mutate } = useSWR(
-    `/deployments/history/${workflowId}`,
-    () => deploymentService.getHistory(workflowId)
-  );
-
-  return {
-    deploymentHistory: data,
-    deploymentHistoryError: error,
-    isDeploymentHistoryLoading: isLoading,
-    mutateDeploymentHistory: mutate,
-  };
-};
-
+/**
+ * Hook to fetch node templates
+ */
 export const useNodeTemplates = () => {
   const { data, error, isLoading } = useSWR<NodeTemplate[], Error, string>(
     "/types",
@@ -122,33 +88,5 @@ export const useNodeTemplates = () => {
     nodeTemplates: data,
     nodeTemplatesError: error,
     isNodeTemplatesLoading: isLoading,
-  };
-};
-
-export const useExecutions = (workflowId?: string, deploymentId?: string) => {
-  return usePaginatedExecutions(workflowId, deploymentId);
-};
-
-export const useExecutionDetails = (executionId?: string) => {
-  const { execution, executionError, isExecutionLoading, mutateExecution } = 
-    useExecution(executionId || null);
-
-  return {
-    executionDetails: execution,
-    executionDetailsError: executionError,
-    isExecutionDetailsLoading: isExecutionLoading,
-    mutateExecutionDetails: mutateExecution,
-  };
-};
-
-export const usePublicExecutionDetails = (executionId?: string) => {
-  const { publicExecution, publicExecutionError, isPublicExecutionLoading } = 
-    usePublicExecution(executionId || null);
-
-  return {
-    publicExecutionDetails: publicExecution,
-    publicExecutionDetailsError: publicExecutionError,
-    isPublicExecutionDetailsLoading: isPublicExecutionLoading,
-    mutatePublicExecutionDetails: () => Promise.resolve(),
   };
 };

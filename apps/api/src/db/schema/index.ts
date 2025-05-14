@@ -303,7 +303,7 @@ export const organizationsRelations = relations(
     executions: many(executions),
     deployments: many(deployments),
     apiKeys: many(apiKeys),
-    users: many(users),
+    users: one(users),
   })
 );
 

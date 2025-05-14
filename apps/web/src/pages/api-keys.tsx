@@ -24,7 +24,11 @@ import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { createApiKey, deleteApiKey, useApiKeys } from "@/services/apiKeysService";
+import {
+  createApiKey,
+  deleteApiKey,
+  useApiKeys,
+} from "@/services/apiKeysService";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import { useAuth } from "@/components/authContext";
@@ -80,7 +84,8 @@ const columns: ColumnDef<ApiKey>[] = [
 ];
 
 export function ApiKeysPage() {
-  const { apiKeys, apiKeysError, isApiKeysLoading, mutateApiKeys } = useApiKeys();
+  const { apiKeys, apiKeysError, isApiKeysLoading, mutateApiKeys } =
+    useApiKeys();
   const { organization } = useAuth();
 
   const [tokenToDelete, setTokenToDelete] = useState<string | null>(null);

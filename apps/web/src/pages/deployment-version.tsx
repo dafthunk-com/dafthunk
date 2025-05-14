@@ -17,7 +17,7 @@ import type {
   WorkflowExecution,
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
+import { Play, ChevronDown } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
 import {
   useNodeTemplates,
@@ -27,11 +27,22 @@ import {
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
+import { executeDeployment } from "@/services/deploymentService";
+import type { ExecuteDeploymentOptions } from "@/services/deploymentService";
+import { useAuth } from "@/components/authContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
@@ -171,6 +182,11 @@ export function DeploymentVersionPage() {
       return;
     }
 
+    if (!orgHandle) {
+      toast.error("Organization context not available.");
+      return;
+    }
+
     toast.info("Preparing deployment execution...");
 
     // Use the adapter to convert backend nodes to ReactFlow format
@@ -178,7 +194,7 @@ export function DeploymentVersionPage() {
       deploymentVersion.nodes
     );
 
-    // Execute the workflow using the hook
+    // Execute the workflow using the workflow executor (with UI form)
     executeWorkflow(
       deploymentVersion.id,
       handleExecutionUpdate,
@@ -190,7 +206,36 @@ export function DeploymentVersionPage() {
     nodeTemplates,
     executeWorkflow,
     handleExecutionUpdate,
+    orgHandle,
   ]);
+
+  // Direct execution without form UI
+  const handleDirectExecution = useCallback(async () => {
+    if (!deploymentVersion || !orgHandle) {
+      toast.error("Deployment data or organization context not available.");
+      return;
+    }
+
+    toast.info("Starting direct execution...");
+
+    try {
+      const options: ExecuteDeploymentOptions = {
+        monitorProgress: true,
+        directExecution: true,
+      };
+
+      const result = await executeDeployment(
+        deploymentVersion.id,
+        orgHandle,
+        options
+      );
+      toast.success(`Execution started with ID: ${result.id}`);
+    } catch (error) {
+      toast.error(
+        `Failed to execute deployment: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
+  }, [deploymentVersion, orgHandle]);
 
   if (
     isDeploymentVersionLoading ||
@@ -230,17 +275,54 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
-              <Button
-                onClick={handleExecuteDeploymentClick}
-                disabled={
-                  !deploymentId ||
-                  !deploymentVersion?.nodes ||
-                  isNodeTemplatesLoading
-                }
-              >
-                <Play className="mr-2 h-4 w-4" />
-                Execute Version
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    disabled={
+                      !deploymentId ||
+                      !deploymentVersion?.nodes ||
+                      isNodeTemplatesLoading
+                    }
+                  >
+                    <Play className="mr-2 h-4 w-4" />
+                    Execute Version
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleExecuteDeploymentClick}>
+                    Execute with Parameter Form
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDirectExecution}>
+                    Execute Directly (No UI)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      if (!deploymentVersion || !orgHandle) return;
+                      try {
+                        const options: ExecuteDeploymentOptions = {
+                          monitorProgress: true,
+                          debugMode: true,
+                        };
+                        const result = await executeDeployment(
+                          deploymentVersion.id,
+                          orgHandle,
+                          options
+                        );
+                        toast.success(
+                          `Debug execution started with ID: ${result.id}`
+                        );
+                      } catch (error) {
+                        toast.error(
+                          `Execution failed: ${error instanceof Error ? error.message : "Unknown error"}`
+                        );
+                      }
+                    }}
+                  >
+                    Execute in Debug Mode
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 

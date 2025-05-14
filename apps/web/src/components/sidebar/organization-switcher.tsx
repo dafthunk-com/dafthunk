@@ -18,10 +18,10 @@ import { useAuth } from "@/components/authContext";
 
 export function OrganizationSwitcher() {
   const { organization } = useAuth();
-  
+
   // Use organization name from auth context, fallback to "Personal" if not available
   const currentOrganization = organization?.name || "Personal";
-  
+
   // For now, we just have one organization, but we'll keep the dropdown
   // In the future, this could fetch all available organizations for the user
   const organizations = [currentOrganization];

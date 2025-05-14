@@ -6,7 +6,6 @@ import { z } from "zod";
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import {
-  ApiKey,
   ApiKeyWithSecret,
   CreateApiKeyRequest,
   CreateApiKeyResponse,

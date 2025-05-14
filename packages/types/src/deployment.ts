@@ -10,8 +10,9 @@ export interface ListDeploymentsResponse {
 
 /**
  * Response for retrieving a specific deployment version
+ * This is just an alias for WorkflowDeploymentVersion
  */
-export interface GetDeploymentVersionResponse extends WorkflowDeploymentVersion {}
+export type GetDeploymentVersionResponse = WorkflowDeploymentVersion;
 
 /**
  * Response for listing all deployments for a specific workflow
@@ -31,8 +32,8 @@ export interface GetWorkflowDeploymentsResponse {
 export interface ExecuteDeploymentRequest {
   // Optional query parameter
   monitorProgress?: boolean;
-  // Body data can be any JSON
-  [key: string]: any;
+  // Body data can be any JSON object
+  [key: string]: unknown;
 }
 
 /**
@@ -58,7 +59,7 @@ export interface HttpRequestInfo {
   headers: Record<string, string>;
   query: Record<string, string>;
   formData?: Record<string, string | File>;
-  body?: any;
+  body?: unknown;
 }
 
 /**

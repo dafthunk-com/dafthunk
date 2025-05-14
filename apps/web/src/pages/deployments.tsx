@@ -4,7 +4,10 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import type { WorkflowDeployment } from "@dafthunk/types";
+import type {
+  WorkflowDeployment,
+  WorkflowDeploymentVersion,
+} from "@dafthunk/types";
 import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Button } from "@/components/ui/button";
@@ -41,16 +44,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  useDeployments,
   useWorkflows,
   useNodeTemplates,
+  useDeployments,
 } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
-import { deploymentService } from "@/services/deploymentService";
+import { createDeployment } from "@/services/deploymentService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
+import { useAuth } from "@/components/authContext";
+import { makeOrgRequest } from "@/services/utils";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -166,6 +171,8 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
 export function DeploymentsPage() {
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   // Set breadcrumbs on component mount
   useEffect(() => {
@@ -206,20 +213,11 @@ export function DeploymentsPage() {
   };
 
   const handleCreateDeployment = async () => {
-    if (!selectedWorkflowId) return;
+    if (!selectedWorkflowId || !orgHandle) return;
+
     setIsCreating(true);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/deployments/${selectedWorkflowId}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to create deployment");
-      }
+      await createDeployment(selectedWorkflowId, orgHandle);
       toast.success("Deployment created successfully");
       setIsDialogOpen(false);
       mutateDeployments();
@@ -245,32 +243,52 @@ export function DeploymentsPage() {
     }
   }, []);
 
+  // Direct fetch of deployment version (can't use hook inside callback)
+  const fetchDeploymentVersion = useCallback(
+    async (deploymentId: string): Promise<WorkflowDeploymentVersion> => {
+      if (!orgHandle) {
+        throw new Error("Organization not loaded");
+      }
+
+      return await makeOrgRequest(
+        orgHandle,
+        "/deployments",
+        `/version/${deploymentId}`
+      );
+    },
+    [orgHandle]
+  );
+
   const handleExecute = useCallback(
     async (deploymentId: string | null) => {
-      if (!deploymentId) {
-        toast.error("Deployment ID is not available.");
+      if (!deploymentId || !orgHandle) {
+        toast.error(
+          "Deployment ID is not available or organization not loaded."
+        );
         return;
       }
 
       try {
-        // Step 1: Fetch the specific deployment version to get its nodes
-        const deploymentVersionData =
-          await deploymentService.getVersion(deploymentId);
-        if (!deploymentVersionData || !deploymentVersionData.nodes) {
+        // Fetch the deployment version directly
+        const deploymentVersion = await fetchDeploymentVersion(deploymentId);
+
+        if (!deploymentVersion || !deploymentVersion.nodes) {
           toast.error(
             "Could not fetch deployment details or nodes are missing."
           );
           return;
         }
 
-        // Step 2: Use the adapter and utility function
+        // Use the adapter and utility function
         const currentTemplates = nodeTemplates || [];
         const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
-          deploymentVersionData.nodes
+          deploymentVersion.nodes
         );
 
-        // Step 3: Use the workflow executor to handle the execution
+        // Show preparing toast
         toast.info("Preparing deployment execution...");
+
+        // Use the workflow executor (for UI forms)
         executeWorkflow(
           deploymentId,
           handleExecutionUpdate,
@@ -285,7 +303,13 @@ export function DeploymentsPage() {
         );
       }
     },
-    [nodeTemplates, executeWorkflow, handleExecutionUpdate]
+    [
+      nodeTemplates,
+      executeWorkflow,
+      handleExecutionUpdate,
+      orgHandle,
+      fetchDeploymentVersion,
+    ]
   );
 
   // Add actions to the deployments

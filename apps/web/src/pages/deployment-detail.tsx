@@ -39,12 +39,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
-import { useDeploymentHistory, useNodeTemplates } from "@/hooks/use-fetch";
+import { useNodeTemplates } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
+import {
+  createDeployment,
+  useDeploymentHistory,
+} from "@/services/deploymentService";
+import { useAuth } from "@/components/authContext";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -151,6 +156,8 @@ function createDeploymentHistoryColumns(
 export function DeploymentDetailPage() {
   const { workflowId } = useParams<{ workflowId: string }>();
   const navigate = useNavigate();
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { nodeTemplates } = useNodeTemplates();
@@ -172,17 +179,15 @@ export function DeploymentDetailPage() {
   });
 
   const {
-    deploymentHistory,
-    deploymentHistoryError,
-    isDeploymentHistoryLoading,
-    mutateDeploymentHistory,
+    workflow,
+    deployments,
+    historyError: deploymentHistoryError,
+    isHistoryLoading: isDeploymentHistoryLoading,
+    mutateHistory: mutateDeploymentHistory,
   } = useDeploymentHistory(workflowId!);
 
-  const workflow = deploymentHistory?.workflow;
   const currentDeployment =
-    deploymentHistory && deploymentHistory?.deployments.length > 0
-      ? deploymentHistory.deployments[0]
-      : null;
+    deployments && deployments.length > 0 ? deployments[0] : null;
 
   useEffect(() => {
     if (workflow) {
@@ -199,25 +204,13 @@ export function DeploymentDetailPage() {
   }, [workflow, setBreadcrumbs]);
 
   const deployWorkflow = async () => {
-    if (!workflowId) return;
+    if (!workflowId || !orgHandle) return;
 
     try {
       setIsDeploying(true);
-      const response = await fetch(
-        `${API_BASE_URL}/deployments/${workflowId}`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Failed to deploy workflow: ${response.statusText}`
-        );
-      }
+      // Use the createDeployment function from deploymentService
+      await createDeployment(workflowId, orgHandle);
 
       toast.success("Workflow deployed successfully");
       setIsDeployDialogOpen(false);
@@ -274,29 +267,28 @@ export function DeploymentDetailPage() {
   };
 
   const displayDeployments = expandedHistory
-    ? deploymentHistory?.deployments || []
-    : deploymentHistory?.deployments.slice(0, 3) || [];
+    ? deployments || []
+    : deployments.slice(0, 3) || [];
 
-  const showMoreButton = deploymentHistory?.deployments.length &&
-    deploymentHistory?.deployments.length > 3 && (
-      <div className="flex justify-center mt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setExpandedHistory(!expandedHistory)}
-          className="text-xs"
-        >
-          {expandedHistory ? (
-            "Show Less"
-          ) : (
-            <>
-              Show All ({deploymentHistory?.deployments.length}) Deployments
-              <ArrowDown className="ml-1 h-3 w-3" />
-            </>
-          )}
-        </Button>
-      </div>
-    );
+  const showMoreButton = deployments && deployments.length > 3 && (
+    <div className="flex justify-center mt-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setExpandedHistory(!expandedHistory)}
+        className="text-xs"
+      >
+        {expandedHistory ? (
+          "Show Less"
+        ) : (
+          <>
+            Show All ({deployments.length}) Deployments
+            <ArrowDown className="ml-1 h-3 w-3" />
+          </>
+        )}
+      </Button>
+    </div>
+  );
 
   if (isDeploymentHistoryLoading) {
     return <InsetLoading title={workflow?.name || "Workflow Deployments"} />;
