@@ -19,11 +19,8 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Play, ChevronDown } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
-import {
-  useNodeTemplates,
-  useDeploymentVersion,
-  useWorkflowDetails,
-} from "@/hooks/use-fetch";
+import { useNodeTemplates, useDeploymentVersion } from "@/hooks/use-fetch";
+import { useWorkflow } from "@/services/workflowService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
@@ -68,18 +65,19 @@ export function DeploymentVersionPage() {
     mutateDeploymentVersion,
   } = useDeploymentVersion(deploymentId);
 
-  // Use the new hook for Workflow Details
-  const { workflowDetails, workflowDetailsError, isWorkflowDetailsLoading } =
-    useWorkflowDetails(deploymentVersion?.workflowId);
+  // Use the new hook for Workflow Details from workflowService.ts
+  const { workflow, workflowError, isWorkflowLoading } = useWorkflow(
+    deploymentVersion?.workflowId || null
+  );
 
   // Update breadcrumbs when both workflow and deployment are available
   useEffect(() => {
-    if (workflowDetails && deploymentVersion) {
+    if (workflow && deploymentVersion) {
       setBreadcrumbs([
         { label: "Deployments", to: "/workflows/deployments" },
         {
-          label: workflowDetails.name,
-          to: `/workflows/deployments/${workflowDetails.id}`,
+          label: workflow.name,
+          to: `/workflows/deployments/${workflow.id}`,
         },
         { label: `v${deploymentVersion.version}` },
       ]);
@@ -89,7 +87,7 @@ export function DeploymentVersionPage() {
         { label: `v${deploymentVersion.version}` },
       ]);
     }
-  }, [workflowDetails, deploymentVersion, setBreadcrumbs]);
+  }, [workflow, deploymentVersion, setBreadcrumbs]);
 
   const transformDeploymentToReactFlow = useCallback(
     (currentDeploymentData: WorkflowDeploymentVersion) => {
@@ -240,7 +238,7 @@ export function DeploymentVersionPage() {
   if (
     isDeploymentVersionLoading ||
     isNodeTemplatesLoading ||
-    isWorkflowDetailsLoading
+    isWorkflowLoading
   ) {
     return <InsetLoading title="Deployment" />;
   }
@@ -333,19 +331,19 @@ export function DeploymentVersionPage() {
             </TabsList>
 
             <TabsContent value="details" className="space-y-6 mt-4">
-              {workflowDetails && (
+              {workflow && (
                 <WorkflowInfoCard
-                  id={workflowDetails.id}
-                  name={workflowDetails.name}
+                  id={workflow.id}
+                  name={workflow.name}
                   description="Details about this workflow"
                 />
               )}
-              {isWorkflowDetailsLoading && !workflowDetails && (
+              {isWorkflowLoading && !workflow && (
                 <p>Loading workflow details...</p>
               )}
-              {workflowDetailsError && (
+              {workflowError && (
                 <p className="text-red-500">
-                  Error loading workflow details: {workflowDetailsError.message}
+                  Error loading workflow details: {workflowError.message}
                 </p>
               )}
 

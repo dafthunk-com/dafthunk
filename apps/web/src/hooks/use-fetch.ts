@@ -1,6 +1,5 @@
-import { workflowService } from "@/services/workflowService";
 import { apiRequest } from "@/utils/api";
-import type { Workflow, NodeType } from "@dafthunk/types";
+import type { NodeType } from "@dafthunk/types";
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import useSWR from "swr";
 
@@ -19,40 +18,6 @@ export {
 } from "@/services/executionsService";
 
 export const PAGE_SIZE = 20;
-
-/**
- * Hook to fetch all workflows
- */
-export const useWorkflows = () => {
-  const { data, error, isLoading, mutate } = useSWR<Workflow[]>(
-    "/workflows",
-    workflowService.getAll
-  );
-
-  return {
-    workflows: data,
-    workflowsError: error,
-    isWorkflowsLoading: isLoading,
-    mutateWorkflows: mutate,
-  };
-};
-
-/**
- * Hook to fetch a specific workflow by ID
- */
-export const useWorkflowDetails = (workflowId?: string) => {
-  const { data, error, isLoading, mutate } = useSWR<Workflow>(
-    workflowId ? `/workflows/${workflowId}` : null,
-    () => workflowService.getById(workflowId!)
-  );
-
-  return {
-    workflowDetails: data,
-    workflowDetailsError: error,
-    isWorkflowDetailsLoading: isLoading,
-    mutateWorkflowDetails: mutate,
-  };
-};
 
 /**
  * Hook to fetch node templates

@@ -43,11 +43,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  useWorkflows,
-  useNodeTemplates,
-  useDeployments,
-} from "@/hooks/use-fetch";
+import { useNodeTemplates, useDeployments } from "@/hooks/use-fetch";
+import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
 import { createDeployment } from "@/services/deploymentService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";

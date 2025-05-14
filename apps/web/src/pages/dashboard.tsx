@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { workflowService } from "@/services/workflowService";
+import { createWorkflow } from "@/services/workflowService";
 import { useDashboard } from "@/services/dashboardService";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { Link } from "react-router-dom";
@@ -13,19 +13,32 @@ import { DataTableCard } from "@/components/ui/data-table-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
+import { useAuth } from "@/components/authContext";
+import { CreateWorkflowRequest } from "@dafthunk/types";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
 
   const handleCreateWorkflow = async (name: string) => {
+    if (!orgHandle) return;
+
     try {
-      const newWorkflow = await workflowService.create(name);
+      const request: CreateWorkflowRequest = {
+        name,
+        nodes: [],
+        edges: [],
+      };
+
+      const newWorkflow = await createWorkflow(request, orgHandle);
       navigate(`/workflows/playground/${newWorkflow.id}`);
-    } catch {
+    } catch (error) {
+      console.error("Failed to create workflow:", error);
       // Optionally show a toast here
     }
   };

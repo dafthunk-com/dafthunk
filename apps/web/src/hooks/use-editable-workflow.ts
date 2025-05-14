@@ -6,8 +6,9 @@ import type {
 } from "@/components/workflow/workflow-types.tsx"; // Corrected import path
 import type { Workflow, Parameter, ParameterType } from "@dafthunk/types";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { workflowService } from "@/services/workflowService";
+import { updateWorkflow } from "@/services/workflowService";
 import { debounce } from "@/utils/utils";
+import { useAuth } from "@/components/authContext";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
@@ -27,6 +28,9 @@ export function useEditableWorkflow({
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [savingError, setSavingError] = useState<string | null>(null);
+
+  // Get the organization from the auth context at the hook level
+  const { organization } = useAuth();
 
   // Effect to initialize nodes and edges from currentWorkflow
   useEffect(() => {
@@ -164,7 +168,14 @@ export function useEditableWorkflow({
           workflowId,
           workflowToSave
         );
-        await workflowService.save(workflowId, workflowToSave);
+
+        const orgHandle = organization?.handle;
+
+        if (!orgHandle) {
+          throw new Error("Organization handle is required to save workflow");
+        }
+
+        await updateWorkflow(workflowId, workflowToSave, orgHandle);
       } catch (error) {
         console.error("Error saving workflow via useEditableWorkflow:", error);
         setSavingError(
@@ -172,7 +183,7 @@ export function useEditableWorkflow({
         );
       }
     },
-    [workflowId] // currentWorkflow is passed as an argument to saveWorkflowInternal now
+    [workflowId, organization] // Add organization to dependency array
   );
 
   const saveWorkflow = useMemo(

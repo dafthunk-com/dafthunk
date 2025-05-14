@@ -3,11 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  useNodeTemplates,
-  useWorkflowDetails,
-  useDeploymentVersion,
-} from "@/hooks/use-fetch";
+import { useNodeTemplates } from "@/hooks/use-fetch";
+import { useWorkflow } from "@/services/workflowService";
+import { useDeploymentVersion } from "@/services/deploymentService";
 import {
   useExecution,
   setExecutionPublic,
@@ -45,25 +43,36 @@ export function ExecutionDetailPage() {
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
     useNodeTemplates();
 
-  const { workflowDetails: workflowInfo } = useWorkflowDetails(
-    execution?.workflowId
-  );
+  const { workflow: workflowInfo } = useWorkflow(execution?.workflowId || null);
 
+  // Handle the case when deploymentId might be undefined
+  const deploymentId = execution?.deploymentId || "";
+  const hasDeploymentId = !!execution?.deploymentId;
+
+  // Always call the hook - the hook internally handles empty/falsy values by setting swrKey to null
   const {
     deploymentVersion: deploymentStructureSource,
     isDeploymentVersionLoading: isDeploymentStructureLoading,
-  } = useDeploymentVersion(execution?.deploymentId);
+  } = useDeploymentVersion(deploymentId);
 
   const {
-    workflowDetails: workflowStructureSourceFromDetails,
-    isWorkflowDetailsLoading: isWorkflowStructureDetailsLoading,
-  } = useWorkflowDetails(
-    execution?.deploymentId ? undefined : execution?.workflowId
+    workflow: workflowStructureSourceFromDetails,
+    isWorkflowLoading: isWorkflowStructureDetailsLoading,
+  } = useWorkflow(
+    execution?.deploymentId ? null : execution?.workflowId || null
   );
 
   const finalStructure = useMemo(() => {
-    return deploymentStructureSource || workflowStructureSourceFromDetails;
-  }, [deploymentStructureSource, workflowStructureSourceFromDetails]);
+    // If we have a deploymentId, use the deployment structure.
+    // Otherwise, use the workflow structure.
+    return hasDeploymentId
+      ? deploymentStructureSource
+      : workflowStructureSourceFromDetails;
+  }, [
+    hasDeploymentId,
+    deploymentStructureSource,
+    workflowStructureSourceFromDetails,
+  ]);
 
   const isStructureOverallLoading = useMemo(() => {
     if (execution?.deploymentId) return isDeploymentStructureLoading;

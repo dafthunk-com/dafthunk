@@ -11,25 +11,30 @@ import type {
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
-import { useWorkflowDetails, useNodeTemplates } from "@/hooks/use-fetch";
+import { useNodeTemplates } from "@/hooks/use-fetch";
+import { useWorkflow } from "@/services/workflowService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
 import { API_BASE_URL } from "@/config/api";
+import { deployWorkflow } from "@/services/workflowService";
+import { useAuth } from "@/components/authContext";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const { nodeTemplates, isNodeTemplatesLoading, nodeTemplatesError } =
     useNodeTemplates();
 
   const {
-    workflowDetails: currentWorkflow,
-    workflowDetailsError,
-    isWorkflowDetailsLoading,
-  } = useWorkflowDetails(id!);
+    workflow: currentWorkflow,
+    workflowError: workflowDetailsError,
+    isWorkflowLoading: isWorkflowDetailsLoading,
+  } = useWorkflow(id || null);
 
   const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
     []
@@ -150,23 +155,20 @@ export function EditorPage() {
   };
 
   const handleDeployWorkflow = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!id) return;
-      import("@/services/workflowService").then((module) => {
-        module.workflowService
-          .deploy(id)
-          .then(() => {
-            toast.success("Workflow deployed successfully");
-          })
-          .catch((error) => {
-            console.error("Error deploying workflow:", error);
-            toast.error("Failed to deploy workflow. Please try again.");
-          });
-      });
+      if (!id || !orgHandle) return;
+
+      try {
+        await deployWorkflow(id, orgHandle);
+        toast.success("Workflow deployed successfully");
+      } catch (error) {
+        console.error("Error deploying workflow:", error);
+        toast.error("Failed to deploy workflow. Please try again.");
+      }
     },
-    [id]
+    [id, orgHandle]
   );
 
   if (workflowDetailsError) {

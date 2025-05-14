@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Workflow } from "@dafthunk/types";
-import { workflowService } from "@/services/workflowService";
+import { WorkflowWithMetadata, CreateWorkflowRequest } from "@dafthunk/types";
 import { Spinner } from "@/components/ui/spinner";
 import { InsetLoading } from "@/components/inset-loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,37 +27,44 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-import { useWorkflows } from "@/hooks/use-fetch";
 import { InsetError } from "@/components/inset-error";
+import {
+  useWorkflows,
+  updateWorkflow,
+  deleteWorkflow,
+  deployWorkflow,
+  createWorkflow,
+} from "@/services/workflowService";
+import { useAuth } from "@/components/authContext";
+
 // --- Inline useWorkflowActions ---
-function useWorkflowActions(
-  refreshWorkflows: () => Promise<Workflow[] | undefined>
-) {
+function useWorkflowActions() {
+  const { workflows, mutateWorkflows } = useWorkflows();
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
-  const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(
-    null
-  );
-  const [workflowToRename, setWorkflowToRename] = useState<Workflow | null>(
-    null
-  );
-  const [workflowToDeploy, setWorkflowToDeploy] = useState<Workflow | null>(
-    null
-  );
+  const [workflowToDelete, setWorkflowToDelete] =
+    useState<WorkflowWithMetadata | null>(null);
+  const [workflowToRename, setWorkflowToRename] =
+    useState<WorkflowWithMetadata | null>(null);
+  const [workflowToDeploy, setWorkflowToDeploy] =
+    useState<WorkflowWithMetadata | null>(null);
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
 
   const handleDeleteWorkflow = async () => {
-    if (!workflowToDelete) return;
+    if (!workflowToDelete || !orgHandle) return;
     setIsDeleting(true);
     try {
-      await workflowService.delete(workflowToDelete.id);
+      await deleteWorkflow(workflowToDelete.id, orgHandle);
       setDeleteDialogOpen(false);
       setWorkflowToDelete(null);
-      refreshWorkflows();
+      mutateWorkflows();
     } finally {
       setIsDeleting(false);
     }
@@ -66,28 +72,34 @@ function useWorkflowActions(
 
   const handleRenameWorkflow = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!workflowToRename) return;
+    if (!workflowToRename || !orgHandle) return;
     setIsRenaming(true);
     try {
-      const updatedWorkflow = { ...workflowToRename, name: renameWorkflowName };
-      await workflowService.save(workflowToRename.id, updatedWorkflow);
+      await updateWorkflow(
+        workflowToRename.id,
+        {
+          name: renameWorkflowName,
+          nodes: workflowToRename.nodes,
+          edges: workflowToRename.edges,
+        },
+        orgHandle
+      );
       setRenameDialogOpen(false);
       setWorkflowToRename(null);
-      refreshWorkflows();
+      mutateWorkflows();
     } finally {
       setIsRenaming(false);
     }
   };
 
   const handleDeployWorkflow = async () => {
-    if (!workflowToDeploy) return;
+    if (!workflowToDeploy || !orgHandle) return;
     setIsDeploying(true);
     try {
-      // TODO: Implement the actual deployment logic
-      await workflowService.deploy(workflowToDeploy.id);
+      await deployWorkflow(workflowToDeploy.id, orgHandle);
       setDeployDialogOpen(false);
       setWorkflowToDeploy(null);
-      refreshWorkflows();
+      mutateWorkflows();
     } finally {
       setIsDeploying(false);
     }
@@ -192,46 +204,55 @@ function useWorkflowActions(
     deleteDialog,
     renameDialog,
     deployDialog,
-    openDeleteDialog: (workflow: Workflow) => {
+    openDeleteDialog: (workflow: WorkflowWithMetadata) => {
       setWorkflowToDelete(workflow);
       setDeleteDialogOpen(true);
     },
-    openRenameDialog: (workflow: Workflow) => {
+    openRenameDialog: (workflow: WorkflowWithMetadata) => {
       setWorkflowToRename(workflow);
       setRenameWorkflowName(workflow.name || "");
       setRenameDialogOpen(true);
     },
-    openDeployDialog: (workflow: Workflow) => {
+    openDeployDialog: (workflow: WorkflowWithMetadata) => {
       setWorkflowToDeploy(workflow);
       setDeployDialogOpen(true);
     },
-    deployWorkflow: (e: React.MouseEvent) => {
+    deployWorkflow: async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (!orgHandle) return;
 
       // Get current workflow from URL
       const path = window.location.pathname;
       const parts = path.split("/");
       const workflowId = parts[parts.length - 1];
 
-      // Get workflow by ID and open deploy dialog
-      workflowService.getById(workflowId).then((workflow) => {
-        if (workflow) {
-          setWorkflowToDeploy(workflow);
+      // Instead of trying to use the hook here (which violates Rules of Hooks),
+      // just open the deploy dialog with the workflowId
+      if (workflowId) {
+        // Use existing workflows array to find the workflow
+        const workflowToUse = workflows?.find((w) => w.id === workflowId);
+        if (workflowToUse) {
+          setWorkflowToDeploy(workflowToUse);
           setDeployDialogOpen(true);
+        } else {
+          // If not found in the list, we can't deploy it from here
+          console.warn("Workflow not found in the current list:", workflowId);
+          // Optionally show an error toast here
         }
-      });
+      }
     },
   };
 }
 
 // --- Inline createColumns ---
 function createColumns(
-  openDeleteDialog: (workflow: Workflow) => void,
-  openRenameDialog: (workflow: Workflow) => void,
-  openDeployDialog: (workflow: Workflow) => void,
+  openDeleteDialog: (workflow: WorkflowWithMetadata) => void,
+  openRenameDialog: (workflow: WorkflowWithMetadata) => void,
+  openDeployDialog: (workflow: WorkflowWithMetadata) => void,
   navigate: ReturnType<typeof useNavigate>
-): ColumnDef<Workflow>[] {
+): ColumnDef<WorkflowWithMetadata>[] {
   return [
     {
       accessorKey: "name",
@@ -307,6 +328,8 @@ export function PlaygroundPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
     useWorkflows();
@@ -318,7 +341,7 @@ export function PlaygroundPage() {
     openDeleteDialog,
     openRenameDialog,
     openDeployDialog,
-  } = useWorkflowActions(mutateWorkflows);
+  } = useWorkflowActions();
 
   const columns = createColumns(
     openDeleteDialog,
@@ -332,15 +355,21 @@ export function PlaygroundPage() {
   }, [setBreadcrumbs]);
 
   const handleCreateWorkflow = async (name: string) => {
+    if (!orgHandle) return;
+
     try {
-      const newWorkflow = await workflowService.create(name);
-      mutateWorkflows(
-        (currentWorkflows) =>
-          currentWorkflows ? [...currentWorkflows, newWorkflow] : [newWorkflow],
-        false
-      );
+      const request: CreateWorkflowRequest = {
+        name,
+        nodes: [],
+        edges: [],
+      };
+
+      const newWorkflow = await createWorkflow(request, orgHandle);
+
+      mutateWorkflows();
       navigate(`/workflows/playground/${newWorkflow.id}`);
-    } catch {
+    } catch (error) {
+      console.error("Failed to create workflow:", error);
       // Optionally show a toast here
     }
   };
