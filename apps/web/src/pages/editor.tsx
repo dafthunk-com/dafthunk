@@ -15,9 +15,9 @@ import { toast } from "sonner";
 import { useNodeTypes } from "@/services/typeService";
 import {
   useWorkflow,
-  deployWorkflow,
   executeWorkflow,
 } from "@/services/workflowService";
+import { createDeployment } from "@/services/deploymentService";
 import { getExecution, useWorkflowExecutor } from "@/services/executionService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
@@ -223,7 +223,7 @@ export function EditorPage() {
       if (!id || !orgHandle) return;
 
       try {
-        await deployWorkflow(id, orgHandle);
+        await createDeployment(id, orgHandle);
         toast.success("Workflow deployed successfully");
       } catch (error) {
         console.error("Error deploying workflow:", error);

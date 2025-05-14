@@ -232,19 +232,6 @@ export const executeWorkflow = async (
 };
 
 /**
- * Deploy a workflow
- */
-export const deployWorkflow = async (
-  id: string,
-  orgHandle: string
-): Promise<void> => {
-  await makeOrgRequest<void>(orgHandle, "/deployments", "", {
-    method: "POST",
-    body: JSON.stringify({ workflowId: id }),
-  });
-};
-
-/**
  * Converts workflow edges to ReactFlow compatible edges
  */
 export const convertToReactFlowEdges = (

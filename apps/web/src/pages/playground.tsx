@@ -32,9 +32,9 @@ import {
   useWorkflows,
   updateWorkflow,
   deleteWorkflow,
-  deployWorkflow,
   createWorkflow,
 } from "@/services/workflowService";
+import { createDeployment } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
 
 // --- Inline useWorkflowActions ---
@@ -96,7 +96,7 @@ function useWorkflowActions() {
     if (!workflowToDeploy || !orgHandle) return;
     setIsDeploying(true);
     try {
-      await deployWorkflow(workflowToDeploy.id, orgHandle);
+      await createDeployment(workflowToDeploy.id, orgHandle);
       setDeployDialogOpen(false);
       setWorkflowToDeploy(null);
       mutateWorkflows();
