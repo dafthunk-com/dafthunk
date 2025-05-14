@@ -12,13 +12,18 @@ import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
 import { useNodeTemplates } from "@/hooks/use-fetch";
-import { useWorkflow } from "@/services/workflowService";
+import {
+  useWorkflow,
+  deployWorkflow,
+  executeWorkflow,
+} from "@/services/workflowService";
+import {
+  getExecution,
+  useWorkflowExecutor,
+} from "@/services/executionsService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
-import { API_BASE_URL } from "@/config/api";
-import { deployWorkflow } from "@/services/workflowService";
 import { useAuth } from "@/components/authContext";
 
 export function EditorPage() {
@@ -89,6 +94,39 @@ export function EditorPage() {
     [latestUiNodes, saveWorkflow, currentWorkflow]
   );
 
+  // Create wrapper functions to ensure the organization handle is passed
+  const executeWorkflowWithOrg = useCallback(
+    async (workflowId: string, parameters?: Record<string, any>) => {
+      if (!orgHandle) {
+        throw new Error("Organization handle is required");
+      }
+
+      // Execute the workflow
+      const response = await executeWorkflow(workflowId, orgHandle, true);
+
+      // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
+      // Using type assertion to ensure the result matches WorkflowExecution
+      return {
+        ...response,
+        // Add required visibility field with the precise union type expected
+        visibility: "private" as "private" | "public",
+        // Add optional fields that might be useful
+        workflowName: currentWorkflow?.name,
+      };
+    },
+    [orgHandle, currentWorkflow?.name]
+  );
+
+  const getExecutionWithOrg = useCallback(
+    async (executionId: string) => {
+      if (!orgHandle) {
+        throw new Error("Organization handle is required");
+      }
+      return getExecution(executionId, orgHandle);
+    },
+    [orgHandle]
+  );
+
   const {
     executeWorkflow: hookExecuteWorkflow,
     isExecutionFormVisible,
@@ -96,8 +134,8 @@ export function EditorPage() {
     submitExecutionForm,
     closeExecutionForm,
   } = useWorkflowExecutor({
-    executeUrlFn: (workflowId) =>
-      `${API_BASE_URL}/workflows/${workflowId}/execute`,
+    executeWorkflowFn: executeWorkflowWithOrg,
+    getExecutionFn: getExecutionWithOrg,
   });
 
   usePageBreadcrumbs(

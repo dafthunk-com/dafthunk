@@ -46,10 +46,10 @@ import {
 import { useNodeTemplates, useDeployments } from "@/hooks/use-fetch";
 import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
-import { createDeployment } from "@/services/deploymentService";
+import { createDeployment, executeDeployment } from "@/services/deploymentService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor } from "@/hooks/use-workflow-executor";
+import { useWorkflowExecutor, getExecution } from "@/services/executionsService";
 import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
 import { useAuth } from "@/components/authContext";
 import { makeOrgRequest } from "@/services/utils";
@@ -187,7 +187,41 @@ export function DeploymentsPage() {
 
   const { nodeTemplates } = useNodeTemplates();
 
-  // Configure the workflow executor with a custom URL for deployments
+  // Create a wrapper function for executeDeployment that handles the organization context
+  const executeDeploymentWithOrg = useCallback(
+    async (deploymentId: string, parameters?: Record<string, any>) => {
+      if (!orgHandle) {
+        throw new Error("Organization handle is required");
+      }
+      
+      // Execute the deployment
+      const response = await executeDeployment(deploymentId, orgHandle);
+      
+      // Transform ExecuteDeploymentResponse to WorkflowExecution
+      return {
+        ...response,
+        // Add required visibility field with the precise union type expected
+        visibility: "private" as "private" | "public",
+      };
+    },
+    [orgHandle]
+  );
+
+  // Create a wrapper for getExecution that handles organization context
+  const getExecutionWithOrg = useCallback(
+    async (executionId: string) => {
+      if (!orgHandle) {
+        throw new Error("Organization handle is required");
+      }
+      
+      // Use the execution service to get execution status
+      const execution = await getExecution(executionId, orgHandle);
+      return execution;
+    },
+    [orgHandle]
+  );
+
+  // Configure the workflow executor with the deployment execution function
   const {
     executeWorkflow,
     isExecutionFormVisible,
@@ -195,8 +229,8 @@ export function DeploymentsPage() {
     submitExecutionForm,
     closeExecutionForm,
   } = useWorkflowExecutor({
-    executeUrlFn: (deploymentId) =>
-      `${API_BASE_URL}/deployments/version/${deploymentId}/execute`,
+    executeWorkflowFn: executeDeploymentWithOrg,
+    getExecutionFn: getExecutionWithOrg
   });
 
   // Dialog state for workflow deployment
