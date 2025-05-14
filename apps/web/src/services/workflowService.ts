@@ -151,7 +151,8 @@ export const deleteWorkflow = async (
 export const executeWorkflow = async (
   id: string,
   orgHandle: string,
-  monitorProgress: boolean = false
+  monitorProgress: boolean = false,
+  parameters?: Record<string, any>
 ): Promise<ExecuteWorkflowResponse> => {
   return await makeOrgRequest<ExecuteWorkflowResponse>(
     orgHandle,
@@ -159,6 +160,7 @@ export const executeWorkflow = async (
     `/${id}/execute${monitorProgress ? "?monitorProgress=true" : ""}`,
     {
       method: "POST",
+      ...(parameters && { body: JSON.stringify(parameters) }),
     }
   );
 };

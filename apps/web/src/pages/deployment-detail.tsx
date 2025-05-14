@@ -175,6 +175,7 @@ export function DeploymentDetailPage() {
       
       // Execute the deployment
       const response = await executeDeployment(deploymentId, orgHandle, {
+        monitorProgress: true,
         parameters
       });
       
@@ -283,6 +284,7 @@ export function DeploymentDetailPage() {
         backendDeploymentNodes
       );
 
+      // Pass the parameters to the execute function
       executeWorkflow(
         deploymentId,
         handleExecutionUpdate,

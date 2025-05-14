@@ -8,7 +8,6 @@ import type {
   WorkflowDeployment,
   WorkflowDeploymentVersion,
 } from "@dafthunk/types";
-import { API_BASE_URL } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Button } from "@/components/ui/button";
 import {
@@ -194,8 +193,11 @@ export function DeploymentsPage() {
         throw new Error("Organization handle is required");
       }
       
-      // Execute the deployment
-      const response = await executeDeployment(deploymentId, orgHandle);
+      // Execute the deployment with parameters
+      const response = await executeDeployment(deploymentId, orgHandle, {
+        monitorProgress: true,
+        parameters: parameters || {} // Always provide at least an empty object
+      });
       
       // Transform ExecuteDeploymentResponse to WorkflowExecution
       return {

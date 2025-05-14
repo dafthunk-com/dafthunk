@@ -102,7 +102,7 @@ export function EditorPage() {
       }
 
       // Execute the workflow
-      const response = await executeWorkflow(workflowId, orgHandle, true);
+      const response = await executeWorkflow(workflowId, orgHandle, true, parameters);
 
       // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
       // Using type assertion to ensure the result matches WorkflowExecution

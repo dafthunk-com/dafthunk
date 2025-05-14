@@ -180,6 +180,9 @@ export const createDeployment = async (
  */
 export type ExecuteDeploymentOptions = {
   monitorProgress?: boolean;
+  directExecution?: boolean;
+  debugMode?: boolean;
+  parameters?: Record<string, any>;
   [key: string]: unknown;
 };
 
@@ -193,6 +196,10 @@ export const executeDeployment = async (
   }
 
   const queryParams = options?.monitorProgress ? "?monitorProgress=true" : "";
+  
+  // Create the request body with just the parameters
+  // For deployment endpoints, the parameters must be the root body
+  const requestBody = options?.parameters || {};
 
   return await makeOrgRequest<ExecuteDeploymentResponse>(
     orgHandle,
@@ -200,7 +207,7 @@ export const executeDeployment = async (
     `/version/${deploymentId}/execute${queryParams}`,
     {
       method: "POST",
-      body: options ? JSON.stringify(options) : undefined,
+      body: JSON.stringify(requestBody),
     }
   );
 };

@@ -51,6 +51,7 @@ export function DeploymentVersionPage() {
       
       // Execute the deployment
       const response = await executeDeployment(deploymentId, orgHandle, {
+        monitorProgress: true,
         parameters
       });
       
@@ -251,15 +252,14 @@ export function DeploymentVersionPage() {
     toast.info("Starting direct execution...");
 
     try {
-      const options: ExecuteDeploymentOptions = {
-        monitorProgress: true,
-        directExecution: true,
-      };
-
+      // Use an empty object for parameters to ensure we're sending a valid JSON object
       const result = await executeDeployment(
         deploymentVersion.id,
         orgHandle,
-        options
+        {
+          monitorProgress: true,
+          parameters: {} // Always provide an empty object for parameters
+        }
       );
       toast.success(`Execution started with ID: ${result.id}`);
     } catch (error) {
@@ -332,14 +332,14 @@ export function DeploymentVersionPage() {
                     onClick={async () => {
                       if (!deploymentVersion || !orgHandle) return;
                       try {
-                        const options: ExecuteDeploymentOptions = {
-                          monitorProgress: true,
-                          debugMode: true,
-                        };
                         const result = await executeDeployment(
                           deploymentVersion.id,
                           orgHandle,
-                          options
+                          {
+                            monitorProgress: true,
+                            parameters: {}, // Always provide an empty object for parameters
+                            debugMode: true
+                          }
                         );
                         toast.success(
                           `Debug execution started with ID: ${result.id}`
