@@ -1,6 +1,12 @@
 import { workflowService } from "@/services/workflowService";
 import { deploymentService } from "@/services/deploymentService";
-import { executionsService } from "@/services/executionsService";
+import { 
+  useExecution, 
+  usePublicExecution, 
+  usePaginatedExecutions,
+  EXECUTIONS_PAGE_SIZE,
+  type PublicExecutionWithStructure
+} from "@/services/executionsService";
 import { apiRequest } from "@/utils/api";
 import type {
   Workflow,
@@ -12,7 +18,6 @@ import type {
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import useSWR from "swr";
 import { useInfinatePagination } from "./use-infinate-pagination";
-import type { PublicExecutionWithStructure } from "@/services/executionsService";
 
 export const PAGE_SIZE = 20;
 
@@ -120,79 +125,30 @@ export const useNodeTemplates = () => {
   };
 };
 
-export const useExecutions = () => {
-  const getKey = (
-    pageIndex: number,
-    previousPageData: WorkflowExecution[] | null
-  ): string | null => {
-    if (
-      previousPageData &&
-      (!previousPageData.length || previousPageData.length < PAGE_SIZE)
-    ) {
-      return null;
-    }
-    const offset = pageIndex * PAGE_SIZE;
-    return `/executions?offset=${offset}&limit=${PAGE_SIZE}`;
-  };
-
-  const fetcher = async (url: string): Promise<WorkflowExecution[]> => {
-    const params = new URLSearchParams(url.substring(url.indexOf("?") + 1));
-    const offset = parseInt(params.get("offset") || "0", 10);
-    const limit = parseInt(params.get("limit") || String(PAGE_SIZE), 10);
-    return executionsService.getAll({ offset, limit });
-  };
-
-  const {
-    paginatedData,
-    error,
-    isInitialLoading,
-    isLoadingMore,
-    mutate,
-    isReachingEnd,
-    observerTargetRef,
-  } = useInfinatePagination<WorkflowExecution>(getKey, fetcher, {
-    pageSize: PAGE_SIZE,
-    revalidateFirstPage: true,
-    revalidateOnMount: true,
-    refreshInterval: 5000,
-  });
-
-  return {
-    paginatedExecutions: paginatedData,
-    executionsError: error,
-    isExecutionsInitialLoading: isInitialLoading,
-    isExecutionsLoadingMore: isLoadingMore,
-    mutateExecutions: mutate,
-    isExecutionsReachingEnd: isReachingEnd,
-    executionsObserverTargetRef: observerTargetRef,
-  };
+export const useExecutions = (workflowId?: string, deploymentId?: string) => {
+  return usePaginatedExecutions(workflowId, deploymentId);
 };
 
 export const useExecutionDetails = (executionId?: string) => {
-  const { data, error, isLoading, mutate } = useSWR<WorkflowExecution>(
-    executionId ? `/executions/${executionId}` : null,
-    () => executionsService.getById(executionId!)
-  );
+  const { execution, executionError, isExecutionLoading, mutateExecution } = 
+    useExecution(executionId || null);
 
   return {
-    executionDetails: data,
-    executionDetailsError: error,
-    isExecutionDetailsLoading: isLoading,
-    mutateExecutionDetails: mutate,
+    executionDetails: execution,
+    executionDetailsError: executionError,
+    isExecutionDetailsLoading: isExecutionLoading,
+    mutateExecutionDetails: mutateExecution,
   };
 };
 
 export const usePublicExecutionDetails = (executionId?: string) => {
-  const { data, error, isLoading, mutate } =
-    useSWR<PublicExecutionWithStructure>(
-      executionId ? `/executions/public/${executionId}` : null,
-      () => executionsService.getPublicById(executionId!)
-    );
+  const { publicExecution, publicExecutionError, isPublicExecutionLoading } = 
+    usePublicExecution(executionId || null);
 
   return {
-    publicExecutionDetails: data,
-    publicExecutionDetailsError: error,
-    isPublicExecutionDetailsLoading: isLoading,
-    mutatePublicExecutionDetails: mutate,
+    publicExecutionDetails: publicExecution,
+    publicExecutionDetailsError: publicExecutionError,
+    isPublicExecutionDetailsLoading: isPublicExecutionLoading,
+    mutatePublicExecutionDetails: () => Promise.resolve(),
   };
 };

@@ -4,11 +4,11 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
-  useExecutionDetails,
   useNodeTemplates,
   useWorkflowDetails,
   useDeploymentVersion,
 } from "@/hooks/use-fetch";
+import { useExecution, setExecutionPublic, setExecutionPrivate } from "@/services/executionsService";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
@@ -17,7 +17,6 @@ import type {
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
 import { workflowEdgeService } from "@/services/workflowEdgeService";
-import { executionsService } from "@/services/executionsService";
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetLoading } from "@/components/inset-loading";
@@ -25,16 +24,19 @@ import { InsetError } from "@/components/inset-error";
 import { Eye, EyeOff } from "lucide-react";
 import { Share2 } from "lucide-react";
 import { LoadingButton } from "@/components/ui/loading-button";
+import { useAuth } from "@/components/authContext";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { organization } = useAuth();
 
   const {
-    executionDetails: execution,
-    executionDetailsError,
-    isExecutionDetailsLoading,
-  } = useExecutionDetails(executionId);
+    execution,
+    executionError: executionDetailsError,
+    isExecutionLoading: isExecutionDetailsLoading,
+    mutateExecution: mutateExecutionDetails
+  } = useExecution(executionId || null);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
     useNodeTemplates();
@@ -159,17 +161,25 @@ export function ExecutionDetailPage() {
   const validateConnection = () => false;
 
   const handleToggleVisibility = async () => {
-    if (!execution) return;
+    if (!execution || !executionId || !organization?.handle) return;
+    
     setIsVisibilityUpdating(true);
-    const newVisibility =
-      execution.visibility === "public" ? "private" : "public";
+    const newVisibility = execution.visibility === "public" ? "private" : "public";
+    
     try {
+      let success = false;
+      
       if (newVisibility === "public") {
-        await executionsService.setExecutionPublic(execution.id);
-        toast.success("Execution successfully made public.");
+        success = await setExecutionPublic(executionId, organization.handle);
       } else {
-        await executionsService.setExecutionPrivate(execution.id);
-        toast.success("Execution successfully made private.");
+        success = await setExecutionPrivate(executionId, organization.handle);
+      }
+      
+      if (success) {
+        toast.success(`Execution successfully made ${newVisibility}.`);
+        mutateExecutionDetails();
+      } else {
+        toast.error(`Failed to update visibility.`);
       }
     } catch (error) {
       toast.error(
@@ -178,6 +188,7 @@ export function ExecutionDetailPage() {
         }`
       );
     }
+    
     setIsVisibilityUpdating(false);
   };
 

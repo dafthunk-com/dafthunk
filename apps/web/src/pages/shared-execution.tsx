@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
-import { useNodeTemplates, usePublicExecutionDetails } from "@/hooks/use-fetch";
+import { useNodeTemplates } from "@/hooks/use-fetch";
+import { usePublicExecution } from "@/services/executionsService";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
@@ -23,10 +24,10 @@ export function SharedExecutionPage() {
   const fullscreen = searchParams.has("fullscreen");
 
   const {
-    publicExecutionDetails: execution,
-    publicExecutionDetailsError: error,
-    isPublicExecutionDetailsLoading: isLoadingExecution,
-  } = usePublicExecutionDetails(executionId);
+    publicExecution: execution,
+    publicExecutionError: error,
+    isPublicExecutionLoading: isLoadingExecution,
+  } = usePublicExecution(executionId || null);
 
   const { nodeTemplates, nodeTemplatesError, isNodeTemplatesLoading } =
     useNodeTemplates();
