@@ -3,6 +3,12 @@ import {
   WorkflowExecution,
   WorkflowExecutionStatus,
   Workflow as WorkflowStructureType,
+  ListExecutionsRequest,
+  ListExecutionsResponse,
+  GetExecutionResponse,
+  PublicExecutionWithStructure,
+  GetPublicExecutionResponse,
+  UpdateExecutionVisibilityResponse
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
@@ -49,7 +55,8 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
       endedAt: execution.endedAt ?? executionData.endedAt,
     };
 
-    return c.json(workflowExecution);
+    const response: GetExecutionResponse = { execution: workflowExecution };
+    return c.json(response);
   } catch (error) {
     console.error("Error retrieving execution:", error);
     return c.json({ error: "Failed to retrieve execution" }, 500);
@@ -66,12 +73,14 @@ executionRoutes.get("/", jwtAuth, async (c) => {
   const parsedOffset = offset ? parseInt(offset, 10) : 0;
 
   // List executions with optional filtering
-  const executions = await listExecutions(db, user.organization.id, {
+  const queryParams: ListExecutionsRequest = {
     workflowId: workflowId || undefined,
     deploymentId: deploymentId || undefined,
     limit: parsedLimit,
     offset: parsedOffset,
-  });
+  };
+
+  const executions = await listExecutions(db, user.organization.id, queryParams);
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
@@ -99,7 +108,8 @@ executionRoutes.get("/", jwtAuth, async (c) => {
     };
   });
 
-  return c.json({ executions: results });
+  const response: ListExecutionsResponse = { executions: results };
+  return c.json(response);
 });
 
 executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
@@ -153,7 +163,11 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
       }
     }
 
-    return c.json({ message: "Execution set to public" });
+    const response: UpdateExecutionVisibilityResponse = { 
+      success: true, 
+      message: "Execution set to public" 
+    };
+    return c.json(response);
   } catch (error) {
     console.error("Error setting execution to public:", error);
     return c.json({ error: "Failed to set execution to public" }, 500);
@@ -181,7 +195,11 @@ executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
       .set({ visibility: "private", updatedAt: new Date() })
       .where(eq(executionsTable.id, id));
 
-    return c.json({ message: "Execution set to private" });
+    const response: UpdateExecutionVisibilityResponse = { 
+      success: true, 
+      message: "Execution set to private" 
+    };
+    return c.json(response);
   } catch (error) {
     console.error("Error setting execution to private:", error);
     return c.json({ error: "Failed to set execution to private" }, 500);
@@ -225,10 +243,7 @@ executionRoutes.get("/public/:id", async (c) => {
     }
 
     const executionData = executionRecord.data as WorkflowExecution;
-    const responseExecution: WorkflowExecution & {
-      nodes?: any[];
-      edges?: any[];
-    } = {
+    const responseExecution: PublicExecutionWithStructure = {
       id: executionRecord.id,
       workflowId: executionRecord.workflowId,
       workflowName: workflowName,
@@ -243,7 +258,8 @@ executionRoutes.get("/public/:id", async (c) => {
       edges: workflowEdges,
     };
 
-    return c.json(responseExecution);
+    const response: GetPublicExecutionResponse = { execution: responseExecution };
+    return c.json(response);
   } catch (error) {
     console.error("Error retrieving public execution:", error);
     return c.json({ error: "Failed to retrieve public execution" }, 500);
