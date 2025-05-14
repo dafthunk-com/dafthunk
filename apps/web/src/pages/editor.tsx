@@ -7,11 +7,12 @@ import type {
   WorkflowExecution,
   WorkflowNodeType,
   WorkflowEdgeType,
+  NodeTemplate,
 } from "@/components/workflow/workflow-types.tsx";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
-import { useNodeTemplates } from "@/hooks/use-fetch";
+import { useNodeTypes } from "@/services/workflowNodeService";
 import {
   useWorkflow,
   deployWorkflow,
@@ -32,8 +33,28 @@ export function EditorPage() {
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
-  const { nodeTemplates, isNodeTemplatesLoading, nodeTemplatesError } =
-    useNodeTemplates();
+  const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes();
+  
+  // Transform nodeTypes to NodeTemplate format expected by WorkflowBuilder
+  const nodeTemplates: NodeTemplate[] = nodeTypes?.map((type) => ({
+    id: type.id,
+    type: type.id,
+    name: type.name,
+    description: type.description || "",
+    category: type.category,
+    inputs: type.inputs.map((input) => ({
+      id: input.name,
+      type: input.type,
+      name: input.name,
+      hidden: input.hidden,
+    })),
+    outputs: type.outputs.map((output) => ({
+      id: output.name,
+      type: output.type,
+      name: output.name,
+      hidden: output.hidden,
+    })),
+  })) || [];
 
   const {
     workflow: currentWorkflow,
@@ -220,10 +241,10 @@ export function EditorPage() {
     );
   }
 
-  if (nodeTemplatesError) {
+  if (nodeTypesError) {
     return (
       <WorkflowError
-        message={nodeTemplatesError.message}
+        message={nodeTypesError.message || "Failed to load node types."}
         onRetry={() => window.location.reload()}
       />
     );
@@ -244,7 +265,7 @@ export function EditorPage() {
 
   if (
     isWorkflowDetailsLoading ||
-    isNodeTemplatesLoading ||
+    isNodeTypesLoading ||
     isWorkflowInitializing
   ) {
     return <InsetLoading />;
@@ -254,8 +275,8 @@ export function EditorPage() {
     !currentWorkflow &&
     !isWorkflowDetailsLoading &&
     !workflowDetailsError &&
-    !isNodeTemplatesLoading &&
-    !nodeTemplatesError &&
+    !isNodeTypesLoading &&
+    !nodeTypesError &&
     !isWorkflowInitializing
   ) {
     return (

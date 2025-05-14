@@ -1,8 +1,53 @@
 import { Node as ReactFlowNode, XYPosition } from "@xyflow/react";
 import { API_BASE_URL } from "../config/api";
-import { Node, NodeType } from "@dafthunk/types";
+import { Node, NodeType, GetNodeTypesResponse } from "@dafthunk/types";
 import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
 import { WorkflowNodeType } from "@/components/workflow/workflow-types";
+import useSWR from "swr";
+import { makeOrgRequest } from "./utils";
+import { useAuth } from "@/components/authContext";
+
+// Base endpoint for node types
+const API_ENDPOINT_BASE = "/types";
+
+interface UseNodeTypes {
+  nodeTypes: NodeType[];
+  nodeTypesError: Error | null;
+  isNodeTypesLoading: boolean;
+  mutateNodeTypes: () => Promise<any>;
+}
+
+/**
+ * Hook to fetch all available node types for the current organization
+ */
+export const useNodeTypes = (): UseNodeTypes => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+
+  // Create a unique SWR key that includes the organization handle
+  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}` : null;
+
+  const { data, error, isLoading, mutate } = useSWR(
+    swrKey,
+    swrKey && orgHandle
+      ? async () => {
+          const response = await makeOrgRequest<GetNodeTypesResponse>(
+            orgHandle,
+            API_ENDPOINT_BASE,
+            ""
+          );
+          return response.nodeTypes;
+        }
+      : null
+  );
+
+  return {
+    nodeTypes: data || [],
+    nodeTypesError: error || null,
+    isNodeTypesLoading: isLoading,
+    mutateNodeTypes: mutate,
+  };
+};
 
 /**
  * Converts domain nodes to ReactFlow compatible nodes
@@ -60,23 +105,17 @@ export function updateNodeExecutionState(
 }
 
 /**
- * Fetches available node types from the API
+ * Legacy function to fetch available node types from the API
+ * @deprecated Use useNodeTypes hook instead
  */
-export async function fetchNodeTypes(): Promise<readonly NodeType[]> {
+export async function fetchNodeTypes(orgHandle: string): Promise<readonly NodeType[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/types`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch node types: ${response.statusText}`);
-    }
-
-    return (await response.json()) as NodeType[];
+    const response = await makeOrgRequest<GetNodeTypesResponse>(
+      orgHandle,
+      API_ENDPOINT_BASE,
+      ""
+    );
+    return response.nodeTypes;
   } catch (error) {
     console.error("Error fetching node types:", error);
     throw new Error(
