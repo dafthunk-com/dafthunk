@@ -283,119 +283,115 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
  *
  * Execute a workflow by ID
  */
-workflowRoutes.post(
-  "/:id/execute",
-  jwtAuth,
-  async (c) => {
-    const user = c.get("jwtPayload") as CustomJWTPayload;
-    const id = c.req.param("id");
-    const db = createDatabase(c.env.DB);
+workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
+  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const id = c.req.param("id");
+  const db = createDatabase(c.env.DB);
 
-    const monitorProgress =
-      new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-    const workflow = await getWorkflowById(db, id, user.organization.id);
+  const monitorProgress =
+    new URL(c.req.url).searchParams.get("monitorProgress") === "true";
+  const workflow = await getWorkflowById(db, id, user.organization.id);
 
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    const workflowData = workflow.data as WorkflowType;
-
-    // Validate if workflow has nodes
-    if (!workflowData.nodes || workflowData.nodes.length === 0) {
-      return c.json(
-        {
-          error:
-            "Cannot execute an empty workflow. Please add nodes to the workflow.",
-        },
-        400
-      );
-    }
-
-    // Extract HTTP request information
-    const headers = c.req.header();
-    const url = c.req.url;
-    const method = c.req.method;
-    const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
-
-    // Try to parse form data
-    let formData: Record<string, string | File> | undefined;
-    try {
-      formData = Object.fromEntries(await c.req.formData());
-    } catch {
-      // No form data or invalid form data
-    }
-
-    // Get request body if it exists
-    let body: any = undefined;
-    try {
-      if (c.req.raw.headers.get("content-type")?.includes("application/json")) {
-        body = await c.req.json();
-      }
-    } catch {
-      // No body or invalid JSON
-    }
-
-    // Trigger the runtime and get the instance id
-    const instance = await c.env.EXECUTE.create({
-      params: {
-        userId: user.sub,
-        organizationId: user.organization.id,
-        workflow: {
-          id: workflow.id,
-          name: workflow.name,
-          nodes: workflowData.nodes,
-          edges: workflowData.edges,
-        },
-        monitorProgress,
-        httpRequest: {
-          url,
-          method,
-          headers,
-          query,
-          formData,
-          body,
-        },
-      },
-    });
-    const executionId = instance.id;
-
-    // Build initial nodeExecutions (all idle)
-    const nodeExecutions: NodeExecution[] = workflowData.nodes.map(
-      (node: Node) => ({
-        nodeId: node.id,
-        status: "idle",
-      })
-    );
-
-    // Map our API type status to DB-compatible status
-    const idleStatus = ExecutionStatus.IDLE;
-
-    // Ensure user.sub is not undefined
-    const userId = user.sub || "anonymous";
-
-    // Save initial execution record
-    const initialExecution = await saveExecution(db, {
-      id: executionId,
-      workflowId: workflow.id,
-      userId,
-      organizationId: user.organization.id,
-      status: idleStatus,
-      nodeExecutions,
-      visibility: "private",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    const response: ExecuteWorkflowResponse = {
-      id: initialExecution.id,
-      workflowId: initialExecution.workflowId,
-      status: "idle",
-      nodeExecutions: initialExecution.nodeExecutions,
-    };
-
-    return c.json(response, 201);
+  if (!workflow) {
+    return c.json({ error: "Workflow not found" }, 404);
   }
-);
+
+  const workflowData = workflow.data as WorkflowType;
+
+  // Validate if workflow has nodes
+  if (!workflowData.nodes || workflowData.nodes.length === 0) {
+    return c.json(
+      {
+        error:
+          "Cannot execute an empty workflow. Please add nodes to the workflow.",
+      },
+      400
+    );
+  }
+
+  // Extract HTTP request information
+  const headers = c.req.header();
+  const url = c.req.url;
+  const method = c.req.method;
+  const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
+
+  // Try to parse form data
+  let formData: Record<string, string | File> | undefined;
+  try {
+    formData = Object.fromEntries(await c.req.formData());
+  } catch {
+    // No form data or invalid form data
+  }
+
+  // Get request body if it exists
+  let body: any = undefined;
+  try {
+    if (c.req.raw.headers.get("content-type")?.includes("application/json")) {
+      body = await c.req.json();
+    }
+  } catch {
+    // No body or invalid JSON
+  }
+
+  // Trigger the runtime and get the instance id
+  const instance = await c.env.EXECUTE.create({
+    params: {
+      userId: user.sub,
+      organizationId: user.organization.id,
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      },
+      monitorProgress,
+      httpRequest: {
+        url,
+        method,
+        headers,
+        query,
+        formData,
+        body,
+      },
+    },
+  });
+  const executionId = instance.id;
+
+  // Build initial nodeExecutions (all idle)
+  const nodeExecutions: NodeExecution[] = workflowData.nodes.map(
+    (node: Node) => ({
+      nodeId: node.id,
+      status: "idle",
+    })
+  );
+
+  // Map our API type status to DB-compatible status
+  const idleStatus = ExecutionStatus.IDLE;
+
+  // Ensure user.sub is not undefined
+  const userId = user.sub || "anonymous";
+
+  // Save initial execution record
+  const initialExecution = await saveExecution(db, {
+    id: executionId,
+    workflowId: workflow.id,
+    userId,
+    organizationId: user.organization.id,
+    status: idleStatus,
+    nodeExecutions,
+    visibility: "private",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  const response: ExecuteWorkflowResponse = {
+    id: initialExecution.id,
+    workflowId: initialExecution.workflowId,
+    status: "idle",
+    nodeExecutions: initialExecution.nodeExecutions,
+  };
+
+  return c.json(response, 201);
+});
 
 export default workflowRoutes;

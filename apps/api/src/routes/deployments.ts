@@ -25,8 +25,6 @@ import {
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 import { Context } from "hono";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {

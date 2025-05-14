@@ -12,6 +12,7 @@ import health from "./routes/health";
 import apiKeyRoutes from "./routes/apiKeys";
 import deploymentRoutes from "./routes/deployments";
 import robotsRoutes from "./routes/robots";
+import llmsRoutes from "./routes/llms";
 import { corsMiddleware } from "./middleware/cors";
 import dashboardRoutes from "./routes/dashboard";
 // Initialize Hono app with types
@@ -24,6 +25,7 @@ app.use("*", corsMiddleware);
 app.route("/health", health);
 app.route("/auth", auth);
 app.route("/robots.txt", robotsRoutes);
+app.route("/llms.txt", llmsRoutes);
 
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
 app.route("/:orgHandle/dashboard", dashboardRoutes);
