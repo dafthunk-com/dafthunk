@@ -12,7 +12,7 @@ import {
   HttpRequestInfo,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase } from "../db";
+import { createDatabase, ExecutionStatus } from "../db";
 import { jwtAuth } from "../auth";
 import {
   getLatestDeploymentByWorkflowId,
@@ -27,6 +27,8 @@ import {
 } from "../utils/db";
 import { v7 as uuid } from "uuid";
 import { Context } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -297,8 +299,16 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
 deploymentRoutes.post(
   "/version/:deploymentUUID/execute",
   authMiddleware,
+  zValidator(
+    "json",
+    z
+      .object({
+        monitorProgress: z.boolean().optional(),
+      })
+      .optional() as z.ZodType<unknown>
+  ),
   async (c) => {
-    // Get organization ID from either JWT or API key auth
+    // Get organization ID and user ID from either JWT or API key auth
     let organizationId: string;
     let userId: string;
 
@@ -306,7 +316,7 @@ deploymentRoutes.post(
     if (jwtPayload) {
       // Authentication was via JWT
       organizationId = jwtPayload.organization.id;
-      userId = jwtPayload.sub;
+      userId = jwtPayload.sub || "anonymous";
     } else {
       // Authentication was via API key
       const orgId = c.get("organizationId");
@@ -336,10 +346,21 @@ deploymentRoutes.post(
 
     const workflowData = deployment.workflowData as WorkflowType;
 
+    // Validate if workflow has nodes
+    if (!workflowData.nodes || workflowData.nodes.length === 0) {
+      return c.json(
+        {
+          error:
+            "Cannot execute an empty workflow. Please add nodes to the workflow.",
+        },
+        400
+      );
+    }
+
     // Extract HTTP request information
+    const headers = c.req.header();
     const url = c.req.url;
     const method = c.req.method;
-    const headers = c.req.header();
     const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
 
     // Try to parse form data
@@ -350,22 +371,15 @@ deploymentRoutes.post(
       // No form data or invalid form data
     }
 
-    // Try to parse JSON body
+    // Get request body if it exists
     let body: any = undefined;
     try {
-      body = await c.req.json();
+      if (c.req.raw.headers.get("content-type")?.includes("application/json")) {
+        body = await c.req.json();
+      }
     } catch {
       // No body or invalid JSON
     }
-
-    const httpRequest: HttpRequestInfo = {
-      url,
-      method,
-      headers,
-      query,
-      formData,
-      body,
-    };
 
     // Trigger the runtime and get the instance id
     const instance = await c.env.EXECUTE.create({
@@ -380,8 +394,15 @@ deploymentRoutes.post(
         },
         monitorProgress,
         deploymentId: deployment.id,
-        httpRequest,
-      } as ExecutionRuntimeParams,
+        httpRequest: {
+          url,
+          method,
+          headers,
+          query,
+          formData,
+          body,
+        },
+      },
     });
     const executionId = instance.id;
 
@@ -391,27 +412,33 @@ deploymentRoutes.post(
       status: "idle" as const,
     }));
 
+    // Map our API type status to DB-compatible status
+    const executingStatus = ExecutionStatus.EXECUTING;
+
     // Save initial execution record
-    await saveExecution(db, {
+    const initialExecution = await saveExecution(db, {
       id: executionId,
       workflowId: deployment.workflowId || "",
       deploymentId: deployment.id,
       userId,
       organizationId,
-      status: "executing",
+      status: executingStatus,
       visibility: "private",
       nodeExecutions,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    // Return the initial WorkflowExecution object
+    // Return the initial execution object, explicitly matching ExecuteDeploymentResponse
     const response: ExecuteDeploymentResponse = {
-      id: executionId,
-      workflowId: deployment.workflowId || "",
+      id: initialExecution.id,
+      workflowId: initialExecution.workflowId,
       deploymentId: deployment.id,
       status: "executing",
-      nodeExecutions,
+      nodeExecutions: workflowData.nodes.map((node) => ({
+        nodeId: node.id,
+        status: "idle",
+      })),
     };
 
     return c.json(response, 201);
