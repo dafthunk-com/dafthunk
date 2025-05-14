@@ -18,7 +18,123 @@ import {
   NodeExecutionState,
   NodeExecutionUpdate,
 } from "./workflow-types";
-import { workflowExecutionService } from "@/services/workflowExecutionService";
+import { updateNodeExecutionState } from "@/services/workflowService";
+
+// Helper functions to replace workflowNodeStateService
+const stripExecutionFields = (data: WorkflowNodeType): Omit<
+  WorkflowNodeType,
+  "executionState" | "error"
+> & {
+  outputs: Omit<WorkflowNodeType["outputs"][number], "value" | "isConnected">[];
+  inputs: Omit<WorkflowNodeType["inputs"][number], "isConnected">[];
+} => {
+  const { executionState, error, ...rest } = data;
+
+  return {
+    ...rest,
+    outputs: data.outputs.map(
+      ({ value, isConnected, ...outputRest }) => outputRest
+    ),
+    inputs: data.inputs.map(({ isConnected, ...inputRest }) => inputRest),
+  };
+};
+
+const stripEdgeExecutionFields = (
+  data: WorkflowEdgeType = {}
+): Omit<WorkflowEdgeType, "isActive"> => {
+  const { isActive, ...rest } = data;
+  return rest;
+};
+
+const updateNodesWithExecutionState = (
+  nodes: ReactFlowNode<WorkflowNodeType>[],
+  nodeId: string,
+  state: NodeExecutionState
+): ReactFlowNode<WorkflowNodeType>[] => {
+  return nodes.map((node) =>
+    node.id === nodeId
+      ? {
+          ...node,
+          data: {
+            ...node.data,
+            executionState: state,
+            error: state === "error" ? node.data.error : null,
+          },
+        }
+      : node
+  );
+};
+
+const updateEdgesForNodeExecution = (
+  edges: ReactFlowEdge<WorkflowEdgeType>[],
+  _nodeId: string,
+  state: NodeExecutionState,
+  connectedEdgeIds: string[]
+): ReactFlowEdge<WorkflowEdgeType>[] => {
+  if (state === "executing") {
+    return edges.map((edge) => {
+      const isConnectedToExecutingNode = connectedEdgeIds.includes(edge.id);
+      return {
+        ...edge,
+        data: {
+          ...(edge.data || {}),
+          isActive: isConnectedToExecutingNode,
+        },
+      };
+    });
+  }
+
+  if (state === "completed" || state === "error") {
+    return edges.map((edge) => ({
+      ...edge,
+      data: {
+        ...(edge.data || {}),
+        isActive: false,
+      },
+    }));
+  }
+
+  return edges;
+};
+
+const updateNodesWithExecutionOutputs = (
+  nodes: ReactFlowNode<WorkflowNodeType>[],
+  nodeId: string,
+  outputs: Record<string, unknown>
+): ReactFlowNode<WorkflowNodeType>[] => {
+  return nodes.map((node) =>
+    node.id === nodeId
+      ? {
+          ...node,
+          data: {
+            ...node.data,
+            outputs: node.data.outputs.map((output) => ({
+              ...output,
+              value: outputs[output.id],
+            })),
+          },
+        }
+      : node
+  );
+};
+
+const updateNodesWithExecutionError = (
+  nodes: ReactFlowNode<WorkflowNodeType>[],
+  nodeId: string,
+  error: string | undefined
+): ReactFlowNode<WorkflowNodeType>[] => {
+  return nodes.map((node) =>
+    node.id === nodeId
+      ? {
+          ...node,
+          data: {
+            ...node.data,
+            error,
+          },
+        }
+      : node
+  );
+};
 
 export function useWorkflowState({
   initialNodes = [],
@@ -99,10 +215,8 @@ export function useWorkflowState({
         return true;
       }
 
-      const nodeData = workflowExecutionService.stripExecutionFields(node.data);
-      const initialNodeData = workflowExecutionService.stripExecutionFields(
-        initialNode.data
-      );
+      const nodeData = stripExecutionFields(node.data);
+      const initialNodeData = stripExecutionFields(initialNode.data);
       return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
     });
 
@@ -127,12 +241,8 @@ export function useWorkflowState({
       )
         return true;
 
-      const edgeData = workflowExecutionService.stripEdgeExecutionFields(
-        edge.data
-      );
-      const initialEdgeData = workflowExecutionService.stripEdgeExecutionFields(
-        initialEdge.data
-      );
+      const edgeData = stripEdgeExecutionFields(edge.data);
+      const initialEdgeData = stripEdgeExecutionFields(initialEdge.data);
 
       return JSON.stringify(edgeData) !== JSON.stringify(initialEdgeData);
     });
@@ -342,7 +452,7 @@ export function useWorkflowState({
         let updatedNodes = nds;
 
         if (state !== undefined) {
-          updatedNodes = workflowExecutionService.updateNodesWithExecutionState(
+          updatedNodes = updateNodesWithExecutionState(
             updatedNodes,
             nodeId,
             state
@@ -350,16 +460,15 @@ export function useWorkflowState({
         }
 
         if (outputs !== undefined) {
-          updatedNodes =
-            workflowExecutionService.updateNodesWithExecutionOutputs(
-              updatedNodes,
-              nodeId,
-              outputs
-            );
+          updatedNodes = updateNodesWithExecutionOutputs(
+            updatedNodes,
+            nodeId,
+            outputs
+          );
         }
 
         if (error !== undefined) {
-          updatedNodes = workflowExecutionService.updateNodesWithExecutionError(
+          updatedNodes = updateNodesWithExecutionError(
             updatedNodes,
             nodeId,
             error
@@ -374,7 +483,7 @@ export function useWorkflowState({
         const connectedEdgeIds = nodeEdges.map((edge) => edge.id);
 
         setEdges((eds) => [
-          ...workflowExecutionService.updateEdgesForNodeExecution(
+          ...updateEdgesForNodeExecution(
             eds,
             nodeId,
             state,
