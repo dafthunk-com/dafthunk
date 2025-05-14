@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, EyeOff, Filter, MoreHorizontal, X } from "lucide-react";
+import { Eye, EyeOff, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,26 +12,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { usePaginatedExecutions } from "@/services/executionsService";
 import { toast } from "sonner";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
-import type { ListExecutionsRequest, WorkflowExecution } from "@dafthunk/types";
+import type { WorkflowExecution } from "@dafthunk/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/utils/utils";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 export const columns: ColumnDef<WorkflowExecution>[] = [
   {
@@ -178,22 +169,6 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
 
 export function ExecutionsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // Get filter values from URL
-  const workflowId = searchParams.get("workflowId") || undefined;
-  const deploymentId = searchParams.get("deploymentId") || undefined;
-
-  // Local state for filter inputs
-  const [filterValues, setFilterValues] = useState<
-    Partial<ListExecutionsRequest>
-  >({
-    workflowId,
-    deploymentId,
-  });
-
-  // Filter dialog state
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const {
     paginatedExecutions,
@@ -202,7 +177,7 @@ export function ExecutionsPage() {
     isExecutionsLoadingMore,
     isExecutionsReachingEnd,
     executionsObserverTargetRef,
-  } = usePaginatedExecutions(workflowId, deploymentId);
+  } = usePaginatedExecutions();
 
   // Get error message in a type-safe way
   const errorMessage = executionsError
@@ -223,32 +198,6 @@ export function ExecutionsPage() {
     }
   }, [executionsError, errorMessage]);
 
-  // Apply filters
-  const handleApplyFilters = () => {
-    const newParams = new URLSearchParams();
-
-    if (filterValues.workflowId) {
-      newParams.set("workflowId", filterValues.workflowId);
-    }
-
-    if (filterValues.deploymentId) {
-      newParams.set("deploymentId", filterValues.deploymentId);
-    }
-
-    setSearchParams(newParams);
-    setIsFilterOpen(false);
-  };
-
-  // Clear all filters
-  const handleClearFilters = () => {
-    setFilterValues({});
-    setSearchParams(new URLSearchParams());
-    setIsFilterOpen(false);
-  };
-
-  // Check if filters are active
-  const hasActiveFilters = Boolean(workflowId || deploymentId);
-
   if (isExecutionsInitialLoading) {
     return <InsetLoading title="Executions" />;
   } else if (executionsError) {
@@ -262,86 +211,11 @@ export function ExecutionsPage() {
         titleRight={
           <div className="flex items-center gap-2">
             {isExecutionsLoadingMore && <Spinner className="h-4 w-4" />}
-            <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant={hasActiveFilters ? "default" : "outline"}
-                  size="sm"
-                  className={hasActiveFilters ? "bg-primary" : ""}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                  {hasActiveFilters && (
-                    <Badge
-                      variant="outline"
-                      className="ml-2 bg-background text-foreground"
-                    >
-                      {
-                        Object.values({ workflowId, deploymentId }).filter(
-                          Boolean
-                        ).length
-                      }
-                    </Badge>
-                  )}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Filter Executions</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="workflowId">Workflow ID</Label>
-                    <Input
-                      id="workflowId"
-                      placeholder="Filter by workflow ID"
-                      value={filterValues.workflowId || ""}
-                      onChange={(e) =>
-                        setFilterValues((prev) => ({
-                          ...prev,
-                          workflowId: e.target.value || undefined,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="deploymentId">Deployment ID</Label>
-                    <Input
-                      id="deploymentId"
-                      placeholder="Filter by deployment ID"
-                      value={filterValues.deploymentId || ""}
-                      onChange={(e) =>
-                        setFilterValues((prev) => ({
-                          ...prev,
-                          deploymentId: e.target.value || undefined,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="flex justify-between pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleClearFilters}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Reset
-                    </Button>
-                    <Button size="sm" onClick={handleApplyFilters}>
-                      Apply Filters
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         }
       >
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
-          {hasActiveFilters && (
-            <span className="ml-2 text-primary">(Filtered results)</span>
-          )}
         </p>
         <DataTable
           columns={columns}
@@ -350,16 +224,12 @@ export function ExecutionsPage() {
             title: executionsError
               ? "Error"
               : paginatedExecutions.length === 0
-                ? hasActiveFilters
-                  ? "No matching executions"
-                  : "No executions"
+                ? "No executions"
                 : "No results",
             description: executionsError
               ? errorMessage
               : paginatedExecutions.length === 0
-                ? hasActiveFilters
-                  ? "No executions match your filter criteria."
-                  : "No executions found."
+                ? "No executions found."
                 : "No executions match your criteria.",
           }}
         />
