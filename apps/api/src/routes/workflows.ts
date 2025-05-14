@@ -286,14 +286,6 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
 workflowRoutes.post(
   "/:id/execute",
   jwtAuth,
-  zValidator(
-    "json",
-    z
-      .object({
-        monitorProgress: z.boolean().optional(),
-      })
-      .optional() as z.ZodType<unknown>
-  ),
   async (c) => {
     const user = c.get("jwtPayload") as CustomJWTPayload;
     const id = c.req.param("id");

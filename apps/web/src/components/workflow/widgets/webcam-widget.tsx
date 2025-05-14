@@ -29,7 +29,8 @@ export function WebcamWidget({
       : null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const { uploadBinaryData, createObjectUrl } = useObjectService();
+  const objectService = useObjectService();
+  const { uploadBinaryData } = objectService;
 
   useEffect(() => {
     if (!imageReference) {
@@ -148,7 +149,7 @@ export function WebcamWidget({
           <div className="relative aspect-video bg-neutral-100">
             {imageReference ? (
               <img
-                src={createObjectUrl(imageReference)}
+                src={objectService.createObjectUrl(imageReference)}
                 alt="Captured"
                 className="w-full h-full object-cover"
               />

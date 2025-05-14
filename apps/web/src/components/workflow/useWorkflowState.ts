@@ -218,7 +218,12 @@ export function useWorkflowState({
       return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
     });
 
-    if (nodeCountChanged || hasDataOrPositionChanges) {
+    // Check for deleted nodes by looking for initialNodes that don't exist in the current nodes
+    const hasDeletedNodes = initialNodes.some(
+      (initialNode) => !nodes.some((node) => node.id === initialNode.id)
+    );
+
+    if (nodeCountChanged || hasDataOrPositionChanges || hasDeletedNodes) {
       onNodesChangePersistCallback?.(nodes);
     }
   }, [nodes, onNodesChangePersistCallback, initialNodes, readonly]);
@@ -245,7 +250,12 @@ export function useWorkflowState({
       return JSON.stringify(edgeData) !== JSON.stringify(initialEdgeData);
     });
 
-    if (hasNonExecutionChanges) {
+    // Check for deleted edges by looking for initialEdges that don't exist in the current edges
+    const hasDeletedEdges = initialEdges.some(
+      (initialEdge) => !edges.some((edge) => edge.id === initialEdge.id)
+    );
+
+    if (hasNonExecutionChanges || hasDeletedEdges) {
       onEdgesChangePersistCallback?.(edges);
     }
   }, [edges, onEdgesChangePersistCallback, initialEdges, readonly]);

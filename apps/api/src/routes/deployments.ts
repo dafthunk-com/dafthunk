@@ -297,14 +297,6 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
 deploymentRoutes.post(
   "/version/:deploymentUUID/execute",
   authMiddleware,
-  zValidator(
-    "json",
-    z
-      .object({
-        monitorProgress: z.boolean().optional(),
-      })
-      .optional() as z.ZodType<unknown>
-  ),
   async (c) => {
     // Get organization ID and user ID from either JWT or API key auth
     let organizationId: string;
