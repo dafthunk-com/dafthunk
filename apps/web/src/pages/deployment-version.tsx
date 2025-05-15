@@ -16,10 +16,11 @@ import type {
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { InsetLoading } from "@/components/inset-loading";
-import { useWorkflow } from "@/services/workflowService";
+import { useWorkflow, executeWorkflow } from "@/services/workflowService";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useAuth } from "@/components/authContext";
 import { useDeploymentVersion } from "@/services/deploymentService";
+import { Play } from "lucide-react";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -140,6 +141,24 @@ export function DeploymentVersionPage() {
 
   const validateConnection = useCallback(() => false, []);
 
+  const handleExecuteVersion = async () => {
+    if (!deploymentVersion?.workflowId || !orgHandle) return;
+
+    try {
+      await executeWorkflow(deploymentVersion.workflowId, orgHandle, {
+        mode: deploymentVersion.version.toString(),
+      });
+      toast.success("Workflow execution started");
+    } catch (error) {
+      console.error("Error executing workflow:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to execute workflow. Please try again."
+      );
+    }
+  };
+
   if (isDeploymentVersionLoading || isWorkflowLoading) {
     return <InsetLoading title="Deployment" />;
   }
@@ -174,6 +193,10 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
+              <Button onClick={handleExecuteVersion}>
+                <Play className="mr-2 h-4 w-4" />
+                Execute Version
+              </Button>
             </div>
           </div>
 

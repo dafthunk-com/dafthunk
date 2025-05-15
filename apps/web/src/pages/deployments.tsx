@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import type {
   WorkflowDeployment,
-  WorkflowDeploymentVersion,
 } from "@dafthunk/types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useWorkflows } from "@/services/workflowService";
+import { useWorkflows, executeWorkflow } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
 import {
   createDeployment,
@@ -54,6 +53,7 @@ import { useAuth } from "@/components/authContext";
 type DeploymentWithActions = WorkflowDeployment & {
   onViewLatest?: (workflowId: string) => void;
   onCreateDeployment?: (workflowId: string) => void;
+  onExecuteLatest?: (workflowId: string) => void;
 };
 
 const columns: ColumnDef<DeploymentWithActions>[] = [
@@ -129,6 +129,11 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
                   View Deployed Versions
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => deployment.onExecuteLatest?.(deployment.workflowId)}
+              >
+                Execute Latest Version
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -189,6 +194,19 @@ export function DeploymentsPage() {
     navigate(`/workflows/deployments/${workflowId}`);
   };
 
+  const handleExecuteLatest = async (workflowId: string) => {
+    if (!orgHandle) return;
+    
+    try {
+      await executeWorkflow(workflowId, orgHandle, { mode: "latest" });
+      toast.success("Workflow execution started");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to execute workflow"
+      );
+    }
+  };
+
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = (
     deployments || []
@@ -196,6 +214,7 @@ export function DeploymentsPage() {
     ...deployment,
     onViewLatest: handleViewDeployment,
     onCreateDeployment: () => {},
+    onExecuteLatest: handleExecuteLatest,
   }));
 
   if (isDeploymentsLoading) {
