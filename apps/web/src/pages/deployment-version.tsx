@@ -18,16 +18,12 @@ import { Button } from "@/components/ui/button";
 import { InsetLoading } from "@/components/inset-loading";
 import { useWorkflow } from "@/services/workflowService";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useAuth } from "@/components/authContext";
 import { useDeploymentVersion } from "@/services/deploymentService";
-
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
@@ -141,8 +137,6 @@ export function DeploymentVersionPage() {
 
   const validateConnection = useCallback(() => false, []);
 
-
-
   if (isDeploymentVersionLoading || isWorkflowLoading) {
     return <InsetLoading title="Deployment" />;
   }
@@ -177,7 +171,6 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
-
             </div>
           </div>
 

@@ -123,7 +123,6 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
                   View Deployed Versions
                 </Link>
               </DropdownMenuItem>
-
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -183,8 +182,6 @@ export function DeploymentsPage() {
   const handleViewDeployment = (workflowId: string) => {
     navigate(`/workflows/deployments/${workflowId}`);
   };
-
-
 
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = (

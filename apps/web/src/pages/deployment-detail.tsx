@@ -129,7 +129,6 @@ function createDeploymentHistoryColumns(
                   View Version
                 </Link>
               </DropdownMenuItem>
-
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -201,8 +200,6 @@ export function DeploymentDetailPage() {
       setIsDeploying(false);
     }
   };
-
-
 
   const displayDeployments = expandedHistory
     ? deployments || []

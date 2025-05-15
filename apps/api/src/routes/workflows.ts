@@ -27,7 +27,6 @@ import {
   createHandle,
   getLatestDeploymentByWorkflowId,
   getDeploymentByVersion,
-  getDeploymentById,
 } from "../utils/db";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
