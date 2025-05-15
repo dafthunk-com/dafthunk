@@ -39,7 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useWorkflows, executeWorkflow } from "@/services/workflowService";
+import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
 import { createDeployment, useDeployments } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
@@ -48,7 +48,6 @@ import { useAuth } from "@/components/authContext";
 type DeploymentWithActions = WorkflowDeployment & {
   onViewLatest?: (workflowId: string) => void;
   onCreateDeployment?: (workflowId: string) => void;
-  onExecuteLatest?: (workflowId: string) => void;
 };
 
 const columns: ColumnDef<DeploymentWithActions>[] = [
@@ -124,13 +123,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
                   View Deployed Versions
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  deployment.onExecuteLatest?.(deployment.workflowId)
-                }
-              >
-                Execute Latest Version
-              </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -191,18 +184,7 @@ export function DeploymentsPage() {
     navigate(`/workflows/deployments/${workflowId}`);
   };
 
-  const handleExecuteLatest = async (workflowId: string) => {
-    if (!orgHandle) return;
 
-    try {
-      await executeWorkflow(workflowId, orgHandle, { mode: "latest" });
-      toast.success("Workflow execution started");
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to execute workflow"
-      );
-    }
-  };
 
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = (
@@ -211,7 +193,6 @@ export function DeploymentsPage() {
     ...deployment,
     onViewLatest: handleViewDeployment,
     onCreateDeployment: () => {},
-    onExecuteLatest: handleExecuteLatest,
   }));
 
   if (isDeploymentsLoading) {

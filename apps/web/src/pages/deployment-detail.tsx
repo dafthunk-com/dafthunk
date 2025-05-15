@@ -40,7 +40,7 @@ import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deploymentService";
-import { executeWorkflow } from "@/services/workflowService";
+
 import { useAuth } from "@/components/authContext";
 
 // --- Inline deployment history columns and helper ---
@@ -53,8 +53,7 @@ const formatDeploymentDate = (dateString: string | Date) => {
 };
 
 function createDeploymentHistoryColumns(
-  currentDeploymentId: string,
-  onExecuteVersion: (workflowId: string, version: string) => void
+  currentDeploymentId: string
 ): ColumnDef<WorkflowDeploymentVersion>[] {
   return [
     {
@@ -130,16 +129,7 @@ function createDeploymentHistoryColumns(
                   View Version
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  onExecuteVersion(
-                    row.original.workflowId,
-                    row.original.version.toString()
-                  )
-                }
-              >
-                Execute Version
-              </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -212,21 +202,7 @@ export function DeploymentDetailPage() {
     }
   };
 
-  const handleExecuteVersion = async (workflowId: string, version: string) => {
-    if (!orgHandle) return;
 
-    try {
-      await executeWorkflow(workflowId, orgHandle, { mode: version });
-      toast.success("Workflow execution started");
-    } catch (error) {
-      console.error("Error executing workflow:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to execute workflow. Please try again."
-      );
-    }
-  };
 
   const displayDeployments = expandedHistory
     ? deployments || []
@@ -317,8 +293,7 @@ export function DeploymentDetailPage() {
                   </div>
                 }
                 columns={createDeploymentHistoryColumns(
-                  currentDeployment?.id || "",
-                  handleExecuteVersion
+                  currentDeployment?.id || ""
                 )}
                 data={displayDeployments}
                 emptyState={{
