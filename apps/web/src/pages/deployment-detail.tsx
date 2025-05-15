@@ -1,12 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type {
-  WorkflowDeploymentVersion,
-  Node as BackendNode,
-} from "@dafthunk/types";
+import type { WorkflowDeploymentVersion } from "@dafthunk/types";
 import {
   ArrowUpToLine,
   History,
@@ -134,7 +131,12 @@ function createDeploymentHistoryColumns(
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => onExecuteVersion(row.original.workflowId, row.original.version.toString())}
+                onClick={() =>
+                  onExecuteVersion(
+                    row.original.workflowId,
+                    row.original.version.toString()
+                  )
+                }
               >
                 Execute Version
               </DropdownMenuItem>

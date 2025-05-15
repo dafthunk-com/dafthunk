@@ -4,9 +4,7 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { DataTable } from "@/components/ui/data-table";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import type {
-  WorkflowDeployment,
-} from "@dafthunk/types";
+import type { WorkflowDeployment } from "@dafthunk/types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,10 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useWorkflows, executeWorkflow } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
-import {
-  createDeployment,
-  useDeployments,
-} from "@/services/deploymentService";
+import { createDeployment, useDeployments } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
 
 // --- Inline columns and type ---
@@ -130,7 +125,9 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => deployment.onExecuteLatest?.(deployment.workflowId)}
+                onClick={() =>
+                  deployment.onExecuteLatest?.(deployment.workflowId)
+                }
               >
                 Execute Latest Version
               </DropdownMenuItem>
@@ -196,7 +193,7 @@ export function DeploymentsPage() {
 
   const handleExecuteLatest = async (workflowId: string) => {
     if (!orgHandle) return;
-    
+
     try {
       await executeWorkflow(workflowId, orgHandle, { mode: "latest" });
       toast.success("Workflow execution started");

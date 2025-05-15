@@ -10,7 +10,6 @@ import {
   UpdateWorkflowResponse,
   DeleteWorkflowResponse,
   ExecuteWorkflowResponse,
-  NodeExecution,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
@@ -28,10 +27,10 @@ import {
   createHandle,
   getLatestDeploymentByWorkflowId,
   getDeploymentByVersion,
+  getDeploymentById,
 } from "../utils/db";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { executeWorkflow } from "../utils/executions";
 
 const workflowRoutes = new Hono<ApiContext>();
 
@@ -294,125 +293,166 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
 });
 
 /**
- * POST /api/workflows/:id/execute/dev
- * Execute a workflow in development mode
- */
-workflowRoutes.post("/:id/execute/dev", jwtAuth, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
-  const id = c.req.param("id");
-  const monitorProgress = new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-
-  const result = await executeWorkflow({
-    c,
-    workflowId: id,
-    userId: user.sub || "anonymous",
-    organizationId: user.organization.id,
-    monitorProgress,
-  });
-
-  if (result.error) {
-    return c.json({ error: result.error }, result.status as 400 | 404);
-  }
-
-  if (!result.execution) {
-    return c.json({ error: "Failed to create execution" }, 500);
-  }
-
-  const response: ExecuteWorkflowResponse = {
-    id: result.execution.id,
-    workflowId: result.execution.workflowId,
-    status: "executing",
-    nodeExecutions: result.execution.nodeExecutions,
-  };
-
-  return c.json(response, result.status as 201);
-});
-
-/**
- * POST /api/workflows/:id/execute/latest
- * Execute the latest deployment of a workflow
- */
-workflowRoutes.post("/:id/execute/latest", jwtAuth, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
-  const id = c.req.param("id");
-  const monitorProgress = new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-  const db = createDatabase(c.env.DB);
-
-  // Get the latest deployment
-  const latestDeployment = await getLatestDeploymentByWorkflowId(db, id, user.organization.id);
-  if (!latestDeployment) {
-    return c.json({ error: "No deployments found for this workflow" }, 404);
-  }
-
-  const result = await executeWorkflow({
-    c,
-    workflowId: id,
-    deploymentId: latestDeployment.id,
-    userId: user.sub || "anonymous",
-    organizationId: user.organization.id,
-    monitorProgress,
-  });
-
-  if (result.error) {
-    return c.json({ error: result.error }, result.status as 400 | 404);
-  }
-
-  if (!result.execution) {
-    return c.json({ error: "Failed to create execution" }, 500);
-  }
-
-  const response: ExecuteWorkflowResponse = {
-    id: result.execution.id,
-    workflowId: result.execution.workflowId,
-    status: "executing",
-    nodeExecutions: result.execution.nodeExecutions,
-  };
-
-  return c.json(response, result.status as 201);
-});
-
-/**
  * POST /api/workflows/:id/execute/:version
- * Execute a specific version of a workflow
+ * Execute a workflow with the specified version
+ * - version can be "dev" for development mode
+ * - version can be "latest" for the latest deployment
+ * - version can be a number for a specific deployment version
  */
 workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const version = c.req.param("version");
-  const monitorProgress = new URL(c.req.url).searchParams.get("monitorProgress") === "true";
   const db = createDatabase(c.env.DB);
+  const monitorProgress =
+    new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
-  // Get the deployment for this version
-  const deployment = await getDeploymentByVersion(db, id, version, user.organization.id);
-  if (!deployment) {
-    return c.json({ error: "Deployment version not found" }, 404);
+  // Get workflow data either from deployment or directly from workflow
+  let workflowData: WorkflowType;
+  let workflow: any;
+  let deploymentId: string | undefined;
+
+  if (version === "dev") {
+    // Get workflow data directly
+    workflow = await getWorkflowById(db, id, user.organization.id);
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+    workflowData = workflow.data as WorkflowType;
+  } else {
+    // Get deployment ID based on version
+    if (version === "latest") {
+      const latestDeployment = await getLatestDeploymentByWorkflowId(
+        db,
+        id,
+        user.organization.id
+      );
+      if (!latestDeployment) {
+        return c.json({ error: "No deployments found for this workflow" }, 404);
+      }
+      deploymentId = latestDeployment.id;
+    } else {
+      const deployment = await getDeploymentByVersion(
+        db,
+        id,
+        version,
+        user.organization.id
+      );
+      if (!deployment) {
+        return c.json({ error: "Deployment version not found" }, 404);
+      }
+      deploymentId = deployment.id;
+    }
+
+    // Get workflow data from deployment
+    if (!deploymentId) {
+      return c.json({ error: "Deployment ID not found" }, 404);
+    }
+
+    const deployment = await getDeploymentById(
+      db,
+      deploymentId,
+      user.organization.id
+    );
+    if (!deployment) {
+      return c.json({ error: "Deployment not found" }, 404);
+    }
+    workflowData = deployment.workflowData as WorkflowType;
+    workflow = {
+      id: deployment.workflowId,
+      name: workflowData.name,
+    };
   }
 
-  const result = await executeWorkflow({
-    c,
-    workflowId: id,
-    deploymentId: deployment.id,
+  // Validate if workflow has nodes
+  if (!workflowData.nodes || workflowData.nodes.length === 0) {
+    return c.json(
+      {
+        error:
+          "Cannot execute an empty workflow. Please add nodes to the workflow.",
+      },
+      400
+    );
+  }
+
+  // Extract HTTP request information
+  const headers = c.req.header();
+  const url = c.req.url;
+  const method = c.req.method;
+  const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
+
+  // Try to parse form data
+  let formData: Record<string, string | File> | undefined;
+  try {
+    formData = Object.fromEntries(await c.req.formData());
+  } catch {
+    // No form data or invalid form data
+  }
+
+  // Get request body if it exists
+  let body: any = undefined;
+  try {
+    if (c.req.raw.headers.get("content-type")?.includes("application/json")) {
+      body = await c.req.json();
+    }
+  } catch {
+    // No body or invalid JSON
+  }
+
+  // Trigger the runtime and get the instance id
+  const instance = await c.env.EXECUTE.create({
+    params: {
+      userId: user.sub || "anonymous",
+      organizationId: user.organization.id,
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+        handle: workflow.handle,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      },
+      monitorProgress,
+      deploymentId,
+      httpRequest: {
+        url,
+        method,
+        headers,
+        query,
+        formData,
+        body,
+      },
+    },
+  });
+  const executionId = instance.id;
+
+  // Build initial nodeExecutions (all idle)
+  const nodeExecutions = workflowData.nodes.map((node: Node) => ({
+    nodeId: node.id,
+    status: "idle" as const,
+  }));
+
+  // Save initial execution record
+  const initialExecution = await saveExecution(db, {
+    id: executionId,
+    workflowId: workflow.id,
+    deploymentId,
     userId: user.sub || "anonymous",
     organizationId: user.organization.id,
-    monitorProgress,
+    status: ExecutionStatus.EXECUTING,
+    visibility: "private",
+    nodeExecutions,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   });
 
-  if (result.error) {
-    return c.json({ error: result.error }, result.status as 400 | 404);
-  }
-
-  if (!result.execution) {
-    return c.json({ error: "Failed to create execution" }, 500);
-  }
-
   const response: ExecuteWorkflowResponse = {
-    id: result.execution.id,
-    workflowId: result.execution.workflowId,
+    id: initialExecution.id,
+    workflowId: initialExecution.workflowId,
     status: "executing",
-    nodeExecutions: result.execution.nodeExecutions,
+    nodeExecutions: initialExecution.nodeExecutions,
   };
 
-  return c.json(response, result.status as 201);
+  return c.json(response, 201);
 });
 
 export default workflowRoutes;

@@ -6,7 +6,7 @@ import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT, jwtVerify } from "jose";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
-import { getUserOrganizations, saveUser } from "./utils/db";
+import { saveUser } from "./utils/db";
 import { OrganizationRole } from "./db/schema";
 
 // Constants
@@ -106,7 +106,10 @@ auth.get(
       githubId: userId,
       avatarUrl,
     };
-    const { user: savedUser, organization: savedOrganization } = await saveUser(db, userData);
+    const { user: savedUser, organization: savedOrganization } = await saveUser(
+      db,
+      userData
+    );
 
     const organizationInfo: OrganizationInfo = {
       id: savedOrganization.id,
@@ -174,7 +177,10 @@ auth.get(
       googleId: userId,
       avatarUrl,
     };
-    const { user: savedUser, organization: savedOrganization } = await saveUser(db, userData);
+    const { user: savedUser, organization: savedOrganization } = await saveUser(
+      db,
+      userData
+    );
 
     const organizationInfo: OrganizationInfo = {
       id: savedOrganization.id,

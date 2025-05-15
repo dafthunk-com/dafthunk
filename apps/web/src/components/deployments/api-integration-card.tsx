@@ -94,7 +94,9 @@ export function ApiIntegrationCard({
       <CardContent>
         <Tabs defaultValue="curl">
           <TabsList>
-            <TabsTrigger value="curl" className="text-sm">cURL</TabsTrigger>
+            <TabsTrigger value="curl" className="text-sm">
+              cURL
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="curl" className="mt-4 space-y-4">
             <div className="relative">
@@ -116,11 +118,14 @@ export function ApiIntegrationCard({
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground font-medium">Notes:</p>
+              <p className="text-sm text-muted-foreground font-medium">
+                Notes:
+              </p>
               <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground">
                 <li>
-                  Replace <code className="text-xs font-mono">YOUR_API_KEY</code> with an API key from your
-                  account settings.
+                  Replace{" "}
+                  <code className="text-xs font-mono">YOUR_API_KEY</code> with
+                  an API key from your account settings.
                 </li>
                 {jsonBodyParam && (
                   <li>

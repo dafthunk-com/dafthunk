@@ -5,7 +5,6 @@ import {
   ListDeploymentsResponse,
   GetWorkflowDeploymentsResponse,
   GetDeploymentVersionResponse,
-  ExecuteDeploymentResponse,
 } from "@dafthunk/types";
 import { useAuth } from "@/components/authContext";
 import { makeOrgRequest } from "./utils";

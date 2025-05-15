@@ -197,7 +197,10 @@ export const workflows = sqliteTable(
     index("workflows_organization_id_idx").on(table.organizationId),
     index("workflows_created_at_idx").on(table.createdAt),
     index("workflows_updated_at_idx").on(table.updatedAt),
-    index("workflows_organization_id_handle_idx").on(table.organizationId, table.handle),
+    index("workflows_organization_id_handle_idx").on(
+      table.organizationId,
+      table.handle
+    ),
   ]
 );
 

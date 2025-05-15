@@ -33,8 +33,6 @@ import {
 } from "@dafthunk/types";
 import { uuidv7 } from "uuidv7";
 import * as crypto from "crypto";
-import { D1Database } from "@cloudflare/workers-types";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 /**
  * Generate a URL-friendly handle from a name with a random suffix
@@ -119,7 +117,7 @@ export async function saveUser(
       .select()
       .from(organizations)
       .where(eq(organizations.id, existingUser.organizationId));
-    
+
     return { user: existingUser, organization };
   }
 
@@ -139,20 +137,23 @@ export async function saveUser(
   await db.insert(organizations).values(organization);
 
   // Create new user with the organization ID
-  const [user] = await db.insert(users).values({
-    id: userData.id,
-    name: userData.name,
-    email: userData.email,
-    provider: userData.provider as ProviderType,
-    githubId: userData.githubId,
-    googleId: userData.googleId,
-    avatarUrl: userData.avatarUrl,
-    organizationId: organizationId,
-    plan: (userData.plan as PlanType) || Plan.TRIAL,
-    role: (userData.role as UserRoleType) || UserRole.USER,
-    createdAt: now,
-    updatedAt: now,
-  }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      provider: userData.provider as ProviderType,
+      githubId: userData.githubId,
+      googleId: userData.googleId,
+      avatarUrl: userData.avatarUrl,
+      organizationId: organizationId,
+      plan: (userData.plan as PlanType) || Plan.TRIAL,
+      role: (userData.role as UserRoleType) || UserRole.USER,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
 
   // Create membership with owner role
   const newMembership: NewMembership = {
@@ -764,7 +765,7 @@ export async function listExecutions(
 }
 
 export async function getDeploymentByVersion(
-  db: DrizzleD1Database,
+  db: ReturnType<typeof createDatabase>,
   workflowId: string,
   version: string,
   organizationId: string

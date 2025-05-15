@@ -13,10 +13,7 @@ import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
 import { useNodeTypes } from "@/services/typeService";
-import {
-  useWorkflow,
-  executeWorkflow,
-} from "@/services/workflowService";
+import { useWorkflow, executeWorkflow } from "@/services/workflowService";
 import { createDeployment } from "@/services/deploymentService";
 import { getExecution, useWorkflowExecutor } from "@/services/executionService";
 import { InsetLoading } from "@/components/inset-loading";
@@ -124,7 +121,7 @@ export function EditorPage() {
       const response = await executeWorkflow(workflowId, orgHandle, {
         mode: "dev",
         monitorProgress: true,
-        parameters
+        parameters,
       });
 
       // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields

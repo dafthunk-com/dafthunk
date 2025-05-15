@@ -224,7 +224,7 @@ export const executeWorkflow = async (
   }
 ): Promise<ExecuteWorkflowResponse> => {
   const { mode = "dev", monitorProgress = false, parameters } = options || {};
-  
+
   // Build the endpoint path based on the mode
   let endpoint = `/${id}/execute`;
   if (mode === "dev") {
