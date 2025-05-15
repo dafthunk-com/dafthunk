@@ -280,7 +280,6 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
     workflow: {
       id: workflow.id,
       name: workflow.name,
-      handle: workflow.handle,
     },
     deployments: deploymentVersions,
   };

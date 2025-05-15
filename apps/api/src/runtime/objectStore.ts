@@ -14,9 +14,6 @@ export class ObjectStore {
   private bucket: R2Bucket;
 
   constructor(bucket: R2Bucket) {
-    console.log(`ObjectStore initialized with bucket:`, {
-      bucketExists: !!bucket,
-    });
     this.bucket = bucket;
   }
 

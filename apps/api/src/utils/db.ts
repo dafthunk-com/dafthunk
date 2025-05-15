@@ -30,8 +30,9 @@ import {
   WorkflowExecution,
   WorkflowDeployment,
   NodeExecution,
+  WorkflowExecutionStatus,
 } from "@dafthunk/types";
-import { uuidv7 } from "uuidv7";
+import { v7 as uuidv7 } from "uuid";
 import * as crypto from "crypto";
 
 /**
@@ -247,10 +248,7 @@ export async function getWorkflowByIdOrHandle(
     .from(workflows)
     .where(
       and(
-        or(
-          eq(workflows.id, idOrHandle), 
-          eq(workflows.handle, idOrHandle)
-        ),
+        or(eq(workflows.id, idOrHandle), eq(workflows.handle, idOrHandle)),
         eq(workflows.organizationId, organizationId)
       )
     );
@@ -374,7 +372,7 @@ export async function saveExecution(
     id: record.id,
     workflowId: record.workflowId,
     deploymentId: record.deploymentId,
-    status: record.status,
+    status: record.status as WorkflowExecutionStatus,
     nodeExecutions,
     error: record.error,
     visibility: record.visibility,
@@ -578,10 +576,7 @@ export async function getLatestDeploymentByWorkflowIdOrHandle(
       and(
         eq(deployments.workflowId, workflows.id),
         eq(workflows.organizationId, organizationId),
-        or(
-          eq(workflows.id, workflowId),
-          eq(workflows.handle, workflowId)
-        )
+        or(eq(workflows.id, workflowId), eq(workflows.handle, workflowId))
       )
     )
     .orderBy(desc(deployments.createdAt))
@@ -798,4 +793,23 @@ export async function getDeploymentByWorkflowIdOrHandleAndVersion(
     .where(eq(deployments.version, parseInt(version, 10)));
 
   return deployment?.deployments;
+}
+
+/**
+ * Get an organization by its handle
+ *
+ * @param db Database instance
+ * @param handle Organization handle
+ * @returns Organization record or undefined if not found
+ */
+export async function getOrganizationByHandle(
+  db: ReturnType<typeof createDatabase>,
+  handle: string
+): Promise<typeof organizations.$inferSelect | undefined> {
+  const [organization] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.handle, handle));
+
+  return organization;
 }

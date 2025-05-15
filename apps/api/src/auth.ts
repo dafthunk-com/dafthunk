@@ -6,7 +6,7 @@ import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT, jwtVerify } from "jose";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
-import { saveUser } from "./utils/db";
+import { saveUser, verifyApiKey } from "./utils/db";
 import { OrganizationRole } from "./db/schema";
 
 // Constants
@@ -60,6 +60,48 @@ export const optionalJwtAuth = async (
     }
   }
   await next();
+};
+
+// API key authentication middleware
+export const apiKeyAuth = async (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) => {
+  const authHeader = c.req.header("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return c.json({ error: "API key is required" }, 401);
+  }
+
+  const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
+  const db = createDatabase(c.env.DB);
+
+  const organizationId = await verifyApiKey(db, apiKey);
+
+  if (!organizationId) {
+    return c.json({ error: "Invalid API key" }, 401);
+  }
+
+  // Store the organization ID in the context for later use
+  c.set("organizationId", organizationId);
+
+  await next();
+};
+
+// Middleware that allows either JWT or API key authentication
+export const authMiddleware = async (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) => {
+  const authHeader = c.req.header("Authorization");
+
+  // If Authorization header is present, try API key auth
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return apiKeyAuth(c, next);
+  }
+
+  // Otherwise, use JWT auth
+  return jwtAuth(c, next);
 };
 
 // Create auth router

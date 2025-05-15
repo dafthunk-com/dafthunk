@@ -49,6 +49,7 @@ export interface Bindings {
 
 export interface Variables {
   jwtPayload?: CustomJWTPayload;
+  organizationId?: string;
 }
 
 // Type for Hono app context combining Env and Variables

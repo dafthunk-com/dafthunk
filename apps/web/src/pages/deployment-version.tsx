@@ -234,9 +234,11 @@ export function DeploymentVersionPage() {
                 createdAt={deploymentVersion.createdAt}
               />
 
-              {deploymentVersion && (
+              {deploymentVersion && workflow && (
                 <ApiIntegrationCard
-                  deploymentId={deploymentVersion.id}
+                  orgHandle={orgHandle}
+                  workflowId={workflow.id}
+                  deploymentVersion={deploymentVersion.version.toString()}
                   nodes={nodes}
                   nodeTemplates={nodeTemplates}
                 />

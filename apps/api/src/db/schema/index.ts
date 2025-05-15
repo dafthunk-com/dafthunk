@@ -53,7 +53,7 @@ export type ProviderType = (typeof Provider)[keyof typeof Provider];
 
 // Workflow execution states
 export const ExecutionStatus = {
-  IDLE: "idle",
+  STARTED: "started",
   EXECUTING: "executing",
   COMPLETED: "completed",
   ERROR: "error",
@@ -252,7 +252,7 @@ export const executions = sqliteTable(
     status: text("status")
       .$type<ExecutionStatusType>()
       .notNull()
-      .default(ExecutionStatus.IDLE),
+      .default(ExecutionStatus.STARTED),
     data: text("data", { mode: "json" })
       .$type<WorkflowExecutionType>()
       .notNull(),

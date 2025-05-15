@@ -14,7 +14,7 @@ import {
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, type NewWorkflow, ExecutionStatus } from "../db";
-import { jwtAuth } from "../auth";
+import { jwtAuth, authMiddleware } from "../auth";
 import { validateWorkflow } from "../utils/workflows";
 import { v7 as uuid } from "uuid";
 import {
@@ -27,11 +27,20 @@ import {
   createHandle,
   getLatestDeploymentByWorkflowIdOrHandle,
   getDeploymentByWorkflowIdOrHandleAndVersion,
+  getOrganizationByHandle,
 } from "../utils/db";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-const workflowRoutes = new Hono<ApiContext>();
+// Extend the ApiContext with our custom variable
+type ExtendedApiContext = ApiContext & {
+  Variables: {
+    jwtPayload?: CustomJWTPayload;
+    organizationId?: string;
+  };
+};
+
+const workflowRoutes = new Hono<ExtendedApiContext>();
 
 /**
  * List all workflows for the current organization
@@ -265,7 +274,11 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const existingWorkflow = await getWorkflowByIdOrHandle(db, id, user.organization.id);
+  const existingWorkflow = await getWorkflowByIdOrHandle(
+    db,
+    id,
+    user.organization.id
+  );
 
   if (!existingWorkflow) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -287,146 +300,194 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
  * - version can be "latest" for the latest deployment
  * - version can be a number for a specific deployment version
  */
-workflowRoutes.post("/:idOrHandle/execute/:version", jwtAuth, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
-  const idOrHandle = c.req.param("idOrHandle");
-  const version = c.req.param("version");
-  const db = createDatabase(c.env.DB);
-  const monitorProgress =
-    new URL(c.req.url).searchParams.get("monitorProgress") === "true";
+workflowRoutes.post(
+  "/:idOrHandle/execute/:version",
+  authMiddleware,
+  async (c) => {
+    const orgHandle = c.req.param("orgHandle");
+    const idOrHandle = c.req.param("idOrHandle");
+    const version = c.req.param("version");
+    const db = createDatabase(c.env.DB);
+    const monitorProgress =
+      new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
-  // Get workflow data either from deployment or directly from workflow
-  let workflowData: WorkflowType;
-  let workflow: any;
-  let deploymentId: string | undefined;
-
-  if (version === "dev") {
-    // Get workflow data directly
-    workflow = await getWorkflowByIdOrHandle(db, idOrHandle, user.organization.id);
-    if (!workflow) {
-      return c.json({ error: "Workflow not found" }, 404);
+    // Get organization from handle
+    const organization = await getOrganizationByHandle(db, orgHandle);
+    if (!organization) {
+      return c.json({ error: "Organization not found" }, 404);
     }
-    workflowData = workflow.data as WorkflowType;
-  } else {
-    // Get deployment based on version
-    let deployment;
-    if (version === "latest") {
-      deployment = await getLatestDeploymentByWorkflowIdOrHandle(
-        db,
-        idOrHandle,
-        user.organization.id
-      );
-      if (!deployment) {
-        return c.json({ error: "No deployments found for this workflow" }, 404);
+
+    // Get organization ID from either JWT or API key auth
+    let userId: string;
+
+    const jwtPayload = c.get("jwtPayload") as CustomJWTPayload | undefined;
+    if (jwtPayload) {
+      // Authentication was via JWT
+      // Verify that the JWT organization matches the URL organization
+      if (jwtPayload.organization.id !== organization.id) {
+        return c.json({ error: "Unauthorized" }, 403);
       }
+      userId = jwtPayload.sub || "anonymous";
     } else {
-      deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
-        db,
-        idOrHandle,
-        version,
-        user.organization.id
-      );
-      if (!deployment) {
-        return c.json({ error: "Deployment version not found" }, 404);
+      // Authentication was via API key
+      const orgId = c.get("organizationId") as string | undefined;
+      if (!orgId) {
+        return c.json({ error: "Organization ID not found" }, 500);
       }
+      // Verify that the API key organization matches the URL organization
+      if (orgId !== organization.id) {
+        return c.json({ error: "Unauthorized" }, 403);
+      }
+      userId = "api"; // Use a placeholder for API-triggered executions
     }
 
-    deploymentId = deployment.id;
-    workflowData = deployment.workflowData as WorkflowType;
-    workflow = {
-      id: deployment.workflowId,
-      name: workflowData.name,
-    };
-  }
+    // Get workflow data either from deployment or directly from workflow
+    let workflowData: WorkflowType;
+    let workflow: any;
+    let deploymentId: string | undefined;
 
-  // Validate if workflow has nodes
-  if (!workflowData.nodes || workflowData.nodes.length === 0) {
-    return c.json(
-      {
-        error:
-          "Cannot execute an empty workflow. Please add nodes to the workflow.",
-      },
-      400
-    );
-  }
+    if (version === "dev") {
+      // Get workflow data directly
+      workflow = await getWorkflowByIdOrHandle(db, idOrHandle, organization.id);
+      if (!workflow) {
+        return c.json({ error: "Workflow not found" }, 404);
+      }
+      workflowData = workflow.data as WorkflowType;
+    } else {
+      // Get deployment based on version
+      let deployment;
+      if (version === "latest") {
+        deployment = await getLatestDeploymentByWorkflowIdOrHandle(
+          db,
+          idOrHandle,
+          organization.id
+        );
+        if (!deployment) {
+          return c.json(
+            { error: "No deployments found for this workflow" },
+            404
+          );
+        }
+      } else {
+        deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
+          db,
+          idOrHandle,
+          version,
+          organization.id
+        );
+        if (!deployment) {
+          return c.json({ error: "Deployment version not found" }, 404);
+        }
+      }
 
-  // Extract HTTP request information
-  const headers = c.req.header();
-  const url = c.req.url;
-  const method = c.req.method;
-  const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
-
-  // Initialize formData variable
-  let formData: Record<string, string | File> | undefined;
-
-  // Get request body if it exists
-  let body: any = undefined;
-  try {
-    const contentType = c.req.header("content-type");
-    if (contentType?.includes("application/json")) {
-      body = await c.req.json();
-    } else if (contentType?.includes("multipart/form-data")) {
-      formData = Object.fromEntries(await c.req.formData());
+      deploymentId = deployment.id;
+      workflowData = deployment.workflowData as WorkflowType;
+      workflow = {
+        id: deployment.workflowId,
+        name: workflowData.name,
+      };
     }
-  } catch (error) {
-    console.error("Error parsing request body:", error);
-    // Continue without body
-  }
 
-  // Trigger the runtime and get the instance id
-  const instance = await c.env.EXECUTE.create({
-    params: {
-      userId: user.sub || "anonymous",
-      organizationId: user.organization.id,
-      workflow: {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
+    // Validate if workflow has nodes
+    if (!workflowData.nodes || workflowData.nodes.length === 0) {
+      return c.json(
+        {
+          error:
+            "Cannot execute an empty workflow. Please add nodes to the workflow.",
+        },
+        400
+      );
+    }
+
+    // Extract HTTP request information
+    const headers = c.req.header();
+    const url = c.req.url;
+    const method = c.req.method;
+    const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
+
+    // Initialize formData variable
+    let formData: Record<string, string | File> | undefined;
+
+    // Get request body if it exists
+    let body: any = undefined;
+    try {
+      const contentType = c.req.header("content-type");
+      if (contentType?.includes("application/json")) {
+        body = await c.req.json();
+      } else if (
+        contentType?.includes("multipart/form-data") ||
+        contentType?.includes("application/x-www-form-urlencoded")
+      ) {
+        formData = Object.fromEntries(await c.req.formData());
+        // Convert form data to body for consistency
+        body = Object.fromEntries(
+          Object.entries(formData).map(([key, value]) => [
+            key,
+            // Try to parse numbers
+            !isNaN(Number(value)) ? Number(value) : value,
+          ])
+        );
+      }
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      // Continue without body
+    }
+
+    // Trigger the runtime and get the instance id
+    const instance = await c.env.EXECUTE.create({
+      params: {
+        userId,
+        organizationId: organization.id,
+        workflow: {
+          id: workflow.id,
+          name: workflow.name,
+          handle: workflow.handle,
+          nodes: workflowData.nodes,
+          edges: workflowData.edges,
+        },
+        monitorProgress,
+        deploymentId,
+        httpRequest: {
+          url,
+          method,
+          headers,
+          query,
+          formData,
+          body,
+        },
       },
-      monitorProgress,
+    });
+    const executionId = instance.id;
+
+    // Build initial nodeExecutions (all idle)
+    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
+      nodeId: node.id,
+      status: "idle" as const,
+    }));
+
+    // Save initial execution record
+    const initialExecution = await saveExecution(db, {
+      id: executionId,
+      workflowId: workflow.id,
       deploymentId,
-      httpRequest: {
-        url,
-        method,
-        headers,
-        query,
-        formData,
-        body,
-      },
-    },
-  });
-  const executionId = instance.id;
+      userId,
+      organizationId: organization.id,
+      status: ExecutionStatus.EXECUTING,
+      visibility: "private",
+      nodeExecutions,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-  // Build initial nodeExecutions (all idle)
-  const nodeExecutions = workflowData.nodes.map((node: Node) => ({
-    nodeId: node.id,
-    status: "idle" as const,
-  }));
+    const response: ExecuteWorkflowResponse = {
+      id: initialExecution.id,
+      workflowId: initialExecution.workflowId,
+      status: "submitted",
+      nodeExecutions: initialExecution.nodeExecutions,
+    };
 
-  // Save initial execution record
-  const initialExecution = await saveExecution(db, {
-    id: executionId,
-    workflowId: workflow.id,
-    deploymentId,
-    userId: user.sub || "anonymous",
-    organizationId: user.organization.id,
-    status: ExecutionStatus.EXECUTING,
-    visibility: "private",
-    nodeExecutions,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
-  const response: ExecuteWorkflowResponse = {
-    id: initialExecution.id,
-    workflowId: initialExecution.workflowId,
-    status: "submitted",
-    nodeExecutions: initialExecution.nodeExecutions,
-  };
-
-  return c.json(response, 201);
-});
+    return c.json(response, 201);
+  }
+);
 
 export default workflowRoutes;
