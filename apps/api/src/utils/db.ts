@@ -33,6 +33,8 @@ import {
 } from "@dafthunk/types";
 import { uuidv7 } from "uuidv7";
 import * as crypto from "crypto";
+import { D1Database } from "@cloudflare/workers-types";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
 
 /**
  * Generate a URL-friendly handle from a name with a random suffix
@@ -759,4 +761,23 @@ export async function listExecutions(
     limit: options?.limit,
     offset: options?.offset,
   });
+}
+
+export async function getDeploymentByVersion(
+  db: DrizzleD1Database,
+  workflowId: string,
+  version: string,
+  organizationId: string
+) {
+  const [deployment] = await db
+    .select()
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.workflowId, workflowId),
+        eq(deployments.version, parseInt(version, 10)),
+        eq(deployments.organizationId, organizationId)
+      )
+    );
+  return deployment;
 }

@@ -120,21 +120,17 @@ export function EditorPage() {
         throw new Error("Organization handle is required");
       }
 
-      // Execute the workflow
-      const response = await executeWorkflow(
-        workflowId,
-        orgHandle,
-        true,
+      // Execute the workflow in development mode
+      const response = await executeWorkflow(workflowId, orgHandle, {
+        mode: "dev",
+        monitorProgress: true,
         parameters
-      );
+      });
 
       // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
-      // Using type assertion to ensure the result matches WorkflowExecution
       return {
         ...response,
-        // Add required visibility field with the precise union type expected
         visibility: "private" as "private" | "public",
-        // Add optional fields that might be useful
         workflowName: currentWorkflow?.name,
       };
     },

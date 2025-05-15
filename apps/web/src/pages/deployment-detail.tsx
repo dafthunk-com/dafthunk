@@ -13,7 +13,6 @@ import {
   ArrowDown,
   GitCommitHorizontal,
   MoreHorizontal,
-  Play,
 } from "lucide-react";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import {
@@ -39,14 +38,10 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor, getExecution } from "@/services/executionService";
-import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
 import {
   createDeployment,
   useDeploymentHistory,
-  executeDeployment,
 } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
 
@@ -60,8 +55,7 @@ const formatDeploymentDate = (dateString: string | Date) => {
 };
 
 function createDeploymentHistoryColumns(
-  currentDeploymentId: string,
-  onExecute: (deploymentId: string, nodes: BackendNode[]) => void
+  currentDeploymentId: string
 ): ColumnDef<WorkflowDeploymentVersion>[] {
   return [
     {
@@ -75,7 +69,7 @@ function createDeploymentHistoryColumns(
             {isCurrent ? (
               <div className="flex items-center">
                 <Link
-                  to={`/workflows/deployments/version/${deployment.id}`}
+                  to={`/workflows/deployment/${deployment.id}`}
                   className="hover:underline"
                 >
                   {deployment.id}
@@ -86,7 +80,7 @@ function createDeploymentHistoryColumns(
               </div>
             ) : (
               <Link
-                to={`/workflows/deployments/version/${deployment.id}`}
+                to={`/workflows/deployment/${deployment.id}`}
                 className="hover:underline"
               >
                 {deployment.id}
@@ -101,7 +95,7 @@ function createDeploymentHistoryColumns(
       header: "Deployment Version",
       cell: ({ row }) => (
         <Link
-          to={`/workflows/deployments/version/${row.original.id}`}
+          to={`/workflows/deployment/${row.original.id}`}
           className="hover:underline"
         >
           <Badge variant="secondary" className="gap-1">
@@ -133,16 +127,9 @@ function createDeploymentHistoryColumns(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/workflows/deployments/version/${row.original.id}`}>
+                <Link to={`/workflows/deployment/${row.original.id}`}>
                   View Version
                 </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={async () => {
-                  onExecute(row.original.id, row.original.nodes);
-                }}
-              >
-                Execute Version
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -166,54 +153,6 @@ export function DeploymentDetailPage() {
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
-
-  // Create wrapper functions to handle organization context
-  const executeDeploymentWithOrg = useCallback(
-    async (deploymentId: string, parameters?: Record<string, any>) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Execute the deployment
-      const response = await executeDeployment(deploymentId, orgHandle, {
-        monitorProgress: true,
-        parameters,
-      });
-
-      // Transform ExecuteDeploymentResponse to WorkflowExecution
-      return {
-        ...response,
-        // Add required visibility field with the precise union type expected
-        visibility: "private" as "private" | "public",
-      };
-    },
-    [orgHandle]
-  );
-
-  // Create a wrapper for getExecution that handles organization context
-  const getExecutionWithOrg = useCallback(
-    async (executionId: string) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Use the execution service to get execution status
-      return await getExecution(executionId, orgHandle);
-    },
-    [orgHandle]
-  );
-
-  // Configure the workflow executor with the deployment execution functions
-  const {
-    executeWorkflow,
-    isExecutionFormVisible,
-    executionFormParameters,
-    submitExecutionForm,
-    closeExecutionForm,
-  } = useWorkflowExecutor({
-    executeWorkflowFn: executeDeploymentWithOrg,
-    getExecutionFn: getExecutionWithOrg,
-  });
 
   const {
     workflow,
@@ -262,46 +201,6 @@ export function DeploymentDetailPage() {
     } finally {
       setIsDeploying(false);
     }
-  };
-
-  // Handle execution result to show toast notifications
-  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
-    if (execution.status === "completed") {
-      toast.success("Deployment execution completed successfully");
-    } else if (execution.status === "error") {
-      toast.error(`Execution error: ${execution.error || "Unknown error"}`);
-    }
-  }, []);
-
-  const handleGenericExecute = useCallback(
-    (deploymentId: string, backendDeploymentNodes: BackendNode[]) => {
-      if (!backendDeploymentNodes) {
-        toast.error("Deployment nodes not available for parameter checking.");
-        return;
-      }
-
-      toast.info("Preparing deployment execution...");
-      const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
-        backendDeploymentNodes
-      );
-
-      // Pass the parameters to the execute function
-      executeWorkflow(
-        deploymentId,
-        handleExecutionUpdate,
-        adaptedNodes,
-        nodeTemplates
-      );
-    },
-    [nodeTemplates, executeWorkflow, handleExecutionUpdate]
-  );
-
-  const executeLatestVersion = async () => {
-    if (!currentDeployment?.id || !currentDeployment.nodes) {
-      toast.error("Latest deployment or its nodes are not available.");
-      return;
-    }
-    handleGenericExecute(currentDeployment.id, currentDeployment.nodes);
   };
 
   const displayDeployments = expandedHistory
@@ -355,13 +254,6 @@ export function DeploymentDetailPage() {
                   <ArrowUpToLine className="mr-2 h-4 w-4" />
                   Deploy Latest Version
                 </Button>
-                <Button
-                  onClick={executeLatestVersion}
-                  disabled={!currentDeployment}
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  Execute Latest Version
-                </Button>
               </div>
             </div>
           </div>
@@ -399,10 +291,7 @@ export function DeploymentDetailPage() {
                     Deployment History
                   </div>
                 }
-                columns={createDeploymentHistoryColumns(
-                  currentDeployment.id,
-                  handleGenericExecute
-                )}
+                columns={createDeploymentHistoryColumns(currentDeployment.id)}
                 data={displayDeployments}
                 emptyState={{
                   title: "No deployment history",
@@ -458,16 +347,6 @@ export function DeploymentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Execution Parameters Dialog */}
-      {isExecutionFormVisible && (
-        <ExecutionFormDialog
-          isOpen={isExecutionFormVisible}
-          onClose={closeExecutionForm}
-          parameters={executionFormParameters}
-          onSubmit={submitExecutionForm}
-        />
-      )}
     </InsetLayout>
   );
 }

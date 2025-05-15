@@ -217,13 +217,34 @@ export const deleteWorkflow = async (
 export const executeWorkflow = async (
   id: string,
   orgHandle: string,
-  monitorProgress: boolean = false,
-  parameters?: Record<string, any>
+  options?: {
+    mode?: "dev" | "latest" | string; // "dev", "latest", or a version number
+    monitorProgress?: boolean;
+    parameters?: Record<string, any>;
+  }
 ): Promise<ExecuteWorkflowResponse> => {
+  const { mode = "dev", monitorProgress = false, parameters } = options || {};
+  
+  // Build the endpoint path based on the mode
+  let endpoint = `/${id}/execute`;
+  if (mode === "dev") {
+    endpoint += "/dev";
+  } else if (mode === "latest") {
+    endpoint += "/latest";
+  } else {
+    // If mode is a version number, use it directly
+    endpoint += `/${mode}`;
+  }
+
+  // Add monitorProgress query parameter if needed
+  if (monitorProgress) {
+    endpoint += "?monitorProgress=true";
+  }
+
   return await makeOrgRequest<ExecuteWorkflowResponse>(
     orgHandle,
     API_ENDPOINT_BASE,
-    `/${id}/execute${monitorProgress ? "?monitorProgress=true" : ""}`,
+    endpoint,
     {
       method: "POST",
       ...(parameters && { body: JSON.stringify(parameters) }),

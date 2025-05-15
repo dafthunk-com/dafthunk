@@ -46,21 +46,14 @@ import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
 import {
   createDeployment,
-  executeDeployment,
   useDeployments,
 } from "@/services/deploymentService";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor, getExecution } from "@/services/executionService";
-import type { WorkflowExecution } from "@/components/workflow/workflow-types.tsx";
 import { useAuth } from "@/components/authContext";
-import { makeOrgRequest } from "@/services/utils";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
   onViewLatest?: (workflowId: string) => void;
   onCreateDeployment?: (workflowId: string) => void;
-  onExecute?: (deploymentId: string) => void;
 };
 
 const columns: ColumnDef<DeploymentWithActions>[] = [
@@ -136,14 +129,6 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
                   View Deployed Versions
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  deployment.onExecute?.(deployment.latestDeploymentId || "")
-                }
-                disabled={!deployment.latestDeploymentId}
-              >
-                Execute Latest Version
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -171,58 +156,6 @@ export function DeploymentsPage() {
   } = useDeployments();
 
   const { workflows, workflowsError, isWorkflowsLoading } = useWorkflows();
-
-  // Use empty node templates array since we're in readonly mode
-  const nodeTemplates = [];
-
-  // Create a wrapper function for executeDeployment that handles the organization context
-  const executeDeploymentWithOrg = useCallback(
-    async (deploymentId: string, parameters?: Record<string, any>) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Execute the deployment with parameters
-      const response = await executeDeployment(deploymentId, orgHandle, {
-        monitorProgress: true,
-        parameters: parameters || {}, // Always provide at least an empty object
-      });
-
-      // Transform ExecuteDeploymentResponse to WorkflowExecution
-      return {
-        ...response,
-        // Add required visibility field with the precise union type expected
-        visibility: "private" as "private" | "public",
-      };
-    },
-    [orgHandle]
-  );
-
-  // Create a wrapper for getExecution that handles organization context
-  const getExecutionWithOrg = useCallback(
-    async (executionId: string) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Use the execution service to get execution status
-      const execution = await getExecution(executionId, orgHandle);
-      return execution;
-    },
-    [orgHandle]
-  );
-
-  // Configure the workflow executor with the deployment execution function
-  const {
-    executeWorkflow,
-    isExecutionFormVisible,
-    executionFormParameters,
-    submitExecutionForm,
-    closeExecutionForm,
-  } = useWorkflowExecutor({
-    executeWorkflowFn: executeDeploymentWithOrg,
-    getExecutionFn: getExecutionWithOrg,
-  });
 
   // Dialog state for workflow deployment
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -256,83 +189,6 @@ export function DeploymentsPage() {
     navigate(`/workflows/deployments/${workflowId}`);
   };
 
-  // Handle execution result to show toast notifications
-  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
-    if (execution.status === "completed") {
-      toast.success("Deployment execution completed successfully");
-    } else if (execution.status === "error") {
-      toast.error(`Execution error: ${execution.error || "Unknown error"}`);
-    }
-  }, []);
-
-  // Direct fetch of deployment version (can't use hook inside callback)
-  const fetchDeploymentVersion = useCallback(
-    async (deploymentId: string): Promise<WorkflowDeploymentVersion> => {
-      if (!orgHandle) {
-        throw new Error("Organization not loaded");
-      }
-
-      return await makeOrgRequest(
-        orgHandle,
-        "/deployments",
-        `/version/${deploymentId}`
-      );
-    },
-    [orgHandle]
-  );
-
-  const handleExecute = useCallback(
-    async (deploymentId: string | null) => {
-      if (!deploymentId || !orgHandle) {
-        toast.error(
-          "Deployment ID is not available or organization not loaded."
-        );
-        return;
-      }
-
-      try {
-        // Fetch the deployment version directly
-        const deploymentVersion = await fetchDeploymentVersion(deploymentId);
-
-        if (!deploymentVersion || !deploymentVersion.nodes) {
-          toast.error(
-            "Could not fetch deployment details or nodes are missing."
-          );
-          return;
-        }
-
-        // Use the adapter and utility function
-        const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
-          deploymentVersion.nodes
-        );
-
-        // Show preparing toast
-        toast.info("Preparing deployment execution...");
-
-        // Use the workflow executor (for UI forms)
-        executeWorkflow(
-          deploymentId,
-          handleExecutionUpdate,
-          adaptedNodes,
-          nodeTemplates
-        );
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to prepare execution. Could not fetch deployment details."
-        );
-      }
-    },
-    [
-      nodeTemplates,
-      executeWorkflow,
-      handleExecutionUpdate,
-      orgHandle,
-      fetchDeploymentVersion,
-    ]
-  );
-
   // Add actions to the deployments
   const deploymentsWithActions: DeploymentWithActions[] = (
     deployments || []
@@ -340,7 +196,6 @@ export function DeploymentsPage() {
     ...deployment,
     onViewLatest: handleViewDeployment,
     onCreateDeployment: () => {},
-    onExecute: handleExecute,
   }));
 
   if (isDeploymentsLoading) {
@@ -433,16 +288,6 @@ export function DeploymentsPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        {/* Execution Parameters Dialog */}
-        {isExecutionFormVisible && (
-          <ExecutionFormDialog
-            isOpen={isExecutionFormVisible}
-            onClose={closeExecutionForm}
-            parameters={executionFormParameters}
-            onSubmit={submitExecutionForm}
-          />
-        )}
       </InsetLayout>
     </TooltipProvider>
   );

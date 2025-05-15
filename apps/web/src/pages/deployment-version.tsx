@@ -13,23 +13,12 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   WorkflowNodeType,
   WorkflowEdgeType,
-  WorkflowExecution,
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
-import { Play, ChevronDown } from "lucide-react";
 import { InsetLoading } from "@/components/inset-loading";
 import { useWorkflow } from "@/services/workflowService";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useWorkflowExecutor, getExecution } from "@/services/executionService";
-import { executeDeployment } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useDeploymentVersion } from "@/services/deploymentService";
 
 export function DeploymentVersionPage() {
@@ -43,54 +32,6 @@ export function DeploymentVersionPage() {
 
   // Use empty node templates array since we're in readonly mode
   const nodeTemplates = [];
-
-  // Create wrapper functions to handle organization context
-  const executeDeploymentWithOrg = useCallback(
-    async (deploymentId: string, parameters?: Record<string, any>) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Execute the deployment
-      const response = await executeDeployment(deploymentId, orgHandle, {
-        monitorProgress: true,
-        parameters,
-      });
-
-      // Transform ExecuteDeploymentResponse to WorkflowExecution
-      return {
-        ...response,
-        // Add required visibility field with the precise union type expected
-        visibility: "private" as "private" | "public",
-      };
-    },
-    [orgHandle]
-  );
-
-  // Create a wrapper for getExecution that handles organization context
-  const getExecutionWithOrg = useCallback(
-    async (executionId: string) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Use the execution service to get execution status
-      return await getExecution(executionId, orgHandle);
-    },
-    [orgHandle]
-  );
-
-  // Configure the workflow executor with the deployment execution functions
-  const {
-    executeWorkflow,
-    isExecutionFormVisible,
-    executionFormParameters,
-    submitExecutionForm,
-    closeExecutionForm,
-  } = useWorkflowExecutor({
-    executeWorkflowFn: executeDeploymentWithOrg,
-    getExecutionFn: getExecutionWithOrg,
-  });
 
   const {
     deploymentVersion,
@@ -199,71 +140,6 @@ export function DeploymentVersionPage() {
 
   const validateConnection = useCallback(() => false, []);
 
-  // Handle execution result to show toast notifications
-  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
-    if (execution.status === "completed") {
-      toast.success("Deployment execution completed successfully");
-    } else if (execution.status === "error") {
-      toast.error(`Execution error: ${execution.error || "Unknown error"}`);
-    }
-  }, []);
-
-  const handleExecuteDeploymentClick = useCallback(() => {
-    if (!deploymentVersion || !deploymentVersion.nodes) {
-      toast.error("Deployment data or nodes not available.");
-      return;
-    }
-
-    if (!orgHandle) {
-      toast.error("Organization context not available.");
-      return;
-    }
-
-    toast.info("Preparing deployment execution...");
-
-    // Use the adapter to convert backend nodes to ReactFlow format
-    const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
-      deploymentVersion.nodes
-    );
-
-    // Execute the workflow using the workflow executor (with UI form)
-    executeWorkflow(
-      deploymentVersion.id,
-      handleExecutionUpdate,
-      adaptedNodes,
-      nodeTemplates
-    );
-  }, [
-    deploymentVersion,
-    nodeTemplates,
-    executeWorkflow,
-    handleExecutionUpdate,
-    orgHandle,
-  ]);
-
-  // Direct execution without form UI
-  const handleDirectExecution = useCallback(async () => {
-    if (!deploymentVersion || !orgHandle) {
-      toast.error("Deployment data or organization context not available.");
-      return;
-    }
-
-    toast.info("Starting direct execution...");
-
-    try {
-      // Use an empty object for parameters to ensure we're sending a valid JSON object
-      const result = await executeDeployment(deploymentVersion.id, orgHandle, {
-        monitorProgress: true,
-        parameters: {}, // Always provide an empty object for parameters
-      });
-      toast.success(`Execution started with ID: ${result.id}`);
-    } catch (error) {
-      toast.error(
-        `Failed to execute deployment: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
-    }
-  }, [deploymentVersion, orgHandle]);
-
   if (isDeploymentVersionLoading || isWorkflowLoading) {
     return <InsetLoading title="Deployment" />;
   }
@@ -298,48 +174,6 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button disabled={!deploymentId || !deploymentVersion?.nodes}>
-                    <Play className="mr-2 h-4 w-4" />
-                    Execute Version
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleExecuteDeploymentClick}>
-                    Execute with Parameter Form
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDirectExecution}>
-                    Execute Directly (No UI)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      if (!deploymentVersion || !orgHandle) return;
-                      try {
-                        const result = await executeDeployment(
-                          deploymentVersion.id,
-                          orgHandle,
-                          {
-                            monitorProgress: true,
-                            parameters: {}, // Always provide an empty object for parameters
-                            debugMode: true,
-                          }
-                        );
-                        toast.success(
-                          `Debug execution started with ID: ${result.id}`
-                        );
-                      } catch (error) {
-                        toast.error(
-                          `Execution failed: ${error instanceof Error ? error.message : "Unknown error"}`
-                        );
-                      }
-                    }}
-                  >
-                    Execute in Debug Mode
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
 
@@ -408,16 +242,6 @@ export function DeploymentVersionPage() {
         <div className="text-center py-10">
           <p className="text-lg">Deployment not found</p>
         </div>
-      )}
-
-      {/* Execution Parameters Dialog */}
-      {isExecutionFormVisible && (
-        <ExecutionFormDialog
-          isOpen={isExecutionFormVisible}
-          onClose={closeExecutionForm}
-          parameters={executionFormParameters}
-          onSubmit={submitExecutionForm}
-        />
       )}
     </InsetLayout>
   );
