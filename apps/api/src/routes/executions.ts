@@ -18,7 +18,7 @@ import { listExecutions } from "../utils/db";
 import { workflows } from "../db";
 import { eq, inArray, and } from "drizzle-orm";
 import { executions as executionsTable } from "../db/schema";
-import { getWorkflowById } from "../utils/db";
+import { getWorkflowByIdOrHandle } from "../utils/db";
 import { generateExecutionOgImage } from "../utils/ogImageGenerator";
 
 const executionRoutes = new Hono<ApiContext>();
@@ -233,7 +233,7 @@ executionRoutes.get("/public/:id", async (c) => {
     let workflowEdges: WorkflowStructureType["edges"] = [];
     let workflowName = "Unknown Workflow";
 
-    const workflowRecord = await getWorkflowById(
+    const workflowRecord = await getWorkflowByIdOrHandle(
       db,
       executionRecord.workflowId,
       executionRecord.organizationId

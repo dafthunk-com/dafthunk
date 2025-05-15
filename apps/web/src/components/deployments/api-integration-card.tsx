@@ -18,18 +18,22 @@ import { extractDialogParametersFromNodes } from "@/utils/utils";
 import { API_BASE_URL } from "@/config/api";
 
 interface ApiIntegrationCardProps {
-  deploymentId: string;
   nodes: Node<WorkflowNodeType>[];
   nodeTemplates: NodeTemplate[];
+  orgHandle: string;
+  workflowId: string;
+  deploymentVersion: string;
 }
 
 export function ApiIntegrationCard({
-  deploymentId,
   nodes,
   nodeTemplates,
+  orgHandle,
+  workflowId,
+  deploymentVersion,
 }: ApiIntegrationCardProps) {
   const baseUrl = API_BASE_URL.replace(/\/$/, "");
-  const executeUrl = `${baseUrl}/deployments/version/${deploymentId}/execute`;
+  const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/${deploymentVersion}`;
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTemplates);
 

@@ -306,7 +306,9 @@ export function DeploymentDetailPage() {
 
               {currentDeployment && (
                 <ApiIntegrationCard
-                  deploymentId={currentDeployment.id}
+                  orgHandle={orgHandle}
+                  workflowId={workflow.id}
+                  deploymentVersion={currentDeployment.version.toString()}
                   nodes={adaptDeploymentNodesToReactFlowNodes(
                     currentDeployment.nodes
                   )}

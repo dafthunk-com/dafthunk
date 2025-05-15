@@ -1,4 +1,4 @@
-import { and, eq, sql, desc } from "drizzle-orm";
+import { and, eq, sql, desc, or } from "drizzle-orm";
 import {
   createDatabase,
   workflows,
@@ -233,20 +233,26 @@ export async function getWorkflowsByOrganization(
  * Get a workflow by ID, ensuring it belongs to the specified organization
  *
  * @param db Database instance
- * @param id Workflow ID
+ * @param idOrHandle Workflow ID or handle
  * @param organizationId Organization ID
  * @returns Workflow record or undefined if not found
  */
-export async function getWorkflowById(
+export async function getWorkflowByIdOrHandle(
   db: ReturnType<typeof createDatabase>,
-  id: string,
+  idOrHandle: string,
   organizationId: string
 ): Promise<Workflow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
     .where(
-      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
+      and(
+        or(
+          eq(workflows.id, idOrHandle), 
+          eq(workflows.handle, idOrHandle)
+        ),
+        eq(workflows.organizationId, organizationId)
+      )
     );
   return workflow;
 }
@@ -559,7 +565,7 @@ export async function deleteApiKey(
  * @param organizationId Organization ID for security checks
  * @returns The latest deployment or undefined if none found
  */
-export async function getLatestDeploymentByWorkflowId(
+export async function getLatestDeploymentByWorkflowIdOrHandle(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
@@ -567,16 +573,21 @@ export async function getLatestDeploymentByWorkflowId(
   const [deployment] = await db
     .select()
     .from(deployments)
-    .where(
+    .innerJoin(
+      workflows,
       and(
-        eq(deployments.workflowId, workflowId),
-        eq(deployments.organizationId, organizationId)
+        eq(deployments.workflowId, workflows.id),
+        eq(workflows.organizationId, organizationId),
+        or(
+          eq(workflows.id, workflowId),
+          eq(workflows.handle, workflowId)
+        )
       )
     )
     .orderBy(desc(deployments.createdAt))
     .limit(1);
 
-  return deployment;
+  return deployment?.deployments;
 }
 
 /**
@@ -764,21 +775,27 @@ export async function listExecutions(
   });
 }
 
-export async function getDeploymentByVersion(
+export async function getDeploymentByWorkflowIdOrHandleAndVersion(
   db: ReturnType<typeof createDatabase>,
-  workflowId: string,
+  workflowIdOrHandle: string,
   version: string,
   organizationId: string
 ) {
   const [deployment] = await db
     .select()
     .from(deployments)
-    .where(
+    .innerJoin(
+      workflows,
       and(
-        eq(deployments.workflowId, workflowId),
-        eq(deployments.version, parseInt(version, 10)),
-        eq(deployments.organizationId, organizationId)
+        eq(deployments.workflowId, workflows.id),
+        eq(workflows.organizationId, organizationId),
+        or(
+          eq(workflows.id, workflowIdOrHandle),
+          eq(workflows.handle, workflowIdOrHandle)
+        )
       )
-    );
-  return deployment;
+    )
+    .where(eq(deployments.version, parseInt(version, 10)));
+
+  return deployment?.deployments;
 }

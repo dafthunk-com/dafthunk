@@ -13,9 +13,9 @@ import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";
 import { jwtAuth } from "../auth";
 import {
-  getLatestDeploymentByWorkflowId,
+  getLatestDeploymentByWorkflowIdOrHandle,
   getDeploymentById,
-  getWorkflowById,
+  getWorkflowByIdOrHandle,
   createDeployment,
   getDeploymentsGroupedByWorkflow,
   getDeploymentsByWorkflowId,
@@ -143,7 +143,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(
+  const workflow = await getWorkflowByIdOrHandle(
     db,
     workflowUUID,
     user.organization.id
@@ -153,7 +153,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
   }
 
   // Get the latest deployment
-  const deployment = await getLatestDeploymentByWorkflowId(
+  const deployment = await getLatestDeploymentByWorkflowIdOrHandle(
     db,
     workflowUUID,
     user.organization.id
@@ -190,7 +190,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
   const now = new Date();
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(
+  const workflow = await getWorkflowByIdOrHandle(
     db,
     workflowUUID,
     user.organization.id
@@ -246,7 +246,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowById(
+  const workflow = await getWorkflowByIdOrHandle(
     db,
     workflowUUID,
     user.organization.id
@@ -280,6 +280,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
     workflow: {
       id: workflow.id,
       name: workflow.name,
+      handle: workflow.handle,
     },
     deployments: deploymentVersions,
   };
@@ -377,6 +378,7 @@ deploymentRoutes.post(
         workflow: {
           id: deployment.workflowId || "",
           name: workflowData.name,
+          handle: workflowData.handle,
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },

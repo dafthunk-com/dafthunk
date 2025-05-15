@@ -19,14 +19,14 @@ import { validateWorkflow } from "../utils/workflows";
 import { v7 as uuid } from "uuid";
 import {
   getWorkflowsByOrganization,
-  getWorkflowById,
+  getWorkflowByIdOrHandle,
   createWorkflow,
   updateWorkflow,
   deleteWorkflow,
   saveExecution,
   createHandle,
-  getLatestDeploymentByWorkflowId,
-  getDeploymentByVersion,
+  getLatestDeploymentByWorkflowIdOrHandle,
+  getDeploymentByWorkflowIdOrHandleAndVersion,
 } from "../utils/db";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
@@ -133,7 +133,7 @@ workflowRoutes.get("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const workflow = await getWorkflowById(db, id, user.organization.id);
+  const workflow = await getWorkflowByIdOrHandle(db, id, user.organization.id);
 
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -173,7 +173,7 @@ workflowRoutes.put(
     const id = c.req.param("id");
     const db = createDatabase(c.env.DB);
 
-    const existingWorkflow = await getWorkflowById(
+    const existingWorkflow = await getWorkflowByIdOrHandle(
       db,
       id,
       user.organization.id
@@ -265,7 +265,7 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const existingWorkflow = await getWorkflowById(db, id, user.organization.id);
+  const existingWorkflow = await getWorkflowByIdOrHandle(db, id, user.organization.id);
 
   if (!existingWorkflow) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -287,9 +287,9 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
  * - version can be "latest" for the latest deployment
  * - version can be a number for a specific deployment version
  */
-workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
+workflowRoutes.post("/:idOrHandle/execute/:version", jwtAuth, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
-  const id = c.req.param("id");
+  const idOrHandle = c.req.param("idOrHandle");
   const version = c.req.param("version");
   const db = createDatabase(c.env.DB);
   const monitorProgress =
@@ -302,7 +302,7 @@ workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
 
   if (version === "dev") {
     // Get workflow data directly
-    workflow = await getWorkflowById(db, id, user.organization.id);
+    workflow = await getWorkflowByIdOrHandle(db, idOrHandle, user.organization.id);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -311,18 +311,18 @@ workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
     // Get deployment based on version
     let deployment;
     if (version === "latest") {
-      deployment = await getLatestDeploymentByWorkflowId(
+      deployment = await getLatestDeploymentByWorkflowIdOrHandle(
         db,
-        id,
+        idOrHandle,
         user.organization.id
       );
       if (!deployment) {
         return c.json({ error: "No deployments found for this workflow" }, 404);
       }
     } else {
-      deployment = await getDeploymentByVersion(
+      deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
         db,
-        id,
+        idOrHandle,
         version,
         user.organization.id
       );
