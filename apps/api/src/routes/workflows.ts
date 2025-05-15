@@ -34,8 +34,6 @@ import { z } from "zod";
 const workflowRoutes = new Hono<ApiContext>();
 
 /**
- * GET /api/workflows
- *
  * List all workflows for the current organization
  */
 workflowRoutes.get("/", jwtAuth, async (c) => {
@@ -66,8 +64,6 @@ workflowRoutes.get("/", jwtAuth, async (c) => {
 });
 
 /**
- * POST /api/workflows
- *
  * Create a new workflow for the current organization
  */
 workflowRoutes.post(
@@ -130,8 +126,6 @@ workflowRoutes.post(
 );
 
 /**
- * GET /api/workflows/:id
- *
  * Get a specific workflow by ID
  */
 workflowRoutes.get("/:id", jwtAuth, async (c) => {
@@ -161,8 +155,6 @@ workflowRoutes.get("/:id", jwtAuth, async (c) => {
 });
 
 /**
- * PUT /api/workflows/:id
- *
  * Update a workflow by ID
  */
 workflowRoutes.put(
@@ -266,8 +258,6 @@ workflowRoutes.put(
 );
 
 /**
- * DELETE /api/workflows/:id
- *
  * Delete a workflow by ID
  */
 workflowRoutes.delete("/:id", jwtAuth, async (c) => {
@@ -292,7 +282,6 @@ workflowRoutes.delete("/:id", jwtAuth, async (c) => {
 });
 
 /**
- * POST /api/workflows/:id/execute/:version
  * Execute a workflow with the specified version
  * - version can be "dev" for development mode
  * - version can be "latest" for the latest deployment

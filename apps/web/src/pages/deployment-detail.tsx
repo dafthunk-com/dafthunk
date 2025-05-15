@@ -10,6 +10,7 @@ import {
   ArrowDown,
   GitCommitHorizontal,
   MoreHorizontal,
+  Play,
 } from "lucide-react";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import {
@@ -40,8 +41,9 @@ import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deploymentService";
-
 import { useAuth } from "@/components/authContext";
+import { useWorkflowExecution } from "@/services/workflowService";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -160,6 +162,14 @@ export function DeploymentDetailPage() {
     mutateHistory: mutateDeploymentHistory,
   } = useDeploymentHistory(workflowId!);
 
+  const {
+    executeWorkflow,
+    isExecutionFormVisible,
+    executionFormParameters,
+    submitExecutionForm,
+    closeExecutionForm,
+  } = useWorkflowExecution(orgHandle);
+
   const currentDeployment =
     deployments && deployments.length > 0 ? deployments[0] : null;
 
@@ -199,6 +209,24 @@ export function DeploymentDetailPage() {
     } finally {
       setIsDeploying(false);
     }
+  };
+
+  const handleExecuteLatestVersion = () => {
+    if (!workflowId || !currentDeployment) return;
+    executeWorkflow(
+      workflowId,
+      (execution) => {
+        if (execution.status === "submitted") {
+          toast.success("Workflow execution submitted");
+        } else if (execution.status === "completed") {
+          toast.success("Workflow execution completed");
+        } else if (execution.status === "error") {
+          toast.error("Workflow execution failed");
+        }
+      },
+      adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes),
+      nodeTemplates
+    );
   };
 
   const displayDeployments = expandedHistory
@@ -248,6 +276,10 @@ export function DeploymentDetailPage() {
                 Manage deployments for this workflow
               </p>
               <div className="flex gap-2">
+                <Button onClick={handleExecuteLatestVersion}>
+                  <Play className="mr-2 h-4 w-4" />
+                  Execute Latest Version
+                </Button>
                 <Button onClick={() => setIsDeployDialogOpen(true)}>
                   <ArrowUpToLine className="mr-2 h-4 w-4" />
                   Deploy Latest Version
@@ -310,6 +342,15 @@ export function DeploymentDetailPage() {
                 Deploy Workflow
               </Button>
             </div>
+          )}
+
+          {isExecutionFormVisible && (
+            <ExecutionFormDialog
+              isOpen={isExecutionFormVisible}
+              onClose={closeExecutionForm}
+              parameters={executionFormParameters}
+              onSubmit={submitExecutionForm}
+            />
           )}
         </div>
       ) : (

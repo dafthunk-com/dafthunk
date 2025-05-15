@@ -33,58 +33,10 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
       const execution = row.original as WorkflowExecution;
       return (
         <Link
-          to={`/workflows/playground/${execution.workflowId}`}
+          to={`/workflows/executions/${execution.id}`}
           className="hover:underline"
         >
           {workflowName}
-        </Link>
-      );
-    },
-  },
-  {
-    accessorKey: "workflowId",
-    header: "Workflow UUID",
-    cell: ({ row }) => {
-      const workflowId = row.getValue("workflowId") as string;
-      return (
-        <Link
-          to={`/workflows/playground/${workflowId}`}
-          className="font-mono text-xs hover:underline"
-        >
-          {workflowId}
-        </Link>
-      );
-    },
-  },
-  {
-    accessorKey: "deploymentId",
-    header: "Deployment UUID",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const deploymentId = row.getValue("deploymentId") as string | undefined;
-      return deploymentId && deploymentId !== "N/A" ? (
-        <Link
-          to={`/workflows/deployments/version/${deploymentId}`}
-          className="hover:underline font-mono text-xs"
-        >
-          {deploymentId}
-        </Link>
-      ) : (
-        <span className="text-muted-foreground">N/A</span>
-      );
-    },
-  },
-  {
-    accessorKey: "id",
-    header: "Execution UUID",
-    cell: ({ row }) => {
-      const id = row.getValue("id") as string;
-      return (
-        <Link
-          to={`/workflows/executions/${id}`}
-          className="font-mono text-xs hover:underline"
-        >
-          {id}
         </Link>
       );
     },
