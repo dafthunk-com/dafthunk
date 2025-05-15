@@ -628,11 +628,9 @@ function handleJsonBodyParameters(
 }
 
 /**
- * Custom hook to manage workflow execution, including parameter forms and status polling.
+ * Hook to manage workflow execution, including parameter forms and status polling.
  */
-export function useWorkflowExecutor(
-  options: UseWorkflowExecutorOptions
-): UseWorkflowExecutorReturn {
+export function useWorkflowExecution(orgHandle: string) {
   const [isExecutionFormVisible, setIsExecutionFormVisible] = useState(false);
   const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
   const [executionContext, setExecutionContext] = useState<{
@@ -654,6 +652,32 @@ export function useWorkflowExecutor(
     pollingRef.current.intervalId = undefined;
   }, []);
 
+  const executeWorkflow = useCallback(
+    async (id: string, parameters?: Record<string, any>) => {
+      if (!orgHandle) {
+        throw new Error("Organization handle is required");
+      }
+
+      // Execute the workflow in development mode
+      const response = await makeOrgRequest<ExecuteWorkflowResponse>(
+        orgHandle,
+        API_ENDPOINT_BASE,
+        `/${id}/execute/dev?monitorProgress=true`,
+        {
+          method: "POST",
+          ...(parameters && { body: JSON.stringify(parameters) }),
+        }
+      );
+
+      // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
+      return {
+        ...response,
+        visibility: "private" as "private" | "public",
+      };
+    },
+    [orgHandle]
+  );
+
   const performExecutionAndPoll = useCallback(
     (
       id: string,
@@ -663,8 +687,7 @@ export function useWorkflowExecutor(
       cleanup();
       pollingRef.current.cancelled = false;
 
-      options
-        .executeWorkflowFn(id, requestBody)
+      executeWorkflow(id, requestBody)
         .then((initialExecution: WorkflowExecution) => {
           if (pollingRef.current.cancelled) return;
           onExecutionUpdate(initialExecution);
@@ -681,9 +704,7 @@ export function useWorkflowExecutor(
             if (pollingRef.current.cancelled) return;
 
             try {
-              const execution = options.getExecutionFn
-                ? await options.getExecutionFn(initialExecution.id)
-                : await (getExecution as any)(initialExecution.id);
+              const execution = await getExecution(initialExecution.id, orgHandle);
 
               if (pollingRef.current.cancelled) return;
               onExecutionUpdate(execution);
@@ -723,10 +744,10 @@ export function useWorkflowExecutor(
 
       return cleanup;
     },
-    [options, cleanup]
+    [executeWorkflow, cleanup, orgHandle]
   );
 
-  const executeWorkflow = useCallback(
+  const executeWorkflowWithForm = useCallback(
     (
       id: string,
       onExecution: (execution: WorkflowExecution) => void,
@@ -796,7 +817,7 @@ export function useWorkflowExecutor(
   }, [cleanup]);
 
   return {
-    executeWorkflow,
+    executeWorkflow: executeWorkflowWithForm,
     isExecutionFormVisible,
     executionFormParameters: formParameters,
     submitExecutionForm,

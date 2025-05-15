@@ -15,11 +15,9 @@ import { toast } from "sonner";
 import { useNodeTypes } from "@/services/typeService";
 import {
   useWorkflow,
-  executeWorkflow,
-  useWorkflowExecutor,
+  useWorkflowExecution,
 } from "@/services/workflowService";
 import { createDeployment } from "@/services/deploymentService";
-import { getExecution } from "@/services/executionService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
@@ -114,50 +112,13 @@ export function EditorPage() {
     [latestUiNodes, saveWorkflow, currentWorkflow]
   );
 
-  // Create wrapper functions to ensure the organization handle is passed
-  const executeWorkflowWithOrg = useCallback(
-    async (workflowId: string, parameters?: Record<string, any>) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-
-      // Execute the workflow in development mode
-      const response = await executeWorkflow(workflowId, orgHandle, {
-        mode: "dev",
-        monitorProgress: true,
-        parameters,
-      });
-
-      // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
-      return {
-        ...response,
-        visibility: "private" as "private" | "public",
-        workflowName: currentWorkflow?.name,
-      };
-    },
-    [orgHandle, currentWorkflow?.name]
-  );
-
-  const getExecutionWithOrg = useCallback(
-    async (executionId: string) => {
-      if (!orgHandle) {
-        throw new Error("Organization handle is required");
-      }
-      return getExecution(executionId, orgHandle);
-    },
-    [orgHandle]
-  );
-
   const {
-    executeWorkflow: hookExecuteWorkflow,
+    executeWorkflow,
     isExecutionFormVisible,
     executionFormParameters,
     submitExecutionForm,
     closeExecutionForm,
-  } = useWorkflowExecutor({
-    executeWorkflowFn: executeWorkflowWithOrg,
-    getExecutionFn: getExecutionWithOrg,
-  });
+  } = useWorkflowExecution(orgHandle);
 
   usePageBreadcrumbs(
     [
@@ -197,14 +158,14 @@ export function EditorPage() {
       workflowIdFromBuilder: string,
       onExecutionFromBuilder: (execution: WorkflowExecution) => void
     ) => {
-      return hookExecuteWorkflow(
+      return executeWorkflow(
         workflowIdFromBuilder,
         onExecutionFromBuilder,
         latestUiNodes,
         nodeTemplates as any
       );
     },
-    [hookExecuteWorkflow, latestUiNodes, nodeTemplates]
+    [executeWorkflow, latestUiNodes, nodeTemplates]
   );
 
   const handleRetryLoading = () => {
