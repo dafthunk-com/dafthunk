@@ -83,7 +83,7 @@ export function ApiIntegrationCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="text-xl flex items-center gap-2">
           <Terminal className="h-5 w-5" />
           API Integration
         </CardTitle>
@@ -94,13 +94,13 @@ export function ApiIntegrationCard({
       <CardContent>
         <Tabs defaultValue="curl">
           <TabsList>
-            <TabsTrigger value="curl">cURL</TabsTrigger>
+            <TabsTrigger value="curl" className="text-sm">cURL</TabsTrigger>
           </TabsList>
           <TabsContent value="curl" className="mt-4 space-y-4">
             <div className="relative">
               <Code
                 language="bash"
-                className="text-xs md:text-sm overflow-x-auto"
+                className="text-xs md:text-sm overflow-x-auto font-mono"
               >
                 {generateCurlCommand()}
               </Code>
@@ -115,11 +115,11 @@ export function ApiIntegrationCard({
               </Button>
             </div>
 
-            <div className="text-sm">
-              <h4 className="font-medium">Notes:</h4>
+            <div>
+              <p className="text-sm text-muted-foreground font-medium">Notes:</p>
               <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground">
                 <li>
-                  Replace <code>YOUR_API_KEY</code> with an API key from your
+                  Replace <code className="text-xs font-mono">YOUR_API_KEY</code> with an API key from your
                   account settings.
                 </li>
                 {jsonBodyParam && (
