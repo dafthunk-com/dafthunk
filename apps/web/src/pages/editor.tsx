@@ -13,10 +13,7 @@ import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
 import { useNodeTypes } from "@/services/typeService";
-import {
-  useWorkflow,
-  useWorkflowExecution,
-} from "@/services/workflowService";
+import { useWorkflow, useWorkflowExecution } from "@/services/workflowService";
 import { createDeployment } from "@/services/deploymentService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";

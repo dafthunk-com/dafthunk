@@ -632,7 +632,9 @@ function handleJsonBodyParameters(
  */
 export function useWorkflowExecution(orgHandle: string) {
   const [isExecutionFormVisible, setIsExecutionFormVisible] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
+    []
+  );
   const [executionContext, setExecutionContext] = useState<{
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
@@ -704,7 +706,10 @@ export function useWorkflowExecution(orgHandle: string) {
             if (pollingRef.current.cancelled) return;
 
             try {
-              const execution = await getExecution(initialExecution.id, orgHandle);
+              const execution = await getExecution(
+                initialExecution.id,
+                orgHandle
+              );
 
               if (pollingRef.current.cancelled) return;
               onExecutionUpdate(execution);
@@ -724,7 +729,8 @@ export function useWorkflowExecution(orgHandle: string) {
                 status: "error",
                 nodeExecutions: [],
                 visibility: "private",
-                error: error instanceof Error ? error.message : "Polling failed",
+                error:
+                  error instanceof Error ? error.message : "Polling failed",
               });
             }
           }, 1000);

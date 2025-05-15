@@ -16,14 +16,18 @@ import type {
 } from "@/components/workflow/workflow-types.tsx";
 import { Button } from "@/components/ui/button";
 import { InsetLoading } from "@/components/inset-loading";
-import { useWorkflow } from "@/services/workflowService";
+import { useWorkflow, useWorkflowExecution } from "@/services/workflowService";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useDeploymentVersion } from "@/services/deploymentService";
+import { useAuth } from "@/components/authContext";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle || "";
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
@@ -41,6 +45,14 @@ export function DeploymentVersionPage() {
   const { workflow, workflowError, isWorkflowLoading } = useWorkflow(
     deploymentVersion?.workflowId || null
   );
+
+  const {
+    executeWorkflow,
+    isExecutionFormVisible,
+    executionFormParameters,
+    submitExecutionForm,
+    closeExecutionForm,
+  } = useWorkflowExecution(orgHandle);
 
   // Update breadcrumbs when both workflow and deployment are available
   useEffect(() => {
@@ -137,6 +149,24 @@ export function DeploymentVersionPage() {
 
   const validateConnection = useCallback(() => false, []);
 
+  const handleExecuteVersion = useCallback(() => {
+    if (!deploymentVersion?.workflowId) return;
+    executeWorkflow(
+      deploymentVersion.workflowId,
+      (execution) => {
+        if (execution.status === "submitted") {
+          toast.success("Workflow execution submitted");
+        } else if (execution.status === "completed") {
+          toast.success("Workflow execution completed");
+        } else if (execution.status === "error") {
+          toast.error("Workflow execution failed");
+        }
+      },
+      nodes,
+      nodeTemplates
+    );
+  }, [deploymentVersion?.workflowId, executeWorkflow, nodes, nodeTemplates]);
+
   if (isDeploymentVersionLoading || isWorkflowLoading) {
     return <InsetLoading title="Deployment" />;
   }
@@ -171,6 +201,7 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
+              <Button onClick={handleExecuteVersion}>Execute Version</Button>
             </div>
           </div>
 
@@ -234,6 +265,15 @@ export function DeploymentVersionPage() {
               </div>
             </TabsContent>
           </Tabs>
+
+          {isExecutionFormVisible && (
+            <ExecutionFormDialog
+              isOpen={isExecutionFormVisible}
+              onClose={closeExecutionForm}
+              parameters={executionFormParameters}
+              onSubmit={submitExecutionForm}
+            />
+          )}
         </div>
       ) : (
         <div className="text-center py-10">

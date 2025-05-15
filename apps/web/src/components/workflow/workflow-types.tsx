@@ -200,7 +200,7 @@ export interface WorkflowErrorProps {
 }
 
 export type WorkflowExecutionStatus =
-  | "idle"
+  | "submitted"
   | "executing"
   | "completed"
   | "error"

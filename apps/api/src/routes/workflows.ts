@@ -433,7 +433,7 @@ workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
   const response: ExecuteWorkflowResponse = {
     id: initialExecution.id,
     workflowId: initialExecution.workflowId,
-    status: "executing",
+    status: "submitted",
     nodeExecutions: initialExecution.nodeExecutions,
   };
 

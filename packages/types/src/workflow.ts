@@ -166,7 +166,7 @@ export interface ObjectReference {
    * Possible workflow execution statuses
    */
   export type WorkflowExecutionStatus =
-    | "idle"
+    | "submitted"
     | "executing"
     | "completed"
     | "error"
