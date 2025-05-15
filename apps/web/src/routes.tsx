@@ -176,7 +176,7 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/workflows/deployments/version/:deploymentId",
+    path: "/workflows/deployment/:deploymentId",
     element: (
       <AppLayout
         sidebar={{

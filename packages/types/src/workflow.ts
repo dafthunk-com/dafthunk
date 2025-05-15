@@ -134,6 +134,7 @@ export interface ObjectReference {
   export interface Workflow {
     id: string;
     name: string;
+    handle: string;
     nodes: Node[];
     edges: Edge[];
   }

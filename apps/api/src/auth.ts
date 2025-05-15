@@ -6,7 +6,8 @@ import { googleAuth } from "@hono/oauth-providers/google";
 import { SignJWT, jwtVerify } from "jose";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
-import { getUserOrganizations } from "./utils/db";
+import { getUserOrganizations, saveUser } from "./utils/db";
+import { OrganizationRole } from "./db/schema";
 
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";
@@ -91,24 +92,27 @@ auth.get(
 
     const userId = user.id?.toString() || "";
     const userName = user.name || user.login || "";
-    const userEmail = user.email;
+    const userEmail = user.email || undefined;
     const avatarUrl = user.avatar_url;
 
     const db = createDatabase(c.env.DB);
 
-    // Get organization details
-    const userOrgs = await getUserOrganizations(db, userId);
-    if (!userOrgs || userOrgs.length === 0) {
-      return c.json({ error: "Failed to retrieve user organization" }, 500);
-    }
+    // Save user and create organization if needed
+    const userData = {
+      id: userId,
+      name: userName,
+      email: userEmail,
+      provider: "github" as const,
+      githubId: userId,
+      avatarUrl,
+    };
+    const { user: savedUser, organization: savedOrganization } = await saveUser(db, userData);
 
-    // Use the first organization (which should be the personal one for new users)
-    const org = userOrgs[0];
     const organizationInfo: OrganizationInfo = {
-      id: org.organization.id,
-      name: org.organization.name,
-      handle: org.organization.handle,
-      role: org.role,
+      id: savedOrganization.id,
+      name: savedOrganization.name,
+      handle: savedOrganization.handle,
+      role: OrganizationRole.OWNER,
     };
 
     const jwtToken = await createJWT(
@@ -118,8 +122,8 @@ auth.get(
         email: userEmail ?? undefined,
         provider: "github",
         avatarUrl,
-        plan: "free",
-        role: "user",
+        plan: savedUser.plan,
+        role: savedUser.role,
         organization: organizationInfo,
       },
       c.env.JWT_SECRET
@@ -161,19 +165,22 @@ auth.get(
 
     const db = createDatabase(c.env.DB);
 
-    // Get organization details
-    const userOrgs = await getUserOrganizations(db, userId);
-    if (!userOrgs || userOrgs.length === 0) {
-      return c.json({ error: "Failed to retrieve user organization" }, 500);
-    }
+    // Save user and create organization if needed
+    const userData = {
+      id: userId,
+      name: userName,
+      email: userEmail,
+      provider: "google" as const,
+      googleId: userId,
+      avatarUrl,
+    };
+    const { user: savedUser, organization: savedOrganization } = await saveUser(db, userData);
 
-    // Use the first organization (which should be the personal one for new users)
-    const org = userOrgs[0];
     const organizationInfo: OrganizationInfo = {
-      id: org.organization.id,
-      name: org.organization.name,
-      handle: org.organization.handle,
-      role: org.role,
+      id: savedOrganization.id,
+      name: savedOrganization.name,
+      handle: savedOrganization.handle,
+      role: OrganizationRole.OWNER,
     };
 
     const jwtToken = await createJWT(
@@ -183,8 +190,8 @@ auth.get(
         email: userEmail,
         provider: "google",
         avatarUrl: avatarUrl || undefined,
-        plan: "free",
-        role: "user",
+        plan: savedUser.plan,
+        role: savedUser.role,
         organization: organizationInfo,
       },
       c.env.JWT_SECRET

@@ -112,6 +112,7 @@ CREATE INDEX `users_created_at_idx` ON `users` (`created_at`);--> statement-brea
 CREATE TABLE `workflows` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
+	`handle` text NOT NULL,
 	`data` text NOT NULL,
 	`organization_id` text NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -120,6 +121,8 @@ CREATE TABLE `workflows` (
 );
 --> statement-breakpoint
 CREATE INDEX `workflows_name_idx` ON `workflows` (`name`);--> statement-breakpoint
+CREATE INDEX `workflows_handle_idx` ON `workflows` (`handle`);--> statement-breakpoint
 CREATE INDEX `workflows_organization_id_idx` ON `workflows` (`organization_id`);--> statement-breakpoint
 CREATE INDEX `workflows_created_at_idx` ON `workflows` (`created_at`);--> statement-breakpoint
-CREATE INDEX `workflows_updated_at_idx` ON `workflows` (`updated_at`);
+CREATE INDEX `workflows_updated_at_idx` ON `workflows` (`updated_at`);--> statement-breakpoint
+CREATE INDEX `workflows_organization_id_handle_idx` ON `workflows` (`organization_id`,`handle`);

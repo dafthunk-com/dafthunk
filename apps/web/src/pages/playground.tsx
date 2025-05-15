@@ -271,16 +271,17 @@ function createColumns(
       },
     },
     {
-      accessorKey: "id",
-      header: "Workflow UUID",
+      accessorKey: "handle",
+      header: "Workflow Handle",
       cell: ({ row }) => {
+        const handle = row.original.handle;
         const workflowId = row.original.id;
         return (
           <Link
             to={`/workflows/playground/${workflowId}`}
             className="font-mono text-xs hover:underline"
           >
-            {workflowId}
+            {handle}
           </Link>
         );
       },

@@ -100,20 +100,25 @@ export type UserData = {
  *
  * @param db Database instance
  * @param userData User data to save
- * @returns The ID of the organization the user belongs to
+ * @returns Object containing the user and their main organization
  */
 export async function saveUser(
   db: ReturnType<typeof createDatabase>,
   userData: UserData
-): Promise<string> {
+): Promise<{ user: User; organization: NewOrganization }> {
   const now = new Date();
 
   // Check if user already exists
   const existingUser = await getUserById(db, userData.id);
 
   if (existingUser) {
-    // User exists, return their organization ID
-    return existingUser.organizationId;
+    // User exists, get their organization
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, existingUser.organizationId));
+    
+    return { user: existingUser, organization };
   }
 
   // User doesn't exist, create a new organization
@@ -132,7 +137,7 @@ export async function saveUser(
   await db.insert(organizations).values(organization);
 
   // Create new user with the organization ID
-  await db.insert(users).values({
+  const [user] = await db.insert(users).values({
     id: userData.id,
     name: userData.name,
     email: userData.email,
@@ -145,7 +150,7 @@ export async function saveUser(
     role: (userData.role as UserRoleType) || UserRole.USER,
     createdAt: now,
     updatedAt: now,
-  });
+  }).returning();
 
   // Create membership with owner role
   const newMembership: NewMembership = {
@@ -158,7 +163,7 @@ export async function saveUser(
 
   await db.insert(memberships).values(newMembership);
 
-  return organizationId;
+  return { user, organization };
 }
 
 /**
@@ -213,6 +218,7 @@ export async function getWorkflowsByOrganization(
     .select({
       id: workflows.id,
       name: workflows.name,
+      handle: workflows.handle,
       createdAt: workflows.createdAt,
       updatedAt: workflows.updatedAt,
     })
@@ -253,6 +259,11 @@ export async function createWorkflow(
   db: ReturnType<typeof createDatabase>,
   newWorkflow: NewWorkflow
 ): Promise<Workflow> {
+  // Generate a handle if not provided
+  if (!newWorkflow.handle) {
+    newWorkflow.handle = createHandle(newWorkflow.name);
+  }
+
   const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
 
   return workflow;

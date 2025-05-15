@@ -72,7 +72,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       const workflowId = row.original.workflowId;
       return (
         <Link
-          to={`/workflows/playground/${workflowId}`}
+          to={`/workflows/deployments/${workflowId}`}
           className="hover:underline"
         >
           {workflowName}
@@ -81,23 +81,8 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
     },
   },
   {
-    accessorKey: "workflowId",
-    header: "Workflow UUID",
-    cell: ({ row }) => {
-      const workflowId = row.original.workflowId;
-      return (
-        <Link
-          to={`/workflows/playground/${workflowId}`}
-          className="font-mono text-xs hover:underline"
-        >
-          {workflowId}
-        </Link>
-      );
-    },
-  },
-  {
     accessorKey: "latestVersion",
-    header: "Latest Deployment Version",
+    header: "Latest Deployment",
     cell: ({ row }) => {
       const deployment = row.original;
       const version = deployment.latestVersion
@@ -106,7 +91,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       return (
         <TooltipProvider>
           <Link
-            to={`/workflows/deployments/version/${deployment.latestDeploymentId}`}
+            to={`/workflows/deployment/${deployment.latestDeploymentId}`}
             className="hover:underline"
           >
             <Badge variant="secondary" className="text-xs gap-1">

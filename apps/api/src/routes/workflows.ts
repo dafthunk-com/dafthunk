@@ -25,6 +25,7 @@ import {
   updateWorkflow,
   deleteWorkflow,
   saveExecution,
+  createHandle,
 } from "../utils/db";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
@@ -51,6 +52,7 @@ workflowRoutes.get("/", jwtAuth, async (c) => {
     return {
       id: workflow.id,
       name: workflow.name,
+      handle: workflow.handle,
       createdAt: workflow.createdAt,
       updatedAt: workflow.updatedAt,
       nodes: [],
@@ -83,9 +85,11 @@ workflowRoutes.post(
     const data = c.req.valid("json");
     const now = new Date();
 
+    const workflowName = data.name || "Untitled Workflow";
     const workflowData: WorkflowType = {
       id: uuid(),
-      name: data.name || "Untitled Workflow",
+      name: workflowName,
+      handle: createHandle(workflowName),
       nodes: Array.isArray(data.nodes) ? data.nodes : [],
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
@@ -93,6 +97,7 @@ workflowRoutes.post(
     const newWorkflowData: NewWorkflow = {
       id: workflowData.id,
       name: workflowData.name,
+      handle: workflowData.handle,
       data: workflowData,
       organizationId: user.organization.id,
       createdAt: now,
@@ -112,6 +117,7 @@ workflowRoutes.post(
     const response: CreateWorkflowResponse = {
       id: newWorkflow.id,
       name: newWorkflow.name,
+      handle: newWorkflow.handle,
       createdAt: newWorkflow.createdAt,
       updatedAt: newWorkflow.updatedAt,
       nodes: workflowDataFromDb.nodes,
@@ -143,6 +149,7 @@ workflowRoutes.get("/:id", jwtAuth, async (c) => {
   const response: GetWorkflowResponse = {
     id: workflow.id,
     name: workflow.name,
+    handle: workflow.handle,
     createdAt: workflow.createdAt,
     updatedAt: workflow.updatedAt,
     nodes: workflowData.nodes || [],
@@ -215,11 +222,14 @@ workflowRoutes.put(
         })
       : [];
 
-    const workflowToValidate = {
+    const workflowToValidate: WorkflowType = {
+      id: existingWorkflow.id,
+      name: data.name ?? existingWorkflow.name,
+      handle: existingWorkflow.handle,
       nodes: sanitizedNodes,
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
-    const validationErrors = validateWorkflow(workflowToValidate as any);
+    const validationErrors = validateWorkflow(workflowToValidate);
     if (validationErrors.length > 0) {
       return c.json({ errors: validationErrors }, 400);
     }
@@ -227,6 +237,7 @@ workflowRoutes.put(
     const updatedWorkflowData: WorkflowType = {
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
+      handle: existingWorkflow.handle,
       nodes: sanitizedNodes,
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
@@ -242,6 +253,7 @@ workflowRoutes.put(
     const response: UpdateWorkflowResponse = {
       id: updatedWorkflow.id,
       name: updatedWorkflow.name,
+      handle: updatedWorkflow.handle,
       createdAt: updatedWorkflow.createdAt,
       updatedAt: updatedWorkflow.updatedAt,
       nodes: workflowDataFromDb.nodes || [],
@@ -340,6 +352,7 @@ workflowRoutes.post("/:id/execute", jwtAuth, async (c) => {
       organizationId: user.organization.id,
       workflow: {
         id: workflow.id,
+        handle: workflow.handle,
         name: workflow.name,
         nodes: workflowData.nodes,
         edges: workflowData.edges,
