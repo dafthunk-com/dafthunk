@@ -600,24 +600,59 @@ export function validateEdgeTypes(edges: readonly ReactFlowEdge[]): boolean {
 }
 
 /**
+ * Helper function to handle JSON body parameters
+ */
+function handleJsonBodyParameters(
+  jsonBodyNode: ReactFlowNode<WorkflowNodeType> | undefined,
+  formData: Record<string, any>
+): Record<string, any> {
+  if (!jsonBodyNode || !("requestBody" in formData)) {
+    return formData;
+  }
+
+  const jsonBody = formData.requestBody;
+  const { requestBody, ...regularFormData } = formData;
+  const isJsonBodyRequired = (jsonBodyNode.data.inputs.find(
+    (input) => input.id === "required"
+  )?.value ?? true) as boolean;
+
+  if (jsonBody && typeof jsonBody === "object") {
+    return jsonBody;
+  }
+
+  if (Object.keys(regularFormData).length > 0) {
+    return regularFormData;
+  }
+
+  return isJsonBodyRequired ? { data: {} } : {};
+}
+
+/**
  * Custom hook to manage workflow execution, including parameter forms and status polling.
- * Uses the provided execution functions to handle workflow execution and status polling.
  */
 export function useWorkflowExecutor(
   options: UseWorkflowExecutorOptions
 ): UseWorkflowExecutorReturn {
   const [isExecutionFormVisible, setIsExecutionFormVisible] = useState(false);
-  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
-    []
-  );
-
-  const executionContextRef = useRef<{
+  const [formParameters, setFormParameters] = useState<DialogFormParameter[]>([]);
+  const [executionContext, setExecutionContext] = useState<{
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
     jsonBodyNode?: ReactFlowNode<WorkflowNodeType>;
   } | null>(null);
 
-  const activeExecutionCleanupRef = useRef<(() => void) | null>(null);
+  const pollingRef = useRef<{
+    intervalId?: NodeJS.Timeout;
+    cancelled: boolean;
+  }>({ cancelled: false });
+
+  const cleanup = useCallback(() => {
+    if (pollingRef.current.intervalId) {
+      clearInterval(pollingRef.current.intervalId);
+    }
+    pollingRef.current.cancelled = true;
+    pollingRef.current.intervalId = undefined;
+  }, []);
 
   const performExecutionAndPoll = useCallback(
     (
@@ -625,101 +660,57 @@ export function useWorkflowExecutor(
       onExecutionUpdate: (execution: WorkflowExecution) => void,
       requestBody?: Record<string, any>
     ): (() => void) => {
-      console.log(`Starting execution for ID: ${id} with body:`, requestBody);
+      cleanup();
+      pollingRef.current.cancelled = false;
 
-      let pollingIntervalId: NodeJS.Timeout | undefined = undefined;
-      let cancelled = false;
-
-      const cleanup = () => {
-        cancelled = true;
-        if (pollingIntervalId) {
-          clearInterval(pollingIntervalId);
-        }
-        console.log(`Client-side polling cleanup called for ID: ${id}.`);
-        activeExecutionCleanupRef.current = null;
-      };
-      activeExecutionCleanupRef.current = cleanup;
-
-      // Use the provided execute function
       options
         .executeWorkflowFn(id, requestBody)
         .then((initialExecution: WorkflowExecution) => {
-          if (cancelled) return;
-          const executionId = initialExecution.id;
-
-          const updateExecutionState = (exec: WorkflowExecution) => {
-            onExecutionUpdate(exec);
-          };
-
-          updateExecutionState(initialExecution);
+          if (pollingRef.current.cancelled) return;
+          onExecutionUpdate(initialExecution);
 
           if (
             initialExecution.status === "completed" ||
             initialExecution.status === "error"
           ) {
-            if (activeExecutionCleanupRef.current)
-              activeExecutionCleanupRef.current();
+            cleanup();
             return;
           }
 
-          pollingIntervalId = setInterval(async () => {
-            if (cancelled) {
-              clearInterval(pollingIntervalId);
-              return;
-            }
+          pollingRef.current.intervalId = setInterval(async () => {
+            if (pollingRef.current.cancelled) return;
 
             try {
-              // Need to handle the organization when using getExecution
-              // For our service, we need both executionId and orgHandle
-              // If getExecutionFn is provided, assume it will handle org context internally
-              let execution: WorkflowExecution;
+              const execution = options.getExecutionFn
+                ? await options.getExecutionFn(initialExecution.id)
+                : await (getExecution as any)(initialExecution.id);
 
-              if (options.getExecutionFn) {
-                execution = await options.getExecutionFn(executionId);
-              } else {
-                // For our fallback, we need to get org handle
-                // This is sub-optimal but will be handled better in the editor component
-                console.warn(
-                  "Using fallback getExecution without org context - this may fail"
-                );
-                execution = await (getExecution as any)(executionId);
-              }
-
-              if (cancelled) {
-                clearInterval(pollingIntervalId);
-                return;
-              }
-
-              updateExecutionState(execution);
+              if (pollingRef.current.cancelled) return;
+              onExecutionUpdate(execution);
 
               if (
                 execution.status === "completed" ||
                 execution.status === "error"
               ) {
-                clearInterval(pollingIntervalId);
-                if (activeExecutionCleanupRef.current)
-                  activeExecutionCleanupRef.current();
+                cleanup();
               }
             } catch (error) {
               console.error("Error polling execution status:", error);
-              clearInterval(pollingIntervalId);
+              cleanup();
               onExecutionUpdate({
-                id: executionId,
+                id: initialExecution.id,
                 workflowId: id,
                 status: "error",
                 nodeExecutions: [],
                 visibility: "private",
-                error:
-                  error instanceof Error ? error.message : "Polling failed",
+                error: error instanceof Error ? error.message : "Polling failed",
               });
-              if (activeExecutionCleanupRef.current)
-                activeExecutionCleanupRef.current();
             }
           }, 1000);
         })
         .catch((error) => {
-          if (cancelled) return;
-          console.error("Error starting or processing execution:", error);
+          if (pollingRef.current.cancelled) return;
+          cleanup();
           onExecutionUpdate({
             id: "",
             workflowId: id,
@@ -728,13 +719,11 @@ export function useWorkflowExecutor(
             visibility: "private",
             error: error instanceof Error ? error.message : "Failed to execute",
           });
-          if (activeExecutionCleanupRef.current)
-            activeExecutionCleanupRef.current();
         });
 
       return cleanup;
     },
-    [options]
+    [options, cleanup]
   );
 
   const executeWorkflow = useCallback(
@@ -744,14 +733,9 @@ export function useWorkflowExecutor(
       uiNodes: ReactFlowNode<WorkflowNodeType>[],
       nodeTemplatesData: NodeTemplate[] | undefined
     ): (() => void) | undefined => {
-      if (activeExecutionCleanupRef.current) {
-        activeExecutionCleanupRef.current();
-      }
+      cleanup();
 
       if (!nodeTemplatesData) {
-        console.error(
-          "Node templates are not available. Cannot determine execution parameters."
-        );
         onExecution({
           id: "",
           workflowId: id,
@@ -763,109 +747,53 @@ export function useWorkflowExecutor(
         return undefined;
       }
 
-      // Check for body.json nodes
       const jsonBodyNode = uiNodes.find(
         (node) => node.data.nodeType === "body.json"
       );
-
-      // Check if JSON body is required
-      const isJsonBodyRequired = jsonBodyNode
-        ? ((jsonBodyNode.data.inputs.find((input) => input.id === "required")
-            ?.value ?? true) as boolean)
-        : false;
-
-      // Extract all parameters (including body.json)
       const httpParameterNodes = extractDialogParametersFromNodes(
         uiNodes,
         nodeTemplatesData
       );
 
       if (httpParameterNodes.length > 0) {
-        // If we have parameters, show the form
         setFormParameters(httpParameterNodes);
         setIsExecutionFormVisible(true);
-        executionContextRef.current = {
-          id,
-          onExecution,
-          // Store the JSON body node if it exists
-          jsonBodyNode: jsonBodyNode,
-        };
+        setExecutionContext({ id, onExecution, jsonBodyNode });
         return undefined;
-      } else if (jsonBodyNode) {
-        // No form parameters but we have a JSON body node
-
-        // Always include a non-empty JSON object when JSON body is required
-        // This avoids the "JSON body is required but not provided" error
-        const defaultJsonBody = isJsonBodyRequired ? { data: {} } : {};
-
-        return performExecutionAndPoll(id, onExecution, defaultJsonBody);
-      } else {
-        // No parameters at all
-        return performExecutionAndPoll(id, onExecution);
       }
+
+      const isJsonBodyRequired = jsonBodyNode
+        ? ((jsonBodyNode.data.inputs.find((input) => input.id === "required")
+            ?.value ?? true) as boolean)
+        : false;
+
+      const defaultJsonBody = isJsonBodyRequired ? { data: {} } : {};
+      return performExecutionAndPoll(id, onExecution, defaultJsonBody);
     },
-    [performExecutionAndPoll]
+    [performExecutionAndPoll, cleanup]
   );
 
   const submitExecutionForm = useCallback(
     (formData: Record<string, any>) => {
       setIsExecutionFormVisible(false);
-      if (executionContextRef.current) {
-        const { id, onExecution, jsonBodyNode } = executionContextRef.current;
-
-        // Check if we have a JSON body parameter
-        const hasJsonBodyParam = jsonBodyNode && "requestBody" in formData;
-
-        if (hasJsonBodyParam) {
-          // Extract the JSON body from the form data
-          const jsonBody = formData.requestBody;
-
-          // Remove the special field so we only keep regular form parameters
-          const { requestBody, ...regularFormData } = formData;
-
-          // If we have a valid JSON body, use it as the request body
-          // Otherwise, use the regular form data
-          if (jsonBody && typeof jsonBody === "object") {
-            // Use the JSON itself as the request body
-            performExecutionAndPoll(id, onExecution, jsonBody);
-          } else if (Object.keys(regularFormData).length > 0) {
-            // Fall back to form data if we have other parameters
-            performExecutionAndPoll(id, onExecution, regularFormData);
-          } else {
-            // If the JSON body is required but no valid JSON was provided,
-            // use an empty object to avoid "JSON body is required but not provided" errors
-            const isJsonBodyRequired = (jsonBodyNode.data.inputs.find(
-              (input) => input.id === "required"
-            )?.value ?? true) as boolean;
-
-            const defaultBody = isJsonBodyRequired ? { data: {} } : {};
-            performExecutionAndPoll(id, onExecution, defaultBody);
-          }
-        } else {
-          // No JSON body parameter, use form data as usual
-          performExecutionAndPoll(id, onExecution, formData);
-        }
+      if (executionContext) {
+        const { id, onExecution, jsonBodyNode } = executionContext;
+        const requestBody = handleJsonBodyParameters(jsonBodyNode, formData);
+        performExecutionAndPoll(id, onExecution, requestBody);
       }
-      executionContextRef.current = null;
+      setExecutionContext(null);
     },
-    [performExecutionAndPoll]
+    [executionContext, performExecutionAndPoll]
   );
 
   const closeExecutionForm = useCallback(() => {
     setIsExecutionFormVisible(false);
-    executionContextRef.current = null;
+    setExecutionContext(null);
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (activeExecutionCleanupRef.current) {
-        console.log(
-          "Cleaning up active execution from useWorkflowExecutor unmount/effect."
-        );
-        activeExecutionCleanupRef.current();
-      }
-    };
-  }, []);
+    return cleanup;
+  }, [cleanup]);
 
   return {
     executeWorkflow,
