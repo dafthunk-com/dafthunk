@@ -320,19 +320,19 @@ workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
     }
     workflowData = workflow.data as WorkflowType;
   } else {
-    // Get deployment ID based on version
+    // Get deployment based on version
+    let deployment;
     if (version === "latest") {
-      const latestDeployment = await getLatestDeploymentByWorkflowId(
+      deployment = await getLatestDeploymentByWorkflowId(
         db,
         id,
         user.organization.id
       );
-      if (!latestDeployment) {
+      if (!deployment) {
         return c.json({ error: "No deployments found for this workflow" }, 404);
       }
-      deploymentId = latestDeployment.id;
     } else {
-      const deployment = await getDeploymentByVersion(
+      deployment = await getDeploymentByVersion(
         db,
         id,
         version,
@@ -341,22 +341,9 @@ workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
       if (!deployment) {
         return c.json({ error: "Deployment version not found" }, 404);
       }
-      deploymentId = deployment.id;
     }
 
-    // Get workflow data from deployment
-    if (!deploymentId) {
-      return c.json({ error: "Deployment ID not found" }, 404);
-    }
-
-    const deployment = await getDeploymentById(
-      db,
-      deploymentId,
-      user.organization.id
-    );
-    if (!deployment) {
-      return c.json({ error: "Deployment not found" }, 404);
-    }
+    deploymentId = deployment.id;
     workflowData = deployment.workflowData as WorkflowType;
     workflow = {
       id: deployment.workflowId,
@@ -381,22 +368,21 @@ workflowRoutes.post("/:id/execute/:version", jwtAuth, async (c) => {
   const method = c.req.method;
   const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
 
-  // Try to parse form data
+  // Initialize formData variable
   let formData: Record<string, string | File> | undefined;
-  try {
-    formData = Object.fromEntries(await c.req.formData());
-  } catch {
-    // No form data or invalid form data
-  }
 
   // Get request body if it exists
   let body: any = undefined;
   try {
-    if (c.req.raw.headers.get("content-type")?.includes("application/json")) {
+    const contentType = c.req.header("content-type");
+    if (contentType?.includes("application/json")) {
       body = await c.req.json();
+    } else if (contentType?.includes("multipart/form-data")) {
+      formData = Object.fromEntries(await c.req.formData());
     }
-  } catch {
-    // No body or invalid JSON
+  } catch (error) {
+    console.error("Error parsing request body:", error);
+    // Continue without body
   }
 
   // Trigger the runtime and get the instance id
