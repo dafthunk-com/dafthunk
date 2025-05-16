@@ -2,8 +2,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 
-interface WorkflowErrorProps {
+export interface WorkflowErrorProps {
   message: string;
+  details?: string;
   onRetry?: () => void;
 }
 

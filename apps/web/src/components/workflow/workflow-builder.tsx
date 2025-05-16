@@ -3,10 +3,18 @@ import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { useWorkflowState } from "./useWorkflowState";
 import { WorkflowCanvas } from "./workflow-canvas";
 import type {
-  WorkflowBuilderProps,
+  WorkflowNodeType,
+  WorkflowEdgeType,
+  NodeTemplate,
   WorkflowExecutionStatus,
   WorkflowExecution,
 } from "./workflow-types.tsx";
+import type {
+  Connection,
+  Node as ReactFlowNode,
+  Edge as ReactFlowEdge,
+} from "@xyflow/react";
+import type { ObjectReference } from "@dafthunk/types";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { WorkflowProvider } from "./workflow-context";
@@ -19,6 +27,25 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+
+export interface WorkflowBuilderProps {
+  workflowId: string;
+  initialNodes?: ReactFlowNode<WorkflowNodeType>[];
+  initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
+  nodeTemplates?: NodeTemplate[];
+  onNodesChange?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
+  onEdgesChange?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
+  validateConnection?: (connection: Connection) => boolean;
+  executeWorkflow?: (
+    workflowId: string,
+    onExecution: (execution: WorkflowExecution) => void
+  ) => void | (() => void);
+  initialWorkflowExecution?: WorkflowExecution;
+  readonly?: boolean;
+  onDeployWorkflow?: (e: React.MouseEvent) => void;
+  createObjectUrl: (objectReference: ObjectReference) => string;
+  expandedOutputs?: boolean;
+}
 
 export function WorkflowBuilder({
   workflowId,

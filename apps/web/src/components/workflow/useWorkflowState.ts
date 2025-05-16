@@ -7,17 +7,79 @@ import {
   Node as ReactFlowNode,
   Edge as ReactFlowEdge,
   ReactFlowInstance,
+  Connection,
+  OnNodesChange,
+  OnEdgesChange,
+  OnConnect,
+  OnConnectStart,
+  OnConnectEnd,
+  IsValidConnection,
 } from "@xyflow/react";
-import {
+import type {
   WorkflowNodeType,
   WorkflowEdgeType,
   NodeTemplate,
   ConnectionValidationState,
-  UseWorkflowStateProps,
-  UseWorkflowStateReturn,
   NodeExecutionState,
-  NodeExecutionUpdate,
 } from "./workflow-types";
+import type { ObjectReference } from "@dafthunk/types";
+
+interface UseWorkflowStateProps {
+  initialNodes?: ReactFlowNode<WorkflowNodeType>[];
+  initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
+  onNodesChangePersist?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
+  onEdgesChangePersist?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
+  validateConnection?: (connection: Connection) => boolean;
+  createObjectUrl: (objectReference: ObjectReference) => string;
+  readonly?: boolean;
+}
+
+type NodeExecutionUpdate = {
+  state?: NodeExecutionState;
+  outputs?: Record<string, any>;
+  error?: string;
+};
+
+interface UseWorkflowStateReturn {
+  nodes: ReactFlowNode<WorkflowNodeType>[];
+  edges: ReactFlowEdge<WorkflowEdgeType>[];
+  selectedNode: ReactFlowNode<WorkflowNodeType> | null;
+  selectedEdge: ReactFlowEdge<WorkflowEdgeType> | null;
+  reactFlowInstance: ReactFlowInstance<
+    ReactFlowNode<WorkflowNodeType>,
+    ReactFlowEdge<WorkflowEdgeType>
+  > | null;
+  isNodeSelectorOpen: boolean;
+  setIsNodeSelectorOpen: (open: boolean) => void;
+  onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
+  onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
+  onConnect: OnConnect;
+  onConnectStart: OnConnectStart;
+  onConnectEnd: OnConnectEnd;
+  connectionValidationState: ConnectionValidationState;
+  isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
+  handleNodeClick: (
+    event: React.MouseEvent,
+    node: ReactFlowNode<WorkflowNodeType>
+  ) => void;
+  handleEdgeClick: (
+    event: React.MouseEvent,
+    edge: ReactFlowEdge<WorkflowEdgeType>
+  ) => void;
+  handlePaneClick: () => void;
+  handleAddNode: () => void;
+  handleNodeSelect: (template: NodeTemplate) => void;
+  setReactFlowInstance: (
+    instance: ReactFlowInstance<
+      ReactFlowNode<WorkflowNodeType>,
+      ReactFlowEdge<WorkflowEdgeType>
+    > | null
+  ) => void;
+  updateNodeExecution: (nodeId: string, update: NodeExecutionUpdate) => void;
+  updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
+  deleteNode: (nodeId: string) => void;
+}
 
 // Helper functions to replace workflowNodeStateService
 const stripExecutionFields = (

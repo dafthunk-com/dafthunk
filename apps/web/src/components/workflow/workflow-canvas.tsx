@@ -4,11 +4,25 @@ import {
   Background,
   BackgroundVariant,
   ConnectionMode,
+  Node as ReactFlowNode,
+  Edge as ReactFlowEdge,
+  OnNodesChange,
+  OnEdgesChange,
+  OnConnect,
+  OnConnectStart,
+  OnConnectEnd,
+  ReactFlowInstance,
+  IsValidConnection,
 } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { WorkflowNode } from "./workflow-node";
 import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
-import { WorkflowCanvasProps } from "./workflow-types";
+import type {
+  WorkflowNodeType,
+  WorkflowEdgeType,
+  ConnectionValidationState,
+  WorkflowExecutionStatus,
+} from "./workflow-types";
 import {
   Plus,
   Play,
@@ -20,7 +34,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/utils/utils";
 import "@xyflow/react/dist/style.css";
-import { WorkflowExecutionStatus } from "@dafthunk/types";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
@@ -29,6 +42,41 @@ const nodeTypes = {
 const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
+
+export interface WorkflowCanvasProps {
+  nodes: ReactFlowNode<WorkflowNodeType>[];
+  edges: ReactFlowEdge<WorkflowEdgeType>[];
+  connectionValidationState?: ConnectionValidationState;
+  onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
+  onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
+  onConnect: OnConnect;
+  onConnectStart: OnConnectStart;
+  onConnectEnd: OnConnectEnd;
+  onNodeClick: (
+    event: React.MouseEvent,
+    node: ReactFlowNode<WorkflowNodeType>
+  ) => void;
+  onEdgeClick: (
+    event: React.MouseEvent,
+    edge: ReactFlowEdge<WorkflowEdgeType>
+  ) => void;
+  onPaneClick: () => void;
+  onInit: (
+    instance: ReactFlowInstance<
+      ReactFlowNode<WorkflowNodeType>,
+      ReactFlowEdge<WorkflowEdgeType>
+    >
+  ) => void;
+  onAddNode?: () => void;
+  onAction?: (e: React.MouseEvent) => void;
+  onDeploy?: (e: React.MouseEvent) => void;
+  workflowStatus?: WorkflowExecutionStatus;
+  onToggleSidebar?: (e: React.MouseEvent) => void;
+  isSidebarVisible?: boolean;
+  showControls?: boolean;
+  isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
+  readonly?: boolean;
+}
 
 type ActionButtonProps = {
   onClick: (e: React.MouseEvent) => void;

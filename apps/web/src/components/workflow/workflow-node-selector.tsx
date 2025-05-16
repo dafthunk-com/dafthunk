@@ -8,10 +8,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "lucide-react";
-import { NodeTemplate, WorkflowNodeSelectorProps } from "./workflow-types";
+import type { NodeTemplate } from "./workflow-types";
 import { cn } from "@/utils/utils";
 
 type ActiveElement = "search" | "categories" | "nodes";
+
+export interface WorkflowNodeSelectorProps {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (template: NodeTemplate) => void;
+  templates?: NodeTemplate[];
+}
 
 export function WorkflowNodeSelector({
   open,

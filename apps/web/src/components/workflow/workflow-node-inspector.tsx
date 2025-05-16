@@ -3,10 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
-import {
-  WorkflowNodeInspectorProps,
-  WorkflowParameter,
-} from "./workflow-types";
+import type { WorkflowParameter } from "./workflow-types";
 import { useState, useEffect, createElement } from "react";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import {
@@ -28,6 +25,16 @@ import { WebcamWidget } from "./widgets/webcam-widget";
 import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 import { DocumentWidget } from "./widgets/document-widget";
+import type { Node as ReactFlowNode } from "@xyflow/react";
+import type { WorkflowNodeType } from "./workflow-types";
+import type { ObjectReference } from "@dafthunk/types";
+
+export interface WorkflowNodeInspectorProps {
+  node: ReactFlowNode<WorkflowNodeType> | null;
+  onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
+  readonly?: boolean;
+  createObjectUrl: (objectReference: ObjectReference) => string;
+}
 
 export function WorkflowNodeInspector({
   node,

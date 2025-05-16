@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { WorkflowEdgeInspectorProps } from "./workflow-types";
+import type { Edge as ReactFlowEdge } from "@xyflow/react";
+import type { WorkflowEdgeType } from "./workflow-types";
+
+export interface WorkflowEdgeInspectorProps {
+  edge: ReactFlowEdge<WorkflowEdgeType> | null;
+  onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
+  readonly?: boolean;
+}
 
 export function WorkflowEdgeInspector({
   edge,
