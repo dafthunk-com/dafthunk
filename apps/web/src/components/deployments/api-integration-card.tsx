@@ -1,6 +1,12 @@
 import type { Node } from "@xyflow/react";
 import { Copy, Terminal } from "lucide-react";
 
+import {
+  EXECUTE_WORKFLOW_SNIPPETS,
+  GET_EXECUTION_STATUS_SNIPPETS,
+  GET_OBJECT_SNIPPETS,
+  type SnippetParams,
+} from "@/components/deployments/api-snippets";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,12 +22,6 @@ import type {
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { API_BASE_URL } from "@/config/api";
-import {
-  EXECUTE_WORKFLOW_SNIPPETS,
-  GET_EXECUTION_STATUS_SNIPPETS,
-  GET_OBJECT_SNIPPETS,
-  type SnippetParams,
-} from "@/components/deployments/api-snippets";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 interface ApiIntegrationCardProps {
