@@ -84,6 +84,7 @@
     "eslint-plugin-react-compiler": "19.1.0-rc.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^15.15.0",
     "postcss": "8.5.3",
     "prettier": "^3.5.3",

@@ -5,6 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import reactCompiler from "eslint-plugin-react-compiler";
 import prettierPlugin from "eslint-plugin-prettier";
+import unusedImports from "eslint-plugin-unused-imports";
 
 export default [
   { ignores: ["dist", ".wrangler/**", "node_modules/**"] },
@@ -23,6 +24,7 @@ export default [
       "react-refresh": reactRefresh,
       "react-compiler": reactCompiler,
       prettier: prettierPlugin,
+      "unused-imports": unusedImports,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -36,7 +38,9 @@ export default [
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "react-hooks/exhaustive-deps": "warn",
-      "@typescript-eslint/no-unused-vars": [
+      "@typescript-eslint/no-unused-vars": "off",
+      "unused-imports/no-unused-imports": "error",
+      "unused-imports/no-unused-vars": [
         "error",
         {
           args: "all",
