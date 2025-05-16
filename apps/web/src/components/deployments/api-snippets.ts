@@ -184,3 +184,63 @@ print(response.json())`;
     return template.replace("{{STATUS_URL}}", statusUrl).trim();
   },
 };
+
+export const GET_OBJECT_SNIPPETS = {
+  curl: (objectUrl: string) => {
+    const template = `curl -X GET "{{OBJECT_URL}}&mimeType=YOUR_OBJECT_MIME_TYPE" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`;
+    return template.replace("{{OBJECT_URL}}", objectUrl);
+  },
+  javascript: (objectUrl: string) => {
+    const template = `
+const response = await fetch("{{OBJECT_URL}}&mimeType=YOUR_OBJECT_MIME_TYPE", {
+  method: "GET",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY"
+  }
+});
+
+// Depending on the object's mimeType, you may need to handle the response differently
+// For example, for an image:
+// const blob = await response.blob();
+// const imageUrl = URL.createObjectURL(blob);
+// console.log(imageUrl);
+
+// For JSON:
+// const data = await response.json();
+// console.log(data);
+
+// For text:
+// const text = await response.text();
+// console.log(text);
+
+if (response.ok) {
+  console.log("Object fetched successfully. Handle response based on mimeType.");
+} else {
+  console.error("Error fetching object:", response.status, await response.text());
+}`;
+    return template.replace("{{OBJECT_URL}}", objectUrl).trim();
+  },
+  python: (objectUrl: string) => {
+    const template = `
+import requests
+
+url = "{{OBJECT_URL}}&mimeType=YOUR_OBJECT_MIME_TYPE"
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY"
+}
+response = requests.get(url, headers=headers)
+
+if response.status_code == 200:
+    # Depending on the object's mimeType, you might want to save it to a file
+    # or process it in memory.
+    # For example, to save to a file:
+    # with open("downloaded_object.ext", "wb") as f: # replace .ext with actual extension
+    #     f.write(response.content)
+    print("Object fetched successfully. Content length:", len(response.content))
+else:
+    print(f"Error fetching object: {response.status_code}")
+    print(response.text)`;
+    return template.replace("{{OBJECT_URL}}", objectUrl).trim();
+  },
+};

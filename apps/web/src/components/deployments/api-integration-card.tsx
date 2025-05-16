@@ -19,6 +19,7 @@ import { API_BASE_URL } from "@/config/api";
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
   GET_EXECUTION_STATUS_SNIPPETS,
+  GET_OBJECT_SNIPPETS,
   type SnippetParams,
 } from "@/components/deployments/api-snippets";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
@@ -41,6 +42,7 @@ export function ApiIntegrationCard({
   const baseUrl = API_BASE_URL.replace(/\/$/, "");
   const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
   const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`; // Execution ID will be appended in snippets
+  const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`; // Object ID and mimeType to be added
 
   const parameters = extractDialogParametersFromNodes(nodes, nodeTemplates);
 
@@ -56,7 +58,7 @@ export function ApiIntegrationCard({
   };
 
   const renderSnippets = (
-    operation: "execute" | "status",
+    operation: "execute" | "status" | "getObject",
     language: "curl" | "javascript" | "python"
   ) => {
     if (operation === "execute") {
@@ -95,6 +97,18 @@ export function ApiIntegrationCard({
           return "";
       }
     }
+    if (operation === "getObject") {
+      switch (language) {
+        case "curl":
+          return GET_OBJECT_SNIPPETS.curl(objectBaseUrl);
+        case "javascript":
+          return GET_OBJECT_SNIPPETS.javascript(objectBaseUrl);
+        case "python":
+          return GET_OBJECT_SNIPPETS.python(objectBaseUrl);
+        default:
+          return "";
+      }
+    }
     return "";
   };
 
@@ -127,6 +141,12 @@ export function ApiIntegrationCard({
                 GET&nbsp;
               </span>{" "}
               Execution Status
+            </TabsTrigger>
+            <TabsTrigger value="getObject">
+              <span className="text-xs font-mono me-2 text-blue-600">
+                GET&nbsp;
+              </span>{" "}
+              Object
             </TabsTrigger>
           </TabsList>
 
@@ -335,6 +355,115 @@ export function ApiIntegrationCard({
                 <li>
                   This endpoint is used to poll for the status and result of a
                   workflow execution.
+                </li>
+              </ul>
+            </div>
+          </TabsContent>
+
+          {/* Get Object Operation */}
+          <TabsContent value="getObject" className="mt-0 p-4">
+            <Tabs defaultValue="curl">
+              <TabsList>
+                <TabsTrigger value="curl" className="text-sm">
+                  cURL
+                </TabsTrigger>
+                <TabsTrigger value="javascript" className="text-sm">
+                  JavaScript
+                </TabsTrigger>
+                <TabsTrigger value="python" className="text-sm">
+                  Python
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="curl" className="mt-4 space-y-4">
+                <div className="relative">
+                  <Code
+                    language="bash"
+                    className="text-xs md:text-sm overflow-x-auto font-mono"
+                  >
+                    {renderSnippets("getObject", "curl")}
+                  </Code>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2 h-7 w-7 p-0"
+                    onClick={() =>
+                      handleCopy(renderSnippets("getObject", "curl"))
+                    }
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span className="sr-only">Copy</span>
+                  </Button>
+                </div>
+              </TabsContent>
+              <TabsContent value="javascript" className="mt-4 space-y-4">
+                <div className="relative">
+                  <Code
+                    language="javascript"
+                    className="text-xs md:text-sm overflow-x-auto font-mono"
+                  >
+                    {renderSnippets("getObject", "javascript")}
+                  </Code>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2 h-7 w-7 p-0"
+                    onClick={() =>
+                      handleCopy(renderSnippets("getObject", "javascript"))
+                    }
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span className="sr-only">Copy</span>
+                  </Button>
+                </div>
+              </TabsContent>
+              <TabsContent value="python" className="mt-4 space-y-4">
+                <div className="relative">
+                  <Code
+                    language="python"
+                    className="text-xs md:text-sm overflow-x-auto font-mono"
+                  >
+                    {renderSnippets("getObject", "python")}
+                  </Code>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="absolute top-2 right-2 h-7 w-7 p-0"
+                    onClick={() =>
+                      handleCopy(renderSnippets("getObject", "python"))
+                    }
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span className="sr-only">Copy</span>
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground font-medium">
+                Notes for Get Object:
+              </p>
+              <ul className="list-disc pl-5 mt-1 space-y-1 text-muted-foreground text-xs">
+                <li>
+                  Replace{" "}
+                  <code className="text-xs font-mono">YOUR_API_KEY</code> with
+                  an API key.
+                </li>
+                <li>
+                  Replace{" "}
+                  <code className="text-xs font-mono">YOUR_OBJECT_ID</code> in
+                  the URL with the actual ID of the object.
+                </li>
+                <li>
+                  Replace{" "}
+                  <code className="text-xs font-mono">
+                    YOUR_OBJECT_MIME_TYPE
+                  </code>{" "}
+                  in the URL with the actual MIME type of the object (e.g.,
+                  image/png, application/json, text/plain).
+                </li>
+                <li>
+                  This endpoint retrieves the raw object data. How you process
+                  the response will depend on the object&apos;s MIME type.
                 </li>
               </ul>
             </div>
