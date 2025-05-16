@@ -3,12 +3,17 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import unusedImports from "eslint-plugin-unused-imports";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 
 export default defineConfig([
   { ignores: ["dist", ".wrangler/**", "node_modules/**"] },
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
-    plugins: { js, unusedImports },
+    plugins: {
+      js,
+      "unused-imports": unusedImports,
+      "simple-import-sort": simpleImportSort,
+    },
     extends: ["js/recommended"],
   },
   {
@@ -35,6 +40,8 @@ export default defineConfig([
           ignoreRestSiblings: true,
         },
       ],
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
     },
   },
 ]);

@@ -6,6 +6,7 @@ import tseslint from "typescript-eslint";
 import reactCompiler from "eslint-plugin-react-compiler";
 import prettierPlugin from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 
 export default [
   { ignores: ["dist", ".wrangler/**", "node_modules/**"] },
@@ -25,6 +26,7 @@ export default [
       "react-compiler": reactCompiler,
       prettier: prettierPlugin,
       "unused-imports": unusedImports,
+      "simple-import-sort": simpleImportSort,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -52,6 +54,8 @@ export default [
           ignoreRestSiblings: true,
         },
       ],
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
     },
   },
 ];
