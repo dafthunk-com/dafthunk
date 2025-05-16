@@ -15,6 +15,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "eslint \"src/**/*.ts*\"",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "format": "prettier --write \"src/**/*.ts\""
   },

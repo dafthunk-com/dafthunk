@@ -1,0 +1,5 @@
+{
+  "ignore": ["apps/api/src/index.ts", "apps/api/src/db/schema/index.ts"],
+  "ignoreExportsUsedInFile": true,
+  "includeEntryExports": true
+}
