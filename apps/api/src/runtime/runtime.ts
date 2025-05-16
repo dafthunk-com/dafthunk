@@ -95,14 +95,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executedNodes: new Set(),
       nodeErrors: new Map(),
       sortedNodes: [],
-      status: "idle",
+      status: "submitted",
     };
 
     let executionRecord: WorkflowExecution = {
       id: instanceId,
       workflowId: event.payload.workflow.id,
       deploymentId: event.payload.deploymentId,
-      status: "idle",
+      status: "submitted",
       nodeExecutions: [],
       visibility: "private",
       startedAt: undefined,

@@ -25,7 +25,7 @@ alwaysApply: true
 
 ## Styling
 - Use **Tailwind CSS** exclusively — do not use external CSS or styled-components.
-- Use the `cn` utility from `@/lib/utils` for conditional class names.
+- Use the `cn` utility from `@/utils/utils` for conditional class names.
   - Avoid ternaries in className strings.
 
 ## Naming Conventions
