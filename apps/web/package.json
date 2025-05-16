@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "pnpm run format:check && eslint .",
     "typecheck": "tsc --noEmit",
+    "fix": "eslint --fix . && pnpm run format",
     "test": "vitest run",
     "dev": "vite dev --port 3000",
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",

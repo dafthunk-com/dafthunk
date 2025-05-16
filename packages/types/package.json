@@ -14,10 +14,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "lint": "eslint \"src/**/*.ts*\"",
+    "lint": "pnpm format:check && eslint .",
     "typecheck": "tsc --noEmit",
+    "fix": "eslint --fix . && pnpm run format",
     "clean": "rm -rf dist",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
