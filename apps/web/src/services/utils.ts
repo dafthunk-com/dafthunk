@@ -24,7 +24,7 @@ export const makeRequest = async <T>(
       ...defaultHeaders,
       ...options.headers, // Then spread specific headers from options, allowing override
     },
-    credentials: "include",
+    credentials: options.credentials || "include",
   };
 
   const response = await fetch(fullUrl, requestOptions);

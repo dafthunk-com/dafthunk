@@ -291,10 +291,7 @@ export const getPublicExecution = async (
   executionId: string
 ): Promise<PublicExecutionWithStructure> => {
   const response = await makeRequest<GetPublicExecutionResponse>(
-    `/public/executions/${executionId}`,
-    {
-      credentials: "omit",
-    }
+    `/public/executions/${executionId}`
   );
 
   return response.execution;

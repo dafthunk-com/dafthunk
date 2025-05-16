@@ -6,9 +6,6 @@ export const corsMiddleware = (
   c: Context<ApiContext>,
   next: () => Promise<void>
 ) => {
-  const path = new URL(c.req.url).pathname;
-  const isPublicRoute = path.startsWith("/public");
-
   return cors({
     origin: c.env.WEB_HOST,
     allowHeaders: [
@@ -25,6 +22,6 @@ export const corsMiddleware = (
     allowMethods: ["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH"],
     exposeHeaders: ["Content-Length", "X-Content-Type-Options"],
     maxAge: 600,
-    credentials: !isPublicRoute,
+    credentials: true,
   })(c, next);
 };
