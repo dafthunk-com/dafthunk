@@ -1,5 +1,3 @@
-// Node Type API types
-
 import { NodeType } from "./workflow";
 
 /**

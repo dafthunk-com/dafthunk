@@ -1,4 +1,3 @@
-// Deployment types
 import {
   WorkflowDeployment,
   WorkflowDeploymentVersion,
@@ -22,10 +21,7 @@ export type GetDeploymentVersionResponse = WorkflowDeploymentVersion;
  * Response for listing all deployments for a specific workflow
  */
 export interface GetWorkflowDeploymentsResponse {
-  workflow: {
-    id: string;
-    name: string;
-  };
+  workflow: Pick<Workflow, "id" | "name">;
   deployments: WorkflowDeploymentVersion[];
 }
 
@@ -72,12 +68,7 @@ export interface HttpRequestInfo {
 export interface ExecutionRuntimeParams {
   userId: string;
   organizationId: string;
-  workflow: {
-    id: string;
-    name: string;
-    nodes: Workflow["nodes"];
-    edges: Workflow["edges"];
-  };
+  workflow: Pick<Workflow, "id" | "name" | "nodes" | "edges">;
   monitorProgress: boolean;
   deploymentId: string;
   httpRequest: HttpRequestInfo;

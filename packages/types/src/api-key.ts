@@ -1,5 +1,3 @@
-// API Key types
-
 /**
  * Represents an API key record as stored in the database
  * Mirrors the ApiKey type from the database schema

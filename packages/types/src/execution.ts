@@ -1,9 +1,8 @@
-// Execution types
 import { WorkflowExecution } from "./workflow";
 import { Node, Edge } from "./workflow";
 
 /**
- * Request for filtering executions
+ * Request to filter executions
  */
 export interface ListExecutionsRequest {
   workflowId?: string;

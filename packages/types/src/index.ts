@@ -1,5 +1,5 @@
 export * from "./dashboard";
-export * from "./apiKey";
+export * from "./api-key";
 export * from "./workflow";
 export * from "./execution";
 export * from "./deployment";

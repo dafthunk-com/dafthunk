@@ -1,5 +1,3 @@
-// Core workflow types
-
 /**
  * Represents an object reference with ID and MIME type
  */

@@ -1,5 +1,3 @@
-// Object storage types
-
 /**
  * Represents an object record with metadata
  */
@@ -30,7 +28,7 @@ export interface UploadObjectResponse {
 }
 
 /**
- * Response when getting an object's metadata
+ * Response when retrieving an object's metadata
  */
 export interface GetObjectMetadataResponse {
   metadata: ObjectMetadata;
