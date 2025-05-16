@@ -9,13 +9,14 @@
     "format": "pnpm --parallel format",
     "lint": "pnpm run typecheck && pnpm --parallel lint && pnpm run knip",
     "typecheck": "pnpm --parallel typecheck",
-    "fix": "pnpm run knip --fix --no-exit-code && pnpm --parallel fix && pnpm run format",
+    "fix": "pnpm --parallel fix && pnpm run format",
     "test": "pnpm --parallel --filter '@dafthunk/api' test",
     "build": "pnpm build:packages && pnpm build:apps",
     "build:packages": "pnpm --filter '@dafthunk/types' build",
     "build:apps": "pnpm --filter '@dafthunk/web' build",
     "start": "pnpm --parallel start",
-    "knip": "knip --include-libs"
+    "knip": "knip --include-libs",
+    "knip:fix": "knip --include-libs --fix --allow-remove-files"
   },
   "devDependencies": {
     "knip": "^5.56.0"
