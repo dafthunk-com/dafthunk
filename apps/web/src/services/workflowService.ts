@@ -11,8 +11,6 @@ import {
   ExecuteWorkflowResponse,
   Edge,
   Node,
-  NodeType,
-  GetNodeTypesResponse,
   Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
@@ -22,9 +20,7 @@ import {
   Edge as ReactFlowEdge,
   Connection,
   Node as ReactFlowNode,
-  XYPosition,
 } from "@xyflow/react";
-import { NodeExecutionState } from "@/components/workflow/workflow-types.tsx";
 import {
   WorkflowNodeType,
   NodeTemplate,
@@ -37,25 +33,12 @@ import { getExecution } from "./executionService";
 // Base endpoint for workflows
 const API_ENDPOINT_BASE = "/workflows";
 
-// Base endpoint for node types
-const NODE_TYPES_API_ENDPOINT = "/types";
-
 /**
  * Type representing a connection validation result
  */
 export type ConnectionValidationResult =
   | { status: "valid" }
   | { status: "invalid"; reason: string };
-
-/**
- * Interface for the useNodeTypes hook return value
- */
-interface UseNodeTypes {
-  nodeTypes: NodeType[];
-  nodeTypesError: Error | null;
-  isNodeTypesLoading: boolean;
-  mutateNodeTypes: () => Promise<any>;
-}
 
 /**
  * @interface UseWorkflowExecutorOptions
@@ -158,41 +141,6 @@ export const useWorkflow = (id: string | null) => {
     workflowError: error || null,
     isWorkflowLoading: isLoading,
     mutateWorkflow: mutate,
-  };
-};
-
-/**
- * Hook to fetch all available node types for a specific organization
- * @param orgHandle The organization handle
- */
-export const useNodeTypes = (orgHandle: string | undefined): UseNodeTypes => {
-  // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${NODE_TYPES_API_ENDPOINT}` : null;
-
-  const { data, error, isLoading, mutate } = useSWR(
-    swrKey,
-    swrKey && orgHandle
-      ? async () => {
-          try {
-            const response = await makeOrgRequest<GetNodeTypesResponse>(
-              orgHandle,
-              NODE_TYPES_API_ENDPOINT,
-              ""
-            );
-            return response.nodeTypes;
-          } catch (err) {
-            console.error("Error fetching node types:", err);
-            throw err;
-          }
-        }
-      : null
-  );
-
-  return {
-    nodeTypes: data || [],
-    nodeTypesError: error || null,
-    isNodeTypesLoading: isLoading,
-    mutateNodeTypes: mutate,
   };
 };
 
@@ -404,83 +352,6 @@ const wouldCreateIndirectCycle = (
   };
 
   return dfs(targetNode);
-};
-
-/**
- * Converts domain nodes to ReactFlow compatible nodes
- */
-export function convertToReactFlowNodes(
-  nodes: readonly Node[]
-): readonly ReactFlowNode<WorkflowNodeType>[] {
-  return nodes.map((node) => ({
-    id: node.id,
-    type: "workflowNode",
-    position: node.position,
-    data: {
-      name: node.name,
-      inputs: node.inputs.map((input) => ({ ...input, id: input.name })),
-      outputs: node.outputs.map((output) => ({ ...output, id: output.name })),
-      error: node.error,
-      executionState: "idle" as NodeExecutionState,
-    },
-  }));
-}
-
-/**
- * Creates a new node from a template at the specified position
- */
-export function createNode(template: NodeType, position: XYPosition): Node {
-  return {
-    id: `node-${Date.now()}`,
-    type: template.id,
-    name: template.name,
-    position,
-    inputs: template.inputs.map((input) => ({
-      ...input,
-      id: input.name,
-    })),
-    outputs: template.outputs.map((output) => ({
-      ...output,
-      id: output.name,
-    })),
-  };
-}
-
-/**
- * Updates the execution state of a specific node in the node collection
- */
-export function updateNodeExecutionState(
-  nodes: readonly ReactFlowNode[],
-  nodeId: string,
-  state: NodeExecutionState
-): readonly ReactFlowNode[] {
-  return nodes.map((node) =>
-    node.id === nodeId
-      ? { ...node, data: { ...node.data, executionState: state } }
-      : node
-  );
-}
-
-/**
- * Fetch all available node types for a specific organization
- * @param orgHandle The organization handle
- */
-export const fetchNodeTypes = async (
-  orgHandle: string
-): Promise<NodeType[]> => {
-  try {
-    const response = await makeOrgRequest<GetNodeTypesResponse>(
-      orgHandle,
-      NODE_TYPES_API_ENDPOINT,
-      ""
-    );
-    return response.nodeTypes;
-  } catch (error) {
-    console.error("Error fetching node types:", error);
-    throw new Error(
-      `Failed to load node types: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-  }
 };
 
 /**

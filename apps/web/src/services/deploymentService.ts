@@ -33,9 +33,6 @@ type UseDeploymentVersion = {
   deploymentVersionError: Error | null;
   isDeploymentVersionLoading: boolean;
   mutateDeploymentVersion: () => Promise<unknown>;
-  versionError: Error | null;
-  isVersionLoading: boolean;
-  mutateVersion: () => Promise<unknown>;
 };
 
 /**
@@ -140,9 +137,6 @@ export const useDeploymentVersion = (
     deploymentVersionError: error || null,
     isDeploymentVersionLoading: isLoading,
     mutateDeploymentVersion: mutate,
-    versionError: error || null,
-    isVersionLoading: isLoading,
-    mutateVersion: mutate,
   };
 };
 

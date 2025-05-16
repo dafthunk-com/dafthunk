@@ -9,7 +9,7 @@ import { useAuth } from "@/components/authContext";
 // Base endpoint for node types
 const API_ENDPOINT_BASE = "/types";
 
-interface UseNodeTypes {
+export interface UseNodeTypes {
   nodeTypes: NodeType[];
   nodeTypesError: Error | null;
   isNodeTypesLoading: boolean;

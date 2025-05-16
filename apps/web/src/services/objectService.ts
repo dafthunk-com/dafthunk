@@ -13,7 +13,10 @@ import {
 } from "@dafthunk/types";
 import { useAuth } from "@/components/authContext";
 import { useCallback } from "react";
-import { makeRequest } from "./utils";
+import { makeOrgRequest } from "./utils";
+
+// Base endpoint for object operations
+const API_ENDPOINT_BASE = "/objects";
 
 /**
  * Binary data types supported for operations
@@ -80,10 +83,10 @@ export const buildObjectApiUrl = (
 ): string => {
   if (!organizationHandle) {
     console.warn("No organization handle provided for object API URL");
-    return `${API_BASE_URL}/objects${path}`;
+    return `${API_BASE_URL}${API_ENDPOINT_BASE}${path}`;
   }
 
-  return `${API_BASE_URL}/${organizationHandle}/objects${path}`;
+  return `${API_BASE_URL}/${organizationHandle}${API_ENDPOINT_BASE}${path}`;
 };
 
 /**
@@ -255,8 +258,10 @@ export const uploadBinaryData = async (
   formData.append("file", blob);
 
   // Upload to objects endpoint with organization context
-  const result = await makeRequest<UploadObjectResponse>(
-    `/${organizationHandle}/objects`,
+  const result = await makeOrgRequest<UploadObjectResponse>(
+    organizationHandle,
+    API_ENDPOINT_BASE,
+    "",
     {
       method: "POST",
       body: formData,
@@ -292,11 +297,16 @@ export const getObjectMetadata = async (
     throw new Error("Organization handle is required");
   }
 
-  const endpoint = `/${organizationHandle}/objects/metadata/${objectId}?mimeType=${encodeURIComponent(mimeType)}`;
+  const endpointSuffix = `/metadata/${objectId}?mimeType=${encodeURIComponent(mimeType)}`;
 
-  const result = await makeRequest<GetObjectMetadataResponse>(endpoint, {
-    method: "GET",
-  });
+  const result = await makeOrgRequest<GetObjectMetadataResponse>(
+    organizationHandle,
+    API_ENDPOINT_BASE,
+    endpointSuffix,
+    {
+      method: "GET",
+    }
+  );
 
   if (!result.metadata) {
     throw new Error("Invalid response from server");
@@ -318,11 +328,16 @@ export const listObjects = async (
     throw new Error("Organization handle is required");
   }
 
-  const endpoint = `/${organizationHandle}/objects/list`;
+  const endpointSuffix = "/list";
 
-  const result = await makeRequest<ListObjectsResponse>(endpoint, {
-    method: "GET",
-  });
+  const result = await makeOrgRequest<ListObjectsResponse>(
+    organizationHandle,
+    API_ENDPOINT_BASE,
+    endpointSuffix,
+    {
+      method: "GET",
+    }
+  );
 
   return result.objects || [];
 };
@@ -348,11 +363,16 @@ export const deleteObject = async (
     throw new Error("Organization handle is required");
   }
 
-  const endpoint = `/${organizationHandle}/objects/${objectId}?mimeType=${encodeURIComponent(mimeType)}`;
+  const endpointSuffix = `/${objectId}?mimeType=${encodeURIComponent(mimeType)}`;
 
-  const result = await makeRequest<DeleteObjectResponse>(endpoint, {
-    method: "DELETE",
-  });
+  const result = await makeOrgRequest<DeleteObjectResponse>(
+    organizationHandle,
+    API_ENDPOINT_BASE,
+    endpointSuffix,
+    {
+      method: "DELETE",
+    }
+  );
 
   return result.success || false;
 };
