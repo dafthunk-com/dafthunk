@@ -13,7 +13,7 @@ alwaysApply: true
 
 ## Typing
 - Use **strict TypeScript**: avoid `any`, `unknown`, and implicit `any`.
-- Prefer `type` aliases over `interface`, unless extension is required.
+- Prefer `interface` over `type` aliases, unless a type cannot be expressed with an interface.
 - Always type:
   - Props
   - State

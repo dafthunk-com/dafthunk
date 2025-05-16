@@ -14,7 +14,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 
 export function OrganizationSwitcher() {
   const { organization } = useAuth();

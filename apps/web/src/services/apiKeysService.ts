@@ -6,7 +6,7 @@ import {
   DeleteApiKeyResponse,
   ListApiKeysResponse,
 } from "@dafthunk/types";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for API keys

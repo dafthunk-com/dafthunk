@@ -11,7 +11,7 @@ import {
   DeleteObjectResponse,
   ObjectMetadata,
 } from "@dafthunk/types";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { useCallback } from "react";
 import { makeOrgRequest } from "./utils";
 

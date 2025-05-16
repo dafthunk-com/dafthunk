@@ -1,7 +1,7 @@
 import { API_BASE_URL } from "@/config/api";
 import { makeRequest } from "./utils";
 import { mutate } from "swr";
-import { AUTH_USER_KEY } from "@/components/authContext";
+import { AUTH_USER_KEY } from "@/components/auth-context";
 
 export type OrganizationRoleType = "member" | "admin" | "owner";
 

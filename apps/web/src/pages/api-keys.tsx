@@ -31,7 +31,7 @@ import {
 } from "@/services/apiKeysService";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { ApiKey } from "@dafthunk/types";
 
 const columns: ColumnDef<ApiKey>[] = [

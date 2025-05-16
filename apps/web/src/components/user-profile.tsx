@@ -1,4 +1,4 @@
-import { useAuth } from "@/components/authContext.tsx";
+import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CircleUserRound, LogOut, KeyRound } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getAvatarUrl, getInitials } from "@/utils/userUtils";
+import { getAvatarUrl, getInitials } from "@/utils/user-utils";
 
 export function UserProfile() {
   const { user, logout, isAuthenticated } = useAuth();

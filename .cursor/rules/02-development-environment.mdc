@@ -10,7 +10,7 @@ This repository uses the following technologies and tools:
 - **pnpm** for fast and efficient package management with workspace support.
 - **Vite** as the build tool and dev server for lightning-fast development.
 - **TypeScript** for static typing and enhanced developer experience.
-- **React 18** for building interactive user interfaces.
+- **React 19** for building interactive user interfaces.
 - **React Router v6** for declarative client-side routing.
 - **React Flow** for rendering interactive node-based diagrams.
 - **Tailwind CSS** for utility-first styling.

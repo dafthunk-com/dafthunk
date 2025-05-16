@@ -3,12 +3,12 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   WorkflowNodeType,
   WorkflowEdgeType,
-} from "@/components/workflow/workflow-types.tsx"; // Corrected import path
+} from "@/components/workflow/workflow-types"; // Corrected import path
 import type { Workflow, Parameter, ParameterType } from "@dafthunk/types";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { updateWorkflow } from "@/services/workflowService";
 import { debounce } from "@/utils/utils";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;

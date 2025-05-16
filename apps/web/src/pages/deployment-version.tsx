@@ -13,13 +13,13 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   WorkflowNodeType,
   WorkflowEdgeType,
-} from "@/components/workflow/workflow-types.tsx";
+} from "@/components/workflow/workflow-types";
 import { Button } from "@/components/ui/button";
 import { InsetLoading } from "@/components/inset-loading";
 import { useWorkflow, useWorkflowExecution } from "@/services/workflowService";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useDeploymentVersion } from "@/services/deploymentService";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { useObjectService } from "@/services/objectService";
 

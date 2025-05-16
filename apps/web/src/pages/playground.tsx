@@ -35,7 +35,7 @@ import {
   createWorkflow,
 } from "@/services/workflowService";
 import { createDeployment } from "@/services/deploymentService";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 
 // --- Inline useWorkflowActions ---
 function useWorkflowActions() {

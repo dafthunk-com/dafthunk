@@ -13,7 +13,7 @@ import { DataTableCard } from "@/components/ui/data-table-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";
 import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { CreateWorkflowRequest } from "@dafthunk/types";
 
 export function DashboardPage() {

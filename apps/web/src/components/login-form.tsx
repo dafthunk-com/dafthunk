@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { useAuth } from "./authContext";
+import { useAuth } from "./auth-context";
 
 export function LoginForm({
   className,

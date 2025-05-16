@@ -8,7 +8,7 @@ import type {
   WorkflowNodeType,
   WorkflowEdgeType,
   NodeTemplate,
-} from "@/components/workflow/workflow-types.tsx";
+} from "@/components/workflow/workflow-types";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ import { createDeployment } from "@/services/deploymentService";
 import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { useObjectService } from "@/services/objectService";
 
 export function EditorPage() {

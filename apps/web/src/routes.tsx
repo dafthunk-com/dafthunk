@@ -2,22 +2,22 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { HomePage } from "./pages/home";
 import { EditorPage } from "./pages/editor";
 import { ProfilePage } from "./pages/profile";
-import { ProtectedRoute } from "./components/protected-route.tsx";
-import { AppLayout } from "./components/layouts/app-layout.tsx";
+import { ProtectedRoute } from "./components/protected-route";
+import { AppLayout } from "./components/layouts/app-layout";
 import { ErrorBoundary } from "./components/error-boundary";
-import { PlaygroundPage } from "./pages/playground.tsx";
-import { DeploymentsPage } from "./pages/deployments.tsx";
-import { DeploymentDetailPage } from "./pages/deployment-detail.tsx";
-import { DeploymentVersionPage } from "./pages/deployment-version.tsx";
-import { ExecutionsPage } from "./pages/executions.tsx";
-import { ExecutionDetailPage } from "./pages/execution-detail.tsx";
+import { PlaygroundPage } from "./pages/playground";
+import { DeploymentsPage } from "./pages/deployments";
+import { DeploymentDetailPage } from "./pages/deployment-detail";
+import { DeploymentVersionPage } from "./pages/deployment-version";
+import { ExecutionsPage } from "./pages/executions";
+import { ExecutionDetailPage } from "./pages/execution-detail";
 import { DocsPage } from "./pages/docs";
 import { DashboardPage } from "./pages/dashboard";
-import { NotFoundPage } from "./pages/not-found.tsx";
+import { NotFoundPage } from "./pages/not-found";
 import { SquareTerminal, Target, Logs, KeyRound, User } from "lucide-react";
-import { ApiKeysPage } from "./pages/api-keys.tsx";
+import { ApiKeysPage } from "./pages/api-keys";
 import DataTableTestPage from "./pages/data-table-test";
-import { SharedExecutionPage } from "./pages/shared-execution.tsx";
+import { SharedExecutionPage } from "./pages/shared-execution";
 
 const workflowsSidebarItems = [
   {

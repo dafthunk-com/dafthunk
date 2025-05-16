@@ -42,7 +42,7 @@ import {
 import { useWorkflows } from "@/services/workflowService";
 import { InsetError } from "@/components/inset-error";
 import { createDeployment, useDeployments } from "@/services/deploymentService";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {

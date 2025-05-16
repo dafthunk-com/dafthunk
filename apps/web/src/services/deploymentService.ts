@@ -6,7 +6,7 @@ import {
   GetWorkflowDeploymentsResponse,
   GetDeploymentVersionResponse,
 } from "@dafthunk/types";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for deployments

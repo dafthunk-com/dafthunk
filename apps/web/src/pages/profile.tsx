@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { useAuth } from "@/components/authContext.tsx";
+import { useAuth } from "@/components/auth-context";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAvatarUrl, getInitials } from "@/utils/userUtils";
+import { getAvatarUrl, getInitials } from "@/utils/user-utils";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetError } from "@/components/inset-error";

@@ -8,7 +8,7 @@ import type {
   NodeTemplate,
   WorkflowExecutionStatus,
   WorkflowExecution,
-} from "./workflow-types.tsx";
+} from "./workflow-types";
 import type {
   Connection,
   Node as ReactFlowNode,

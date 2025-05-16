@@ -41,7 +41,7 @@ import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deploymentService";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { useWorkflowExecution } from "@/services/workflowService";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 

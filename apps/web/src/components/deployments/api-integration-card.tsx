@@ -13,7 +13,7 @@ import type { Node } from "@xyflow/react";
 import type {
   NodeTemplate,
   WorkflowNodeType,
-} from "@/components/workflow/workflow-types.tsx";
+} from "@/components/workflow/workflow-types";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 import { API_BASE_URL } from "@/config/api";
 

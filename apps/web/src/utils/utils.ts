@@ -6,7 +6,7 @@ import type {
   WorkflowNodeType,
   WorkflowParameter,
   InputOutputType,
-} from "@/components/workflow/workflow-types.tsx";
+} from "@/components/workflow/workflow-types";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type {
   Node as BackendNode,

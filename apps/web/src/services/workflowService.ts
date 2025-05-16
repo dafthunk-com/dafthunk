@@ -14,7 +14,7 @@ import {
   Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { makeOrgRequest } from "./utils";
 import {
   Edge as ReactFlowEdge,

@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eraser, Save } from "lucide-react";
 import { isObjectReference, useObjectService } from "@/services/objectService";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference

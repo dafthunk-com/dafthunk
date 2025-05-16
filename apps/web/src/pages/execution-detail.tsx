@@ -28,7 +28,7 @@ import { InsetError } from "@/components/inset-error";
 import { Eye, EyeOff } from "lucide-react";
 import { Share2 } from "lucide-react";
 import { LoadingButton } from "@/components/ui/loading-button";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { useObjectService } from "@/services/objectService";
 
 export function ExecutionDetailPage() {

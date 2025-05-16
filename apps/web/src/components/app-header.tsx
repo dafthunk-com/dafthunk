@@ -5,10 +5,15 @@ import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
 import { Logo } from "./logo";
-import { useAuth } from "./authContext";
+import { useAuth } from "./auth-context";
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
+
+  const navLinkClasses =
+    "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors";
+  const activeNavLinkClasses =
+    "bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50";
 
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-2 ps-5 pe-3">
@@ -25,15 +30,15 @@ export function AppHeader() {
             <>
               <NavLink
                 to="/dashboard"
-                className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-                activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+                className={navLinkClasses}
+                activeClassName={activeNavLinkClasses}
               >
                 Dashboard
               </NavLink>
               <NavLink
                 to="/workflows"
-                className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-                activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+                className={navLinkClasses}
+                activeClassName={activeNavLinkClasses}
               >
                 Workflows
               </NavLink>
@@ -42,24 +47,24 @@ export function AppHeader() {
             <NavLink
               to="/"
               isActive={(pathname) => pathname === "/"}
-              className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-              activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+              className={navLinkClasses}
+              activeClassName={activeNavLinkClasses}
             >
               Login
             </NavLink>
           )}
           <NavLink
             to="/docs"
-            className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-            activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+            className={navLinkClasses}
+            activeClassName={activeNavLinkClasses}
           >
             Docs
           </NavLink>
           {isAuthenticated && (
             <NavLink
               to="/settings"
-              className="px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors"
-              activeClassName="bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
+              className={navLinkClasses}
+              activeClassName={activeNavLinkClasses}
             >
               <Settings className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
             </NavLink>

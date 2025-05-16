@@ -9,6 +9,8 @@ type MetaHeadProps = {
   tags?: MetaTag[];
 };
 
+const DYNAMIC_META_TAG_SELECTOR = 'meta[data-managed-by-metahead="true"]';
+
 export function MetaHead({ title, tags = [] }: MetaHeadProps) {
   useEffect(() => {
     const originalTitle = document.title;
@@ -16,7 +18,6 @@ export function MetaHead({ title, tags = [] }: MetaHeadProps) {
       document.title = title;
     }
 
-    const DYNAMIC_META_TAG_SELECTOR = 'meta[data-managed-by-metahead="true"]';
     // Remove existing managed meta tags
     document
       .querySelectorAll(DYNAMIC_META_TAG_SELECTOR)

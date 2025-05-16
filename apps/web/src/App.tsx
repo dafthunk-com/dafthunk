@@ -1,8 +1,8 @@
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routes";
-import { AuthProvider } from "./components/authContext.tsx";
+import { AuthProvider } from "./components/auth-context";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
-import { AppLayout } from "./components/layouts/app-layout.tsx";
+import { AppLayout } from "./components/layouts/app-layout";
 import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/theme-provider";
 

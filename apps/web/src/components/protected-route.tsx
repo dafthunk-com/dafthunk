@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/components/authContext.tsx";
+import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
 
 interface ProtectedRouteProps {

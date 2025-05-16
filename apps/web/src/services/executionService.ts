@@ -9,7 +9,7 @@ import {
   UpdateExecutionVisibilityResponse,
 } from "@dafthunk/types";
 import { makeRequest } from "./utils";
-import { useAuth } from "@/components/authContext";
+import { useAuth } from "@/components/auth-context";
 import { makeOrgRequest } from "./utils";
 import { useInfinatePagination } from "@/hooks/use-infinate-pagination";
 
