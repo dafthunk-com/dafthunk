@@ -106,19 +106,6 @@ export function SharedExecutionPage() {
       };
     }, [execution]);
 
-  const pageTitle = execution
-    ? `Execution: ${execution.workflowName || execution.id}`
-    : "Shared Execution";
-  const pageDescription = execution
-    ? `Details for workflow execution: ${execution.workflowName || execution.id}`
-    : "View the details of a shared workflow execution.";
-  const ogImageUrl = executionId
-    ? `${API_BASE_URL}/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
-    : "";
-  const pageUrl = executionId
-    ? `${window.location.origin}/shared/executions/${executionId}`
-    : window.location.href;
-
   if (isLoadingExecution) {
     return (
       <div className="h-screen w-screen">
@@ -142,17 +129,62 @@ export function SharedExecutionPage() {
   }
 
   const metaTags = [
-    { name: "description", content: pageDescription },
-    { property: "og:image", content: ogImageUrl },
+    {
+      name: "description",
+      content: execution
+        ? `Details for workflow execution: ${execution.workflowName || execution.id}`
+        : "View the details of a shared workflow execution.",
+    },
+    {
+      property: "og:image",
+      content: executionId
+        ? `${API_BASE_URL}/public/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
+        : "",
+    },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: pageUrl },
-    { property: "og:title", content: pageTitle },
-    { property: "og:description", content: pageDescription },
+    {
+      property: "og:url",
+      content: executionId
+        ? `${window.location.origin}/public/executions/${executionId}`
+        : window.location.href,
+    },
+    {
+      property: "og:title",
+      content: execution
+        ? `Execution: ${execution.workflowName || execution.id}`
+        : "Shared Execution",
+    },
+    {
+      property: "og:description",
+      content: execution
+        ? `Details for workflow execution: ${execution.workflowName || execution.id}`
+        : "View the details of a shared workflow execution.",
+    },
     { property: "twitter:card", content: "summary_large_image" },
-    { property: "twitter:url", content: pageUrl },
-    { property: "twitter:title", content: pageTitle },
-    { property: "twitter:description", content: pageDescription },
-    { property: "twitter:image", content: ogImageUrl },
+    {
+      property: "twitter:url",
+      content: executionId
+        ? `${window.location.origin}/public/executions/${executionId}`
+        : window.location.href,
+    },
+    {
+      property: "twitter:title",
+      content: execution
+        ? `Execution: ${execution.workflowName || execution.id}`
+        : "Shared Execution",
+    },
+    {
+      property: "twitter:description",
+      content: execution
+        ? `Details for workflow execution: ${execution.workflowName || execution.id}`
+        : "View the details of a shared workflow execution.",
+    },
+    {
+      property: "twitter:image",
+      content: executionId
+        ? `${API_BASE_URL}/public/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
+        : "",
+    },
   ];
 
   return fullscreen ? (
@@ -171,9 +203,20 @@ export function SharedExecutionPage() {
     </div>
   ) : (
     <AppLayout>
-      <MetaHead title={pageTitle} tags={metaTags} />
+      <MetaHead
+        title={
+          execution
+            ? `Execution: ${execution.workflowName || execution.id}`
+            : "Shared Execution"
+        }
+        tags={metaTags}
+      />
       <InsetLayout
-        title={pageTitle}
+        title={
+          execution
+            ? `Execution: ${execution.workflowName || execution.id}`
+            : "Shared Execution"
+        }
         titleRight={<ExecutionStatusBadge status={execution.status} />}
         className="overflow-hidden relative h-full"
         titleClassName="relative mb-0"
