@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "@/config/api";
-import { apiRequest } from "@/utils/api";
+import { makeRequest } from "./utils";
 import { mutate } from "swr";
 import { AUTH_USER_KEY } from "@/components/authContext";
 
@@ -37,9 +37,8 @@ export const authService = {
   // Check if the user is authenticated
   async checkAuth(): Promise<boolean> {
     try {
-      const response = await apiRequest<boolean>("/auth/protected", {
+      const response = await makeRequest<boolean>("/auth/protected", {
         method: "GET",
-        errorMessage: "Failed to check authentication",
       });
       return response;
     } catch (_) {
@@ -51,9 +50,8 @@ export const authService = {
   // Get the current user information
   async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await apiRequest<{ user: User }>("/auth/user", {
+      const response = await makeRequest<{ user: User }>("/auth/user", {
         method: "GET",
-        errorMessage: "Failed to get user info",
       });
       return response.user;
     } catch (error) {

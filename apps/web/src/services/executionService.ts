@@ -8,7 +8,7 @@ import {
   GetPublicExecutionResponse,
   UpdateExecutionVisibilityResponse,
 } from "@dafthunk/types";
-import { apiRequest } from "@/utils/api";
+import { makeRequest } from "./utils";
 import { useAuth } from "@/components/authContext";
 import { makeOrgRequest } from "./utils";
 import { useInfinatePagination } from "@/hooks/use-infinate-pagination";
@@ -290,7 +290,7 @@ export const getExecution = async (
 export const getPublicExecution = async (
   executionId: string
 ): Promise<PublicExecutionWithStructure> => {
-  const response = await apiRequest<GetPublicExecutionResponse>(
+  const response = await makeRequest<GetPublicExecutionResponse>(
     `/public/executions/${executionId}`,
     {
       credentials: "omit",
