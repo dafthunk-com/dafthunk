@@ -1,9 +1,9 @@
 import { Context, Hono } from "hono";
 import { jwt } from "hono/jwt";
-import { setCookie, deleteCookie, getCookie } from "hono/cookie";
+import { setCookie, deleteCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT } from "jose";
 import { createDatabase } from "./db";
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
 import { saveUser, verifyApiKey } from "./utils/db";
