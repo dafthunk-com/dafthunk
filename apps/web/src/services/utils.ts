@@ -9,17 +9,25 @@ export const makeRequest = async <T>(
 ): Promise<T> => {
   const fullUrl = `${API_BASE_URL}${endpoint}`;
 
-  const defaultOptions: RequestInit = {
+  const defaultHeaders: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  // If body is FormData, remove Content-Type to let the browser set it with boundary
+  if (options.body instanceof FormData) {
+    delete defaultHeaders["Content-Type"];
+  }
+
+  const requestOptions: RequestInit = {
+    ...options, // Spread incoming options first
     headers: {
-      "Content-Type": "application/json",
+      ...defaultHeaders,
+      ...options.headers, // Then spread specific headers from options, allowing override
     },
     credentials: "include",
   };
 
-  const response = await fetch(fullUrl, {
-    ...defaultOptions,
-    ...options,
-  });
+  const response = await fetch(fullUrl, requestOptions);
 
   if (!response.ok) {
     if (response.status === 404) {
