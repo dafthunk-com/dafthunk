@@ -1,6 +1,7 @@
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
 import { NodeType, NodeExecution } from "@dafthunk/types";
+import type { Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input } from "@cloudflare/workers-types/experimental";
 
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo
@@ -94,8 +95,8 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
         context.inputs;
 
       // Prepare the request parameters
-      const params: Record<string, any> = {
-        audio: Array.from(audio.data),
+      const params: Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input = {
+        audio: audio,
       };
 
       // Add optional parameters if provided

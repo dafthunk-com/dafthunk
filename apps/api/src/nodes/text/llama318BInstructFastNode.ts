@@ -52,7 +52,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
       }
 
       const result = await context.env.AI.run(
-        "@cf/meta/llama-3.1-8b-instruct-fast",
+        "@cf/meta/llama-3.1-8b-instruct-fast" as any,
         {
           prompt,
           seed,
@@ -61,7 +61,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
       );
 
       return this.createSuccessResult({
-        response: result.response,
+        response: (result as any).response,
       });
     } catch (error) {
       console.error(error);

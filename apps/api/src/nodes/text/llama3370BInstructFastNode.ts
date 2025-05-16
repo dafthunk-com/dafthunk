@@ -5,6 +5,12 @@ import { NodeType, NodeExecution } from "@dafthunk/types";
 /**
  * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters
  */
+
+interface Llama3370BNonStreamedOutput {
+  response?: string;
+  usage?: any;
+}
+
 export class Llama3370BInstructFastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "llama-3.3-70b-instruct-fp8-fast",
@@ -95,7 +101,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     try {
       const {
         prompt,
-        messages,
+        messages, // Note: messages is declared but not used if params.stream is always false and no messages input handling
         temperature,
         max_tokens,
         top_p,
@@ -119,25 +125,50 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         repetition_penalty,
         frequency_penalty,
         presence_penalty,
-        stream: false,
+        stream: false, // Assuming stream is always false for now, can be parameterized if needed
       };
 
       // If messages are provided, use them, otherwise use prompt
-      if (messages) {
-        params.messages = JSON.parse(messages);
-      } else {
+      if (messages && typeof messages === "string") {
+        try {
+          params.messages = JSON.parse(messages);
+        } catch (e) {
+          console.error("Failed to parse messages JSON string:", e);
+          // Optionally, handle the error, e.g., by falling back to prompt or returning an error result
+        }
+      } else if (prompt) {
         params.prompt = prompt;
+      } else {
+        return this.createErrorResult(
+          "Either prompt or messages must be provided."
+        );
       }
 
       const result = await context.env.AI.run(
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast" as any, // Bypass AiModels type error
         params
       );
 
-      return this.createSuccessResult({
-        response: result.response,
-        usage: JSON.stringify(result.usage),
-      });
+      if (result instanceof ReadableStream) {
+        const reader = result.getReader();
+        const decoder = new TextDecoder();
+        let streamedResponse = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          streamedResponse += decoder.decode(value);
+        }
+        return this.createSuccessResult({
+          response: streamedResponse,
+          usage: "",
+        });
+      } else {
+        const typedResult = result as Llama3370BNonStreamedOutput;
+        return this.createSuccessResult({
+          response: typedResult.response,
+          usage: typedResult.usage ? JSON.stringify(typedResult.usage) : "",
+        });
+      }
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

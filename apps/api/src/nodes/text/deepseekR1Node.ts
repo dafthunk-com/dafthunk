@@ -5,6 +5,12 @@ import { NodeType, NodeExecution } from "@dafthunk/types";
 /**
  * DeepSeek R1 Distill Qwen 32B Node implementation with comprehensive parameters
  */
+
+interface DeepseekNonStreamedOutput {
+  response?: string;
+  usage?: any;
+}
+
 export class DeepseekR1Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "deepseek-r1-distill-qwen-32b",
@@ -148,10 +154,28 @@ export class DeepseekR1Node extends ExecutableNode {
         params
       );
 
-      return this.createSuccessResult({
-        response: result.response,
-        usage: JSON.stringify(result.usage),
-      });
+      if (result instanceof ReadableStream) {
+        // Handle stream response
+        const reader = result.getReader();
+        const decoder = new TextDecoder();
+        let streamedResponse = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          streamedResponse += decoder.decode(value);
+        }
+        return this.createSuccessResult({
+          response: streamedResponse,
+          usage: "", // Usage info might not be available for streams or needs different handling
+        });
+      } else {
+        // Handle non-stream response
+        const typedResult = result as DeepseekNonStreamedOutput;
+        return this.createSuccessResult({
+          response: typedResult.response,
+          usage: typedResult.usage ? JSON.stringify(typedResult.usage) : "",
+        });
+      }
     } catch (error) {
       console.error(error);
       return this.createErrorResult(
