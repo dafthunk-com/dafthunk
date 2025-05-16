@@ -128,62 +128,60 @@ export function SharedExecutionPage() {
     );
   }
 
+  const pageTitle = execution
+    ? `Execution: ${execution.workflowName || execution.id}`
+    : "Shared Execution";
+
+  const pageDescription = execution
+    ? `Details for workflow execution: ${execution.workflowName || execution.id}`
+    : "View the details of a shared workflow execution.";
+
+  const ogImageUrl = executionId
+    ? `${API_BASE_URL}/public/images/og-execution-${executionId}.jpeg`
+    : "";
+
+  const ogUrl = executionId
+    ? `${window.location.origin}/public/executions/${executionId}`
+    : window.location.href;
+
   const metaTags = [
     {
       name: "description",
-      content: execution
-        ? `Details for workflow execution: ${execution.workflowName || execution.id}`
-        : "View the details of a shared workflow execution.",
+      content: pageDescription,
     },
     {
       property: "og:image",
-      content: executionId
-        ? `${API_BASE_URL}/public/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
-        : "",
+      content: ogImageUrl,
     },
     { property: "og:type", content: "website" },
     {
       property: "og:url",
-      content: executionId
-        ? `${window.location.origin}/public/executions/${executionId}`
-        : window.location.href,
+      content: ogUrl,
     },
     {
       property: "og:title",
-      content: execution
-        ? `Execution: ${execution.workflowName || execution.id}`
-        : "Shared Execution",
+      content: pageTitle,
     },
     {
       property: "og:description",
-      content: execution
-        ? `Details for workflow execution: ${execution.workflowName || execution.id}`
-        : "View the details of a shared workflow execution.",
+      content: pageDescription,
     },
     { property: "twitter:card", content: "summary_large_image" },
     {
       property: "twitter:url",
-      content: executionId
-        ? `${window.location.origin}/public/executions/${executionId}`
-        : window.location.href,
+      content: ogUrl,
     },
     {
       property: "twitter:title",
-      content: execution
-        ? `Execution: ${execution.workflowName || execution.id}`
-        : "Shared Execution",
+      content: pageTitle,
     },
     {
       property: "twitter:description",
-      content: execution
-        ? `Details for workflow execution: ${execution.workflowName || execution.id}`
-        : "View the details of a shared workflow execution.",
+      content: pageDescription,
     },
     {
       property: "twitter:image",
-      content: executionId
-        ? `${API_BASE_URL}/public/objects?id=og-execution-${executionId}&mimeType=image/jpeg`
-        : "",
+      content: ogImageUrl,
     },
   ];
 

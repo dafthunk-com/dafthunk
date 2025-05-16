@@ -33,7 +33,7 @@ export function usePageBreadcrumbs(
     return () => {
       setBreadcrumbs([]);
     };
-  }, [...dependencies, items, setBreadcrumbs]);
+  }, [...dependencies]);
 
   // Return the setter for cases where breadcrumbs need to be updated dynamically
   return { setBreadcrumbs };
