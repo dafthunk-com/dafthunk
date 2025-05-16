@@ -1,7 +1,6 @@
 import useSWR, { mutate } from "swr";
 import {
   WorkflowExecution,
-  ListExecutionsRequest,
   ListExecutionsResponse,
   GetExecutionResponse,
   PublicExecutionWithStructure,
@@ -25,13 +24,6 @@ export type { PublicExecutionWithStructure } from "@dafthunk/types";
 //-----------------------------------------------------------------------
 // Hook Return Types
 //-----------------------------------------------------------------------
-
-interface UseExecutions {
-  executions: WorkflowExecution[];
-  executionsError: Error | null;
-  isExecutionsLoading: boolean;
-  mutateExecutions: () => Promise<any>;
-}
 
 interface UsePaginatedExecutions {
   paginatedExecutions: WorkflowExecution[];
@@ -60,51 +52,6 @@ interface UsePublicExecution {
 //-----------------------------------------------------------------------
 // Hooks
 //-----------------------------------------------------------------------
-
-/**
- * Hook to list executions with optional filtering
- */
-export const useExecutions = (
-  params?: Partial<ListExecutionsRequest>
-): UseExecutions => {
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle;
-
-  // Build query parameters
-  const queryParams = new URLSearchParams();
-  if (params?.workflowId) queryParams.append("workflowId", params.workflowId);
-  if (params?.deploymentId)
-    queryParams.append("deploymentId", params.deploymentId);
-  if (params?.limit) queryParams.append("limit", params.limit.toString());
-  if (params?.offset) queryParams.append("offset", params.offset.toString());
-
-  const queryString = queryParams.toString();
-  const path = queryString ? `?${queryString}` : "";
-
-  // Create a unique SWR key that includes the organization handle and query params
-  const swrKey = orgHandle ? `/${orgHandle}${API_ENDPOINT_BASE}${path}` : null;
-
-  const { data, error, isLoading, mutate } = useSWR(
-    swrKey,
-    swrKey && orgHandle
-      ? async () => {
-          const response = await makeOrgRequest<ListExecutionsResponse>(
-            orgHandle,
-            API_ENDPOINT_BASE,
-            path
-          );
-          return response.executions;
-        }
-      : null
-  );
-
-  return {
-    executions: data || [],
-    executionsError: error || null,
-    isExecutionsLoading: isLoading,
-    mutateExecutions: mutate,
-  };
-};
 
 /**
  * Hook to use paginated executions with infinite scroll
@@ -237,35 +184,6 @@ export const usePublicExecution = (
     isPublicExecutionLoading: isLoading,
     mutatePublicExecution: mutate,
   };
-};
-
-/**
- * Get a list of executions
- */
-export const getExecutions = async (params: {
-  offset: number;
-  limit: number;
-  workflowId?: string;
-  deploymentId?: string;
-  orgHandle: string;
-}): Promise<WorkflowExecution[]> => {
-  const { offset, limit, workflowId, deploymentId, orgHandle } = params;
-
-  const queryParams = new URLSearchParams();
-  queryParams.append("offset", offset.toString());
-  queryParams.append("limit", limit.toString());
-  if (workflowId) queryParams.append("workflowId", workflowId);
-  if (deploymentId) queryParams.append("deploymentId", deploymentId);
-
-  const path = `?${queryParams.toString()}`;
-
-  const response = await makeOrgRequest<ListExecutionsResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    path
-  );
-
-  return response.executions;
 };
 
 /**

@@ -90,54 +90,6 @@ export const buildObjectApiUrl = (
 };
 
 /**
- * Converts a Uint8Array to a base64 string
- *
- * @param buffer - The buffer to convert
- * @returns A base64 encoded string representation of the buffer
- */
-export const arrayBufferToBase64 = (buffer: BinaryData): string => {
-  if (!buffer || (Array.isArray(buffer) && buffer.length === 0)) {
-    throw new Error("Invalid or empty buffer");
-  }
-
-  // Handle different input types to ensure we have a Uint8Array
-  const bytes =
-    buffer instanceof Uint8Array
-      ? buffer
-      : typeof buffer === "string"
-        ? new TextEncoder().encode(buffer)
-        : new Uint8Array(
-            Array.isArray(buffer) ? buffer : Object.values(buffer)
-          );
-
-  // Convert Uint8Array to a binary string
-  let binary = "";
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-
-  // Convert binary string to base64
-  return window.btoa(binary);
-};
-
-/**
- * Creates a data URL from binary data and a MIME type
- *
- * @param buffer - The binary data
- * @param mimeType - The MIME type of the data (e.g., 'image/png')
- * @returns A data URL that can be used in img src attributes
- */
-export const createDataUrl = (buffer: BinaryData, mimeType: string): string => {
-  if (!buffer || !mimeType) {
-    throw new Error("Buffer and MIME type are required");
-  }
-
-  const base64 = arrayBufferToBase64(buffer);
-  return `data:${mimeType};base64,${base64}`;
-};
-
-/**
  * Creates a URL to an object stored in R2 via the /objects endpoint
  *
  * @param objectReference - The object reference with id and mimeType

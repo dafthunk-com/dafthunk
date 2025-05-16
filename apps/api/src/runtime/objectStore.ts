@@ -2,14 +2,6 @@ import { v7 as uuid } from "uuid";
 import type { R2Bucket, R2Object } from "@cloudflare/workers-types";
 import { ObjectReference, Workflow, WorkflowExecution } from "@dafthunk/types";
 
-export interface StoreObject {
-  id: string;
-  data: Uint8Array;
-  mimeType: string;
-  size: number;
-  createdAt: Date;
-}
-
 export class ObjectStore {
   private bucket: R2Bucket;
 

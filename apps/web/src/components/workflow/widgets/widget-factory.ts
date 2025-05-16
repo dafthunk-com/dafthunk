@@ -82,18 +82,6 @@ interface DocumentConfig {
   mimeType: string;
 }
 
-export type WidgetType =
-  | "slider"
-  | "radio-group"
-  | "text-area"
-  | "input-text"
-  | "number-input"
-  | "monaco-editor"
-  | "canvas-doodle"
-  | "webcam"
-  | "audio-recorder"
-  | "document";
-
 export type WidgetConfig =
   | SliderWidgetConfig
   | RadioGroupWidgetConfig

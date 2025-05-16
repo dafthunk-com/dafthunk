@@ -1,17 +1,8 @@
 import { useEffect } from "react";
 import {
   useBreadcrumbsSetter,
-  useBreadcrumbs,
-  usePage as usePageContext,
   BreadcrumbItem,
 } from "@/components/page-context";
-
-/**
- * Hook that provides access to the full page context
- */
-export function usePage() {
-  return usePageContext();
-}
 
 /**
  * Hook that manages breadcrumb state for a page component
@@ -37,21 +28,4 @@ export function usePageBreadcrumbs(
 
   // Return the setter for cases where breadcrumbs need to be updated dynamically
   return { setBreadcrumbs };
-}
-
-/**
- * Hook to access current breadcrumbs without managing their lifecycle
- * Useful when you need to read or modify breadcrumbs from components that don't own them
- */
-export function usePageBreadcrumbsState() {
-  return useBreadcrumbs();
-}
-
-// Legacy support - To be deprecated
-export function usePageBreadcrumb(
-  items: BreadcrumbItem[],
-  dependencies: React.DependencyList = []
-) {
-  const { setBreadcrumbs } = usePageBreadcrumbs(items, dependencies);
-  return { setBreadcrumb: setBreadcrumbs };
 }

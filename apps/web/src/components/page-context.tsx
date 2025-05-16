@@ -38,11 +38,6 @@ export function PageProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to access the full page context
-export function usePage() {
-  return useContext(PageContext);
-}
-
 // Specialized hooks for specific page features
 export function useBreadcrumbs() {
   const { breadcrumbs, setBreadcrumbs } = useContext(PageContext);

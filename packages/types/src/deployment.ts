@@ -26,17 +26,6 @@ export interface GetWorkflowDeploymentsResponse {
 }
 
 /**
- * Request to execute a specific deployment
- * Can include different types of data depending on the HTTP request
- */
-export interface ExecuteDeploymentRequest {
-  // Optional query parameter
-  monitorProgress?: boolean;
-  // Body data can be any JSON object
-  [key: string]: unknown;
-}
-
-/**
  * Response when initiating a deployment execution
  */
 export interface ExecuteDeploymentResponse {
@@ -48,28 +37,4 @@ export interface ExecuteDeploymentResponse {
     nodeId: string;
     status: "idle";
   }>;
-}
-
-/**
- * HTTP Request information passed to the workflow execution
- */
-export interface HttpRequestInfo {
-  url: string;
-  method: string;
-  headers: Record<string, string>;
-  query: Record<string, string>;
-  formData?: Record<string, string | File>;
-  body?: unknown;
-}
-
-/**
- * Parameters passed to the workflow execution runtime
- */
-export interface ExecutionRuntimeParams {
-  userId: string;
-  organizationId: string;
-  workflow: Pick<Workflow, "id" | "name" | "nodes" | "edges">;
-  monitorProgress: boolean;
-  deploymentId: string;
-  httpRequest: HttpRequestInfo;
 }

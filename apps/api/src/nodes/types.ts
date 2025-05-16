@@ -76,13 +76,6 @@ export type ParameterType =
 
 export type ParameterValue = ParameterType["value"];
 
-export type Parameter = {
-  name: string;
-  description?: string;
-  hidden?: boolean;
-  required?: boolean;
-} & ParameterType;
-
 export interface HttpRequest {
   url?: string;
   method?: string;

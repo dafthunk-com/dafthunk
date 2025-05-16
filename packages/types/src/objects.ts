@@ -11,13 +11,6 @@ export interface ObjectMetadata {
 }
 
 /**
- * Request to upload an object
- */
-export interface UploadObjectRequest {
-  file: File;
-}
-
-/**
  * Response when uploading an object
  */
 export interface UploadObjectResponse {

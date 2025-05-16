@@ -269,6 +269,7 @@ export interface DeleteWorkflowResponse {
  */
 export interface ExecuteWorkflowRequest {
   monitorProgress?: boolean;
+  parameters?: Record<string, any>;
 }
 
 /**

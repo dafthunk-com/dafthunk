@@ -187,27 +187,6 @@ export async function getUserById(
 }
 
 /**
- * Get all organizations a user belongs to
- *
- * @param db Database instance
- * @param userId User ID
- * @returns Array of organizations and the user's role in each
- */
-export async function getUserOrganizations(
-  db: ReturnType<typeof createDatabase>,
-  userId: string
-) {
-  return db
-    .select({
-      organization: organizations,
-      role: memberships.role,
-    })
-    .from(memberships)
-    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
-    .where(eq(memberships.userId, userId));
-}
-
-/**
  * Get all workflows for an organization
  *
  * @param db Database instance
@@ -397,38 +376,6 @@ export async function saveExecution(
     .onConflictDoUpdate({ target: executions.id, set: dbRecord });
 
   return executionData;
-}
-
-/**
- * Update an execution's status, ensuring it belongs to the specified organization
- *
- * @param db Database instance
- * @param id Execution ID
- * @param organizationId Organization ID
- * @param status New execution status
- * @param errorMessage Optional error message
- * @returns Updated execution record
- */
-export async function updateExecutionStatus(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string,
-  status: ExecutionStatusType,
-  errorMessage?: string
-): Promise<Execution> {
-  const [execution] = await db
-    .update(executions)
-    .set({
-      status,
-      error: errorMessage,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(eq(executions.id, id), eq(executions.organizationId, organizationId))
-    )
-    .returning();
-
-  return execution;
 }
 
 /**

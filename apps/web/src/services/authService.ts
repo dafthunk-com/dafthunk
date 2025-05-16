@@ -25,12 +25,6 @@ export interface User {
   exp?: number;
 }
 
-export type TokenInfo = {
-  readonly expiresIn: number;
-  readonly issuedAt: number;
-  readonly expiresAt: number;
-};
-
 export type AuthProvider = "github" | "google";
 
 export const authService = {

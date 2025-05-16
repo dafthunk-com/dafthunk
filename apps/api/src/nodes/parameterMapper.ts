@@ -276,7 +276,3 @@ export async function apiToNodeParameter(
   }
   return await (converter.apiToNode as any)(value);
 }
-
-export function getRegisteredParameterTypes(): ParameterType[] {
-  return Object.keys(converters) as ParameterType[];
-}

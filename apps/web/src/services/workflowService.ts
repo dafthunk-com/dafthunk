@@ -9,9 +9,8 @@ import {
   DeleteWorkflowResponse,
   ListWorkflowsResponse,
   ExecuteWorkflowResponse,
+  ExecuteWorkflowRequest,
   Edge,
-  Node,
-  Workflow,
   WorkflowExecution,
 } from "@dafthunk/types";
 import { useAuth } from "@/components/auth-context";
@@ -39,41 +38,6 @@ const API_ENDPOINT_BASE = "/workflows";
 export type ConnectionValidationResult =
   | { status: "valid" }
   | { status: "invalid"; reason: string };
-
-/**
- * @interface UseWorkflowExecutorOptions
- * @property executeWorkflowFn - Function that executes the workflow and returns the initial execution
- */
-export interface UseWorkflowExecutorOptions {
-  executeWorkflowFn: (
-    id: string,
-    parameters?: Record<string, any>
-  ) => Promise<WorkflowExecution>;
-  getExecutionFn?: (executionId: string) => Promise<WorkflowExecution>;
-}
-
-/**
- * @interface UseWorkflowExecutorReturn
- * @property executeWorkflow - Function to initiate a workflow execution. It handles showing a parameter form if needed.
- *   Takes workflowId, onExecution callback, current UI nodes, and node templates.
- *   Returns a cleanup function for the polling mechanism, or undefined if a form is shown.
- * @property isExecutionFormVisible - Boolean indicating if the execution parameter form should be visible.
- * @property executionFormParameters - Array of parameters to be displayed in the execution form.
- * @property submitExecutionForm - Callback to submit the execution form with user-provided data.
- * @property closeExecutionForm - Callback to close the execution form.
- */
-export interface UseWorkflowExecutorReturn {
-  executeWorkflow: (
-    id: string,
-    onExecution: (execution: WorkflowExecution) => void,
-    uiNodes: ReactFlowNode<WorkflowNodeType>[],
-    nodeTemplates: NodeTemplate[]
-  ) => (() => void) | undefined;
-  isExecutionFormVisible: boolean;
-  executionFormParameters: DialogFormParameter[];
-  submitExecutionForm: (formData: Record<string, any>) => void;
-  closeExecutionForm: () => void;
-}
 
 /**
  * Hook to list all workflows for the current organization
@@ -203,47 +167,6 @@ export const deleteWorkflow = async (
 };
 
 /**
- * Execute a workflow by ID
- */
-export const executeWorkflow = async (
-  id: string,
-  orgHandle: string,
-  options?: {
-    mode?: "dev" | "latest" | string; // "dev", "latest", or a version number
-    monitorProgress?: boolean;
-    parameters?: Record<string, any>;
-  }
-): Promise<ExecuteWorkflowResponse> => {
-  const { mode = "dev", monitorProgress = false, parameters } = options || {};
-
-  // Build the endpoint path based on the mode
-  let endpoint = `/${id}/execute`;
-  if (mode === "dev") {
-    endpoint += "/dev";
-  } else if (mode === "latest") {
-    endpoint += "/latest";
-  } else {
-    // If mode is a version number, use it directly
-    endpoint += `/${mode}`;
-  }
-
-  // Add monitorProgress query parameter if needed
-  if (monitorProgress) {
-    endpoint += "?monitorProgress=true";
-  }
-
-  return await makeOrgRequest<ExecuteWorkflowResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    endpoint,
-    {
-      method: "POST",
-      ...(parameters && { body: JSON.stringify(parameters) }),
-    }
-  );
-};
-
-/**
  * Converts workflow edges to ReactFlow compatible edges
  */
 export const convertToReactFlowEdges = (
@@ -257,22 +180,6 @@ export const convertToReactFlowEdges = (
     sourceHandle: edge.sourceOutput,
     targetHandle: edge.targetInput,
   }));
-};
-
-/**
- * Converts a ReactFlow connection to a workflow edge
- */
-export const convertToWorkflowEdge = (connection: Connection): Edge => {
-  if (!connection.source || !connection.target) {
-    throw new Error("Invalid connection: missing source or target");
-  }
-
-  return {
-    source: connection.source,
-    target: connection.target,
-    sourceOutput: connection.sourceHandle || "",
-    targetInput: connection.targetHandle || "",
-  };
 };
 
 /**
@@ -355,122 +262,6 @@ const wouldCreateIndirectCycle = (
 };
 
 /**
- * Type representing a workflow validation result
- */
-export type ValidationResult = {
-  readonly isValid: boolean;
-  readonly errors: readonly string[];
-};
-
-/**
- * Validates if a workflow has all required properties
- */
-export function validateWorkflow(workflow: Workflow): ValidationResult {
-  const errors: string[] = [
-    ...validateNodes(workflow.nodes),
-    ...validateEdgeConnections(workflow),
-    ...(hasCycles(workflow) ? ["Workflow contains cycles"] : []),
-  ];
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-  };
-}
-
-/**
- * Validates that all nodes have required properties
- */
-function validateNodes(nodes: readonly Node[]): string[] {
-  const errors: string[] = [];
-
-  for (const node of nodes) {
-    if (!node.id || !node.name) {
-      errors.push(
-        `Node ${node.id || "unknown"} is missing required properties`
-      );
-    }
-  }
-
-  return errors;
-}
-
-/**
- * Validates that all edges connect to existing nodes
- */
-function validateEdgeConnections(workflow: Workflow): string[] {
-  const errors: string[] = [];
-  const nodeIds = new Set(workflow.nodes.map((node) => node.id));
-
-  for (const edge of workflow.edges) {
-    if (!nodeIds.has(edge.source)) {
-      errors.push(`Edge source node ${edge.source} not found`);
-    }
-
-    if (!nodeIds.has(edge.target)) {
-      errors.push(`Edge target node ${edge.target} not found`);
-    }
-  }
-
-  return errors;
-}
-
-/**
- * Checks if a workflow contains cycles using DFS
- */
-export function hasCycles(workflow: Workflow): boolean {
-  const visited = new Set<string>();
-  const recursionStack = new Set<string>();
-
-  const hasCyclesDFS = (nodeId: string): boolean => {
-    // If node is already in recursion stack, we found a cycle
-    if (recursionStack.has(nodeId)) return true;
-
-    // If node was already visited and not in the recursion stack, no cycle here
-    if (visited.has(nodeId)) return false;
-
-    visited.add(nodeId);
-    recursionStack.add(nodeId);
-
-    const outgoingEdges = workflow.edges.filter(
-      (edge) => edge.source === nodeId
-    );
-
-    for (const edge of outgoingEdges) {
-      if (hasCyclesDFS(edge.target)) {
-        return true;
-      }
-    }
-
-    recursionStack.delete(nodeId);
-    return false;
-  };
-
-  // Check each node as a potential starting point
-  for (const node of workflow.nodes) {
-    if (!visited.has(node.id) && hasCyclesDFS(node.id)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Validates that all nodes have the correct type
- */
-export function validateNodeTypes(nodes: readonly ReactFlowNode[]): boolean {
-  return nodes.every((node) => node.type === "workflowNode");
-}
-
-/**
- * Validates that all edges have the correct type
- */
-export function validateEdgeTypes(edges: readonly ReactFlowEdge[]): boolean {
-  return edges.every((edge) => edge.type === "workflowEdge");
-}
-
-/**
  * Helper function to handle JSON body parameters
  */
 function handleJsonBodyParameters(
@@ -525,8 +316,12 @@ export function useWorkflowExecution(orgHandle: string) {
     pollingRef.current.intervalId = undefined;
   }, []);
 
-  const executeWorkflow = useCallback(
-    async (id: string, parameters?: Record<string, any>) => {
+  const executeAndPollWorkflow = useCallback(
+    // Renamed from executeWorkflow to avoid conflict
+    async (
+      id: string,
+      request?: ExecuteWorkflowRequest
+    ): Promise<WorkflowExecution> => {
       if (!orgHandle) {
         throw new Error("Organization handle is required");
       }
@@ -535,10 +330,12 @@ export function useWorkflowExecution(orgHandle: string) {
       const response = await makeOrgRequest<ExecuteWorkflowResponse>(
         orgHandle,
         API_ENDPOINT_BASE,
-        `/${id}/execute/dev?monitorProgress=true`,
+        `/${id}/execute/dev?monitorProgress=${request?.monitorProgress ?? true}`,
         {
           method: "POST",
-          ...(parameters && { body: JSON.stringify(parameters) }),
+          ...(request?.parameters && {
+            body: JSON.stringify(request.parameters),
+          }),
         }
       );
 
@@ -555,12 +352,12 @@ export function useWorkflowExecution(orgHandle: string) {
     (
       id: string,
       onExecutionUpdate: (execution: WorkflowExecution) => void,
-      requestBody?: Record<string, any>
+      request?: ExecuteWorkflowRequest
     ): (() => void) => {
       cleanup();
       pollingRef.current.cancelled = false;
 
-      executeWorkflow(id, requestBody)
+      executeAndPollWorkflow(id, { monitorProgress: true, ...request })
         .then((initialExecution: WorkflowExecution) => {
           if (pollingRef.current.cancelled) return;
           onExecutionUpdate(initialExecution);
@@ -621,7 +418,7 @@ export function useWorkflowExecution(orgHandle: string) {
 
       return cleanup;
     },
-    [executeWorkflow, cleanup, orgHandle]
+    [executeAndPollWorkflow, cleanup, orgHandle]
   );
 
   const executeWorkflowWithForm = useCallback(
@@ -666,7 +463,9 @@ export function useWorkflowExecution(orgHandle: string) {
         : false;
 
       const defaultJsonBody = isJsonBodyRequired ? { data: {} } : {};
-      return performExecutionAndPoll(id, onExecution, defaultJsonBody);
+      return performExecutionAndPoll(id, onExecution, {
+        parameters: defaultJsonBody,
+      });
     },
     [performExecutionAndPoll, cleanup]
   );
@@ -677,7 +476,7 @@ export function useWorkflowExecution(orgHandle: string) {
       if (executionContext) {
         const { id, onExecution, jsonBodyNode } = executionContext;
         const requestBody = handleJsonBodyParameters(jsonBodyNode, formData);
-        performExecutionAndPoll(id, onExecution, requestBody);
+        performExecutionAndPoll(id, onExecution, { parameters: requestBody });
       }
       setExecutionContext(null);
     },

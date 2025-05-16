@@ -12,8 +12,6 @@ export interface SliderWidgetConfig extends BaseWidgetConfig {
   step: number;
 }
 
-export type WidgetConfig = SliderWidgetConfig; // Add more widget types here as needed
-
 export interface BaseWidgetProps<T extends BaseWidgetConfig> {
   config: T;
   onChange: (value: any) => void;
