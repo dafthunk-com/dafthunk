@@ -347,7 +347,3 @@ export const setExecutionPrivate = async (
 
   return response.success;
 };
-
-// Compatibility exports to match the interface expected by consumers
-export const useExecutionDetails = useExecution;
-export const usePublicExecutionDetails = usePublicExecution;

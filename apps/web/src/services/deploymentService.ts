@@ -23,8 +23,8 @@ type UseDeployments = {
 type UseDeploymentHistory = {
   workflow: { id: string; name: string } | null;
   deployments: WorkflowDeploymentVersion[];
-  historyError: Error | null;
-  isHistoryLoading: boolean;
+  deploymentHistoryError: Error | null;
+  isDeploymentHistoryLoading: boolean;
   mutateHistory: () => Promise<unknown>;
 };
 
@@ -98,8 +98,8 @@ export const useDeploymentHistory = (
   return {
     workflow: data?.workflow || null,
     deployments: data?.deployments || [],
-    historyError: error || null,
-    isHistoryLoading: isLoading,
+    deploymentHistoryError: error || null,
+    isDeploymentHistoryLoading: isLoading,
     mutateHistory: mutate,
   };
 };

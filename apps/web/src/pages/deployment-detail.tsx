@@ -157,8 +157,8 @@ export function DeploymentDetailPage() {
   const {
     workflow,
     deployments,
-    historyError: deploymentHistoryError,
-    isHistoryLoading: isDeploymentHistoryLoading,
+    deploymentHistoryError,
+    isDeploymentHistoryLoading,
     mutateHistory: mutateDeploymentHistory,
   } = useDeploymentHistory(workflowId!);
 
