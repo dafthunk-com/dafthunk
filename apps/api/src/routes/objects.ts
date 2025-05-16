@@ -9,17 +9,18 @@ import {
   ObjectMetadata,
 } from "@dafthunk/types";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { jwtAuth, optionalJwtAuth } from "../auth";
+import { jwtAuth } from "../auth";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
-const objects = new Hono<ApiContext>();
+const objectRoutes = new Hono<ApiContext>();
 
-objects.get("/", optionalJwtAuth, async (c) => {
-  const url = new URL(c.req.url);
-  const objectId = url.searchParams.get("id");
-  const mimeType = url.searchParams.get("mimeType");
+objectRoutes.use("*", jwtAuth);
+
+objectRoutes.get("/:id", async (c) => {
+  const objectId = c.req.param("id");
+  const mimeType = c.req.query("mimeType");
 
   if (!objectId || !mimeType) {
     return c.text("Missing required parameters: id and mimeType", 400);
@@ -87,7 +88,7 @@ objects.get("/", optionalJwtAuth, async (c) => {
   }
 });
 
-objects.post("/", jwtAuth, async (c) => {
+objectRoutes.post("/", async (c) => {
   const contentType = c.req.header("content-type") || "";
   if (!contentType.includes("multipart/form-data")) {
     return c.text("Content type must be multipart/form-data", 400);
@@ -125,7 +126,7 @@ objects.post("/", jwtAuth, async (c) => {
   }
 });
 
-objects.delete("/:id", jwtAuth, async (c) => {
+objectRoutes.delete("/:id", async (c) => {
   const objectId = c.req.param("id");
   const mimeType = c.req.query("mimeType");
 
@@ -169,7 +170,7 @@ objects.delete("/:id", jwtAuth, async (c) => {
   }
 });
 
-objects.get("/metadata/:id", jwtAuth, async (c) => {
+objectRoutes.get("/metadata/:id", async (c) => {
   const objectId = c.req.param("id");
   const mimeType = c.req.query("mimeType");
 
@@ -222,7 +223,7 @@ objects.get("/metadata/:id", jwtAuth, async (c) => {
   }
 });
 
-objects.get("/list", jwtAuth, async (c) => {
+objectRoutes.get("/list", async (c) => {
   const authPayload = c.get("jwtPayload") as CustomJWTPayload;
   if (!authPayload || !authPayload.organization.id) {
     return c.text("Unauthorized: Organization ID is missing", 401);
@@ -242,4 +243,4 @@ objects.get("/list", jwtAuth, async (c) => {
   }
 });
 
-export default objects;
+export default objectRoutes;

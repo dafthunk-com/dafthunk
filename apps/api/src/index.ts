@@ -5,10 +5,11 @@ import { ApiContext } from "./context";
 import { corsMiddleware } from "./middleware/cors";
 // Import routes
 import auth from "./auth";
-import objects from "./routes/objects";
+import objectRoutes from "./routes/objects";
+import publicObjectRoutes from "./routes/publicObjects";
 import workflowRoutes from "./routes/workflows";
 import executionRoutes from "./routes/executions";
-import publicExecutionRoutes from "./routes/publicExecutionRoutes";
+import publicExecutionRoutes from "./routes/publicExecutions";
 import typeRoutes from "./routes/types";
 import health from "./routes/health";
 import apiKeyRoutes from "./routes/apiKeys";
@@ -32,7 +33,7 @@ app.route("/llms.txt", llmsRoutes);
 
 // Public routes
 app.route("/public/executions", publicExecutionRoutes);
-// TODO: /public/objects/:objectId
+app.route("/public/objects", publicObjectRoutes);
 
 // Protected routes
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
@@ -41,7 +42,7 @@ app.route("/:orgHandle/deployments", deploymentRoutes);
 app.route("/:orgHandle/executions", executionRoutes);
 app.route("/:orgHandle/workflows", workflowRoutes);
 app.route("/:orgHandle/types", typeRoutes);
-app.route("/:orgHandle/objects", objects);
+app.route("/:orgHandle/objects", objectRoutes);
 
 export default {
   fetch: app.fetch,

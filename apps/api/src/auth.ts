@@ -41,27 +41,6 @@ export const jwtAuth = (c: Context<ApiContext>, next: () => Promise<void>) => {
   })(c, next);
 };
 
-// Optional JWT Auth middleware
-export const optionalJwtAuth = async (
-  c: Context<ApiContext>,
-  next: () => Promise<void>
-) => {
-  const token = getCookie(c, JWT_SECRET_TOKEN_NAME);
-
-  if (token) {
-    try {
-      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
-      const { payload } = await jwtVerify(token, secret);
-      c.set("jwtPayload", payload as CustomJWTPayload);
-    } catch (error) {
-      // Invalid token, proceed without setting jwtPayload
-      // Optionally log the error for debugging
-      console.warn("Optional JWT Auth: Invalid token received.", error);
-    }
-  }
-  await next();
-};
-
 // API key authentication middleware
 export const apiKeyAuth = async (
   c: Context<ApiContext>,
