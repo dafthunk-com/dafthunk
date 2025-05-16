@@ -220,7 +220,7 @@ export function useWorkflowState({
     if (newNodesStructurallyDifferent || anyCurrentNodeMissingFunction) {
       setNodes(newNodesWithCreateObjectUrl);
     }
-  }, [initialNodes, readonly, setNodes, createObjectUrl, nodes]); // Added createObjectUrl and nodes to dependency array
+  }, [initialNodes, readonly, setNodes, createObjectUrl]);
 
   // Effect to update edges when initialEdges prop changes
   useEffect(() => {
