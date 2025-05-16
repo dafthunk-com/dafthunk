@@ -1,6 +1,7 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 /**
  * Translation node implementation using m2m100-1.2b model
  */

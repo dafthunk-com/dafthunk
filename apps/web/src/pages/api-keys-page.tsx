@@ -1,13 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
-import { MoreHorizontal, Copy } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ApiKey } from "@dafthunk/types";
+import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { Copy, MoreHorizontal } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+import { useAuth } from "@/components/auth-context";
+import { InsetError } from "@/components/inset-error";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,21 +20,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   createApiKey,
   deleteApiKey,
   useApiKeys,
 } from "@/services/apiKeysService";
-import { InsetLoading } from "@/components/inset-loading";
-import { InsetError } from "@/components/inset-error";
-import { useAuth } from "@/components/auth-context";
-import { ApiKey } from "@dafthunk/types";
 
 const columns: ColumnDef<ApiKey>[] = [
   {

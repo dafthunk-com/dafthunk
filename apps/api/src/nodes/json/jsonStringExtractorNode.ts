@@ -1,7 +1,8 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
 import { JSONPath } from "jsonpath-plus";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 
 export class JsonStringExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

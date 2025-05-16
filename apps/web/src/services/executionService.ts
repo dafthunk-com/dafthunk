@@ -1,16 +1,18 @@
-import useSWR, { mutate } from "swr";
 import {
-  WorkflowExecution,
-  ListExecutionsResponse,
   GetExecutionResponse,
-  PublicExecutionWithStructure,
   GetPublicExecutionResponse,
+  ListExecutionsResponse,
+  PublicExecutionWithStructure,
   UpdateExecutionVisibilityResponse,
+  WorkflowExecution,
 } from "@dafthunk/types";
-import { makeRequest } from "./utils";
+import useSWR, { mutate } from "swr";
+
 import { useAuth } from "@/components/auth-context";
-import { makeOrgRequest } from "./utils";
 import { useInfinatePagination } from "@/hooks/use-infinate-pagination";
+
+import { makeRequest } from "./utils";
+import { makeOrgRequest } from "./utils";
 
 // Base endpoint for executions
 const API_ENDPOINT_BASE = "/executions";

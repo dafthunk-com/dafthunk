@@ -1,7 +1,8 @@
 import { useEffect } from "react";
+
 import {
-  useBreadcrumbsSetter,
   BreadcrumbItem,
+  useBreadcrumbsSetter,
 } from "@/components/page-context";
 
 /**

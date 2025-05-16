@@ -1,11 +1,12 @@
 import { useEffect } from "react";
-import { useAuth } from "@/components/auth-context";
 import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "@/components/auth-context";
+import { InsetError } from "@/components/inset-error";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAvatarUrl, getInitials } from "@/utils/user-utils";
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { InsetLoading } from "@/components/inset-loading";
-import { InsetError } from "@/components/inset-error";
 
 // Helper function to format provider name
 const formatProviderName = (provider: string) => {

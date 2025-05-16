@@ -1,7 +1,8 @@
-import { Hono } from "hono";
-import { NodeRegistry } from "../nodes/nodeRegistry";
-import { ApiContext } from "../context";
 import { GetNodeTypesResponse } from "@dafthunk/types";
+import { Hono } from "hono";
+
+import { ApiContext } from "../context";
+import { NodeRegistry } from "../nodes/nodeRegistry";
 
 const typeRoutes = new Hono<ApiContext>();
 

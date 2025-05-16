@@ -1,6 +1,7 @@
-import { cn } from "@/utils/utils";
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
+
+import { cn } from "@/utils/utils";
 
 interface NavLinkProps extends React.ComponentProps<typeof Link> {
   children: React.ReactNode;

@@ -1,13 +1,14 @@
-import { Context, Hono } from "hono";
-import { jwt } from "hono/jwt";
-import { setCookie, deleteCookie } from "hono/cookie";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
+import { Context, Hono } from "hono";
+import { deleteCookie, setCookie } from "hono/cookie";
+import { jwt } from "hono/jwt";
 import { SignJWT } from "jose";
-import { createDatabase } from "./db";
+
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
-import { saveUser, verifyApiKey } from "./utils/db";
+import { createDatabase } from "./db";
 import { OrganizationRole } from "./db/schema";
+import { saveUser, verifyApiKey } from "./utils/db";
 
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";

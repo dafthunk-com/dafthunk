@@ -1,16 +1,16 @@
 import {
-  sqliteTable,
-  text,
-  integer,
-  primaryKey,
-  index,
-} from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
-import { relations } from "drizzle-orm";
-import {
   Workflow as WorkflowType,
   WorkflowExecution as WorkflowExecutionType,
 } from "@dafthunk/types";
+import { sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
+import {
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 /**
  * ENUMS & CONSTANTS

@@ -1,5 +1,5 @@
 import { WorkflowExecution } from "./workflow";
-import { Node, Edge } from "./workflow";
+import { Edge, Node } from "./workflow";
 
 /**
  * Request to filter executions

@@ -1,5 +1,7 @@
-import { Button } from "@/components/ui/button";
+import type { Node } from "@xyflow/react";
 import { Copy, Terminal } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,15 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Code } from "@/components/ui/code";
-import type { Node } from "@xyflow/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   NodeTemplate,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
-import { extractDialogParametersFromNodes } from "@/utils/utils";
 import { API_BASE_URL } from "@/config/api";
+import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 interface ApiIntegrationCardProps {
   nodes: Node<WorkflowNodeType>[];

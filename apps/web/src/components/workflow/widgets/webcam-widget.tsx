@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { Label } from "@/components/ui/label";
 import { Camera, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+import { Label } from "@/components/ui/label";
 import { useObjectService } from "@/services/objectService";
 
 interface WebcamConfig {

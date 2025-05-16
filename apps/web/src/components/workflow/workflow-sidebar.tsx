@@ -1,13 +1,14 @@
-import { WorkflowNodeInspector } from "./workflow-node-inspector";
-import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
-import { useMemo } from "react";
-import { Sparkles, Eye } from "lucide-react";
-import type {
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
-} from "@xyflow/react";
-import type { WorkflowNodeType, WorkflowEdgeType } from "./workflow-types";
 import type { ObjectReference } from "@dafthunk/types";
+import type {
+  Edge as ReactFlowEdge,
+  Node as ReactFlowNode,
+} from "@xyflow/react";
+import { Eye, Sparkles } from "lucide-react";
+import { useMemo } from "react";
+
+import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
+import { WorkflowNodeInspector } from "./workflow-node-inspector";
+import type { WorkflowEdgeType, WorkflowNodeType } from "./workflow-types";
 
 export interface WorkflowSidebarProps {
   node: ReactFlowNode<WorkflowNodeType> | null;

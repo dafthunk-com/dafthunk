@@ -1,33 +1,35 @@
+import type { ObjectReference } from "@dafthunk/types";
+import type { Node as ReactFlowNode } from "@xyflow/react";
+import { EyeIcon, EyeOffIcon, XCircleIcon } from "lucide-react";
+import { createElement, useEffect, useState } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
-import type { WorkflowParameter } from "./workflow-types";
-import { useState, useEffect, createElement } from "react";
-import { WorkflowOutputRenderer } from "./workflow-output-renderer";
+
+import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
+import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
+import { DocumentWidget } from "./widgets/document-widget";
+import { InputTextWidget } from "./widgets/input-text-widget";
+import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
+import { NumberInputWidget } from "./widgets/number-input-widget";
+import { RadioGroupWidget } from "./widgets/radio-group-widget";
+import { SliderWidget } from "./widgets/slider-widget";
+import { TextAreaWidget } from "./widgets/text-area-widget";
+import { WebcamWidget } from "./widgets/webcam-widget";
+import { createWidgetConfig } from "./widgets/widget-factory";
 import {
-  useWorkflow,
+  clearNodeInput,
+  convertValueByType,
   updateNodeInput,
   updateNodeName,
-  convertValueByType,
-  clearNodeInput,
+  useWorkflow,
 } from "./workflow-context";
-import { XCircleIcon, EyeIcon, EyeOffIcon } from "lucide-react";
-import { SliderWidget } from "./widgets/slider-widget";
-import { RadioGroupWidget } from "./widgets/radio-group-widget";
-import { TextAreaWidget } from "./widgets/text-area-widget";
-import { InputTextWidget } from "./widgets/input-text-widget";
-import { NumberInputWidget } from "./widgets/number-input-widget";
-import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
-import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
-import { WebcamWidget } from "./widgets/webcam-widget";
-import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
-import { createWidgetConfig } from "./widgets/widget-factory";
-import { DocumentWidget } from "./widgets/document-widget";
-import type { Node as ReactFlowNode } from "@xyflow/react";
+import { WorkflowOutputRenderer } from "./workflow-output-renderer";
+import type { WorkflowParameter } from "./workflow-types";
 import type { WorkflowNodeType } from "./workflow-types";
-import type { ObjectReference } from "@dafthunk/types";
 
 export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;

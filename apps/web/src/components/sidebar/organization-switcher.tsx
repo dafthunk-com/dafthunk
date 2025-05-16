@@ -1,7 +1,8 @@
 "use client";
 
-import { Check, ChevronsUpDown, Building } from "lucide-react";
+import { Building, Check, ChevronsUpDown } from "lucide-react";
 
+import { useAuth } from "@/components/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +15,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useAuth } from "@/components/auth-context";
 
 export function OrganizationSwitcher() {
   const { organization } = useAuth();

@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import * as Sidebar from "@/components/ui/sidebar";
-import { AppHeader } from "@/components/app-header";
-import { NavMainProps } from "@/components/sidebar/nav-main";
-import { PageProvider } from "@/components/page-context";
 import { Toaster } from "sonner";
+
+import { AppHeader } from "@/components/app-header";
+import { PageProvider } from "@/components/page-context";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { NavMainProps } from "@/components/sidebar/nav-main";
+import * as Sidebar from "@/components/ui/sidebar";
 
 interface AppLayoutProps {
   children: ReactNode;

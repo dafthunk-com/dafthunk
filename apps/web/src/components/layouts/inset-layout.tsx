@@ -1,4 +1,5 @@
 import { HTMLAttributes, ReactNode } from "react";
+
 import { cn } from "@/utils/utils";
 
 interface InsetLayoutProps extends HTMLAttributes<HTMLDivElement> {

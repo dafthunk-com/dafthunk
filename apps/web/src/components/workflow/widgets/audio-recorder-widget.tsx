@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { Label } from "@/components/ui/label";
 import { Mic, Square, Trash2 } from "lucide-react";
-import { useObjectService, isObjectReference } from "@/services/objectService";
+import { useEffect, useRef, useState } from "react";
+
+import { Label } from "@/components/ui/label";
+import { isObjectReference, useObjectService } from "@/services/objectService";
 
 interface AudioRecorderConfig {
   value: any; // Now stores an object reference

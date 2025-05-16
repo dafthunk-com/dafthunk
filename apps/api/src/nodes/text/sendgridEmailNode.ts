@@ -1,6 +1,7 @@
-import { ExecutableNode, NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 import sgMail from "@sendgrid/mail";
+
+import { ExecutableNode, NodeContext } from "../types";
 
 export class SendgridEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,6 +1,8 @@
-import useSWR from "swr";
 import { DashboardStats, DashboardStatsResponse } from "@dafthunk/types";
+import useSWR from "swr";
+
 import { useAuth } from "@/components/auth-context";
+
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for dashboard data

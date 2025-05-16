@@ -1,6 +1,7 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 
 /**
  * DeepSeek R1 Distill Qwen 32B Node implementation with comprehensive parameters

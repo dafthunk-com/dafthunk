@@ -1,15 +1,16 @@
 import {
-  ParameterValue as ApiParameterValue,
   JsonArray,
+  ParameterValue as ApiParameterValue,
 } from "@dafthunk/types";
-import {
-  ParameterValue as NodeParameterValue,
-  ImageParameter as NodeImageParameter,
-  DocumentParameter as NodeDocumentParameter,
-  AudioParameter as NodeAudioParameter,
-} from "./types";
-import { ObjectStore } from "../runtime/objectStore";
 import { ObjectReference } from "@dafthunk/types";
+
+import { ObjectStore } from "../runtime/objectStore";
+import {
+  AudioParameter as NodeAudioParameter,
+  DocumentParameter as NodeDocumentParameter,
+  ImageParameter as NodeImageParameter,
+  ParameterValue as NodeParameterValue,
+} from "./types";
 
 // Type guards for binary parameter types
 function isImageParameter(value: unknown): value is NodeImageParameter {

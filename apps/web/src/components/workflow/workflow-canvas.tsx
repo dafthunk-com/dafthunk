@@ -1,39 +1,42 @@
+import "@xyflow/react/dist/style.css";
+
 import {
-  ReactFlow,
-  Controls,
   Background,
   BackgroundVariant,
   ConnectionMode,
-  Node as ReactFlowNode,
+  Controls,
   Edge as ReactFlowEdge,
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
-  OnConnectStart,
-  OnConnectEnd,
-  ReactFlowInstance,
   IsValidConnection,
+  Node as ReactFlowNode,
+  OnConnect,
+  OnConnectEnd,
+  OnConnectStart,
+  OnEdgesChange,
+  OnNodesChange,
+  ReactFlow,
+  ReactFlowInstance,
 } from "@xyflow/react";
-import { Button } from "@/components/ui/button";
-import { WorkflowNode } from "./workflow-node";
-import { WorkflowEdge, WorkflowConnectionLine } from "./workflow-edge";
-import type {
-  WorkflowNodeType,
-  WorkflowEdgeType,
-  ConnectionValidationState,
-  WorkflowExecutionStatus,
-} from "./workflow-types";
 import {
-  Plus,
-  Play,
-  X,
-  PanelLeftClose,
-  PanelLeft,
-  Square,
   ArrowUpToLine,
+  PanelLeft,
+  PanelLeftClose,
+  Play,
+  Plus,
+  Square,
+  X,
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
-import "@xyflow/react/dist/style.css";
+
+import { WorkflowConnectionLine, WorkflowEdge } from "./workflow-edge";
+import { WorkflowNode } from "./workflow-node";
+import type {
+  ConnectionValidationState,
+  WorkflowEdgeType,
+  WorkflowExecutionStatus,
+  WorkflowNodeType,
+} from "./workflow-types";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,

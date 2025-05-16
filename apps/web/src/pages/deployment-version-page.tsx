@@ -1,27 +1,28 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { toast } from "sonner";
 import type { WorkflowDeploymentVersion } from "@dafthunk/types";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
-import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import type { Edge, Node } from "@xyflow/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useAuth } from "@/components/auth-context";
 import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
-import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Node, Edge } from "@xyflow/react";
-import type {
-  WorkflowNodeType,
-  WorkflowEdgeType,
-} from "@/components/workflow/workflow-types";
-import { Button } from "@/components/ui/button";
+import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
+import type {
+  WorkflowEdgeType,
+  WorkflowNodeType,
+} from "@/components/workflow/workflow-types";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { useDeploymentVersion } from "@/services/deploymentService";
+import { useObjectService } from "@/services/objectService";
 import { useWorkflow, useWorkflowExecution } from "@/services/workflowService";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useDeploymentVersion } from "@/services/deploymentService";
-import { useAuth } from "@/components/auth-context";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
-import { useObjectService } from "@/services/objectService";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();

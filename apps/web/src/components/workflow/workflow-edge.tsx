@@ -1,12 +1,14 @@
-import { memo } from "react";
 import {
+  ConnectionLineComponentProps,
+  Edge as ReactFlowEdge,
   EdgeProps,
   getSmoothStepPath,
-  ConnectionLineComponentProps,
   Position,
-  Edge as ReactFlowEdge,
 } from "@xyflow/react";
+import { memo } from "react";
+
 import { cn } from "@/utils/utils";
+
 import { WorkflowEdgeType } from "./workflow-types";
 
 interface WorkflowEdgeProps extends EdgeProps<ReactFlowEdge<WorkflowEdgeType>> {

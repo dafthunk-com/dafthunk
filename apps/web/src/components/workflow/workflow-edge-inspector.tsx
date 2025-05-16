@@ -1,6 +1,8 @@
+import type { Edge as ReactFlowEdge } from "@xyflow/react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import type { Edge as ReactFlowEdge } from "@xyflow/react";
+
 import type { WorkflowEdgeType } from "./workflow-types";
 
 export interface WorkflowEdgeInspectorProps {

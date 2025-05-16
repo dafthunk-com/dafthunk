@@ -1,10 +1,12 @@
-import { RouterProvider } from "react-router-dom";
-import { router } from "./routes";
-import { AuthProvider } from "./components/auth-context";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
-import { AppLayout } from "./components/layouts/app-layout";
-import { Button } from "@/components/ui/button";
+import { RouterProvider } from "react-router-dom";
+
 import { ThemeProvider } from "@/components/theme-provider";
+import { Button } from "@/components/ui/button";
+
+import { AuthProvider } from "./components/auth-context";
+import { AppLayout } from "./components/layouts/app-layout";
+import { router } from "./routes";
 
 function FallbackErrorUI() {
   return (

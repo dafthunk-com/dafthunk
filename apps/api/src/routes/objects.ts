@@ -1,18 +1,19 @@
-import { Hono } from "hono";
-import { ObjectStore } from "../runtime/objectStore";
 import {
-  ObjectReference,
-  UploadObjectResponse,
   DeleteObjectResponse,
   GetObjectMetadataResponse,
   ListObjectsResponse,
   ObjectMetadata,
+  ObjectReference,
+  UploadObjectResponse,
 } from "@dafthunk/types";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { eq } from "drizzle-orm";
+import { Hono } from "hono";
+
 import { jwtAuth } from "../auth";
+import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { ObjectStore } from "../runtime/objectStore";
 
 const objectRoutes = new Hono<ApiContext>();
 

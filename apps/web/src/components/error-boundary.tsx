@@ -1,6 +1,7 @@
 import { useRouteError } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+
 import { AppLayout } from "@/components/layouts/app-layout";
+import { Button } from "@/components/ui/button";
 
 export function ErrorBoundary() {
   const error = useRouteError();

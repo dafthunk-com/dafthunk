@@ -1,5 +1,5 @@
-import { Spinner } from "@/components/ui/spinner";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Spinner } from "@/components/ui/spinner";
 
 export function InsetLoading({ title }: { title?: string }) {
   return (

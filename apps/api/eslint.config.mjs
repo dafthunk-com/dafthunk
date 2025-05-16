@@ -1,9 +1,9 @@
-import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
+import { defineConfig } from "eslint/config";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unusedImports from "eslint-plugin-unused-imports";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import unusedImports from "eslint-plugin-unused-imports";
-import simpleImportSort from "eslint-plugin-simple-import-sort";
 
 export default defineConfig([
   { ignores: ["dist", ".wrangler/**", "node_modules/**"] },

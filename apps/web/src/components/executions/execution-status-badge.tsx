@@ -1,13 +1,14 @@
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import type { WorkflowExecution } from "@dafthunk/types";
+import type { VariantProps } from "class-variance-authority";
 import {
-  CircleDashed,
-  CheckCircle2,
   AlertCircle,
+  CheckCircle2,
+  CircleDashed,
   CircleSlash,
 } from "lucide-react";
-import type { VariantProps } from "class-variance-authority";
+
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/utils/utils";
-import type { WorkflowExecution } from "@dafthunk/types";
 
 // Define the possible status types explicitly
 // Define the structure for status information

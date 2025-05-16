@@ -1,12 +1,14 @@
-import useSWR from "swr";
 import {
+  GetDeploymentVersionResponse,
+  GetWorkflowDeploymentsResponse,
+  ListDeploymentsResponse,
   WorkflowDeployment,
   WorkflowDeploymentVersion,
-  ListDeploymentsResponse,
-  GetWorkflowDeploymentsResponse,
-  GetDeploymentVersionResponse,
 } from "@dafthunk/types";
+import useSWR from "swr";
+
 import { useAuth } from "@/components/auth-context";
+
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for deployments

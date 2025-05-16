@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
+
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 export function NotFoundPage() {
   return (

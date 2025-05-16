@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { cn } from "@/utils/utils";
 
 interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -49,4 +50,4 @@ const AlertDescription = React.forwardRef<
 ));
 AlertDescription.displayName = "AlertDescription";
 
-export { Alert, AlertTitle, AlertDescription };
+export { Alert, AlertDescription, AlertTitle };

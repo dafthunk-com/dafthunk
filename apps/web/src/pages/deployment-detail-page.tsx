@@ -1,17 +1,27 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import type { WorkflowDeploymentVersion } from "@dafthunk/types";
+import type { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import {
-  ArrowUpToLine,
-  History,
   ArrowDown,
+  ArrowUpToLine,
   GitCommitHorizontal,
+  History,
   MoreHorizontal,
   Play,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useAuth } from "@/components/auth-context";
+import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
+import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
+import { InsetError } from "@/components/inset-error";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import {
   Dialog,
@@ -21,29 +31,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
-import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
-import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ColumnDef } from "@tanstack/react-table";
-import { InsetLoading } from "@/components/inset-loading";
-import { InsetError } from "@/components/inset-error";
-import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deploymentService";
-import { useAuth } from "@/components/auth-context";
 import { useWorkflowExecution } from "@/services/workflowService";
-import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {

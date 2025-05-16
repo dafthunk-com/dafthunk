@@ -1,6 +1,7 @@
+import { Navigate } from "react-router-dom";
+
 import { useAuth } from "@/components/auth-context";
 import { LoginForm } from "@/components/login-form";
-import { Navigate } from "react-router-dom";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();

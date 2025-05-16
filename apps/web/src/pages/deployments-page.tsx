@@ -1,12 +1,18 @@
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { DataTable } from "@/components/ui/data-table";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { toast } from "sonner";
 import type { WorkflowDeployment } from "@dafthunk/types";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { Button } from "@/components/ui/button";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  ArrowUpToLine,
+  GitCommitHorizontal,
+  MoreHorizontal,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+import { useAuth } from "@/components/auth-context";
+import { InsetError } from "@/components/inset-error";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,32 +23,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
-import { InsetLoading } from "@/components/inset-loading";
-import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  MoreHorizontal,
-  GitCommitHorizontal,
-  ArrowUpToLine,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useWorkflows } from "@/services/workflowService";
-import { InsetError } from "@/components/inset-error";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { createDeployment, useDeployments } from "@/services/deploymentService";
-import { useAuth } from "@/components/auth-context";
+import { useWorkflows } from "@/services/workflowService";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {

@@ -1,3 +1,15 @@
+import { WorkflowExecutionStatus } from "@dafthunk/types";
+import { format } from "date-fns";
+import {
+  AlertCircle,
+  Clock,
+  Eye,
+  EyeOff,
+  IdCard,
+  Workflow,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
 import {
   Card,
   CardContent,
@@ -5,20 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Clock,
-  IdCard,
-  Workflow,
-  AlertCircle,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-import { format } from "date-fns";
-import { Link } from "react-router-dom";
-import { ExecutionStatusBadge } from "./execution-status-badge";
-import { WorkflowExecutionStatus } from "@dafthunk/types";
-import { Badge } from "../ui/badge";
 import { cn } from "@/utils/utils";
+
+import { Badge } from "../ui/badge";
+import { ExecutionStatusBadge } from "./execution-status-badge";
 
 interface ExecutionInfoCardProps {
   id: string;

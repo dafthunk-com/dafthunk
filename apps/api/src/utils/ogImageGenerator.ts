@@ -1,4 +1,5 @@
 import puppeteer from "@cloudflare/puppeteer";
+
 import { type Bindings } from "../context";
 
 const OG_IMAGE_WIDTH = 1200;

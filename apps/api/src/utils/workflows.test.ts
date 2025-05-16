@@ -1,10 +1,11 @@
-import { describe, it, expect } from "vitest";
+import type { Edge, Node, Parameter, Workflow } from "@dafthunk/types";
+import { describe, expect, it } from "vitest";
+
 import {
   detectCycles,
   validateTypeCompatibility,
   validateWorkflow,
 } from "./workflows";
-import type { Workflow, Node, Edge, Parameter } from "@dafthunk/types";
 
 describe("workflowValidation", () => {
   // Helper function to create a basic node

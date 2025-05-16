@@ -1,5 +1,6 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode, NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 
 /**
  * Cloudflare Browser Rendering JSON Node (REST API version)

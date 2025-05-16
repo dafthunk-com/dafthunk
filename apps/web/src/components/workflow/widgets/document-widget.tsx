@@ -1,9 +1,10 @@
+import { File, Upload, X } from "lucide-react";
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { File, X, Upload } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { isObjectReference, useObjectService } from "@/services/objectService";
 import { cn } from "@/utils/utils";
-import { useObjectService, isObjectReference } from "@/services/objectService";
 
 export interface DocumentConfig {
   value: any; // Now stores an object reference

@@ -7,6 +7,7 @@ import {
   SidebarFooter,
   SidebarRail,
 } from "@/components/ui/sidebar";
+
 import { OrganizationSwitcher } from "./organization-switcher";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & NavMainProps;

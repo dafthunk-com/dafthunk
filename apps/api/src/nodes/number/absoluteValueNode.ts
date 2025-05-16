@@ -1,6 +1,7 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 
 /**
  * Absolute Value node implementation

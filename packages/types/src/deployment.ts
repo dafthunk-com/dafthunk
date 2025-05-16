@@ -1,7 +1,7 @@
 import {
+  Workflow,
   WorkflowDeployment,
   WorkflowDeploymentVersion,
-  Workflow,
 } from "./workflow";
 
 /**

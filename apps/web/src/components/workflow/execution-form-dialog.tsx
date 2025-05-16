@@ -1,3 +1,13 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo } from "react";
+import {
+  Controller,
+  type Resolver,
+  SubmitHandler,
+  useForm,
+} from "react-hook-form";
+import * as z from "zod";
+
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -7,19 +17,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import {
-  useForm,
-  Controller,
-  SubmitHandler,
-  type Resolver,
-} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useEffect, useMemo } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 
 // Describes the structure of parameters passed to the dialog

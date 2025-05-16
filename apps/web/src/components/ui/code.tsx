@@ -1,5 +1,6 @@
-import { cn } from "@/utils/utils";
 import { type ReactNode } from "react";
+
+import { cn } from "@/utils/utils";
 
 interface CodeProps {
   children: ReactNode;

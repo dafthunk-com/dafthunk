@@ -1,35 +1,36 @@
+import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
+import { Eye, EyeOff } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  useWorkflow,
-  convertToReactFlowEdges,
-  validateConnection,
-} from "@/services/workflowService";
-import { useDeploymentVersion } from "@/services/deploymentService";
-import {
-  useExecution,
-  setExecutionPublic,
-  setExecutionPrivate,
-} from "@/services/executionService";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { useAuth } from "@/components/auth-context";
+import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
+import { InsetError } from "@/components/inset-error";
+import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
-import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
-import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
-import { InsetLoading } from "@/components/inset-loading";
-import { InsetError } from "@/components/inset-error";
-import { Eye, EyeOff } from "lucide-react";
-import { Share2 } from "lucide-react";
-import { LoadingButton } from "@/components/ui/loading-button";
-import { useAuth } from "@/components/auth-context";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { useDeploymentVersion } from "@/services/deploymentService";
+import {
+  setExecutionPrivate,
+  setExecutionPublic,
+  useExecution,
+} from "@/services/executionService";
 import { useObjectService } from "@/services/objectService";
+import {
+  convertToReactFlowEdges,
+  useWorkflow,
+  validateConnection,
+} from "@/services/workflowService";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();

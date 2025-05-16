@@ -1,9 +1,9 @@
+import { useEffect, useRef } from "react";
 import useSWRInfinite, {
   SWRInfiniteConfiguration,
-  SWRInfiniteKeyLoader,
   SWRInfiniteFetcher,
+  SWRInfiniteKeyLoader,
 } from "swr/infinite";
-import { useRef, useEffect } from "react";
 
 export interface UsePaginationOptions<Data = any, Error = any>
   extends SWRInfiniteConfiguration<Data[], Error> {

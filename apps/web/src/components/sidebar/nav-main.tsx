@@ -1,14 +1,16 @@
 "use client";
 
 import { type LucideIcon, PanelLeft } from "lucide-react";
+
 import {
   SidebarGroup,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/utils/utils";
+
 import { NavLink } from "../nav-link";
 
 interface NavMainItem {

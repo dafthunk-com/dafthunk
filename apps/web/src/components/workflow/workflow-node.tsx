@@ -1,45 +1,47 @@
-import { memo, useState, useEffect, createElement } from "react";
+import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
-import { cn } from "@/utils/utils";
 import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
-import { WorkflowOutputRenderer } from "./workflow-output-renderer";
-import { SliderWidget } from "./widgets/slider-widget";
-import { RadioGroupWidget } from "./widgets/radio-group-widget";
-import { TextAreaWidget } from "./widgets/text-area-widget";
-import { InputTextWidget } from "./widgets/input-text-widget";
-import { NumberInputWidget } from "./widgets/number-input-widget";
-import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
-import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
-import { WebcamWidget } from "./widgets/webcam-widget";
-import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
-import { DocumentWidget } from "./widgets/document-widget";
+import { createElement, memo, useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  useWorkflow,
-  updateNodeInput,
-  clearNodeInput,
-  updateNodeName,
-  convertValueByType,
-} from "./workflow-context";
+import { cn } from "@/utils/utils";
+
+import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
+import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
+import { DocumentWidget } from "./widgets/document-widget";
+import { InputTextWidget } from "./widgets/input-text-widget";
+import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
+import { NumberInputWidget } from "./widgets/number-input-widget";
+import { RadioGroupWidget } from "./widgets/radio-group-widget";
+import { SliderWidget } from "./widgets/slider-widget";
+import { TextAreaWidget } from "./widgets/text-area-widget";
+import { WebcamWidget } from "./widgets/webcam-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
-import { WorkflowParameter, NodeExecutionState } from "./workflow-types";
-import { ObjectReference } from "@dafthunk/types";
+import {
+  clearNodeInput,
+  convertValueByType,
+  updateNodeInput,
+  updateNodeName,
+  useWorkflow,
+} from "./workflow-context";
+import { WorkflowOutputRenderer } from "./workflow-output-renderer";
+import { NodeExecutionState, WorkflowParameter } from "./workflow-types";
 
 export interface WorkflowNodeType {
   name: string;

@@ -1,10 +1,11 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, ReactNode, useContext } from "react";
 import useSWR from "swr";
+
 import {
-  authService,
-  User,
   type AuthProvider,
+  authService,
   OrganizationInfo,
+  User,
 } from "@/services/authService";
 
 export const AUTH_USER_KEY = "/auth/user";

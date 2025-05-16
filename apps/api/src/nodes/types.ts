@@ -1,5 +1,5 @@
 // Types for workflows
-import { NodeExecution, Node, NodeType } from "@dafthunk/types";
+import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 export type ImageParameter = {
   data: Uint8Array;

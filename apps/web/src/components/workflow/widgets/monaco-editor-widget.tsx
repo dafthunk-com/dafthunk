@@ -1,4 +1,5 @@
 import { Editor } from "@monaco-editor/react";
+
 import { Label } from "@/components/ui/label";
 
 interface MonacoEditorWidgetConfig {

@@ -1,7 +1,8 @@
+import type { Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input } from "@cloudflare/workers-types/experimental";
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
-import type { Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input } from "@cloudflare/workers-types/experimental";
 
 /**
  * Speech Recognition node implementation using Whisper Large V3 Turbo

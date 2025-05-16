@@ -1,3 +1,13 @@
+import { format } from "date-fns";
+import {
+  ArrowUpToLine,
+  Clock,
+  GitCommitHorizontal,
+  IdCard,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -5,15 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Clock,
-  IdCard,
-  ArrowUpToLine,
-  GitCommitHorizontal,
-} from "lucide-react";
-import { format } from "date-fns";
-import { Link } from "react-router-dom";
 
 interface DeploymentInfoCardProps {
   id: string;

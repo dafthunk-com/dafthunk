@@ -1,6 +1,8 @@
-import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+
+import { InsetLayout } from "@/components/layouts/inset-layout";
+
+import { Button } from "./ui/button";
 
 interface InsetErrorProps {
   title?: string;

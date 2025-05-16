@@ -1,10 +1,9 @@
-import { Node as ReactFlowNode, XYPosition } from "@xyflow/react";
-import { Node, NodeType, GetNodeTypesResponse } from "@dafthunk/types";
-import { NodeExecutionState } from "@/components/workflow/workflow-types";
-import { WorkflowNodeType } from "@/components/workflow/workflow-types";
+import { GetNodeTypesResponse, NodeType } from "@dafthunk/types";
 import useSWR from "swr";
-import { makeOrgRequest } from "./utils";
+
 import { useAuth } from "@/components/auth-context";
+
+import { makeOrgRequest } from "./utils";
 
 // Base endpoint for node types
 const API_ENDPOINT_BASE = "/types";

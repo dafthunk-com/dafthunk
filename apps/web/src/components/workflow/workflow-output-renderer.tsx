@@ -1,7 +1,9 @@
-import { isObjectReference } from "@/services/objectService";
 import { ObjectReference } from "@dafthunk/types";
-import { WorkflowParameter } from "./workflow-types";
 import { useEffect, useRef, useState } from "react";
+
+import { isObjectReference } from "@/services/objectService";
+
+import { WorkflowParameter } from "./workflow-types";
 
 interface WorkflowOutputRendererProps {
   output: WorkflowParameter;

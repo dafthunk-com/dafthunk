@@ -1,4 +1,5 @@
-import { Node, NodeType, NodeExecution } from "@dafthunk/types";
+import { Node, NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode, NodeContext } from "../types";
 
 export class NumberParameterNode extends ExecutableNode {

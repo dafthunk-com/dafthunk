@@ -1,17 +1,18 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import type { Node } from "@xyflow/react";
-import type {
-  NodeTemplate,
-  WorkflowNodeType,
-  WorkflowParameter,
-  InputOutputType,
-} from "@/components/workflow/workflow-types";
-import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type {
   Node as BackendNode,
   Parameter as BackendParameter,
 } from "@dafthunk/types";
+import type { Node } from "@xyflow/react";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
+import type {
+  InputOutputType,
+  NodeTemplate,
+  WorkflowNodeType,
+  WorkflowParameter,
+} from "@/components/workflow/workflow-types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

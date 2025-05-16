@@ -1,6 +1,7 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { NodeContext } from "../types";
 import { ExecutableNode } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 
 /**
  * Speech Recognition node implementation using Whisper

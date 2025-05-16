@@ -1,4 +1,8 @@
+import { CircleUserRound, KeyRound, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import { useAuth } from "@/components/auth-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,9 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CircleUserRound, LogOut, KeyRound } from "lucide-react";
-import { Link } from "react-router-dom";
 import { getAvatarUrl, getInitials } from "@/utils/user-utils";
 
 export function UserProfile() {

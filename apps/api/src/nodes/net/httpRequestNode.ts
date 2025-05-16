@@ -1,5 +1,6 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode, NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
 
 export class HttpRequestNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

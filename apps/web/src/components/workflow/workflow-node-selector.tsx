@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, KeyboardEvent } from "react";
+import { Search } from "lucide-react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -7,9 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search } from "lucide-react";
-import type { NodeTemplate } from "./workflow-types";
 import { cn } from "@/utils/utils";
+
+import type { NodeTemplate } from "./workflow-types";
 
 type ActiveElement = "search" | "categories" | "nodes";
 

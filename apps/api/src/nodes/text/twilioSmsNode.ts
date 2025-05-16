@@ -1,6 +1,7 @@
-import { ExecutableNode, NodeContext } from "../types";
-import { NodeType, NodeExecution } from "@dafthunk/types";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 import { Twilio } from "twilio";
+
+import { ExecutableNode, NodeContext } from "../types";
 
 export class TwilioSmsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {

@@ -1,11 +1,13 @@
-import { Link } from "react-router-dom";
 import { Bot, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import { UserProfile } from "@/components/user-profile";
+
+import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
+import { useAuth } from "./auth-context";
+import { Logo } from "./logo";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
-import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
-import { Logo } from "./logo";
-import { useAuth } from "./auth-context";
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();

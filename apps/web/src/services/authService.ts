@@ -1,7 +1,9 @@
-import { API_BASE_URL } from "@/config/api";
-import { makeRequest } from "./utils";
 import { mutate } from "swr";
+
 import { AUTH_USER_KEY } from "@/components/auth-context";
+import { API_BASE_URL } from "@/config/api";
+
+import { makeRequest } from "./utils";
 
 export type OrganizationRoleType = "member" | "admin" | "owner";
 

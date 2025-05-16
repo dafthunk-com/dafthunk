@@ -1,28 +1,29 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import type { ObjectReference } from "@dafthunk/types";
 import {
-  useNodesState,
-  useEdgesState,
   addEdge,
-  getConnectedEdges,
-  Node as ReactFlowNode,
-  Edge as ReactFlowEdge,
-  ReactFlowInstance,
   Connection,
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
-  OnConnectStart,
-  OnConnectEnd,
+  Edge as ReactFlowEdge,
+  getConnectedEdges,
   IsValidConnection,
+  Node as ReactFlowNode,
+  OnConnect,
+  OnConnectEnd,
+  OnConnectStart,
+  OnEdgesChange,
+  OnNodesChange,
+  ReactFlowInstance,
+  useEdgesState,
+  useNodesState,
 } from "@xyflow/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import type {
-  WorkflowNodeType,
-  WorkflowEdgeType,
-  NodeTemplate,
   ConnectionValidationState,
   NodeExecutionState,
+  NodeTemplate,
+  WorkflowEdgeType,
+  WorkflowNodeType,
 } from "./workflow-types";
-import type { ObjectReference } from "@dafthunk/types";
 
 interface UseWorkflowStateProps {
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];

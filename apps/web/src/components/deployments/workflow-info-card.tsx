@@ -1,3 +1,6 @@
+import { IdCard, Workflow } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import {
   Card,
   CardContent,
@@ -5,8 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IdCard, Workflow } from "lucide-react";
-import { Link } from "react-router-dom";
 
 interface WorkflowInfoCardProps {
   id: string;

@@ -1,4 +1,3 @@
-import useSWR from "swr";
 import {
   ApiKey,
   ApiKeyWithSecret,
@@ -6,7 +5,10 @@ import {
   DeleteApiKeyResponse,
   ListApiKeysResponse,
 } from "@dafthunk/types";
+import useSWR from "swr";
+
 import { useAuth } from "@/components/auth-context";
+
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for API keys
