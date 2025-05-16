@@ -224,16 +224,11 @@ export const useExecution = (executionId: string | null): UseExecution => {
 export const usePublicExecution = (
   executionId: string | null
 ): UsePublicExecution => {
+  const swrKey = `/public/executions/${executionId}`;
+
   const { data, error, isLoading, mutate } = useSWR(
-    executionId ? `${API_ENDPOINT_BASE}/public/${executionId}` : null,
-    executionId
-      ? async () => {
-          const response = await apiRequest<GetPublicExecutionResponse>(
-            `${API_ENDPOINT_BASE}/public/${executionId}`
-          );
-          return response.execution;
-        }
-      : null
+    executionId ? swrKey : null,
+    executionId ? () => getPublicExecution(executionId) : null
   );
 
   return {
@@ -296,7 +291,10 @@ export const getPublicExecution = async (
   executionId: string
 ): Promise<PublicExecutionWithStructure> => {
   const response = await apiRequest<GetPublicExecutionResponse>(
-    `${API_ENDPOINT_BASE}/public/${executionId}`
+    `/public/executions/${executionId}`,
+    {
+      credentials: "omit",
+    }
   );
 
   return response.execution;

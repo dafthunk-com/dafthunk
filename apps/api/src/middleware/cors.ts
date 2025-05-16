@@ -5,8 +5,11 @@ import { ApiContext } from "../context";
 export const corsMiddleware = (
   c: Context<ApiContext>,
   next: () => Promise<void>
-) =>
-  cors({
+) => {
+  const path = new URL(c.req.url).pathname;
+  const isPublicRoute = path.startsWith("/public");
+
+  return cors({
     origin: c.env.WEB_HOST,
     allowHeaders: [
       "X-Custom-Header",
@@ -22,5 +25,6 @@ export const corsMiddleware = (
     allowMethods: ["POST", "GET", "PUT", "DELETE", "OPTIONS", "PATCH"],
     exposeHeaders: ["Content-Length", "X-Content-Type-Options"],
     maxAge: 600,
-    credentials: true,
+    credentials: !isPublicRoute,
   })(c, next);
+};

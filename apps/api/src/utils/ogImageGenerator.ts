@@ -9,7 +9,7 @@ interface OgImageGeneratorParams {
   env: Pick<Bindings, "BROWSER" | "WEB_HOST" | "BUCKET">;
   executionId: string;
   organizationId: string;
-  sharedExecutionPath?: string; // e.g., "/share/executions/"
+  sharedExecutionPath?: string;
 }
 
 /**
@@ -20,7 +20,7 @@ export async function generateExecutionOgImage({
   env,
   executionId,
   organizationId,
-  sharedExecutionPath = "/share/executions/", // Default path
+  sharedExecutionPath = "/public/executions/", // Default path
 }: OgImageGeneratorParams): Promise<string> {
   let browser = null;
   console.log(

@@ -6,6 +6,7 @@ export const apiRequest = async <T>(
     method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
     body?: object;
     errorMessage?: string;
+    credentials?: "include" | "omit";
   } = {}
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -15,7 +16,7 @@ export const apiRequest = async <T>(
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
+    credentials: options.credentials || "include",
     ...(options.body && { body: JSON.stringify(options.body) }),
   });
   if (!response.ok) {
