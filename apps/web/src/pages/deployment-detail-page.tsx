@@ -42,8 +42,8 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
   useDeploymentHistory,
-} from "@/services/deploymentService";
-import { useWorkflowExecution } from "@/services/workflowService";
+} from "@/services/deployment-service";
+import { useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 // --- Inline deployment history columns and helper ---

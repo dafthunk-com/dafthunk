@@ -28,7 +28,7 @@ import {
 } from "@/components/workflow/workflow-types";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
-import { getExecution } from "./executionService";
+import { getExecution } from "./execution-service";
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for workflows

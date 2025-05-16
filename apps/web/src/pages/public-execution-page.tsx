@@ -14,12 +14,12 @@ import type {
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
 import { API_BASE_URL } from "@/config/api";
-import { usePublicExecution } from "@/services/executionService";
-import { createPublicObjectUrl } from "@/services/objectService";
+import { usePublicExecution } from "@/services/execution-service";
+import { createPublicObjectUrl } from "@/services/object-service";
 import {
   convertToReactFlowEdges,
   validateConnection,
-} from "@/services/workflowService";
+} from "@/services/workflow-service";
 
 export function PublicExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();

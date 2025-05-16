@@ -6,7 +6,7 @@ import {
   authService,
   OrganizationInfo,
   User,
-} from "@/services/authService";
+} from "@/services/auth-service";
 
 export const AUTH_USER_KEY = "/auth/user";
 

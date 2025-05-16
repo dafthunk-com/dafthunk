@@ -17,10 +17,10 @@ import type {
 } from "@/components/workflow/workflow-types";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createDeployment } from "@/services/deploymentService";
-import { useObjectService } from "@/services/objectService";
-import { useNodeTypes } from "@/services/typeService";
-import { useWorkflow, useWorkflowExecution } from "@/services/workflowService";
+import { createDeployment } from "@/services/deployment-service";
+import { useObjectService } from "@/services/object-service";
+import { useNodeTypes } from "@/services/type-service";
+import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();

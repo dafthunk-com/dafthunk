@@ -14,8 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
-import { useDashboard } from "@/services/dashboardService";
-import { createWorkflow } from "@/services/workflowService";
+import { useDashboard } from "@/services/dashboard-service";
+import { createWorkflow } from "@/services/workflow-service";
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

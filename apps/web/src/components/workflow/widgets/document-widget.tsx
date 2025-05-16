@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { isObjectReference, useObjectService } from "@/services/objectService";
+import { isObjectReference, useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 export interface DocumentConfig {

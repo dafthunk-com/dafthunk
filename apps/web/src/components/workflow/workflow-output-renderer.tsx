@@ -1,7 +1,7 @@
 import { ObjectReference } from "@dafthunk/types";
 import { useEffect, useRef, useState } from "react";
 
-import { isObjectReference } from "@/services/objectService";
+import { isObjectReference } from "@/services/object-service";
 
 import { WorkflowParameter } from "./workflow-types";
 

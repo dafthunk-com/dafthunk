@@ -42,8 +42,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createDeployment, useDeployments } from "@/services/deploymentService";
-import { useWorkflows } from "@/services/workflowService";
+import {
+  createDeployment,
+  useDeployments,
+} from "@/services/deployment-service";
+import { useWorkflows } from "@/services/workflow-service";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {

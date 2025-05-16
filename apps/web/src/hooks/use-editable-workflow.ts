@@ -7,7 +7,7 @@ import type {
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types"; // Corrected import path
-import { updateWorkflow } from "@/services/workflowService";
+import { updateWorkflow } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { debounce } from "@/utils/utils";
 

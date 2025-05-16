@@ -19,18 +19,18 @@ import type {
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDeploymentVersion } from "@/services/deploymentService";
+import { useDeploymentVersion } from "@/services/deployment-service";
 import {
   setExecutionPrivate,
   setExecutionPublic,
   useExecution,
-} from "@/services/executionService";
-import { useObjectService } from "@/services/objectService";
+} from "@/services/execution-service";
+import { useObjectService } from "@/services/object-service";
 import {
   convertToReactFlowEdges,
   useWorkflow,
   validateConnection,
-} from "@/services/workflowService";
+} from "@/services/workflow-service";
 
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { isObjectReference, useObjectService } from "@/services/objectService";
+import { isObjectReference, useObjectService } from "@/services/object-service";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference

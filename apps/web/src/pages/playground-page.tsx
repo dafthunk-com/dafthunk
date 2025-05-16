@@ -30,13 +30,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createDeployment } from "@/services/deploymentService";
+import { createDeployment } from "@/services/deployment-service";
 import {
   createWorkflow,
   deleteWorkflow,
   updateWorkflow,
   useWorkflows,
-} from "@/services/workflowService";
+} from "@/services/workflow-service";
 
 // --- Inline useWorkflowActions ---
 function useWorkflowActions() {

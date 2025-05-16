@@ -22,7 +22,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { usePaginatedExecutions } from "@/services/executionService";
+import { usePaginatedExecutions } from "@/services/execution-service";
 import { cn } from "@/utils/utils";
 
 export const columns: ColumnDef<WorkflowExecution>[] = [

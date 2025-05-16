@@ -33,7 +33,7 @@ import {
   createApiKey,
   deleteApiKey,
   useApiKeys,
-} from "@/services/apiKeysService";
+} from "@/services/api-keys-service";
 
 const columns: ColumnDef<ApiKey>[] = [
   {

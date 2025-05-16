@@ -1,4 +1,4 @@
-import { User } from "@/services/authService";
+import { User } from "@/services/auth-service";
 
 /**
  * Gets the avatar URL for a user based on their provider.

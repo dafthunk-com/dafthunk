@@ -19,9 +19,9 @@ import type {
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDeploymentVersion } from "@/services/deploymentService";
-import { useObjectService } from "@/services/objectService";
-import { useWorkflow, useWorkflowExecution } from "@/services/workflowService";
+import { useDeploymentVersion } from "@/services/deployment-service";
+import { useObjectService } from "@/services/object-service";
+import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 export function DeploymentVersionPage() {
