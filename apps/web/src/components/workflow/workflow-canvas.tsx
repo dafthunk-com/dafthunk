@@ -151,7 +151,7 @@ export function WorkflowCanvas({
   onAddNode,
   onAction,
   onDeploy,
-  workflowStatus = "idle",
+  workflowStatus = "submitted",
   onToggleSidebar,
   isSidebarVisible,
   showControls = true,

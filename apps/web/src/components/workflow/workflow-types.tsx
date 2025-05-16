@@ -10,7 +10,7 @@ import {
   OnNodesChange,
   OnEdgesChange,
 } from "@xyflow/react";
-import type { ParameterType } from "@dafthunk/types";
+import type { ObjectReference, ParameterType } from "@dafthunk/types";
 
 // Node Types
 export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
@@ -116,6 +116,7 @@ export interface UseWorkflowStateProps {
   onNodesChangePersist?: (nodes: ReactFlowNode<WorkflowNodeType>[]) => void;
   onEdgesChangePersist?: (edges: ReactFlowEdge<WorkflowEdgeType>[]) => void;
   validateConnection?: (connection: Connection) => boolean;
+  createObjectUrl: (objectReference: ObjectReference) => string;
   readonly?: boolean;
 }
 
@@ -178,6 +179,7 @@ export interface WorkflowNodeInspectorProps {
   node: ReactFlowNode<WorkflowNodeType> | null;
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   readonly?: boolean;
+  createObjectUrl: (objectReference: ObjectReference) => string;
 }
 
 export interface WorkflowEdgeInspectorProps {
@@ -191,6 +193,7 @@ export interface WorkflowSidebarProps {
   edge: ReactFlowEdge<WorkflowEdgeType> | null;
   onNodeUpdate?: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   onEdgeUpdate?: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
+  createObjectUrl: (objectReference: ObjectReference) => string;
   readonly?: boolean;
 }
 
@@ -230,6 +233,7 @@ export interface WorkflowBuilderProps {
   initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
+  createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
 }
 

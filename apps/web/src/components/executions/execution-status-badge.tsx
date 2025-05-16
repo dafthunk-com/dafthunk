@@ -19,6 +19,11 @@ type StatusInfo = {
 
 // Map status to visual properties
 const statusMap: Record<WorkflowExecution["status"], StatusInfo> = {
+  submitted: {
+    icon: CircleDashed,
+    color: "text-blue-500",
+    variant: "translucent-active",
+  },
   executing: {
     icon: CircleDashed,
     color: "text-blue-500",
@@ -39,11 +44,6 @@ const statusMap: Record<WorkflowExecution["status"], StatusInfo> = {
     color: "text-gray-500",
     variant: "translucent-inactive",
   },
-  idle: {
-    icon: CircleDashed,
-    color: "text-blue-500",
-    variant: "translucent-active",
-  },
   paused: {
     icon: CircleDashed,
     color: "text-blue-500",
@@ -57,7 +57,7 @@ type ExecutionStatusBadgeProps = {
 };
 
 export function ExecutionStatusBadge({ status }: ExecutionStatusBadgeProps) {
-  const statusInfo = statusMap[status] ?? statusMap["idle"];
+  const statusInfo = statusMap[status] ?? statusMap["submitted"];
   const Icon = statusInfo.icon;
 
   return (

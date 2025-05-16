@@ -1,9 +1,11 @@
-import { isObjectReference, useObjectService } from "@/services/objectService";
+import { isObjectReference } from "@/services/objectService";
+import { ObjectReference } from "@dafthunk/types";
 import { WorkflowParameter } from "./workflow-types";
 import { useEffect, useRef, useState } from "react";
 
 interface WorkflowOutputRendererProps {
   output: WorkflowParameter;
+  createObjectUrl: (objectReference: ObjectReference) => string;
   compact?: boolean;
 }
 
@@ -189,6 +191,7 @@ const TextRenderer = ({
 
 export function WorkflowOutputRenderer({
   output,
+  createObjectUrl,
   compact = false,
 }: WorkflowOutputRendererProps) {
   const [audioError, setAudioError] = useState<string | null>(null);
@@ -199,7 +202,6 @@ export function WorkflowOutputRenderer({
   const [documentError, setDocumentError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
-  const { createObjectUrl } = useObjectService();
 
   useEffect(() => {
     // Reset states when output changes

@@ -32,6 +32,7 @@ import { DocumentWidget } from "./widgets/document-widget";
 export function WorkflowNodeInspector({
   node,
   onNodeUpdate,
+  createObjectUrl,
   readonly = false,
 }: WorkflowNodeInspectorProps) {
   const { updateNodeData: contextUpdateNodeData } = useWorkflow();
@@ -292,7 +293,10 @@ export function WorkflowNodeInspector({
                         {output.type}
                       </span>
                     </div>
-                    <WorkflowOutputRenderer output={output} />
+                    <WorkflowOutputRenderer
+                      output={output}
+                      createObjectUrl={createObjectUrl}
+                    />
                   </div>
                 ))
               ) : (

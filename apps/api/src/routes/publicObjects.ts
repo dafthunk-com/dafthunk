@@ -8,8 +8,8 @@ import { eq } from "drizzle-orm";
 
 const publicObjectRoutes = new Hono<ApiContext>();
 
-publicObjectRoutes.get("/:id", async (c) => {
-  const objectId = c.req.param("id");
+publicObjectRoutes.get("/", async (c) => {
+  const objectId = c.req.query("id");
   const mimeType = c.req.query("mimeType");
 
   if (!objectId || !mimeType) {

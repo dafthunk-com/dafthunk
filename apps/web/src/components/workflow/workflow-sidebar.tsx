@@ -9,6 +9,7 @@ export function WorkflowSidebar({
   edge,
   onNodeUpdate,
   onEdgeUpdate,
+  createObjectUrl,
   readonly = false,
 }: WorkflowSidebarProps) {
   // Memoize the selected node to ensure we get a clean render when it changes
@@ -21,6 +22,7 @@ export function WorkflowSidebar({
           node={selectedNode}
           onNodeUpdate={onNodeUpdate}
           readonly={readonly}
+          createObjectUrl={createObjectUrl}
         />
       )}
       {edge && (

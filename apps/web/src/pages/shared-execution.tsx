@@ -18,6 +18,7 @@ import { ExecutionStatusBadge } from "@/components/executions/execution-status-b
 import { API_BASE_URL } from "@/config/api";
 import { MetaHead } from "@/components/meta-head";
 import { AppLayout } from "@/components/layouts/app-layout";
+import { createPublicObjectUrl } from "@/services/objectService";
 
 export function SharedExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();
@@ -165,6 +166,7 @@ export function SharedExecutionPage() {
         initialWorkflowExecution={workflowBuilderExecution || undefined}
         readonly={true}
         expandedOutputs={true}
+        createObjectUrl={createPublicObjectUrl}
       />
     </div>
   ) : (
@@ -186,6 +188,7 @@ export function SharedExecutionPage() {
           initialWorkflowExecution={workflowBuilderExecution || undefined}
           readonly={true}
           expandedOutputs={true}
+          createObjectUrl={createPublicObjectUrl}
         />
       </InsetLayout>
     </AppLayout>

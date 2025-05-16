@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { useDeploymentVersion } from "@/services/deploymentService";
 import { useAuth } from "@/components/authContext";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { useObjectService } from "@/services/objectService";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -31,8 +32,10 @@ export function DeploymentVersionPage() {
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
+  const { createObjectUrl } = useObjectService();
+
   // Use empty node templates array since we're in readonly mode
-  const nodeTemplates = [];
+  const nodeTemplates = useMemo(() => [], []);
 
   const {
     deploymentVersion,
@@ -254,6 +257,7 @@ export function DeploymentVersionPage() {
                     initialEdges={edges}
                     nodeTemplates={nodeTemplates}
                     validateConnection={validateConnection}
+                    createObjectUrl={createObjectUrl}
                     readonly={true}
                   />
                 )}

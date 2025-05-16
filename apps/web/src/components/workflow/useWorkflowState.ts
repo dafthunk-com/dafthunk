@@ -140,6 +140,7 @@ export function useWorkflowState({
   onNodesChangePersist: onNodesChangePersistCallback,
   onEdgesChangePersist: onEdgesChangePersistCallback,
   validateConnection = () => true,
+  createObjectUrl,
   readonly = false,
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
@@ -170,20 +171,56 @@ export function useWorkflowState({
 
   // Effect to update nodes when initialNodes prop changes
   useEffect(() => {
-    // Prevent resetting nodes if initialNodes is empty and nodesRef.current already exist (and not readonly)
-    // This can happen during initial load sequences.
+    // Ensure all nodes derived from the initialNodes prop have createObjectUrl in their data
+    const newNodesWithCreateObjectUrl = initialNodes.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        createObjectUrl: createObjectUrl,
+      },
+    }));
+
+    // Condition from original code to prevent wiping an unsaved workflow
+    // when initialNodes is empty but there are already nodes in the editor.
     if (!readonly && initialNodes.length === 0 && nodesRef.current.length > 0) {
-      // Allow resetting if it's a deliberate empty array after having nodes
-      // For readonly, we always want to reflect initialNodes.
-    } else {
-      // Deep comparison might be too expensive.
-      // React Flow's setNodes should handle memoization if the array instance is the same.
-      // Consider a more sophisticated check if performance issues arise.
-      if (JSON.stringify(nodesRef.current) !== JSON.stringify(initialNodes)) {
-        setNodes(initialNodes);
-      }
+      // Do nothing, preserve current nodes.
+      // This handles the case where initialNodes might be an empty array during
+      // initial loading before actual workflow data is fetched.
+      return;
     }
-  }, [initialNodes, readonly, setNodes]); // Removed nodes, relying on nodesRef.current
+
+    // Determine if an update to the nodes state is actually needed.
+    // We check for two conditions:
+    // 1. Structural difference: The data part of the nodes (excluding the createObjectUrl function itself for comparison)
+    //    has changed between the new processed initial nodes and the current nodes in state.
+    // 2. Missing function: Any current node in state is missing the createObjectUrl function
+    //    when the initialNodes (and thus newNodesWithCreateObjectUrl) expect it to be there.
+
+    const newNodesStrippedForCompare = newNodesWithCreateObjectUrl.map((n) => ({
+      ...n,
+      position: n.position,
+      data: { ...n.data, createObjectUrl: undefined },
+    }));
+    const currentNodesStrippedForCompare = nodes.map((n) => ({
+      ...n,
+      position: n.position,
+      data: { ...n.data, createObjectUrl: undefined },
+    }));
+
+    const newNodesStructurallyDifferent =
+      JSON.stringify(newNodesStrippedForCompare) !==
+      JSON.stringify(currentNodesStrippedForCompare);
+
+    // Check if any current node is missing the function, but only if newNodesWithCreateObjectUrl is not empty
+    // (i.e., we expect nodes to exist and have the function).
+    const anyCurrentNodeMissingFunction =
+      newNodesWithCreateObjectUrl.length > 0 &&
+      nodes.some((n) => typeof n.data.createObjectUrl !== "function");
+
+    if (newNodesStructurallyDifferent || anyCurrentNodeMissingFunction) {
+      setNodes(newNodesWithCreateObjectUrl);
+    }
+  }, [initialNodes, readonly, setNodes, createObjectUrl, nodes]); // Added createObjectUrl and nodes to dependency array
 
   // Effect to update edges when initialEdges prop changes
   useEffect(() => {
@@ -392,6 +429,7 @@ export function useWorkflowState({
           isActive: false,
           sourceType: connection.sourceHandle,
           targetType: connection.targetHandle,
+          createObjectUrl,
         },
         zIndex: 0,
       };
@@ -415,7 +453,7 @@ export function useWorkflowState({
         return addEdge(newEdge, updatedEdges);
       });
     },
-    [setEdges, isValidConnection, readonly]
+    [setEdges, isValidConnection, readonly, createObjectUrl]
   );
 
   // Node management
@@ -443,12 +481,13 @@ export function useWorkflowState({
           outputs: template.outputs,
           executionState: "idle" as NodeExecutionState,
           nodeType: template.type,
+          createObjectUrl,
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance, setNodes, createObjectUrl]
   );
 
   // Unified function to update node execution data

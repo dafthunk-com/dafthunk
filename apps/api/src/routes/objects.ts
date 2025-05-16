@@ -18,8 +18,8 @@ const objectRoutes = new Hono<ApiContext>();
 
 objectRoutes.use("*", jwtAuth);
 
-objectRoutes.get("/:id", async (c) => {
-  const objectId = c.req.param("id");
+objectRoutes.get("/", async (c) => {
+  const objectId = c.req.query("id");
   const mimeType = c.req.query("mimeType");
 
   if (!objectId || !mimeType) {

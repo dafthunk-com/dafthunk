@@ -32,11 +32,12 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   readonly = false,
   onDeployWorkflow,
+  createObjectUrl,
   expandedOutputs = false,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
-    initialWorkflowExecution?.status || "idle"
+    initialWorkflowExecution?.status || "submitted"
   );
   const [errorDialogState, setErrorDialogState] = useState<{
     open: boolean;
@@ -81,6 +82,7 @@ export function WorkflowBuilder({
     onNodesChangePersist: onNodesChangeFromParent,
     onEdgesChangePersist: onEdgesChangeFromParent,
     validateConnection,
+    createObjectUrl,
     readonly,
   });
 
@@ -234,7 +236,7 @@ export function WorkflowBuilder({
       // Only update status if the new status is not 'idle' while we are 'executing',
       // or if the local status is not 'executing' anymore (e.g., already completed/errored).
       setWorkflowStatus((currentStatus) => {
-        if (currentStatus === "executing" && execution.status === "idle") {
+        if (currentStatus === "executing" && execution.status === "submitted") {
           return currentStatus; // Ignore initial idle updates while executing
         }
         return execution.status; // Apply other status updates
@@ -265,7 +267,7 @@ export function WorkflowBuilder({
       e.stopPropagation();
 
       switch (workflowStatus) {
-        case "idle": {
+        case "submitted": {
           const cleanup = handleExecute();
           if (cleanup) cleanupRef.current = cleanup;
           break;
@@ -280,12 +282,12 @@ export function WorkflowBuilder({
         case "completed":
         case "error": {
           resetNodeStates();
-          setWorkflowStatus("idle");
+          setWorkflowStatus("submitted");
           break;
         }
         case "cancelled": {
           resetNodeStates();
-          setWorkflowStatus("idle");
+          setWorkflowStatus("submitted");
           break;
         }
       }
@@ -348,6 +350,7 @@ export function WorkflowBuilder({
                 edge={handleSelectedEdge}
                 onNodeUpdate={readonly ? undefined : updateNodeData}
                 onEdgeUpdate={readonly ? undefined : updateEdgeData}
+                createObjectUrl={createObjectUrl}
                 readonly={readonly}
               />
             </div>

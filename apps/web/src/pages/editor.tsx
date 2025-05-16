@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type { Connection, Node, Edge } from "@xyflow/react";
@@ -19,6 +19,7 @@ import { InsetLoading } from "@/components/inset-loading";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { useAuth } from "@/components/authContext";
+import { useObjectService } from "@/services/objectService";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,27 +29,32 @@ export function EditorPage() {
 
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes();
 
+  const { createObjectUrl } = useObjectService();
+
   // Transform nodeTypes to NodeTemplate format expected by WorkflowBuilder
-  const nodeTemplates: NodeTemplate[] =
-    nodeTypes?.map((type) => ({
-      id: type.id,
-      type: type.id,
-      name: type.name,
-      description: type.description || "",
-      category: type.category,
-      inputs: type.inputs.map((input) => ({
-        id: input.name,
-        type: input.type,
-        name: input.name,
-        hidden: input.hidden,
-      })),
-      outputs: type.outputs.map((output) => ({
-        id: output.name,
-        type: output.type,
-        name: output.name,
-        hidden: output.hidden,
-      })),
-    })) || [];
+  const nodeTemplates: NodeTemplate[] = useMemo(
+    () =>
+      nodeTypes?.map((type) => ({
+        id: type.id,
+        type: type.id,
+        name: type.name,
+        description: type.description || "",
+        category: type.category,
+        inputs: type.inputs.map((input) => ({
+          id: input.name,
+          type: input.type,
+          name: input.name,
+          hidden: input.hidden,
+        })),
+        outputs: type.outputs.map((output) => ({
+          id: output.name,
+          type: output.type,
+          name: output.name,
+          hidden: output.hidden,
+        })),
+      })) || [],
+    [nodeTypes]
+  );
 
   const {
     workflow: currentWorkflow,
@@ -263,6 +269,7 @@ export function EditorPage() {
             validateConnection={validateConnection}
             executeWorkflow={editorExecuteWorkflow}
             onDeployWorkflow={handleDeployWorkflow}
+            createObjectUrl={createObjectUrl}
           />
         </div>
         {isExecutionFormVisible && (

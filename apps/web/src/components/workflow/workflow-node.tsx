@@ -39,6 +39,7 @@ import {
 } from "./workflow-context";
 import { createWidgetConfig } from "./widgets/widget-factory";
 import { WorkflowParameter, NodeExecutionState } from "./workflow-types";
+import { ObjectReference } from "@dafthunk/types";
 
 export interface WorkflowNodeType {
   name: string;
@@ -48,6 +49,7 @@ export interface WorkflowNodeType {
   executionState: NodeExecutionState;
   nodeType?: string;
   dragHandle?: string;
+  createObjectUrl: (objectReference: ObjectReference) => string;
 }
 
 const TypeBadge = ({
@@ -384,6 +386,7 @@ export const WorkflowNode = memo(
                           </div>
                           <WorkflowOutputRenderer
                             output={output}
+                            createObjectUrl={data.createObjectUrl}
                             compact={true}
                           />
                         </div>

@@ -14,8 +14,8 @@ export function getAvatarUrl(user: User): string | undefined {
   }
 
   // 2. Fallback for GitHub using githubId if avatarUrl is not present
-  if (user.provider === "github" && user.githubId) {
-    return `https://avatars.githubusercontent.com/u/${user.githubId}`;
+  if (user.provider === "github" && user.sub) {
+    return `https://avatars.githubusercontent.com/u/${user.sub}`;
   }
 
   // 3. Google avatars are typically fetched and stored in avatarUrl by the backend.
