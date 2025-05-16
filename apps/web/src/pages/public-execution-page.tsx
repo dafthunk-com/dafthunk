@@ -20,7 +20,7 @@ import { MetaHead } from "@/components/meta-head";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { createPublicObjectUrl } from "@/services/objectService";
 
-export function SharedExecutionPage() {
+export function PublicExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const [searchParams] = useSearchParams();
   const fullscreen = searchParams.has("fullscreen");

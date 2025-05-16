@@ -1,23 +1,22 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { HomePage } from "./pages/home";
-import { EditorPage } from "./pages/editor";
-import { ProfilePage } from "./pages/profile";
+import { HomePage } from "./pages/home-page";
+import { EditorPage } from "./pages/editor-page";
+import { ProfilePage } from "./pages/profile-page";
 import { ProtectedRoute } from "./components/protected-route";
 import { AppLayout } from "./components/layouts/app-layout";
 import { ErrorBoundary } from "./components/error-boundary";
-import { PlaygroundPage } from "./pages/playground";
-import { DeploymentsPage } from "./pages/deployments";
-import { DeploymentDetailPage } from "./pages/deployment-detail";
-import { DeploymentVersionPage } from "./pages/deployment-version";
-import { ExecutionsPage } from "./pages/executions";
-import { ExecutionDetailPage } from "./pages/execution-detail";
-import { DocsPage } from "./pages/docs";
-import { DashboardPage } from "./pages/dashboard";
-import { NotFoundPage } from "./pages/not-found";
+import { PlaygroundPage } from "./pages/playground-page";
+import { DeploymentsPage } from "./pages/deployments-page";
+import { DeploymentDetailPage } from "./pages/deployment-detail-page";
+import { DeploymentVersionPage } from "./pages/deployment-version-page";
+import { ExecutionsPage } from "./pages/executions-page";
+import { ExecutionDetailPage } from "./pages/execution-detail-page";
+import { DocsPage } from "./pages/docs-page";
+import { DashboardPage } from "./pages/dashboard-page";
+import { NotFoundPage } from "./pages/not-found-page";
 import { SquareTerminal, Target, Logs, KeyRound, User } from "lucide-react";
-import { ApiKeysPage } from "./pages/api-keys";
-import DataTableTestPage from "./pages/data-table-test";
-import { SharedExecutionPage } from "./pages/shared-execution";
+import { ApiKeysPage } from "./pages/api-keys-page";
+import { PublicExecutionPage } from "./pages/public-execution-page";
 
 const workflowsSidebarItems = [
   {
@@ -244,17 +243,8 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
   },
   {
-    path: "/test/data-table",
-    element: (
-      <AppLayout>
-        <DataTableTestPage />
-      </AppLayout>
-    ),
-    errorElement: <ErrorBoundary />,
-  },
-  {
     path: "/public/executions/:executionId",
-    element: <SharedExecutionPage />,
+    element: <PublicExecutionPage />,
     errorElement: <ErrorBoundary />,
   },
   {
