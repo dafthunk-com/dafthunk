@@ -1,7 +1,5 @@
 // Execution types
-import { 
-  WorkflowExecution,
-} from "./workflow";
+import { WorkflowExecution } from "./workflow";
 import { Node, Edge } from "./workflow";
 
 /**
@@ -49,4 +47,4 @@ export interface GetPublicExecutionResponse {
 export interface UpdateExecutionVisibilityResponse {
   success: boolean;
   message: string;
-} 
+}

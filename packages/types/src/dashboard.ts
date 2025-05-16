@@ -23,4 +23,4 @@ export interface DashboardStats {
  */
 export interface DashboardStatsResponse {
   stats: DashboardStats;
-} 
+}

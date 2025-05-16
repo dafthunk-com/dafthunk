@@ -48,4 +48,4 @@ export interface ListObjectsResponse {
  */
 export interface DeleteObjectResponse {
   success: boolean;
-} 
+}
