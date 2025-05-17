@@ -13,7 +13,7 @@ import {
 import { useCallback } from "react";
 
 import { useAuth } from "@/components/auth-context";
-import { API_BASE_URL } from "@/config/api";
+import { getApiBaseUrl } from "@/config/api";
 
 import { makeOrgRequest } from "./utils";
 
@@ -85,10 +85,10 @@ export const buildObjectApiUrl = (
 ): string => {
   if (!organizationHandle) {
     console.warn("No organization handle provided for object API URL");
-    return `${API_BASE_URL}${API_ENDPOINT_BASE}${path}`;
+    return `${getApiBaseUrl()}${API_ENDPOINT_BASE}${path}`;
   }
 
-  return `${API_BASE_URL}/${organizationHandle}${API_ENDPOINT_BASE}${path}`;
+  return `${getApiBaseUrl()}/${organizationHandle}${API_ENDPOINT_BASE}${path}`;
 };
 
 /**
@@ -117,7 +117,7 @@ export const createPublicObjectUrl = (
     throw new Error("Invalid object reference: must include id and mimeType");
   }
 
-  return `${API_BASE_URL}/public/objects?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
+  return `${getApiBaseUrl()}/public/objects?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
 };
 
 /**

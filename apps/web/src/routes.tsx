@@ -6,7 +6,7 @@ import { Navigate } from "react-router";
 import { HeadSeo } from "./components/head-seo";
 import { AppLayout } from "./components/layouts/app-layout";
 import { ProtectedRoute } from "./components/protected-route";
-import { API_BASE_URL } from "./config/api";
+import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DeploymentDetailPage } from "./pages/deployment-detail-page";
@@ -294,7 +294,7 @@ export const routes: AppRouteObject[] = [
 
         const pageDescription =
           "View the details of a shared workflow execution.";
-        const ogImageUrl = `${API_BASE_URL}/public/images/og-execution-${executionId}.jpeg`;
+        const ogImageUrl = `${getApiBaseUrl()}/public/images/og-execution-${executionId}.jpeg`;
 
         const ogUrl = `${origin}/public/executions/${executionId}`;
 

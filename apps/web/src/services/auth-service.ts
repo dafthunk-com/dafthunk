@@ -1,7 +1,7 @@
 import { mutate } from "swr";
 
 import { AUTH_USER_KEY } from "@/components/auth-context";
-import { API_BASE_URL } from "@/config/api";
+import { getApiBaseUrl } from "@/config/api";
 
 import { makeRequest } from "./utils";
 
@@ -58,14 +58,14 @@ export const authService = {
 
   // Login with a provider
   async loginWithProvider(provider: AuthProvider): Promise<void> {
-    window.location.href = `${API_BASE_URL}/auth/login/${provider}`;
+    window.location.href = `${getApiBaseUrl()}/auth/login/${provider}`;
   },
 
   // Logout the user
   async logout(): Promise<void> {
     try {
       // Make a fetch request to the logout endpoint
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth/logout`, {
         method: "GET",
         credentials: "include", // Important for cookies
       });
@@ -90,7 +90,7 @@ export const authService = {
   // Logout all sessions for the user
   async logoutAllSessions(): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout-all`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth/logout-all`, {
         method: "POST",
         credentials: "include",
       });

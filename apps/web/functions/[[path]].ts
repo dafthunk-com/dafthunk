@@ -1,11 +1,15 @@
+import { initializeApiBaseUrl } from "../src/config/api";
 import { render } from "../src/entry-server";
 
 interface Env {
   ASSETS: Fetcher;
+  VITE_API_HOST?: string;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
+  initializeApiBaseUrl(env.VITE_API_HOST);
+
   const url = new URL(request.url);
 
   const assetPattern =

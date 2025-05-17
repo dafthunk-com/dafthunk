@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/config/api";
+import { getApiBaseUrl } from "@/config/api";
 
 /**
  * Make a generic request to the API
@@ -7,7 +7,7 @@ export const makeRequest = async <T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  const fullUrl = `${API_BASE_URL}${endpoint}`;
+  const fullUrl = `${getApiBaseUrl()}${endpoint}`;
 
   const defaultHeaders: HeadersInit = {
     "Content-Type": "application/json",

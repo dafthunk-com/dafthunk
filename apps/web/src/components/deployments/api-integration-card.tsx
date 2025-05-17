@@ -21,7 +21,7 @@ import type {
   NodeTemplate,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
-import { API_BASE_URL } from "@/config/api";
+import { getApiBaseUrl } from "@/config/api";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
 interface ApiIntegrationCardProps {
@@ -39,7 +39,7 @@ export function ApiIntegrationCard({
   workflowId,
   deploymentVersion,
 }: ApiIntegrationCardProps) {
-  const baseUrl = API_BASE_URL.replace(/\/$/, "");
+  const baseUrl = getApiBaseUrl().replace(/\/$/, "");
   const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
   const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`; // Execution ID will be appended in snippets
   const objectBaseUrl = `${baseUrl}/${orgHandle}/objects?id=YOUR_OBJECT_ID`; // Object ID and mimeType to be added

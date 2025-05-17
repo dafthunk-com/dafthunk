@@ -3,6 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["esnext"],
+    "jsx": "react-jsx",
     "types": ["./types.d.ts"]
   }
 }
