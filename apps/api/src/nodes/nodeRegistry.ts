@@ -85,7 +85,9 @@ export class NodeRegistry {
   private hasResendEmail: boolean = false;
 
   private constructor(env: Record<string, any>) {
-    this.hasCloudflare = !!(env.CLOUDFLARE_API_KEY && env.CLOUDFLARE_ACCOUNT_ID);
+    this.hasCloudflare = !!(
+      env.CLOUDFLARE_API_KEY && env.CLOUDFLARE_ACCOUNT_ID
+    );
     this.hasTwilioSms = !!(
       env.TWILIO_ACCOUNT_SID &&
       env.TWILIO_AUTH_TOKEN &&

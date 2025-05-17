@@ -33,7 +33,8 @@ export class ResendEmailNode extends ExecutableNode {
       {
         name: "from",
         type: "string",
-        description: "Sender email address (e.g., 'Acme <onboarding@resend.dev>', optional, overrides default)",
+        description:
+          "Sender email address (e.g., 'Acme <onboarding@resend.dev>', optional, overrides default)",
         hidden: true,
       },
     ],
@@ -78,7 +79,7 @@ export class ResendEmailNode extends ExecutableNode {
     try {
       const resend = new Resend(apiKey);
 
-      const toArray = typeof to === 'string' ? [to] : to;
+      const toArray = typeof to === "string" ? [to] : to;
 
       const { data, error } = await resend.emails.send({
         from: sender,
@@ -98,13 +99,14 @@ export class ResendEmailNode extends ExecutableNode {
           id: data.id,
         });
       }
-      
-      return this.createErrorResult("Failed to send email via Resend. No ID returned.");
 
+      return this.createErrorResult(
+        "Failed to send email via Resend. No ID returned."
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)
       );
     }
   }
-} 
+}
