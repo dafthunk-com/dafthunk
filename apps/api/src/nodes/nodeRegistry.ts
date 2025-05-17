@@ -65,6 +65,7 @@ import { StringTemplateNode } from "./text/stringTemplateNode";
 import { TextAreaNode } from "./text/textAreaNode";
 import { TwilioSmsNode } from "./text/twilioSmsNode";
 import { ExecutableNode } from "./types";
+import { ResendEmailNode } from "./text/resendEmailNode";
 
 export interface NodeImplementationConstructor {
   new (node: Node): ExecutableNode;
@@ -72,7 +73,8 @@ export interface NodeImplementationConstructor {
 }
 
 const hasCloudflare =
-  process.env.CLOUDFLARE_API_KEY && process.env.CLOUDFLARE_ACCOUNT_ID;
+  process.env.CLOUDFLARE_API_KEY && 
+  process.env.CLOUDFLARE_ACCOUNT_ID;
 
 const hasTwilioSms =
   process.env.TWILIO_ACCOUNT_SID &&
@@ -80,7 +82,13 @@ const hasTwilioSms =
   process.env.TWILIO_PHONE_NUMBER;
 
 const hasTwilioEmail =
-  process.env.SENDGRID_API_KEY && process.env.SENDGRID_DEFAULT_FROM;
+  process.env.SENDGRID_API_KEY && 
+  process.env.SENDGRID_DEFAULT_FROM;
+
+
+const hasResendEmail =
+  process.env.RESEND_API_KEY && 
+  process.env.RESEND_DEFAULT_FROM;
 
 export class NodeRegistry {
   private static instance: NodeRegistry;
@@ -163,6 +171,11 @@ export class NodeRegistry {
     // Sendgrid
     if (hasTwilioEmail) {
       this.registerImplementation(SendgridEmailNode);
+    }
+
+    // Resend
+    if (hasResendEmail) {
+      this.registerImplementation(ResendEmailNode);
     }
   }
 

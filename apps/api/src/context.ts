@@ -45,6 +45,8 @@ export interface Bindings {
   TWILIO_PHONE_NUMBER: string;
   SENDGRID_API_KEY: string;
   SENDGRID_DEFAULT_FROM: string;
+  RESEND_API_KEY: string;
+  RESEND_DEFAULT_FROM: string;
   BROWSER: Fetcher | null;
 }
 

@@ -292,6 +292,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,
           SENDGRID_API_KEY: this.env.SENDGRID_API_KEY,
           SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
+          RESEND_API_KEY: this.env.RESEND_API_KEY,
+          RESEND_DEFAULT_FROM: this.env.RESEND_DEFAULT_FROM,
         },
       };
 

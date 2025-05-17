@@ -93,13 +93,15 @@ export interface NodeContext {
   httpRequest?: HttpRequest;
   env: {
     AI: Ai;
+    CLOUDFLARE_ACCOUNT_ID: string;
+    CLOUDFLARE_API_TOKEN: string;
     TWILIO_ACCOUNT_SID: string;
     TWILIO_AUTH_TOKEN: string;
     TWILIO_PHONE_NUMBER: string;
     SENDGRID_API_KEY: string;
     SENDGRID_DEFAULT_FROM: string;
-    CLOUDFLARE_ACCOUNT_ID: string;
-    CLOUDFLARE_API_TOKEN: string;
+    RESEND_API_KEY: string;
+    RESEND_DEFAULT_FROM: string;
   };
 }
 
