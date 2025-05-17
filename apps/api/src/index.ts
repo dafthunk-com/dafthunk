@@ -6,6 +6,7 @@ import { createMimeMessage } from "mimetext";
 import auth from "./auth";
 import { ApiContext } from "./context";
 import { corsMiddleware } from "./middleware/cors";
+import { NodeRegistry } from "./nodes/nodeRegistry";
 import apiKeyRoutes from "./routes/apiKeys";
 import dashboardRoutes from "./routes/dashboard";
 import deploymentRoutes from "./routes/deployments";
@@ -24,6 +25,12 @@ import workflowRoutes from "./routes/workflows";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
+
+// Middleware to initialize NodeRegistry
+app.use("*", async (c, next) => {
+  NodeRegistry.initialize(c.env);
+  await next();
+});
 
 // Global middleware
 app.use("*", corsMiddleware);

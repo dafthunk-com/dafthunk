@@ -68,35 +68,34 @@ import { ExecutableNode } from "./types";
 import { ResendEmailNode } from "./text/resendEmailNode";
 
 export interface NodeImplementationConstructor {
-  new (node: Node): ExecutableNode;
+  new (node: Node, env?: Record<string, any>): ExecutableNode;
   readonly nodeType: NodeType;
 }
 
-const hasCloudflare =
-  process.env.CLOUDFLARE_API_KEY && 
-  process.env.CLOUDFLARE_ACCOUNT_ID;
-
-const hasTwilioSms =
-  process.env.TWILIO_ACCOUNT_SID &&
-  process.env.TWILIO_AUTH_TOKEN &&
-  process.env.TWILIO_PHONE_NUMBER;
-
-const hasTwilioEmail =
-  process.env.SENDGRID_API_KEY && 
-  process.env.SENDGRID_DEFAULT_FROM;
-
-
-const hasResendEmail =
-  process.env.RESEND_API_KEY && 
-  process.env.RESEND_DEFAULT_FROM;
-
 export class NodeRegistry {
   private static instance: NodeRegistry;
+  private static env: Record<string, any> | undefined;
+
   private implementations: Map<string, NodeImplementationConstructor> =
     new Map();
 
-  private constructor() {
-    // Register parameter nodes
+  private hasCloudflare: boolean = false;
+  private hasTwilioSms: boolean = false;
+  private hasSendgridEmail: boolean = false;
+  private hasResendEmail: boolean = false;
+
+  private constructor(env: Record<string, any>) {
+    this.hasCloudflare = !!(env.CLOUDFLARE_API_KEY && env.CLOUDFLARE_ACCOUNT_ID);
+    this.hasTwilioSms = !!(
+      env.TWILIO_ACCOUNT_SID &&
+      env.TWILIO_AUTH_TOKEN &&
+      env.TWILIO_PHONE_NUMBER
+    );
+    this.hasSendgridEmail = !!(
+      env.SENDGRID_API_KEY && env.SENDGRID_DEFAULT_FROM
+    );
+    this.hasResendEmail = !!(env.RESEND_API_KEY && env.RESEND_DEFAULT_FROM);
+
     this.registerImplementation(StringParameterNode);
     this.registerImplementation(NumberParameterNode);
     this.registerImplementation(BooleanParameterNode);
@@ -151,8 +150,7 @@ export class NodeRegistry {
     this.registerImplementation(DocumentNode);
     this.registerImplementation(HttpRequestNode);
 
-    // Cloudflare
-    if (hasCloudflare) {
+    if (this.hasCloudflare) {
       this.registerImplementation(CloudflareBrowserContentNode);
       this.registerImplementation(CloudflareBrowserJsonNode);
       this.registerImplementation(CloudflareBrowserLinksNode);
@@ -163,25 +161,33 @@ export class NodeRegistry {
       this.registerImplementation(CloudflareBrowserSnapshotNode);
     }
 
-    // Twilio
-    if (hasTwilioSms) {
+    if (this.hasTwilioSms) {
       this.registerImplementation(TwilioSmsNode);
     }
 
-    // Sendgrid
-    if (hasTwilioEmail) {
+    if (this.hasSendgridEmail) {
       this.registerImplementation(SendgridEmailNode);
     }
 
-    // Resend
-    if (hasResendEmail) {
+    if (this.hasResendEmail) {
       this.registerImplementation(ResendEmailNode);
     }
   }
 
+  public static initialize(env: Record<string, any>): void {
+    if (!NodeRegistry.env) {
+      NodeRegistry.env = env;
+    }
+  }
+
   public static getInstance(): NodeRegistry {
+    if (!NodeRegistry.env) {
+      throw new Error(
+        "NodeRegistry not initialized. Call NodeRegistry.initialize(env) first."
+      );
+    }
     if (!NodeRegistry.instance) {
-      NodeRegistry.instance = new NodeRegistry();
+      NodeRegistry.instance = new NodeRegistry(NodeRegistry.env);
     }
     return NodeRegistry.instance;
   }
@@ -200,7 +206,7 @@ export class NodeRegistry {
     if (!Implementation) {
       return undefined;
     }
-    return new Implementation(node);
+    return new Implementation(node, NodeRegistry.env);
   }
 
   public getNodeTypes(): NodeType[] {
