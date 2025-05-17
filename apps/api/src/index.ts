@@ -17,6 +17,8 @@ import publicObjectRoutes from "./routes/publicObjects";
 import robotsRoutes from "./routes/robots";
 import typeRoutes from "./routes/types";
 import workflowRoutes from "./routes/workflows";
+import { EmailMessage } from "cloudflare:email";
+import { createMimeMessage } from "mimetext";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
@@ -45,5 +47,35 @@ app.route("/:orgHandle/types", typeRoutes);
 app.route("/:orgHandle/objects", objectRoutes);
 
 export default {
+  async email(
+    message: ForwardableEmailMessage,
+    env: object,
+    ctx: object
+  ): Promise<void> {
+    const msg = createMimeMessage();
+
+    msg.setHeader("In-Reply-To", message.headers.get("Message-ID") || "");
+    msg.setSender({ name: "Dafthunk", addr: message.to });
+    msg.setRecipient(message.from);
+    msg.setSubject("Email Routing Auto-reply");
+    
+    msg.addMessage({
+      contentType: 'text/html',
+      data: `<html><body><p>We got your message, we will get back to you soon.</p></body></html>`,
+    });
+
+    msg.addMessage({
+      contentType: 'text/plain',
+      data: `We got your message, we will get back to you soon.`,
+    });
+
+    const replyMessage = new EmailMessage(
+      message.to,
+      message.from,
+      msg.asRaw()
+    );
+
+    await message.reply(replyMessage);
+  },
   fetch: app.fetch,
 };
