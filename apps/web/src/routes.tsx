@@ -1,5 +1,5 @@
 import { KeyRound, Logs, SquareTerminal, Target, User } from "lucide-react";
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router";
 
 import { ErrorBoundary } from "./components/error-boundary";
 import { AppLayout } from "./components/layouts/app-layout";

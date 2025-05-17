@@ -1,7 +1,7 @@
 import type { WorkflowDeploymentVersion } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";

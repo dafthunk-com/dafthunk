@@ -1,4 +1,4 @@
-import { useRouteError } from "react-router-dom";
+import { useRouteError } from "react-router";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@/components/ui/button";

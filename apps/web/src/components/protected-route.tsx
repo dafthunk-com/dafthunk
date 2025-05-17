@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";

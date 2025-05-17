@@ -2,8 +2,8 @@ import { CreateWorkflowRequest } from "@dafthunk/types";
 import { formatDistanceToNow } from "date-fns";
 import { AlertCircle, Clock, Logs, Plus, Target, Workflow } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router";
+import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";

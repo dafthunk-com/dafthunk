@@ -2,7 +2,7 @@ import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { Eye, EyeOff } from "lucide-react";
 import { Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";

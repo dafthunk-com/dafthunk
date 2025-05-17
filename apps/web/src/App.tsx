@@ -1,5 +1,5 @@
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
-import { RouterProvider } from "react-router-dom";
+import { RouterProvider } from "react-router";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";

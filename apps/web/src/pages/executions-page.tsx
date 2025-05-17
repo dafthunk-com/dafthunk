@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Eye, EyeOff, MoreHorizontal } from "lucide-react";
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";

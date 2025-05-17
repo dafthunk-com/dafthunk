@@ -1,5 +1,5 @@
 import { CircleUserRound, KeyRound, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

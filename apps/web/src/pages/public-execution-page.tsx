@@ -1,6 +1,6 @@
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router";
 
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { InsetError } from "@/components/inset-error";
