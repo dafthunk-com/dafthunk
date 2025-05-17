@@ -38,6 +38,7 @@ type ExecutionFormDialogProps = {
   onClose: () => void;
   onSubmit: (formData: Record<string, any>) => void;
   parameters: DialogFormParameter[];
+  onCancel?: () => void;
 };
 
 // Validates if a string is valid JSON
@@ -137,6 +138,7 @@ export function ExecutionFormDialog({
   onClose,
   onSubmit,
   parameters,
+  onCancel,
 }: ExecutionFormDialogProps) {
   const validationSchema = createValidationSchema(parameters);
   type FormValues = Record<string, any>;
@@ -305,7 +307,9 @@ export function ExecutionFormDialog({
           </div>
         </form>
         <AlertDialogFooter className="pt-4">
-          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={onCancel || onClose}>
+            Cancel
+          </AlertDialogCancel>
           <Button
             type="submit"
             form="executionParamsForm"

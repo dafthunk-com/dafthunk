@@ -28,6 +28,8 @@ export function EditorPage() {
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
+  const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
+
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes();
 
   const { createObjectUrl } = useObjectService();
@@ -195,6 +197,11 @@ export function EditorPage() {
     [id, orgHandle]
   );
 
+  const handleDialogCancel = () => {
+    closeExecutionForm();
+    setWorkflowBuilderKey(Date.now());
+  };
+
   if (workflowDetailsError) {
     return (
       <WorkflowError
@@ -261,6 +268,7 @@ export function EditorPage() {
       <div className="h-full w-full flex flex-col relative">
         <div className="h-full w-full flex-grow">
           <WorkflowBuilder
+            key={workflowBuilderKey}
             workflowId={id || ""}
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
@@ -277,6 +285,7 @@ export function EditorPage() {
           <ExecutionFormDialog
             isOpen={isExecutionFormVisible}
             onClose={closeExecutionForm}
+            onCancel={handleDialogCancel}
             parameters={executionFormParameters}
             onSubmit={(formData) => {
               submitExecutionForm(formData);

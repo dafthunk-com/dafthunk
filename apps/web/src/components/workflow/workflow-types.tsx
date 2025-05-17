@@ -51,6 +51,7 @@ export type ConnectionValidationState = "default" | "valid" | "invalid";
 
 // Component Props Types
 export type WorkflowExecutionStatus =
+  | "idle"
   | "submitted"
   | "executing"
   | "completed"

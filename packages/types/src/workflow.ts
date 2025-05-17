@@ -164,6 +164,7 @@ export interface NodeExecution {
  * Possible workflow execution statuses
  */
 export type WorkflowExecutionStatus =
+  | "idle"
   | "submitted"
   | "executing"
   | "completed"

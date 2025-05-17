@@ -98,6 +98,11 @@ function ActionButton({
       title: "Execute Workflow",
       className: "bg-green-600 hover:bg-green-700 text-white",
     },
+    submitted: {
+      icon: <Square className="w-6 h-6" />,
+      title: "Stop Execution",
+      className: "bg-red-500 hover:bg-red-600 text-white",
+    },
     executing: {
       icon: <Square className="w-6 h-6" />,
       title: "Stop Execution",
@@ -202,7 +207,7 @@ export function WorkflowCanvas({
   onAddNode,
   onAction,
   onDeploy,
-  workflowStatus = "submitted",
+  workflowStatus = "idle",
   onToggleSidebar,
   isSidebarVisible,
   showControls = true,

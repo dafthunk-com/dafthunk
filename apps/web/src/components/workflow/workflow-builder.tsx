@@ -66,7 +66,7 @@ export function WorkflowBuilder({
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
-    initialWorkflowExecution?.status || "submitted"
+    initialWorkflowExecution?.status || "idle"
   );
   const [errorDialogState, setErrorDialogState] = useState<{
     open: boolean;
@@ -296,27 +296,30 @@ export function WorkflowBuilder({
       e.stopPropagation();
 
       switch (workflowStatus) {
-        case "submitted": {
+        case "idle": {
           const cleanup = handleExecute();
           if (cleanup) cleanupRef.current = cleanup;
           break;
         }
+        case "submitted":
         case "executing": {
           if (cleanupRef.current) {
             cleanupRef.current();
             cleanupRef.current = null;
           }
+          setWorkflowStatus("cancelled");
           break;
         }
         case "completed":
         case "error": {
           resetNodeStates();
-          setWorkflowStatus("submitted");
+          setWorkflowStatus("idle");
           break;
         }
         case "cancelled": {
           resetNodeStates();
-          setWorkflowStatus("submitted");
+          const cleanup = handleExecute();
+          if (cleanup) cleanupRef.current = cleanup;
           break;
         }
       }
