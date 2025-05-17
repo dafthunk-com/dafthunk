@@ -80,6 +80,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * The main entrypoint called by the Workflows engine.
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
+    NodeRegistry.initialize(this.env);
+
     const {
       workflow,
       userId,
