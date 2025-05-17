@@ -1,5 +1,12 @@
 {
-  "ignore": ["apps/api/src/index.ts", "apps/api/src/db/schema/index.ts"],
-  "ignoreExportsUsedInFile": true,
-  "includeEntryExports": true
+  "workspaces": {
+    "apps/web": {
+      "entry": ["src/entry-client.tsx", "src/entry-server.tsx"],
+      "ignore": ["functions/*"]
+    },
+    "apps/api": {
+      "ignore": ["src/db/schema/index.ts"]
+    }
+  },
+  "ignoreExportsUsedInFile": true
 }

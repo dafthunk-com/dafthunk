@@ -1,9 +1,12 @@
 import { KeyRound, Logs, SquareTerminal, Target, User } from "lucide-react";
-import { createBrowserRouter, Navigate } from "react-router";
+import React from "react";
+import type { RouteObject, RouterState } from "react-router";
+import { Navigate } from "react-router";
 
-import { ErrorBoundary } from "./components/error-boundary";
+import { HeadSeo } from "./components/head-seo";
 import { AppLayout } from "./components/layouts/app-layout";
 import { ProtectedRoute } from "./components/protected-route";
+import { API_BASE_URL } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DeploymentDetailPage } from "./pages/deployment-detail-page";
@@ -18,6 +21,22 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { PublicExecutionPage } from "./pages/public-execution-page";
+
+export interface RouteHandle {
+  head?:
+    | React.ReactElement
+    | ((
+        params: Readonly<Record<string, string | undefined>>,
+        context: {
+          url: URL;
+          location: RouterState["location"];
+        }
+      ) => React.ReactElement);
+}
+
+export type AppRouteObject = RouteObject & {
+  handle?: RouteHandle;
+};
 
 const workflowsSidebarItems = [
   {
@@ -52,7 +71,7 @@ const settingsSidebarItems = [
 
 const footerItems = [];
 
-export const router = createBrowserRouter([
+export const routes: AppRouteObject[] = [
   {
     path: "/",
     element: (
@@ -60,7 +79,11 @@ export const router = createBrowserRouter([
         <HomePage />
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: {
+      head: (
+        <HeadSeo title="Home - Dafthunk" description="Welcome to Dafthunk." />
+      ),
+    },
   },
   {
     path: "/settings",
@@ -81,7 +104,7 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
   },
   {
     path: "/settings/api-keys",
@@ -98,7 +121,7 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="API Keys - Settings - Dafthunk" /> },
   },
   {
     path: "/dashboard",
@@ -109,7 +132,7 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Dashboard - Dafthunk" /> },
   },
   {
     path: "/docs",
@@ -118,7 +141,14 @@ export const router = createBrowserRouter([
         <DocsPage />
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: {
+      head: (
+        <HeadSeo
+          title="Documentation - Dafthunk"
+          description="Explore the Dafthunk documentation."
+        />
+      ),
+    },
   },
   {
     path: "/workflows",
@@ -139,7 +169,7 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Playground - Workflows - Dafthunk" /> },
   },
   {
     path: "/workflows/deployments",
@@ -156,7 +186,7 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Deployments - Workflows - Dafthunk" /> },
   },
   {
     path: "/workflows/deployments/:workflowId",
@@ -173,7 +203,9 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: {
+      head: <HeadSeo title="Deployment Details - Workflows - Dafthunk" />,
+    },
   },
   {
     path: "/workflows/deployment/:deploymentId",
@@ -190,7 +222,9 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: {
+      head: <HeadSeo title="Deployment Version - Workflows - Dafthunk" />,
+    },
   },
   {
     path: "/workflows/executions",
@@ -207,7 +241,7 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Executions - Workflows - Dafthunk" /> },
   },
   {
     path: "/workflows/executions/:executionId",
@@ -224,7 +258,9 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: {
+      head: <HeadSeo title="Execution Details - Workflows - Dafthunk" />,
+    },
   },
   {
     path: "/workflows/playground/:id",
@@ -241,12 +277,45 @@ export const router = createBrowserRouter([
         </ProtectedRoute>
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Edit Workflow - Dafthunk" /> },
   },
   {
     path: "/public/executions/:executionId",
     element: <PublicExecutionPage />,
-    errorElement: <ErrorBoundary />,
+    handle: {
+      head: (params, context) => {
+        const executionId = params.executionId;
+        const origin = context.url.origin;
+
+        const pageTitle = `Shared Execution - Dafthunk`;
+        if (!executionId) {
+          return <HeadSeo title="Shared Execution - Dafthunk" />;
+        }
+
+        const pageDescription =
+          "View the details of a shared workflow execution.";
+        const ogImageUrl = `${API_BASE_URL}/public/images/og-execution-${executionId}.jpeg`;
+
+        const ogUrl = `${origin}/public/executions/${executionId}`;
+
+        return (
+          <HeadSeo
+            title={pageTitle}
+            description={pageDescription}
+            ogImage={ogImageUrl}
+            ogUrl={ogUrl}
+            ogTitle={pageTitle}
+            ogDescription={pageDescription}
+            twitterCard="summary_large_image"
+            twitterSite="https://dafthunk.com"
+            twitterTitle={pageTitle}
+            twitterDescription={pageDescription}
+            twitterImage={ogImageUrl}
+            twitterUrl={ogUrl}
+          />
+        );
+      },
+    },
   },
   {
     path: "*",
@@ -255,6 +324,6 @@ export const router = createBrowserRouter([
         <NotFoundPage />
       </AppLayout>
     ),
-    errorElement: <ErrorBoundary />,
+    handle: { head: <HeadSeo title="Page Not Found - Dafthunk" /> },
   },
-]);
+];

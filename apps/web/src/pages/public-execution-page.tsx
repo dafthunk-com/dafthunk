@@ -7,13 +7,11 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { MetaHead } from "@/components/meta-head";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
-import { API_BASE_URL } from "@/config/api";
 import { usePublicExecution } from "@/services/execution-service";
 import { createPublicObjectUrl } from "@/services/object-service";
 import {
@@ -129,63 +127,6 @@ export function PublicExecutionPage() {
     );
   }
 
-  const pageTitle = execution
-    ? `Execution: ${execution.workflowName || execution.id}`
-    : "Shared Execution";
-
-  const pageDescription = execution
-    ? `Details for workflow execution: ${execution.workflowName || execution.id}`
-    : "View the details of a shared workflow execution.";
-
-  const ogImageUrl = executionId
-    ? `${API_BASE_URL}/public/images/og-execution-${executionId}.jpeg`
-    : "";
-
-  const ogUrl = executionId
-    ? `${window.location.origin}/public/executions/${executionId}`
-    : window.location.href;
-
-  const metaTags = [
-    {
-      name: "description",
-      content: pageDescription,
-    },
-    {
-      property: "og:image",
-      content: ogImageUrl,
-    },
-    { property: "og:type", content: "website" },
-    {
-      property: "og:url",
-      content: ogUrl,
-    },
-    {
-      property: "og:title",
-      content: pageTitle,
-    },
-    {
-      property: "og:description",
-      content: pageDescription,
-    },
-    { property: "twitter:card", content: "summary_large_image" },
-    {
-      property: "twitter:url",
-      content: ogUrl,
-    },
-    {
-      property: "twitter:title",
-      content: pageTitle,
-    },
-    {
-      property: "twitter:description",
-      content: pageDescription,
-    },
-    {
-      property: "twitter:image",
-      content: ogImageUrl,
-    },
-  ];
-
   return fullscreen ? (
     <div className="h-screen w-screen relative">
       <WorkflowBuilder
@@ -202,14 +143,6 @@ export function PublicExecutionPage() {
     </div>
   ) : (
     <AppLayout>
-      <MetaHead
-        title={
-          execution
-            ? `Execution: ${execution.workflowName || execution.id}`
-            : "Shared Execution"
-        }
-        tags={metaTags}
-      />
       <InsetLayout
         title={
           execution
