@@ -106,12 +106,12 @@ function ActionButton({
     completed: {
       icon: <X className="w-6 h-6" />,
       title: "Clear Outputs & Reset",
-      className: "bg-blue-600 hover:bg-blue-700 text-white",
+      className: "bg-emerald-600 hover:bg-emerald-700 text-white",
     },
     error: {
       icon: <X className="w-6 h-6" />,
       title: "Clear Errors & Reset",
-      className: "bg-yellow-600 hover:bg-yellow-700 text-white",
+      className: "bg-rose-600 hover:bg-rose-700 text-white",
     },
     cancelled: {
       icon: <Play className="w-6 h-6" />,
