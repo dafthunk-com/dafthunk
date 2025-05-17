@@ -1,5 +1,8 @@
 import { Hono } from "hono";
 export { Runtime } from "./runtime/runtime";
+import { EmailMessage } from "cloudflare:email";
+import { createMimeMessage } from "mimetext";
+
 import auth from "./auth";
 import { ApiContext } from "./context";
 import { corsMiddleware } from "./middleware/cors";
@@ -17,8 +20,6 @@ import publicObjectRoutes from "./routes/publicObjects";
 import robotsRoutes from "./routes/robots";
 import typeRoutes from "./routes/types";
 import workflowRoutes from "./routes/workflows";
-import { EmailMessage } from "cloudflare:email";
-import { createMimeMessage } from "mimetext";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
@@ -49,8 +50,8 @@ app.route("/:orgHandle/objects", objectRoutes);
 export default {
   async email(
     message: ForwardableEmailMessage,
-    env: object,
-    ctx: object
+    _env: object,
+    _ctx: object
   ): Promise<void> {
     const msg = createMimeMessage();
 
@@ -58,14 +59,14 @@ export default {
     msg.setSender({ name: "Dafthunk", addr: message.to });
     msg.setRecipient(message.from);
     msg.setSubject("Email Routing Auto-reply");
-    
+
     msg.addMessage({
-      contentType: 'text/html',
+      contentType: "text/html",
       data: `<html><body><p>We got your message, we will get back to you soon.</p></body></html>`,
     });
 
     msg.addMessage({
-      contentType: 'text/plain',
+      contentType: "text/plain",
       data: `We got your message, we will get back to you soon.`,
     });
 
