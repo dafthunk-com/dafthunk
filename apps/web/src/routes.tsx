@@ -284,18 +284,13 @@ export const routes: AppRouteObject[] = [
     element: <PublicExecutionPage />,
     handle: {
       head: (params, context) => {
-        const executionId = params.executionId;
+        const executionId = params.executionId!;
         const origin = context.url.origin;
 
         const pageTitle = `Shared Execution - Dafthunk`;
-        if (!executionId) {
-          return <HeadSeo title="Shared Execution - Dafthunk" />;
-        }
-
         const pageDescription =
           "View the details of a shared workflow execution.";
         const ogImageUrl = `${getApiBaseUrl()}/public/images/og-execution-${executionId}.jpeg`;
-
         const ogUrl = `${origin}/public/executions/${executionId}`;
 
         return (

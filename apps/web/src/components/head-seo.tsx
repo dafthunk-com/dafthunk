@@ -17,7 +17,7 @@ interface HeadSeoProps {
   twitterSite?: string;
   twitterCreator?: string;
   canonicalUrl?: string;
-  [key: string]: any; // Allow other props
+  [key: string]: any;
 }
 
 interface SeoTagDefinition {
@@ -28,15 +28,15 @@ interface SeoTagDefinition {
 
 const getSeoTagsDefinition = (props: HeadSeoProps): SeoTagDefinition[] => {
   const {
-    title = "Dafthunk", // Default title for fallbacks
+    title = "Dafthunk",
     description,
     keywords,
     ogTitle,
     ogDescription,
     ogImage,
     ogUrl,
-    ogType = "website", // Default OG type
-    twitterCard = "summary_large_image", // Default Twitter card type
+    ogType = "website",
+    twitterCard = "summary_large_image",
     twitterSite,
     twitterCreator,
     canonicalUrl,
@@ -163,34 +163,31 @@ const getSeoTagsDefinition = (props: HeadSeoProps): SeoTagDefinition[] => {
   return tags;
 };
 
-export const HeadSeo = (componentProps: HeadSeoProps) => {
+export const HeadSeo = (props: HeadSeoProps) => {
   const {
-    title = "Dafthunk", // Default title for document.title and dependency array
+    title = "Dafthunk",
     description,
     keywords,
     ogTitle,
     ogDescription,
     ogImage,
     ogUrl,
-    ogType = "website", // Default for dependency array
-    twitterCard = "summary_large_image", // Default for dependency array
+    ogType = "website",
+    twitterCard = "summary_large_image",
     twitterSite,
     twitterCreator,
     canonicalUrl,
-    ...otherProps // Captures additional props for the dependency array
-  } = componentProps;
+    ...otherProps
+  } = props;
 
   useEffect(() => {
     // Clear previously managed tags
     document.head
       .querySelectorAll(MANAGED_TAG_SELECTOR)
       .forEach((tag) => tag.remove());
-
-    // Set document title
     document.title = title;
 
-    // Generate tags based on all original componentProps
-    const seoTagDefinitions = getSeoTagsDefinition(componentProps);
+    const seoTagDefinitions = getSeoTagsDefinition(props);
 
     seoTagDefinitions.forEach(({ tagName, attributes }) => {
       const tag = document.createElement(tagName);
@@ -216,15 +213,13 @@ export const HeadSeo = (componentProps: HeadSeoProps) => {
     twitterSite,
     twitterCreator,
     canonicalUrl,
-    JSON.stringify(otherProps), // Maintain original behavior for otherProps
+    JSON.stringify(otherProps),
   ]);
 
   // This component is for side effects only and does not render to the DOM body on the client.
   // For SSR, it will render its tags as React elements.
   if (typeof window === "undefined") {
-    // SSR context
-    // Generate tags based on all original componentProps
-    const seoTagDefinitions = getSeoTagsDefinition(componentProps);
+    const seoTagDefinitions = getSeoTagsDefinition(props);
 
     const ssrTags = seoTagDefinitions.map(({ key, tagName, attributes }) => {
       const { ...otherAttrs } = attributes; // Ensure key is not in otherAttrs if it somehow got there
