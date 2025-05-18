@@ -7,7 +7,6 @@ import { AuthProvider } from "./components/auth-context";
 import { Button } from "./components/ui/button";
 import { RouteHandle } from "./routes";
 
-// Export FallbackErrorUI
 export function FallbackErrorUI() {
   return (
     <main className="h-screen w-screen flex items-center justify-center">

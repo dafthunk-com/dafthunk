@@ -10,7 +10,6 @@ import {
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/utils/utils";
 
-// Define the possible status types explicitly
 // Define the structure for status information
 type StatusInfo = {
   icon: React.ElementType;
@@ -20,6 +19,11 @@ type StatusInfo = {
 
 // Map status to visual properties
 const statusMap: Record<WorkflowExecution["status"], StatusInfo> = {
+  idle: {
+    icon: CircleDashed,
+    color: "text-gray-500",
+    variant: "translucent-inactive",
+  },
   submitted: {
     icon: CircleDashed,
     color: "text-blue-500",

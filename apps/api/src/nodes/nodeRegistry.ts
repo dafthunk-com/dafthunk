@@ -59,13 +59,13 @@ import { Llama318BInstructFastNode } from "./text/llama318BInstructFastNode";
 import { Llama3370BInstructFastNode } from "./text/llama3370BInstructFastNode";
 import { M2m10012bNode } from "./text/m2m10012bNode";
 import { RadioGroupNode } from "./text/radioGroupNode";
+import { ResendEmailNode } from "./text/resendEmailNode";
 import { SendgridEmailNode } from "./text/sendgridEmailNode";
 import { SimpleStringTemplateNode } from "./text/simpleStringTemplateNode";
 import { StringTemplateNode } from "./text/stringTemplateNode";
 import { TextAreaNode } from "./text/textAreaNode";
 import { TwilioSmsNode } from "./text/twilioSmsNode";
 import { ExecutableNode } from "./types";
-import { ResendEmailNode } from "./text/resendEmailNode";
 
 export interface NodeImplementationConstructor {
   new (node: Node, env?: Record<string, any>): ExecutableNode;
