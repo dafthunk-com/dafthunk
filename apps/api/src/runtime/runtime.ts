@@ -17,15 +17,15 @@ import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
 import { createDatabase, ExecutionStatusType } from "../db";
-import { NodeRegistry } from "../nodes/nodeRegistry";
+import { NodeRegistry } from "../nodes/node-registry";
 import {
   apiToNodeParameter,
   nodeToApiParameter,
-} from "../nodes/parameterMapper";
+} from "../nodes/parameter-mapper";
 import { HttpRequest, NodeContext } from "../nodes/types";
 import { saveExecution } from "../utils/db";
 import { validateWorkflow } from "../utils/workflows";
-import { ObjectStore } from "./objectStore";
+import { ObjectStore } from "./object-store";
 
 // Node output value type
 export type NodeOutputValue =

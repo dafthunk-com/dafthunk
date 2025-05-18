@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
-import { ObjectStore } from "../runtime/objectStore";
+import { ObjectStore } from "../runtime/object-store";
 
 const publicObjectRoutes = new Hono<ApiContext>();
 

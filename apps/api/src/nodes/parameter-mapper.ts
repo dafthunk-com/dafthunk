@@ -4,7 +4,7 @@ import {
 } from "@dafthunk/types";
 import { ObjectReference } from "@dafthunk/types";
 
-import { ObjectStore } from "../runtime/objectStore";
+import { ObjectStore } from "../runtime/object-store";
 import {
   AudioParameter as NodeAudioParameter,
   DocumentParameter as NodeDocumentParameter,

@@ -16,7 +16,7 @@ import { workflows } from "../db";
 import { executions as executionsTable } from "../db/schema";
 import { getExecutionById } from "../utils/db";
 import { listExecutions } from "../utils/db";
-import { generateExecutionOgImage } from "../utils/ogImageGenerator";
+import { generateExecutionOgImage } from "../utils/og-image-generator";
 
 const executionRoutes = new Hono<ApiContext>();
 
