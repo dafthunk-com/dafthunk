@@ -102,7 +102,7 @@ export function EditorPage() {
     (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
       setLatestUiNodes(updatedNodesFromUI);
       if (currentWorkflow) {
-        saveWorkflow(updatedNodesFromUI, latestUiEdges, currentWorkflow);
+        saveWorkflow(updatedNodesFromUI, latestUiEdges);
       }
     },
     [latestUiEdges, saveWorkflow, currentWorkflow]
@@ -112,7 +112,7 @@ export function EditorPage() {
     (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
       setLatestUiEdges(updatedEdgesFromUI);
       if (currentWorkflow) {
-        saveWorkflow(latestUiNodes, updatedEdgesFromUI, currentWorkflow);
+        saveWorkflow(latestUiNodes, updatedEdgesFromUI);
       }
     },
     [latestUiNodes, saveWorkflow, currentWorkflow]
