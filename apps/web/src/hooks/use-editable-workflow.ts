@@ -101,7 +101,7 @@ export function useEditableWorkflow({
 
       try {
         // Check if any node is currently executing, purely for logging/awareness.
-        // The actual node.data.executionState should be handled by the UI layer (useWorkflowState)
+        // The actual node.data.executionState should be handled by the UI layer (use-workflow-state)
         // and those updated nodes/edges are what we receive in nodesToSave/edgesToSave.
         if (
           nodesToSave.some((node) => node.data.executionState === "executing")

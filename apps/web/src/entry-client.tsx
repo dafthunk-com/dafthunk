@@ -6,7 +6,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
-import App, { FallbackErrorUI } from "./App";
+import App, { FallbackErrorUI } from "./app";
 import { routes } from "./routes";
 
 const rootElement = document.getElementById("root")!;
