@@ -3,16 +3,9 @@ description: software design and architectural guidelines
 globs: 
 alwaysApply: true
 ---
-
-## Engineering Philosophy
+# Software design and refactoring guidelines
 
 - Minimize complexity: Treat every design choice as a cost measured in future cognitive load. Eliminate unnecessary state and conditionals.
-- Prefer deep modules*: Expose a small, simple API that hides rich internal logic. Avoid "wide" interfaces that closely mirror implementation details.
-- Pull complexity downward: If high-level code feels intricate, move the complexity to a lower abstraction layer.
-- One purpose per abstraction: Any function or class that can't be described in a single sentence should be split into smaller parts.
-- Optimize for read-time, not write-time: It's worth spending extra effort now to ensure the code is easy to maintain later.
-- Capture the *why*: Use comments to explain the design intent and trade-offs. The code itself should explain the *how*.
-
 - Prefer deep modules: expose a small, simple API that hides rich internal logic; avoid “wide” interfaces that mirror implementation details.
 - Pull complexity downward: if high-level code feels intricate, move that intricacy into a lower abstraction layer.
 - One purpose per abstraction: any class or function that can't be described in a single sentence should be split.

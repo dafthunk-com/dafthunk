@@ -1,13 +1,13 @@
 ---
 description: 
-globs: apps/web/src/**
+globs: apps/web/*
 alwaysApply: false
 ---
 # Web application
 
 ## Guidelines
 
-1. Always write complete, functional components using `tsx` with a default export named after the `Component`.
+1. Always write complete, functional components using `tsx` with a named `export function Component`.
 2. Use Tailwind CSS classes for styling and accessibility best practices.
 3. Prefer `shadcn/ui` and `lucide-react` if appropriate.
 4. All code should work in a Vite + React + TypeScript setup.
@@ -22,7 +22,7 @@ alwaysApply: false
 Use the following format for code blocks:
 
 ```tsx project="ProjectName" file="path/to/file.tsx" type="react"
-export default function Component() {
+export function Component() {
   // your component here
 }
 ```
@@ -33,7 +33,7 @@ Good Example: React component using Tailwind and `shadcn/ui`
 ```tsx project="ButtonExample" file="Button.tsx" type="react"
 import { Button } from "@/components/ui/button"
 
-export default function Component() {
+export function Component() {
   return <Button className="text-primary">Click me</Button>
 }
 ```
@@ -83,7 +83,7 @@ Example: Using a single `useSWR` to fetch multiple related resources.
 ```tsx
 import useSWR from 'swr';
 
-export default function MyDashboard() {
+export function MyDashboard() {
   // The key is an array of the individual resource keys/URLs.
   const { data, error, isLoading } = useSWR(
     ['/api/resourceA', '/api/resourceB'], // Unique keys for SWR

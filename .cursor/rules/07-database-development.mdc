@@ -3,7 +3,7 @@ description:
 globs: apps/api/src/db/**,apps/api/src/utils/db.ts
 alwaysApply: false
 ---
-#Database Design Best Practices
+# Database Design Best Practices
 
 ## Use SQL-Compatible Types
 - Cloudflare D1 uses SQLite under the hood.
@@ -49,7 +49,7 @@ export const tasks = sqliteTable("tasks", {
 - Avoid setting defaults in TypeScript for critical database fields.
 
 ## Type Inference
-- Always use Drizzle’s `InferModel` to export consistent types.
+- Always use Drizzle's `InferModel` to export consistent types.
 
 ```ts
 export type User = InferModel<typeof users>;
@@ -59,7 +59,7 @@ export type NewUser = InferModel<typeof users, "insert">;
 ## Migrations
 - Use `drizzle-kit` to generate and run migrations.
 - Keep migrations version-controlled and consistent across environments.
-- Don’t mutate tables manually in production.
+- Don't mutate tables manually in production.
 
 ## Avoid Nullable Unless Necessary
 - Prefer strict types to nullable columns.

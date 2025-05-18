@@ -7,14 +7,22 @@ alwaysApply: true
 
 This repository uses the following technologies and tools:
 
+## Both 
+
 - **pnpm** for fast and efficient package management with workspace support.
-- **Vite** as the build tool and dev server for lightning-fast development.
 - **TypeScript** for static typing and enhanced developer experience.
+- **Vitest** for unit and integration testing.
+- **Cloudflare** for edge-optimized deployment and performance.
+
+## Backend
+
+- **Hono** for lightweight, expressive REST API development.
+
+## Frontend
+
+- **Vite** as the build tool and dev server for lightning-fast development.
 - **React 19** for building interactive user interfaces.
-- **React Router v6** for declarative client-side routing.
+- **React Router v7** for declarative client-side routing, `react-router-dom` is depricated, instead import from `react-router`.
 - **React Flow** for rendering interactive node-based diagrams.
 - **Tailwind CSS** for utility-first styling.
 - **shadcn/ui** for headless, accessible component primitives.
-- **Vitest** for unit and integration testing.
-- **Hono** for lightweight, expressive REST API development.
-- **Cloudflare** for edge-optimized deployment and performance.

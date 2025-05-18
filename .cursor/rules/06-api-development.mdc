@@ -1,6 +1,6 @@
 ---
 description: 
-globs: apps/api/src/**
+globs: apps/api/*
 alwaysApply: false
 ---
 # REST API 
@@ -71,15 +71,7 @@ alwaysApply: false
   app.use('*', cors());
   ```
 
-- **Custom Middleware for Auth, etc.**
-
-  ```ts
-  app.use('/protected/*', async (c, next) => {
-    const auth = c.req.header('Authorization');
-    if (!auth) return c.text('Unauthorized', 401);
-    await next();
-  });
-  ```
+- **Custom Middleware for JWT and API key Auth (see [auth.ts](mdc:apps/api/src/auth.ts))**
 
 ## Error Handling
 
@@ -98,7 +90,7 @@ alwaysApply: false
   app.notFound((c) => c.text('Not Found', 404));
   ```
 
-## 6. Deployment Considerations
+## Deployment Considerations
 
 - **Built for the edge**  
   Hono is ideal for Cloudflare Workers — it uses Web Standard APIs and avoids Node.js-only features.
