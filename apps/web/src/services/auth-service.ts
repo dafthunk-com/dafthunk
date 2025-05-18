@@ -64,25 +64,14 @@ export const authService = {
   // Logout the user
   async logout(): Promise<void> {
     try {
-      // Make a fetch request to the logout endpoint
-      const response = await fetch(`${getApiBaseUrl()}/auth/logout`, {
-        method: "GET",
-        credentials: "include", // Important for cookies
+      await makeRequest<void>("/auth/logout", {
+        method: "POST",
       });
-
-      // Invalidate SWR cache before redirecting
-      mutate(AUTH_USER_KEY, null, { revalidate: false });
-
-      // Check if the response is a redirect
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        // If not redirected, redirect to home page
-        window.location.href = "/";
-      }
     } catch (error) {
       console.error("Logout failed:", error);
-      // Even if the request fails, redirect to home
+    } finally {
+      // Invalidate SWR cache and redirect
+      mutate(AUTH_USER_KEY, null, { revalidate: false });
       window.location.href = "/";
     }
   },
@@ -90,21 +79,14 @@ export const authService = {
   // Logout all sessions for the user
   async logoutAllSessions(): Promise<void> {
     try {
-      const response = await fetch(`${getApiBaseUrl()}/auth/logout-all`, {
+      await makeRequest<void>("/auth/logout-all", {
         method: "POST",
-        credentials: "include",
       });
-
-      // Invalidate SWR cache before redirecting
-      mutate(AUTH_USER_KEY, null, { revalidate: false });
-
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        window.location.href = "/";
-      }
     } catch (error) {
       console.error("Logout all sessions failed:", error);
+    } finally {
+      // Invalidate SWR cache and redirect
+      mutate(AUTH_USER_KEY, null, { revalidate: false });
       window.location.href = "/";
     }
   },

@@ -87,7 +87,7 @@ export const authMiddleware = async (
 // Create auth router
 const auth = new Hono<ApiContext>();
 
-auth.get("/logout", (c) => {
+auth.post("/logout", (c) => {
   deleteCookie(c, JWT_SECRET_TOKEN_NAME, {
     domain: urlToTopLevelDomain(c.env.WEB_HOST),
     path: "/",
