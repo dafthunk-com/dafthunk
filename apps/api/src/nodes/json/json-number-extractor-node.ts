@@ -6,9 +6,9 @@ import { NodeContext } from "../types";
 
 export class JsonNumberExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "jsonNumberExtractor",
+    id: "json-number-extractor",
     name: "JSON Number Extractor",
-    type: "jsonNumberExtractor",
+    type: "json-number-extractor",
     description: "Extract a numeric value from a JSON object using JSONPath",
     category: "JSON",
     icon: "hash",

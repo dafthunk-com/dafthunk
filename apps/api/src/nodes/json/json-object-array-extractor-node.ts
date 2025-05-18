@@ -6,9 +6,9 @@ import { NodeContext } from "../types";
 
 export class JsonObjectArrayExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "jsonJsonExtractor",
+    id: "json-object-array-extractor",
     name: "JSON Object/Array Extractor",
-    type: "jsonJsonExtractor",
+    type: "json-object-array-extractor",
     description:
       "Extract a JSON object or array from a JSON object using JSONPath",
     category: "JSON",

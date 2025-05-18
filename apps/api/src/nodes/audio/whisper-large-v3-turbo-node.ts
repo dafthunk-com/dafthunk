@@ -9,9 +9,9 @@ import { ExecutableNode } from "../types";
  */
 export class WhisperLargeV3TurboNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "speech-recognition-large-v3-turbo",
+    id: "whisper-large-v3-turbo",
     name: "Speech Recognition (Large V3 Turbo)",
-    type: "speech-recognition-large-v3-turbo",
+    type: "whisper-large-v3-turbo",
     description:
       "Transcribes speech from audio files using OpenAI's Whisper Large V3 Turbo model with enhanced performance",
     category: "Audio",

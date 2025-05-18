@@ -14,7 +14,7 @@ export class MonacoEditorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "monaco-editor",
     name: "JSON Editor",
-    type: "monacoEditor",
+    type: "monaco-editor",
     description: "A Monaco Editor widget for editing and validating JSON",
     category: "JSON",
     icon: "code",

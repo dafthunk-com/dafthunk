@@ -4,9 +4,9 @@ import { ExecutableNode, NodeContext } from "../types";
 
 export class StringParameterNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "parameter.string",
-    id: "parameter.string",
+    id: "parameter-string",
     name: "String Parameter",
+    type: "parameter-string",
     description:
       "Extracts a string parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",

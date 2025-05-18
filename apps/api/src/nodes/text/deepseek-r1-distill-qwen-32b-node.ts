@@ -12,7 +12,7 @@ interface DeepseekNonStreamedOutput {
   usage?: any;
 }
 
-export class DeepseekR1Node extends ExecutableNode {
+export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "deepseek-r1-distill-qwen-32b",
     name: "deepseek-r1-distill-qwen-32b",

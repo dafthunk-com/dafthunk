@@ -8,9 +8,9 @@ import { NodeContext } from "../types";
  */
 export class StableDiffusionXLBase10Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "stable-diffusion-xl-base",
+    id: "stable-diffusion-xl-base-1-0",
     name: "Stable Diffusion XL Base",
-    type: "stable-diffusion-xl-base",
+    type: "stable-diffusion-xl-base-1-0",
     description:
       "Generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0",
     category: "Image",

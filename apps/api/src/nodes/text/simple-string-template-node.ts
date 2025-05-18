@@ -5,9 +5,9 @@ import { NodeContext } from "../types";
 
 export class SimpleStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "simpleStringTemplate",
+    id: "simple-string-template",
     name: "Simple String Template",
-    type: "simpleStringTemplate",
+    type: "simple-string-template",
     description:
       "Create a string using a template with a single variable injection using ${variable} syntax",
     category: "Text",

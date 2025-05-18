@@ -14,9 +14,9 @@ interface Llama3370BNonStreamedOutput {
 
 export class Llama3370BInstructFastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "llama-3.3-70b-instruct-fp8-fast",
+    id: "llama-3-3-70b-instruct-fp8-fast",
     name: "llama-3.3-70b-instruct-fp8-fast",
-    type: "llama-3.3-70b-instruct-fp8-fast",
+    type: "llama-3-3-70b-instruct-fp8-fast",
     description: "Generates text using Llama 3.3 70B model with fp8 precision",
     category: "Text",
     icon: "ai",

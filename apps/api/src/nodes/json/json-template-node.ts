@@ -5,9 +5,9 @@ import { NodeContext } from "../types";
 
 export class JsonTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "jsonTemplate",
+    id: "json-template",
     name: "JSON Template",
-    type: "jsonTemplate",
+    type: "json-template",
     description:
       "Create a JSON object using a template with variable injection using ${variableName} syntax",
     category: "JSON",

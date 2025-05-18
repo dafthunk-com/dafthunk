@@ -6,9 +6,9 @@ import { NodeContext } from "../types";
 
 export class JsonBooleanExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "jsonBooleanExtractor",
+    id: "json-boolean-extractor",
     name: "JSON Boolean Extractor",
-    type: "jsonBooleanExtractor",
+    type: "json-boolean-extractor",
     description: "Extract a boolean value from a JSON object using JSONPath",
     category: "JSON",
     icon: "toggle",

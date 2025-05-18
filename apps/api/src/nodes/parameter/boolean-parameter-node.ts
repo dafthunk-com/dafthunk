@@ -4,9 +4,9 @@ import { ExecutableNode, NodeContext } from "../types";
 
 export class BooleanParameterNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    type: "parameter.boolean",
-    id: "parameter.boolean",
+    id: "parameter-boolean",
     name: "Boolean Parameter",
+    type: "parameter-boolean",
     description:
       "Extracts a boolean parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",

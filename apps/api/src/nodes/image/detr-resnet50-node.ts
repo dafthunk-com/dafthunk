@@ -8,9 +8,9 @@ import { NodeContext } from "../types";
  */
 export class DetrResnet50Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "detr-resnet-50",
+    id: "detr-resnet50",
     name: "DETR-ResNet-50",
-    type: "detr-resnet-50",
+    type: "detr-resnet50",
     description:
       "Detects and classifies objects in images using DETR-ResNet-50 model",
     category: "Image",
