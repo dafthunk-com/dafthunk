@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 import useSWR from "swr";
 
 import {
@@ -15,6 +15,7 @@ type AuthContextType = {
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
   readonly error: Error | null;
+  readonly loginError: Error | null;
   readonly organization: OrganizationInfo | null;
   login: (provider: AuthProvider) => Promise<void>;
   logout: () => Promise<void>;
@@ -32,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutate: mutateUser,
   } = useSWR<User | null>(AUTH_USER_KEY, authService.getCurrentUser);
 
+  const [loginError, setLoginError] = useState<Error | null>(null);
+
   const isAuthenticated = !!user;
 
   // Extract organization information
@@ -42,10 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (provider: AuthProvider): Promise<void> => {
+    setLoginError(null);
     try {
       await authService.loginWithProvider(provider);
-    } catch (loginError) {
-      console.error("Login process error:", loginError);
+    } catch (err) {
+      console.error("Login process error:", err);
+      setLoginError(err instanceof Error ? err : new Error(String(err)));
     }
   };
 
@@ -64,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         isLoading,
         error,
+        loginError,
         organization,
         login,
         logout,
