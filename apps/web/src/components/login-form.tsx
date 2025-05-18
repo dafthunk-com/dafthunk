@@ -1,6 +1,7 @@
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,8 +28,8 @@ export function LoginForm({
         <CardContent className="grid p-0 md:grid-cols-2">
           <div className="p-6 md:p-8 flex items-center">
             <div className="flex flex-col gap-8 w-full py-8">
-              <a
-                href="#"
+              <Link
+                to="/"
                 className="flex items-center gap-2 self-center font-medium"
               >
                 <img
@@ -36,7 +37,7 @@ export function LoginForm({
                   alt="dafthunk"
                   className="h-16 dark:invert"
                 />
-              </a>
+              </Link>
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">
                   Workflows no one asked for
@@ -80,8 +81,9 @@ export function LoginForm({
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
-        By signing in, you agree to our <a href="#">Terms of Service</a> and{" "}
-        <a href="#">Privacy Policy</a>.
+        By signing in, you agree to our{" "}
+        <Link to="/terms-of-service">Terms of Service</Link> and{" "}
+        <Link to="/privacy-policy">Privacy Policy</Link>.
       </div>
     </div>
   );
