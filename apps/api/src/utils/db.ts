@@ -236,6 +236,62 @@ export async function getWorkflowByIdOrHandle(
 }
 
 /**
+ * Get a workflow by ID
+ *
+ * @param db Database instance
+ * @param idOrHandle Workflow ID
+ * @returns Workflow record or undefined if not found
+ */
+export async function getWorkflowById(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+): Promise<Workflow | undefined> {
+  const [workflow] = await db
+    .select()
+    .from(workflows)
+    .where(
+      and(
+        eq(workflows.id, id),
+      )
+    );
+  return workflow;
+}
+
+export async function getLatestDeploymentByWorkflowId(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+): Promise<Deployment | undefined> {
+  const [deployment] = await db
+    .select()
+    .from(deployments)
+    .where(eq(deployments.workflowId, workflowId))
+    .orderBy(desc(deployments.createdAt))
+    .limit(1);
+
+  return deployment;
+}
+
+export async function getDeploymentByWorkflowIdAndVersion(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  version: string
+): Promise<Deployment | undefined> {
+  const [deployment] = await db
+  .select()
+  .from(deployments)
+  .innerJoin(
+    workflows,
+    and(
+      eq(deployments.workflowId, workflows.id),
+      eq(workflows.id, workflows.id),
+    )
+  )
+  .where(eq(deployments.version, parseInt(version, 10)));
+
+return deployment?.deployments;
+}
+
+/**
  * Create a new workflow
  *
  * @param db Database instance
@@ -758,6 +814,25 @@ export async function getOrganizationByHandle(
     .select()
     .from(organizations)
     .where(eq(organizations.handle, handle));
+
+  return organization;
+}
+
+/**
+ * Get an organization by its id
+ *
+ * @param db Database instance
+ * @param handle Organization id
+ * @returns Organization record or undefined if not found
+ */
+export async function getOrganizationById(
+  db: ReturnType<typeof createDatabase>,
+  id: string
+): Promise<typeof organizations.$inferSelect | undefined> {
+  const [organization] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, id));
 
   return organization;
 }

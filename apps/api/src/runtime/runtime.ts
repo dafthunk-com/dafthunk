@@ -49,6 +49,7 @@ export type RuntimeParams = {
   monitorProgress?: boolean;
   deploymentId?: string;
   httpRequest?: HttpRequest;
+  emailMessage?: ForwardableEmailMessage
 };
 
 export type RuntimeState = {
@@ -88,6 +89,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       organizationId,
       monitorProgress = false,
       httpRequest,
+      emailMessage,
     } = event.payload;
     const instanceId = event.instanceId;
 
@@ -154,7 +156,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
               nodeIdentifier,
               organizationId,
               instanceId,
-              httpRequest
+              httpRequest,
+              emailMessage
             )
         );
 
@@ -245,7 +248,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     nodeIdentifier: string,
     organizationId: string,
     executionId: string,
-    httpRequest?: HttpRequest
+    httpRequest?: HttpRequest,
+    emailMessage?: ForwardableEmailMessage
   ): Promise<RuntimeState> {
     const node = runtimeState.workflow.nodes.find(
       (n): boolean => n.id === nodeIdentifier
@@ -283,6 +287,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         workflowId: runtimeState.workflow.id,
         inputs: processedInputs,
         httpRequest,
+        emailMessage,
         // No progress feedback in this implementation.
         onProgress: () => {},
         env: {

@@ -1,29 +1,114 @@
-import { EmailMessage } from "cloudflare:email";
-import { createMimeMessage } from "mimetext";
+import { Bindings } from "./context";
+import { ExecutionContext } from "@cloudflare/workers-types";
+import { getDeploymentByWorkflowIdAndVersion, getDeploymentByWorkflowIdOrHandleAndVersion, getLatestDeploymentByWorkflowId, getLatestDeploymentByWorkflowIdOrHandle, getOrganizationById, getWorkflowById, getWorkflowByIdOrHandle, saveExecution } from "./utils/db";
+import { ExecutionStatus } from "./db/schema";
+import { createDatabase } from "./db";
+
+import {
+  Node,
+  Workflow as WorkflowType,
+} from "@dafthunk/types";
 
 export async function handleIncomingEmail(
-  message: ForwardableEmailMessage,
-  _env: object,
-  _ctx: object
+  emailMessage: ForwardableEmailMessage,
+  env: Bindings,
+  _ctx: ExecutionContext
 ): Promise<void> {
-  const msg = createMimeMessage();
+  
+  // Extract the handle from the to address
+  const handle = emailMessage.to.split("@")[0];
+  const workflowId = handle.split(".")[0];
+  const version = handle.split(".")[1];
 
-  msg.setHeader("In-Reply-To", message.headers.get("Message-ID") || "");
-  msg.setSender({ name: "Dafthunk", addr: message.to });
-  msg.setRecipient(message.from);
-  msg.setSubject("Email Routing Auto-reply");
+    const db = createDatabase(env.DB);
 
-  msg.addMessage({
-    contentType: "text/html",
-    data: `<html><body><p>We got your message, we will get back to you soon.</p></body></html>`,
-  });
+    // Get workflow data either from deployment or directly from workflow
+    let workflowData: WorkflowType;
+    let workflow: any;
+    let deploymentId: string | undefined;
 
-  msg.addMessage({
-    contentType: "text/plain",
-    data: `We got your message, we will get back to you soon.`,
-  });
+    if (version === "dev") {
+      // Get workflow data directly
+      workflow = await getWorkflowById(db, workflowId);
+      if (!workflow) {
+        console.error("Workflow not found");
+        return;
+      }
+      workflowData = workflow.data as WorkflowType;
+    } else {
+      // Get deployment based on version
+      let deployment;
+      if (version === "latest") {
+        deployment = await getLatestDeploymentByWorkflowId(
+          db,
+          workflowId,
+        );
+        if (!deployment) {
+          console.error("Deployment not found");
+          return;
+        }
+      } else {
+        deployment = await getDeploymentByWorkflowIdAndVersion(
+          db,
+          workflowId,
+          version,
+        );
+        if (!deployment) {
+          console.error("Deployment not found");
+          return;
+        }
+      }
 
-  const replyMessage = new EmailMessage(message.to, message.from, msg.asRaw());
+      deploymentId = deployment.id;
+      workflowData = deployment.workflowData as WorkflowType;
+      workflow = {
+        id: deployment.workflowId,
+        name: workflowData.name,
+      };
+    }
 
-  await message.reply(replyMessage);
+    // Validate if workflow has nodes
+    if (!workflowData.nodes || workflowData.nodes.length === 0) {
+      console.error("Cannot execute an empty workflow. Please add nodes to the workflow.");
+      return;
+    }
+
+    // Trigger the runtime and get the instance id
+    const instance = await env.EXECUTE.create({
+      params: {
+        userId: "email",
+        organizationId: workflow.organizationId,
+        workflow: {
+          id: workflow.id,
+          name: workflow.name,
+          handle: workflow.handle,
+          nodes: workflowData.nodes,
+          edges: workflowData.edges,
+        },
+        monitorProgress: false,
+        deploymentId,
+        emailMessage,
+      },
+    });
+    const executionId = instance.id;
+
+    // Build initial nodeExecutions (all idle)
+    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
+      nodeId: node.id,
+      status: "idle" as const,
+    }));
+
+    // Save initial execution record
+    const initialExecution = await saveExecution(db, {
+      id: executionId,
+      workflowId: workflow.id,
+      deploymentId,
+      userId: "email",
+      organizationId: workflow.organizationId,
+      status: ExecutionStatus.EXECUTING,
+      visibility: "private",
+      nodeExecutions,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });  
 }

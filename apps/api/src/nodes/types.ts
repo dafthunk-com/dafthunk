@@ -1,5 +1,6 @@
 // Types for workflows
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import { ForwardableEmailMessage } from "@cloudflare/workers-types";
 
 export type ImageParameter = {
   data: Uint8Array;
@@ -91,6 +92,7 @@ export interface NodeContext {
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
+  emailMessage?: ForwardableEmailMessage;
   env: {
     AI: Ai;
     CLOUDFLARE_ACCOUNT_ID: string;
