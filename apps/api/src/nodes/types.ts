@@ -86,13 +86,20 @@ export interface HttpRequest {
   formData?: Record<string, string | File>;
 }
 
+export interface EmailMessage {
+  from: string;
+  to: string;
+  headers: Record<string, string>;
+  raw: string;
+}
+
 export interface NodeContext {
   nodeId: string;
   workflowId: string;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
-  emailMessage?: ForwardableEmailMessage;
+  emailMessage?: EmailMessage;
   env: {
     AI: Ai;
     CLOUDFLARE_ACCOUNT_ID: string;

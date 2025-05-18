@@ -2,30 +2,6 @@ import { Node, NodeExecution, NodeType, ParameterType } from "@dafthunk/types";
 import { ForwardableEmailMessage, Headers } from "@cloudflare/workers-types";
 import { ExecutableNode, NodeContext } from "../types";
 
-async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let result = '';
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    result += decoder.decode(value, { stream: true });
-  }
-  result += decoder.decode(); // Flush any remaining bytes
-  return result;
-}
-
-function headersToRecord(headers: Headers): Record<string, string> {
-  const record: Record<string, string> = {};
-  for (const [key, value] of headers.entries()) {
-    record[key] = value;
-  }
-  return record;
-}
-
 export class EmailParameterNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "parameter-email",
@@ -72,16 +48,8 @@ export class EmailParameterNode extends ExecutableNode {
         );
       }
 
-      const { from, to, headers: emailHeaders, raw: rawStream } = context.emailMessage as ForwardableEmailMessage;
-
-      const rawContent = await streamToString(rawStream);
-      const headersObject = headersToRecord(emailHeaders);
-
       return this.createSuccessResult({
-        from,
-        to,
-        headers: headersObject,
-        raw: rawContent,
+        ...context.emailMessage,
       });
     } catch (error) {
       return this.createErrorResult(
@@ -89,4 +57,4 @@ export class EmailParameterNode extends ExecutableNode {
       );
     }
   }
-} 
+}

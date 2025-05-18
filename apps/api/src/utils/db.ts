@@ -244,22 +244,18 @@ export async function getWorkflowByIdOrHandle(
  */
 export async function getWorkflowById(
   db: ReturnType<typeof createDatabase>,
-  id: string,
+  id: string
 ): Promise<Workflow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
-    .where(
-      and(
-        eq(workflows.id, id),
-      )
-    );
+    .where(and(eq(workflows.id, id)));
   return workflow;
 }
 
 export async function getLatestDeploymentByWorkflowId(
   db: ReturnType<typeof createDatabase>,
-  workflowId: string,
+  workflowId: string
 ): Promise<Deployment | undefined> {
   const [deployment] = await db
     .select()
@@ -277,18 +273,18 @@ export async function getDeploymentByWorkflowIdAndVersion(
   version: string
 ): Promise<Deployment | undefined> {
   const [deployment] = await db
-  .select()
-  .from(deployments)
-  .innerJoin(
-    workflows,
-    and(
-      eq(deployments.workflowId, workflows.id),
-      eq(workflows.id, workflows.id),
+    .select()
+    .from(deployments)
+    .innerJoin(
+      workflows,
+      and(
+        eq(deployments.workflowId, workflows.id),
+        eq(workflows.id, workflows.id)
+      )
     )
-  )
-  .where(eq(deployments.version, parseInt(version, 10)));
+    .where(eq(deployments.version, parseInt(version, 10)));
 
-return deployment?.deployments;
+  return deployment?.deployments;
 }
 
 /**

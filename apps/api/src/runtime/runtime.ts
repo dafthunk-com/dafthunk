@@ -26,6 +26,7 @@ import { HttpRequest, NodeContext } from "../nodes/types";
 import { saveExecution } from "../utils/db";
 import { validateWorkflow } from "../utils/workflows";
 import { ObjectStore } from "./object-store";
+import { EmailMessage } from "../nodes/types";
 
 // Node output value type
 export type NodeOutputValue =
@@ -49,7 +50,7 @@ export type RuntimeParams = {
   monitorProgress?: boolean;
   deploymentId?: string;
   httpRequest?: HttpRequest;
-  emailMessage?: ForwardableEmailMessage
+  emailMessage?: EmailMessage;
 };
 
 export type RuntimeState = {
@@ -249,7 +250,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     organizationId: string,
     executionId: string,
     httpRequest?: HttpRequest,
-    emailMessage?: ForwardableEmailMessage
+    emailMessage?: EmailMessage
   ): Promise<RuntimeState> {
     const node = runtimeState.workflow.nodes.find(
       (n): boolean => n.id === nodeIdentifier
