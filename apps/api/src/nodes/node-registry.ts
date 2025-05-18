@@ -51,6 +51,7 @@ import { JsonBodyNode } from "./parameter/json-body-node";
 import { NumberParameterNode } from "./parameter/number-parameter-node";
 import { StringParameterNode } from "./parameter/string-parameter-node";
 import { EmailParameterNode } from "./parameter/email-parameter-node";
+import { EmailParserNode } from "./email/email-parser-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
@@ -104,6 +105,7 @@ export class NodeRegistry {
     this.registerImplementation(BooleanParameterNode);
     this.registerImplementation(JsonBodyNode);
     this.registerImplementation(EmailParameterNode);
+    this.registerImplementation(EmailParserNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);
     this.registerImplementation(MultiplicationNode);
