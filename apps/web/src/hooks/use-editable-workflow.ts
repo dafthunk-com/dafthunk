@@ -90,11 +90,12 @@ export function useEditableWorkflow({
   const saveWorkflowInternal = useCallback(
     async (
       nodesToSave: Node<WorkflowNodeType>[],
-      edgesToSave: Edge<WorkflowEdgeType>[],
-      workflowToUpdate: Workflow // This is the base currentWorkflow
+      edgesToSave: Edge<WorkflowEdgeType>[]
     ) => {
-      if (!workflowId || !workflowToUpdate) {
-        setSavingError("Workflow ID or base data is missing, cannot save.");
+      if (!workflowId || !currentWorkflow) {
+        setSavingError(
+          "Workflow ID or current workflow data is missing, cannot save."
+        );
         return;
       }
       setSavingError(null);
@@ -158,7 +159,7 @@ export function useEditableWorkflow({
         }));
 
         const workflowToSave: Workflow = {
-          ...workflowToUpdate, // Base workflow details like name, description etc.
+          ...currentWorkflow, // Base workflow details like name, description etc.
           id: workflowId, // Ensure the ID is correctly set
           nodes: workflowNodes,
           edges: workflowEdges,
@@ -184,17 +185,14 @@ export function useEditableWorkflow({
         );
       }
     },
-    [workflowId, organization] // Add organization to dependency array
+    [workflowId, organization, currentWorkflow]
   );
 
   const saveWorkflow = useMemo(
     () =>
       debounce(
-        (
-          nodes: Node<WorkflowNodeType>[],
-          edges: Edge<WorkflowEdgeType>[],
-          baseWorkflow: Workflow
-        ) => saveWorkflowInternal(nodes, edges, baseWorkflow),
+        (nodes: Node<WorkflowNodeType>[], edges: Edge<WorkflowEdgeType>[]) =>
+          saveWorkflowInternal(nodes, edges),
         1000
       ),
     [saveWorkflowInternal]
