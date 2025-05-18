@@ -2,17 +2,12 @@ import { Bindings } from "./context";
 import { ExecutionContext } from "@cloudflare/workers-types";
 import {
   getDeploymentByWorkflowIdAndVersion,
-  getDeploymentByWorkflowIdOrHandleAndVersion,
   getLatestDeploymentByWorkflowId,
-  getLatestDeploymentByWorkflowIdOrHandle,
-  getOrganizationById,
   getWorkflowById,
-  getWorkflowByIdOrHandle,
   saveExecution,
 } from "./utils/db";
 import { ExecutionStatus } from "./db/schema";
 import { createDatabase } from "./db";
-import { simpleParser } from 'mailparser';
 
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
@@ -48,10 +43,6 @@ export async function handleIncomingEmail(
   _ctx: ExecutionContext
 ): Promise<void> {
   const { from, to, headers, raw } = message;
-
-  const rawEmail = await streamToString(raw);
-  const parsedEmail = await simpleParser(rawEmail);
-
 
   // Extract the handle from the to address
   const handle = to.split("@")[0];
