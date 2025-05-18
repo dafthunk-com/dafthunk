@@ -174,8 +174,8 @@ export const deleteWorkflow = async (
 export const convertToReactFlowEdges = (
   edges: readonly Edge[]
 ): readonly ReactFlowEdge[] => {
-  return edges.map((edge, index) => ({
-    id: `e${index}`,
+  return edges.map((edge) => ({
+    id: `e-${edge.source}-${edge.sourceOutput}-${edge.target}-${edge.targetInput}`,
     type: "workflowEdge",
     source: edge.source,
     target: edge.target,
