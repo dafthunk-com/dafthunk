@@ -47,9 +47,9 @@ export function ApiIntegrationCard({
   const parameters = extractDialogParametersFromNodes(nodes, nodeTemplates);
 
   // Check if there\'s a JSON body parameter
-  const jsonBodyParam = parameters.find((p) => p.type === "body.json");
+  const jsonBodyParam = parameters.find((p) => p.type === "body-json");
   const formParams: SnippetParams[] = parameters
-    .filter((p) => p.type !== "body.json")
+    .filter((p) => p.type !== "body-json")
     .map((p) => ({ nameForForm: p.nameForForm, type: p.type })); // Adapt to SnippetParams
 
   const handleCopy = (text: string) => {

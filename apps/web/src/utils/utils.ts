@@ -37,16 +37,15 @@ export function extractDialogParametersFromNodes(
   return nodes
     .filter(
       (node) =>
-        // Include body.json nodes and parameter.* nodes
-        node.data.nodeType === "body.json" ||
-        node.data.nodeType?.startsWith("parameter.")
+        node.data.nodeType?.startsWith("body-") ||
+        node.data.nodeType?.startsWith("parameter-")
     )
     .map((node) => {
       const requiredInput = node.data.inputs.find((i) => i.id === "required");
       const isRequired = (requiredInput?.value as boolean) ?? true;
 
       // Special handling for JSON body node which doesn't use name
-      if (node.data.nodeType === "body.json") {
+      if (node.data.nodeType === "body-json") {
         const nodeInstanceName = node.data.name || "JSON Body";
 
         return {
@@ -55,7 +54,7 @@ export function extractDialogParametersFromNodes(
           label: nodeInstanceName, // Use the node name as label
           nodeName: node.data.name || "JSON Body",
           isRequired: isRequired,
-          type: "body.json",
+          type: "body-json",
         } as DialogFormParameter;
       }
 

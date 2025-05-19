@@ -4,9 +4,9 @@ import { ExecutableNode, NodeContext } from "../types";
 
 export class JsonBodyNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "parameter-json-body",
+    id: "body-json",
     name: "JSON Body",
-    type: "parameter-json-body",
+    type: "body-json",
     description: "Extracts JSON data from the body of the HTTP request.",
     category: "Parameter",
     icon: "braces",

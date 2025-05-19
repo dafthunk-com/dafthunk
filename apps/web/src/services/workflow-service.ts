@@ -445,7 +445,7 @@ export function useWorkflowExecution(orgHandle: string) {
       }
 
       const jsonBodyNode = uiNodes.find(
-        (node) => node.data.nodeType === "body.json"
+        (node) => node.data.nodeType === "body-json"
       );
       const httpParameterNodes = extractDialogParametersFromNodes(
         uiNodes,

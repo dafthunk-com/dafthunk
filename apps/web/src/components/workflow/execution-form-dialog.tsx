@@ -30,7 +30,7 @@ export type DialogFormParameter = {
   label: string; // User-friendly label for the form input, e.g., "Customer Email"
   nodeName: string; // Original name of the workflow node, for context
   isRequired: boolean; // Whether this parameter is required
-  type: string; // Parameter type, e.g., 'parameter.string', 'parameter.number'
+  type: string; // Parameter type, e.g., 'parameter-string', 'parameter-number'
 };
 
 type ExecutionFormDialogProps = {
@@ -56,7 +56,7 @@ const isValidJson = (str: string) => {
 const createValidationSchema = (parameters: DialogFormParameter[]) => {
   const schemaShape: Record<string, z.ZodTypeAny> = {};
   parameters.forEach((param) => {
-    if (param.type.startsWith("parameter.string")) {
+    if (param.type === "parameter-string") {
       let validator: z.ZodTypeAny;
       const stringBase = z.string().trim();
 
@@ -70,7 +70,7 @@ const createValidationSchema = (parameters: DialogFormParameter[]) => {
           .transform((val) => (val === "" || val === null ? undefined : val));
       }
       schemaShape[param.nameForForm] = validator;
-    } else if (param.type.startsWith("parameter.number")) {
+    } else if (param.type === "parameter-number") {
       // Number parameter validation
       let validator: z.ZodTypeAny;
 
@@ -96,7 +96,7 @@ const createValidationSchema = (parameters: DialogFormParameter[]) => {
         );
       }
       schemaShape[param.nameForForm] = validator;
-    } else if (param.type.startsWith("parameter.boolean")) {
+    } else if (param.type === "parameter-boolean") {
       // Boolean parameter validation
       if (param.isRequired) {
         schemaShape[param.nameForForm] = z.boolean({
@@ -105,7 +105,7 @@ const createValidationSchema = (parameters: DialogFormParameter[]) => {
       } else {
         schemaShape[param.nameForForm] = z.boolean().optional();
       }
-    } else if (param.type.startsWith("parameter.json")) {
+    } else if (param.type === "body-json") {
       // JSON parameter validation
       let validator: z.ZodTypeAny;
 
@@ -160,11 +160,11 @@ export function ExecutionFormDialog({
     mode: "onChange", // Validate on change to enable/disable submit button
     defaultValues: parameters.reduce((acc, param) => {
       // Set appropriate default values based on parameter type
-      if (param.type.startsWith("parameter.boolean")) {
+      if (param.type.startsWith("parameter-boolean")) {
         acc[param.nameForForm] = false;
       } else if (param.type.startsWith("parameter.json")) {
         acc[param.nameForForm] = ""; // Empty string for JSON
-      } else if (param.type.startsWith("parameter.number")) {
+      } else if (param.type.startsWith("parameter-number")) {
         acc[param.nameForForm] = ""; // Empty string for number inputs
       } else {
         acc[param.nameForForm] = ""; // Default for strings
@@ -178,11 +178,11 @@ export function ExecutionFormDialog({
     if (isOpen) {
       const defaultValues = parameters.reduce((acc, param) => {
         // Set appropriate default values based on parameter type
-        if (param.type.startsWith("parameter.boolean")) {
+        if (param.type.startsWith("parameter-boolean")) {
           acc[param.nameForForm] = false;
         } else if (param.type.startsWith("parameter.json")) {
           acc[param.nameForForm] = "";
-        } else if (param.type.startsWith("parameter.number")) {
+        } else if (param.type.startsWith("parameter-number")) {
           acc[param.nameForForm] = "";
         } else {
           acc[param.nameForForm] = "";
@@ -238,7 +238,7 @@ export function ExecutionFormDialog({
                   control={control}
                   render={({ field }) => {
                     // Render different input components based on parameter type
-                    if (param.type.startsWith("parameter.boolean")) {
+                    if (param.type.startsWith("parameter-boolean") || param.type.startsWith("parameter-boolean")) {
                       return (
                         <div className="flex items-center space-x-2 pt-2">
                           <Checkbox
@@ -254,7 +254,7 @@ export function ExecutionFormDialog({
                           </label>
                         </div>
                       );
-                    } else if (param.type.startsWith("parameter.number")) {
+                    } else if (param.type.startsWith("parameter-number") || param.type.startsWith("parameter-number")) {
                       return (
                         <Input
                           id={param.nameForForm}
@@ -264,7 +264,7 @@ export function ExecutionFormDialog({
                           className="w-full"
                         />
                       );
-                    } else if (param.type.startsWith("parameter.json")) {
+                    } else if (param.type.startsWith("parameter.json") || param.type.startsWith("parameter-json") || param.type === "body-json") {
                       return (
                         <div>
                           <Textarea
