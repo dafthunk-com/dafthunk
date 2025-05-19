@@ -4,7 +4,7 @@ import { Resend } from "resend";
 import { ExecutableNode, NodeContext } from "../types";
 
 function validateEmailDomain(email: string, allowedDomain: string): boolean {
-  const domain = email.split('@')[1]?.toLowerCase();
+  const domain = email.split("@")[1]?.toLowerCase();
   return domain === allowedDomain.toLowerCase();
 }
 

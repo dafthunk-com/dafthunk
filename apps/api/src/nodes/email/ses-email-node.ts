@@ -4,7 +4,7 @@ import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { ExecutableNode, NodeContext } from "../types";
 
 function validateEmailDomain(email: string, allowedDomain: string): boolean {
-  const domain = email.split('@')[1]?.toLowerCase();
+  const domain = email.split("@")[1]?.toLowerCase();
   return domain === allowedDomain.toLowerCase();
 }
 
@@ -17,12 +17,6 @@ export class SESEmailNode extends ExecutableNode {
     category: "Email",
     icon: "mail",
     inputs: [
-      {
-        name: "from",
-        type: "string",
-        description: "Sender email address (optional, overrides default)",
-        hidden: true,
-      },
       {
         name: "to",
         type: "string",
@@ -39,13 +33,19 @@ export class SESEmailNode extends ExecutableNode {
         name: "html",
         type: "string",
         description: "Email body (HTML)",
-        required: true,
+        required: false,
       },
       {
         name: "text",
         type: "string",
-        description: "Email body (text)",
-        required: true,
+        description: "Email body (plain text)",
+        required: false,
+      },
+      {
+        name: "from",
+        type: "string",
+        description: "Sender email address (optional, overrides default)",
+        hidden: true,
       },
     ],
     outputs: [
@@ -65,7 +65,7 @@ export class SESEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { to, subject, body, from } = context.inputs;
+    const { to, subject, html, text, from } = context.inputs;
     const accessKeyId = context.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = context.env.AWS_SECRET_ACCESS_KEY;
     const region = context.env.AWS_REGION;
@@ -78,9 +78,13 @@ export class SESEmailNode extends ExecutableNode {
       );
     }
 
-    if (!to || !subject || !body) {
+    if (!to || !subject) {
+      return this.createErrorResult("'to' and 'subject' are required inputs.");
+    }
+
+    if (!html && !text) {
       return this.createErrorResult(
-        "'to', 'subject', and 'body' (HTML) are required inputs."
+        "At least one of 'html' or 'text' body must be provided."
       );
     }
 
@@ -108,6 +112,20 @@ export class SESEmailNode extends ExecutableNode {
 
       const toArray = typeof to === "string" ? [to] : to;
 
+      const messageBody: any = {};
+      if (html) {
+        messageBody.Html = {
+          Data: html,
+          Charset: "UTF-8",
+        };
+      }
+      if (text) {
+        messageBody.Text = {
+          Data: text,
+          Charset: "UTF-8",
+        };
+      }
+
       const command = new SendEmailCommand({
         Source: sender,
         Destination: {
@@ -118,12 +136,7 @@ export class SESEmailNode extends ExecutableNode {
             Data: subject,
             Charset: "UTF-8",
           },
-          Body: {
-            Html: {
-              Data: body,
-              Charset: "UTF-8",
-            },
-          },
+          Body: messageBody,
         },
       });
 
@@ -144,4 +157,4 @@ export class SESEmailNode extends ExecutableNode {
       );
     }
   }
-} 
+}

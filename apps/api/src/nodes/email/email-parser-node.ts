@@ -113,9 +113,7 @@ export class EmailParserNode extends ExecutableNode {
     super(node);
   }
 
-  public async execute(
-    context: NodeContext
-  ): Promise<NodeExecution> {
+  public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const rawEmail = context.inputs?.rawEmail as string | undefined;
 
@@ -155,4 +153,4 @@ export class EmailParserNode extends ExecutableNode {
       );
     }
   }
-} 
+}
