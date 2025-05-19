@@ -3,6 +3,11 @@ import sgMail from "@sendgrid/mail";
 
 import { ExecutableNode, NodeContext } from "../types";
 
+function validateEmailDomain(email: string, allowedDomain: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return domain === allowedDomain.toLowerCase();
+}
+
 export class SendgridEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "sendgrid-email",
@@ -63,6 +68,7 @@ export class SendgridEmailNode extends ExecutableNode {
     const { to, subject, body, from } = context.inputs;
     const apiKey = context.env.SENDGRID_API_KEY;
     const defaultFrom = context.env.SENDGRID_DEFAULT_FROM;
+    const allowedDomain = context.env.EMAIL_DOMAIN;
 
     if (!apiKey) {
       return this.createErrorResult(
@@ -80,6 +86,13 @@ export class SendgridEmailNode extends ExecutableNode {
         "No 'from' address provided and SENDGRID_DEFAULT_FROM is not set."
       );
     }
+
+    if (!validateEmailDomain(sender, allowedDomain)) {
+      return this.createErrorResult(
+        `Sender email domain must be ${allowedDomain}`
+      );
+    }
+
     try {
       sgMail.setApiKey(apiKey);
       const msg = {

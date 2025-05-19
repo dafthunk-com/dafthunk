@@ -32,6 +32,7 @@ export interface Bindings {
   AI: Ai;
   KV: KVNamespace;
   WEB_HOST: string;
+  EMAIL_DOMAIN: string;
   JWT_SECRET: string;
   CLOUDFLARE_ENV: string;
   CLOUDFLARE_ACCOUNT_ID: string;
@@ -47,6 +48,10 @@ export interface Bindings {
   SENDGRID_DEFAULT_FROM: string;
   RESEND_API_KEY: string;
   RESEND_DEFAULT_FROM: string;
+  AWS_ACCESS_KEY_ID: string;
+  AWS_SECRET_ACCESS_KEY: string;
+  AWS_REGION: string;
+  SES_DEFAULT_FROM: string;
   BROWSER: Fetcher | null;
 }
 

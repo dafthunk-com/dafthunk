@@ -63,6 +63,7 @@ import { M2m10012bNode } from "./text/m2m100-1-2b-node";
 import { RadioGroupNode } from "./text/radio-group-node";
 import { ResendEmailNode } from "./email/resend-email-node";
 import { SendgridEmailNode } from "./email/sendgrid-email-node";
+import { SESEmailNode } from "./email/ses-email-node";
 import { SimpleStringTemplateNode } from "./text/simple-string-template-node";
 import { StringTemplateNode } from "./text/string-template-node";
 import { TextAreaNode } from "./text/text-area-node";
@@ -85,6 +86,7 @@ export class NodeRegistry {
   private hasTwilioSms: boolean = false;
   private hasSendgridEmail: boolean = false;
   private hasResendEmail: boolean = false;
+  private hasSESEmail: boolean = false;
 
   private constructor(env: Record<string, any>) {
     this.hasCloudflare = !!(
@@ -99,6 +101,12 @@ export class NodeRegistry {
       env.SENDGRID_API_KEY && env.SENDGRID_DEFAULT_FROM
     );
     this.hasResendEmail = !!(env.RESEND_API_KEY && env.RESEND_DEFAULT_FROM);
+    this.hasSESEmail = !!(
+      env.AWS_ACCESS_KEY_ID &&
+      env.AWS_SECRET_ACCESS_KEY &&
+      env.AWS_REGION &&
+      env.SES_DEFAULT_FROM
+    );
 
     this.registerImplementation(StringParameterNode);
     this.registerImplementation(NumberParameterNode);
@@ -177,6 +185,10 @@ export class NodeRegistry {
 
     if (this.hasResendEmail) {
       this.registerImplementation(ResendEmailNode);
+    }
+
+    if (this.hasSESEmail) {
+      this.registerImplementation(SESEmailNode);
     }
   }
 

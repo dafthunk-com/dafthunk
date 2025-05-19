@@ -302,6 +302,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
           RESEND_API_KEY: this.env.RESEND_API_KEY,
           RESEND_DEFAULT_FROM: this.env.RESEND_DEFAULT_FROM,
+          AWS_ACCESS_KEY_ID: this.env.AWS_ACCESS_KEY_ID,
+          AWS_SECRET_ACCESS_KEY: this.env.AWS_SECRET_ACCESS_KEY,
+          AWS_REGION: this.env.AWS_REGION,
+          SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
+          EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
         },
       };
 

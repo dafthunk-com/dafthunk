@@ -29,7 +29,7 @@ export class EmailParserNode extends ExecutableNode {
     description:
       "Parses raw email content and extracts key fields like subject, body, sender, recipients, and attachments.",
     category: "Email",
-    icon: "mail", // Assuming 'mail' is a valid icon option
+    icon: "mail",
     inputs: [
       {
         name: "rawEmail",

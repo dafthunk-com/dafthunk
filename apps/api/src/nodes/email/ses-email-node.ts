@@ -1,5 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Resend } from "resend";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 import { ExecutableNode, NodeContext } from "../types";
 
@@ -8,15 +8,21 @@ function validateEmailDomain(email: string, allowedDomain: string): boolean {
   return domain === allowedDomain.toLowerCase();
 }
 
-export class ResendEmailNode extends ExecutableNode {
+export class SESEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "resend-email",
-    name: "Resend Email",
-    type: "resend-email",
-    description: "Send an email using Resend",
+    id: "ses-email",
+    name: "Amazon SES Email",
+    type: "ses-email",
+    description: "Send an email using Amazon SES",
     category: "Email",
     icon: "mail",
     inputs: [
+      {
+        name: "from",
+        type: "string",
+        description: "Sender email address (optional, overrides default)",
+        hidden: true,
+      },
       {
         name: "to",
         type: "string",
@@ -30,24 +36,23 @@ export class ResendEmailNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "body",
+        name: "html",
         type: "string",
         description: "Email body (HTML)",
         required: true,
       },
       {
-        name: "from",
+        name: "text",
         type: "string",
-        description:
-          "Sender email address (e.g., 'Acme <onboarding@resend.dev>', optional, overrides default)",
-        hidden: true,
+        description: "Email body (text)",
+        required: true,
       },
     ],
     outputs: [
       {
-        name: "id",
+        name: "messageId",
         type: "string",
-        description: "Resend email ID",
+        description: "SES message ID",
         hidden: true,
       },
       {
@@ -61,24 +66,28 @@ export class ResendEmailNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     const { to, subject, body, from } = context.inputs;
-    const apiKey = context.env.RESEND_API_KEY;
-    const defaultFrom = context.env.RESEND_DEFAULT_FROM;
+    const accessKeyId = context.env.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = context.env.AWS_SECRET_ACCESS_KEY;
+    const region = context.env.AWS_REGION;
+    const defaultFrom = context.env.SES_DEFAULT_FROM;
     const allowedDomain = context.env.EMAIL_DOMAIN;
 
-    if (!apiKey) {
+    if (!accessKeyId || !secretAccessKey || !region) {
       return this.createErrorResult(
-        "Resend API key (RESEND_API_KEY) is not set in environment variables."
+        "AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) are not set in environment variables."
       );
     }
+
     if (!to || !subject || !body) {
       return this.createErrorResult(
         "'to', 'subject', and 'body' (HTML) are required inputs."
       );
     }
+
     const sender = from || defaultFrom;
     if (!sender) {
       return this.createErrorResult(
-        "No 'from' address provided and RESEND_DEFAULT_FROM is not set."
+        "No 'from' address provided and SES_DEFAULT_FROM is not set."
       );
     }
 
@@ -89,31 +98,45 @@ export class ResendEmailNode extends ExecutableNode {
     }
 
     try {
-      const resend = new Resend(apiKey);
+      const sesClient = new SESClient({
+        region,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
 
       const toArray = typeof to === "string" ? [to] : to;
 
-      const { data, error } = await resend.emails.send({
-        from: sender,
-        to: toArray,
-        subject,
-        html: body,
+      const command = new SendEmailCommand({
+        Source: sender,
+        Destination: {
+          ToAddresses: toArray,
+        },
+        Message: {
+          Subject: {
+            Data: subject,
+            Charset: "UTF-8",
+          },
+          Body: {
+            Html: {
+              Data: body,
+              Charset: "UTF-8",
+            },
+          },
+        },
       });
 
-      if (error) {
-        return this.createErrorResult(
-          error.message || "Failed to send email via Resend."
-        );
-      }
+      const response = await sesClient.send(command);
 
-      if (data && data.id) {
+      if (response.MessageId) {
         return this.createSuccessResult({
-          id: data.id,
+          messageId: response.MessageId,
         });
       }
 
       return this.createErrorResult(
-        "Failed to send email via Resend. No ID returned."
+        "Failed to send email via Amazon SES. No MessageId returned."
       );
     } catch (error) {
       return this.createErrorResult(
@@ -121,4 +144,4 @@ export class ResendEmailNode extends ExecutableNode {
       );
     }
   }
-}
+} 
