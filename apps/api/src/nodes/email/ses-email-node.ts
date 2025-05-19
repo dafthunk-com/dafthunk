@@ -1,5 +1,9 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { SESClient, SendEmailCommand, SESServiceException } from "@aws-sdk/client-ses";
+import {
+  SESClient,
+  SendEmailCommand,
+  SESServiceException,
+} from "@aws-sdk/client-ses";
 
 import { ExecutableNode, NodeContext } from "../types";
 
@@ -113,7 +117,11 @@ export class SESEmailNode extends ExecutableNode {
       // Convert string inputs to arrays if needed
       const toArray = typeof to === "string" ? [to] : to;
       const ccArray = cc ? (typeof cc === "string" ? [cc] : cc) : undefined;
-      const replyToArray = replyTo ? (typeof replyTo === "string" ? [replyTo] : replyTo) : undefined;
+      const replyToArray = replyTo
+        ? typeof replyTo === "string"
+          ? [replyTo]
+          : replyTo
+        : undefined;
 
       // Create the email parameters following AWS documentation structure
       const params = {
@@ -145,7 +153,10 @@ export class SESEmailNode extends ExecutableNode {
         ...(replyToArray && { ReplyToAddresses: replyToArray }),
       };
 
-      console.log("Sending email with SES params:", JSON.stringify(params, null, 2));
+      console.log(
+        "Sending email with SES params:",
+        JSON.stringify(params, null, 2)
+      );
 
       const command = new SendEmailCommand(params);
       const response = await sesClient.send(command);
@@ -164,7 +175,9 @@ export class SESEmailNode extends ExecutableNode {
       if (error instanceof SESServiceException) {
         return this.createErrorResult(
           `AWS SES Error: ${error.name} - ${error.message}${
-            error.$metadata?.requestId ? ` (Request ID: ${error.$metadata.requestId})` : ""
+            error.$metadata?.requestId
+              ? ` (Request ID: ${error.$metadata.requestId})`
+              : ""
           }`
         );
       }

@@ -238,7 +238,10 @@ export function ExecutionFormDialog({
                   control={control}
                   render={({ field }) => {
                     // Render different input components based on parameter type
-                    if (param.type.startsWith("parameter-boolean") || param.type.startsWith("parameter-boolean")) {
+                    if (
+                      param.type.startsWith("parameter-boolean") ||
+                      param.type.startsWith("parameter-boolean")
+                    ) {
                       return (
                         <div className="flex items-center space-x-2 pt-2">
                           <Checkbox
@@ -254,7 +257,10 @@ export function ExecutionFormDialog({
                           </label>
                         </div>
                       );
-                    } else if (param.type.startsWith("parameter-number") || param.type.startsWith("parameter-number")) {
+                    } else if (
+                      param.type.startsWith("parameter-number") ||
+                      param.type.startsWith("parameter-number")
+                    ) {
                       return (
                         <Input
                           id={param.nameForForm}
@@ -264,7 +270,11 @@ export function ExecutionFormDialog({
                           className="w-full"
                         />
                       );
-                    } else if (param.type.startsWith("parameter.json") || param.type.startsWith("parameter-json") || param.type === "body-json") {
+                    } else if (
+                      param.type.startsWith("parameter.json") ||
+                      param.type.startsWith("parameter-json") ||
+                      param.type === "body-json"
+                    ) {
                       return (
                         <div>
                           <Textarea
