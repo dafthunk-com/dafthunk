@@ -298,11 +298,6 @@ export async function createWorkflow(
   db: ReturnType<typeof createDatabase>,
   newWorkflow: NewWorkflow
 ): Promise<Workflow> {
-  // Generate a handle if not provided
-  if (!newWorkflow.handle) {
-    newWorkflow.handle = newWorkflow.id;
-  }
-
   const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
 
   return workflow;

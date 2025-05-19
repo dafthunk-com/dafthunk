@@ -92,11 +92,12 @@ workflowRoutes.post(
     const data = c.req.valid("json");
     const now = new Date();
 
+    const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
     const workflowData: WorkflowType = {
-      id: uuid(),
+      id: workflowId,
       name: workflowName,
-      handle: createHandle(workflowName),
+      handle: workflowId,
       nodes: Array.isArray(data.nodes) ? data.nodes : [],
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
