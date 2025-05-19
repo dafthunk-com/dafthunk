@@ -3,11 +3,6 @@ import { Resend } from "resend";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-function validateEmailDomain(email: string, allowedDomain: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return domain === allowedDomain.toLowerCase();
-}
-
 export class ResendEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "resend-email",
@@ -63,7 +58,6 @@ export class ResendEmailNode extends ExecutableNode {
     const { to, subject, body, from } = context.inputs;
     const apiKey = context.env.RESEND_API_KEY;
     const defaultFrom = context.env.RESEND_DEFAULT_FROM;
-    const allowedDomain = context.env.EMAIL_DOMAIN;
 
     if (!apiKey) {
       return this.createErrorResult(
@@ -79,12 +73,6 @@ export class ResendEmailNode extends ExecutableNode {
     if (!sender) {
       return this.createErrorResult(
         "No 'from' address provided and RESEND_DEFAULT_FROM is not set."
-      );
-    }
-
-    if (!validateEmailDomain(sender, allowedDomain)) {
-      return this.createErrorResult(
-        `Sender email domain must be ${allowedDomain}`
       );
     }
 

@@ -1,12 +1,7 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESClient, SendEmailCommand, SESServiceException } from "@aws-sdk/client-ses";
 
 import { ExecutableNode, NodeContext } from "../types";
-
-function validateEmailDomain(email: string, allowedDomain: string): boolean {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return domain === allowedDomain.toLowerCase();
-}
 
 export class SESEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
@@ -47,6 +42,18 @@ export class SESEmailNode extends ExecutableNode {
         description: "Sender email address (optional, overrides default)",
         hidden: true,
       },
+      {
+        name: "cc",
+        type: "string",
+        description: "CC email address or array of addresses",
+        required: false,
+      },
+      {
+        name: "replyTo",
+        type: "string",
+        description: "Reply-to email address or array of addresses",
+        required: false,
+      },
     ],
     outputs: [
       {
@@ -65,12 +72,11 @@ export class SESEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { to, subject, html, text, from } = context.inputs;
+    const { to, subject, html, text, from, cc, replyTo } = context.inputs;
     const accessKeyId = context.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = context.env.AWS_SECRET_ACCESS_KEY;
     const region = context.env.AWS_REGION;
     const defaultFrom = context.env.SES_DEFAULT_FROM;
-    const allowedDomain = context.env.EMAIL_DOMAIN;
 
     if (!accessKeyId || !secretAccessKey || !region) {
       return this.createErrorResult(
@@ -95,12 +101,6 @@ export class SESEmailNode extends ExecutableNode {
       );
     }
 
-    if (!validateEmailDomain(sender, allowedDomain)) {
-      return this.createErrorResult(
-        `Sender email domain must be ${allowedDomain}`
-      );
-    }
-
     try {
       const sesClient = new SESClient({
         region,
@@ -110,36 +110,44 @@ export class SESEmailNode extends ExecutableNode {
         },
       });
 
+      // Convert string inputs to arrays if needed
       const toArray = typeof to === "string" ? [to] : to;
+      const ccArray = cc ? (typeof cc === "string" ? [cc] : cc) : undefined;
+      const replyToArray = replyTo ? (typeof replyTo === "string" ? [replyTo] : replyTo) : undefined;
 
-      const messageBody: any = {};
-      if (html) {
-        messageBody.Html = {
-          Data: html,
-          Charset: "UTF-8",
-        };
-      }
-      if (text) {
-        messageBody.Text = {
-          Data: text,
-          Charset: "UTF-8",
-        };
-      }
-
-      const command = new SendEmailCommand({
+      // Create the email parameters following AWS documentation structure
+      const params = {
         Source: sender,
         Destination: {
           ToAddresses: toArray,
+          CcAddresses: ccArray,
         },
         Message: {
           Subject: {
             Data: subject,
             Charset: "UTF-8",
           },
-          Body: messageBody,
+          Body: {
+            ...(html && {
+              Html: {
+                Data: html,
+                Charset: "UTF-8",
+              },
+            }),
+            ...(text && {
+              Text: {
+                Data: text,
+                Charset: "UTF-8",
+              },
+            }),
+          },
         },
-      });
+        ...(replyToArray && { ReplyToAddresses: replyToArray }),
+      };
 
+      console.log("Sending email with SES params:", JSON.stringify(params, null, 2));
+
+      const command = new SendEmailCommand(params);
       const response = await sesClient.send(command);
 
       if (response.MessageId) {
@@ -152,6 +160,14 @@ export class SESEmailNode extends ExecutableNode {
         "Failed to send email via Amazon SES. No MessageId returned."
       );
     } catch (error) {
+      console.error("SES Error:", error);
+      if (error instanceof SESServiceException) {
+        return this.createErrorResult(
+          `AWS SES Error: ${error.name} - ${error.message}${
+            error.$metadata?.requestId ? ` (Request ID: ${error.$metadata.requestId})` : ""
+          }`
+        );
+      }
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)
       );
