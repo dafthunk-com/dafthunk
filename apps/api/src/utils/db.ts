@@ -300,7 +300,7 @@ export async function createWorkflow(
 ): Promise<Workflow> {
   // Generate a handle if not provided
   if (!newWorkflow.handle) {
-    newWorkflow.handle = createHandle(newWorkflow.name);
+    newWorkflow.handle = newWorkflow.id;
   }
 
   const [workflow] = await db.insert(workflows).values(newWorkflow).returning();

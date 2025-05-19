@@ -62,6 +62,17 @@ export const ExecutionStatus = {
 export type ExecutionStatusType =
   (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
 
+// Workflow trigger types
+export const WorkflowTriggerType = {
+  MANUAL: "manual",
+  HTTP_REQUEST: "http_request",
+  EMAIL_MESSAGE: "email_message",
+  CRON: "cron",
+} as const;
+
+export type WorkflowTriggerTypeType =
+  (typeof WorkflowTriggerType)[keyof typeof WorkflowTriggerType];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -183,8 +194,12 @@ export const workflows = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull(),
+    handle: text("handle").notNull().unique(),
     data: text("data", { mode: "json" }).$type<WorkflowType>().notNull(),
+    type: text("type")
+      .$type<WorkflowTriggerTypeType>()
+      .notNull()
+      .default(WorkflowTriggerType.MANUAL),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
@@ -194,13 +209,10 @@ export const workflows = sqliteTable(
   (table) => [
     index("workflows_name_idx").on(table.name),
     index("workflows_handle_idx").on(table.handle),
+    index("workflows_type_idx").on(table.type),
     index("workflows_organization_id_idx").on(table.organizationId),
     index("workflows_created_at_idx").on(table.createdAt),
     index("workflows_updated_at_idx").on(table.updatedAt),
-    index("workflows_organization_id_handle_idx").on(
-      table.organizationId,
-      table.handle
-    ),
   ]
 );
 

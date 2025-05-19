@@ -34,7 +34,7 @@ CREATE TABLE `executions` (
 	`workflow_id` text NOT NULL,
 	`deployment_id` text,
 	`organization_id` text NOT NULL,
-	`status` text DEFAULT 'idle' NOT NULL,
+	`status` text DEFAULT 'started' NOT NULL,
 	`data` text NOT NULL,
 	`error` text,
 	`visibility` text DEFAULT 'private' NOT NULL,
@@ -114,15 +114,17 @@ CREATE TABLE `workflows` (
 	`name` text NOT NULL,
 	`handle` text NOT NULL,
 	`data` text NOT NULL,
+	`type` text DEFAULT 'manual' NOT NULL,
 	`organization_id` text NOT NULL,
 	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `workflows_handle_unique` ON `workflows` (`handle`);--> statement-breakpoint
 CREATE INDEX `workflows_name_idx` ON `workflows` (`name`);--> statement-breakpoint
 CREATE INDEX `workflows_handle_idx` ON `workflows` (`handle`);--> statement-breakpoint
+CREATE INDEX `workflows_type_idx` ON `workflows` (`type`);--> statement-breakpoint
 CREATE INDEX `workflows_organization_id_idx` ON `workflows` (`organization_id`);--> statement-breakpoint
 CREATE INDEX `workflows_created_at_idx` ON `workflows` (`created_at`);--> statement-breakpoint
-CREATE INDEX `workflows_updated_at_idx` ON `workflows` (`updated_at`);--> statement-breakpoint
-CREATE INDEX `workflows_organization_id_handle_idx` ON `workflows` (`organization_id`,`handle`);
+CREATE INDEX `workflows_updated_at_idx` ON `workflows` (`updated_at`);
