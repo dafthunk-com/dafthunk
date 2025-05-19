@@ -1,21 +1,21 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { Resend } from "resend";
+import sgMail from "@sendgrid/mail";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class ResendEmailNode extends ExecutableNode {
+export class SendgridEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "resend-email",
-    name: "Resend Email",
-    type: "resend-email",
-    description: "Send an email using Resend",
-    category: "Text",
+    id: "sendgrid-email",
+    name: "Sendgrid Email",
+    type: "sendgrid-email",
+    description: "Send an email using Sendgrid",
+    category: "Email",
     icon: "mail",
     inputs: [
       {
         name: "to",
         type: "string",
-        description: "Recipient email address or an array of email addresses",
+        description: "Recipient email address",
         required: true,
       },
       {
@@ -27,22 +27,27 @@ export class ResendEmailNode extends ExecutableNode {
       {
         name: "body",
         type: "string",
-        description: "Email body (HTML)",
+        description: "Email body (HTML or plain text)",
         required: true,
       },
       {
         name: "from",
         type: "string",
-        description:
-          "Sender email address (e.g., 'Acme <onboarding@resend.dev>', optional, overrides default)",
+        description: "Sender email address (optional, overrides default)",
         hidden: true,
       },
     ],
     outputs: [
       {
-        name: "id",
+        name: "messageId",
         type: "string",
-        description: "Resend email ID",
+        description: "SendGrid message ID",
+        hidden: true,
+      },
+      {
+        name: "status",
+        type: "string",
+        description: "SendGrid response status",
         hidden: true,
       },
       {
@@ -56,53 +61,42 @@ export class ResendEmailNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     const { to, subject, body, from } = context.inputs;
-    const apiKey = context.env.RESEND_API_KEY;
-    const defaultFrom = context.env.RESEND_DEFAULT_FROM;
+    const apiKey = context.env.SENDGRID_API_KEY;
+    const defaultFrom = context.env.SENDGRID_DEFAULT_FROM;
 
     if (!apiKey) {
       return this.createErrorResult(
-        "Resend API key (RESEND_API_KEY) is not set in environment variables."
+        "SendGrid API key is not set in environment variables."
       );
     }
     if (!to || !subject || !body) {
       return this.createErrorResult(
-        "'to', 'subject', and 'body' (HTML) are required inputs."
+        "'to', 'subject', and 'body' are required inputs."
       );
     }
     const sender = from || defaultFrom;
     if (!sender) {
       return this.createErrorResult(
-        "No 'from' address provided and RESEND_DEFAULT_FROM is not set."
+        "No 'from' address provided and SENDGRID_DEFAULT_FROM is not set."
       );
     }
-
     try {
-      const resend = new Resend(apiKey);
-
-      const toArray = typeof to === "string" ? [to] : to;
-
-      const { data, error } = await resend.emails.send({
+      sgMail.setApiKey(apiKey);
+      const msg = {
+        to,
         from: sender,
-        to: toArray,
         subject,
         html: body,
+      };
+      const [response] = await sgMail.send(msg);
+      const messageId =
+        response.headers["x-message-id"] ||
+        response.headers["X-Message-Id"] ||
+        "";
+      return this.createSuccessResult({
+        messageId,
+        status: String(response.statusCode),
       });
-
-      if (error) {
-        return this.createErrorResult(
-          error.message || "Failed to send email via Resend."
-        );
-      }
-
-      if (data && data.id) {
-        return this.createSuccessResult({
-          id: data.id,
-        });
-      }
-
-      return this.createErrorResult(
-        "Failed to send email via Resend. No ID returned."
-      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : String(error)
