@@ -1,6 +1,5 @@
 // Types for workflows
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
-import { ForwardableEmailMessage } from "@cloudflare/workers-types";
 
 export type ImageParameter = {
   data: Uint8Array;

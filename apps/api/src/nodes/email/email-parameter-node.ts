@@ -1,5 +1,5 @@
-import { Node, NodeExecution, NodeType, ParameterType } from "@dafthunk/types";
-import { ForwardableEmailMessage, Headers } from "@cloudflare/workers-types";
+import { Node, NodeExecution, NodeType } from "@dafthunk/types";
+
 import { ExecutableNode, NodeContext } from "../types";
 
 export class EmailParameterNode extends ExecutableNode {

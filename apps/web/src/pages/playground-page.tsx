@@ -1,4 +1,4 @@
-import { CreateWorkflowRequest, WorkflowWithMetadata } from "@dafthunk/types";
+import { CreateWorkflowRequest, WorkflowType, WorkflowWithMetadata } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -80,6 +80,7 @@ function useWorkflowActions() {
         workflowToRename.id,
         {
           name: renameWorkflowName,
+          type: workflowToRename.type,
           nodes: workflowToRename.nodes,
           edges: workflowToRename.edges,
         },
@@ -288,6 +289,24 @@ function createColumns(
       },
     },
     {
+      accessorKey: "type",
+      header: "Workflow Type",
+      cell: ({ row }) => {
+        const type = row.getValue("type") as WorkflowType;
+        const typeLabels: Record<WorkflowType, string> = {
+          manual: "Manual",
+          http_request: "HTTP Request",
+          email_message: "Email Message",
+          cron: "Scheduled",
+        };
+        return (
+          <span className="text-sm text-muted-foreground">
+            {typeLabels[type]}
+          </span>
+        );
+      },
+    },
+    {
       id: "actions",
       cell: ({ row }) => {
         const workflow = row.original;
@@ -356,12 +375,13 @@ export function PlaygroundPage() {
     setBreadcrumbs([{ label: "Playground" }]);
   }, [setBreadcrumbs]);
 
-  const handleCreateWorkflow = async (name: string) => {
+  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
     if (!orgHandle) return;
 
     try {
       const request: CreateWorkflowRequest = {
         name,
+        type,
         nodes: [],
         edges: [],
       };

@@ -1,4 +1,4 @@
-import { CreateWorkflowRequest } from "@dafthunk/types";
+import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
 import { formatDistanceToNow } from "date-fns";
 import { AlertCircle, Clock, Logs, Plus, Target, Workflow } from "lucide-react";
 import { useState } from "react";
@@ -26,12 +26,13 @@ export function DashboardPage() {
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
 
-  const handleCreateWorkflow = async (name: string) => {
+  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
     if (!orgHandle) return;
 
     try {
       const request: CreateWorkflowRequest = {
         name,
+        type,
         nodes: [],
         edges: [],
       };

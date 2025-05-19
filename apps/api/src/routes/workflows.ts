@@ -8,7 +8,6 @@ import {
   Node,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  Workflow as WorkflowType,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
@@ -20,7 +19,6 @@ import { authMiddleware, jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, ExecutionStatus, type NewWorkflow } from "../db";
 import {
-  createHandle,
   createWorkflow,
   deleteWorkflow,
   getDeploymentByWorkflowIdOrHandleAndVersion,
@@ -57,11 +55,11 @@ workflowRoutes.get("/", jwtAuth, async (c) => {
 
   // Convert DB workflow objects to WorkflowWithMetadata objects
   const workflows: WorkflowWithMetadata[] = allWorkflows.map((workflow) => {
-    // For list endpoint, we don't have the data field, so create empty nodes/edges
     return {
       id: workflow.id,
       name: workflow.name,
       handle: workflow.handle,
+      type: workflow.data.type,
       createdAt: workflow.createdAt,
       updatedAt: workflow.updatedAt,
       nodes: [],
@@ -83,6 +81,7 @@ workflowRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Workflow name is required"),
+      type: z.string(),
       nodes: z.array(z.any()).optional(),
       edges: z.array(z.any()).optional(),
     }) as z.ZodType<CreateWorkflowRequest>
@@ -94,10 +93,11 @@ workflowRoutes.post(
 
     const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
-    const workflowData: WorkflowType = {
+    const workflowData = {
       id: workflowId,
       name: workflowName,
       handle: workflowId,
+      type: data.type,
       nodes: Array.isArray(data.nodes) ? data.nodes : [],
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
@@ -120,12 +120,13 @@ workflowRoutes.post(
     const db = createDatabase(c.env.DB);
     const newWorkflow = await createWorkflow(db, newWorkflowData);
 
-    const workflowDataFromDb = newWorkflow.data as WorkflowType;
+    const workflowDataFromDb = newWorkflow.data;
 
     const response: CreateWorkflowResponse = {
       id: newWorkflow.id,
       name: newWorkflow.name,
       handle: newWorkflow.handle,
+      type: workflowDataFromDb.type,
       createdAt: newWorkflow.createdAt,
       updatedAt: newWorkflow.updatedAt,
       nodes: workflowDataFromDb.nodes,
@@ -150,12 +151,13 @@ workflowRoutes.get("/:id", jwtAuth, async (c) => {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const workflowData = workflow.data as WorkflowType;
+  const workflowData = workflow.data;
 
   const response: GetWorkflowResponse = {
     id: workflow.id,
     name: workflow.name,
     handle: workflow.handle,
+    type: workflowData.type,
     createdAt: workflow.createdAt,
     updatedAt: workflow.updatedAt,
     nodes: workflowData.nodes || [],
@@ -175,6 +177,7 @@ workflowRoutes.put(
     "json",
     z.object({
       name: z.string().min(1, "Workflow name is required"),
+      type: z.string().optional(),
       nodes: z.array(z.any()).optional(),
       edges: z.array(z.any()).optional(),
     }) as z.ZodType<UpdateWorkflowRequest>
@@ -226,10 +229,11 @@ workflowRoutes.put(
         })
       : [];
 
-    const workflowToValidate: WorkflowType = {
+    const workflowToValidate = {
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
       handle: existingWorkflow.handle,
+      type: data.type || existingWorkflow.data?.type,
       nodes: sanitizedNodes,
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
@@ -238,10 +242,11 @@ workflowRoutes.put(
       return c.json({ errors: validationErrors }, 400);
     }
 
-    const updatedWorkflowData: WorkflowType = {
+    const updatedWorkflowData = {
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
       handle: existingWorkflow.handle,
+      type: data.type || existingWorkflow.data?.type,
       nodes: sanitizedNodes,
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
@@ -252,12 +257,13 @@ workflowRoutes.put(
       updatedAt: now,
     });
 
-    const workflowDataFromDb = updatedWorkflow.data as WorkflowType;
+    const workflowDataFromDb = updatedWorkflow.data;
 
     const response: UpdateWorkflowResponse = {
       id: updatedWorkflow.id,
       name: updatedWorkflow.name,
       handle: updatedWorkflow.handle,
+      type: workflowDataFromDb.type,
       createdAt: updatedWorkflow.createdAt,
       updatedAt: updatedWorkflow.updatedAt,
       nodes: workflowDataFromDb.nodes || [],
@@ -344,7 +350,7 @@ workflowRoutes.post(
     }
 
     // Get workflow data either from deployment or directly from workflow
-    let workflowData: WorkflowType;
+    let workflowData;
     let workflow: any;
     let deploymentId: string | undefined;
 
@@ -354,7 +360,7 @@ workflowRoutes.post(
       if (!workflow) {
         return c.json({ error: "Workflow not found" }, 404);
       }
-      workflowData = workflow.data as WorkflowType;
+      workflowData = workflow.data;
     } else {
       // Get deployment based on version
       let deployment;
@@ -383,7 +389,7 @@ workflowRoutes.post(
       }
 
       deploymentId = deployment.id;
-      workflowData = deployment.workflowData as WorkflowType;
+      workflowData = deployment.workflowData;
       workflow = {
         id: deployment.workflowId,
         name: workflowData.name,
@@ -444,6 +450,7 @@ workflowRoutes.post(
           id: workflow.id,
           name: workflow.name,
           handle: workflow.handle,
+          type: workflowData.type,
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },

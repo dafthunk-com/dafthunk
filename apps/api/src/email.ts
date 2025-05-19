@@ -1,15 +1,15 @@
-import { Bindings } from "./context";
 import { ExecutionContext } from "@cloudflare/workers-types";
+import { Node, Workflow as WorkflowType } from "@dafthunk/types";
+
+import { Bindings } from "./context";
+import { createDatabase } from "./db";
+import { ExecutionStatus } from "./db/schema";
 import {
   getDeploymentByWorkflowIdAndVersion,
   getLatestDeploymentByWorkflowId,
   getWorkflowById,
   saveExecution,
 } from "./utils/db";
-import { ExecutionStatus } from "./db/schema";
-import { createDatabase } from "./db";
-
-import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>
@@ -17,7 +17,7 @@ async function streamToString(
   const reader = stream.getReader();
   const decoder = new TextDecoder();
   let result = "";
-  // eslint-disable-next-line no-constant-condition
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
@@ -110,6 +110,7 @@ export async function handleIncomingEmail(
         id: workflow.id,
         name: workflow.name,
         handle: workflow.handle,
+        type: workflow.type,
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },

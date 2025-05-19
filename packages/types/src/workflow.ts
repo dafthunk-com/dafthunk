@@ -7,6 +7,11 @@ export interface ObjectReference {
 }
 
 /**
+ * Workflow trigger types
+ */
+export type WorkflowType = "manual" | "http_request" | "email_message" | "cron";
+
+/**
  * Primitive value types
  */
 export type PrimitiveValue = string | number | boolean | null | undefined;
@@ -133,6 +138,7 @@ export interface Workflow {
   id: string;
   name: string;
   handle: string;
+  type: WorkflowType;
   nodes: Node[];
   edges: Edge[];
 }
@@ -223,6 +229,7 @@ export interface WorkflowDeploymentVersion {
  */
 export interface CreateWorkflowRequest {
   name: string;
+  type: WorkflowType;
   nodes: Node[];
   edges: Edge[];
 }
@@ -249,6 +256,7 @@ export type GetWorkflowResponse = WorkflowWithMetadata;
  */
 export interface UpdateWorkflowRequest {
   name: string;
+  type: WorkflowType;
   nodes: Node[];
   edges: Edge[];
 }

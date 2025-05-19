@@ -203,6 +203,7 @@ export async function getWorkflowsByOrganization(
       id: workflows.id,
       name: workflows.name,
       handle: workflows.handle,
+      data: workflows.data,
       createdAt: workflows.createdAt,
       updatedAt: workflows.updatedAt,
     })
@@ -279,7 +280,7 @@ export async function getDeploymentByWorkflowIdAndVersion(
       workflows,
       and(
         eq(deployments.workflowId, workflows.id),
-        eq(workflows.id, workflows.id)
+        eq(workflows.id, workflowId)
       )
     )
     .where(eq(deployments.version, parseInt(version, 10)));

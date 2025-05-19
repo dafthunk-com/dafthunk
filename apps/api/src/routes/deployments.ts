@@ -379,6 +379,7 @@ deploymentRoutes.post(
           id: deployment.workflowId || "",
           name: workflowData.name,
           handle: workflowData.handle,
+          type: workflowData.type,
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },

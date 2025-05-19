@@ -1,9 +1,9 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
 import {
-  SESClient,
   SendEmailCommand,
+  SESClient,
   SESServiceException,
 } from "@aws-sdk/client-ses";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 

@@ -1,5 +1,6 @@
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
-import { simpleParser, ParsedMail } from "mailparser";
+import { ParsedMail, simpleParser } from "mailparser";
+
 import { ExecutableNode, NodeContext } from "../types";
 
 // Helper to ensure addresses are in the expected format

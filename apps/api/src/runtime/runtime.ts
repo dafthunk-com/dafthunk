@@ -23,10 +23,10 @@ import {
   nodeToApiParameter,
 } from "../nodes/parameter-mapper";
 import { HttpRequest, NodeContext } from "../nodes/types";
+import { EmailMessage } from "../nodes/types";
 import { saveExecution } from "../utils/db";
 import { validateWorkflow } from "../utils/workflows";
 import { ObjectStore } from "./object-store";
-import { EmailMessage } from "../nodes/types";
 
 // Node output value type
 export type NodeOutputValue =
