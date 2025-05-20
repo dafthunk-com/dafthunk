@@ -1,4 +1,4 @@
-name: Reset Production Database
+name: Migrate Production Database
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  reset-database:
+  migrate-database:
     runs-on: ubuntu-latest
 
     steps:
