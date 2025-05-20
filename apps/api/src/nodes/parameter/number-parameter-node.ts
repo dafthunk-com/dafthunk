@@ -11,6 +11,7 @@ export class NumberParameterNode extends ExecutableNode {
       "Extracts a number parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",
     icon: "calculator",
+    compatibility: ["http_request"],
     inputs: [
       {
         name: "name",

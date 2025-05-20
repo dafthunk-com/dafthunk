@@ -30,7 +30,15 @@ export function EditorPage() {
 
   const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
 
-  const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes();
+  const {
+    workflow: currentWorkflow,
+    workflowError: workflowDetailsError,
+    isWorkflowLoading: isWorkflowDetailsLoading,
+  } = useWorkflow(id || null);
+
+  const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
+    currentWorkflow?.type
+  );
 
   const { createObjectUrl } = useObjectService();
 
@@ -58,12 +66,6 @@ export function EditorPage() {
       })) || [],
     [nodeTypes]
   );
-
-  const {
-    workflow: currentWorkflow,
-    workflowError: workflowDetailsError,
-    isWorkflowLoading: isWorkflowDetailsLoading,
-  } = useWorkflow(id || null);
 
   const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
     []

@@ -10,8 +10,9 @@ export class EmailParameterNode extends ExecutableNode {
     description:
       "Extracts from, to, headers, and raw content from an incoming email.",
     category: "Email",
-    icon: "mail", // Assuming 'mail' is a valid icon option
-    inputs: [], // No inputs needed as it consumes the email object directly from context
+    icon: "mail",
+    compatibility: ["email_message"],
+    inputs: [],
     outputs: [
       {
         name: "from",

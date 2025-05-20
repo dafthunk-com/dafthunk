@@ -11,6 +11,7 @@ export class StringParameterNode extends ExecutableNode {
       "Extracts a string parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",
     icon: "text",
+    compatibility: ["http_request"],
     inputs: [
       {
         name: "name",

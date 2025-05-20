@@ -1,4 +1,4 @@
-import { Node } from "@dafthunk/types";
+import { Node, WorkflowType } from "@dafthunk/types";
 import { NodeType } from "@dafthunk/types";
 
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
@@ -227,9 +227,18 @@ export class NodeRegistry {
     return new Implementation(node, NodeRegistry.env);
   }
 
-  public getNodeTypes(): NodeType[] {
-    return Array.from(this.implementations.values()).map(
+  public getNodeTypes(workflowType?: WorkflowType): NodeType[] {
+    const nodeTypes = Array.from(this.implementations.values()).map(
       (implementation) => implementation.nodeType
+    );
+
+    if (!workflowType) {
+      return nodeTypes;
+    }
+
+    return nodeTypes.filter(
+      (nodeType) =>
+        !nodeType.compatibility || nodeType.compatibility.includes(workflowType)
     );
   }
 }

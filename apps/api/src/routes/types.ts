@@ -1,4 +1,4 @@
-import { GetNodeTypesResponse } from "@dafthunk/types";
+import { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { ApiContext } from "../context";
@@ -9,7 +9,10 @@ const typeRoutes = new Hono<ApiContext>();
 typeRoutes.get("/", (c) => {
   try {
     const registry = NodeRegistry.getInstance();
-    const nodeTypes = registry.getNodeTypes();
+    const workflowType = c.req.query("workflowType") as
+      | WorkflowType
+      | undefined;
+    const nodeTypes = registry.getNodeTypes(workflowType);
     return c.json({ nodeTypes } as GetNodeTypesResponse);
   } catch (error) {
     console.error("Error getting node types:", error);

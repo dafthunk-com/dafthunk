@@ -11,6 +11,7 @@ export class BooleanParameterNode extends ExecutableNode {
       "Extracts a boolean parameter from the HTTP request. The parameter will be looked up in form data and request body.",
     category: "Parameter",
     icon: "toggle",
+    compatibility: ["http_request"],
     inputs: [
       {
         name: "name",

@@ -10,6 +10,7 @@ export class JsonBodyNode extends ExecutableNode {
     description: "Extracts JSON data from the body of the HTTP request.",
     category: "Parameter",
     icon: "braces",
+    compatibility: ["http_request"],
     inputs: [
       {
         name: "required",
