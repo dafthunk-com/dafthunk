@@ -1,4 +1,8 @@
-import { CreateWorkflowRequest, WorkflowType, WorkflowWithMetadata } from "@dafthunk/types";
+import {
+  CreateWorkflowRequest,
+  WorkflowType,
+  WorkflowWithMetadata,
+} from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useEffect, useState } from "react";

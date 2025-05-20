@@ -809,22 +809,3 @@ export async function getOrganizationByHandle(
 
   return organization;
 }
-
-/**
- * Get an organization by its id
- *
- * @param db Database instance
- * @param handle Organization id
- * @returns Organization record or undefined if not found
- */
-export async function getOrganizationById(
-  db: ReturnType<typeof createDatabase>,
-  id: string
-): Promise<typeof organizations.$inferSelect | undefined> {
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(eq(organizations.id, id));
-
-  return organization;
-}
