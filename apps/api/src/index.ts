@@ -12,9 +12,7 @@ import executionRoutes from "./routes/executions";
 import health from "./routes/health";
 import llmsRoutes from "./routes/llms";
 import objectRoutes from "./routes/objects";
-import publicExecutionRoutes from "./routes/public-executions";
-import publicImageRoutes from "./routes/public-images";
-import publicObjectRoutes from "./routes/public-objects";
+import publicRoutes from "./routes/public";
 import robotsRoutes from "./routes/robots";
 import typeRoutes from "./routes/types";
 import workflowRoutes from "./routes/workflows";
@@ -38,9 +36,7 @@ app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 
 // Public routes
-app.route("/public/executions", publicExecutionRoutes);
-app.route("/public/objects", publicObjectRoutes);
-app.route("/public/images", publicImageRoutes);
+app.route("/public", publicRoutes);
 
 // Protected routes
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
