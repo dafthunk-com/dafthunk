@@ -17,10 +17,11 @@ import { z } from "zod";
 
 import { authMiddleware, jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase, ExecutionStatus, type WorkflowInsert } from "../db";
 import {
+  createDatabase,
   createWorkflow,
   deleteWorkflow,
+  ExecutionStatus,
   getDeploymentByWorkflowIdOrHandleAndVersion,
   getLatestDeploymentByWorkflowIdOrHandle,
   getOrganizationByHandle,
@@ -28,7 +29,8 @@ import {
   getWorkflowsByOrganization,
   saveExecution,
   updateWorkflow,
-} from "../utils/db";
+  type WorkflowInsert,
+} from "../db";
 import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable

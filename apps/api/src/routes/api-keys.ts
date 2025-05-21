@@ -12,7 +12,7 @@ import { z } from "zod";
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
-import { createApiKey, deleteApiKey, getApiKeys } from "../utils/db";
+import { createApiKey, deleteApiKey, getApiKeys } from "../db";
 
 // Create a new Hono instance for API keys endpoints
 const apiKeyRoutes = new Hono<ApiContext>();

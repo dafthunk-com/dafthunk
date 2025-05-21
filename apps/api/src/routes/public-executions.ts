@@ -5,13 +5,14 @@ import {
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
-import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { ApiContext } from "../context";
-import { createDatabase } from "../db";
-import { executions as executionsTable } from "../db/schema";
-import { getWorkflowByIdOrHandle } from "../utils/db";
+import {
+  createDatabase,
+  getPublicExecutionById,
+  getWorkflowByIdOrHandle,
+} from "../db";
 
 const publicExecutionRoutes = new Hono<ApiContext>();
 
@@ -20,15 +21,7 @@ publicExecutionRoutes.get("/:id", async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    const [executionRecord] = await db
-      .select()
-      .from(executionsTable)
-      .where(
-        and(
-          eq(executionsTable.id, id),
-          eq(executionsTable.visibility, "public")
-        )
-      );
+    const executionRecord = await getPublicExecutionById(db, id);
 
     if (!executionRecord) {
       return c.json({ error: "Execution not found or not public" }, 404);

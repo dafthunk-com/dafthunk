@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
 import {
@@ -34,7 +34,7 @@ import {
   type WorkflowInsert,
   type WorkflowRow,
   workflows,
-} from "../db";
+} from "./index";
 
 /**
  * Generate a URL-friendly handle from a name with a random suffix
@@ -808,4 +808,166 @@ export async function getOrganizationByHandle(
     .where(eq(organizations.handle, handle));
 
   return organization;
+}
+
+/**
+ * Get a public execution by ID
+ *
+ * @param db Database instance
+ * @param id Execution ID
+ * @returns Execution record or undefined if not found or not public
+ */
+export async function getPublicExecutionById(
+  db: ReturnType<typeof createDatabase>,
+  id: string
+): Promise<ExecutionRow | undefined> {
+  const [execution] = await db
+    .select()
+    .from(executions)
+    .where(and(eq(executions.id, id), eq(executions.visibility, "public")));
+
+  return execution;
+}
+
+/**
+ * Get workflow names by their IDs
+ *
+ * @param db Database instance
+ * @param workflowIds Array of workflow IDs
+ * @returns Array of workflow IDs and names
+ */
+export async function getWorkflowNamesByIds(
+  db: ReturnType<typeof createDatabase>,
+  workflowIds: string[]
+): Promise<{ id: string; name: string }[]> {
+  return db
+    .select({ id: workflows.id, name: workflows.name })
+    .from(workflows)
+    .where(inArray(workflows.id, workflowIds));
+}
+
+/**
+ * Get a single workflow name by ID
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @returns Workflow name or undefined if not found
+ */
+export async function getWorkflowNameById(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string
+): Promise<string | undefined> {
+  const [workflow] = await db
+    .select({ name: workflows.name })
+    .from(workflows)
+    .where(eq(workflows.id, workflowId));
+
+  return workflow?.name;
+}
+
+/**
+ * Update execution visibility to public
+ *
+ * @param db Database instance
+ * @param executionId Execution ID
+ * @param organizationId Organization ID
+ * @returns The updated execution record
+ */
+export async function updateExecutionToPublic(
+  db: ReturnType<typeof createDatabase>,
+  executionId: string,
+  organizationId: string
+): Promise<ExecutionRow | undefined> {
+  const [execution] = await db
+    .update(executions)
+    .set({ visibility: "public", updatedAt: new Date() })
+    .where(
+      and(
+        eq(executions.id, executionId),
+        eq(executions.organizationId, organizationId)
+      )
+    )
+    .returning();
+
+  return execution;
+}
+
+/**
+ * Update execution visibility to private
+ *
+ * @param db Database instance
+ * @param executionId Execution ID
+ * @param organizationId Organization ID
+ * @returns The updated execution record
+ */
+export async function updateExecutionToPrivate(
+  db: ReturnType<typeof createDatabase>,
+  executionId: string,
+  organizationId: string
+): Promise<ExecutionRow | undefined> {
+  const [execution] = await db
+    .update(executions)
+    .set({ visibility: "private", updatedAt: new Date() })
+    .where(
+      and(
+        eq(executions.id, executionId),
+        eq(executions.organizationId, organizationId)
+      )
+    )
+    .returning();
+
+  return execution;
+}
+
+/**
+ * Update execution OG image generation status
+ *
+ * @param db Database instance
+ * @param executionId Execution ID
+ * @returns The updated execution record
+ */
+export async function updateExecutionOgImageStatus(
+  db: ReturnType<typeof createDatabase>,
+  executionId: string
+): Promise<ExecutionRow | undefined> {
+  const [execution] = await db
+    .update(executions)
+    .set({ ogImageGenerated: true, updatedAt: new Date() })
+    .where(eq(executions.id, executionId))
+    .returning();
+
+  return execution;
+}
+
+/**
+ * Get execution with visibility check
+ *
+ * @param db Database instance
+ * @param executionId Execution ID
+ * @param organizationId Organization ID
+ * @returns The execution record with visibility status
+ */
+export async function getExecutionWithVisibility(
+  db: ReturnType<typeof createDatabase>,
+  executionId: string,
+  organizationId: string
+): Promise<
+  | { id: string; organizationId: string; ogImageGenerated: boolean | null }
+  | undefined
+> {
+  const [execution] = await db
+    .select({
+      id: executions.id,
+      organizationId: executions.organizationId,
+      ogImageGenerated: executions.ogImageGenerated,
+    })
+    .from(executions)
+    .where(
+      and(
+        eq(executions.id, executionId),
+        eq(executions.organizationId, organizationId)
+      )
+    );
+
+  return execution;
 }

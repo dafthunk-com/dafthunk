@@ -1,6 +1,6 @@
 ---
 description: 
-globs: apps/api/src/db/**,apps/api/src/utils/db.ts
+globs: apps/api/src/db/**
 alwaysApply: false
 ---
 # Database Design Best Practices

@@ -6,16 +6,21 @@ import {
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
-import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase } from "../db";
-import { workflows } from "../db";
-import { executions as executionsTable } from "../db/schema";
-import { getExecutionById } from "../utils/db";
-import { listExecutions } from "../utils/db";
+import {
+  createDatabase,
+  getExecutionById,
+  getExecutionWithVisibility,
+  getWorkflowNameById,
+  getWorkflowNamesByIds,
+  listExecutions,
+  updateExecutionOgImageStatus,
+  updateExecutionToPrivate,
+  updateExecutionToPublic,
+} from "../db";
 import { generateExecutionOgImage } from "../utils/og-image-generator";
 
 const executionRoutes = new Hono<ApiContext>();
@@ -33,16 +38,13 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
     }
 
     // Get workflow name
-    const [workflow] = await db
-      .select({ name: workflows.name })
-      .from(workflows)
-      .where(eq(workflows.id, execution.workflowId));
+    const workflowName = await getWorkflowNameById(db, execution.workflowId);
 
     const executionData = execution.data as WorkflowExecution;
     const workflowExecution: WorkflowExecution = {
       id: execution.id,
       workflowId: execution.workflowId,
-      workflowName: workflow?.name || "Unknown Workflow",
+      workflowName: workflowName || "Unknown Workflow",
       deploymentId: execution.deploymentId ?? undefined,
       status: execution.status as WorkflowExecutionStatus,
       nodeExecutions: executionData.nodeExecutions || [],
@@ -85,11 +87,7 @@ executionRoutes.get("/", jwtAuth, async (c) => {
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
-  const workflowNames = await db
-    .select({ id: workflows.id, name: workflows.name })
-    .from(workflows)
-    .where(inArray(workflows.id, workflowIds));
-
+  const workflowNames = await getWorkflowNamesByIds(db, workflowIds);
   const workflowMap = new Map(workflowNames.map((w) => [w.id, w.name]));
 
   // Map to WorkflowExecution type
@@ -119,28 +117,17 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    const [execution] = await db
-      .select({
-        id: executionsTable.id,
-        organizationId: executionsTable.organizationId,
-        ogImageGenerated: executionsTable.ogImageGenerated,
-      })
-      .from(executionsTable)
-      .where(
-        and(
-          eq(executionsTable.id, executionId),
-          eq(executionsTable.organizationId, user.organization.id)
-        )
-      );
+    const execution = await getExecutionWithVisibility(
+      db,
+      executionId,
+      user.organization.id
+    );
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    await db
-      .update(executionsTable)
-      .set({ visibility: "public", updatedAt: new Date() })
-      .where(eq(executionsTable.id, executionId));
+    await updateExecutionToPublic(db, executionId, user.organization.id);
 
     if (!execution.ogImageGenerated && c.env.BROWSER) {
       try {
@@ -150,10 +137,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
           organizationId: user.organization.id,
         });
 
-        await db
-          .update(executionsTable)
-          .set({ ogImageGenerated: true, updatedAt: new Date() })
-          .where(eq(executionsTable.id, executionId));
+        await updateExecutionOgImageStatus(db, executionId);
         console.log(
           `Execution ${executionId} updated with OG image generation status.`
         );
@@ -191,10 +175,7 @@ executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
       return c.json({ error: "Forbidden" }, 403);
     }
 
-    await db
-      .update(executionsTable)
-      .set({ visibility: "private", updatedAt: new Date() })
-      .where(eq(executionsTable.id, id));
+    await updateExecutionToPrivate(db, id, user.organization.id);
 
     const response: UpdateExecutionVisibilityResponse = {
       success: true,

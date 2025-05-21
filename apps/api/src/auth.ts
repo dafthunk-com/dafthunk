@@ -6,10 +6,7 @@ import { jwt } from "hono/jwt";
 import { SignJWT } from "jose";
 
 import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
-import { createDatabase } from "./db";
-import { OrganizationRole } from "./db/schema";
-import { saveUser, verifyApiKey } from "./utils/db";
-
+import { createDatabase, OrganizationRole, saveUser, verifyApiKey } from "./db";
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";
 const JWT_SECRET_TOKEN_DURATION = 3600;

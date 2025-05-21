@@ -3,12 +3,14 @@ import { Hono } from "hono";
 
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase } from "../db";
-import type { ExecutionRow } from "../db/schema";
-import { ExecutionStatus } from "../db/schema";
-import { getWorkflowsByOrganization } from "../utils/db";
-import { getDeploymentsGroupedByWorkflow } from "../utils/db";
-import { listExecutions } from "../utils/db";
+import {
+  createDatabase,
+  ExecutionRow,
+  ExecutionStatus,
+  getDeploymentsGroupedByWorkflow,
+  getWorkflowsByOrganization,
+  listExecutions,
+} from "../db";
 
 const dashboard = new Hono<ApiContext>();
 

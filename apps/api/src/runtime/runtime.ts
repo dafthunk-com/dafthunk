@@ -16,7 +16,7 @@ import {
 import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
-import { createDatabase, ExecutionStatusType } from "../db";
+import { createDatabase, ExecutionStatusType, saveExecution } from "../db";
 import { NodeRegistry } from "../nodes/node-registry";
 import {
   apiToNodeParameter,
@@ -24,7 +24,6 @@ import {
 } from "../nodes/parameter-mapper";
 import { HttpRequest, NodeContext } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
-import { saveExecution } from "../utils/db";
 import { validateWorkflow } from "../utils/workflows";
 import { ObjectStore } from "./object-store";
 

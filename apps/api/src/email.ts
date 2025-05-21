@@ -3,13 +3,13 @@ import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
 import { createDatabase } from "./db";
-import { ExecutionStatus } from "./db/schema";
 import {
+  ExecutionStatus,
   getDeploymentByWorkflowIdAndVersion,
   getLatestDeploymentByWorkflowId,
   getWorkflowById,
   saveExecution,
-} from "./utils/db";
+} from "./db";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>

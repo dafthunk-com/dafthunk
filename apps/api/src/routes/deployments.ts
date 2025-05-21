@@ -25,7 +25,7 @@ import {
   getWorkflowByIdOrHandle,
   saveExecution,
   verifyApiKey,
-} from "../utils/db";
+} from "../db";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
