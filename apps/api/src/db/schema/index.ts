@@ -396,23 +396,23 @@ export function withUpdatedTimestamp<T extends Record<string, any>>(
  * TYPE EXPORTS
  */
 
-export type Organization = typeof organizations.$inferSelect;
-export type NewOrganization = typeof organizations.$inferInsert;
+export type OrganizationRow = typeof organizations.$inferSelect;
+export type OrganizationInsert = typeof organizations.$inferInsert;
 
-export type Membership = typeof memberships.$inferSelect;
-export type NewMembership = typeof memberships.$inferInsert;
+export type MembershipRow = typeof memberships.$inferSelect;
+export type MembershipInsert = typeof memberships.$inferInsert;
 
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
+export type UserRow = typeof users.$inferSelect;
+export type UserInsert = typeof users.$inferInsert;
 
-export type ApiKey = typeof apiKeys.$inferSelect;
-export type NewApiKey = typeof apiKeys.$inferInsert;
+export type ApiKeyRow = typeof apiKeys.$inferSelect;
+export type ApiKeyInsert = typeof apiKeys.$inferInsert;
 
-export type Workflow = typeof workflows.$inferSelect;
-export type NewWorkflow = typeof workflows.$inferInsert;
+export type WorkflowRow = typeof workflows.$inferSelect;
+export type WorkflowInsert = typeof workflows.$inferInsert;
 
-export type Execution = typeof executions.$inferSelect;
-export type NewExecution = typeof executions.$inferInsert;
+export type ExecutionRow = typeof executions.$inferSelect;
+export type ExecutionInsert = typeof executions.$inferInsert;
 
-export type Deployment = typeof deployments.$inferSelect;
-export type NewDeployment = typeof deployments.$inferInsert;
+export type DeploymentRow = typeof deployments.$inferSelect;
+export type DeploymentInsert = typeof deployments.$inferInsert;

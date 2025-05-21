@@ -17,7 +17,7 @@ import { z } from "zod";
 
 import { authMiddleware, jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
-import { createDatabase, ExecutionStatus, type NewWorkflow } from "../db";
+import { createDatabase, ExecutionStatus, type WorkflowInsert } from "../db";
 import {
   createWorkflow,
   deleteWorkflow,
@@ -102,7 +102,7 @@ workflowRoutes.post(
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
 
-    const newWorkflowData: NewWorkflow = {
+    const newWorkflowData: WorkflowInsert = {
       id: workflowData.id,
       name: workflowData.name,
       handle: workflowData.handle,

@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { jwtAuth } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
-import type { Execution } from "../db/schema";
+import type { ExecutionRow } from "../db/schema";
 import { ExecutionStatus } from "../db/schema";
 import { getWorkflowsByOrganization } from "../utils/db";
 import { getDeploymentsGroupedByWorkflow } from "../utils/db";
@@ -45,27 +45,27 @@ dashboard.get("/", async (c) => {
     );
 
     // Executions stats
-    const executions: Execution[] = await listExecutions(
+    const executions: ExecutionRow[] = await listExecutions(
       db,
       user.organization.id,
       { limit: 10 }
     ); // limit for perf
     const totalExecutions = executions.length;
     const runningExecutions = executions.filter(
-      (e: Execution) => e.status === ExecutionStatus.EXECUTING
+      (e: ExecutionRow) => e.status === ExecutionStatus.EXECUTING
     ).length;
     const failedExecutions = executions.filter(
-      (e: Execution) => e.status === ExecutionStatus.ERROR
+      (e: ExecutionRow) => e.status === ExecutionStatus.ERROR
     ).length;
     const completedExecutions = executions.filter(
-      (e: Execution) =>
+      (e: ExecutionRow) =>
         e.status === ExecutionStatus.COMPLETED && e.startedAt && e.endedAt
     );
     const avgTimeSeconds =
       completedExecutions.length > 0
         ? Math.round(
             completedExecutions.reduce(
-              (sum: number, e: Execution) =>
+              (sum: number, e: ExecutionRow) =>
                 sum + (Number(e.endedAt) - Number(e.startedAt)) / 1000,
               0
             ) / completedExecutions.length
@@ -73,7 +73,7 @@ dashboard.get("/", async (c) => {
         : 0;
 
     // Recent executions (last 10)
-    const recentExecutions = executions.slice(0, 10).map((e: Execution) => ({
+    const recentExecutions = executions.slice(0, 10).map((e: ExecutionRow) => ({
       id: e.id,
       workflowName: workflows.find((w) => w.id === e.workflowId)?.name || "",
       status: e.status,

@@ -10,29 +10,29 @@ import { and, desc, eq, or, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
 import {
+  type ApiKeyInsert,
   apiKeys,
   createDatabase,
-  type Deployment,
+  type DeploymentInsert,
+  type DeploymentRow,
   deployments,
-  type Execution,
+  type ExecutionRow,
   executions,
   type ExecutionStatusType,
+  type MembershipInsert,
   memberships,
-  type NewApiKey,
-  type NewDeployment,
-  type NewMembership,
-  type NewOrganization,
-  type NewWorkflow,
+  type OrganizationInsert,
   OrganizationRole,
   organizations,
   Plan,
   type PlanType,
   type ProviderType,
-  type User,
   UserRole,
   type UserRoleType,
+  type UserRow,
   users,
-  type Workflow,
+  type WorkflowInsert,
+  type WorkflowRow,
   workflows,
 } from "../db";
 
@@ -107,7 +107,7 @@ export type UserData = {
 export async function saveUser(
   db: ReturnType<typeof createDatabase>,
   userData: UserData
-): Promise<{ user: User; organization: NewOrganization }> {
+): Promise<{ user: UserRow; organization: OrganizationInsert }> {
   const now = new Date();
 
   // Check if user already exists
@@ -128,7 +128,7 @@ export async function saveUser(
   const handle = createHandle(userData.name);
 
   // Create personal organization
-  const organization: NewOrganization = {
+  const organization: OrganizationInsert = {
     id: organizationId,
     name: `Personal`,
     handle,
@@ -158,7 +158,7 @@ export async function saveUser(
     .returning();
 
   // Create membership with owner role
-  const newMembership: NewMembership = {
+  const newMembership: MembershipInsert = {
     userId: userData.id,
     organizationId: organizationId,
     role: OrganizationRole.OWNER,
@@ -181,7 +181,7 @@ export async function saveUser(
 export async function getUserById(
   db: ReturnType<typeof createDatabase>,
   id: string
-): Promise<User | undefined> {
+): Promise<UserRow | undefined> {
   const [user] = await db.select().from(users).where(eq(users.id, id));
 
   return user;
@@ -223,7 +223,7 @@ export async function getWorkflowByIdOrHandle(
   db: ReturnType<typeof createDatabase>,
   idOrHandle: string,
   organizationId: string
-): Promise<Workflow | undefined> {
+): Promise<WorkflowRow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
@@ -246,7 +246,7 @@ export async function getWorkflowByIdOrHandle(
 export async function getWorkflowById(
   db: ReturnType<typeof createDatabase>,
   id: string
-): Promise<Workflow | undefined> {
+): Promise<WorkflowRow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
@@ -257,7 +257,7 @@ export async function getWorkflowById(
 export async function getLatestDeploymentByWorkflowId(
   db: ReturnType<typeof createDatabase>,
   workflowId: string
-): Promise<Deployment | undefined> {
+): Promise<DeploymentRow | undefined> {
   const [deployment] = await db
     .select()
     .from(deployments)
@@ -272,7 +272,7 @@ export async function getDeploymentByWorkflowIdAndVersion(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   version: string
-): Promise<Deployment | undefined> {
+): Promise<DeploymentRow | undefined> {
   const [deployment] = await db
     .select()
     .from(deployments)
@@ -297,8 +297,8 @@ export async function getDeploymentByWorkflowIdAndVersion(
  */
 export async function createWorkflow(
   db: ReturnType<typeof createDatabase>,
-  newWorkflow: NewWorkflow
-): Promise<Workflow> {
+  newWorkflow: WorkflowInsert
+): Promise<WorkflowRow> {
   const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
 
   return workflow;
@@ -317,8 +317,8 @@ export async function updateWorkflow(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string,
-  data: Partial<Workflow> & { data: WorkflowType }
-): Promise<Workflow> {
+  data: Partial<WorkflowRow> & { data: WorkflowType }
+): Promise<WorkflowRow> {
   const [workflow] = await db
     .update(workflows)
     .set(data)
@@ -342,7 +342,7 @@ export async function deleteWorkflow(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-): Promise<Workflow | undefined> {
+): Promise<WorkflowRow | undefined> {
   const [workflow] = await db
     .delete(workflows)
     .where(
@@ -369,7 +369,7 @@ export async function getExecutionById(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-): Promise<Execution | undefined> {
+): Promise<ExecutionRow | undefined> {
   const execution = await db
     .select()
     .from(executions)
@@ -453,7 +453,7 @@ export async function createApiKey(
     .digest("hex");
 
   // Create the key record
-  const newApiKey: NewApiKey = {
+  const newApiKey: ApiKeyInsert = {
     id,
     name,
     key: hashedApiKey,
@@ -563,7 +563,7 @@ export async function getLatestDeploymentByWorkflowIdOrHandle(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
-): Promise<Deployment | undefined> {
+): Promise<DeploymentRow | undefined> {
   const [deployment] = await db
     .select()
     .from(deployments)
@@ -593,7 +593,7 @@ export async function getDeploymentById(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string
-): Promise<Deployment | undefined> {
+): Promise<DeploymentRow | undefined> {
   const [deployment] = await db
     .select()
     .from(deployments)
@@ -616,8 +616,8 @@ export async function getDeploymentById(
  */
 export async function createDeployment(
   db: ReturnType<typeof createDatabase>,
-  newDeployment: NewDeployment
-): Promise<Deployment> {
+  newDeployment: DeploymentInsert
+): Promise<DeploymentRow> {
   await db.insert(deployments).values(newDeployment);
 
   const [deployment] = await db
@@ -690,7 +690,7 @@ export async function getDeploymentsByWorkflowId(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
   organizationId: string
-): Promise<Deployment[]> {
+): Promise<DeploymentRow[]> {
   return db
     .select()
     .from(deployments)
@@ -748,7 +748,7 @@ export async function listExecutions(
     limit?: number;
     offset?: number;
   }
-): Promise<Execution[]> {
+): Promise<ExecutionRow[]> {
   return db.query.executions.findMany({
     where: (executions, { eq, and }) =>
       and(
