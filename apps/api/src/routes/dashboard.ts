@@ -1,7 +1,7 @@
 import { DashboardStats, DashboardStatsResponse } from "@dafthunk/types";
 import { Hono } from "hono";
 
-import { jwtAuth } from "../auth";
+import { jwtMiddleware } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import {
   createDatabase,
@@ -15,7 +15,7 @@ import {
 const dashboard = new Hono<ApiContext>();
 
 // Apply authentication middleware to all routes
-dashboard.use("*", jwtAuth);
+dashboard.use("*", jwtMiddleware);
 
 /**
  * GET /:orgHandle/dashboard

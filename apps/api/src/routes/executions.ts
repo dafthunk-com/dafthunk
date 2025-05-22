@@ -8,7 +8,7 @@ import {
 } from "@dafthunk/types";
 import { Hono } from "hono";
 
-import { jwtAuth } from "../auth";
+import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import {
   createDatabase,
@@ -25,7 +25,7 @@ import { generateExecutionOgImage } from "../utils/og-image-generator";
 
 const executionRoutes = new Hono<ApiContext>();
 
-executionRoutes.get("/:id", jwtAuth, async (c) => {
+executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
@@ -62,7 +62,7 @@ executionRoutes.get("/:id", jwtAuth, async (c) => {
   }
 });
 
-executionRoutes.get("/", jwtAuth, async (c) => {
+executionRoutes.get("/", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const db = createDatabase(c.env.DB);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
@@ -111,7 +111,7 @@ executionRoutes.get("/", jwtAuth, async (c) => {
   return c.json(response);
 });
 
-executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
+executionRoutes.patch("/:id/share/public", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const executionId = c.req.param("id");
   const db = createDatabase(c.env.DB);
@@ -159,7 +159,7 @@ executionRoutes.patch("/:id/share/public", jwtAuth, async (c) => {
   }
 });
 
-executionRoutes.patch("/:id/share/private", jwtAuth, async (c) => {
+executionRoutes.patch("/:id/share/private", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);

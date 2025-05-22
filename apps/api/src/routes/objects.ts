@@ -9,7 +9,7 @@ import {
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
-import { jwtAuth } from "../auth";
+import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
@@ -17,9 +17,7 @@ import { ObjectStore } from "../runtime/object-store";
 
 const objectRoutes = new Hono<ApiContext>();
 
-objectRoutes.use("*", jwtAuth);
-
-objectRoutes.get("/", async (c) => {
+objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
   const objectId = c.req.query("id");
   const mimeType = c.req.query("mimeType");
 
@@ -89,7 +87,7 @@ objectRoutes.get("/", async (c) => {
   }
 });
 
-objectRoutes.post("/", async (c) => {
+objectRoutes.post("/", jwtMiddleware, async (c) => {
   const contentType = c.req.header("content-type") || "";
   if (!contentType.includes("multipart/form-data")) {
     return c.text("Content type must be multipart/form-data", 400);
@@ -127,7 +125,7 @@ objectRoutes.post("/", async (c) => {
   }
 });
 
-objectRoutes.delete("/:id", async (c) => {
+objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
   const objectId = c.req.param("id");
   const mimeType = c.req.query("mimeType");
 
@@ -171,7 +169,7 @@ objectRoutes.delete("/:id", async (c) => {
   }
 });
 
-objectRoutes.get("/metadata/:id", async (c) => {
+objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
   const objectId = c.req.param("id");
   const mimeType = c.req.query("mimeType");
 
@@ -224,7 +222,7 @@ objectRoutes.get("/metadata/:id", async (c) => {
   }
 });
 
-objectRoutes.get("/list", async (c) => {
+objectRoutes.get("/list", jwtMiddleware, async (c) => {
   const authPayload = c.get("jwtPayload") as CustomJWTPayload;
   if (!authPayload || !authPayload.organization.id) {
     return c.text("Unauthorized: Organization ID is missing", 401);

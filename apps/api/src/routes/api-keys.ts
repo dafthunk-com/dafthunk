@@ -9,7 +9,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { jwtAuth } from "../auth";
+import { jwtMiddleware } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase } from "../db";
 import { createApiKey, deleteApiKey, getApiKeys } from "../db";
@@ -18,7 +18,7 @@ import { createApiKey, deleteApiKey, getApiKeys } from "../db";
 const apiKeyRoutes = new Hono<ApiContext>();
 
 // Apply authentication middleware to all routes
-apiKeyRoutes.use("*", jwtAuth);
+apiKeyRoutes.use("*", jwtMiddleware);
 
 /**
  * GET /api/api-keys

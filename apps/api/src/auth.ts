@@ -32,7 +32,10 @@ const urlToTopLevelDomain = (url: string): string => {
 };
 
 // Auth middleware
-export const jwtAuth = (c: Context<ApiContext>, next: () => Promise<void>) => {
+export const jwtMiddleware = (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) => {
   return jwt({
     secret: c.env.JWT_SECRET,
     cookie: JWT_SECRET_TOKEN_NAME,
@@ -66,7 +69,7 @@ export const apiKeyAuth = async (
 };
 
 // Middleware that allows either JWT or API key authentication
-export const authMiddleware = async (
+export const apiKeyOrJwtMiddleware = async (
   c: Context<ApiContext>,
   next: () => Promise<void>
 ) => {
@@ -78,7 +81,7 @@ export const authMiddleware = async (
   }
 
   // Otherwise, use JWT auth
-  return jwtAuth(c, next);
+  return jwtMiddleware(c, next);
 };
 
 // Create auth router
@@ -235,12 +238,12 @@ auth.get(
   }
 );
 
-auth.get("/protected", jwtAuth, (c) => {
+auth.get("/protected", jwtMiddleware, (c) => {
   // If jwtAuth passes, user is authenticated
   return c.json({ ok: true }, 200);
 });
 
-auth.get("/user", jwtAuth, (c) => {
+auth.get("/user", jwtMiddleware, (c) => {
   return c.json({ user: c.get("jwtPayload") });
 });
 

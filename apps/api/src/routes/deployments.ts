@@ -12,7 +12,7 @@ import { Hono } from "hono";
 import { Context } from "hono";
 import { v7 as uuid } from "uuid";
 
-import { jwtAuth } from "../auth";
+import { jwtMiddleware } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";
 import {
@@ -76,14 +76,14 @@ const authMiddleware = async (
   }
 
   // Otherwise, use JWT auth
-  return jwtAuth(c, next);
+  return jwtMiddleware(c, next);
 };
 
 /**
  * GET /deployments
  * Returns deployments grouped by workflow with counts and latest ID
  */
-deploymentRoutes.get("/", jwtAuth, async (c) => {
+deploymentRoutes.get("/", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const db = createDatabase(c.env.DB);
 
@@ -103,7 +103,7 @@ deploymentRoutes.get("/", jwtAuth, async (c) => {
  * GET /deployments/version/:deploymentUUID
  * Returns a specific deployment by UUID
  */
-deploymentRoutes.get("/version/:deploymentUUID", jwtAuth, async (c) => {
+deploymentRoutes.get("/version/:deploymentUUID", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const deploymentUUID = c.req.param("deploymentUUID");
   const db = createDatabase(c.env.DB);
@@ -138,7 +138,7 @@ deploymentRoutes.get("/version/:deploymentUUID", jwtAuth, async (c) => {
  * GET /deployments/:workflowUUID
  * Returns the latest deployment for a workflow
  */
-deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
+deploymentRoutes.get("/:workflowUUID", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const workflowUUID = c.req.param("workflowUUID");
   const db = createDatabase(c.env.DB);
@@ -184,7 +184,7 @@ deploymentRoutes.get("/:workflowUUID", jwtAuth, async (c) => {
  * POST /deployments/:workflowUUID
  * Creates a new deployment for a workflow
  */
-deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
+deploymentRoutes.post("/:workflowUUID", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const workflowUUID = c.req.param("workflowUUID");
   const db = createDatabase(c.env.DB);
@@ -241,7 +241,7 @@ deploymentRoutes.post("/:workflowUUID", jwtAuth, async (c) => {
  * GET /deployments/history/:workflowUUID
  * Returns all deployments for a workflow
  */
-deploymentRoutes.get("/history/:workflowUUID", jwtAuth, async (c) => {
+deploymentRoutes.get("/history/:workflowUUID", jwtMiddleware, async (c) => {
   const user = c.get("jwtPayload") as CustomJWTPayload;
   const workflowUUID = c.req.param("workflowUUID");
   const db = createDatabase(c.env.DB);
