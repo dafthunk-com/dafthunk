@@ -25,6 +25,24 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
     return c.text("Missing required parameters: id and mimeType", 400);
   }
 
+  let requestingOrganizationId: string | undefined;
+  const jwtPayload = c.get("jwtPayload") as CustomJWTPayload | undefined;
+
+  if (jwtPayload?.organization?.id) {
+    requestingOrganizationId = jwtPayload.organization.id;
+  } else {
+    // If no JWT payload, attempt to get organizationId from API key context
+    // This is set by apiKeyOrJwtMiddleware if a valid API key for an org is provided
+    requestingOrganizationId = c.get("organizationId") as string | undefined;
+  }
+
+  if (!requestingOrganizationId) {
+    return c.text(
+      "Unauthorized: Organization ID could not be determined from the provided credentials",
+      401
+    );
+  }
+
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);
     const reference: ObjectReference = { id: objectId, mimeType };
@@ -51,23 +69,19 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
       }
 
       if (execution.visibility === "private") {
-        const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-        if (!authPayload || !authPayload.organization.id) {
-          return c.text("Unauthorized: Organization ID is missing", 401);
-        }
-        if (execution.organizationId !== authPayload.organization.id) {
+        // For private executions, the execution's organization must match the requesting organization
+        if (execution.organizationId !== requestingOrganizationId) {
           return c.text(
             "Forbidden: You do not have access to this object via its execution",
             403
           );
         }
       }
+      // If execution is public, access is allowed for any authenticated entity (JWT user or API key).
+      // No further check against requestingOrganizationId is needed here for public executions.
     } else {
-      const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-      if (!authPayload || !authPayload.organization.id) {
-        return c.text("Unauthorized: Organization ID is missing", 401);
-      }
-      if (metadata?.organizationId !== authPayload.organization.id) {
+      // Object not linked to an execution, check its own organizationId
+      if (metadata?.organizationId !== requestingOrganizationId) {
         return c.text("Forbidden: You do not have access to this object", 403);
       }
     }

@@ -14,6 +14,7 @@ import {
   createDatabase,
   getExecutionById,
   getExecutionWithVisibility,
+  getOrganizationByHandle,
   getWorkflowNameById,
   getWorkflowNamesByIds,
   listExecutions,
@@ -26,12 +27,29 @@ import { generateExecutionOgImage } from "../utils/og-image-generator";
 const executionRoutes = new Hono<ApiContext>();
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgHandle = c.req.param("orgHandle");
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
+  const organization = await getOrganizationByHandle(db, orgHandle);
+  if (!organization) {
+    return c.json({ error: "Organization not found" }, 404);
+  }
+
+  const jwtPayload = c.get("jwtPayload") as CustomJWTPayload;
+  let orgId: string;
+  if (jwtPayload) {
+    orgId = jwtPayload.organization.id;
+  } else {
+    const _orgId = c.get("organizationId");
+    if (!_orgId) {
+      return c.json({ error: "Organization ID not found" }, 500);
+    }
+    orgId = _orgId;
+  }
+
   try {
-    const execution = await getExecutionById(db, id, user.organization.id);
+    const execution = await getExecutionById(db, id, orgId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
