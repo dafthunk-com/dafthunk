@@ -43,7 +43,7 @@ export const jwtMiddleware = (
 };
 
 // API key authentication middleware
-export const apiKeyAuth = async (
+export const apiKeyMiddleware = async (
   c: Context<ApiContext>,
   next: () => Promise<void>
 ) => {
@@ -77,7 +77,7 @@ export const apiKeyOrJwtMiddleware = async (
 
   // If Authorization header is present, try API key auth
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    return apiKeyAuth(c, next);
+    return apiKeyMiddleware(c, next);
   }
 
   // Otherwise, use JWT auth
