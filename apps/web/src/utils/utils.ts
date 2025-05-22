@@ -37,28 +37,13 @@ export function extractDialogParametersFromNodes(
   return nodes
     .filter(
       (node) =>
-        node.data.nodeType?.startsWith("body-") ||
         node.data.nodeType?.startsWith("form-data-")
     )
     .map((node) => {
       const requiredInput = node.data.inputs.find((i) => i.id === "required");
       const isRequired = (requiredInput?.value as boolean) ?? true;
 
-      // Special handling for JSON body node which doesn't use name
-      if (node.data.nodeType === "body-json") {
-        const nodeInstanceName = node.data.name || "JSON Body";
-
-        return {
-          nodeId: node.id,
-          nameForForm: "requestBody", // Standard name for the JSON body
-          label: nodeInstanceName, // Use the node name as label
-          nodeName: node.data.name || "JSON Body",
-          isRequired: isRequired,
-          type: "body-json",
-        } as DialogFormParameter;
-      }
-
-      // Original logic for other parameter types
+      // Original logic for form-data parameters
       const nameInput = node.data.inputs.find((i) => i.id === "name");
 
       const fieldName = nameInput?.value as string;
@@ -84,13 +69,13 @@ export function extractDialogParametersFromNodes(
         nodeInstanceName.toLowerCase() !==
           defaultNodeTypeDisplayName.toLowerCase();
 
-      const labelText = isNodeNameSpecific ? nodeInstanceName : fieldKey; // Use fieldKey directly instead of friendlyKeyLabel
+      const labelText = isNodeNameSpecific ? nodeInstanceName : fieldKey;
 
       return {
         nodeId: node.id,
-        nameForForm: fieldName,
-        label: labelText, // This is used for the Label and placeholder derivation
-        nodeName: node.data.name || "Parameter Node", // This is for the contextual hint
+        nameForForm: fieldName, // Use the field name directly without prefix
+        label: labelText,
+        nodeName: node.data.name || "Parameter Node",
         isRequired: isRequired,
         type: node.data.nodeType || "unknown.parameter",
       } as DialogFormParameter;

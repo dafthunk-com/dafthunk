@@ -264,31 +264,14 @@ const wouldCreateIndirectCycle = (
 };
 
 /**
- * Helper function to handle JSON body parameters
+ * Helper function to handle form data parameters
  */
 function handleJsonBodyParameters(
-  jsonBodyNode: ReactFlowNode<WorkflowNodeType> | undefined,
+  _jsonBodyNode: ReactFlowNode<WorkflowNodeType> | undefined,
   formData: Record<string, any>
 ): Record<string, any> {
-  if (!jsonBodyNode || !("requestBody" in formData)) {
-    return formData;
-  }
-
-  const jsonBody = formData.requestBody;
-  const { requestBody, ...regularFormData } = formData;
-  const isJsonBodyRequired = (jsonBodyNode.data.inputs.find(
-    (input) => input.id === "required"
-  )?.value ?? true) as boolean;
-
-  if (jsonBody && typeof jsonBody === "object") {
-    return jsonBody;
-  }
-
-  if (Object.keys(regularFormData).length > 0) {
-    return regularFormData;
-  }
-
-  return isJsonBodyRequired ? { data: {} } : {};
+  // Return form data as is, no special handling needed
+  return formData;
 }
 
 /**
@@ -319,7 +302,6 @@ export function useWorkflowExecution(orgHandle: string) {
   }, []);
 
   const executeAndPollWorkflow = useCallback(
-    // Renamed from executeWorkflow to avoid conflict
     async (
       id: string,
       request?: ExecuteWorkflowRequest
@@ -335,8 +317,14 @@ export function useWorkflowExecution(orgHandle: string) {
         `/${id}/execute/dev?monitorProgress=${request?.monitorProgress ?? true}`,
         {
           method: "POST",
-          ...(request?.parameters && {
-            body: JSON.stringify(request.parameters),
+          ...(request?.parameters && Object.keys(request.parameters).length > 0 && {
+            body: (() => {
+              const formData = new FormData();
+              Object.entries(request.parameters).forEach(([key, value]) => {
+                formData.append(key, value);
+              });
+              return formData;
+            })(),
           }),
         }
       );

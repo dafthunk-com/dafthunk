@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 // Describes the structure of parameters passed to the dialog
 export type DialogFormParameter = {
@@ -30,7 +29,7 @@ export type DialogFormParameter = {
   label: string; // User-friendly label for the form input, e.g., "Customer Email"
   nodeName: string; // Original name of the workflow node, for context
   isRequired: boolean; // Whether this parameter is required
-  type: string; // Parameter type, e.g., 'parameter-string', 'parameter-number'
+  type: "form-data-string" | "form-data-number" | "form-data-boolean"; // Parameter type, e.g., 'form-data-string', 'form-data-number'
 };
 
 type ExecutionFormDialogProps = {
@@ -41,96 +40,99 @@ type ExecutionFormDialogProps = {
   onCancel?: () => void;
 };
 
-// Validates if a string is valid JSON
-const isValidJson = (str: string) => {
-  if (!str.trim()) return false;
-  try {
-    JSON.parse(str);
-    return true;
-  } catch (_error) {
-    return false;
-  }
+type FormValues = Record<string, any>;
+
+// Validation schema creators
+const createStringValidator = (param: DialogFormParameter): z.ZodTypeAny => {
+  const stringBase = z.string().trim();
+  return param.isRequired
+    ? stringBase.min(1, { message: `${param.label} is required.` })
+    : stringBase.optional().transform((val) => (val === "" || val === null ? undefined : val));
 };
 
-// Dynamically builds a Zod validation schema based on the parameters
+const createNumberValidator = (param: DialogFormParameter): z.ZodTypeAny => {
+  const numberBase = z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number({ invalid_type_error: `${param.label} must be a number` })
+  );
+  return param.isRequired
+    ? numberBase.refine((val) => val >= 1, {
+        message: `${param.label} is required.`,
+      })
+    : numberBase.optional();
+};
+
+const createBooleanValidator = (param: DialogFormParameter): z.ZodTypeAny => {
+  return param.isRequired
+    ? z.boolean({ required_error: `${param.label} is required.` })
+    : z.boolean().optional();
+};
+
 const createValidationSchema = (parameters: DialogFormParameter[]) => {
   const schemaShape: Record<string, z.ZodTypeAny> = {};
   parameters.forEach((param) => {
-    if (param.type === "parameter-string") {
-      let validator: z.ZodTypeAny;
-      const stringBase = z.string().trim();
-
-      if (param.isRequired) {
-        validator = stringBase.min(1, {
-          message: `${param.label} is required.`,
-        });
-      } else {
-        validator = stringBase
-          .optional()
-          .transform((val) => (val === "" || val === null ? undefined : val));
-      }
-      schemaShape[param.nameForForm] = validator;
-    } else if (param.type === "parameter-number") {
-      // Number parameter validation
-      let validator: z.ZodTypeAny;
-
-      if (param.isRequired) {
-        validator = z.preprocess(
-          (val) => (val === "" ? undefined : Number(val)),
-          z
-            .number({
-              invalid_type_error: `${param.label} must be a number`,
-            })
-            .min(1, {
-              message: `${param.label} is required.`,
-            })
-        );
-      } else {
-        validator = z.preprocess(
-          (val) => (val === "" ? undefined : Number(val)),
-          z
-            .number({
-              invalid_type_error: `${param.label} must be a number`,
-            })
-            .optional()
-        );
-      }
-      schemaShape[param.nameForForm] = validator;
-    } else if (param.type === "parameter-boolean") {
-      // Boolean parameter validation
-      if (param.isRequired) {
-        schemaShape[param.nameForForm] = z.boolean({
-          required_error: `${param.label} is required.`,
-        });
-      } else {
-        schemaShape[param.nameForForm] = z.boolean().optional();
-      }
-    } else if (param.type === "body-json") {
-      // JSON parameter validation
-      let validator: z.ZodTypeAny;
-
-      if (param.isRequired) {
-        validator = z
-          .string()
-          .min(1, { message: `${param.label} is required.` })
-          .refine(isValidJson, {
-            message: "Please enter valid JSON",
-          })
-          .transform((val) => JSON.parse(val));
-      } else {
-        validator = z
-          .string()
-          .optional()
-          .transform((val) => {
-            if (!val || val.trim() === "") return undefined;
-            if (!isValidJson(val)) return undefined;
-            return JSON.parse(val);
-          });
-      }
-      schemaShape[param.nameForForm] = validator;
+    switch (param.type) {
+      case "form-data-string":
+        schemaShape[param.nameForForm] = createStringValidator(param);
+        break;
+      case "form-data-number":
+        schemaShape[param.nameForForm] = createNumberValidator(param);
+        break;
+      case "form-data-boolean":
+        schemaShape[param.nameForForm] = createBooleanValidator(param);
+        break;
     }
   });
   return z.object(schemaShape);
+};
+
+// Form input component
+const FormInput = ({ param, field }: { param: DialogFormParameter; field: any }) => {
+  switch (param.type) {
+    case "form-data-boolean":
+      return (
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id={param.nameForForm}
+            checked={field.value}
+            onCheckedChange={field.onChange}
+          />
+          <label
+            htmlFor={param.nameForForm}
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {field.value ? "Yes" : "No"}
+          </label>
+        </div>
+      );
+    case "form-data-number":
+      return (
+        <Input
+          id={param.nameForForm}
+          {...field}
+          type="number"
+          placeholder={`Enter ${param.label.toLowerCase()}`}
+          className="w-full"
+        />
+      );
+    default:
+      return (
+        <Input
+          id={param.nameForForm}
+          {...field}
+          placeholder={`Enter ${param.label.toLowerCase()}`}
+          className="w-full"
+        />
+      );
+  }
+};
+
+// Get default form values
+const getDefaultFormValues = (parameters: DialogFormParameter[]): FormValues => {
+  return parameters.reduce((acc, param) => {
+    acc[param.nameForForm] = param.type === "form-data-boolean" ? false : "";
+    return acc;
+  }, {} as FormValues);
 };
 
 export function ExecutionFormDialog({
@@ -141,9 +143,6 @@ export function ExecutionFormDialog({
   onCancel,
 }: ExecutionFormDialogProps) {
   const validationSchema = createValidationSchema(parameters);
-  type FormValues = Record<string, any>;
-
-  // Check if the form has any required fields
   const hasRequiredFields = useMemo(
     () => parameters.some((param) => param.isRequired),
     [parameters]
@@ -155,54 +154,23 @@ export function ExecutionFormDialog({
     reset,
     formState: { errors, isDirty, isValid },
   } = useForm<FormValues>({
-    // @ts-ignore: TS2589: Type instantiation is excessively deep and possibly infinite.
     resolver: zodResolver(validationSchema) as unknown as Resolver<FormValues>,
-    mode: "onChange", // Validate on change to enable/disable submit button
-    defaultValues: parameters.reduce((acc, param) => {
-      // Set appropriate default values based on parameter type
-      if (param.type.startsWith("parameter-boolean")) {
-        acc[param.nameForForm] = false;
-      } else if (param.type.startsWith("parameter.json")) {
-        acc[param.nameForForm] = ""; // Empty string for JSON
-      } else if (param.type.startsWith("parameter-number")) {
-        acc[param.nameForForm] = ""; // Empty string for number inputs
-      } else {
-        acc[param.nameForForm] = ""; // Default for strings
-      }
-      return acc;
-    }, {} as FormValues),
+    mode: "onChange",
+    defaultValues: getDefaultFormValues(parameters),
   });
 
-  // Reset form when dialog opens or parameters change
   useEffect(() => {
     if (isOpen) {
-      const defaultValues = parameters.reduce((acc, param) => {
-        // Set appropriate default values based on parameter type
-        if (param.type.startsWith("parameter-boolean")) {
-          acc[param.nameForForm] = false;
-        } else if (param.type.startsWith("parameter.json")) {
-          acc[param.nameForForm] = "";
-        } else if (param.type.startsWith("parameter-number")) {
-          acc[param.nameForForm] = "";
-        } else {
-          acc[param.nameForForm] = "";
-        }
-        return acc;
-      }, {} as FormValues);
-      reset(defaultValues);
+      reset(getDefaultFormValues(parameters));
     }
   }, [isOpen, parameters, reset]);
 
   const processSubmit: SubmitHandler<FormValues> = (data) => {
-    // Filter out undefined values before submitting
-    const filteredData = Object.entries(data).reduce((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as FormValues);
+    const filteredData = Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => value !== undefined)
+    );
     onSubmit(filteredData);
-    onClose(); // Close dialog after submission
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -236,72 +204,7 @@ export function ExecutionFormDialog({
                 <Controller
                   name={param.nameForForm}
                   control={control}
-                  render={({ field }) => {
-                    // Render different input components based on parameter type
-                    if (
-                      param.type.startsWith("parameter-boolean") ||
-                      param.type.startsWith("parameter-boolean")
-                    ) {
-                      return (
-                        <div className="flex items-center space-x-2 pt-2">
-                          <Checkbox
-                            id={param.nameForForm}
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                          <label
-                            htmlFor={param.nameForForm}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {field.value ? "Yes" : "No"}
-                          </label>
-                        </div>
-                      );
-                    } else if (
-                      param.type.startsWith("parameter-number") ||
-                      param.type.startsWith("parameter-number")
-                    ) {
-                      return (
-                        <Input
-                          id={param.nameForForm}
-                          {...field}
-                          type="number"
-                          placeholder={`Enter ${param.label.toLowerCase()}`}
-                          className="w-full"
-                        />
-                      );
-                    } else if (
-                      param.type.startsWith("parameter.json") ||
-                      param.type.startsWith("parameter-json") ||
-                      param.type === "body-json"
-                    ) {
-                      return (
-                        <div>
-                          <Textarea
-                            id={param.nameForForm}
-                            {...field}
-                            placeholder={`Enter valid JSON, e.g., {"key": "value"}`}
-                            className="w-full font-mono text-sm h-32 resize-y"
-                          />
-                          {!param.isRequired && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Leave empty for no JSON body
-                            </p>
-                          )}
-                        </div>
-                      );
-                    } else {
-                      // Default string input
-                      return (
-                        <Input
-                          id={param.nameForForm}
-                          {...field}
-                          placeholder={`Enter ${param.label.toLowerCase()}`}
-                          className="w-full"
-                        />
-                      );
-                    }
-                  }}
+                  render={({ field }) => <FormInput param={param} field={field} />}
                 />
 
                 <p className="text-xs text-muted-foreground">
