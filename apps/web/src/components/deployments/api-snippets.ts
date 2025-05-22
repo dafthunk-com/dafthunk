@@ -22,9 +22,9 @@ export const EXECUTE_WORKFLOW_SNIPPETS = {
       let dataParams = "";
       formParams.forEach((param) => {
         let exampleValue: string;
-        if (param.type.startsWith("parameter-boolean")) {
+        if (param.type.startsWith("form-data-boolean")) {
           exampleValue = "false";
-        } else if (param.type.startsWith("parameter-number")) {
+        } else if (param.type.startsWith("form-data-number")) {
           exampleValue = "123";
         } else {
           exampleValue = `value_for_${param.nameForForm}`;
@@ -75,9 +75,9 @@ console.log(data);`;
       jsContentTypeHeader = `"Content-Type": "application/x-www-form-urlencoded"`;
       const formBodyObjectParts = formParams.map((param) => {
         let exampleValue: string;
-        if (param.type.startsWith("parameter-boolean")) {
+        if (param.type.startsWith("form-data-boolean")) {
           exampleValue = "false";
-        } else if (param.type.startsWith("parameter-number")) {
+        } else if (param.type.startsWith("form-data-number")) {
           exampleValue = "123";
         } else {
           exampleValue = `value_for_${param.nameForForm}`;
@@ -128,9 +128,9 @@ print(response.json())`;
       pythonHeadersExtra = ""; // No extra header needed for urlencoded form data
       const formBodyParts = formParams.map((param) => {
         let exampleValue: string;
-        if (param.type.startsWith("parameter-boolean")) {
+        if (param.type.startsWith("form-data-boolean")) {
           exampleValue = "False";
-        } else if (param.type.startsWith("parameter-number")) {
+        } else if (param.type.startsWith("form-data-number")) {
           exampleValue = "123";
         } else {
           exampleValue = `value_for_${param.nameForForm}`;

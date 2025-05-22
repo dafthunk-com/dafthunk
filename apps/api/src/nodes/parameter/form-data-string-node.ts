@@ -2,22 +2,22 @@ import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class NumberParameterNode extends ExecutableNode {
+export class FormDataStringNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "parameter-number",
-    name: "Number Parameter",
-    type: "parameter-number",
+    id: "form-data-string",
+    name: "String Form Data",
+    type: "form-data-string",
     description:
-      "Extracts a number parameter from the HTTP request. The parameter will be looked up in form data and request body.",
+      "Extracts a string parameter from the HTTP request form data.",
     category: "Parameter",
-    icon: "calculator",
+    icon: "text",
     compatibility: ["http_request"],
     inputs: [
       {
         name: "name",
         type: "string",
         description:
-          "The name of the parameter to extract from the HTTP request",
+          "The name of the parameter to extract from the HTTP request form data",
         required: true,
       },
       {
@@ -31,9 +31,9 @@ export class NumberParameterNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: "number",
+        type: "string",
         description:
-          "The number value from the parameter, or undefined if optional and not provided",
+          "The string value from the parameter, or undefined if optional and not provided",
       },
     ],
   };
@@ -65,14 +65,12 @@ export class NumberParameterNode extends ExecutableNode {
         });
       }
 
-      // Try to get the value from the request body (form data or JSON)
-      const rawValue =
-        context.httpRequest?.formData?.[paramName] ??
-        context.httpRequest?.body?.[paramName];
-      if (rawValue === undefined) {
+      // Get the value from form data
+      const value = context.httpRequest?.formData?.[paramName];
+      if (value === undefined) {
         if (isRequired) {
           throw new Error(
-            `Parameter "${paramName}" is required but not provided in the request`
+            `Parameter "${paramName}" is required but not provided in the form data`
           );
         }
         return this.createSuccessResult({
@@ -80,14 +78,12 @@ export class NumberParameterNode extends ExecutableNode {
         });
       }
 
-      // Parse the value as a number
-      const numValue = Number(rawValue);
-      if (isNaN(numValue)) {
-        throw new Error(`Parameter "${paramName}" must be a valid number`);
+      if (typeof value !== "string") {
+        throw new Error(`Parameter "${paramName}" must be a string`);
       }
 
       return this.createSuccessResult({
-        value: numValue,
+        value,
       });
     } catch (error) {
       return this.createErrorResult(

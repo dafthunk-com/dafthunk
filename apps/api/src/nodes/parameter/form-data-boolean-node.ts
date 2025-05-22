@@ -2,22 +2,22 @@ import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class StringParameterNode extends ExecutableNode {
+export class FormDataBooleanNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "parameter-string",
-    name: "String Parameter",
-    type: "parameter-string",
+    id: "form-data-boolean",
+    name: "Boolean Form Data",
+    type: "form-data-boolean",
     description:
-      "Extracts a string parameter from the HTTP request. The parameter will be looked up in form data and request body.",
+      "Extracts a boolean parameter from the HTTP request form data.",
     category: "Parameter",
-    icon: "text",
+    icon: "toggle",
     compatibility: ["http_request"],
     inputs: [
       {
         name: "name",
         type: "string",
         description:
-          "The name of the parameter to extract from the HTTP request",
+          "The name of the parameter to extract from the HTTP request form data",
         required: true,
       },
       {
@@ -31,9 +31,9 @@ export class StringParameterNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: "string",
+        type: "boolean",
         description:
-          "The string value from the parameter, or undefined if optional and not provided",
+          "The boolean value from the parameter, or undefined if optional and not provided",
       },
     ],
   };
@@ -65,14 +65,12 @@ export class StringParameterNode extends ExecutableNode {
         });
       }
 
-      // Try to get the value from the request body (form data or JSON)
-      const value =
-        context.httpRequest?.formData?.[paramName] ??
-        context.httpRequest?.body?.[paramName];
-      if (value === undefined) {
+      // Get the value from form data
+      const rawValue = context.httpRequest?.formData?.[paramName];
+      if (rawValue === undefined) {
         if (isRequired) {
           throw new Error(
-            `Parameter "${paramName}" is required but not provided in the request`
+            `Parameter "${paramName}" is required but not provided in the form data`
           );
         }
         return this.createSuccessResult({
@@ -80,12 +78,40 @@ export class StringParameterNode extends ExecutableNode {
         });
       }
 
-      if (typeof value !== "string") {
-        throw new Error(`Parameter "${paramName}" must be a string`);
+      // Parse the value as a boolean
+      let boolValue: boolean;
+
+      if (typeof rawValue === "boolean") {
+        boolValue = rawValue;
+      } else if (typeof rawValue === "string") {
+        const lowercaseValue = rawValue.toLowerCase().trim();
+        if (
+          lowercaseValue === "true" ||
+          lowercaseValue === "1" ||
+          lowercaseValue === "yes"
+        ) {
+          boolValue = true;
+        } else if (
+          lowercaseValue === "false" ||
+          lowercaseValue === "0" ||
+          lowercaseValue === "no"
+        ) {
+          boolValue = false;
+        } else {
+          throw new Error(
+            `Parameter "${paramName}" must be a valid boolean value (true/false, 1/0, yes/no)`
+          );
+        }
+      } else if (typeof rawValue === "number") {
+        boolValue = rawValue !== 0;
+      } else {
+        throw new Error(
+          `Parameter "${paramName}" must be a valid boolean value`
+        );
       }
 
       return this.createSuccessResult({
-        value,
+        value: boolValue,
       });
     } catch (error) {
       return this.createErrorResult(

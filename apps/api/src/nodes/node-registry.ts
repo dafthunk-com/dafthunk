@@ -8,7 +8,7 @@ import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
 import { DocumentNode } from "./document/document-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
-import { EmailParameterNode } from "./email/email-parameter-node";
+import { EmailParametersNode } from "./email/email-parameters-node";
 import { EmailParserNode } from "./email/email-parser-node";
 import { ResendEmailNode } from "./email/resend-email-node";
 import { SendgridEmailNode } from "./email/sendgrid-email-node";
@@ -51,10 +51,10 @@ import { NumberInputNode } from "./number/number-input-node";
 import { SliderNode } from "./number/slider-node";
 import { SquareRootNode } from "./number/square-root-node";
 import { SubtractionNode } from "./number/subtraction-node";
-import { BooleanParameterNode } from "./parameter/boolean-parameter-node";
+import { FormDataBooleanNode } from "./parameter/form-data-boolean-node";
 import { JsonBodyNode } from "./parameter/json-body-node";
-import { NumberParameterNode } from "./parameter/number-parameter-node";
-import { StringParameterNode } from "./parameter/string-parameter-node";
+import { FormDataNumberNode } from "./parameter/form-data-number-node";
+import { FormDataStringNode } from "./parameter/form-data-string-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
@@ -108,11 +108,11 @@ export class NodeRegistry {
       env.SES_DEFAULT_FROM
     );
 
-    this.registerImplementation(StringParameterNode);
-    this.registerImplementation(NumberParameterNode);
-    this.registerImplementation(BooleanParameterNode);
+    this.registerImplementation(FormDataStringNode);
+    this.registerImplementation(FormDataNumberNode);
+    this.registerImplementation(FormDataBooleanNode);
     this.registerImplementation(JsonBodyNode);
-    this.registerImplementation(EmailParameterNode);
+    this.registerImplementation(EmailParametersNode);
     this.registerImplementation(EmailParserNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);

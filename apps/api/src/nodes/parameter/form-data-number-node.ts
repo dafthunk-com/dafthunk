@@ -2,22 +2,22 @@ import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class BooleanParameterNode extends ExecutableNode {
+export class FormDataNumberNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "parameter-boolean",
-    name: "Boolean Parameter",
-    type: "parameter-boolean",
+    id: "form-data-number",
+    name: "Number Form Data",
+    type: "form-data-number",
     description:
-      "Extracts a boolean parameter from the HTTP request. The parameter will be looked up in form data and request body.",
+      "Extracts a number parameter from the HTTP request form data.",
     category: "Parameter",
-    icon: "toggle",
+    icon: "calculator",
     compatibility: ["http_request"],
     inputs: [
       {
         name: "name",
         type: "string",
         description:
-          "The name of the parameter to extract from the HTTP request",
+          "The name of the parameter to extract from the HTTP request form data",
         required: true,
       },
       {
@@ -31,9 +31,9 @@ export class BooleanParameterNode extends ExecutableNode {
     outputs: [
       {
         name: "value",
-        type: "boolean",
+        type: "number",
         description:
-          "The boolean value from the parameter, or undefined if optional and not provided",
+          "The number value from the parameter, or undefined if optional and not provided",
       },
     ],
   };
@@ -65,14 +65,12 @@ export class BooleanParameterNode extends ExecutableNode {
         });
       }
 
-      // Try to get the value from the request body (form data or JSON)
-      const rawValue =
-        context.httpRequest?.formData?.[paramName] ??
-        context.httpRequest?.body?.[paramName];
+      // Get the value from form data
+      const rawValue = context.httpRequest?.formData?.[paramName];
       if (rawValue === undefined) {
         if (isRequired) {
           throw new Error(
-            `Parameter "${paramName}" is required but not provided in the request`
+            `Parameter "${paramName}" is required but not provided in the form data`
           );
         }
         return this.createSuccessResult({
@@ -80,40 +78,14 @@ export class BooleanParameterNode extends ExecutableNode {
         });
       }
 
-      // Parse the value as a boolean
-      let boolValue: boolean;
-
-      if (typeof rawValue === "boolean") {
-        boolValue = rawValue;
-      } else if (typeof rawValue === "string") {
-        const lowercaseValue = rawValue.toLowerCase().trim();
-        if (
-          lowercaseValue === "true" ||
-          lowercaseValue === "1" ||
-          lowercaseValue === "yes"
-        ) {
-          boolValue = true;
-        } else if (
-          lowercaseValue === "false" ||
-          lowercaseValue === "0" ||
-          lowercaseValue === "no"
-        ) {
-          boolValue = false;
-        } else {
-          throw new Error(
-            `Parameter "${paramName}" must be a valid boolean value (true/false, 1/0, yes/no)`
-          );
-        }
-      } else if (typeof rawValue === "number") {
-        boolValue = rawValue !== 0;
-      } else {
-        throw new Error(
-          `Parameter "${paramName}" must be a valid boolean value`
-        );
+      // Parse the value as a number
+      const numValue = Number(rawValue);
+      if (isNaN(numValue)) {
+        throw new Error(`Parameter "${paramName}" must be a valid number`);
       }
 
       return this.createSuccessResult({
-        value: boolValue,
+        value: numValue,
       });
     } catch (error) {
       return this.createErrorResult(
