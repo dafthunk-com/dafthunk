@@ -22,6 +22,7 @@ import useSWR from "swr";
 
 import { useAuth } from "@/components/auth-context";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
+import type { JsonBodyParameter } from "@/components/workflow/execution-json-body-dialog";
 import {
   NodeTemplate,
   WorkflowNodeType,
@@ -264,28 +265,21 @@ const wouldCreateIndirectCycle = (
 };
 
 /**
- * Helper function to handle form data parameters
- */
-function handleJsonBodyParameters(
-  _jsonBodyNode: ReactFlowNode<WorkflowNodeType> | undefined,
-  formData: Record<string, any>
-): Record<string, any> {
-  // Return form data as is, no special handling needed
-  return formData;
-}
-
-/**
  * Hook to manage workflow execution, including parameter forms and status polling.
  */
 export function useWorkflowExecution(orgHandle: string) {
-  const [isExecutionFormVisible, setIsExecutionFormVisible] = useState(false);
+  const [isFormDialogVisible, setIsFormDialogVisible] = useState(false);
+  const [isJsonBodyDialogVisible, setIsJsonBodyDialogVisible] = useState(false);
   const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
     []
   );
+  const [jsonBodyParameters, setJsonBodyParameters] = useState<
+    JsonBodyParameter[]
+  >([]);
   const [executionContext, setExecutionContext] = useState<{
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
-    jsonBodyNode?: ReactFlowNode<WorkflowNodeType>;
+    pendingFormData?: Record<string, any>;
   } | null>(null);
 
   const pollingRef = useRef<{
@@ -317,19 +311,37 @@ export function useWorkflowExecution(orgHandle: string) {
         `/${id}/execute/dev?monitorProgress=${request?.monitorProgress ?? true}`,
         {
           method: "POST",
-          ...(request?.parameters && Object.keys(request.parameters).length > 0 && {
-            body: (() => {
-              const formData = new FormData();
-              Object.entries(request.parameters).forEach(([key, value]) => {
-                formData.append(key, value);
-              });
-              return formData;
-            })(),
-          }),
+          ...(request?.parameters &&
+            Object.keys(request.parameters).length > 0 && {
+              body: (() => {
+                // If we have a jsonBody parameter, send it directly as JSON
+                if (request.parameters.jsonBody) {
+                  return JSON.stringify(request.parameters.jsonBody);
+                }
+                // Otherwise use FormData for regular form parameters
+                const formData = new FormData();
+                Object.entries(request.parameters).forEach(([key, value]) => {
+                  if (value !== undefined && value !== null) {
+                    // Convert value to string based on its type
+                    let stringValue: string;
+                    if (typeof value === "boolean") {
+                      stringValue = value ? "true" : "false";
+                    } else if (typeof value === "number") {
+                      stringValue = value.toString();
+                    } else if (typeof value === "object") {
+                      stringValue = JSON.stringify(value);
+                    } else {
+                      stringValue = String(value);
+                    }
+                    formData.append(key, stringValue);
+                  }
+                });
+                return formData;
+              })(),
+            }),
         }
       );
 
-      // Transform ExecuteWorkflowResponse to WorkflowExecution by adding missing fields
       return {
         ...response,
         visibility: "private" as "private" | "public",
@@ -440,41 +452,67 @@ export function useWorkflowExecution(orgHandle: string) {
         nodeTemplatesData
       );
 
-      if (httpParameterNodes.length > 0) {
-        setFormParameters(httpParameterNodes);
-        setIsExecutionFormVisible(true);
-        setExecutionContext({ id, onExecution, jsonBodyNode });
+      // Handle JSON body node if present
+      if (jsonBodyNode) {
+        setJsonBodyParameters([
+          {
+            nodeId: jsonBodyNode.id,
+            nameForForm: "jsonBody",
+            label: "JSON Body",
+            nodeName: jsonBodyNode.data.name,
+            isRequired: (jsonBodyNode.data.inputs.find(
+              (input) => input.id === "required"
+            )?.value ?? true) as boolean,
+          },
+        ]);
+        setIsJsonBodyDialogVisible(true);
+        setExecutionContext({ id, onExecution });
         return undefined;
       }
 
-      const isJsonBodyRequired = jsonBodyNode
-        ? ((jsonBodyNode.data.inputs.find((input) => input.id === "required")
-            ?.value ?? true) as boolean)
-        : false;
+      // Handle form parameters if present
+      if (httpParameterNodes.length > 0) {
+        setFormParameters(httpParameterNodes);
+        setIsFormDialogVisible(true);
+        setExecutionContext({ id, onExecution });
+        return undefined;
+      }
 
-      const defaultJsonBody = isJsonBodyRequired ? { data: {} } : {};
-      return performExecutionAndPoll(id, onExecution, {
-        parameters: defaultJsonBody,
-      });
+      // If no parameters needed, execute directly
+      return performExecutionAndPoll(id, onExecution);
     },
     [performExecutionAndPoll, cleanup]
   );
 
-  const submitExecutionForm = useCallback(
+  const submitFormData = useCallback(
     (formData: Record<string, any>) => {
-      setIsExecutionFormVisible(false);
-      if (executionContext) {
-        const { id, onExecution, jsonBodyNode } = executionContext;
-        const requestBody = handleJsonBodyParameters(jsonBodyNode, formData);
-        performExecutionAndPoll(id, onExecution, { parameters: requestBody });
-      }
+      if (!executionContext) return;
+
+      const { id, onExecution } = executionContext;
+      performExecutionAndPoll(id, onExecution, { parameters: formData });
+      setIsFormDialogVisible(false);
+      setExecutionContext(null);
+    },
+    [executionContext, performExecutionAndPoll]
+  );
+
+  const submitJsonBody = useCallback(
+    (jsonData: Record<string, any>) => {
+      if (!executionContext) return;
+
+      const { id, onExecution } = executionContext;
+      performExecutionAndPoll(id, onExecution, {
+        parameters: { jsonBody: jsonData.jsonBody },
+      });
+      setIsJsonBodyDialogVisible(false);
       setExecutionContext(null);
     },
     [executionContext, performExecutionAndPoll]
   );
 
   const closeExecutionForm = useCallback(() => {
-    setIsExecutionFormVisible(false);
+    setIsFormDialogVisible(false);
+    setIsJsonBodyDialogVisible(false);
     setExecutionContext(null);
   }, []);
 
@@ -484,9 +522,12 @@ export function useWorkflowExecution(orgHandle: string) {
 
   return {
     executeWorkflow: executeWorkflowWithForm,
-    isExecutionFormVisible,
+    isFormDialogVisible,
+    isJsonBodyDialogVisible,
     executionFormParameters: formParameters,
-    submitExecutionForm,
+    executionJsonBodyParameters: jsonBodyParameters,
+    submitFormData,
+    submitJsonBody,
     closeExecutionForm,
   };
 }

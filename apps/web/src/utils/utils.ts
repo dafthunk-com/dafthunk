@@ -35,10 +35,7 @@ export function extractDialogParametersFromNodes(
   nodeTemplates: NodeTemplate[]
 ): DialogFormParameter[] {
   return nodes
-    .filter(
-      (node) =>
-        node.data.nodeType?.startsWith("form-data-")
-    )
+    .filter((node) => node.data.nodeType?.startsWith("form-data-"))
     .map((node) => {
       const requiredInput = node.data.inputs.find((i) => i.id === "required");
       const isRequired = (requiredInput?.value as boolean) ?? true;

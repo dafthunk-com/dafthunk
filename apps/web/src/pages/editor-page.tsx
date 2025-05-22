@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
@@ -122,9 +123,12 @@ export function EditorPage() {
 
   const {
     executeWorkflow,
-    isExecutionFormVisible,
+    isFormDialogVisible,
+    isJsonBodyDialogVisible,
     executionFormParameters,
-    submitExecutionForm,
+    executionJsonBodyParameters,
+    submitFormData,
+    submitJsonBody,
     closeExecutionForm,
   } = useWorkflowExecution(orgHandle);
 
@@ -283,15 +287,22 @@ export function EditorPage() {
             createObjectUrl={createObjectUrl}
           />
         </div>
-        {isExecutionFormVisible && (
+        {isFormDialogVisible && executionFormParameters.length > 0 && (
           <ExecutionFormDialog
-            isOpen={isExecutionFormVisible}
+            isOpen={isFormDialogVisible}
             onClose={closeExecutionForm}
             onCancel={handleDialogCancel}
             parameters={executionFormParameters}
-            onSubmit={(formData) => {
-              submitExecutionForm(formData);
-            }}
+            onSubmit={submitFormData}
+          />
+        )}
+        {isJsonBodyDialogVisible && executionJsonBodyParameters.length > 0 && (
+          <ExecutionJsonBodyDialog
+            isOpen={isJsonBodyDialogVisible}
+            onClose={closeExecutionForm}
+            onCancel={handleDialogCancel}
+            parameters={executionJsonBodyParameters}
+            onSubmit={submitJsonBody}
           />
         )}
       </div>

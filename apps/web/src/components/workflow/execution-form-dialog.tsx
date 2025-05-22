@@ -47,7 +47,9 @@ const createStringValidator = (param: DialogFormParameter): z.ZodTypeAny => {
   const stringBase = z.string().trim();
   return param.isRequired
     ? stringBase.min(1, { message: `${param.label} is required.` })
-    : stringBase.optional().transform((val) => (val === "" || val === null ? undefined : val));
+    : stringBase
+        .optional()
+        .transform((val) => (val === "" || val === null ? undefined : val));
 };
 
 const createNumberValidator = (param: DialogFormParameter): z.ZodTypeAny => {
@@ -87,7 +89,13 @@ const createValidationSchema = (parameters: DialogFormParameter[]) => {
 };
 
 // Form input component
-const FormInput = ({ param, field }: { param: DialogFormParameter; field: any }) => {
+const FormInput = ({
+  param,
+  field,
+}: {
+  param: DialogFormParameter;
+  field: any;
+}) => {
   switch (param.type) {
     case "form-data-boolean":
       return (
@@ -128,7 +136,9 @@ const FormInput = ({ param, field }: { param: DialogFormParameter; field: any })
 };
 
 // Get default form values
-const getDefaultFormValues = (parameters: DialogFormParameter[]): FormValues => {
+const getDefaultFormValues = (
+  parameters: DialogFormParameter[]
+): FormValues => {
   return parameters.reduce((acc, param) => {
     acc[param.nameForForm] = param.type === "form-data-boolean" ? false : "";
     return acc;
@@ -204,7 +214,9 @@ export function ExecutionFormDialog({
                 <Controller
                   name={param.nameForForm}
                   control={control}
-                  render={({ field }) => <FormInput param={param} field={field} />}
+                  render={({ field }) => (
+                    <FormInput param={param} field={field} />
+                  )}
                 />
 
                 <p className="text-xs text-muted-foreground">
