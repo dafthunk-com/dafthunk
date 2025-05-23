@@ -98,7 +98,10 @@ export function HomePage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature) => (
-              <Card key={feature.title} className="text-center">
+              <Card
+                key={feature.title}
+                className="text-center transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1"
+              >
                 <CardHeader>
                   <div className="flex justify-center items-center">
                     {feature.icon}
@@ -143,14 +146,14 @@ export function HomePage() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg overflow-hidden shadow-xl">
-              {/* Placeholder for an image or a simple graphic */}
-              {/* You can replace this with an actual image or a more complex React Flow preview if desired */}
-              <img
-                src="/placeholder-workflow-editor.svg" // You'll need to add an actual image here
-                alt="Workflow Editor Preview"
-                className="w-full h-auto object-cover bg-muted aspect-video"
-              />
+            <div className="rounded-lg overflow-hidden shadow-xl bg-muted/50 dark:bg-muted/20 aspect-video flex items-center justify-center p-6 border border-border">
+              <div className="w-full h-full border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center text-center">
+                <Workflow className="h-20 w-20 text-muted-foreground/50 mb-4" />
+                <p className="text-sm text-muted-foreground/80 px-4">
+                  Visualize and build your automation flows with an intuitive
+                  drag-and-drop interface.
+                </p>
+              </div>
             </div>
           </div>
         </div>

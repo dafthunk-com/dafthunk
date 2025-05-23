@@ -61,7 +61,7 @@ export function HomeFooter() {
               <li>
                 {/* These are placeholders, update with actual links */}
                 <a
-                  href="#"
+                  href="/about"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -71,7 +71,7 @@ export function HomeFooter() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/privacy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -81,7 +81,7 @@ export function HomeFooter() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/terms"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
