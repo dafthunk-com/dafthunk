@@ -47,13 +47,15 @@ const workflowRoutes = new Hono<ExtendedApiContext>();
  * List all workflows for the current organization
  */
 workflowRoutes.get("/", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
   const db = createDatabase(c.env.DB);
 
-  const allWorkflows = await getWorkflowsByOrganization(
-    db,
-    user.organization.id
-  );
+  const orgId = c.get("organizationId");
+  if (!orgId) {
+    // This should ideally not happen if jwtMiddleware is working correctly
+    return c.json({ error: "Organization ID not found in token" }, 401);
+  }
+
+  const allWorkflows = await getWorkflowsByOrganization(db, orgId);
 
   // Convert DB workflow objects to WorkflowWithMetadata objects
   const workflows: WorkflowWithMetadata[] = allWorkflows.map((workflow) => {
@@ -89,9 +91,10 @@ workflowRoutes.post(
     }) as z.ZodType<CreateWorkflowRequest>
   ),
   async (c) => {
-    const user = c.get("jwtPayload") as CustomJWTPayload;
     const data = c.req.valid("json");
     const now = new Date();
+
+    const orgId = c.get("organizationId")!;
 
     const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
@@ -109,7 +112,7 @@ workflowRoutes.post(
       name: workflowData.name,
       handle: workflowData.handle,
       data: workflowData,
-      organizationId: user.organization.id,
+      organizationId: orgId,
       createdAt: now,
       updatedAt: now,
     };
@@ -143,11 +146,12 @@ workflowRoutes.post(
  * Get a specific workflow by ID
  */
 workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const workflow = await getWorkflowByIdOrHandle(db, id, user.organization.id);
+  const orgId = c.get("organizationId")!;
+
+  const workflow = await getWorkflowByIdOrHandle(db, id, orgId);
 
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -185,15 +189,12 @@ workflowRoutes.put(
     }) as z.ZodType<UpdateWorkflowRequest>
   ),
   async (c) => {
-    const user = c.get("jwtPayload") as CustomJWTPayload;
     const id = c.req.param("id");
     const db = createDatabase(c.env.DB);
 
-    const existingWorkflow = await getWorkflowByIdOrHandle(
-      db,
-      id,
-      user.organization.id
-    );
+    const orgId = c.get("organizationId")!;
+
+    const existingWorkflow = await getWorkflowByIdOrHandle(db, id, orgId);
 
     if (!existingWorkflow) {
       return c.json({ error: "Workflow not found" }, 404);
@@ -253,7 +254,7 @@ workflowRoutes.put(
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
 
-    const updatedWorkflow = await updateWorkflow(db, id, user.organization.id, {
+    const updatedWorkflow = await updateWorkflow(db, id, orgId, {
       name: data.name,
       data: updatedWorkflowData,
       updatedAt: now,
@@ -280,21 +281,18 @@ workflowRoutes.put(
  * Delete a workflow by ID
  */
 workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const existingWorkflow = await getWorkflowByIdOrHandle(
-    db,
-    id,
-    user.organization.id
-  );
+  const orgId = c.get("organizationId")!;
+
+  const existingWorkflow = await getWorkflowByIdOrHandle(db, id, orgId);
 
   if (!existingWorkflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const deletedWorkflow = await deleteWorkflow(db, id, user.organization.id);
+  const deletedWorkflow = await deleteWorkflow(db, id, orgId);
 
   if (!deletedWorkflow) {
     return c.json({ error: "Failed to delete workflow" }, 500);
@@ -327,27 +325,24 @@ workflowRoutes.post(
       return c.json({ error: "Organization not found" }, 404);
     }
 
+    const orgIdFromAuth = c.get("organizationId")!;
+
+    // Verify that the orgId from token/API key matches the orgId from the orgHandle
+    if (organization.id !== orgIdFromAuth) {
+      return c.json({ error: "Forbidden: Organization mismatch" }, 403);
+    }
+
     // Get organization ID from either JWT or API key auth
     let userId: string;
-
     const jwtPayload = c.get("jwtPayload") as CustomJWTPayload | undefined;
+
     if (jwtPayload) {
       // Authentication was via JWT
-      // Verify that the JWT organization matches the URL organization
-      if (jwtPayload.organization.id !== organization.id) {
-        return c.json({ error: "Unauthorized" }, 403);
-      }
+      // No need to re-check organization.id === organization.id, already done above.
       userId = jwtPayload.sub || "anonymous";
     } else {
       // Authentication was via API key
-      const orgId = c.get("organizationId") as string | undefined;
-      if (!orgId) {
-        return c.json({ error: "Organization ID not found" }, 500);
-      }
-      // Verify that the API key organization matches the URL organization
-      if (orgId !== organization.id) {
-        return c.json({ error: "Unauthorized" }, 403);
-      }
+      // No need to re-check orgIdFromAuth === organization.id, already done above.
       userId = "api"; // Use a placeholder for API-triggered executions
     }
 

@@ -2,7 +2,7 @@ import { DashboardStats, DashboardStatsResponse } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiContext } from "../context";
 import {
   createDatabase,
   ExecutionRow,
@@ -23,35 +23,27 @@ dashboard.use("*", jwtMiddleware);
  * Get dashboard statistics for the organization
  */
 dashboard.get("/", async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
-  if (!user) return c.json({ error: "Unauthorized" }, 401);
+  const orgId = c.get("organizationId");
+  if (!orgId) return c.json({ error: "Unauthorized" }, 401);
 
   const db = createDatabase(c.env.DB);
 
   try {
     // Workflows count
-    const workflows = await getWorkflowsByOrganization(
-      db,
-      user.organization.id
-    );
+    const workflows = await getWorkflowsByOrganization(db, orgId);
     const workflowsCount = workflows.length;
 
     // Deployments count
-    const deployments = await getDeploymentsGroupedByWorkflow(
-      db,
-      user.organization.id
-    );
+    const deployments = await getDeploymentsGroupedByWorkflow(db, orgId);
     const deploymentsCount = deployments.reduce(
       (acc: number, w: { deploymentCount: number }) => acc + w.deploymentCount,
       0
     );
 
     // Executions stats
-    const executions: ExecutionRow[] = await listExecutions(
-      db,
-      user.organization.id,
-      { limit: 10 }
-    ); // limit for perf
+    const executions: ExecutionRow[] = await listExecutions(db, orgId, {
+      limit: 10,
+    }); // limit for perf
     const totalExecutions = executions.length;
     const runningExecutions = executions.filter(
       (e: ExecutionRow) => e.status === ExecutionStatus.EXECUTING

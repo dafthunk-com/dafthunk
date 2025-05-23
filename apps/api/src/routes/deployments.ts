@@ -9,10 +9,9 @@ import {
   WorkflowDeploymentVersion,
 } from "@dafthunk/types";
 import { Hono } from "hono";
-import { Context } from "hono";
 import { v7 as uuid } from "uuid";
 
-import { jwtMiddleware } from "../auth";
+import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext, CustomJWTPayload } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";
 import {
@@ -24,7 +23,6 @@ import {
   getLatestVersionNumberByWorkflowId,
   getWorkflowByIdOrHandle,
   saveExecution,
-  verifyApiKey,
 } from "../db";
 
 // Extend the ApiContext with our custom variable
@@ -37,60 +35,15 @@ type ExtendedApiContext = ApiContext & {
 
 const deploymentRoutes = new Hono<ExtendedApiContext>();
 
-// API key authentication middleware
-const apiKeyAuth = async (
-  c: Context<ExtendedApiContext>,
-  next: () => Promise<void>
-) => {
-  const authHeader = c.req.header("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return c.json({ error: "API key is required" }, 401);
-  }
-
-  const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
-  const db = createDatabase(c.env.DB);
-
-  const organizationId = await verifyApiKey(db, apiKey);
-
-  if (!organizationId) {
-    return c.json({ error: "Invalid API key" }, 401);
-  }
-
-  // Store the organization ID in the context for later use
-  c.set("organizationId", organizationId);
-
-  await next();
-};
-
-// Middleware that allows either JWT or API key authentication
-const authMiddleware = async (
-  c: Context<ExtendedApiContext>,
-  next: () => Promise<void>
-) => {
-  const authHeader = c.req.header("Authorization");
-
-  // If Authorization header is present, try API key auth
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return apiKeyAuth(c, next);
-  }
-
-  // Otherwise, use JWT auth
-  return jwtMiddleware(c, next);
-};
-
 /**
  * GET /deployments
  * Returns deployments grouped by workflow with counts and latest ID
  */
 deploymentRoutes.get("/", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId")!;
   const db = createDatabase(c.env.DB);
 
-  const groupedDeployments = await getDeploymentsGroupedByWorkflow(
-    db,
-    user.organization.id
-  );
+  const groupedDeployments = await getDeploymentsGroupedByWorkflow(db, orgId);
 
   // Transform to match WorkflowDeployment type
   const typedDeployments: WorkflowDeployment[] = groupedDeployments;
@@ -104,15 +57,11 @@ deploymentRoutes.get("/", jwtMiddleware, async (c) => {
  * Returns a specific deployment by UUID
  */
 deploymentRoutes.get("/version/:deploymentUUID", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId")!;
   const deploymentUUID = c.req.param("deploymentUUID");
   const db = createDatabase(c.env.DB);
 
-  const deployment = await getDeploymentById(
-    db,
-    deploymentUUID,
-    user.organization.id
-  );
+  const deployment = await getDeploymentById(db, deploymentUUID, orgId);
 
   if (!deployment) {
     return c.json({ error: "Deployment not found" }, 404);
@@ -139,16 +88,12 @@ deploymentRoutes.get("/version/:deploymentUUID", jwtMiddleware, async (c) => {
  * Returns the latest deployment for a workflow
  */
 deploymentRoutes.get("/:workflowUUID", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId")!;
   const workflowUUID = c.req.param("workflowUUID");
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowByIdOrHandle(
-    db,
-    workflowUUID,
-    user.organization.id
-  );
+  const workflow = await getWorkflowByIdOrHandle(db, workflowUUID, orgId);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -157,7 +102,7 @@ deploymentRoutes.get("/:workflowUUID", jwtMiddleware, async (c) => {
   const deployment = await getLatestDeploymentByWorkflowIdOrHandle(
     db,
     workflowUUID,
-    user.organization.id
+    orgId
   );
 
   if (!deployment) {
@@ -185,17 +130,13 @@ deploymentRoutes.get("/:workflowUUID", jwtMiddleware, async (c) => {
  * Creates a new deployment for a workflow
  */
 deploymentRoutes.post("/:workflowUUID", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId")!;
   const workflowUUID = c.req.param("workflowUUID");
   const db = createDatabase(c.env.DB);
   const now = new Date();
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowByIdOrHandle(
-    db,
-    workflowUUID,
-    user.organization.id
-  );
+  const workflow = await getWorkflowByIdOrHandle(db, workflowUUID, orgId);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -204,18 +145,14 @@ deploymentRoutes.post("/:workflowUUID", jwtMiddleware, async (c) => {
 
   // Get the latest version number and increment
   const latestVersion =
-    (await getLatestVersionNumberByWorkflowId(
-      db,
-      workflowUUID,
-      user.organization.id
-    )) || 0;
+    (await getLatestVersionNumberByWorkflowId(db, workflowUUID, orgId)) || 0;
   const newVersion = latestVersion + 1;
 
   // Create new deployment
   const deploymentId = uuid();
   const newDeployment = await createDeployment(db, {
     id: deploymentId,
-    organizationId: user.organization.id,
+    organizationId: orgId,
     workflowId: workflowUUID,
     version: newVersion,
     workflowData: workflowData,
@@ -242,16 +179,12 @@ deploymentRoutes.post("/:workflowUUID", jwtMiddleware, async (c) => {
  * Returns all deployments for a workflow
  */
 deploymentRoutes.get("/history/:workflowUUID", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId")!;
   const workflowUUID = c.req.param("workflowUUID");
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowByIdOrHandle(
-    db,
-    workflowUUID,
-    user.organization.id
-  );
+  const workflow = await getWorkflowByIdOrHandle(db, workflowUUID, orgId);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -260,7 +193,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtMiddleware, async (c) => {
   const deploymentsList = await getDeploymentsByWorkflowId(
     db,
     workflowUUID,
-    user.organization.id
+    orgId
   );
 
   // Transform to match WorkflowDeploymentVersion type
@@ -295,7 +228,7 @@ deploymentRoutes.get("/history/:workflowUUID", jwtMiddleware, async (c) => {
  */
 deploymentRoutes.post(
   "/version/:deploymentUUID/execute",
-  authMiddleware,
+  apiKeyOrJwtMiddleware,
   async (c) => {
     // Get organization ID and user ID from either JWT or API key auth
     let organizationId: string;
@@ -308,10 +241,7 @@ deploymentRoutes.post(
       userId = jwtPayload.sub || "anonymous";
     } else {
       // Authentication was via API key
-      const orgId = c.get("organizationId");
-      if (!orgId) {
-        return c.json({ error: "Organization ID not found" }, 500);
-      }
+      const orgId = c.get("organizationId")!;
       organizationId = orgId;
       userId = "api"; // Use a placeholder for API-triggered executions
     }

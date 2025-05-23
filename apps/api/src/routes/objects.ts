@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
 import { ObjectStore } from "../runtime/object-store";
@@ -25,17 +25,7 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
     return c.text("Missing required parameters: id and mimeType", 400);
   }
 
-  let requestingOrganizationId: string | undefined;
-  const jwtPayload = c.get("jwtPayload") as CustomJWTPayload | undefined;
-
-  if (jwtPayload?.organization?.id) {
-    requestingOrganizationId = jwtPayload.organization.id;
-  } else {
-    // If no JWT payload, attempt to get organizationId from API key context
-    // This is set by apiKeyOrJwtMiddleware if a valid API key for an org is provided
-    requestingOrganizationId = c.get("organizationId") as string | undefined;
-  }
-
+  const requestingOrganizationId = c.get("organizationId");
   if (!requestingOrganizationId) {
     return c.text(
       "Unauthorized: Organization ID could not be determined from the provided credentials",
@@ -114,12 +104,11 @@ objectRoutes.post("/", jwtMiddleware, async (c) => {
     return c.text("No file provided or invalid file", 400);
   }
 
-  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organization.id) {
+  const organizationId = c.get("organizationId");
+  if (!organizationId) {
     console.error("Organization ID not found in auth context");
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
-  const organizationId = authPayload.organization.id;
 
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);
@@ -147,8 +136,8 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
     return c.text("Missing required parameters: id and mimeType", 400);
   }
 
-  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organization.id) {
+  const organizationId = c.get("organizationId");
+  if (!organizationId) {
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
 
@@ -166,7 +155,7 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
     const { metadata } = result;
 
     // Check if the object belongs to the user's organization
-    if (metadata?.organizationId !== authPayload.organization.id) {
+    if (metadata?.organizationId !== organizationId) {
       return c.text(
         "Forbidden: You do not have access to delete this object",
         403
@@ -191,8 +180,8 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
     return c.text("Missing required parameters: id and mimeType", 400);
   }
 
-  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organization.id) {
+  const organizationId = c.get("organizationId");
+  if (!organizationId) {
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
 
@@ -209,7 +198,7 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
     const { metadata } = result;
 
     // Check if the object belongs to the user's organization
-    if (metadata?.organizationId !== authPayload.organization.id) {
+    if (metadata?.organizationId !== organizationId) {
       return c.text(
         "Forbidden: You do not have access to this object's metadata",
         403
@@ -237,12 +226,10 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
 });
 
 objectRoutes.get("/list", jwtMiddleware, async (c) => {
-  const authPayload = c.get("jwtPayload") as CustomJWTPayload;
-  if (!authPayload || !authPayload.organization.id) {
+  const organizationId = c.get("organizationId");
+  if (!organizationId) {
     return c.text("Unauthorized: Organization ID is missing", 401);
   }
-
-  const organizationId = String(authPayload.organization.id);
 
   try {
     const objectStore = new ObjectStore(c.env.BUCKET);

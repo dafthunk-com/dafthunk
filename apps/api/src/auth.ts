@@ -32,14 +32,21 @@ const urlToTopLevelDomain = (url: string): string => {
 };
 
 // Auth middleware
-export const jwtMiddleware = (
+export const jwtMiddleware = async (
   c: Context<ApiContext>,
   next: () => Promise<void>
 ) => {
-  return jwt({
+  await jwt({
     secret: c.env.JWT_SECRET,
     cookie: JWT_SECRET_TOKEN_NAME,
-  })(c, next);
+  })(c, async () => {});
+
+  const payload = c.get("jwtPayload") as CustomJWTPayload | undefined;
+  if (!payload || !payload.organization.id) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  c.set("organizationId", payload.organization.id);
+  await next();
 };
 
 // API key authentication middleware

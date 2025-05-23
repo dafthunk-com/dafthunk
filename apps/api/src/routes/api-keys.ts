@@ -10,7 +10,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import { jwtMiddleware } from "../auth";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { createApiKey, deleteApiKey, getApiKeys } from "../db";
 
@@ -26,11 +26,14 @@ apiKeyRoutes.use("*", jwtMiddleware);
  * List all API keys for the current organization
  */
 apiKeyRoutes.get("/", async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId");
+  if (!orgId) {
+    return c.json({ error: "Organization ID not found in token" }, 401);
+  }
   const db = createDatabase(c.env.DB);
 
   try {
-    const apiKeys = await getApiKeys(db, user.organization.id);
+    const apiKeys = await getApiKeys(db, orgId);
     const response: ListApiKeysResponse = { apiKeys };
     return c.json(response);
   } catch (error) {
@@ -53,12 +56,15 @@ apiKeyRoutes.post(
     }) as z.ZodType<CreateApiKeyRequest>
   ),
   async (c) => {
-    const user = c.get("jwtPayload") as CustomJWTPayload;
+    const orgId = c.get("organizationId");
+    if (!orgId) {
+      return c.json({ error: "Organization ID not found in token" }, 401);
+    }
     const db = createDatabase(c.env.DB);
     const { name } = c.req.valid("json");
 
     try {
-      const result = await createApiKey(db, user.organization.id, name);
+      const result = await createApiKey(db, orgId, name);
 
       const apiKeyWithSecret: ApiKeyWithSecret = {
         apiKey: result.rawApiKey,
@@ -82,12 +88,15 @@ apiKeyRoutes.post(
  * Delete an API key
  */
 apiKeyRoutes.delete("/:id", async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
+  const orgId = c.get("organizationId");
+  if (!orgId) {
+    return c.json({ error: "Organization ID not found in token" }, 401);
+  }
   const db = createDatabase(c.env.DB);
   const apiKeyId = c.req.param("id");
 
   try {
-    const success = await deleteApiKey(db, apiKeyId, user.organization.id);
+    const success = await deleteApiKey(db, apiKeyId, orgId);
 
     const response: DeleteApiKeyResponse = { success };
 

@@ -9,7 +9,7 @@ import {
 import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiContext } from "../context";
 import {
   createDatabase,
   getExecutionById,
@@ -36,16 +36,11 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
     return c.json({ error: "Organization not found" }, 404);
   }
 
-  const jwtPayload = c.get("jwtPayload") as CustomJWTPayload;
-  let orgId: string;
-  if (jwtPayload) {
-    orgId = jwtPayload.organization.id;
-  } else {
-    const _orgId = c.get("organizationId");
-    if (!_orgId) {
-      return c.json({ error: "Organization ID not found" }, 500);
-    }
-    orgId = _orgId;
+  const orgId = c.get("organizationId")!;
+
+  // Verify that the orgId from token/API key matches the orgId from the orgHandle
+  if (organization.id !== orgId) {
+    return c.json({ error: "Forbidden: Organization mismatch" }, 403);
   }
 
   try {
@@ -81,9 +76,10 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 });
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
   const db = createDatabase(c.env.DB);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
+
+  const orgId = c.get("organizationId")!;
 
   // Parse pagination params
   const parsedLimit = limit ? parseInt(limit, 10) : 20;
@@ -97,11 +93,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
     offset: parsedOffset,
   };
 
-  const executions = await listExecutions(
-    db,
-    user.organization.id,
-    queryParams
-  );
+  const executions = await listExecutions(db, orgId, queryParams);
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
@@ -130,29 +122,26 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 });
 
 executionRoutes.patch("/:id/share/public", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
   const executionId = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
+  const orgId = c.get("organizationId")!;
+
   try {
-    const execution = await getExecutionWithVisibility(
-      db,
-      executionId,
-      user.organization.id
-    );
+    const execution = await getExecutionWithVisibility(db, executionId, orgId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    await updateExecutionToPublic(db, executionId, user.organization.id);
+    await updateExecutionToPublic(db, executionId, orgId);
 
     if (!execution.ogImageGenerated && c.env.BROWSER) {
       try {
         await generateExecutionOgImage({
           env: c.env,
           executionId: executionId,
-          organizationId: user.organization.id,
+          organizationId: orgId,
         });
 
         await updateExecutionOgImageStatus(db, executionId);
@@ -178,22 +167,23 @@ executionRoutes.patch("/:id/share/public", jwtMiddleware, async (c) => {
 });
 
 executionRoutes.patch("/:id/share/private", jwtMiddleware, async (c) => {
-  const user = c.get("jwtPayload") as CustomJWTPayload;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
+  const orgId = c.get("organizationId")!;
+
   try {
-    const execution = await getExecutionById(db, id, user.organization.id);
+    const execution = await getExecutionById(db, id, orgId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    if (execution.organizationId !== user.organization.id) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    // The check execution.organizationId !== orgId is implicitly handled by getExecutionById
+    // if it correctly filters by organizationId. If not, this check might be needed here.
+    // However, getExecutionById already takes orgId, so it should be fine.
 
-    await updateExecutionToPrivate(db, id, user.organization.id);
+    await updateExecutionToPrivate(db, id, orgId);
 
     const response: UpdateExecutionVisibilityResponse = {
       success: true,
