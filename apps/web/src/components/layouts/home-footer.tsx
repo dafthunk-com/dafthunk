@@ -1,106 +1,109 @@
-import { Globe } from "lucide-react";
+import { Github, FileText, Shield, Info } from "lucide-react";
 import { Link } from "react-router";
+import { Logo } from "../logo";
 
 export function HomeFooter() {
   const currentYear = new Date().getFullYear();
 
+  const footerSections = [
+    {
+      title: "Links",
+      links: [
+        {
+          label: "Playground",
+          to: "/workflows/playground",
+        },
+        {
+          label: "Features",
+          to: "/#features",
+        },
+        {
+          label: "Documentation",
+          to: "/docs",
+        },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        {
+          label: "About Us",
+          href: "/about", // Placeholder, update with actual link
+          icon: <Info className="h-4 w-4 mr-2" />,
+        },
+        {
+          label: "Privacy Policy",
+          href: "/privacy", // Placeholder, update with actual link
+          icon: <Shield className="h-4 w-4 mr-2" />,
+        },
+        {
+          label: "Terms of Service",
+          href: "/terms", // Placeholder, update with actual link
+          icon: <FileText className="h-4 w-4 mr-2" />,
+        },
+      ],
+    },
+    {
+      title: "Community",
+      links: [
+        {
+          label: "GitHub",
+          href: "https://github.com/heigvd-software-engineering/workflow",
+          icon: <Github className="h-4 w-4 mr-2" />,
+        },
+        // Add other community links here if needed
+      ],
+    },
+  ];
+
   return (
-    <footer className="bg-neutral-100 dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-          {/* Logo and Copyright */}
-          <div className="flex flex-col items-center md:items-start">
-            <Link to="/" className="flex items-center gap-2 mb-2">
-              <Globe className="h-7 w-7 text-primary" />{" "}
-              {/* Placeholder Icon */}
-              <span className="text-xl font-bold">Dafthunk</span>
+    <footer className="bg-background border-t border-border">
+      <div className="container mx-auto px-6 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          {/* Logo and Copyright - Spans 2 columns on larger screens if needed or adjust grid */}
+          <div className="md:col-span-1 lg:col-span-1 flex flex-col items-start">
+            <Link to="/" className="flex items-center gap-2 mb-3">
+              <Logo />
             </Link>
-            <p className="text-sm text-muted-foreground">
-              &copy; {currentYear} Dafthunk. All rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Workflow execution, simplified.
-            </p>
           </div>
 
-          {/* Navigation Links - Column 1 */}
-          <div className="text-center md:text-left">
-            <h3 className="font-semibold mb-3">Product</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  to="/workflows/playground"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Playground
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/docs"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/#features"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Features
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Navigation Links */}
+          {footerSections.map((section) => (
+            <div key={section.title} className="text-left">
+              <h3 className="font-semibold text-foreground mb-4">
+                {section.title}
+              </h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    {link.to ? (
+                      <Link
+                        to={link.to}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center"
+                      >
+                        {link.icon}
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center"
+                      >
+                        {link.icon}
+                        {link.label}
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
 
-          {/* Navigation Links - Column 2 */}
-          <div className="text-center md:text-left">
-            <h3 className="font-semibold mb-3">Company</h3>
-            <ul className="space-y-2">
-              <li>
-                {/* These are placeholders, update with actual links */}
-                <a
-                  href="/about"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/heigvd-software-engineering/workflow"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  GitHub
-                </a>
-              </li>
-            </ul>
-          </div>
+        <div className="border-t border-border pt-8 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
+          <p>&copy; {currentYear} Dafthunk. All rights reserved.</p>
         </div>
       </div>
     </footer>
