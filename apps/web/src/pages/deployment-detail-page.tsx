@@ -165,9 +165,9 @@ export function DeploymentDetailPage() {
 
   const {
     executeWorkflow,
-    isExecutionFormVisible,
+    isFormDialogVisible,
     executionFormParameters,
-    submitExecutionForm,
+    submitFormData,
     closeExecutionForm,
   } = useWorkflowExecution(orgHandle);
 
@@ -347,12 +347,12 @@ export function DeploymentDetailPage() {
             </div>
           )}
 
-          {isExecutionFormVisible && (
+          {isFormDialogVisible && (
             <ExecutionFormDialog
-              isOpen={isExecutionFormVisible}
+              isOpen={isFormDialogVisible}
               onClose={closeExecutionForm}
               parameters={executionFormParameters}
-              onSubmit={submitExecutionForm}
+              onSubmit={submitFormData}
             />
           )}
         </div>
