@@ -1,5 +1,6 @@
-import { Github, FileText, Shield, Info } from "lucide-react";
+import { FileText, Github, Info, Shield } from "lucide-react";
 import { Link } from "react-router";
+
 import { Logo } from "../logo";
 
 export function HomeFooter() {

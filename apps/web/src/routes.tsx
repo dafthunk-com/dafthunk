@@ -84,11 +84,7 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/login",
-    element: (
-      <AppLayout>
-        <LoginPage />
-      </AppLayout>
-    ),
+    element: <LoginPage />,
     handle: {
       head: (
         <HeadSeo title="Login - Dafthunk" description="Login to Dafthunk." />

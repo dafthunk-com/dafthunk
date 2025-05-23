@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowRight,
   CheckCircle,
@@ -15,12 +13,20 @@ import {
   Workflow,
   Zap,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 
-import { AppLayout } from "@/components/layouts/app-layout";
 import { HomeFooter } from "@/components/layouts/home-footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/components/auth-context";
 
 export function HomePage() {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
+  }
+
   const features = [
     {
       icon: <Workflow className="h-8 w-8 text-primary" />,
@@ -70,7 +76,7 @@ export function HomePage() {
   ];
 
   return (
-    <AppLayout>
+    <>
       {/* Hero Section */}
       <section className="py-24 md:py-32 lg:py-40 bg-gradient-to-br from-primary/15 via-primary/5 to-background">
         <div className="container mx-auto text-center px-6">
@@ -253,6 +259,6 @@ export function HomePage() {
       </section>
 
       <HomeFooter />
-    </AppLayout>
+    </>
   );
 }

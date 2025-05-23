@@ -4,7 +4,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/utils/utils";
 
 import { useAuth } from "./auth-context";
@@ -20,64 +26,46 @@ export function LoginForm({
   };
 
   return (
-    <div
-      className={cn("flex flex-col gap-6 max-w-4xl mx-auto", className)}
-      {...props}
-    >
-      <Card className="overflow-hidden">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <div className="p-6 md:p-8 flex items-center">
-            <div className="flex flex-col gap-8 w-full py-8">
-              <Link
-                to="/"
-                className="flex items-center gap-2 self-center font-medium"
-              >
-                <img
-                  src="/logo.svg"
-                  alt="dafthunk"
-                  className="h-16 dark:invert"
-                />
-              </Link>
-              <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">
-                  Workflows no one asked for
-                </h1>
-                <p className="text-balance text-muted-foreground mt-2">
-                  Break it, fix it, prompt it, automatic, automatic, ...
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 w-full">
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl flex justify-center">
+            <Link
+              to="/"
+              className="flex items-center gap-2 self-center font-medium"
+            >
+              <img
+                src="/logo.svg"
+                alt="dafthunk"
+                className="h-16 dark:invert"
+              />
+            </Link>
+          </CardTitle>
+          <CardDescription>
+            Break it, fix it, prompt it, automatic, automatic, ...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid gap-6">
+              <div className="flex flex-col gap-4">
                 <Button
                   onClick={() => handleLoginClick("google")}
-                  className="w-full py-6"
-                  size="lg"
+                  variant="outline"
+                  className="w-full"
                 >
                   <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
-                  Sign in with Google
+                  Login with Google
                 </Button>
                 <Button
                   onClick={() => handleLoginClick("github")}
-                  className="w-full py-6"
-                  size="lg"
+                  variant="outline"
+                  className="w-full"
                 >
                   <FontAwesomeIcon icon={faGithub} className="w-5 h-5 mr-2" />
-                  Sign in with GitHub
+                  Login with GitHub
                 </Button>
               </div>
             </div>
-          </div>
-          <div className="relative hidden md:block h-[600px] bg-muted">
-            <img
-              src="/dafthunk-light.png"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:hidden"
-            />
-            <img
-              src="/dafthunk-dark.png"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover hidden dark:block"
-            />
-          </div>
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
