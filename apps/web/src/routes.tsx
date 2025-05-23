@@ -16,7 +16,7 @@ import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
-import { HomePage } from "./pages/home-page";
+import { LoginPage } from "./pages/login-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
@@ -73,15 +73,15 @@ const footerItems = [];
 
 export const routes: AppRouteObject[] = [
   {
-    path: "/",
+    path: "/login",
     element: (
       <AppLayout>
-        <HomePage />
+        <LoginPage />
       </AppLayout>
     ),
     handle: {
       head: (
-        <HeadSeo title="Home - Dafthunk" description="Welcome to Dafthunk." />
+        <HeadSeo title="Login - Dafthunk" description="Login to Dafthunk." />
       ),
     },
   },

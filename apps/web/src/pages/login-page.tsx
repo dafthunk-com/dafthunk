@@ -3,7 +3,7 @@ import { Navigate } from "react-router";
 import { useAuth } from "@/components/auth-context";
 import { LoginForm } from "@/components/login-form";
 
-export function HomePage() {
+export function LoginPage() {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {

@@ -1,6 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
-
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -21,14 +18,7 @@ const formatRoleName = (role: string | undefined) => {
 };
 
 export function ProfilePage() {
-  const { user, isAuthenticated, isLoading, error } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate("/");
-    }
-  }, [isLoading, isAuthenticated, navigate]);
+  const { user, isLoading, error } = useAuth();
 
   if (isLoading) {
     return <InsetLoading title="Profile" />;

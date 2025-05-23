@@ -47,8 +47,8 @@ export function AppHeader() {
             </>
           ) : (
             <NavLink
-              to="/"
-              isActive={(pathname) => pathname === "/"}
+              to="/login"
+              isActive={(pathname) => pathname === "/login"}
               className={navLinkClasses}
               activeClassName={activeNavLinkClasses}
             >
