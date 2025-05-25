@@ -58,7 +58,7 @@ export function HomeFooter() {
   ];
 
   return (
-    <footer className="bg-background border-t border-border">
+    <footer className="bg-white dark:bg-black border-t">
       <div className="container mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Logo and Copyright - Spans 2 columns on larger screens if needed or adjust grid */}

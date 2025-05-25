@@ -46,26 +46,26 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid gap-6">
-              <div className="flex flex-col gap-4">
-                <Button
-                  onClick={() => handleLoginClick("google")}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
-                  Login with Google
-                </Button>
-                <Button
-                  onClick={() => handleLoginClick("github")}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <FontAwesomeIcon icon={faGithub} className="w-5 h-5 mr-2" />
-                  Login with GitHub
-                </Button>
-              </div>
+          <div className="grid gap-6">
+            <div className="flex flex-col gap-4">
+              <Button
+                onClick={() => handleLoginClick("google")}
+                variant="outline"
+                className="w-full"
+              >
+                <FontAwesomeIcon icon={faGoogle} className="w-5 h-5 mr-2" />
+                Login with Google
+              </Button>
+              <Button
+                onClick={() => handleLoginClick("github")}
+                variant="outline"
+                className="w-full"
+              >
+                <FontAwesomeIcon icon={faGithub} className="w-5 h-5 mr-2" />
+                Login with GitHub
+              </Button>
             </div>
+          </div>
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
