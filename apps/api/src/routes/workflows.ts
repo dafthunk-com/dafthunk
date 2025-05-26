@@ -465,10 +465,10 @@ workflowRoutes.post(
     });
     const executionId = instance.id;
 
-    // Build initial nodeExecutions (all idle)
+    // Build initial nodeExecutions
     const nodeExecutions = workflowData.nodes.map((node: Node) => ({
       nodeId: node.id,
-      status: "idle" as const,
+      status: "executing" as const,
     }));
 
     // Save initial execution record
