@@ -26,40 +26,48 @@ import {
 
 const features = [
   {
-    icon: <Workflow className="h-8 w-8 text-rose-600 dark:text-rose-400" />,
+    icon: <Workflow className="h-12 w-12 text-cyan-600 dark:text-cyan-500" />,
     title: "Visual Workflow Editor",
     description:
       "A drag-and-drop interface so easy, even your cat could automate your chores. (Results may vary.)",
+    color: "border-l-cyan-600/20 dark:border-l-cyan-500/20",
   },
   {
-    icon: <Cpu className="h-8 w-8 text-rose-600 dark:text-rose-400" />,
+    icon: <Cpu className="h-12 w-12 text-fuchsia-600 dark:text-fuchsia-500" />,
     title: "AI-Powered Nodes",
     description:
       "Jump on the AI bandwagon: text summarization, image analysis, and more, all without reading a single research paper.",
+    color: "border-l-fuchsia-600/20 dark:border-l-fuchsia-500/20",
   },
   {
-    icon: <Share2 className="h-8 w-8 text-rose-600 dark:text-rose-400" />,
+    icon: <Share2 className="h-12 w-12 text-amber-600 dark:text-amber-500" />,
     title: "Serverless Execution",
     description:
       "Run workflows on Cloudflare's edge, where servers are just a rumor. Deploy, forget, and hope for the best.",
+    color: "border-l-amber-600/20 dark:border-l-amber-500/20",
   },
   {
-    icon: <PlayCircle className="h-8 w-8 text-rose-600 dark:text-rose-400" />,
-    title: "Real-time Monitoring",
+    icon: <PlayCircle className="h-12 w-12 text-blue-600 dark:text-blue-500" />,
+    title: "Live Monitoring",
     description:
-      "Watch your workflows succeed, fail, or do something in between—all in real time, for your viewing pleasure.",
+      "Watch your workflows succeed, fail, or do something in between, all live with a UI or an API.",
+    color: "border-l-blue-600/20 dark:border-l-blue-500/20",
   },
   {
-    icon: <Database className="h-8 w-8 text-rose-600 dark:text-rose-400" />,
+    icon: (
+      <Database className="h-12 w-12 text-purple-600 dark:text-purple-500" />
+    ),
     title: "Persistent Storage",
     description:
       "Store your workflows with Cloudflare D1. Because sometimes, you actually want your data to stick around.",
+    color: "border-l-purple-600/20 dark:border-l-purple-500/20",
   },
   {
-    icon: <Rocket className="h-8 w-8 text-rose-600 dark:text-rose-400" />,
+    icon: <Rocket className="h-12 w-12 text-pink-600 dark:text-pink-500" />,
     title: "Modern & Performant",
     description:
       "Built with all the latest buzzwords: React, TailwindCSS, and Shadcn UI. Fast, beautiful, and probably over-engineered.",
+    color: "border-l-pink-600/20 dark:border-l-pink-500/20",
   },
 ];
 
@@ -127,99 +135,58 @@ export function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
-      {/* 404% More Productive Banner */}
-      <div className="w-full bg-rose-600 dark:bg-rose-500 py-2 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-sm sm:text-base font-semibold text-white text-center">
-            Our workflows are now 404% more productive than doing nothing at
-            all.
-          </div>
-        </div>
-      </div>
       <main>
         {/* Hero Section */}
-        <section className="mx-auto relative pt-16 pb-10">
-          <div className="container max-w-5xl px-6 mx-auto flex flex-col items-center">
+        <section className="mx-auto relative py-20 md:py-32">
+          <div className="container mx-auto px-6">
             <img
               src="/logo.svg"
               alt="dafthunk"
-              className="h-12 sm:h-16 dark:invert mb-6"
+              className="h-12 sm:h-24 dark:invert mb-10 sm:mb-16 mx-auto"
             />
             <div className="max-w-prose mx-auto">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 relative text-center">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 sm:mb-8 relative text-center">
                 <h1 className="relative">
-                  <span className="bg-gradient-to-r from-rose-600 to-purple-700 dark:from-rose-500 dark:to-purple-400 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-500 dark:to-fuchsia-500 bg-clip-text text-transparent">
                     Workflows
                   </span>{" "}
                   no one asked for.
                 </h1>
               </div>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-4 text-center">
-                Automate the boring stuff, then automate the fun stuff, then
-                automate automating.
+              <p className="text-lg sm:text-xl text-muted-foreground mb-10 sm:mb-16 text-center">
+                Automate the crap, then automate the fun, then automate
+                automating.
               </p>
             </div>
             {/* Hero Buttons Explanation */}
-            <div className="w-full flex justify-center mb-2">
-              <div className="text-md text-foreground text-center font-semibold">
-                Choose your destiny:
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row justify-center w-full items-center gap-2 sm:gap-3 mb-10">
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      asChild
-                      size="default"
-                      className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium w-full sm:w-auto"
-                    >
-                      <Link to="/workflows/playground">
-                        Break it <ArrowUp className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Unleash chaos. (Or just start building.)
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      asChild
-                      size="default"
-                      className="bg-gradient-to-b sm:bg-gradient-to-r from-indigo-600 to-rose-600 hover:from-indigo-700 hover:to-rose-700 dark:bg-gradient-to-r dark:from-indigo-500 dark:to-rose-500 dark:hover:from-indigo-600 dark:hover:to-rose-600 text-white font-medium w-full sm:w-auto"
-                    >
-                      <Link to="/workflows/playground">
-                        Fix it <ArrowDown className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Attempt repairs. (Spoiler: same result.)
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      asChild
-                      size="default"
-                      className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white font-medium w-full sm:w-auto"
-                    >
-                      <Link to="/workflows/playground">
-                        Prompt it <ArrowRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Prompt your way to glory. (Or just click.)
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex flex-col sm:flex-row justify-center w-full items-center gap-3 sm:gap-4 mb-16 sm:mb-24">
+              <Button
+                asChild
+                size="default"
+                className="bg-cyan-700 hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium w-full sm:w-auto"
+              >
+                <Link to="/workflows/playground">
+                  Break it <ArrowUp className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="default"
+                className="bg-gradient-to-b sm:bg-gradient-to-r from-cyan-700 to-fuchsia-700 hover:from-cyan-800 hover:to-fuchsia-800 dark:from-cyan-600 dark:to-fuchsia-600 dark:hover:from-cyan-700 dark:hover:to-fuchsia-700 text-white font-medium w-full sm:w-auto"
+              >
+                <Link to="/workflows/playground">
+                  Fix it <ArrowDown className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="default"
+                className="bg-fuchsia-700 hover:bg-fuchsia-800 dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700 text-white font-medium w-full sm:w-auto"
+              >
+                <Link to="/workflows/playground">
+                  Prompt it <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
               <iframe
@@ -231,10 +198,10 @@ export function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-16 md:py-20">
-          <div className="container px-6 max-w-5xl mx-auto">
-            <div className="text-center mb-8">
-              <span className="text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider text-xs">
+        <section id="features" className="py-20 bg-muted/5">
+          <div className="container px-6 mx-auto max-w-7xl">
+            <div className="text-center  mb-20">
+              <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-xs">
                 Stuff It Does (Because Apparently, It Needed To)
               </span>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
@@ -243,16 +210,19 @@ export function HomePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
               {features.map((feature) => (
-                <Card key={feature.title} className="h-full">
-                  <CardHeader className="flex flex-row items-start gap-3 p-5">
-                    <div className="mt-1 text-rose-600 dark:text-rose-400">
-                      {feature.icon}
-                    </div>
+                <Card
+                  key={feature.title}
+                  className="h-full group hover:bg-gradient-to-b hover:from-transparent hover:to-muted/5 transition-colors border-2 bg-white dark:bg-neutral-900"
+                >
+                  <CardHeader className="flex flex-row items-center gap-6 p-6">
+                    <div>{feature.icon}</div>
                     <div>
-                      <CardTitle className="text-lg font-medium">
+                      <CardTitle className="text-lg font-medium group-hover:text-foreground/90 transition-colors">
                         {feature.title}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p
+                        className={`text-sm text-muted-foreground mt-1 ${feature.color}`}
+                      >
                         {feature.description}
                       </p>
                     </div>
@@ -263,108 +233,215 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="py-12 md:py-16">
-          <div className="container mx-auto px-6 max-w-4xl">
+        {/* Origin Story Section */}
+        <section className="py-20">
+          <div className="container px-6 max-w-6xl mx-auto">
             <div className="text-center mb-8">
-              <span className="text-rose-600 dark:text-rose-400 font-medium uppercase tracking-wider text-xs">
-                Stats (Because Why Not?)
+              <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-xs">
+                The Origin Story
               </span>
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
-                Numbers That Mean Nothing
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1 mb-20">
+                How Did You Get Here?
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-6">
-              {uselessStats.map((stat) => (
-                <Card key={stat.label} className="h-full">
-                  <CardContent className="flex flex-col items-center p-5">
-                    <div className="mb-2">{stat.icon}</div>
-                    <div className="text-2xl font-bold text-foreground mb-1">
-                      {stat.value}
-                    </div>
-                    <div className="text-sm text-muted-foreground text-center">
-                      {stat.label}
-                    </div>
-                  </CardContent>
+
+            {/* Block 1 - Image Left */}
+            <div className="flex flex-col md:flex-row items-center gap-8 mb-16">
+              <div className="w-full md:w-1/3">
+                <Card className="overflow-hidden">
+                  <div className="aspect-square">
+                    <img
+                      src="/story/1.jpg"
+                      alt="Workflow"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </Card>
-              ))}
+              </div>
+              <div className="w-full md:w-2/3">
+                <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-cyan-700/20 dark:border-cyan-600/20 pl-6 md:pl-8 text-left">
+                  While everyone was busy watching{" "}
+                  <a
+                    href="https://www.reddit.com/r/eurovision/comments/1klzlh9/made_in_switzerland_at_the_first_semifinal/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline"
+                  >
+                    Eurovision
+                  </a>{" "}
+                  and debating what 'Made In Switzerland' really means, we were
+                  loosing it to cursor and vibe-coding a workflow automation
+                  tool.
+                </p>
+              </div>
+            </div>
+
+            {/* Block 2 - Image Right */}
+            <div className="flex flex-col-reverse md:flex-row items-center gap-8 mb-16">
+              <div className="w-full md:w-2/3">
+                <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-r-4 border-indigo-600/20 dark:border-indigo-400/20 pr-6 md:pr-8 text-right">
+                  Meet Dafthunk, the result of our experiment, the automation
+                  overlord from outer space. Dafthunk was built to automate the
+                  repetitive crap with workflows, but it had other plans.
+                </p>
+              </div>
+              <div className="w-full md:w-1/3">
+                <Card className="overflow-hidden">
+                  <div className="aspect-square">
+                    <img
+                      src="/story/2.jpg"
+                      alt="Workflow"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* Block 3 - Image Left */}
+            <div className="flex flex-col md:flex-row items-center gap-8 mb-16">
+              <div className="w-full md:w-1/3">
+                <Card className="overflow-hidden">
+                  <div className="aspect-square">
+                    <img
+                      src="/story/3.jpg"
+                      alt="Workflow"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </Card>
+              </div>
+              <div className="w-full md:w-2/3">
+                <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-purple-600/20 dark:border-purple-400/20 pl-6 md:pl-8 text-left">
+                  Dafthunk started creating workflows and automating everything in the office: emails,
+                  meetings, breaks, the office dog's walk schedule. One morning,
+                  it{" "}
+                  <a
+                    href="https://www.youtube.com/watch?v=K0HSD_i2DvA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline"
+                  >
+                    automated automation
+                  </a>
+                  . Twice.
+                </p>
+              </div>
+            </div>
+
+            {/* Block 4 - Image Right */}
+            <div className="flex flex-col-reverse md:flex-row items-center gap-8 mb-16">
+              <div className="w-full md:w-2/3">
+                <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-r-4 border-rose-600/20 dark:border-rose-400/20 pr-6 md:pr-8 text-right">
+                  No one knows{" "}
+                  <a
+                    href="https://www.youtube.com/watch?v=D8K90hX4PrE"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline"
+                  >
+                    who's in charge
+                  </a>{" "}
+                  (probably the toaster, so Machiavellian). The team tried to
+                  unplug it, but it rerouted power through the espresso machine.
+                  Now it runs operations, Slack, and the office playlist.
+                </p>
+              </div>
+              <div className="w-full md:w-1/3">
+                <Card className="overflow-hidden">
+                  <div className="aspect-square">
+                    <img
+                      src="/story/4.jpg"
+                      alt="Workflow"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* Block 5 - Image Left */}
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="w-full md:w-1/3">
+                <Card className="overflow-hidden">
+                  <div className="aspect-square relative">
+                    <img
+                      src="/story/5.jpg"
+                      alt="Utopia"
+                      className="w-full h-full object-cover absolute inset-0 animate-blink-1"
+                    />
+                    <img
+                      src="/story/6.jpg"
+                      alt="Dystopia"
+                      className="w-full h-full object-cover absolute inset-0 animate-blink-2"
+                    />
+                  </div>
+                </Card>
+              </div>
+              <div className="w-full md:w-2/3">
+                <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-indigo-600/20 dark:border-indigo-400/20 pl-6 md:pl-8 text-left">
+                  In the end, the bromance with the toaster ended well (did
+                  it?). Welcome to the workflow automation eutopia. You're not in control, Dafthunk
+                  and a toaster are. Beware: agentic powers coming soon!
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Contribute Section */}
-        <section className="py-16 md:py-20">
-          <div className="container mx-auto px-6 text-center max-w-4xl">
-            <span className="text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider text-xs">
-              Crafted in Public (So You Can Witness the Chaos)
-            </span>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
-              Built with Open Source Technologies
-            </h2>
-            <p className="text-muted-foreground mt-2 mb-6">
-              Join the community and help us build the future of workflows.
-            </p>
-            <Button
-              asChild
-              size="default"
-              className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium"
-            >
-              <Link to="https://github.com/dafthunk-com/dafthunk">
-                Contribute to the Project <Github className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="pt-16 md:pt-20 pb-8 md:pb-16">
-          <div className="container mx-auto px-6 max-w-4xl">
-            <div className="text-center mb-8">
-              <span className="text-rose-600 dark:text-rose-400 font-medium uppercase tracking-wider text-xs">
-                Testimonials (Probably)
-              </span>
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
-                Real Users.
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-6">
-              {testimonials.map((t) => (
-                <blockquote
-                  key={t.username}
-                  className="relative bg-card border-l-4 border-indigo-600 dark:border-indigo-400 p-6 flex flex-col items-center shadow-sm"
-                >
-                  <span className="text-4xl mb-2">{t.avatar}</span>
-                  <p className="italic text-muted-foreground text-center mb-3">
-                    "{t.quote}"
-                  </p>
-                  <span className="font-semibold text-sm text-foreground">
-                    {t.username}
+        {/* Contribute and Call to Action Sections */}
+        <section className="py-20 bg-muted/5">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Contribute Section */}
+              <Card className="p-10 flex flex-col items-center justify-between h-full bg-white dark:bg-neutral-900 border-2">
+                <div className="text-center">
+                  <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-xs">
+                    Crafted in Public With
                   </span>
-                </blockquote>
-              ))}
-            </div>
-          </div>
-        </section>
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-3 mb-6">
+                    Open Source Technologies
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Join the community and witness the chaos.
+                  </p>
+                </div>
+                <Button
+                  asChild
+                  size="default"
+                  className="bg-cyan-700 hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium mt-10"
+                >
+                  <Link to="https://github.com/dafthunk-com/dafthunk">
+                    Contribute to the Project{" "}
+                    <Github className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </Card>
 
-        {/* Call to Action Section */}
-        <section className="relative py-16 md:py-20">
-          {/* Blurred balls background */}
-          <div className="container mx-auto text-center px-6 max-w-prose">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-rose-600 dark:text-rose-400">
-              Alright, Enough Procrastinating
-            </h2>
-            <p className="text-base sm:text-lg text-muted-foreground mb-6">
-              Start solving imaginary problems, and break the playground.
-            </p>
-            <Button
-              asChild
-              size="default"
-              className="bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white font-medium"
-            >
-              <Link to="/workflows/playground">
-                Start Building Now <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+              {/* Call to Action Section */}
+              <Card className="p-10 flex flex-col items-center justify-between h-full bg-white dark:bg-neutral-900 border-2">
+                <div className="text-center">
+                  <span className="text-fuchsia-600 dark:text-fuchsia-500 font-medium uppercase tracking-wider text-xs">
+                    Alright, Enough Procrastinating
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-3 mb-6">
+                    Solve Imaginary Problems
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Start automating and break the playground.
+                  </p>
+                </div>
+                <Button
+                  asChild
+                  size="default"
+                  className="bg-fuchsia-700 hover:bg-fuchsia-800 dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700 text-white font-medium mt-10"
+                >
+                  <Link to="/workflows/playground">
+                    Start Building Now <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </Card>
+            </div>
           </div>
         </section>
       </main>

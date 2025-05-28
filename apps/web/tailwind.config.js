@@ -65,25 +65,41 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "blink-1": {
+          "0%": { opacity: "1" },
+          "47%": { opacity: "1" },
+          "48%": { opacity: "0" },
+          "52%": { opacity: "0" },
+          "53%": { opacity: "1" },
+          "97%": { opacity: "1" },
+          "98%": { opacity: "0" },
+          "99.5%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "blink-2": {
+          "0%": { opacity: "0" },
+          "47%": { opacity: "0" },
+          "48%": { opacity: "1" },
+          "52%": { opacity: "1" },
+          "53%": { opacity: "0" },
+          "97%": { opacity: "0" },
+          "98%": { opacity: "1" },
+          "99.5%": { opacity: "1" },
+          "100%": { opacity: "0" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "blink-1": "blink-1 2.7s ease-out infinite",
+        "blink-2": "blink-2 2.7s ease-out infinite",
       },
     },
   },
