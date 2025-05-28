@@ -130,7 +130,7 @@ export function HomePage() {
       {/* 404% More Productive Banner */}
       <div className="w-full bg-rose-600 dark:bg-rose-500 py-2 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="text-base font-semibold text-white text-center">
+          <div className="text-sm sm:text-base font-semibold text-white text-center">
             Our workflows are now 404% more productive than doing nothing at
             all.
           </div>
@@ -268,13 +268,13 @@ export function HomePage() {
           <div className="container mx-auto px-6 max-w-4xl">
             <div className="text-center mb-8">
               <span className="text-rose-600 dark:text-rose-400 font-medium uppercase tracking-wider text-xs">
-                Useless Stats (Because Why Not?)
+                Stats (Because Why Not?)
               </span>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
                 Numbers That Mean Nothing
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-6">
               {uselessStats.map((stat) => (
                 <Card key={stat.label} className="h-full">
                   <CardContent className="flex flex-col items-center p-5">
@@ -317,7 +317,7 @@ export function HomePage() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="py-16 md:py-20">
+        <section className="pt-16 md:pt-20 pb-8 md:pb-16">
           <div className="container mx-auto px-6 max-w-4xl">
             <div className="text-center mb-8">
               <span className="text-rose-600 dark:text-rose-400 font-medium uppercase tracking-wider text-xs">
@@ -327,7 +327,7 @@ export function HomePage() {
                 Real Users.
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-6">
               {testimonials.map((t) => (
                 <blockquote
                   key={t.username}

@@ -77,7 +77,7 @@ export function HomeFooter() {
   ];
 
   return (
-    <footer className="bg-white dark:bg-black border-t">
+    <footer className="bg-white dark:bg-black border-t mt-8 md:mt-16">
       <div className="container mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Logo and Copyright - Spans 2 columns on larger screens if needed or adjust grid */}
@@ -122,7 +122,7 @@ export function HomeFooter() {
           ))}
         </div>
 
-        <div className="border-t border-border pt-8 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
+        <div className="border-t border-border pt-8 flex flex-col sm:flex-row gap-2 justify-between items-center text-sm text-muted-foreground">
           <p>&copy; {currentYear} Dafthunk. All rights reserved.</p>
           {/* Uptime Counter */}
           <div className="rounded-md bg-neutral-100 dark:bg-neutral-800 px-4 py-1 text-xs font-mono text-neutral-700 dark:text-neutral-200 shadow border border-neutral-200 dark:border-neutral-700">
