@@ -1,4 +1,4 @@
-import { FileText, Github, Info, Shield } from "lucide-react";
+import { FileText, Github, Shield } from "lucide-react";
 import { Link } from "react-router";
 
 import { Logo } from "../logo";
@@ -25,13 +25,8 @@ export function HomeFooter() {
       ],
     },
     {
-      title: "Company",
+      title: "About",
       links: [
-        {
-          label: "About Us",
-          href: "/about", // Placeholder, update with actual link
-          icon: <Info className="h-4 w-4 mr-2" />,
-        },
         {
           label: "Privacy Policy",
           href: "/privacy", // Placeholder, update with actual link

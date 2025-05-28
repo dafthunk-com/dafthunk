@@ -15,7 +15,6 @@ import {
 import { Link, Navigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
-import { HOME_HEADER_HEIGHT, HomeHeader } from "@/components/home-header";
 import { HomeFooter } from "@/components/layouts/home-footer";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
@@ -85,17 +84,17 @@ export function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
-      <HomeHeader />
+      {/* <HomeHeader /> */}
 
       <main>
         {/* Hero Section */}
-        <section
-          className="mx-auto relative pt-16 pb-10"
-          style={{
-            marginTop: `${HOME_HEADER_HEIGHT}px`,
-          }}
-        >
-          <div className="container max-w-5xl px-6 mx-auto">
+        <section className="mx-auto relative pt-16 pb-10">
+          <div className="container max-w-5xl px-6 mx-auto flex flex-col items-center">
+            <img
+              src="/logo.svg"
+              alt="dafthunk"
+              className="h-16 dark:invert mb-6"
+            />
             <div className="max-w-prose mx-auto">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 relative text-center">
                 <h1 className="relative">
@@ -119,14 +118,6 @@ export function HomePage() {
                 <Link to="/workflows/playground">
                   Start Building <ArrowRight className="ms-1 size-4" />
                 </Link>
-              </Button>
-              <Button
-                asChild
-                size="default"
-                variant="ghost"
-                className="w-full sm:w-auto hover:bg-neutral-200/75 dark:hover:bg-neutral-800/75"
-              >
-                <Link to="/docs">Explore Docs</Link>
               </Button>
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
@@ -208,8 +199,7 @@ export function HomePage() {
               Alright, Enough Procrastinating
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground mb-8">
-              Stop reading this and break something in the playground.
-              Seriously.
+              Start solving imaginary problems, and break the playground.
             </p>
             <Button
               asChild
