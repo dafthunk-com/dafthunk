@@ -1,10 +1,34 @@
 import { FileText, Github, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 import { Logo } from "../logo";
 
 export function HomeFooter() {
   const currentYear = new Date().getFullYear();
+
+  // Uptime logic: hardcoded site launch date
+  const SITE_LAUNCH_DATE = new Date("2024-06-01T00:00:00Z");
+  const [uptime, setUptime] = useState<string>("");
+
+  useEffect(() => {
+    function updateUptime() {
+      const now = new Date();
+      let diff = Math.floor(
+        (now.getTime() - SITE_LAUNCH_DATE.getTime()) / 1000
+      );
+      const days = Math.floor(diff / 86400);
+      diff %= 86400;
+      const hours = Math.floor(diff / 3600);
+      diff %= 3600;
+      const minutes = Math.floor(diff / 60);
+      const seconds = diff % 60;
+      setUptime(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    }
+    updateUptime();
+    const interval = setInterval(updateUptime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const footerSections = [
     {
@@ -100,6 +124,11 @@ export function HomeFooter() {
 
         <div className="border-t border-border pt-8 flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground">
           <p>&copy; {currentYear} Dafthunk. All rights reserved.</p>
+          {/* Uptime Counter */}
+          <div className="rounded-md bg-neutral-100 dark:bg-neutral-800 px-4 py-1 text-xs font-mono text-neutral-700 dark:text-neutral-200 shadow border border-neutral-200 dark:border-neutral-700">
+            Site has been procrastinating for:{" "}
+            <span className="font-semibold">{uptime}</span>
+          </div>
         </div>
       </div>
     </footer>
