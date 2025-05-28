@@ -386,11 +386,13 @@ export const WorkflowNode = memo(
                           <div className="text-xs font-medium">
                             {output.name}
                           </div>
-                          <WorkflowOutputRenderer
-                            output={output}
-                            createObjectUrl={data.createObjectUrl}
-                            compact={true}
-                          />
+                          <div className="max-h-[300px] overflow-y-auto">
+                            <WorkflowOutputRenderer
+                              output={output}
+                              createObjectUrl={data.createObjectUrl}
+                              compact={true}
+                            />
+                          </div>
                         </div>
                       )
                   )}
