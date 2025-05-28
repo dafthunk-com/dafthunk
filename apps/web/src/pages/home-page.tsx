@@ -95,7 +95,7 @@ export function HomePage() {
             marginTop: `${HOME_HEADER_HEIGHT}px`,
           }}
         >
-          <div className="container auto px-6 mx-auto">
+          <div className="container max-w-5xl px-6 mx-auto">
             <div className="max-w-prose mx-auto">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 relative text-center">
                 <h1 className="relative">
@@ -129,13 +129,11 @@ export function HomePage() {
                 <Link to="/docs">Explore Docs</Link>
               </Button>
             </div>
-            <div className="max-w-5xl px-6 mx-auto">
-              <div className="w-full aspect-video overflow-hidden rounded-lg shadow-sm border grid place-items-center text-muted-foreground">
-                <iframe
-                  src={`https://www.dafthunk.com/public/executions/97e0f901-2d8c-46e7-b95a-437ca42eba15?fullscreen&theme=${theme}`}
-                  className="w-full h-full"
-                />
-              </div>
+            <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
+              <iframe
+                src={`https://www.dafthunk.com/public/executions/97e0f901-2d8c-46e7-b95a-437ca42eba15?fullscreen&theme=${theme}`}
+                className="w-full h-full"
+              />
             </div>
           </div>
         </section>
