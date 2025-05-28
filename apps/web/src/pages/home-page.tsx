@@ -130,7 +130,7 @@ export function HomePage() {
               </Button>
             </div>
             <div className="max-w-5xl px-6 mx-auto">
-              <div className="w-full aspect-video overflow-hidden rounded-lg border grid place-items-center text-muted-foreground">
+              <div className="w-full aspect-video overflow-hidden rounded-lg shadow-sm border grid place-items-center text-muted-foreground">
                 <iframe
                   src={`https://www.dafthunk.com/public/executions/97e0f901-2d8c-46e7-b95a-437ca42eba15?fullscreen&theme=${theme}`}
                   className="w-full h-full"
