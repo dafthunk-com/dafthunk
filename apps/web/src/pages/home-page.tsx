@@ -270,7 +270,7 @@ export function HomePage() {
               <span className="text-rose-600 dark:text-rose-400 font-medium uppercase tracking-wider text-xs">
                 Useless Stats (Because Why Not?)
               </span>
-              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-1">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
                 Numbers That Mean Nothing
               </h2>
             </div>
@@ -298,10 +298,10 @@ export function HomePage() {
             <span className="text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider text-xs">
               Crafted in Public (So You Can Witness the Chaos)
             </span>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1 mb-2">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
               Built with Open Source Technologies
             </h2>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mt-2 mb-6">
               Join the community and help us build the future of workflows.
             </p>
             <Button
@@ -321,10 +321,10 @@ export function HomePage() {
           <div className="container mx-auto px-6 max-w-4xl">
             <div className="text-center mb-8">
               <span className="text-rose-600 dark:text-rose-400 font-medium uppercase tracking-wider text-xs">
-                Testimonials
+                Testimonials (Probably)
               </span>
-              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-1">
-                Real Users. (Probably.)
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
+                Real Users.
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
