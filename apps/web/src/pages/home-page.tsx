@@ -17,11 +17,13 @@ import { Link, Navigate } from "react-router";
 import { useAuth } from "@/components/auth-context";
 import { HOME_HEADER_HEIGHT, HomeHeader } from "@/components/home-header";
 import { HomeFooter } from "@/components/layouts/home-footer";
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
+  const { theme } = useTheme();
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />;
@@ -130,7 +132,7 @@ export function HomePage() {
             <div className="max-w-5xl px-6 mx-auto">
               <div className="w-full aspect-video overflow-hidden rounded-lg border grid place-items-center text-muted-foreground">
                 <iframe
-                  src="https://www.dafthunk.com/public/executions/97e0f901-2d8c-46e7-b95a-437ca42eba15?fullscreen"
+                  src={`https://www.dafthunk.com/public/executions/97e0f901-2d8c-46e7-b95a-437ca42eba15?fullscreen&theme=${theme}`}
                   className="w-full h-full"
                 />
               </div>

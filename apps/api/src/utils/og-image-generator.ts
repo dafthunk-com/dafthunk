@@ -31,7 +31,7 @@ export async function generateExecutionOgImage({
     browser = await puppeteer.launch(env.BROWSER as any);
     const page = await browser.newPage();
 
-    const targetUrl = `${env.WEB_HOST}${sharedExecutionPath}${executionId}?fullscreen`;
+    const targetUrl = `${env.WEB_HOST}${sharedExecutionPath}${executionId}?fullscreen&theme=light`;
 
     await page.setViewport({ width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT });
     await page.goto(targetUrl, { waitUntil: "networkidle0" });

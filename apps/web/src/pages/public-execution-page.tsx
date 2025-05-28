@@ -7,6 +7,7 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { useTheme } from "@/components/theme-provider";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   WorkflowExecution as WorkflowBuilderExecution,
@@ -23,6 +24,8 @@ export function PublicExecutionPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const [searchParams] = useSearchParams();
   const fullscreen = searchParams.has("fullscreen");
+  const preferredTheme = searchParams.get("theme");
+  const { setTheme } = useTheme();
 
   const {
     publicExecution: execution,
@@ -35,6 +38,12 @@ export function PublicExecutionPage() {
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (preferredTheme) {
+      setTheme(preferredTheme as "dark" | "light" | "system");
+    }
+  }, [preferredTheme]);
 
   useEffect(() => {
     if (
