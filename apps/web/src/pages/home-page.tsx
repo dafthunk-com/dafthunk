@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  CheckCircle,
   Cloud,
   Cpu,
   Database,
@@ -19,41 +18,7 @@ import { useAuth } from "@/components/auth-context";
 import { HOME_HEADER_HEIGHT, HomeHeader } from "@/components/home-header";
 import { HomeFooter } from "@/components/layouts/home-footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-// function BackgroundBubble({
-//   variant,
-//   className,
-//   size = 600,
-// }: {
-//   variant: "indigo" | "sky" | "background";
-//   className?: string;
-//   size?: number;
-// }) {
-//   let color = "";
-//   switch (variant) {
-//     case "indigo":
-//       color = "bg-indigo-500/30";
-//       break;
-//     case "sky":
-//       color = "bg-sky-500/40";
-//       break;
-//     case "background":
-//       color = "bg-neutral-100 dark:bg-neutral-900";
-//       break;
-//   }
-//
-//   return (
-//     <div
-//       className={cn("absolute rounded-full -z-10", color, className)}
-//       style={{
-//         width: `${size}px`,
-//         height: `${size}px`,
-//         filter: "blur(100px)",
-//       }}
-//     />
-//   );
-// }
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -69,19 +34,19 @@ export function HomePage() {
       ),
       title: "Visual Workflow Editor",
       description:
-        "Intuitive drag-and-drop interface to build and manage complex automation flows.",
+        "A drag-and-drop interface so easy, even your cat could automate your chores. (Results may vary.)",
     },
     {
       icon: <Cpu className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />,
       title: "AI-Powered Nodes",
       description:
-        "Leverage Cloudflare AI for text summarization, image analysis, and more, directly in your workflows.",
+        "Jump on the AI bandwagon: text summarization, image analysis, and more, all without reading a single research paper.",
     },
     {
       icon: <Share2 className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />,
       title: "Serverless Execution",
       description:
-        "Run workflows efficiently on Cloudflare's global edge network without managing servers.",
+        "Run workflows on Cloudflare's edge, where servers are just a rumor. Deploy, forget, and hope for the best.",
     },
     {
       icon: (
@@ -89,7 +54,7 @@ export function HomePage() {
       ),
       title: "Real-time Monitoring",
       description:
-        "Observe workflow executions and results as they happen, ensuring transparency and control.",
+        "Watch your workflows succeed, fail, or do something in between—all in real time, for your viewing pleasure.",
     },
     {
       icon: (
@@ -97,14 +62,14 @@ export function HomePage() {
       ),
       title: "Persistent Storage",
       description:
-        "Securely save and retrieve your workflows using Cloudflare D1 database integration.",
+        "Store your workflows with Cloudflare D1. Because sometimes, you actually want your data to stick around.",
     },
-    // {
-    //   icon: <Rocket className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />,
-    //   title: "Modern & Performant",
-    //   description:
-    //     "Built with React, TailwindCSS, and Shadcn UI for a fast, responsive, and beautiful experience.",
-    // },
+    {
+      icon: <Rocket className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />,
+      title: "Modern & Performant",
+      description:
+        "Built with all the latest buzzwords: React, TailwindCSS, and Shadcn UI. Fast, beautiful, and probably over-engineered.",
+    },
   ];
 
   const techStack = [
@@ -123,87 +88,102 @@ export function HomePage() {
       <main>
         {/* Hero Section */}
         <section
-          className="mx-auto relative pt-24 pb-10"
+          className="mx-auto relative pt-16 pb-10"
           style={{
             marginTop: `${HOME_HEADER_HEIGHT}px`,
           }}
         >
-          <div className="container px-6">
-            <div className="text-4xl xs:text-5xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-2 sm:mb-4 relative">
-              <h1 className="relative">
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-700 dark:from-indigo-500 dark:to-purple-400 bg-clip-text text-transparent">
-                  Workflows
-                </span>{" "}
-                no one asked for.
-              </h1>
+          <div className="container auto px-6 mx-auto">
+            <div className="max-w-prose mx-auto">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 relative text-center">
+                <h1 className="relative">
+                  <span className="bg-gradient-to-r from-indigo-600 to-purple-700 dark:from-indigo-500 dark:to-purple-400 bg-clip-text text-transparent">
+                    Workflows
+                  </span>{" "}
+                  no one asked for.
+                </h1>
+              </div>
+              <p className="text-lg sm:text-xl text-muted-foreground mb-6 text-center">
+                Automate the boring stuff, then automate the fun stuff, then
+                automate automating.
+              </p>
             </div>
-            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-4 sm:mb-6 max-w-3xl">
-              A powerful, visual workflows with ease, powered by serverless &
-              AI.
-            </p>
-            <div className="flex justify-start w-full items-center gap-2 sm:gap-4 mb-6 sm:mb-10">
+            <div className="flex flex-col sm:flex-row justify-center w-full items-center gap-3 sm:gap-4 mb-10">
               <Button
                 asChild
-                size="lg"
-                className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
+                size="default"
+                className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
-                  Start Building <ArrowRight className="ms-1 size-5" />
+                  Start Building <ArrowRight className="ms-1 size-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button
+                asChild
+                size="default"
+                variant="ghost"
+                className="w-full sm:w-auto hover:bg-neutral-200/75 dark:hover:bg-neutral-800/75"
+              >
                 <Link to="/docs">Explore Docs</Link>
               </Button>
             </div>
-            <div className="w-full aspect-video rounded-lg border bg-white dark:bg-neutral-900 grid place-items-center text-muted-foreground">
-              video demo placeholder
+            <div className="max-w-5xl px-6 mx-auto">
+              <div className="w-full aspect-video rounded-lg border bg-white dark:bg-neutral-900 grid place-items-center text-muted-foreground">
+                video demo placeholder
+              </div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-20 md:py-28">
-          <div className="container px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <span className="text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider text-sm">
-                Core Capabilities
+        <section id="features" className="py-16 md:py-20">
+          <div className="container px-6 max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <span className="text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider text-xs">
+                Stuff It Does (Because Apparently, It Needed To)
               </span>
-              <h2 className="text-3xl md:text-4xl lg:text-8xl font-bold tracking-tight">
-                But Why?
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
+                All This. Really.
               </h2>
             </div>
-            {features.map((feature) => (
-              <Card key={feature.title} className="h-full">
-                <CardHeader className="flex flex-row items-center gap-4 p-6">
-                  <div className="mt-2">{feature.icon}</div>
-                  <CardTitle className="text-xl font-semibold">
-                    {feature.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
+              {features.map((feature) => (
+                <Card key={feature.title} className="h-full">
+                  <CardHeader className="flex flex-row items-start gap-3 p-5">
+                    <div className="mt-1 text-indigo-600 dark:text-indigo-400">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-medium">
+                        {feature.title}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Tech Stack Section */}
-        <section className="py-20 md:py-28">
-          <div className="container mx-auto px-6 text-center">
-            <span className="text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider text-sm">
-              Powered By
+        <section className="py-16 md:py-20">
+          <div className="container mx-auto px-6 text-center max-w-4xl">
+            <span className="text-indigo-600 dark:text-indigo-400 font-medium uppercase tracking-wider text-xs">
+              Crafted in Public (So You Can Witness the Chaos)
             </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mt-2 mb-12">
-              Built with Modern Technologies
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-2 mb-10">
+              Built with Open Source Technologies
             </h2>
-            <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 lg:gap-10 max-w-4xl mx-auto">
+            <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-8 md:gap-x-8 lg:gap-x-10 max-w-3xl mx-auto">
               {techStack.map((tech) => (
                 <div
                   key={tech.name}
                   className="group flex flex-col items-center gap-2 text-muted-foreground transition-colors"
                 >
-                  <div className="p-4 bg-muted rounded-full border-2 border-transparent group-hover:border-indigo-600 dark:group-hover:border-indigo-400 transition-colors">
+                  <div className="p-4 bg-neutral-200/75 dark:bg-neutral-800/75 rounded-full border-2 border-transparent group-hover:border-indigo-600 dark:group-hover:border-indigo-400 transition-colors">
                     <div className="group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                       {tech.icon}
                     </div>
@@ -218,23 +198,23 @@ export function HomePage() {
         </section>
 
         {/* Call to Action Section */}
-        <section className="relative py-8 md:py-16">
+        <section className="relative py-16 md:py-20">
           {/* Blurred balls background */}
-          <div className="container mx-auto text-center px-6">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6">
-              Ready to Automate?
+          <div className="container mx-auto text-center px-6 max-w-prose">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-indigo-600 dark:text-indigo-400">
+              Alright, Enough Procrastinating
             </h2>
-            <p className="text-lg sm:text-xl md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Dive into the playground, explore our features, and start building
-              your first automated workflow with Dafthunk today.
+            <p className="text-base sm:text-lg text-muted-foreground mb-8">
+              Stop reading this and break something in the playground.
+              Seriously.
             </p>
             <Button
               asChild
-              size="lg"
-              className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white"
+              size="default"
+              className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-medium"
             >
               <Link to="/workflows/playground">
-                Start Building Now <ArrowRight className="ml-2 h-5 w-5" />
+                Start Building Now <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
