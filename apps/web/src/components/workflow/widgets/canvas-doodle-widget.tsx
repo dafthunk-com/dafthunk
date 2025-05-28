@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
+import { cn } from "@/utils/utils";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference
@@ -35,6 +36,18 @@ export function CanvasDoodleWidget({
   );
   const { createObjectUrl, uploadBinaryData } = useObjectService();
   const { isAuthenticated, organization } = useAuth();
+  const [currentColor, setCurrentColor] = useState(strokeColor);
+  const [isColorBarOpen, setIsColorBarOpen] = useState(false);
+  const colorBarRef = useRef<HTMLDivElement>(null);
+  const COLORS = [
+    "#000000", // Black
+    "#ef4444", // Red-500
+    "#f59e42", // Orange-400
+    "#facc15", // Yellow-400
+    "#22c55e", // Green-500
+    "#3b82f6", // Blue-500
+    "#a21caf", // Purple-700
+  ];
 
   // Initialize canvas and load existing drawing
   useEffect(() => {
@@ -66,8 +79,6 @@ export function CanvasDoodleWidget({
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
     // Set initial styles with adjusted stroke width for DPR
-    ctx.strokeStyle = strokeColor;
-    ctx.fillStyle = strokeColor;
     ctx.lineWidth = strokeWidth * 2 * (scaleFactor / 2); // Increased base stroke width
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -77,7 +88,6 @@ export function CanvasDoodleWidget({
     ctx.imageSmoothingQuality = "high";
 
     // Additional rendering optimizations
-    ctx.shadowColor = strokeColor;
     ctx.shadowBlur = 1;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
@@ -96,6 +106,11 @@ export function CanvasDoodleWidget({
       img.src = createObjectUrl(imageReference);
     }
   }, [imageReference, strokeColor, strokeWidth, createObjectUrl]);
+
+  // Update currentColor if config.strokeColor changes externally
+  useEffect(() => {
+    setCurrentColor(strokeColor);
+  }, [strokeColor]);
 
   // Get canvas coordinates
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -168,6 +183,8 @@ export function CanvasDoodleWidget({
     const { x, y } = getCanvasCoordinates(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
+    ctx.strokeStyle = currentColor;
+    ctx.fillStyle = currentColor;
     setIsDrawing(true);
   };
 
@@ -180,6 +197,8 @@ export function CanvasDoodleWidget({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    ctx.strokeStyle = currentColor;
+    ctx.fillStyle = currentColor;
     const { x, y } = getCanvasCoordinates(e);
     ctx.lineTo(x, y);
     ctx.stroke();
@@ -232,29 +251,77 @@ export function CanvasDoodleWidget({
     <div className="space-y-2">
       {!compact && <Label>Canvas Doodle</Label>}
       <div className="relative w-full mx-auto">
-        <div className="absolute top-2 right-2 z-10">
-          {imageReference ? (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleClear}
-              className="h-6 w-6 bg-white/90 hover:bg-white"
-              disabled={isUploading}
-            >
-              <Eraser className="h-3 w-3" />
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={saveCanvas}
-              className="h-6 w-6 bg-white/90 hover:bg-white"
-              disabled={isUploading}
-            >
-              <Save className="h-3 w-3" />
-            </Button>
-          )}
+        {/* Collapsible Color Bar */}
+        <div
+          ref={colorBarRef}
+          className="absolute bottom-2 left-2 z-10 flex items-end"
+          onMouseEnter={() => setIsColorBarOpen(true)}
+          onMouseLeave={() => setIsColorBarOpen(false)}
+          onFocus={() => setIsColorBarOpen(true)}
+          onBlur={() => setIsColorBarOpen(false)}
+          tabIndex={0}
+          aria-label="Color picker bar"
+        >
+          <div
+            className={cn(
+              "flex flex-row gap-1 transition-all",
+              isColorBarOpen ? "gap-0.5" : "gap-0"
+            )}
+            style={{
+              width: isColorBarOpen ? `${COLORS.length * 1}rem` : "0.75rem",
+              overflow: "hidden",
+            }}
+          >
+            {COLORS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setCurrentColor(color)}
+                className={cn(
+                  "size-3 rounded-full flex flex-shrink-0 items-center justify-center transition-all",
+                  !isColorBarOpen &&
+                    color !== currentColor &&
+                    "opacity-0 scale-0 pointer-events-none flex-shrink",
+                  (isColorBarOpen || color === currentColor) &&
+                    "opacity-100 scale-100"
+                )}
+                style={{
+                  backgroundColor: color,
+                }}
+                aria-label={`Select color ${color}`}
+                tabIndex={isColorBarOpen || color === currentColor ? 0 : -1}
+              >
+                {currentColor === color && (
+                  <span className="block w-2 h-2 rounded-full bg-white" />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
+        {/* Action Buttons */}
+        <div className="absolute top-2 right-2 z-10 flex gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleClear}
+            className="h-6 w-6 bg-white/90 hover:bg-white dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            disabled={isUploading}
+            aria-label="Clear"
+          >
+            <Eraser className="h-3 w-3 text-neutral-600 dark:text-neutral-200" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={saveCanvas}
+            className="h-6 w-6 bg-white/90 hover:bg-white dark:bg-neutral-900 dark:hover:bg-neutral-800"
+            disabled={isUploading}
+            aria-label="Save"
+          >
+            <Save className="h-3 w-3 text-neutral-600 dark:text-neutral-200" />
+          </Button>
+        </div>
+        {/* Canvas or Image */}
         <div className="border rounded-lg overflow-hidden bg-white">
           {imageReference ? (
             <div className="relative aspect-square">
