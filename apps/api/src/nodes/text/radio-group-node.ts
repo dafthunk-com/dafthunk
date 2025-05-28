@@ -56,6 +56,7 @@ export class RadioGroupNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      console.log(context.inputs);
       const options = context.inputs.options as RadioOption[];
       const value = context.inputs.value as string;
 

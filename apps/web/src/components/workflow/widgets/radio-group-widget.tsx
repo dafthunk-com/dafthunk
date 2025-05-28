@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/utils/utils";
@@ -23,15 +25,20 @@ export function RadioGroupWidget({
   className,
   compact = false,
 }: RadioGroupWidgetProps) {
+  const [value, setValue] = useState(config.value);
+
   return (
     <div className={cn("space-y-2", className)}>
       <RadioGroup
-        value={config.value}
-        onValueChange={onChange}
+        value={value}
+        onValueChange={(value) => {
+          setValue(value);
+          onChange(value);
+        }}
         className={cn("flex flex-col gap-2", compact && "gap-1")}
       >
-        {config.options.map((option) => (
-          <div key={option.value} className="flex items-center space-x-2">
+        {config.options.map((option, i) => (
+          <div key={i} className="flex items-center space-x-2">
             <RadioGroupItem value={option.value} id={option.value} />
             <Label htmlFor={option.value}>{option.label}</Label>
           </div>
