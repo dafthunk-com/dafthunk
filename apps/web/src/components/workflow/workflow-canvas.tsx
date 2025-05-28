@@ -234,6 +234,7 @@ export function WorkflowCanvas({
       onInit={onInit}
       isValidConnection={isValidConnection}
       fitView
+      minZoom={0.05}
       className={cn("bg-neutral-100/50", {
         "cursor-default": readonly,
       })}

@@ -183,8 +183,8 @@ const TextRenderer = ({
   <div
     className={
       compact
-        ? "text-xs p-1 mt-1 bg-secondary/50 rounded border"
-        : "w-full p-2 bg-secondary/50 rounded-md border border-border"
+        ? "text-xs p-1 mt-1 bg-secondary/50 rounded border whitespace-pre-line"
+        : "w-full p-2 bg-secondary/50 rounded-md border border-border whitespace-pre-line"
     }
   >
     {value}
