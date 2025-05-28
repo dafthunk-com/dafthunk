@@ -5,6 +5,7 @@ import { Navigate } from "react-router";
 
 import { HeadSeo } from "./components/head-seo";
 import { AppLayout } from "./components/layouts/app-layout";
+import { ContentLayout } from "./components/layouts/content-layout";
 import { DocsLayout } from "./components/layouts/docs-layout";
 import { ProtectedRoute } from "./components/protected-route";
 import { getApiBaseUrl } from "./config/api";
@@ -25,8 +26,10 @@ import { HomePage } from "./pages/home-page";
 import { LoginPage } from "./pages/login-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { PlaygroundPage } from "./pages/playground-page";
+import { PrivacyPage } from "./pages/privacy-page";
 import { ProfilePage } from "./pages/profile-page";
 import { PublicExecutionPage } from "./pages/public-execution-page";
+import { TermsPage } from "./pages/terms-page";
 
 export interface RouteHandle {
   head?:
@@ -436,6 +439,24 @@ export const routes: AppRouteObject[] = [
         );
       },
     },
+  },
+  {
+    path: "/privacy",
+    element: (
+      <ContentLayout title="Privacy Policy">
+        <PrivacyPage />
+      </ContentLayout>
+    ),
+    handle: { head: <HeadSeo title="Privacy Policy - Dafthunk" /> },
+  },
+  {
+    path: "/terms",
+    element: (
+      <ContentLayout title="Terms of Service">
+        <TermsPage />
+      </ContentLayout>
+    ),
+    handle: { head: <HeadSeo title="Terms of Service - Dafthunk" /> },
   },
   {
     path: "*",

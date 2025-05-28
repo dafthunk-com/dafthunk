@@ -194,3 +194,41 @@
 .docs-content em:not([class]) {
   @apply italic;
 }
+
+/* Markdown */
+.md h2 {
+  @apply text-xl font-semibold;
+  @apply mb-2 mt-5;
+}
+
+.md h3 {
+  @apply text-lg font-semibold;
+  @apply mb-1 mt-5;
+}
+
+.md p {
+  @apply mb-2;
+}
+
+.md a {
+  @apply underline;
+}
+
+.md ul {
+  @apply mb-3 list-disc pl-10;
+}
+
+.md ol {
+  @apply mb-3 list-decimal pl-6;
+  counter-reset: item;
+}
+
+.md ol li {
+  display: block;
+}
+
+.md ol li:before {
+  @apply me-2 text-muted-foreground;
+  content: counter(item) ". ";
+  counter-increment: item;
+}
