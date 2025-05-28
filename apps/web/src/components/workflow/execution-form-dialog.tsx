@@ -29,7 +29,11 @@ export type DialogFormParameter = {
   label: string; // User-friendly label for the form input, e.g., "Customer Email"
   nodeName: string; // Original name of the workflow node, for context
   isRequired: boolean; // Whether this parameter is required
-  type: "form-data-string" | "form-data-number" | "form-data-boolean"; // Parameter type, e.g., 'form-data-string', 'form-data-number'
+  type:
+    | "form-data-string"
+    | "form-data-number"
+    | "form-data-boolean"
+    | "body-json"; // Parameter type, e.g., 'form-data-string', 'form-data-number'
 };
 
 type ExecutionFormDialogProps = {
@@ -164,6 +168,7 @@ export function ExecutionFormDialog({
     reset,
     formState: { errors, isDirty, isValid },
   } = useForm<FormValues>({
+    // @ts-ignore - zodResolver is not typed correctly
     resolver: zodResolver(validationSchema) as unknown as Resolver<FormValues>,
     mode: "onChange",
     defaultValues: getDefaultFormValues(parameters),
