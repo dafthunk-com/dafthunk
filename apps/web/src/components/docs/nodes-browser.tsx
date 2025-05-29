@@ -29,9 +29,79 @@ export function NodesBrowser() {
       .map(([category, count]) => ({ category, count }));
   }, [nodeTypes]);
 
+  // Intelligent search function
+  const searchNodes = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return nodeTypes;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    // Split by spaces and dashes to create search terms
+    const searchTerms = query
+      .split(/[\s-]+/)
+      .filter((term) => term.length > 0)
+      .map((term) => term.toLowerCase());
+
+    if (searchTerms.length === 0) {
+      return nodeTypes;
+    }
+
+    return nodeTypes.filter((nodeType) => {
+      // Create searchable text from all relevant fields
+      const searchableFields = [
+        nodeType.name,
+        nodeType.description || "",
+        nodeType.category,
+        nodeType.type,
+      ].map((field) => field.toLowerCase());
+
+      const searchableText = searchableFields.join(" ");
+
+      // Create normalized versions (without spaces, dashes, underscores) for better matching
+      const normalizedFields = searchableFields.map((field) =>
+        field.replace(/[\s-_]/g, "").toLowerCase()
+      );
+      const normalizedSearchableText = normalizedFields.join(" ");
+
+      // Check if all search terms are found (AND logic for better precision)
+      return searchTerms.every((term) => {
+        const normalizedTerm = term.replace(/[\s-_]/g, "").toLowerCase();
+
+        // Check direct substring match in any field
+        if (searchableText.includes(term)) {
+          return true;
+        }
+
+        // Check normalized match (handles "tostring" matching "To String")
+        if (normalizedSearchableText.includes(normalizedTerm)) {
+          return true;
+        }
+
+        // Check if term matches word boundaries (more precise matching)
+        const wordBoundaryRegex = new RegExp(
+          `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+          "i"
+        );
+        if (searchableFields.some((field) => wordBoundaryRegex.test(field))) {
+          return true;
+        }
+
+        // Check normalized word boundaries for individual fields
+        const normalizedWordBoundaryRegex = new RegExp(
+          `\\b${normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+          "i"
+        );
+        return normalizedFields.some((field) =>
+          normalizedWordBoundaryRegex.test(field)
+        );
+      });
+    });
+  }, [nodeTypes, searchQuery]);
+
   // Filter nodes based on search query and selected category
   const filteredNodes = useMemo(() => {
-    let filtered = nodeTypes;
+    let filtered = searchNodes;
 
     // Filter by category
     if (selectedCategory) {
@@ -40,20 +110,8 @@ export function NodesBrowser() {
       );
     }
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
-        (nodeType) =>
-          nodeType.name.toLowerCase().includes(query) ||
-          nodeType.description?.toLowerCase().includes(query) ||
-          nodeType.category.toLowerCase().includes(query) ||
-          nodeType.type.toLowerCase().includes(query)
-      );
-    }
-
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
-  }, [nodeTypes, searchQuery, selectedCategory]);
+  }, [searchNodes, selectedCategory]);
 
   if (nodeTypesError) {
     return (
