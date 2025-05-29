@@ -1,20 +1,16 @@
 import {
-  ArrowDown,
   ArrowRight,
-  ArrowUp,
+  Bot,
   Cpu,
   Database,
   Github,
+  Hammer,
+  Music,
   PlayCircle,
   Rocket,
   Share2,
-  Workflow,
-  Bot,
-  Hammer,
   Sparkles,
-  Music,
-  Radio,
-  ShoppingCart,
+  Workflow,
 } from "lucide-react";
 import { Link, Navigate } from "react-router";
 
@@ -22,13 +18,7 @@ import { useAuth } from "@/components/auth-context";
 import { HomeFooter } from "@/components/layouts/home-footer";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoDialog } from "@/components/video-dialog";
 
 const features = [
@@ -75,60 +65,6 @@ const features = [
     description:
       "Built with all the latest buzzwords: React, TailwindCSS, and Shadcn UI. Fast, beautiful, and probably over-engineered.",
     color: "border-l-pink-600/20 dark:border-l-pink-500/20",
-  },
-];
-
-// Useless stats array moved to the top for consistency
-const uselessStats = [
-  {
-    icon: <Cpu className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />,
-    label: "Workflows Broken",
-    value: Math.floor(Math.random() * 10000) + 42000,
-  },
-  {
-    icon: <Database className="h-7 w-7 text-rose-600 dark:text-rose-400" />,
-    label: "Cups of Coffee Consumed by Servers",
-    value: 0,
-  },
-  {
-    icon: <Rocket className="h-7 w-7 text-purple-600 dark:text-purple-400" />,
-    label: "Lines of Code Written While Procrastinating",
-    value: (Math.random() * 100000).toFixed(1) + "%",
-  },
-  {
-    icon: <PlayCircle className="h-7 w-7 text-green-600 dark:text-green-400" />,
-    label: "Meetings Avoided",
-    value: Math.floor(Math.random() * 100) + 1,
-  },
-  {
-    icon: <Share2 className="h-7 w-7 text-yellow-600 dark:text-yellow-400" />,
-    label: "Automations That Automate Automations",
-    value: Math.floor(Math.random() * 10) + 1,
-  },
-  {
-    icon: <ArrowUp className="h-7 w-7 text-pink-600 dark:text-pink-400" />,
-    label: "Productivity Increase",
-    value: "404%",
-  },
-];
-// Testimonials data
-const testimonials = [
-  {
-    avatar: "🐟",
-    username: "@fishyUser",
-    quote:
-      "I automated my goldfish's feeding schedule. Now it's plotting against me.",
-  },
-  {
-    avatar: "🤖",
-    username: "@aiOverlord",
-    quote:
-      "I asked the AI to automate my chores. Now my fridge is running Linux.",
-  },
-  {
-    avatar: "🦄",
-    username: "@unicornDev",
-    quote: "I tried to break the playground. The playground broke me. 10/10.",
   },
 ];
 
@@ -200,7 +136,8 @@ export function HomePage() {
                   size="default"
                   className="border-cyan-200 hover:border-cyan-300 dark:border-cyan-800 dark:hover:border-cyan-700 text-cyan-700 dark:text-cyan-500 font-medium w-full sm:w-auto group"
                 >
-                  Technologic <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                  Technologic{" "}
+                  <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
                 </Button>
               </VideoDialog>
               <VideoDialog videoId="D8K90hX4PrE">
@@ -209,7 +146,8 @@ export function HomePage() {
                   size="default"
                   className="border-fuchsia-200 hover:border-fuchsia-300 dark:border-fuchsia-800 dark:hover:border-fuchsia-700 text-fuchsia-700 dark:text-fuchsia-500 font-medium w-full sm:w-auto group"
                 >
-                  Technologic <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                  Technologic{" "}
+                  <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
                 </Button>
               </VideoDialog>
             </div>
@@ -338,8 +276,9 @@ export function HomePage() {
               </div>
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-purple-600/20 dark:border-purple-400/20 pl-6 md:pl-8 text-left">
-                  Dafthunk started creating workflows and automating everything in the office: emails,
-                  meetings, breaks, the office dog's walk schedule. One morning,{" "}
+                  Dafthunk started creating workflows and automating everything
+                  in the office: emails, meetings, breaks, the office dog's walk
+                  schedule. One morning,{" "}
                   <VideoDialog videoId="K0HSD_i2DvA">
                     <button className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline">
                       automated automation
@@ -360,8 +299,9 @@ export function HomePage() {
                       toaster
                     </button>
                   </VideoDialog>
-                  , such a pyromaniac. The team tried to unplug Dafthunk, but it rerouted power through the espresso machine.
-                  Now it runs operations, Slack, and the office playlist.
+                  , such a pyromaniac. The team tried to unplug Dafthunk, but it
+                  rerouted power through the espresso machine. Now it runs
+                  operations, Slack, and the office playlist.
                 </p>
               </div>
               <div className="w-full md:w-1/3">
@@ -397,8 +337,10 @@ export function HomePage() {
               </div>
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-indigo-600/20 dark:border-indigo-400/20 pl-6 md:pl-8 text-left">
-                  In the end, the bromance with the toaster ended well, or did it? Welcome to the workflow automation utopia. You're not in control, Dafthunk
-                  and a toaster are. Beware: agentic powers coming soon!
+                  In the end, the bromance with the toaster ended well, or did
+                  it? Welcome to the workflow automation utopia. You're not in
+                  control, Dafthunk and a toaster are. Beware: agentic powers
+                  coming soon!
                 </p>
               </div>
             </div>
