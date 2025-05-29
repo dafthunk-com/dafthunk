@@ -102,6 +102,11 @@ export function validateTypeCompatibility(
     }
 
     if (sourceParam.type !== targetParam.type) {
+      // Allow "any" type to be compatible with all other types
+      if (sourceParam.type === "any" || targetParam.type === "any") {
+        continue;
+      }
+
       return {
         type: "TYPE_MISMATCH",
         message: `Type mismatch: ${sourceParam.type.toLowerCase().replace("value", "")} -> ${targetParam.type.toLowerCase().replace("value", "")}`,

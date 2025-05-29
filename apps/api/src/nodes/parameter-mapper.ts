@@ -208,6 +208,10 @@ const converters = {
     apiToNode: (value: ApiParameterValue) =>
       (isPlainJsonObject(value) ? value : undefined) as NodeParameterValue,
   },
+  any: {
+    nodeToApi: (value: NodeParameterValue) => value as ApiParameterValue,
+    apiToNode: (value: ApiParameterValue) => value as NodeParameterValue,
+  },
 } as const;
 
 type ParameterType = keyof typeof converters;

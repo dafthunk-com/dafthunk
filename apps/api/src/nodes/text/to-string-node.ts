@@ -18,7 +18,7 @@ export class ToStringNode extends ExecutableNode {
     inputs: [
       {
         name: "value",
-        type: "string",
+        type: "any",
         description: "Value to convert to string (accepts any type)",
         required: true,
       },

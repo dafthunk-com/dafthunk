@@ -72,6 +72,10 @@ export type ParameterType =
   | {
       type: "audio";
       value?: AudioParameter;
+    }
+  | {
+      type: "any";
+      value?: any;
     };
 
 export type ParameterValue = ParameterType["value"];

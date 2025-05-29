@@ -68,6 +68,10 @@ export type ParameterType =
   | {
       type: "audio";
       value?: ObjectReference;
+    }
+  | {
+      type: "any";
+      value?: any;
     };
 
 /**
