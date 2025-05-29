@@ -3,13 +3,13 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
-export class StringTemplateNode extends ExecutableNode {
+export class MultiVariableStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "string-template",
-    name: "String Template",
-    type: "string-template",
+    id: "multi-variable-string-template",
+    name: "Multi-Variable String Template",
+    type: "multi-variable-string-template",
     description:
-      "Create a string using a template with variable injection using ${variableName} syntax",
+      "Create a string using a template with multiple variable injection using ${variableName} syntax",
     category: "Text",
     icon: "quote",
     inputs: [

@@ -3,11 +3,11 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
-export class SimpleStringTemplateNode extends ExecutableNode {
+export class SingleVariableStringTemplateNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "simple-string-template",
-    name: "Simple String Template",
-    type: "simple-string-template",
+    id: "single-variable-string-template",
+    name: "Single Variable String Template",
+    type: "single-variable-string-template",
     description:
       "Create a string using a template with a single variable injection using ${variable} syntax",
     category: "Text",
