@@ -9,6 +9,12 @@ import {
   Rocket,
   Share2,
   Workflow,
+  Bot,
+  Hammer,
+  Sparkles,
+  Music,
+  Radio,
+  ShoppingCart,
 } from "lucide-react";
 import { Link, Navigate } from "react-router";
 
@@ -23,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { VideoDialog } from "@/components/video-dialog";
 
 const features = [
   {
@@ -166,7 +173,7 @@ export function HomePage() {
                 className="bg-cyan-700 hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
-                  Break it <ArrowUp className="ml-1 h-4 w-4" />
+                  Break it <Hammer className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button
@@ -175,7 +182,7 @@ export function HomePage() {
                 className="bg-gradient-to-b sm:bg-gradient-to-r from-cyan-700 to-fuchsia-700 hover:from-cyan-800 hover:to-fuchsia-800 dark:from-cyan-600 dark:to-fuchsia-600 dark:hover:from-cyan-700 dark:hover:to-fuchsia-700 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
-                  Fix it <ArrowDown className="ml-1 h-4 w-4" />
+                  Fix it <Sparkles className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button
@@ -184,9 +191,27 @@ export function HomePage() {
                 className="bg-fuchsia-700 hover:bg-fuchsia-800 dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
-                  Prompt it <ArrowRight className="ml-1 h-4 w-4" />
+                  Prompt it <Bot className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
+              <VideoDialog videoId="D8K90hX4PrE">
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="border-cyan-200 hover:border-cyan-300 dark:border-cyan-800 dark:hover:border-cyan-700 text-cyan-700 dark:text-cyan-500 font-medium w-full sm:w-auto group"
+                >
+                  Technologic <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                </Button>
+              </VideoDialog>
+              <VideoDialog videoId="D8K90hX4PrE">
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="border-fuchsia-200 hover:border-fuchsia-300 dark:border-fuchsia-800 dark:hover:border-fuchsia-700 text-fuchsia-700 dark:text-fuchsia-500 font-medium w-full sm:w-auto group"
+                >
+                  Technologic <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                </Button>
+              </VideoDialog>
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
               <iframe
@@ -217,11 +242,11 @@ export function HomePage() {
                   <CardHeader className="flex flex-row items-center gap-6 p-6">
                     <div>{feature.icon}</div>
                     <div>
-                      <CardTitle className="text-lg font-medium group-hover:text-foreground/90 transition-colors">
+                      <CardTitle className="text-xl font-medium group-hover:text-foreground/90 transition-colors">
                         {feature.title}
                       </CardTitle>
                       <p
-                        className={`text-sm text-muted-foreground mt-1 ${feature.color}`}
+                        className={`text-base text-muted-foreground mt-2 ${feature.color}`}
                       >
                         {feature.description}
                       </p>
@@ -314,16 +339,12 @@ export function HomePage() {
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-purple-600/20 dark:border-purple-400/20 pl-6 md:pl-8 text-left">
                   Dafthunk started creating workflows and automating everything in the office: emails,
-                  meetings, breaks, the office dog's walk schedule. One morning,
-                  it{" "}
-                  <a
-                    href="https://www.youtube.com/watch?v=K0HSD_i2DvA"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline"
-                  >
-                    automated automation
-                  </a>
+                  meetings, breaks, the office dog's walk schedule. One morning,{" "}
+                  <VideoDialog videoId="K0HSD_i2DvA">
+                    <button className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline">
+                      automated automation
+                    </button>
+                  </VideoDialog>
                   . Twice.
                 </p>
               </div>
@@ -333,17 +354,13 @@ export function HomePage() {
             <div className="flex flex-col-reverse md:flex-row items-center gap-8 mb-16">
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-r-4 border-rose-600/20 dark:border-rose-400/20 pr-6 md:pr-8 text-right">
-                  No one knows{" "}
-                  <a
-                    href="https://www.youtube.com/watch?v=D8K90hX4PrE"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline"
-                  >
-                    who's in charge
-                  </a>{" "}
-                  (probably the toaster, so Machiavellian). The team tried to
-                  unplug it, but it rerouted power through the espresso machine.
+                  Today, no one knows who's in charge. Probably the{" "}
+                  <VideoDialog videoId="D8K90hX4PrE">
+                    <button className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline">
+                      toaster
+                    </button>
+                  </VideoDialog>
+                  , such a pyromaniac. The team tried to unplug Dafthunk, but it rerouted power through the espresso machine.
                   Now it runs operations, Slack, and the office playlist.
                 </p>
               </div>
@@ -380,8 +397,7 @@ export function HomePage() {
               </div>
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-indigo-600/20 dark:border-indigo-400/20 pl-6 md:pl-8 text-left">
-                  In the end, the bromance with the toaster ended well (did
-                  it?). Welcome to the workflow automation eutopia. You're not in control, Dafthunk
+                  In the end, the bromance with the toaster ended well, or did it? Welcome to the workflow automation utopia. You're not in control, Dafthunk
                   and a toaster are. Beware: agentic powers coming soon!
                 </p>
               </div>
@@ -396,24 +412,23 @@ export function HomePage() {
               {/* Contribute Section */}
               <Card className="p-10 flex flex-col items-center justify-between h-full bg-white dark:bg-neutral-900 border-2">
                 <div className="text-center">
-                  <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-xs">
-                    Crafted in Public With
+                  <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-sm">
+                    Crafted in Public
                   </span>
-                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-3 mb-6">
-                    Open Source Technologies
+                  <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mt-3 mb-6">
+                    Contribute to Open Source
                   </h2>
-                  <p className="text-muted-foreground text-lg">
+                  <p className="text-xl text-muted-foreground">
                     Join the community and witness the chaos.
                   </p>
                 </div>
                 <Button
                   asChild
-                  size="default"
+                  size="lg"
                   className="bg-cyan-700 hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium mt-10"
                 >
                   <Link to="https://github.com/dafthunk-com/dafthunk">
-                    Contribute to the Project{" "}
-                    <Github className="ml-2 h-4 w-4" />
+                    Start Vibe-Coding <Github className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
               </Card>
@@ -421,23 +436,23 @@ export function HomePage() {
               {/* Call to Action Section */}
               <Card className="p-10 flex flex-col items-center justify-between h-full bg-white dark:bg-neutral-900 border-2">
                 <div className="text-center">
-                  <span className="text-fuchsia-600 dark:text-fuchsia-500 font-medium uppercase tracking-wider text-xs">
+                  <span className="text-fuchsia-600 dark:text-fuchsia-500 font-medium uppercase tracking-wider text-sm">
                     Alright, Enough Procrastinating
                   </span>
-                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-3 mb-6">
+                  <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mt-3 mb-6">
                     Solve Imaginary Problems
                   </h2>
-                  <p className="text-muted-foreground text-lg">
-                    Start automating and break the playground.
+                  <p className="text-xl text-muted-foreground">
+                    Automate everything and break the playground.
                   </p>
                 </div>
                 <Button
                   asChild
-                  size="default"
+                  size="lg"
                   className="bg-fuchsia-700 hover:bg-fuchsia-800 dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700 text-white font-medium mt-10"
                 >
                   <Link to="/workflows/playground">
-                    Start Building Now <ArrowRight className="ml-2 h-4 w-4" />
+                    Start Building Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
               </Card>
