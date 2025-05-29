@@ -68,7 +68,7 @@ export function AppHeader() {
               className={navLinkClasses}
               activeClassName={activeNavLinkClasses}
             >
-              <Settings className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+              <Settings className="h-5 w-5" />
             </NavLink>
           )}
         </nav>
