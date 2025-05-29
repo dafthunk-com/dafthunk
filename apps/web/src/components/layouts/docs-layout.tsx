@@ -6,7 +6,7 @@ import {
   Sparkles,
   Workflow,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 
 import { MdxProvider } from "@/components/mdx-provider";
@@ -217,8 +217,17 @@ export function DocsLayout({
   const location = useLocation();
 
   // Scroll to top when location changes
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
+  useEffect(() => {
+    // Find the main scroll container and scroll it to top
+    const scrollContainer = document.querySelector(
+      ".overflow-y-auto, .overflow-auto"
+    );
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    } else {
+      // Fallback to window scroll
+      window.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   // Generate table of contents from docsSections based on current location

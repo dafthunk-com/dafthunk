@@ -1,4 +1,9 @@
-import { Outlet, useLocation, useMatches } from "react-router";
+import {
+  Outlet,
+  ScrollRestoration,
+  useLocation,
+  useMatches,
+} from "react-router";
 
 import { HeadSeo } from "@/components/head-seo";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -47,6 +52,7 @@ function App() {
       <AuthProvider>
         <CurrentRouteHead />
         <Outlet />
+        <ScrollRestoration />
       </AuthProvider>
     </ThemeProvider>
   );
