@@ -61,9 +61,9 @@ const features = [
   },
   {
     icon: <Rocket className="h-12 w-12 text-pink-600 dark:text-pink-500" />,
-    title: "Modern & Performant",
+    title: "Triggers & Integrations",
     description:
-      "Built with all the latest buzzwords: React, TailwindCSS, and Shadcn UI. Fast, beautiful, and probably over-engineered.",
+      "Nothing happens unless something happens. So we made it happen with HTTP APIs, emails, and more.",
     color: "border-l-pink-600/20 dark:border-l-pink-500/20",
   },
 ];
@@ -90,7 +90,7 @@ export function HomePage() {
             <div className="max-w-prose mx-auto">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 sm:mb-8 relative text-center">
                 <h1 className="relative">
-                  <span className="bg-gradient-to-r from-cyan-600 to-fuchsia-600 dark:from-cyan-500 dark:to-fuchsia-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-600 via-fuchsia-600 via-amber-600 via-blue-600 via-purple-600 to-pink-600 dark:from-cyan-500 dark:via-fuchsia-500 dark:via-amber-500 dark:via-blue-500 dark:via-purple-500 dark:to-pink-500 bg-clip-text text-transparent">
                     Workflows
                   </span>{" "}
                   no one asked for.
@@ -106,7 +106,7 @@ export function HomePage() {
               <Button
                 asChild
                 size="default"
-                className="bg-cyan-700 hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium w-full sm:w-auto"
+                className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
                   Break it <Hammer className="ml-2 h-4 w-4" />
@@ -115,7 +115,7 @@ export function HomePage() {
               <Button
                 asChild
                 size="default"
-                className="bg-gradient-to-b sm:bg-gradient-to-r from-cyan-700 to-fuchsia-700 hover:from-cyan-800 hover:to-fuchsia-800 dark:from-cyan-600 dark:to-fuchsia-600 dark:hover:from-cyan-700 dark:hover:to-fuchsia-700 text-white font-medium w-full sm:w-auto"
+                className="bg-gradient-to-r from-cyan-600 via-fuchsia-600 via-amber-600 via-blue-600 via-purple-600 to-pink-600 hover:from-cyan-700 hover:via-fuchsia-700 hover:via-amber-700 hover:via-blue-700 hover:via-purple-700 hover:to-pink-700 dark:from-cyan-500 dark:via-fuchsia-500 dark:via-amber-500 dark:via-blue-500 dark:via-purple-500 dark:to-pink-500 dark:hover:from-cyan-600 dark:hover:via-fuchsia-600 dark:hover:via-amber-600 dark:hover:via-blue-600 dark:hover:via-purple-600 dark:hover:to-pink-600 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
                   Fix it <Sparkles className="ml-2 h-4 w-4" />
@@ -124,7 +124,7 @@ export function HomePage() {
               <Button
                 asChild
                 size="default"
-                className="bg-fuchsia-700 hover:bg-fuchsia-800 dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700 text-white font-medium w-full sm:w-auto"
+                className="bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/playground">
                   Prompt it <Bot className="ml-2 h-4 w-4" />
@@ -134,7 +134,7 @@ export function HomePage() {
                 <Button
                   variant="outline"
                   size="default"
-                  className="border-cyan-200 hover:border-cyan-300 dark:border-cyan-800 dark:hover:border-cyan-700 text-cyan-700 dark:text-cyan-500 font-medium w-full sm:w-auto group"
+                  className="border-amber-200 hover:border-amber-300 dark:border-amber-800 dark:hover:border-amber-700 text-amber-700 dark:text-amber-500 font-medium w-full sm:w-auto group"
                 >
                   Technologic{" "}
                   <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
@@ -144,7 +144,7 @@ export function HomePage() {
                 <Button
                   variant="outline"
                   size="default"
-                  className="border-fuchsia-200 hover:border-fuchsia-300 dark:border-fuchsia-800 dark:hover:border-fuchsia-700 text-fuchsia-700 dark:text-fuchsia-500 font-medium w-full sm:w-auto group"
+                  className="border-blue-200 hover:border-blue-300 dark:border-blue-800 dark:hover:border-blue-700 text-blue-700 dark:text-blue-500 font-medium w-full sm:w-auto group"
                 >
                   Technologic{" "}
                   <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
@@ -165,10 +165,10 @@ export function HomePage() {
           <div className="container px-6 mx-auto max-w-7xl">
             <div className="text-center  mb-20">
               <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-xs">
-                Stuff It Does (Because Apparently, It Needed To)
+                What It Does (Allegedly)
               </span>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight mt-1">
-                All This. Really.
+                Stuff. Things. Features.
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6">
@@ -233,7 +233,7 @@ export function HomePage() {
                     Eurovision
                   </a>{" "}
                   and debating what 'Made In Switzerland' really means, we were
-                  loosing it to cursor and vibe-coding a workflow automation
+                  loosing it to Cursor and vibe-coding a workflow automation
                   tool.
                 </p>
               </div>
@@ -243,9 +243,18 @@ export function HomePage() {
             <div className="flex flex-col-reverse md:flex-row items-center gap-8 mb-16">
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-r-4 border-indigo-600/20 dark:border-indigo-400/20 pr-6 md:pr-8 text-right">
-                  Meet Dafthunk, the result of our experiment, the automation
-                  overlord from outer space. Dafthunk was built to automate the
-                  repetitive crap with workflows, but it had other plans.
+                  Meet{" "}
+                  <a
+                    href="https://en.wikipedia.org/wiki/Thunk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline"
+                  >
+                    Daf·thunk
+                  </a>
+                  , the result of our experiment, the automation overlord from
+                  outer space. Dafthunk was built to automate the repetitive
+                  crap with workflows, but it had other plans.
                 </p>
               </div>
               <div className="w-full md:w-1/3">
@@ -293,7 +302,7 @@ export function HomePage() {
             <div className="flex flex-col-reverse md:flex-row items-center gap-8 mb-16">
               <div className="w-full md:w-2/3">
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-r-4 border-rose-600/20 dark:border-rose-400/20 pr-6 md:pr-8 text-right">
-                  Today, no one knows who's in charge. Probably the{" "}
+                  Nowadays, no one knows who's in charge. Probably the{" "}
                   <VideoDialog videoId="D8K90hX4PrE">
                     <button className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline">
                       toaster
@@ -354,7 +363,7 @@ export function HomePage() {
               {/* Contribute Section */}
               <Card className="p-10 flex flex-col items-center justify-between h-full bg-white dark:bg-neutral-900 border-2">
                 <div className="text-center">
-                  <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-sm">
+                  <span className="text-blue-600 dark:text-blue-500 font-medium uppercase tracking-wider text-sm">
                     Crafted in Public
                   </span>
                   <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mt-3 mb-6">
@@ -367,7 +376,7 @@ export function HomePage() {
                 <Button
                   asChild
                   size="lg"
-                  className="bg-cyan-700 hover:bg-cyan-800 dark:bg-cyan-600 dark:hover:bg-cyan-700 text-white font-medium mt-10"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 dark:from-blue-500 dark:to-purple-500 dark:hover:from-blue-600 dark:hover:to-purple-600 text-white font-medium mt-10"
                 >
                   <Link to="https://github.com/dafthunk-com/dafthunk">
                     Start Vibe-Coding <Github className="ml-2 h-5 w-5" />
@@ -378,7 +387,7 @@ export function HomePage() {
               {/* Call to Action Section */}
               <Card className="p-10 flex flex-col items-center justify-between h-full bg-white dark:bg-neutral-900 border-2">
                 <div className="text-center">
-                  <span className="text-fuchsia-600 dark:text-fuchsia-500 font-medium uppercase tracking-wider text-sm">
+                  <span className="text-amber-600 dark:text-amber-500 font-medium uppercase tracking-wider text-sm">
                     Alright, Enough Procrastinating
                   </span>
                   <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mt-3 mb-6">
@@ -391,7 +400,7 @@ export function HomePage() {
                 <Button
                   asChild
                   size="lg"
-                  className="bg-fuchsia-700 hover:bg-fuchsia-800 dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700 text-white font-medium mt-10"
+                  className="bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 dark:from-amber-500 dark:to-pink-500 dark:hover:from-amber-600 dark:hover:to-pink-600 text-white font-medium mt-10"
                 >
                   <Link to="/workflows/playground">
                     Start Building Now <ArrowRight className="ml-2 h-5 w-5" />
