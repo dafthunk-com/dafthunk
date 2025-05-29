@@ -183,12 +183,6 @@ export const routes: AppRouteObject[] = [
             href: "/docs/workflows",
           },
         }}
-        tableOfContents={[
-          { id: "core-features", title: "Core Features", level: 2 },
-          { id: "quick-start", title: "Quick Start", level: 2 },
-          { id: "technology-stack", title: "Technology Stack", level: 2 },
-          { id: "whats-next", title: "What's Next?", level: 2 },
-        ]}
       >
         <DocsOverviewPage />
       </DocsLayout>
@@ -218,13 +212,6 @@ export const routes: AppRouteObject[] = [
             href: "/docs/nodes",
           },
         }}
-        tableOfContents={[
-          { id: "getting-started", title: "Getting Started", level: 2 },
-          { id: "workflow-types", title: "Workflow Types", level: 2 },
-          { id: "testing-deployment", title: "Testing & Deployment", level: 2 },
-          { id: "best-practices", title: "Best Practices", level: 2 },
-          { id: "common-patterns", title: "Common Patterns", level: 2 },
-        ]}
       >
         <DocsWorkflowsPage />
       </DocsLayout>
@@ -255,23 +242,6 @@ export const routes: AppRouteObject[] = [
             href: "/docs/api",
           },
         }}
-        tableOfContents={[
-          { id: "ai-language-models", title: "AI & Language Models", level: 2 },
-          { id: "image-processing", title: "Image Processing", level: 2 },
-          { id: "web-http", title: "Web & HTTP", level: 2 },
-          { id: "data-processing", title: "Data Processing", level: 2 },
-          { id: "node-categories", title: "Node Categories", level: 2 },
-          {
-            id: "getting-started-with-nodes",
-            title: "Getting Started with Nodes",
-            level: 2,
-          },
-          {
-            id: "common-node-patterns",
-            title: "Common Node Patterns",
-            level: 2,
-          },
-        ]}
       >
         <DocsNodesPage />
       </DocsLayout>
@@ -297,17 +267,6 @@ export const routes: AppRouteObject[] = [
             href: "/docs/nodes",
           },
         }}
-        tableOfContents={[
-          { id: "base-url", title: "Base URL", level: 2 },
-          { id: "authentication", title: "Authentication", level: 2 },
-          { id: "workflow-execution", title: "Workflow Execution", level: 2 },
-          { id: "status-results", title: "Status & Results", level: 2 },
-          { id: "rate-limits", title: "Rate Limits", level: 2 },
-          { id: "error-handling", title: "Error Handling", level: 2 },
-          { id: "code-examples", title: "Code Examples", level: 2 },
-          { id: "sdks-and-libraries", title: "SDKs and Libraries", level: 2 },
-          { id: "webhooks", title: "Webhooks", level: 2 },
-        ]}
       >
         <DocsApiPage />
       </DocsLayout>

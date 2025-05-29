@@ -3,7 +3,6 @@ import {
   ArrowRight,
   BookOpen,
   Code,
-  Menu,
   Sparkles,
   Workflow,
 } from "lucide-react";
@@ -14,8 +13,8 @@ import { MdxProvider } from "@/components/mdx-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/utils/utils";
+import { AppLayout } from "./app-layout";
 
 export interface DocsSection {
   title: string;
@@ -51,7 +50,6 @@ interface DocsLayoutProps {
   description?: string;
   badge?: string;
   navigation?: DocsNavigation;
-  tableOfContents?: TableOfContentsItem[];
 }
 
 const docsSections: DocsSection[] = [
@@ -80,10 +78,9 @@ const docsSections: DocsSection[] = [
     icon: Sparkles,
     badge: "70+ nodes",
     subsections: [
-      { title: "AI & Language Models", href: "#ai-language" },
-      { title: "Image Processing", href: "#image-processing" },
-      { title: "Web & HTTP", href: "#web-http" },
-      { title: "Data Processing", href: "#data-processing" },
+      { title: "Interactive Node Browser", href: "#interactive-node-browser" },
+      { title: "Understanding Nodes", href: "#understanding-nodes" },
+      { title: "Common Patterns", href: "#common-patterns" },
     ],
   },
   {
@@ -102,24 +99,15 @@ function DocsSidebar() {
   const location = useLocation();
 
   return (
-    <div className="w-72 border-r bg-muted/40 h-screen fixed left-0 top-0 z-30">
-      <div className="p-6 border-b">
-        <Link to="/docs" className="flex items-center gap-2">
-          <BookOpen className="size-5" />
-          <span className="font-semibold">Documentation</span>
-          <Badge variant="secondary" className="ml-auto">
-            v1.0
-          </Badge>
-        </Link>
-      </div>
-      <ScrollArea className="h-[calc(100vh-5rem)]">
+    <div className="w-72 border-r h-[calc(100vh-4rem)] sticky top-0">
+      <ScrollArea className="h-full">
         <div className="p-4 space-y-2">
           {docsSections.map((section) => (
             <div key={section.href} className="space-y-1">
               <Link
                 to={section.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-accent",
+                  "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-accent whitespace-nowrap",
                   location.pathname === section.href
                     ? "bg-accent text-accent-foreground font-medium"
                     : "text-muted-foreground"
@@ -159,10 +147,10 @@ function TableOfContents({ items }: { items: TableOfContentsItem[] }) {
 
   return (
     <div className="w-56 shrink-0">
-      <div className="sticky top-6 space-y-4">
+      <div className="space-y-4">
         <div>
           <h4 className="text-sm font-semibold mb-2">On this page</h4>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {items.map((item) => (
               <a
                 key={item.id}
@@ -197,7 +185,6 @@ function NavigationButtons({ navigation }: { navigation?: DocsNavigation }) {
           >
             <ArrowLeft className="size-4" />
             <div className="text-left">
-              <div className="text-xs text-muted-foreground">Previous</div>
               <div>{navigation.previous.title}</div>
             </div>
           </Link>
@@ -209,7 +196,6 @@ function NavigationButtons({ navigation }: { navigation?: DocsNavigation }) {
         <Button variant="outline" asChild>
           <Link to={navigation.next.href} className="flex items-center gap-2">
             <div className="text-right">
-              <div className="text-xs text-muted-foreground">Next</div>
               <div>{navigation.next.title}</div>
             </div>
             <ArrowRight className="size-4" />
@@ -226,37 +212,36 @@ export function DocsLayout({
   description,
   badge,
   navigation,
-  tableOfContents = [],
 }: DocsLayoutProps) {
+  const location = useLocation();
+
+  // Scroll to top when location changes
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  // Generate table of contents from docsSections based on current location
+  const currentSection = docsSections.find(
+    (section) => section.href === location.pathname
+  );
+  const tableOfContents: TableOfContentsItem[] =
+    currentSection?.subsections?.map((subsection) => ({
+      id: subsection.href.replace("#", ""),
+      title: subsection.title,
+      level: 2,
+    })) || [];
+
   return (
-    <div className="min-h-screen">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        <DocsSidebar />
-      </div>
+    <AppLayout>
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <DocsSidebar />
+        </div>
 
-      {/* Mobile Sidebar */}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="fixed top-4 left-4 z-40"
-            >
-              <Menu className="size-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <DocsSidebar />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex md:ml-72">
-        <main className="flex-1 max-w-4xl">
-          <div className="container mx-auto py-10 px-6">
+        {/* Main Content */}
+        <main className="flex-1 max-w-5xl">
+          <div className="py-10 px-6">
             {/* Header */}
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-2">
@@ -287,6 +272,6 @@ export function DocsLayout({
           </div>
         </aside>
       </div>
-    </div>
+    </AppLayout>
   );
 }

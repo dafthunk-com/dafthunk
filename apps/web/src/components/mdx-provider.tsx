@@ -7,6 +7,40 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/utils";
 
+// Helper function to extract text content from React children
+function getTextContent(children: React.ReactNode): string {
+  if (typeof children === "string") {
+    return children;
+  }
+
+  if (typeof children === "number") {
+    return children.toString();
+  }
+
+  if (React.isValidElement(children)) {
+    return getTextContent(
+      (children.props as { children?: React.ReactNode }).children
+    );
+  }
+
+  if (Array.isArray(children)) {
+    return children.map(getTextContent).join("");
+  }
+
+  return "";
+}
+
+// Helper function to generate heading IDs
+function generateHeadingId(children: React.ReactNode): string {
+  const text = getTextContent(children);
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "") // Remove special characters except hyphens and spaces
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+}
+
 interface CodeBlockProps {
   children: React.ReactNode;
   className?: string;
@@ -79,54 +113,78 @@ function Callout({ children, type = "note" }: CalloutProps) {
 
 const components = {
   // Headings with anchor links and improved styling
-  h1: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1
-      className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-8 mt-10 first:mt-0"
-      {...props}
-    >
-      {children}
-    </h1>
-  ),
-  h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2
-      className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-10 mb-6 first:mt-0"
-      {...props}
-    >
-      {children}
-    </h2>
-  ),
-  h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3
-      className="scroll-m-20 text-2xl font-semibold tracking-tight mt-8 mb-4"
-      {...props}
-    >
-      {children}
-    </h3>
-  ),
-  h4: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h4
-      className="scroll-m-20 text-xl font-semibold tracking-tight mt-6 mb-3"
-      {...props}
-    >
-      {children}
-    </h4>
-  ),
-  h5: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h5
-      className="scroll-m-20 text-lg font-semibold tracking-tight mt-4 mb-2 text-muted-foreground"
-      {...props}
-    >
-      {children}
-    </h5>
-  ),
-  h6: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h6
-      className="scroll-m-20 text-base font-semibold tracking-tight mt-4 mb-2 text-muted-foreground"
-      {...props}
-    >
-      {children}
-    </h6>
-  ),
+  h1: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = generateHeadingId(children);
+    return (
+      <h1
+        id={id}
+        className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-8 mt-10 first:mt-0"
+        {...props}
+      >
+        {children}
+      </h1>
+    );
+  },
+  h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = generateHeadingId(children);
+    return (
+      <h2
+        id={id}
+        className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-10 mb-6 first:mt-0"
+        {...props}
+      >
+        {children}
+      </h2>
+    );
+  },
+  h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = generateHeadingId(children);
+    return (
+      <h3
+        id={id}
+        className="scroll-m-20 text-2xl font-semibold tracking-tight mt-8 mb-4"
+        {...props}
+      >
+        {children}
+      </h3>
+    );
+  },
+  h4: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = generateHeadingId(children);
+    return (
+      <h4
+        id={id}
+        className="scroll-m-20 text-xl font-semibold tracking-tight mt-6 mb-3"
+        {...props}
+      >
+        {children}
+      </h4>
+    );
+  },
+  h5: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = generateHeadingId(children);
+    return (
+      <h5
+        id={id}
+        className="scroll-m-20 text-lg font-semibold tracking-tight mt-4 mb-2 text-muted-foreground"
+        {...props}
+      >
+        {children}
+      </h5>
+    );
+  },
+  h6: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+    const id = generateHeadingId(children);
+    return (
+      <h6
+        id={id}
+        className="scroll-m-20 text-base font-semibold tracking-tight mt-4 mb-2 text-muted-foreground"
+        {...props}
+      >
+        {children}
+      </h6>
+    );
+  },
 
   // Paragraphs
   p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => {
