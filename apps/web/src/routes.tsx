@@ -5,6 +5,7 @@ import { Navigate } from "react-router";
 
 import { HeadSeo } from "./components/head-seo";
 import { AppLayout } from "./components/layouts/app-layout";
+import { DocsLayout } from "./components/layouts/docs-layout";
 import { ProtectedRoute } from "./components/protected-route";
 import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
@@ -12,6 +13,10 @@ import { DashboardPage } from "./pages/dashboard-page";
 import { DeploymentDetailPage } from "./pages/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/deployment-version-page";
 import { DeploymentsPage } from "./pages/deployments-page";
+import { DocsApiPage } from "./pages/docs/api-page";
+import { DocsNodesPage } from "./pages/docs/nodes-page";
+import { DocsOverviewPage } from "./pages/docs/overview-page";
+import { DocsWorkflowsPage } from "./pages/docs/workflows-page";
 import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
@@ -22,6 +27,7 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { PublicExecutionPage } from "./pages/public-execution-page";
+import { TestMdxPage } from "./pages/docs/test-mdx";
 
 export interface RouteHandle {
   head?:
@@ -143,15 +149,174 @@ export const routes: AppRouteObject[] = [
   {
     path: "/docs",
     element: (
-      <AppLayout>
+      <DocsLayout
+        title="Documentation"
+        description="Explore the Dafthunk documentation and learn how to build powerful workflow automations."
+        badge="v1.0"
+      >
         <DocsPage />
-      </AppLayout>
+      </DocsLayout>
     ),
     handle: {
       head: (
         <HeadSeo
           title="Documentation - Dafthunk"
           description="Explore the Dafthunk documentation."
+        />
+      ),
+    },
+  },
+  {
+    path: "/docs/test-mdx",
+    element: <TestMdxPage />,
+  },
+  {
+    path: "/docs/overview",
+    element: (
+      <DocsLayout
+        title="Dafthunk Documentation"
+        description="Dafthunk is a powerful visual workflow automation platform built on Cloudflare's edge infrastructure. Create, manage, and execute complex workflows with our intuitive drag-and-drop editor."
+        badge="v1.0"
+        navigation={{
+          next: {
+            title: "Workflows",
+            href: "/docs/workflows",
+          },
+        }}
+        tableOfContents={[
+          { id: "core-features", title: "Core Features", level: 2 },
+          { id: "quick-start", title: "Quick Start", level: 2 },
+          { id: "technology-stack", title: "Technology Stack", level: 2 },
+          { id: "whats-next", title: "What's Next?", level: 2 },
+        ]}
+      >
+        <DocsOverviewPage />
+      </DocsLayout>
+    ),
+    handle: {
+      head: (
+        <HeadSeo
+          title="Overview - Documentation - Dafthunk"
+          description="Get started with Dafthunk's core concepts and features."
+        />
+      ),
+    },
+  },
+  {
+    path: "/docs/workflows",
+    element: (
+      <DocsLayout
+        title="Workflows Documentation"
+        description="Learn how to create, manage, and execute workflows in Dafthunk. Build powerful automation flows using our visual editor."
+        navigation={{
+          previous: {
+            title: "Overview",
+            href: "/docs/overview",
+          },
+          next: {
+            title: "Nodes Reference",
+            href: "/docs/nodes",
+          },
+        }}
+        tableOfContents={[
+          { id: "getting-started", title: "Getting Started", level: 2 },
+          { id: "workflow-types", title: "Workflow Types", level: 2 },
+          { id: "testing-deployment", title: "Testing & Deployment", level: 2 },
+          { id: "best-practices", title: "Best Practices", level: 2 },
+          { id: "common-patterns", title: "Common Patterns", level: 2 },
+        ]}
+      >
+        <DocsWorkflowsPage />
+      </DocsLayout>
+    ),
+    handle: {
+      head: (
+        <HeadSeo
+          title="Workflows - Documentation - Dafthunk"
+          description="Learn how to create, manage, and execute workflows in Dafthunk."
+        />
+      ),
+    },
+  },
+  {
+    path: "/docs/nodes",
+    element: (
+      <DocsLayout
+        title="Nodes Reference"
+        description="Comprehensive reference for all 70+ node types available in Dafthunk."
+        badge="70+ nodes"
+        navigation={{
+          previous: {
+            title: "Workflows",
+            href: "/docs/workflows",
+          },
+          next: {
+            title: "API Reference",
+            href: "/docs/api",
+          },
+        }}
+        tableOfContents={[
+          { id: "ai-language-models", title: "AI & Language Models", level: 2 },
+          { id: "image-processing", title: "Image Processing", level: 2 },
+          { id: "web-http", title: "Web & HTTP", level: 2 },
+          { id: "data-processing", title: "Data Processing", level: 2 },
+          { id: "node-categories", title: "Node Categories", level: 2 },
+          {
+            id: "getting-started-with-nodes",
+            title: "Getting Started with Nodes",
+            level: 2,
+          },
+          {
+            id: "common-node-patterns",
+            title: "Common Node Patterns",
+            level: 2,
+          },
+        ]}
+      >
+        <DocsNodesPage />
+      </DocsLayout>
+    ),
+    handle: {
+      head: (
+        <HeadSeo
+          title="Nodes Reference - Documentation - Dafthunk"
+          description="Comprehensive reference for all 70+ node types available in Dafthunk."
+        />
+      ),
+    },
+  },
+  {
+    path: "/docs/api",
+    element: (
+      <DocsLayout
+        title="API Reference"
+        description="Complete API documentation for integrating with Dafthunk workflows."
+        navigation={{
+          previous: {
+            title: "Nodes Reference",
+            href: "/docs/nodes",
+          },
+        }}
+        tableOfContents={[
+          { id: "base-url", title: "Base URL", level: 2 },
+          { id: "authentication", title: "Authentication", level: 2 },
+          { id: "workflow-execution", title: "Workflow Execution", level: 2 },
+          { id: "status-results", title: "Status & Results", level: 2 },
+          { id: "rate-limits", title: "Rate Limits", level: 2 },
+          { id: "error-handling", title: "Error Handling", level: 2 },
+          { id: "code-examples", title: "Code Examples", level: 2 },
+          { id: "sdks-and-libraries", title: "SDKs and Libraries", level: 2 },
+          { id: "webhooks", title: "Webhooks", level: 2 },
+        ]}
+      >
+        <DocsApiPage />
+      </DocsLayout>
+    ),
+    handle: {
+      head: (
+        <HeadSeo
+          title="API Reference - Documentation - Dafthunk"
+          description="Complete API documentation for integrating with Dafthunk workflows."
         />
       ),
     },

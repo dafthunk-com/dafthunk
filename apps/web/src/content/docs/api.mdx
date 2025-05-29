@@ -1,0 +1,256 @@
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
+import { ArrowRight } from "lucide-react";
+
+export const frontmatter = {
+  title: "API Reference",
+  description:
+    "Complete API documentation for integrating with Dafthunk workflows.",
+};
+
+## Base URL
+
+All API requests should be made to:
+
+```
+https://api.dafthunk.com/v1
+```
+
+## Authentication
+
+### API Key Authentication
+
+Secure your API requests using API keys generated from your dashboard.
+
+#### Getting API Keys
+
+1. Navigate to **Settings → API Keys**
+2. Click **"Create New API Key"**
+3. Give your key a descriptive name
+4. Copy and store the key securely
+
+#### Using API Keys
+
+Include your API key in the Authorization header of all requests:
+
+```http
+Authorization: Bearer your_api_key_here
+```
+
+## Workflow Execution
+
+### Execute Workflow
+
+Trigger workflow execution with custom input parameters.
+
+**Endpoint:** `POST /api/workflows/{workflowId}/execute`
+
+**Description:** Execute a deployed workflow with input parameters
+
+#### Request Body
+
+```json
+{
+  "inputs": {
+    "parameter1": "value1",
+    "parameter2": "value2"
+  },
+  "timeout": 300
+}
+```
+
+#### Response
+
+```json
+{
+  "executionId": "exec_1234567890",
+  "status": "running",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+## Status & Results
+
+### Get Execution Status
+
+Check execution status and retrieve results from completed workflows.
+
+**Endpoint:** `GET /api/executions/{executionId}`
+
+**Description:** Retrieve execution status and results
+
+#### Response
+
+```json
+{
+  "executionId": "exec_1234567890",
+  "status": "completed",
+  "result": {
+    "output": "Generated result data",
+    "metadata": {...}
+  },
+  "startedAt": "2024-01-15T10:30:00Z",
+  "completedAt": "2024-01-15T10:31:23Z",
+  "duration": 83000
+}
+```
+
+#### Status Values
+
+| Status      | Description           |
+| ----------- | --------------------- |
+| `pending`   | Execution queued      |
+| `running`   | Currently executing   |
+| `completed` | Successfully finished |
+| `failed`    | Execution failed      |
+| `timeout`   | Execution timed out   |
+
+## Rate Limits
+
+| Plan           | Requests per Hour |
+| -------------- | ----------------- |
+| **Free**       | 100 requests      |
+| **Pro**        | 1,000 requests    |
+| **Enterprise** | Custom limits     |
+
+## Error Handling
+
+The API uses conventional HTTP status codes:
+
+| Code  | Description                                 |
+| ----- | ------------------------------------------- |
+| `200` | Success                                     |
+| `400` | Bad Request (invalid parameters)            |
+| `401` | Unauthorized (invalid API key)              |
+| `404` | Not Found (workflow or execution not found) |
+| `429` | Too Many Requests (rate limit exceeded)     |
+| `500` | Internal Server Error                       |
+
+## Code Examples
+
+### JavaScript/Node.js
+
+```javascript
+const response = await fetch(
+  "https://api.dafthunk.com/v1/workflows/wf_123/execute",
+  {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer your_api_key",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: {
+        text: "Hello, world!",
+      },
+    }),
+  }
+);
+
+const execution = await response.json();
+console.log("Execution ID:", execution.executionId);
+```
+
+### Python
+
+```python
+import requests
+
+response = requests.post(
+    'https://api.dafthunk.com/v1/workflows/wf_123/execute',
+    headers={
+        'Authorization': 'Bearer your_api_key',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'inputs': {
+            'text': 'Hello, world!'
+        }
+    }
+)
+
+execution = response.json()
+print(f"Execution ID: {execution['executionId']}")
+```
+
+### cURL
+
+```bash
+curl -X POST https://api.dafthunk.com/v1/workflows/wf_123/execute \
+  -H "Authorization: Bearer your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{"inputs": {"text": "Hello, world!"}}'
+```
+
+## SDKs and Libraries
+
+### Official SDKs
+
+- **JavaScript/TypeScript** - `@dafthunk/js-sdk`
+- **Python** - `dafthunk-python`
+- **Go** - `dafthunk-go`
+
+### Community Libraries
+
+- **PHP** - `dafthunk/php-client`
+- **Ruby** - `dafthunk-ruby`
+- **Java** - `dafthunk-java`
+
+## Webhooks
+
+Configure webhooks to receive real-time notifications about workflow executions.
+
+### Setup
+
+1. Navigate to **Settings → Webhooks**
+2. Add your endpoint URL
+3. Select events to receive
+4. Configure authentication (optional)
+
+### Events
+
+| Event                 | Description                     |
+| --------------------- | ------------------------------- |
+| `execution.started`   | Workflow execution began        |
+| `execution.completed` | Execution finished successfully |
+| `execution.failed`    | Execution encountered an error  |
+| `execution.timeout`   | Execution exceeded time limit   |
+
+### Payload Example
+
+```json
+{
+  "event": "execution.completed",
+  "executionId": "exec_1234567890",
+  "workflowId": "wf_123",
+  "timestamp": "2024-01-15T10:31:23Z",
+  "data": {
+    "status": "completed",
+    "duration": 83000,
+    "result": {...}
+  }
+}
+```
+
+---
+
+<div className="my-8">
+  <h2 className="text-xl font-semibold mb-4">Start Building</h2>
+  <div className="text-muted-foreground mb-6">
+    Get your API key and start integrating Dafthunk workflows into your
+    applications.
+  </div>
+  <div className="flex flex-wrap gap-4">
+    <Button asChild>
+      <Link to="/settings/api-keys">
+        Get API Key <ArrowRight className="ml-2 size-4" />
+      </Link>
+    </Button>
+    <Button variant="outline" asChild>
+      <Link to="/workflows/deployments">View Deployments</Link>
+    </Button>
+    <Button variant="outline" asChild>
+      <Link to="/docs/workflows">Learn Workflows</Link>
+    </Button>
+  </div>
+</div>

@@ -37,6 +37,7 @@ app.route("/llms.txt", llmsRoutes);
 
 // Public routes
 app.route("/public", publicRoutes);
+app.route("/types", typeRoutes);
 
 // Protected routes
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
@@ -44,7 +45,6 @@ app.route("/:orgHandle/dashboard", dashboardRoutes);
 app.route("/:orgHandle/deployments", deploymentRoutes);
 app.route("/:orgHandle/executions", executionRoutes);
 app.route("/:orgHandle/workflows", workflowRoutes);
-app.route("/:orgHandle/types", typeRoutes);
 app.route("/:orgHandle/objects", objectRoutes);
 
 export default {

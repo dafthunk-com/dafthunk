@@ -1,5 +1,7 @@
+import mdx from "@mdx-js/rollup";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import remarkGfm from "remark-gfm";
 import { defineConfig } from "vite";
 
 const ReactCompilerConfig = {};
@@ -7,7 +9,15 @@ const ReactCompilerConfig = {};
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    {
+      enforce: "pre",
+      ...mdx({
+        providerImportSource: "@mdx-js/react",
+        remarkPlugins: [remarkGfm],
+      }),
+    },
     react({
+      include: /\.(mdx|js|jsx|ts|tsx)$/,
       babel: {
         plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
       },

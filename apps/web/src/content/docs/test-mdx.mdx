@@ -1,0 +1,85 @@
+# MDX Provider Test
+
+This file demonstrates how our MDXProvider styles **markdown elements** while leaving literal HTML elements unchanged.
+
+## Markdown Elements (Styled)
+
+This paragraph is written in markdown and will be styled by our MDXProvider with proper spacing and typography.
+
+### Lists in Markdown
+
+- This is a markdown list item
+- It will have proper styling with bullets
+- And appropriate spacing
+
+### Code in Markdown
+
+Here's some `inline code` in markdown that gets styled.
+
+```javascript
+// This is a code block in markdown
+function hello() {
+  return "This will have syntax highlighting and copy button";
+}
+```
+
+### Tables in Markdown
+
+| Feature  | Markdown   | HTML           |
+| -------- | ---------- | -------------- |
+| Styling  | ✅ Styled  | ❌ Unstyled    |
+| Provider | ✅ Applied | ❌ Not applied |
+
+## Literal HTML Elements (Unstyled)
+
+<p>
+  This paragraph is written as literal HTML and will NOT be styled by the
+  MDXProvider. It will use default browser styles.
+</p>
+
+<h3>This is a literal HTML heading</h3>
+
+<ul>
+  <li>This is a literal HTML list</li>
+  <li>It will not have the custom styling</li>
+  <li>It remains as plain HTML</li>
+</ul>
+
+<code>This is literal HTML inline code without styling</code>
+
+<blockquote>
+  This is a literal HTML blockquote that won't get the custom styling.
+</blockquote>
+
+## Mixed Content Example
+
+Here's a **markdown paragraph** with emphasis.
+
+<p>
+  Here's a <strong>literal HTML paragraph</strong> with emphasis.
+</p>
+
+> This is a markdown blockquote that gets styled.
+
+<blockquote>
+  This is a literal HTML blockquote that doesn't get styled.
+</blockquote>
+
+## Custom Components
+
+<Callout type="note">
+  This is a custom Callout component available in our MDXProvider!
+</Callout>
+
+<Callout type="warning">
+  You can use different types: note, warning, tip, danger
+</Callout>
+
+<Badge>Custom Badge</Badge>
+
+## External Links
+
+[This markdown link goes to GitHub](https://github.com) and will show an external link icon.
+
+<a href="https://github.com">This HTML link goes to GitHub</a> and won't show an
+external link icon.

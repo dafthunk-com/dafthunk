@@ -1,0 +1,115 @@
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
+import { ArrowRight } from "lucide-react";
+import { NodesBrowser } from "@/components/docs/nodes-browser";
+
+export const frontmatter = {
+  title: "Nodes Reference",
+  description:
+    "Comprehensive reference for all available node types in Dafthunk.",
+  badge: "Interactive Browser",
+};
+
+## Interactive Node Browser
+
+Explore and search through all available nodes with real-time filtering by category, name, and description:
+
+<NodesBrowser />
+
+---
+
+## Understanding Nodes
+
+Every node in Dafthunk represents a specific operation or function that can be connected together to create powerful workflows. Nodes are the building blocks that make visual programming possible.
+
+### Node Anatomy
+
+Each node consists of:
+
+- **Inputs** - Data or connections coming into the node
+- **Outputs** - Results or data flowing out of the node
+- **Parameters** - Configuration settings specific to the node
+- **Category** - The functional group the node belongs to
+- **Compatibility** - Which workflow types support this node
+
+### Node Categories
+
+Nodes are organized into logical categories based on their primary function:
+
+- **AI & ML** - Language models, image generation, and machine learning
+- **Text** - Text processing, formatting, and manipulation
+- **Image** - Image generation, analysis, and transformation
+- **Audio** - Speech processing, synthesis, and audio manipulation
+- **Network** - HTTP requests, web scraping, and external integrations
+- **Data** - JSON, XML, CSV processing and transformation
+- **Math** - Mathematical operations and calculations
+- **Parameters** - Input handling and form data processing
+- **Email** - Email sending and processing capabilities
+- **Document** - Document processing and conversion
+
+### Connecting Nodes
+
+Nodes work together by connecting outputs to inputs:
+
+1. **Drag connections** from output ports to input ports
+2. **Data flows** automatically through connected nodes
+3. **Type validation** ensures compatible connections
+4. **Execution order** is determined by the connection graph
+
+### Best Practices
+
+When working with nodes:
+
+- **Start Simple** - Begin with basic nodes and add complexity gradually
+- **Test Frequently** - Use the playground to verify individual node behavior
+- **Handle Errors** - Add error handling nodes for robust workflows
+- **Document Purpose** - Use descriptive names for nodes and workflows
+- **Optimize Performance** - Consider the computational cost of complex nodes
+
+## Common Patterns
+
+### Sequential Processing
+
+```
+Input → Transform → Validate → Output
+```
+
+### Parallel Processing
+
+```
+Input → Split → [Process A, Process B] → Merge → Output
+```
+
+### Conditional Logic
+
+```
+Input → Condition → [True Path, False Path] → Combine → Output
+```
+
+### Data Transformation Pipeline
+
+```
+Raw Data → Parse → Clean → Transform → Store
+```
+
+---
+
+<div className="my-8">
+  <h2 className="text-xl font-semibold mb-4">Ready to Build?</h2>
+  <p className="text-muted-foreground mb-6">
+    Start creating workflows with these powerful nodes in the visual editor.
+  </p>
+  <div className="flex flex-wrap gap-4">
+    <Button asChild>
+      <Link to="/workflows/playground">
+        Open Playground <ArrowRight className="ml-2 size-4" />
+      </Link>
+    </Button>
+    <Button variant="outline" asChild>
+      <Link to="/docs/workflows">Learn Workflows</Link>
+    </Button>
+    <Button variant="outline" asChild>
+      <Link to="/docs/api">API Reference</Link>
+    </Button>
+  </div>
+</div>
