@@ -241,6 +241,13 @@ export const WorkflowNode = memo(
       setSelectedInput(null);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleDialogClose();
+      }
+    };
+
     const handleNameClick = () => {
       if (readonly) return;
 
@@ -484,6 +491,7 @@ export const WorkflowNode = memo(
                           type="number"
                           value={inputValue}
                           onChange={(e) => handleInputChange(e.target.value)}
+                          onKeyDown={handleKeyDown}
                           placeholder="Enter number value"
                           disabled={readonly}
                         />
@@ -503,6 +511,12 @@ export const WorkflowNode = memo(
                           id="input-value"
                           value={inputValue}
                           onChange={(e) => handleInputChange(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && e.ctrlKey) {
+                              e.preventDefault();
+                              handleDialogClose();
+                            }
+                          }}
                           placeholder="Enter text value"
                           className="min-h-[100px] resize-y"
                           disabled={readonly}
@@ -523,6 +537,7 @@ export const WorkflowNode = memo(
                           id="input-value"
                           value={inputValue}
                           onChange={(e) => handleInputChange(e.target.value)}
+                          onKeyDown={handleKeyDown}
                           placeholder="Enter text value"
                           disabled={readonly}
                         />

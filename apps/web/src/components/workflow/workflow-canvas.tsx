@@ -148,37 +148,37 @@ function ActionButton({
 }: ActionButtonProps) {
   const statusConfig = {
     idle: {
-      icon: <Play className="w-6 h-6" />,
+      icon: <Play className="!size-5" />,
       title: "Execute Workflow",
       className: "bg-green-600 hover:bg-green-700 text-white",
     },
     submitted: {
-      icon: <Square className="w-6 h-6" />,
+      icon: <Square className="!size-5" />,
       title: "Stop Execution",
       className: "bg-red-500 hover:bg-red-600 text-white",
     },
     executing: {
-      icon: <Square className="w-6 h-6" />,
+      icon: <Square className="!size-5" />,
       title: "Stop Execution",
       className: "bg-red-500 hover:bg-red-600 text-white",
     },
     completed: {
-      icon: <X className="w-6 h-6" />,
+      icon: <X className="!size-5" />,
       title: "Clear Outputs & Reset",
       className: "bg-emerald-600 hover:bg-emerald-700 text-white",
     },
     error: {
-      icon: <X className="w-6 h-6" />,
+      icon: <X className="!size-5" />,
       title: "Clear Errors & Reset",
       className: "bg-rose-600 hover:bg-rose-700 text-white",
     },
     cancelled: {
-      icon: <Play className="w-6 h-6" />,
+      icon: <Play className="!size-5" />,
       title: "Restart Workflow",
       className: "bg-neutral-600 hover:bg-neutral-700 text-white",
     },
     paused: {
-      icon: <Play className="w-6 h-6" />,
+      icon: <Play className="!size-5" />,
       title: "Resume Workflow",
       className: "bg-blue-500 hover:bg-blue-600 text-white",
     },
@@ -215,7 +215,7 @@ function DeployButton({
       position="right-16"
       tooltip="Deploy Workflow"
     >
-      <ArrowUpToLine className="w-6 h-6" />
+      <ArrowUpToLine className="!size-5" />
     </CanvasButton>
   );
 }
@@ -233,9 +233,9 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
       tooltip={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
     >
       {isSidebarVisible ? (
-        <PanelLeftClose className="w-6 h-6" />
+        <PanelLeftClose className="!size-5 rotate-180" />
       ) : (
-        <PanelLeft className="w-6 h-6" />
+        <PanelLeft className="!size-5 rotate-180" />
       )}
     </CanvasButton>
   );
@@ -265,9 +265,9 @@ function OutputsToggle({
       }
     >
       {expandedOutputs ? (
-        <ChevronUp className="w-6 h-6" />
+        <ChevronUp className="!size-5" />
       ) : (
-        <ChevronDown className="w-6 h-6" />
+        <ChevronDown className="!size-5" />
       )}
     </CanvasButton>
   );
@@ -363,7 +363,7 @@ export function WorkflowCanvas({
             position="bottom-4 right-4"
             tooltip="Add Node"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="!size-5" />
           </CanvasButton>
         )}
 
