@@ -27,7 +27,6 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { PlaygroundPage } from "./pages/playground-page";
 import { ProfilePage } from "./pages/profile-page";
 import { PublicExecutionPage } from "./pages/public-execution-page";
-import { TestMdxPage } from "./pages/docs/test-mdx";
 
 export interface RouteHandle {
   head?:
@@ -165,10 +164,6 @@ export const routes: AppRouteObject[] = [
         />
       ),
     },
-  },
-  {
-    path: "/docs/test-mdx",
-    element: <TestMdxPage />,
   },
   {
     path: "/docs/overview",
