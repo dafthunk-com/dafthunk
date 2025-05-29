@@ -105,3 +105,92 @@
 .react-flow__attribution a {
   @apply !text-muted-foreground;
 }
+
+/* Documentation content styles - only apply to elements without classes */
+.docs-content h1:not([class]) {
+  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-8 mt-10 first:mt-0;
+}
+
+.docs-content h2:not([class]) {
+  @apply scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-10 mb-6 first:mt-0;
+}
+
+.docs-content h3:not([class]) {
+  @apply scroll-m-20 text-2xl font-semibold tracking-tight mt-8 mb-4;
+}
+
+.docs-content h4:not([class]) {
+  @apply scroll-m-20 text-xl font-semibold tracking-tight mt-6 mb-3;
+}
+
+.docs-content h5:not([class]) {
+  @apply scroll-m-20 text-lg font-semibold tracking-tight mt-4 mb-2 text-muted-foreground;
+}
+
+.docs-content h6:not([class]) {
+  @apply scroll-m-20 text-base font-semibold tracking-tight mt-4 mb-2 text-muted-foreground;
+}
+
+.docs-content p:not([class]) {
+  @apply leading-7 [&:not(:first-child)]:mt-6;
+}
+
+.docs-content ul:not([class]) {
+  @apply my-6 ml-6 list-disc [&>li]:mt-2;
+}
+
+.docs-content ol:not([class]) {
+  @apply my-6 ml-6 list-decimal [&>li]:mt-2;
+}
+
+.docs-content li:not([class]) {
+  @apply leading-7;
+}
+
+.docs-content a:not([class]) {
+  @apply font-medium text-primary underline underline-offset-4 hover:text-primary/80;
+}
+
+.docs-content code:not([class]):not(pre code) {
+  @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+}
+
+.docs-content blockquote:not([class]) {
+  @apply mt-6 border-l-2 pl-6 italic text-muted-foreground;
+}
+
+.docs-content table:not([class]) {
+  @apply w-full border-collapse border-spacing-0 my-6;
+}
+
+.docs-content thead:not([class]) {
+  @apply border-b;
+}
+
+.docs-content tr:not([class]) {
+  @apply border-b transition-colors hover:bg-muted/50;
+}
+
+.docs-content th:not([class]) {
+  @apply h-12 px-4 text-left align-middle font-medium;
+}
+
+.docs-content td:not([class]) {
+  @apply p-4 align-middle text-muted-foreground;
+}
+
+.docs-content img:not([class]) {
+  @apply rounded-lg border max-w-full h-auto my-6;
+}
+
+.docs-content hr:not([class]) {
+  @apply my-8 border-muted;
+}
+
+.docs-content strong:not([class]) {
+  @apply font-semibold;
+}
+
+.docs-content em:not([class]) {
+  @apply italic;
+}

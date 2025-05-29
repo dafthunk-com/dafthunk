@@ -9,7 +9,6 @@ import {
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 
-import { MdxProvider } from "@/components/mdx-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -266,8 +265,8 @@ export function DocsLayout({
             </div>
 
             {/* Content */}
-            <div className="prose prose-slate dark:prose-invert max-w-none">
-              <MdxProvider>{children}</MdxProvider>
+            <div className="prose prose-slate dark:prose-invert max-w-none docs-content">
+              {children}
             </div>
 
             {/* Navigation */}
