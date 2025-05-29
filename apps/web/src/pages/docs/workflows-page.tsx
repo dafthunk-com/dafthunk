@@ -1,7 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 
-import { CodeBlock } from "@/components/docs/code-block";
 import { Button } from "@/components/ui/button";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
@@ -172,22 +171,6 @@ export function DocsWorkflowsPage() {
         <li>Handle large datasets efficiently</li>
         <li>Set reasonable timeout values</li>
       </ul>
-
-      <h2>Common Patterns</h2>
-
-      <h3>Data Processing Pipeline</h3>
-      <CodeBlock>Input → Validate → Transform → Process → Output</CodeBlock>
-
-      <h3>AI Content Generation</h3>
-      <CodeBlock>Prompt → LLM Node → Format → Review → Publish</CodeBlock>
-
-      <h3>API Integration</h3>
-      <CodeBlock>HTTP Request → Parse Response → Transform → Store</CodeBlock>
-
-      <h3>Conditional Logic</h3>
-      <CodeBlock>
-        Input → Condition Check → Branch A / Branch B → Merge
-      </CodeBlock>
 
       <hr />
 

@@ -45,7 +45,7 @@
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 0 0% 27%;
+    --secondary: 0 0% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 0 0% 27%;
     --muted-foreground: 0 0% 65.1%;
@@ -104,6 +104,15 @@
 
 .react-flow__attribution a {
   @apply !text-muted-foreground;
+}
+
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  /* Optional, if you also want font styles */
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 /* Documentation content styles - only apply to elements without classes */

@@ -1,5 +1,5 @@
 import type { Node } from "@xyflow/react";
-import { Copy, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
 
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
@@ -7,7 +7,7 @@ import {
   GET_OBJECT_SNIPPETS,
   type SnippetParams,
 } from "@/components/deployments/api-snippets";
-import { Button } from "@/components/ui/button";
+import { CodeBlock } from "@/components/docs/code-block";
 import {
   Card,
   CardContent,
@@ -15,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Code } from "@/components/ui/code";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   NodeTemplate,
@@ -51,11 +50,6 @@ export function ApiIntegrationCard({
   const formParams: SnippetParams[] = parameters
     .filter((p) => p.type !== "body-json")
     .map((p) => ({ nameForForm: p.nameForForm, type: p.type })); // Adapt to SnippetParams
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    // Consider adding a toast notification here for better UX
-  };
 
   const renderSnippets = (
     operation: "execute" | "status" | "getObject",
@@ -131,19 +125,19 @@ export function ApiIntegrationCard({
         >
           <TabsList className="flex flex-col justify-start h-auto gap-1 p-4 rounded-r-none *:w-full *:justify-start *:pe-10">
             <TabsTrigger value="execute">
-              <span className="text-xs font-mono me-2 text-green-600">
+              <span className="text-xs font-mono me-2 text-green-600 dark:text-green-400">
                 POST
               </span>{" "}
               Execute Workflow
             </TabsTrigger>
             <TabsTrigger value="status">
-              <span className="text-xs font-mono me-2 text-blue-600">
+              <span className="text-xs font-mono me-2 text-blue-600 dark:text-blue-400">
                 GET&nbsp;
               </span>{" "}
               Execution Status
             </TabsTrigger>
             <TabsTrigger value="getObject">
-              <span className="text-xs font-mono me-2 text-blue-600">
+              <span className="text-xs font-mono me-2 text-blue-600 dark:text-blue-400">
                 GET&nbsp;
               </span>{" "}
               Object
@@ -166,65 +160,32 @@ export function ApiIntegrationCard({
               </TabsList>
               <TabsContent value="curl" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="bash"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("execute", "curl")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("execute", "curl"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
               <TabsContent value="javascript" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="javascript"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("execute", "javascript")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("execute", "javascript"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
               <TabsContent value="python" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="python"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("execute", "python")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("execute", "python"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
             </Tabs>
@@ -277,63 +238,32 @@ export function ApiIntegrationCard({
               </TabsList>
               <TabsContent value="curl" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="bash"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("status", "curl")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() => handleCopy(renderSnippets("status", "curl"))}
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
               <TabsContent value="javascript" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="javascript"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("status", "javascript")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("status", "javascript"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
               <TabsContent value="python" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="python"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("status", "python")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("status", "python"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
             </Tabs>
@@ -376,65 +306,32 @@ export function ApiIntegrationCard({
               </TabsList>
               <TabsContent value="curl" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="bash"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("getObject", "curl")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("getObject", "curl"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
               <TabsContent value="javascript" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="javascript"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("getObject", "javascript")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("getObject", "javascript"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
               <TabsContent value="python" className="mt-4 space-y-4">
                 <div className="relative">
-                  <Code
+                  <CodeBlock
                     language="python"
                     className="text-xs md:text-sm overflow-x-auto font-mono"
                   >
                     {renderSnippets("getObject", "python")}
-                  </Code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="absolute top-2 right-2 h-7 w-7 p-0"
-                    onClick={() =>
-                      handleCopy(renderSnippets("getObject", "python"))
-                    }
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy</span>
-                  </Button>
+                  </CodeBlock>
                 </div>
               </TabsContent>
             </Tabs>

@@ -8,7 +8,6 @@ import {
 } from "@/components/deployments/api-snippets";
 import { CodeBlock } from "@/components/docs/code-block";
 import { Button } from "@/components/ui/button";
-import { Code } from "@/components/ui/code";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
@@ -121,9 +120,9 @@ export function DocsApiPage() {
           </TabsList>
           <TabsContent value="curl" className="mt-4">
             <div className="relative">
-              <Code language="bash" className="text-sm">
+              <CodeBlock language="bash">
                 {EXECUTE_WORKFLOW_SNIPPETS.curl(exampleExecuteUrl, true, [])}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -141,13 +140,13 @@ export function DocsApiPage() {
           </TabsContent>
           <TabsContent value="javascript" className="mt-4">
             <div className="relative">
-              <Code language="javascript" className="text-sm">
+              <CodeBlock language="javascript">
                 {EXECUTE_WORKFLOW_SNIPPETS.javascript(
                   exampleExecuteUrl,
                   true,
                   []
                 )}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -169,9 +168,9 @@ export function DocsApiPage() {
           </TabsContent>
           <TabsContent value="python" className="mt-4">
             <div className="relative">
-              <Code language="python" className="text-sm">
+              <CodeBlock language="python">
                 {EXECUTE_WORKFLOW_SNIPPETS.python(exampleExecuteUrl, true, [])}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -243,9 +242,9 @@ export function DocsApiPage() {
           </TabsList>
           <TabsContent value="curl" className="mt-4">
             <div className="relative">
-              <Code language="bash" className="text-sm">
+              <CodeBlock language="bash">
                 {GET_EXECUTION_STATUS_SNIPPETS.curl(exampleStatusBaseUrl)}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -263,9 +262,9 @@ export function DocsApiPage() {
           </TabsContent>
           <TabsContent value="javascript" className="mt-4">
             <div className="relative">
-              <Code language="javascript" className="text-sm">
+              <CodeBlock language="javascript">
                 {GET_EXECUTION_STATUS_SNIPPETS.javascript(exampleStatusBaseUrl)}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -285,9 +284,9 @@ export function DocsApiPage() {
           </TabsContent>
           <TabsContent value="python" className="mt-4">
             <div className="relative">
-              <Code language="python" className="text-sm">
+              <CodeBlock language="python">
                 {GET_EXECUTION_STATUS_SNIPPETS.python(exampleStatusBaseUrl)}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -418,9 +417,9 @@ export function DocsApiPage() {
           </TabsList>
           <TabsContent value="curl" className="mt-4">
             <div className="relative">
-              <Code language="bash" className="text-sm">
+              <CodeBlock language="bash">
                 {GET_OBJECT_SNIPPETS.curl(exampleObjectBaseUrl)}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -436,9 +435,9 @@ export function DocsApiPage() {
           </TabsContent>
           <TabsContent value="javascript" className="mt-4">
             <div className="relative">
-              <Code language="javascript" className="text-sm">
+              <CodeBlock language="javascript">
                 {GET_OBJECT_SNIPPETS.javascript(exampleObjectBaseUrl)}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"
@@ -456,9 +455,9 @@ export function DocsApiPage() {
           </TabsContent>
           <TabsContent value="python" className="mt-4">
             <div className="relative">
-              <Code language="python" className="text-sm">
+              <CodeBlock language="python">
                 {GET_OBJECT_SNIPPETS.python(exampleObjectBaseUrl)}
-              </Code>
+              </CodeBlock>
               <Button
                 size="sm"
                 variant="ghost"

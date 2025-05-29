@@ -1,8 +1,8 @@
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { codeToHtml } from "shiki";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/utils/utils";
 
 interface CodeBlockProps {
   children: React.ReactNode;
@@ -12,7 +12,43 @@ interface CodeBlockProps {
 
 export function CodeBlock({ children, className, language }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [highlightedCode, setHighlightedCode] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   const isInline = !className && !language;
+
+  const codeString = String(children);
+
+  useEffect(() => {
+    const highlightCode = async () => {
+      if (isInline || !codeString.trim()) {
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // Extract language from className if not provided directly
+        const lang = language || className?.replace("language-", "") || "text";
+
+        const html = await codeToHtml(codeString, {
+          lang,
+          themes: {
+            light: "github-light",
+            dark: "github-dark",
+          },
+        });
+
+        setHighlightedCode(html);
+      } catch (error) {
+        console.warn("Failed to highlight code:", error);
+        // Fallback to plain text if highlighting fails
+        setHighlightedCode(`<pre><code>${codeString}</code></pre>`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    highlightCode();
+  }, [codeString, language, className, isInline]);
 
   if (isInline) {
     return (
@@ -24,7 +60,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(String(children));
+      await navigator.clipboard.writeText(codeString);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -32,31 +68,34 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="relative group">
+        <pre className="mb-4 mt-6 overflow-x-auto rounded-lg border bg-zinc-950 text-white p-4">
+          <div className="flex items-center justify-center h-20">
+            <div className="text-zinc-400 text-sm">
+              Loading syntax highlighting...
+            </div>
+          </div>
+        </pre>
+      </div>
+    );
+  }
+
   return (
     <div className="relative group">
-      <pre className="mb-4 mt-6 overflow-x-auto rounded-lg border bg-zinc-950 text-white p-4">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-transparent"
-          onClick={handleCopy}
-        >
-          {copied ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
-        </Button>
-        <code
-          className={cn(
-            "text-sm",
-            className,
-            language && `language-${language}`
-          )}
-        >
-          {children}
-        </code>
-      </pre>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-transparent z-10"
+        onClick={handleCopy}
+      >
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      </Button>
+      <div
+        className="mb-4 mt-2 overflow-x-auto rounded-md text-sm [&_pre]:m-0 [&_pre]:p-4 [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre-wrap"
+        dangerouslySetInnerHTML={{ __html: highlightedCode }}
+      />
     </div>
   );
 }
