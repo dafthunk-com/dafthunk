@@ -18,8 +18,8 @@ import {
 } from "@xyflow/react";
 import {
   ArrowUpToLine,
-  ChevronDown,
-  ChevronUp,
+  Eye,
+  EyeOff,
   PanelLeft,
   PanelLeftClose,
   Play,
@@ -98,6 +98,53 @@ function CanvasButton({
   );
 }
 
+interface ActionBarButtonProps {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  tooltip: string;
+  children: React.ReactNode;
+  position?: "first" | "middle" | "last" | "only";
+}
+
+function ActionBarButton({
+  onClick,
+  disabled = false,
+  className = "",
+  tooltip,
+  children,
+  position = "middle",
+}: ActionBarButtonProps) {
+  const roundingClass = {
+    first: "rounded-l-lg rounded-r-none",
+    middle: "rounded-none border-l-0",
+    last: "rounded-r-lg rounded-l-none border-l-0",
+    only: "rounded-lg",
+  }[position];
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          className={cn(
+            "h-10 px-3 border-neutral-300 shadow-sm",
+            roundingClass,
+            className,
+            { "opacity-50 cursor-not-allowed": disabled }
+          )}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
@@ -148,39 +195,41 @@ function ActionButton({
 }: ActionButtonProps) {
   const statusConfig = {
     idle: {
-      icon: <Play className="!size-5" />,
+      icon: <Play className="!size-4" />,
       title: "Execute Workflow",
-      className: "bg-green-600 hover:bg-green-700 text-white",
+      className: "bg-green-600 hover:bg-green-700 text-white border-green-600",
     },
     submitted: {
-      icon: <Square className="!size-5" />,
+      icon: <Square className="!size-4" />,
       title: "Stop Execution",
-      className: "bg-red-500 hover:bg-red-600 text-white",
+      className: "bg-red-500 hover:bg-red-600 text-white border-red-500",
     },
     executing: {
-      icon: <Square className="!size-5" />,
+      icon: <Square className="!size-4" />,
       title: "Stop Execution",
-      className: "bg-red-500 hover:bg-red-600 text-white",
+      className: "bg-red-500 hover:bg-red-600 text-white border-red-500",
     },
     completed: {
-      icon: <X className="!size-5" />,
+      icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
-      className: "bg-emerald-600 hover:bg-emerald-700 text-white",
+      className:
+        "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600",
     },
     error: {
-      icon: <X className="!size-5" />,
+      icon: <X className="!size-4" />,
       title: "Clear Errors & Reset",
-      className: "bg-rose-600 hover:bg-rose-700 text-white",
+      className: "bg-rose-600 hover:bg-rose-700 text-white border-rose-600",
     },
     cancelled: {
-      icon: <Play className="!size-5" />,
+      icon: <Play className="!size-4" />,
       title: "Restart Workflow",
-      className: "bg-neutral-600 hover:bg-neutral-700 text-white",
+      className:
+        "bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600",
     },
     paused: {
-      icon: <Play className="!size-5" />,
+      icon: <Play className="!size-4" />,
       title: "Resume Workflow",
-      className: "bg-blue-500 hover:bg-blue-600 text-white",
+      className: "bg-blue-500 hover:bg-blue-600 text-white border-blue-500",
     },
   };
 
@@ -188,15 +237,15 @@ function ActionButton({
   const config = statusConfig[workflowStatus] || statusConfig.idle;
 
   return (
-    <CanvasButton
+    <ActionBarButton
       onClick={onClick}
       disabled={disabled}
       className={config.className}
-      position="right-28"
       tooltip={config.title}
+      position="first"
     >
       {config.icon}
-    </CanvasButton>
+    </ActionBarButton>
   );
 }
 
@@ -208,15 +257,15 @@ function DeployButton({
   disabled?: boolean;
 }) {
   return (
-    <CanvasButton
+    <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-blue-600 hover:bg-blue-700 text-white"
-      position="right-16"
+      className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
       tooltip="Deploy Workflow"
+      position="middle"
     >
-      <ArrowUpToLine className="!size-5" />
-    </CanvasButton>
+      <ArrowUpToLine className="!size-4" />
+    </ActionBarButton>
   );
 }
 
@@ -227,17 +276,18 @@ type SidebarToggleProps = {
 
 function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
   return (
-    <CanvasButton
+    <ActionBarButton
       onClick={onClick}
-      position="right-4"
       tooltip={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
+      className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-300"
+      position="last"
     >
       {isSidebarVisible ? (
-        <PanelLeftClose className="!size-5 rotate-180" />
+        <PanelLeftClose className="!size-4 rotate-180" />
       ) : (
-        <PanelLeft className="!size-5 rotate-180" />
+        <PanelLeft className="!size-4 rotate-180" />
       )}
-    </CanvasButton>
+    </ActionBarButton>
   );
 }
 
@@ -251,25 +301,25 @@ function OutputsToggle({
   disabled?: boolean;
 }) {
   return (
-    <CanvasButton
+    <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-neutral-600 hover:bg-neutral-700 text-white"
-      position="right-40"
+      className="bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600"
       tooltip={
         disabled
           ? "No outputs to show"
           : expandedOutputs
-            ? "Collapse All Outputs"
-            : "Expand All Outputs"
+            ? "Hide All Outputs"
+            : "Show All Outputs"
       }
+      position="middle"
     >
       {expandedOutputs ? (
-        <ChevronUp className="!size-5" />
+        <EyeOff className="!size-4" />
       ) : (
-        <ChevronDown className="!size-5" />
+        <Eye className="!size-4" />
       )}
-    </CanvasButton>
+    </ActionBarButton>
   );
 }
 
@@ -353,6 +403,45 @@ export function WorkflowCanvas({
           </div>
         )}
 
+        {/* Main Action Bar */}
+        {!readonly &&
+          (onAction ||
+            onDeploy ||
+            onToggleExpandedOutputs ||
+            onToggleSidebar) && (
+            <div className="absolute top-4 right-4 flex items-center rounded-lg shadow-lg bg-background z-50 overflow-hidden">
+              {onAction && (
+                <ActionButton
+                  onClick={onAction}
+                  workflowStatus={workflowStatus}
+                  disabled={nodes.length === 0}
+                />
+              )}
+
+              {onToggleExpandedOutputs && (
+                <OutputsToggle
+                  onClick={onToggleExpandedOutputs}
+                  expandedOutputs={expandedOutputs}
+                  disabled={!hasAnyOutputs}
+                />
+              )}
+
+              {onDeploy && (
+                <DeployButton
+                  onClick={onDeploy}
+                  disabled={nodes.length === 0}
+                />
+              )}
+
+              {onToggleSidebar && isSidebarVisible !== undefined && (
+                <SidebarToggle
+                  onClick={onToggleSidebar}
+                  isSidebarVisible={isSidebarVisible}
+                />
+              )}
+            </div>
+          )}
+
         {onAddNode && !readonly && (
           <CanvasButton
             onClick={(e) => {
@@ -365,33 +454,6 @@ export function WorkflowCanvas({
           >
             <Plus className="!size-5" />
           </CanvasButton>
-        )}
-
-        {onToggleExpandedOutputs && (
-          <OutputsToggle
-            onClick={onToggleExpandedOutputs}
-            expandedOutputs={expandedOutputs}
-            disabled={!hasAnyOutputs}
-          />
-        )}
-
-        {onAction && !readonly && (
-          <ActionButton
-            onClick={onAction}
-            workflowStatus={workflowStatus}
-            disabled={nodes.length === 0}
-          />
-        )}
-
-        {onDeploy && !readonly && (
-          <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
-        )}
-
-        {onToggleSidebar && isSidebarVisible !== undefined && (
-          <SidebarToggle
-            onClick={onToggleSidebar}
-            isSidebarVisible={isSidebarVisible}
-          />
         )}
       </ReactFlow>
     </TooltipProvider>
