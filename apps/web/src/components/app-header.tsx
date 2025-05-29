@@ -60,7 +60,7 @@ export function AppHeader() {
             className={navLinkClasses}
             activeClassName={activeNavLinkClasses}
           >
-            Docs
+            Documentation
           </NavLink>
           {isAuthenticated && (
             <NavLink
