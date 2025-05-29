@@ -278,7 +278,7 @@ export function HomePage() {
                 <p className="text-muted-foreground text-xl md:text-3xl italic font-light leading-normal md:leading-relaxed border-l-4 border-purple-600/20 dark:border-purple-400/20 pl-6 md:pl-8 text-left">
                   Dafthunk started creating workflows and automating everything
                   in the office: emails, meetings, breaks, the office dog's walk
-                  schedule. One morning,{" "}
+                  schedule. One morning, it{" "}
                   <VideoDialog videoId="K0HSD_i2DvA">
                     <button className="text-fuchsia-600 dark:text-fuchsia-500 hover:underline">
                       automated automation
