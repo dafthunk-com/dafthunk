@@ -12,7 +12,7 @@ export function DocsOverviewPage() {
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
-      <h2>Core Features</h2>
+      <h2 id="core-features">Core Features</h2>
 
       <h3>🎨 Visual Workflow Editor</h3>
       <p>
@@ -59,7 +59,7 @@ export function DocsOverviewPage() {
         <li>Webhook integrations</li>
       </ul>
 
-      <h2>Quick Start</h2>
+      <h2 id="quick-start">Quick Start</h2>
       <p>Get started with Dafthunk in just a few steps:</p>
       <ol>
         <li>
@@ -91,7 +91,7 @@ export function DocsOverviewPage() {
         </Button>
       </div>
 
-      <h2>Technology Stack</h2>
+      <h2 id="technology-stack">Technology Stack</h2>
       <table>
         <thead>
           <tr>
@@ -127,7 +127,7 @@ export function DocsOverviewPage() {
         </tbody>
       </table>
 
-      <h2>What's Next?</h2>
+      <h2 id="whats-next">What's Next?</h2>
       <ul>
         <li>
           <Link to="/docs/workflows">Create your first workflow</Link>

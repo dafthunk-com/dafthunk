@@ -58,6 +58,12 @@ const docsSections: DocsSection[] = [
     href: "/docs/overview",
     icon: BookOpen,
     badge: "Start here",
+    subsections: [
+      { title: "Core Features", href: "#core-features" },
+      { title: "Quick Start", href: "#quick-start" },
+      { title: "Technology Stack", href: "#technology-stack" },
+      { title: "What's Next?", href: "#whats-next" },
+    ],
   },
   {
     title: "Workflows",
