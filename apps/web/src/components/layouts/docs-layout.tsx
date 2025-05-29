@@ -46,10 +46,6 @@ export interface TableOfContentsItem {
 
 interface DocsLayoutProps {
   children: React.ReactNode;
-  title: string;
-  description?: string;
-  badge?: string;
-  navigation?: DocsNavigation;
 }
 
 const docsSections: DocsSection[] = [
@@ -213,13 +209,7 @@ function NavigationButtons({ navigation }: { navigation?: DocsNavigation }) {
   );
 }
 
-export function DocsLayout({
-  children,
-  title,
-  description,
-  badge,
-  navigation,
-}: DocsLayoutProps) {
+export function DocsLayout({ children }: DocsLayoutProps) {
   const location = useLocation();
 
   // Scroll to top when location changes
@@ -255,28 +245,7 @@ export function DocsLayout({
 
         {/* Main Content */}
         <main className="flex-1 min-w-0 overflow-y-auto" data-docs-main-content>
-          <div className="max-w-5xl mx-auto py-10 px-6">
-            {/* Header */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center gap-2">
-                <h1 className="text-4xl font-bold tracking-tight">{title}</h1>
-                {badge && <Badge variant="secondary">{badge}</Badge>}
-              </div>
-              {description && (
-                <p className="text-lg text-muted-foreground max-w-3xl">
-                  {description}
-                </p>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="prose prose-slate dark:prose-invert max-w-none docs-content">
-              {children}
-            </div>
-
-            {/* Navigation */}
-            <NavigationButtons navigation={navigation} />
-          </div>
+          <div className="max-w-5xl mx-auto py-10 px-6">{children}</div>
         </main>
 
         {/* Table of Contents */}

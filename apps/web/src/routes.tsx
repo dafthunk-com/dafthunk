@@ -151,11 +151,7 @@ export const routes: AppRouteObject[] = [
   {
     path: "/docs",
     element: (
-      <DocsLayout
-        title="Documentation"
-        description="Explore the Dafthunk documentation and learn how to build powerful workflow automations."
-        badge="v1.0"
-      >
+      <DocsLayout>
         <DocsPage />
       </DocsLayout>
     ),
