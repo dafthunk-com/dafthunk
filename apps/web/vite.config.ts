@@ -17,7 +17,7 @@ export default defineConfig({
       }),
     },
     react({
-      include: /\.(mdx|js|jsx|ts|tsx)$/,
+      include: /\.(mdx|js|jsx|ts|tsx|mdx)$/,
       babel: {
         plugins: [["babel-plugin-react-compiler", ReactCompilerConfig]],
       },
