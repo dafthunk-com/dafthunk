@@ -1,9 +1,16 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Copy } from "lucide-react";
 import { Link } from "react-router";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Button } from "@/components/ui/button";
+import { Code } from "@/components/ui/code";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
+import {
+  EXECUTE_WORKFLOW_SNIPPETS,
+  GET_EXECUTION_STATUS_SNIPPETS,
+  GET_OBJECT_SNIPPETS,
+} from "@/components/deployments/api-snippets";
 
 export function DocsApiPage() {
   usePageBreadcrumbs([
@@ -11,11 +18,22 @@ export function DocsApiPage() {
     { label: "API" },
   ]);
 
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const BASE_URL = "https://api.dafthunk.com";
+
+  // Example URLs for documentation
+  const exampleExecuteUrl = `${BASE_URL}/your-org/workflows/wf_123/execute/v1`;
+  const exampleStatusBaseUrl = `${BASE_URL}/your-org/executions`;
+  const exampleObjectBaseUrl = `${BASE_URL}/your-org/objects?id=YOUR_OBJECT_ID`;
+
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
       <h2>Base URL</h2>
       <p>All API requests should be made to:</p>
-      <CodeBlock>https://api.dafthunk.com/v1</CodeBlock>
+      <CodeBlock>{BASE_URL}</CodeBlock>
 
       <h2 id="authentication">Authentication</h2>
 
@@ -48,7 +66,10 @@ export function DocsApiPage() {
       <p>Trigger workflow execution with custom input parameters.</p>
       <p>
         <strong>Endpoint:</strong>{" "}
-        <code>POST /api/workflows/{"{workflowId}"}/execute</code>
+        <code>
+          POST /{"{orgHandle}"}/workflows/{"{workflowId}"}/execute/
+          {"{version}"}
+        </code>
       </p>
       <p>
         <strong>Description:</strong> Execute a deployed workflow with input
@@ -56,22 +77,124 @@ export function DocsApiPage() {
       </p>
 
       <h4>Request Body</h4>
+      <p>
+        The request body can be any valid JSON that will be passed to the
+        workflow. The specific structure depends on your workflow's parameter
+        nodes.
+      </p>
       <CodeBlock language="json">{`{
-  "inputs": {
-    "parameter1": "value1",
-    "parameter2": "value2"
-  },
-  "timeout": 300
+  "parameter1": "value1",
+  "parameter2": "value2",
+  "file_url": "https://example.com/file.pdf"
 }`}</CodeBlock>
+
+      <p>
+        <strong>Query Parameters:</strong>
+      </p>
+      <ul>
+        <li>
+          <code>monitorProgress</code> (optional): Set to <code>true</code> to
+          enable real-time progress monitoring
+        </li>
+      </ul>
 
       <h4>Response</h4>
       <CodeBlock language="json">{`{
-  "executionId": "exec_1234567890",
-  "status": "running",
-  "createdAt": "2024-01-15T10:30:00Z"
+  "id": "exec_1234567890",
+  "workflowId": "wf_123",
+  "status": "submitted",
+  "nodeExecutions": [
+    {
+      "nodeId": "node_1", 
+      "status": "executing"
+    }
+  ]
 }`}</CodeBlock>
 
-      <h2 id="status-results">Status & Results</h2>
+      <h4>Code Examples</h4>
+      <div className="not-prose">
+        <Tabs defaultValue="curl" className="w-full">
+          <TabsList>
+            <TabsTrigger value="curl">cURL</TabsTrigger>
+            <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+            <TabsTrigger value="python">Python</TabsTrigger>
+          </TabsList>
+          <TabsContent value="curl" className="mt-4">
+            <div className="relative">
+              <Code language="bash" className="text-sm">
+                {EXECUTE_WORKFLOW_SNIPPETS.curl(exampleExecuteUrl, true, [])}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    EXECUTE_WORKFLOW_SNIPPETS.curl(exampleExecuteUrl, true, [])
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="javascript" className="mt-4">
+            <div className="relative">
+              <Code language="javascript" className="text-sm">
+                {EXECUTE_WORKFLOW_SNIPPETS.javascript(
+                  exampleExecuteUrl,
+                  true,
+                  []
+                )}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    EXECUTE_WORKFLOW_SNIPPETS.javascript(
+                      exampleExecuteUrl,
+                      true,
+                      []
+                    )
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="python" className="mt-4">
+            <div className="relative">
+              <Code language="python" className="text-sm">
+                {EXECUTE_WORKFLOW_SNIPPETS.python(exampleExecuteUrl, true, [])}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    EXECUTE_WORKFLOW_SNIPPETS.python(
+                      exampleExecuteUrl,
+                      true,
+                      []
+                    )
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <h2 id="status-results">Workflow Status</h2>
 
       <h3>Get Execution Status</h3>
       <p>
@@ -79,7 +202,9 @@ export function DocsApiPage() {
       </p>
       <p>
         <strong>Endpoint:</strong>{" "}
-        <code>GET /api/executions/{"{executionId}"}</code>
+        <code>
+          GET /{"{orgHandle}"}/executions/{"{executionId}"}
+        </code>
       </p>
       <p>
         <strong>Description:</strong> Retrieve execution status and results
@@ -87,16 +212,99 @@ export function DocsApiPage() {
 
       <h4>Response</h4>
       <CodeBlock language="json">{`{
-  "executionId": "exec_1234567890",
-  "status": "completed",
-  "result": {
-    "output": "Generated result data",
-    "metadata": {...}
-  },
-  "startedAt": "2024-01-15T10:30:00Z",
-  "completedAt": "2024-01-15T10:31:23Z",
-  "duration": 83000
+  "execution": {
+    "id": "exec_1234567890",
+    "workflowId": "wf_123",
+    "workflowName": "My Workflow",
+    "deploymentId": "deployment_456",
+    "status": "completed",
+    "nodeExecutions": [
+      {
+        "nodeId": "node_1",
+        "status": "completed",
+        "outputs": {
+          "result": "Generated result data"
+        }
+      }
+    ],
+    "visibility": "private",
+    "startedAt": "2024-01-15T10:30:00.000Z",
+    "endedAt": "2024-01-15T10:31:23.000Z"
+  }
 }`}</CodeBlock>
+
+      <h4>Code Examples</h4>
+      <div className="not-prose">
+        <Tabs defaultValue="curl" className="w-full">
+          <TabsList>
+            <TabsTrigger value="curl">cURL</TabsTrigger>
+            <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+            <TabsTrigger value="python">Python</TabsTrigger>
+          </TabsList>
+          <TabsContent value="curl" className="mt-4">
+            <div className="relative">
+              <Code language="bash" className="text-sm">
+                {GET_EXECUTION_STATUS_SNIPPETS.curl(exampleStatusBaseUrl)}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    GET_EXECUTION_STATUS_SNIPPETS.curl(exampleStatusBaseUrl)
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="javascript" className="mt-4">
+            <div className="relative">
+              <Code language="javascript" className="text-sm">
+                {GET_EXECUTION_STATUS_SNIPPETS.javascript(exampleStatusBaseUrl)}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    GET_EXECUTION_STATUS_SNIPPETS.javascript(
+                      exampleStatusBaseUrl
+                    )
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="python" className="mt-4">
+            <div className="relative">
+              <Code language="python" className="text-sm">
+                {GET_EXECUTION_STATUS_SNIPPETS.python(exampleStatusBaseUrl)}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    GET_EXECUTION_STATUS_SNIPPETS.python(exampleStatusBaseUrl)
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
 
       <h4>Status Values</h4>
       <table>
@@ -109,13 +317,19 @@ export function DocsApiPage() {
         <tbody>
           <tr>
             <td>
-              <code>pending</code>
+              <code>idle</code>
             </td>
-            <td>Execution queued</td>
+            <td>Execution not yet started</td>
           </tr>
           <tr>
             <td>
-              <code>running</code>
+              <code>submitted</code>
+            </td>
+            <td>Execution has been submitted</td>
+          </tr>
+          <tr>
+            <td>
+              <code>executing</code>
             </td>
             <td>Currently executing</td>
           </tr>
@@ -127,20 +341,141 @@ export function DocsApiPage() {
           </tr>
           <tr>
             <td>
-              <code>failed</code>
+              <code>error</code>
             </td>
             <td>Execution failed</td>
           </tr>
           <tr>
             <td>
-              <code>timeout</code>
+              <code>cancelled</code>
             </td>
-            <td>Execution timed out</td>
+            <td>Execution was cancelled</td>
+          </tr>
+          <tr>
+            <td>
+              <code>paused</code>
+            </td>
+            <td>Execution is paused</td>
           </tr>
         </tbody>
       </table>
 
-      <h2>Rate Limits</h2>
+      <h2 id="object-retrieval">Object Retrieval</h2>
+
+      <h3>Get Object</h3>
+      <p>
+        Retrieve binary or structured data objects generated by workflow
+        executions.
+      </p>
+      <p>
+        <strong>Endpoint:</strong>{" "}
+        <code>
+          GET /{"{orgHandle}"}/objects?id={"{objectId}"}&mimeType=
+          {"{mimeType}"}
+        </code>
+      </p>
+      <p>
+        <strong>Description:</strong> Retrieve raw object data with specified
+        MIME type
+      </p>
+
+      <h4>Query Parameters</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <code>id</code>
+            </td>
+            <td>string</td>
+            <td>The unique identifier of the object</td>
+          </tr>
+          <tr>
+            <td>
+              <code>mimeType</code>
+            </td>
+            <td>string</td>
+            <td>
+              The MIME type of the object (e.g., image/png, application/json)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Code Examples</h4>
+      <div className="not-prose">
+        <Tabs defaultValue="curl" className="w-full">
+          <TabsList>
+            <TabsTrigger value="curl">cURL</TabsTrigger>
+            <TabsTrigger value="javascript">JavaScript</TabsTrigger>
+            <TabsTrigger value="python">Python</TabsTrigger>
+          </TabsList>
+          <TabsContent value="curl" className="mt-4">
+            <div className="relative">
+              <Code language="bash" className="text-sm">
+                {GET_OBJECT_SNIPPETS.curl(exampleObjectBaseUrl)}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(GET_OBJECT_SNIPPETS.curl(exampleObjectBaseUrl))
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="javascript" className="mt-4">
+            <div className="relative">
+              <Code language="javascript" className="text-sm">
+                {GET_OBJECT_SNIPPETS.javascript(exampleObjectBaseUrl)}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(
+                    GET_OBJECT_SNIPPETS.javascript(exampleObjectBaseUrl)
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="python" className="mt-4">
+            <div className="relative">
+              <Code language="python" className="text-sm">
+                {GET_OBJECT_SNIPPETS.python(exampleObjectBaseUrl)}
+              </Code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute top-2 right-2 h-7 w-7 p-0"
+                onClick={() =>
+                  handleCopy(GET_OBJECT_SNIPPETS.python(exampleObjectBaseUrl))
+                }
+              >
+                <Copy className="h-4 w-4" />
+                <span className="sr-only">Copy</span>
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <h2 id="rate-limits">Rate Limits</h2>
       <table>
         <thead>
           <tr>
@@ -170,7 +505,7 @@ export function DocsApiPage() {
         </tbody>
       </table>
 
-      <h2>Error Handling</h2>
+      <h2 id="error-handling">Error Handling</h2>
       <p>The API uses conventional HTTP status codes:</p>
       <table>
         <thead>
@@ -218,146 +553,6 @@ export function DocsApiPage() {
           </tr>
         </tbody>
       </table>
-
-      <h2>Code Examples</h2>
-
-      <h3>JavaScript/Node.js</h3>
-      <CodeBlock language="javascript">{`const response = await fetch(
-  "https://api.dafthunk.com/v1/workflows/wf_123/execute",
-  {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer your_api_key",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      inputs: {
-        text: "Hello, world!",
-      },
-    }),
-  }
-);
-
-const execution = await response.json();
-console.log("Execution ID:", execution.executionId);`}</CodeBlock>
-
-      <h3>Python</h3>
-      <CodeBlock language="python">{`import requests
-
-response = requests.post(
-    'https://api.dafthunk.com/v1/workflows/wf_123/execute',
-    headers={
-        'Authorization': 'Bearer your_api_key',
-        'Content-Type': 'application/json'
-    },
-    json={
-        'inputs': {
-            'text': 'Hello, world!'
-        }
-    }
-)
-
-execution = response.json()
-print(f"Execution ID: {execution['executionId']}")`}</CodeBlock>
-
-      <h3>cURL</h3>
-      <CodeBlock language="bash">{`curl -X POST https://api.dafthunk.com/v1/workflows/wf_123/execute \\
-  -H "Authorization: Bearer your_api_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{"inputs": {"text": "Hello, world!"}}'`}</CodeBlock>
-
-      <h2>SDKs and Libraries</h2>
-
-      <h3>Official SDKs</h3>
-      <ul>
-        <li>
-          <strong>JavaScript/TypeScript</strong> - <code>@dafthunk/js-sdk</code>
-        </li>
-        <li>
-          <strong>Python</strong> - <code>dafthunk-python</code>
-        </li>
-        <li>
-          <strong>Go</strong> - <code>dafthunk-go</code>
-        </li>
-      </ul>
-
-      <h3>Community Libraries</h3>
-      <ul>
-        <li>
-          <strong>PHP</strong> - <code>dafthunk/php-client</code>
-        </li>
-        <li>
-          <strong>Ruby</strong> - <code>dafthunk-ruby</code>
-        </li>
-        <li>
-          <strong>Java</strong> - <code>dafthunk-java</code>
-        </li>
-      </ul>
-
-      <h2>Webhooks</h2>
-      <p>
-        Configure webhooks to receive real-time notifications about workflow
-        executions.
-      </p>
-
-      <h3>Setup</h3>
-      <ol>
-        <li>
-          Navigate to <strong>Settings → Webhooks</strong>
-        </li>
-        <li>Add your endpoint URL</li>
-        <li>Select events to receive</li>
-        <li>Configure authentication (optional)</li>
-      </ol>
-
-      <h3>Events</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <code>execution.started</code>
-            </td>
-            <td>Workflow execution began</td>
-          </tr>
-          <tr>
-            <td>
-              <code>execution.completed</code>
-            </td>
-            <td>Execution finished successfully</td>
-          </tr>
-          <tr>
-            <td>
-              <code>execution.failed</code>
-            </td>
-            <td>Execution encountered an error</td>
-          </tr>
-          <tr>
-            <td>
-              <code>execution.timeout</code>
-            </td>
-            <td>Execution exceeded time limit</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Payload Example</h3>
-      <CodeBlock language="json">{`{
-  "event": "execution.completed",
-  "executionId": "exec_1234567890",
-  "workflowId": "wf_123",
-  "timestamp": "2024-01-15T10:31:23Z",
-  "data": {
-    "status": "completed",
-    "duration": 83000,
-    "result": {...}
-  }
-}`}</CodeBlock>
 
       <hr />
 

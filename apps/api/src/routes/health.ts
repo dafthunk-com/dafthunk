@@ -4,7 +4,7 @@ import { ApiContext } from "../context";
 
 const health = new Hono<ApiContext>();
 
-health.get("/health", (c) =>
+health.get("/", (c) =>
   c.json({
     status: "ok",
     version: "1.0.0",

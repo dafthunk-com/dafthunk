@@ -90,7 +90,10 @@ const docsSections: DocsSection[] = [
     subsections: [
       { title: "Authentication", href: "#authentication" },
       { title: "Workflow Execution", href: "#workflow-execution" },
-      { title: "Status & Results", href: "#status-results" },
+      { title: "Workflow Status", href: "#status-results" },
+      { title: "Object Retrieval", href: "#object-retrieval" },
+      { title: "Rate Limits", href: "#rate-limits" },
+      { title: "Error Handling", href: "#error-handling" },
     ],
   },
 ];
