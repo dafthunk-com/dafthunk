@@ -76,9 +76,9 @@ const docsSections: DocsSection[] = [
     title: "Nodes Reference",
     href: "/docs/nodes",
     icon: Sparkles,
-    badge: "70+ nodes",
+    badge: "50+ nodes",
     subsections: [
-      { title: "Interactive Node Browser", href: "#interactive-node-browser" },
+      { title: "Node Browser", href: "#node-browser" },
       { title: "Understanding Nodes", href: "#understanding-nodes" },
       { title: "Common Patterns", href: "#common-patterns" },
     ],
@@ -245,14 +245,14 @@ export function DocsLayout({
 
   return (
     <AppLayout>
-      <div className="flex">
+      <div className="flex overflow-x-hidden">
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
           <DocsSidebar />
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-5xl">
+        <main className="flex-1 max-w-5xl min-w-0">
           <div className="py-10 px-6">
             {/* Header */}
             <div className="space-y-4 mb-8">

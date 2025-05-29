@@ -228,8 +228,8 @@ export const routes: AppRouteObject[] = [
     element: (
       <DocsLayout
         title="Nodes Reference"
-        description="Comprehensive reference for all 70+ node types available in Dafthunk."
-        badge="70+ nodes"
+        description="Comprehensive reference for all 50+ node types available in Dafthunk."
+        badge="50+ nodes"
         navigation={{
           previous: {
             title: "Workflows",
@@ -248,7 +248,7 @@ export const routes: AppRouteObject[] = [
       head: (
         <HeadSeo
           title="Nodes Reference - Documentation - Dafthunk"
-          description="Comprehensive reference for all 70+ node types available in Dafthunk."
+          description="Comprehensive reference for all 50+ node types available in Dafthunk."
         />
       ),
     },

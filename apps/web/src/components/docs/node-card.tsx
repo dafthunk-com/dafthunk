@@ -1,13 +1,26 @@
 import type { NodeType } from "@dafthunk/types";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
 interface NodeCardProps {
   nodeType: NodeType;
+  variant?: "card" | "list";
 }
 
-export function NodeCard({ nodeType }: NodeCardProps) {
+export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   // Get category color based on category name
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -35,56 +48,449 @@ export function NodeCard({ nodeType }: NodeCardProps) {
   const inputCount = nodeType.inputs?.length || 0;
   const outputCount = nodeType.outputs?.length || 0;
 
+  if (variant === "list") {
+    return (
+      <>
+        <Card
+          className="cursor-pointer transition-all hover:border-primary/50"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              {/* Name and Category */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <CardTitle className="text-base font-semibold leading-tight truncate">
+                  {nodeType.name}
+                </CardTitle>
+                <Badge
+                  variant="secondary"
+                  className={`${getCategoryColor(nodeType.category)} shrink-0 text-xs`}
+                >
+                  {nodeType.category}
+                </Badge>
+              </div>
+
+              {/* Description */}
+              <div className="hidden md:block flex-1 min-w-0">
+                {nodeType.description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed truncate">
+                    {nodeType.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
+                {inputCount > 0 && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <span className="font-medium">In:</span>
+                    <span>{inputCount}</span>
+                  </div>
+                )}
+                {outputCount > 0 && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span className="font-medium">Out:</span>
+                    <span>{outputCount}</span>
+                  </div>
+                )}
+                {nodeType.compatibility &&
+                  nodeType.compatibility.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span className="font-medium">Types:</span>
+                      <span>{nodeType.compatibility.length}</span>
+                    </div>
+                  )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
+            <DialogHeader className="shrink-0">
+              <DialogTitle className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    {nodeType.name}
+                    <Badge
+                      variant="secondary"
+                      className={getCategoryColor(nodeType.category)}
+                    >
+                      {nodeType.category}
+                    </Badge>
+                  </div>
+                </div>
+              </DialogTitle>
+              {nodeType.description && (
+                <DialogDescription className="text-base">
+                  {nodeType.description}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto px-1 -mx-1">
+              <div className="space-y-6 py-4">
+                {/* Basic Information */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">Basic Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-muted-foreground">
+                        Type ID:
+                      </span>
+                      <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
+                        {nodeType.type}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">
+                        Unique ID:
+                      </span>
+                      <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
+                        {nodeType.id}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compatibility */}
+                {nodeType.compatibility &&
+                  nodeType.compatibility.length > 0 && (
+                    <>
+                      <Separator />
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold">
+                          Workflow Compatibility
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {nodeType.compatibility.map((type) => (
+                            <Badge
+                              key={type}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {type.replace("_", " ")}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                {/* Inputs */}
+                {nodeType.inputs && nodeType.inputs.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">
+                        Inputs ({nodeType.inputs.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {nodeType.inputs.map((input, index) => (
+                          <div
+                            key={index}
+                            className="border rounded-lg p-3 bg-blue-50/50 dark:bg-blue-950/20"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h5 className="font-medium text-sm">
+                                    {input.name}
+                                  </h5>
+                                  <Badge variant="outline" className="text-xs">
+                                    {input.type}
+                                  </Badge>
+                                  {input.required && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="text-xs"
+                                    >
+                                      Required
+                                    </Badge>
+                                  )}
+                                </div>
+                                {input.description && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {input.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Outputs */}
+                {nodeType.outputs && nodeType.outputs.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold">
+                        Outputs ({nodeType.outputs.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {nodeType.outputs.map((output, index) => (
+                          <div
+                            key={index}
+                            className="border rounded-lg p-3 bg-green-50/50 dark:bg-green-950/20"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h5 className="font-medium text-sm">
+                                    {output.name}
+                                  </h5>
+                                  <Badge variant="outline" className="text-xs">
+                                    {output.type}
+                                  </Badge>
+                                </div>
+                                {output.description && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {output.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t shrink-0">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  // Card view (default)
   return (
-    <Card className="h-full cursor-pointer">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {nodeType.icon && (
-              <div className="text-lg shrink-0">{nodeType.icon}</div>
-            )}
-            <CardTitle className="text-base font-semibold leading-tight truncate">
-              {nodeType.name}
-            </CardTitle>
+    <>
+      <Card
+        className="h-full cursor-pointer transition-all hover:border-primary/50"
+        onClick={() => setIsDialogOpen(true)}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <CardTitle className="text-base font-semibold leading-tight truncate">
+                {nodeType.name}
+              </CardTitle>
+            </div>
+            <Badge
+              variant="secondary"
+              className={`${getCategoryColor(nodeType.category)} shrink-0 text-xs`}
+            >
+              {nodeType.category}
+            </Badge>
           </div>
-          <Badge
-            variant="secondary"
-            className={`${getCategoryColor(nodeType.category)} shrink-0 text-xs`}
-          >
-            {nodeType.category}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {nodeType.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed max-h-16 overflow-hidden">
-            {nodeType.description}
-          </p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
-          {inputCount > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span className="font-medium">Inputs:</span>{" "}
-              <span>{inputCount}</span>
-            </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {nodeType.description && (
+            <p className="text-sm text-muted-foreground leading-relaxed max-h-16 overflow-hidden">
+              {nodeType.description}
+            </p>
           )}
-          {outputCount > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="font-medium">Outputs:</span>{" "}
-              <span>{outputCount}</span>
+          <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
+            {inputCount > 0 && (
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                <span className="font-medium">Inputs:</span>{" "}
+                <span>{inputCount}</span>
+              </div>
+            )}
+            {outputCount > 0 && (
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="font-medium">Outputs:</span>{" "}
+                <span>{outputCount}</span>
+              </div>
+            )}
+            {nodeType.compatibility && nodeType.compatibility.length > 0 && (
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                <span className="font-medium">Types:</span>{" "}
+                <span>{nodeType.compatibility.join(", ")}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  {nodeType.name}
+                  <Badge
+                    variant="secondary"
+                    className={getCategoryColor(nodeType.category)}
+                  >
+                    {nodeType.category}
+                  </Badge>
+                </div>
+              </div>
+            </DialogTitle>
+            {nodeType.description && (
+              <DialogDescription className="text-base">
+                {nodeType.description}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-1 -mx-1">
+            <div className="space-y-6 py-4">
+              {/* Basic Information */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Basic Information</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="font-medium text-muted-foreground">
+                      Type ID:
+                    </span>
+                    <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
+                      {nodeType.type}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-muted-foreground">
+                      Unique ID:
+                    </span>
+                    <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
+                      {nodeType.id}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compatibility */}
+              {nodeType.compatibility && nodeType.compatibility.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold">
+                      Workflow Compatibility
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {nodeType.compatibility.map((type) => (
+                        <Badge key={type} variant="outline" className="text-xs">
+                          {type.replace("_", " ")}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Inputs */}
+              {nodeType.inputs && nodeType.inputs.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold">
+                      Inputs ({nodeType.inputs.length})
+                    </h4>
+                    <div className="space-y-3">
+                      {nodeType.inputs.map((input, index) => (
+                        <div
+                          key={index}
+                          className="border rounded-lg p-3 bg-blue-50/50 dark:bg-blue-950/20"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h5 className="font-medium text-sm">
+                                  {input.name}
+                                </h5>
+                                <Badge variant="outline" className="text-xs">
+                                  {input.type}
+                                </Badge>
+                                {input.required && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-xs"
+                                  >
+                                    Required
+                                  </Badge>
+                                )}
+                              </div>
+                              {input.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {input.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Outputs */}
+              {nodeType.outputs && nodeType.outputs.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold">
+                      Outputs ({nodeType.outputs.length})
+                    </h4>
+                    <div className="space-y-3">
+                      {nodeType.outputs.map((output, index) => (
+                        <div
+                          key={index}
+                          className="border rounded-lg p-3 bg-green-50/50 dark:bg-green-950/20"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h5 className="font-medium text-sm">
+                                  {output.name}
+                                </h5>
+                                <Badge variant="outline" className="text-xs">
+                                  {output.type}
+                                </Badge>
+                              </div>
+                              {output.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {output.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          )}
-          {nodeType.compatibility && nodeType.compatibility.length > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-              <span className="font-medium">Types:</span>{" "}
-              <span>{nodeType.compatibility.join(", ")}</span>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t shrink-0">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

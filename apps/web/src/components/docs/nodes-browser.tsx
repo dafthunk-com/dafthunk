@@ -1,17 +1,21 @@
-import { Loader2 } from "lucide-react";
+import { Grid, List, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNodeTypes } from "@/services/type-service";
 
 import { NodeCard } from "./node-card";
 import { NodesStats } from "./nodes-stats";
 
+type ViewMode = "card" | "list";
+
 export function NodesBrowser() {
   const { nodeTypes, isNodeTypesLoading, nodeTypesError } = useNodeTypes();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("card");
 
   // Get unique categories and their counts
   const categoryCounts = useMemo(() => {
@@ -70,12 +74,34 @@ export function NodesBrowser() {
 
       {/* Search and Filter Controls */}
       <div className="space-y-4">
-        <SearchInput
-          placeholder="Search nodes by name, description, or category..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-lg"
-        />
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <SearchInput
+              placeholder="Search nodes by name, description, or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full max-w-lg"
+            />
+          </div>
+
+          {/* View Mode Toggle */}
+          <Tabs
+            value={viewMode}
+            onValueChange={(value) => setViewMode(value as ViewMode)}
+            className="shrink-0"
+          >
+            <TabsList>
+              <TabsTrigger value="card" className="flex items-center gap-2">
+                <Grid className="size-4" />
+                Cards
+              </TabsTrigger>
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <List className="size-4" />
+                List
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2">
@@ -141,11 +167,21 @@ export function NodesBrowser() {
             </div>
           )}
 
-          {/* Node Grid */}
+          {/* Node Grid/List */}
           {filteredNodes.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div
+              className={
+                viewMode === "card"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4"
+                  : "space-y-2"
+              }
+            >
               {filteredNodes.map((nodeType) => (
-                <NodeCard key={nodeType.id} nodeType={nodeType} />
+                <NodeCard
+                  key={nodeType.id}
+                  nodeType={nodeType}
+                  variant={viewMode}
+                />
               ))}
             </div>
           )}

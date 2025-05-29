@@ -38,39 +38,39 @@ export function NodesStats({ nodeTypes }: NodesStatsProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-4">
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="p-4 pb-2">
           <CardTitle className="text-sm font-medium">Total Nodes</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-4 pt-0">
           <div className="text-2xl font-bold">{stats.totalNodes}</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="p-4 pb-2">
           <CardTitle className="text-sm font-medium">Categories</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-4 pt-0">
           <div className="text-2xl font-bold">{stats.totalCategories}</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="p-4 pb-2">
           <CardTitle className="text-sm font-medium">Total Inputs</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-4 pt-0">
           <div className="text-2xl font-bold">{stats.totalInputs}</div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="p-4 pb-2">
           <CardTitle className="text-sm font-medium">Total Outputs</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-4 pt-0">
           <div className="text-2xl font-bold">{stats.totalOutputs}</div>
         </CardContent>
       </Card>

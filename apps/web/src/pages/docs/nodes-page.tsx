@@ -14,7 +14,7 @@ export function DocsNodesPage() {
 
   return (
     <div className="prose prose-neutral dark:prose-invert max-w-none">
-      <h2 id="interactive-node-browser">Interactive Node Browser</h2>
+      <h2 id="node-browser">Node Browser</h2>
       <p>
         Explore and search through all available nodes with real-time filtering
         by category, name, and description:
