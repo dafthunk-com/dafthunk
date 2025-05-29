@@ -68,6 +68,8 @@ export function WorkflowBuilder({
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
     initialWorkflowExecution?.status || "idle"
   );
+  const [currentExpandedOutputs, setCurrentExpandedOutputs] =
+    useState(expandedOutputs);
   const [errorDialogState, setErrorDialogState] = useState<{
     open: boolean;
     message: string;
@@ -333,13 +335,19 @@ export function WorkflowBuilder({
     setIsSidebarVisible((prev) => !prev);
   }, []);
 
+  const toggleExpandedOutputs = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentExpandedOutputs((prev) => !prev);
+  }, []);
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
         updateNodeData={readonly ? undefined : updateNodeData}
         updateEdgeData={readonly ? undefined : updateEdgeData}
         readonly={readonly}
-        expandedOutputs={expandedOutputs}
+        expandedOutputs={currentExpandedOutputs}
       >
         <div className="w-full h-full flex">
           <div
@@ -372,6 +380,10 @@ export function WorkflowBuilder({
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
               readonly={readonly}
+              expandedOutputs={currentExpandedOutputs}
+              onToggleExpandedOutputs={
+                readonly ? undefined : toggleExpandedOutputs
+              }
             />
           </div>
 

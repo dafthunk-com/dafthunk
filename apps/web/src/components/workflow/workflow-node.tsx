@@ -155,6 +155,8 @@ export const WorkflowNode = memo(
     useEffect(() => {
       if (expandedOutputs && hasOutputValues) {
         setShowOutputs(true);
+      } else if (!expandedOutputs) {
+        setShowOutputs(false);
       }
     }, [expandedOutputs, hasOutputValues]);
 

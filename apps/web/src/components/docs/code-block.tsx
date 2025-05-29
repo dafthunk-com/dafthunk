@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/utils/utils";
 
 interface CodeBlockProps {
   children: React.ReactNode;
@@ -52,7 +53,12 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
 
   if (isInline) {
     return (
-      <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+      <code
+        className={cn(
+          "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
+          className
+        )}
+      >
         {children}
       </code>
     );
@@ -71,7 +77,12 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
   if (isLoading) {
     return (
       <div className="relative group">
-        <pre className="mb-4 mt-6 overflow-x-auto rounded-lg border bg-zinc-950 text-white p-4">
+        <pre
+          className={cn(
+            "mb-4 mt-6 overflow-x-auto rounded-lg border bg-zinc-950 text-white p-4",
+            className
+          )}
+        >
           <div className="flex items-center justify-center h-20">
             <div className="text-zinc-400 text-sm">
               Loading syntax highlighting...
@@ -93,7 +104,10 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
       <div
-        className="mb-4 mt-2 overflow-x-auto rounded-md text-sm [&_pre]:m-0 [&_pre]:p-4 [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre-wrap"
+        className={cn(
+          "mb-4 mt-2 overflow-x-auto rounded-md text-sm [&_pre]:m-0 [&_pre]:p-4 [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre-wrap",
+          className
+        )}
         dangerouslySetInnerHTML={{ __html: highlightedCode }}
       />
     </div>

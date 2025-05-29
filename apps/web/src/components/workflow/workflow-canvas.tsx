@@ -18,6 +18,8 @@ import {
 } from "@xyflow/react";
 import {
   ArrowUpToLine,
+  ChevronDown,
+  ChevronUp,
   PanelLeft,
   PanelLeftClose,
   Play,
@@ -27,6 +29,12 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
 import { WorkflowConnectionLine, WorkflowEdge } from "./workflow-edge";
@@ -45,6 +53,50 @@ const nodeTypes = {
 const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
+
+interface CanvasButtonProps {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  position: string;
+  tooltip: string;
+  children: React.ReactNode;
+}
+
+function CanvasButton({
+  onClick,
+  disabled = false,
+  className = "",
+  position,
+  tooltip,
+  children,
+}: CanvasButtonProps) {
+  const positionClass = position.startsWith("bottom-")
+    ? `absolute bottom-4 ${position} z-50`
+    : `absolute top-4 ${position} z-50`;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          onClick={onClick}
+          disabled={disabled}
+          className={cn(
+            "rounded-full h-10 w-10 p-0",
+            positionClass,
+            className,
+            { "opacity-50 cursor-not-allowed": disabled }
+          )}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
@@ -79,6 +131,8 @@ export interface WorkflowCanvasProps {
   showControls?: boolean;
   isValidConnection?: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   readonly?: boolean;
+  expandedOutputs?: boolean;
+  onToggleExpandedOutputs?: (e: React.MouseEvent) => void;
 }
 
 type ActionButtonProps = {
@@ -134,18 +188,15 @@ function ActionButton({
   const config = statusConfig[workflowStatus] || statusConfig.idle;
 
   return (
-    <Button
+    <CanvasButton
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        "absolute top-4 right-28 z-50 rounded-full shadow-lg h-10 w-10 p-0",
-        config.className,
-        { "opacity-50 cursor-not-allowed": disabled }
-      )}
-      title={config.title}
+      className={config.className}
+      position="right-28"
+      tooltip={config.title}
     >
       {config.icon}
-    </Button>
+    </CanvasButton>
   );
 }
 
@@ -157,17 +208,15 @@ function DeployButton({
   disabled?: boolean;
 }) {
   return (
-    <Button
+    <CanvasButton
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        "absolute top-4 right-16 z-50 rounded-full shadow-lg h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700 text-white",
-        { "opacity-50 cursor-not-allowed": disabled }
-      )}
-      title="Deploy Workflow"
+      className="bg-blue-600 hover:bg-blue-700 text-white"
+      position="right-16"
+      tooltip="Deploy Workflow"
     >
       <ArrowUpToLine className="w-6 h-6" />
-    </Button>
+    </CanvasButton>
   );
 }
 
@@ -178,17 +227,49 @@ type SidebarToggleProps = {
 
 function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
   return (
-    <Button
+    <CanvasButton
       onClick={onClick}
-      className="absolute top-4 right-4 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-      title={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
+      position="right-4"
+      tooltip={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
     >
       {isSidebarVisible ? (
         <PanelLeftClose className="w-6 h-6" />
       ) : (
         <PanelLeft className="w-6 h-6" />
       )}
-    </Button>
+    </CanvasButton>
+  );
+}
+
+function OutputsToggle({
+  onClick,
+  expandedOutputs,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  expandedOutputs: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <CanvasButton
+      onClick={onClick}
+      disabled={disabled}
+      className="bg-neutral-600 hover:bg-neutral-700 text-white"
+      position="right-40"
+      tooltip={
+        disabled
+          ? "No outputs to show"
+          : expandedOutputs
+            ? "Collapse All Outputs"
+            : "Expand All Outputs"
+      }
+    >
+      {expandedOutputs ? (
+        <ChevronUp className="w-6 h-6" />
+      ) : (
+        <ChevronDown className="w-6 h-6" />
+      )}
+    </CanvasButton>
   );
 }
 
@@ -213,89 +294,106 @@ export function WorkflowCanvas({
   showControls = true,
   isValidConnection,
   readonly = false,
+  expandedOutputs = false,
+  onToggleExpandedOutputs,
 }: WorkflowCanvasProps) {
+  // Check if any nodes have output values
+  const hasAnyOutputs = nodes.some((node) =>
+    node.data.outputs.some((output) => output.value !== undefined)
+  );
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={readonly ? () => {} : onNodesChange}
-      onEdgesChange={readonly ? () => {} : onEdgesChange}
-      onConnect={readonly ? () => {} : onConnect}
-      onConnectStart={readonly ? () => {} : onConnectStart}
-      onConnectEnd={readonly ? () => {} : onConnectEnd}
-      onNodeClick={onNodeClick}
-      onEdgeClick={onEdgeClick}
-      onPaneClick={onPaneClick}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      connectionMode={ConnectionMode.Strict}
-      connectionLineComponent={WorkflowConnectionLine}
-      connectionRadius={8}
-      onInit={onInit}
-      isValidConnection={isValidConnection}
-      fitView
-      minZoom={0.05}
-      className={cn("bg-neutral-100/50", {
-        "cursor-default": readonly,
-      })}
-      nodesDraggable={!readonly}
-      nodesConnectable={!readonly}
-      elementsSelectable={true}
-      selectNodesOnDrag={!readonly}
-      panOnDrag={true}
-    >
-      {showControls && (
-        <Controls
-          showInteractive={false}
-          showZoom={false}
-          showFitView={false}
+    <TooltipProvider>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={readonly ? () => {} : onNodesChange}
+        onEdgesChange={readonly ? () => {} : onEdgesChange}
+        onConnect={readonly ? () => {} : onConnect}
+        onConnectStart={readonly ? () => {} : onConnectStart}
+        onConnectEnd={readonly ? () => {} : onConnectEnd}
+        onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
+        onPaneClick={onPaneClick}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        connectionMode={ConnectionMode.Strict}
+        connectionLineComponent={WorkflowConnectionLine}
+        connectionRadius={8}
+        onInit={onInit}
+        isValidConnection={isValidConnection}
+        fitView
+        minZoom={0.05}
+        className={cn("bg-neutral-100/50", {
+          "cursor-default": readonly,
+        })}
+        nodesDraggable={!readonly}
+        nodesConnectable={!readonly}
+        elementsSelectable={true}
+        selectNodesOnDrag={!readonly}
+        panOnDrag={true}
+      >
+        {showControls && (
+          <Controls
+            showInteractive={false}
+            showZoom={false}
+            showFitView={false}
+          />
+        )}
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={12}
+          size={1}
+          className="stroke-foreground/5 opacity-50"
         />
-      )}
-      <Background
-        variant={BackgroundVariant.Dots}
-        gap={12}
-        size={1}
-        className="stroke-foreground/5 opacity-50"
-      />
 
-      {readonly && (
-        <div className="absolute top-4 left-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm font-medium shadow-sm border border-amber-200 z-50">
-          Read-only Mode
-        </div>
-      )}
+        {readonly && (
+          <div className="absolute top-4 left-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm font-medium shadow-sm border border-amber-200 z-50">
+            Read-only Mode
+          </div>
+        )}
 
-      {onAddNode && !readonly && (
-        <Button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onAddNode();
-          }}
-          className="absolute bottom-4 right-4 z-50 rounded-full shadow-lg h-10 w-10 p-0"
-          title="Add Node"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
-      )}
+        {onAddNode && !readonly && (
+          <CanvasButton
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddNode();
+            }}
+            position="bottom-4 right-4"
+            tooltip="Add Node"
+          >
+            <Plus className="w-6 h-6" />
+          </CanvasButton>
+        )}
 
-      {onAction && !readonly && (
-        <ActionButton
-          onClick={onAction}
-          workflowStatus={workflowStatus}
-          disabled={nodes.length === 0}
-        />
-      )}
+        {onToggleExpandedOutputs && (
+          <OutputsToggle
+            onClick={onToggleExpandedOutputs}
+            expandedOutputs={expandedOutputs}
+            disabled={!hasAnyOutputs}
+          />
+        )}
 
-      {onDeploy && !readonly && (
-        <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
-      )}
+        {onAction && !readonly && (
+          <ActionButton
+            onClick={onAction}
+            workflowStatus={workflowStatus}
+            disabled={nodes.length === 0}
+          />
+        )}
 
-      {onToggleSidebar && isSidebarVisible !== undefined && (
-        <SidebarToggle
-          onClick={onToggleSidebar}
-          isSidebarVisible={isSidebarVisible}
-        />
-      )}
-    </ReactFlow>
+        {onDeploy && !readonly && (
+          <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
+        )}
+
+        {onToggleSidebar && isSidebarVisible !== undefined && (
+          <SidebarToggle
+            onClick={onToggleSidebar}
+            isSidebarVisible={isSidebarVisible}
+          />
+        )}
+      </ReactFlow>
+    </TooltipProvider>
   );
 }

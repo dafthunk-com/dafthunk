@@ -1,6 +1,7 @@
 import { ObjectReference } from "@dafthunk/types";
 import { useEffect, useRef, useState } from "react";
 
+import { CodeBlock } from "@/components/docs/code-block";
 import { isObjectReference } from "@/services/object-service";
 
 import { WorkflowParameter } from "./workflow-types";
@@ -172,7 +173,60 @@ const DocumentRenderer = ({
   );
 };
 
-// Text output renderer
+// Code output renderer for JSON, arrays, and other code-like content
+const CodeRenderer = ({
+  value,
+  type,
+  compact,
+}: {
+  value: string;
+  type: string;
+  compact?: boolean;
+}) => {
+  // Determine the language based on the type
+  const getLanguage = (type: string): string => {
+    switch (type) {
+      case "json":
+      case "array":
+        return "json";
+      case "javascript":
+      case "js":
+        return "javascript";
+      case "typescript":
+      case "ts":
+        return "typescript";
+      case "python":
+      case "py":
+        return "python";
+      case "html":
+        return "html";
+      case "css":
+        return "css";
+      case "sql":
+        return "sql";
+      case "yaml":
+      case "yml":
+        return "yaml";
+      case "xml":
+        return "xml";
+      default:
+        return "text";
+    }
+  };
+
+  return (
+    <div className={compact ? "mt-1" : "mt-2"}>
+      <CodeBlock
+        language={getLanguage(type)}
+        className="text-xs my-0 border [&_pre]:p-2"
+      >
+        {value}
+      </CodeBlock>
+    </div>
+  );
+};
+
+// Text output renderer for simple text content
 const TextRenderer = ({
   value,
   compact,
@@ -352,5 +406,33 @@ export function WorkflowOutputRenderer({
   const formattedValue = formatOutputValue(output.value, output.type);
   if (!formattedValue) return null;
 
+  // Use CodeRenderer for code-like content
+  const codeTypes = [
+    "json",
+    "array",
+    "javascript",
+    "js",
+    "typescript",
+    "ts",
+    "python",
+    "py",
+    "html",
+    "css",
+    "sql",
+    "yaml",
+    "yml",
+    "xml",
+  ];
+  if (codeTypes.includes(output.type)) {
+    return (
+      <CodeRenderer
+        value={formattedValue}
+        type={output.type}
+        compact={compact}
+      />
+    );
+  }
+
+  // Use TextRenderer for simple text content
   return <TextRenderer value={formattedValue} compact={compact} />;
 }
