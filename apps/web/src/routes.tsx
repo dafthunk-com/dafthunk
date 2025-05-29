@@ -167,17 +167,7 @@ export const routes: AppRouteObject[] = [
   {
     path: "/docs/overview",
     element: (
-      <DocsLayout
-        title="Dafthunk Documentation"
-        description="Dafthunk is a powerful visual workflow automation platform built on Cloudflare's edge infrastructure. Create, manage, and execute complex workflows with our intuitive drag-and-drop editor."
-        badge="v1.0"
-        navigation={{
-          next: {
-            title: "Workflows",
-            href: "/docs/workflows",
-          },
-        }}
-      >
+      <DocsLayout>
         <DocsOverviewPage />
       </DocsLayout>
     ),
@@ -193,20 +183,7 @@ export const routes: AppRouteObject[] = [
   {
     path: "/docs/workflows",
     element: (
-      <DocsLayout
-        title="Workflows Documentation"
-        description="Learn how to create, manage, and execute workflows in Dafthunk. Build powerful automation flows using our visual editor."
-        navigation={{
-          previous: {
-            title: "Overview",
-            href: "/docs/overview",
-          },
-          next: {
-            title: "Nodes Reference",
-            href: "/docs/nodes",
-          },
-        }}
-      >
+      <DocsLayout>
         <DocsWorkflowsPage />
       </DocsLayout>
     ),
@@ -222,21 +199,7 @@ export const routes: AppRouteObject[] = [
   {
     path: "/docs/nodes",
     element: (
-      <DocsLayout
-        title="Nodes Reference"
-        description="Comprehensive reference for all 50+ node types available in Dafthunk."
-        badge="50+ nodes"
-        navigation={{
-          previous: {
-            title: "Workflows",
-            href: "/docs/workflows",
-          },
-          next: {
-            title: "API Reference",
-            href: "/docs/api",
-          },
-        }}
-      >
+      <DocsLayout>
         <DocsNodesPage />
       </DocsLayout>
     ),
@@ -252,16 +215,7 @@ export const routes: AppRouteObject[] = [
   {
     path: "/docs/api",
     element: (
-      <DocsLayout
-        title="API Reference"
-        description="Complete API documentation for integrating with Dafthunk workflows."
-        navigation={{
-          previous: {
-            title: "Nodes Reference",
-            href: "/docs/nodes",
-          },
-        }}
-      >
+      <DocsLayout>
         <DocsApiPage />
       </DocsLayout>
     ),

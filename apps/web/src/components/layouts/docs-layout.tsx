@@ -53,7 +53,6 @@ const docsSections: DocsSection[] = [
     title: "Overview",
     href: "/docs/overview",
     icon: BookOpen,
-    badge: "Start here",
     subsections: [
       { title: "Core Features", href: "#core-features" },
       { title: "Quick Start", href: "#quick-start" },
@@ -78,7 +77,6 @@ const docsSections: DocsSection[] = [
     title: "Nodes Reference",
     href: "/docs/nodes",
     icon: Sparkles,
-    badge: "50+ nodes",
     subsections: [
       { title: "Node Browser", href: "#node-browser" },
       { title: "Understanding Nodes", href: "#understanding-nodes" },
@@ -147,68 +145,6 @@ function DocsSidebar() {
   );
 }
 
-function TableOfContents({ items }: { items: TableOfContentsItem[] }) {
-  if (!items.length) return null;
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <h4 className="text-sm font-semibold mb-2">On this page</h4>
-        <div className="space-y-2">
-          {items.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className={cn(
-                "block text-xs text-muted-foreground hover:text-foreground transition-colors",
-                item.level === 2 && "pl-0",
-                item.level === 3 && "pl-3",
-                item.level === 4 && "pl-6"
-              )}
-            >
-              {item.title}
-            </a>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function NavigationButtons({ navigation }: { navigation?: DocsNavigation }) {
-  if (!navigation?.previous && !navigation?.next) return null;
-
-  return (
-    <div className="flex justify-between items-center pt-8 border-t">
-      {navigation.previous ? (
-        <Button variant="outline" asChild>
-          <Link
-            to={navigation.previous.href}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="size-4" />
-            <div className="text-left">
-              <div>{navigation.previous.title}</div>
-            </div>
-          </Link>
-        </Button>
-      ) : (
-        <div />
-      )}
-      {navigation.next && (
-        <Button variant="outline" asChild>
-          <Link to={navigation.next.href} className="flex items-center gap-2">
-            <div className="text-right">
-              <div>{navigation.next.title}</div>
-            </div>
-            <ArrowRight className="size-4" />
-          </Link>
-        </Button>
-      )}
-    </div>
-  );
-}
-
 export function DocsLayout({ children }: DocsLayoutProps) {
   const location = useLocation();
 
@@ -224,17 +160,6 @@ export function DocsLayout({ children }: DocsLayoutProps) {
     }
   }, [location.pathname]);
 
-  // Generate table of contents from docsSections based on current location
-  const currentSection = docsSections.find(
-    (section) => section.href === location.pathname
-  );
-  const tableOfContents: TableOfContentsItem[] =
-    currentSection?.subsections?.map((subsection) => ({
-      id: subsection.href.replace("#", ""),
-      title: subsection.title,
-      level: 2,
-    })) || [];
-
   return (
     <AppLayout>
       <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
@@ -247,13 +172,6 @@ export function DocsLayout({ children }: DocsLayoutProps) {
         <main className="flex-1 min-w-0 overflow-y-auto" data-docs-main-content>
           <div className="max-w-5xl mx-auto py-10 px-6">{children}</div>
         </main>
-
-        {/* Table of Contents */}
-        <aside className="hidden xl:block w-56 shrink-0">
-          <div className="sticky top-6 p-6 h-[calc(100vh-6rem)] overflow-y-auto">
-            <TableOfContents items={tableOfContents} />
-          </div>
-        </aside>
       </div>
     </AppLayout>
   );

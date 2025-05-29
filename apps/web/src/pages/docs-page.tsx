@@ -155,26 +155,9 @@ export function DocsPage() {
                 </Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link to="/dashboard">View Dashboard</Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="bg-muted/50 p-6 rounded-lg">
-            <h2 className="text-2xl font-semibold mb-4">Need Help?</h2>
-            <p className="text-muted-foreground mb-4">
-              Can't find what you're looking for? Explore additional resources
-              and support options.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button variant="outline" asChild>
-                <Link to="/settings/api-keys">API Keys</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/workflows/executions">View Executions</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/workflows/deployments">Deployments</Link>
+                <Link to="/dashboard">
+                  View Dashboard <ArrowRight className="ml-2 size-4" />
+                </Link>
               </Button>
             </div>
           </div>
