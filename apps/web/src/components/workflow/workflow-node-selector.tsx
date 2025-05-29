@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSearch } from "@/hooks/use-search";
 import { cn } from "@/utils/utils";
 
 import type { NodeTemplate } from "./workflow-types";
@@ -44,14 +45,22 @@ export function WorkflowNodeSelector({
     new Set(templates.map((template) => template.category))
   );
 
-  // Filter templates based on search term and selected category
-  const filteredTemplates = templates.filter((template) => {
-    const matchesSearch =
-      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Use the search hook with intelligent search
+  const searchResults = useSearch({
+    items: templates,
+    searchQuery: searchTerm,
+    searchFields: (template) => [
+      template.name,
+      template.description,
+      template.category,
+    ],
+  });
+
+  // Filter templates based on search results and selected category
+  const filteredTemplates = searchResults.filter((template) => {
     const matchesCategory =
       !selectedCategory || template.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
   // Reset focused index when filters change

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearch } from "@/hooks/use-search";
 import { useNodeTypes } from "@/services/type-service";
 
 import { NodeCard } from "./node-card";
@@ -17,6 +18,18 @@ export function NodesBrowser() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("card");
 
+  // Use the search hook with intelligent search
+  const searchResults = useSearch({
+    items: nodeTypes,
+    searchQuery,
+    searchFields: (nodeType) => [
+      nodeType.name,
+      nodeType.description || "",
+      nodeType.category,
+      nodeType.type,
+    ],
+  });
+
   // Get unique categories and their counts
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -29,79 +42,9 @@ export function NodesBrowser() {
       .map(([category, count]) => ({ category, count }));
   }, [nodeTypes]);
 
-  // Intelligent search function
-  const searchNodes = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return nodeTypes;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-
-    // Split by spaces and dashes to create search terms
-    const searchTerms = query
-      .split(/[\s-]+/)
-      .filter((term) => term.length > 0)
-      .map((term) => term.toLowerCase());
-
-    if (searchTerms.length === 0) {
-      return nodeTypes;
-    }
-
-    return nodeTypes.filter((nodeType) => {
-      // Create searchable text from all relevant fields
-      const searchableFields = [
-        nodeType.name,
-        nodeType.description || "",
-        nodeType.category,
-        nodeType.type,
-      ].map((field) => field.toLowerCase());
-
-      const searchableText = searchableFields.join(" ");
-
-      // Create normalized versions (without spaces, dashes, underscores) for better matching
-      const normalizedFields = searchableFields.map((field) =>
-        field.replace(/[\s-_]/g, "").toLowerCase()
-      );
-      const normalizedSearchableText = normalizedFields.join(" ");
-
-      // Check if all search terms are found (AND logic for better precision)
-      return searchTerms.every((term) => {
-        const normalizedTerm = term.replace(/[\s-_]/g, "").toLowerCase();
-
-        // Check direct substring match in any field
-        if (searchableText.includes(term)) {
-          return true;
-        }
-
-        // Check normalized match (handles "tostring" matching "To String")
-        if (normalizedSearchableText.includes(normalizedTerm)) {
-          return true;
-        }
-
-        // Check if term matches word boundaries (more precise matching)
-        const wordBoundaryRegex = new RegExp(
-          `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-          "i"
-        );
-        if (searchableFields.some((field) => wordBoundaryRegex.test(field))) {
-          return true;
-        }
-
-        // Check normalized word boundaries for individual fields
-        const normalizedWordBoundaryRegex = new RegExp(
-          `\\b${normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-          "i"
-        );
-        return normalizedFields.some((field) =>
-          normalizedWordBoundaryRegex.test(field)
-        );
-      });
-    });
-  }, [nodeTypes, searchQuery]);
-
-  // Filter nodes based on search query and selected category
+  // Filter nodes based on search results and selected category
   const filteredNodes = useMemo(() => {
-    let filtered = searchNodes;
+    let filtered = searchResults;
 
     // Filter by category
     if (selectedCategory) {
@@ -111,7 +54,7 @@ export function NodesBrowser() {
     }
 
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
-  }, [searchNodes, selectedCategory]);
+  }, [searchResults, selectedCategory]);
 
   if (nodeTypesError) {
     return (
