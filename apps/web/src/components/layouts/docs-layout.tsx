@@ -102,7 +102,7 @@ function DocsSidebar() {
   const location = useLocation();
 
   return (
-    <div className="w-72 border-r h-[calc(100vh-4rem)] sticky top-0">
+    <div className="w-72 border-r h-[calc(100vh-4rem)]">
       <ScrollArea className="h-full">
         <div className="p-4 space-y-2">
           {docsSections.map((section) => (
@@ -149,26 +149,24 @@ function TableOfContents({ items }: { items: TableOfContentsItem[] }) {
   if (!items.length) return null;
 
   return (
-    <div className="w-56 shrink-0">
-      <div className="space-y-4">
-        <div>
-          <h4 className="text-sm font-semibold mb-2">On this page</h4>
-          <div className="space-y-2">
-            {items.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className={cn(
-                  "block text-xs text-muted-foreground hover:text-foreground transition-colors",
-                  item.level === 2 && "pl-0",
-                  item.level === 3 && "pl-3",
-                  item.level === 4 && "pl-6"
-                )}
-              >
-                {item.title}
-              </a>
-            ))}
-          </div>
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-sm font-semibold mb-2">On this page</h4>
+        <div className="space-y-2">
+          {items.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={cn(
+                "block text-xs text-muted-foreground hover:text-foreground transition-colors",
+                item.level === 2 && "pl-0",
+                item.level === 3 && "pl-3",
+                item.level === 4 && "pl-6"
+              )}
+            >
+              {item.title}
+            </a>
+          ))}
         </div>
       </div>
     </div>
@@ -221,9 +219,7 @@ export function DocsLayout({
   // Scroll to top when location changes
   useEffect(() => {
     // Find the main scroll container and scroll it to top
-    const scrollContainer = document.querySelector(
-      ".overflow-y-auto, .overflow-auto"
-    );
+    const scrollContainer = document.querySelector("[data-docs-main-content]");
     if (scrollContainer) {
       scrollContainer.scrollTop = 0;
     } else {
@@ -245,15 +241,15 @@ export function DocsLayout({
 
   return (
     <AppLayout>
-      <div className="flex overflow-x-hidden">
+      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
           <DocsSidebar />
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-5xl min-w-0">
-          <div className="py-10 px-6">
+        <main className="flex-1 min-w-0 overflow-y-auto" data-docs-main-content>
+          <div className="max-w-5xl mx-auto py-10 px-6">
             {/* Header */}
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-2">
@@ -278,8 +274,8 @@ export function DocsLayout({
         </main>
 
         {/* Table of Contents */}
-        <aside className="hidden xl:block">
-          <div className="sticky top-6 p-6">
+        <aside className="hidden xl:block w-56 shrink-0">
+          <div className="sticky top-6 p-6 h-[calc(100vh-6rem)] overflow-y-auto">
             <TableOfContents items={tableOfContents} />
           </div>
         </aside>
