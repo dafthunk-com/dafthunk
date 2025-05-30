@@ -27,7 +27,7 @@ import {
   Square,
   X,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -215,7 +215,7 @@ function ActionButton({
       title: "Clear Outputs & Reset",
       shortcut: "⌘⏎",
       className:
-        "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600",
+        "bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600",
     },
     error: {
       icon: <X className="!size-4" />,
@@ -367,11 +367,6 @@ export function WorkflowCanvas({
     node.data.outputs.some((output) => output.value !== undefined)
   );
 
-  const reactFlowRef = useRef<ReactFlowInstance<
-    ReactFlowNode<WorkflowNodeType>,
-    ReactFlowEdge<WorkflowEdgeType>
-  > | null>(null);
-
   // Keyboard shortcut handling
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -387,30 +382,11 @@ export function WorkflowCanvas({
         }
         return;
       }
-
-      // Esc - Center the chart
-      if (event.key === "Escape") {
-        event.preventDefault();
-        if (reactFlowRef.current) {
-          reactFlowRef.current.fitView({ padding: 0.1, duration: 300 });
-        }
-        return;
-      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onAction, readonly, nodes.length]);
-
-  const handleInit = (
-    instance: ReactFlowInstance<
-      ReactFlowNode<WorkflowNodeType>,
-      ReactFlowEdge<WorkflowEdgeType>
-    >
-  ) => {
-    reactFlowRef.current = instance;
-    onInit(instance);
-  };
 
   return (
     <TooltipProvider>
@@ -430,7 +406,7 @@ export function WorkflowCanvas({
         connectionMode={ConnectionMode.Strict}
         connectionLineComponent={WorkflowConnectionLine}
         connectionRadius={8}
-        onInit={handleInit}
+        onInit={onInit}
         isValidConnection={isValidConnection}
         fitView
         minZoom={0.05}
