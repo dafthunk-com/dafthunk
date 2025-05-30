@@ -1,4 +1,4 @@
-import { BookOpen, Code, Sparkles, Workflow } from "lucide-react";
+import { BookOpen, Code, Sparkles } from "lucide-react";
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 
@@ -25,27 +25,16 @@ interface DocsLayoutProps {
 
 const docsSections: DocsSection[] = [
   {
-    title: "Overview",
-    href: "/docs/overview",
+    title: "Core Concepts",
+    href: "/docs/concepts",
     icon: BookOpen,
     subsections: [
-      { title: "Core Features", href: "#core-features" },
-      { title: "Quick Start", href: "#quick-start" },
-      { title: "Technology Stack", href: "#technology-stack" },
-      { title: "What's Next?", href: "#whats-next" },
-    ],
-  },
-  {
-    title: "Workflows",
-    href: "/docs/workflows",
-    icon: Workflow,
-    subsections: [
-      { title: "Getting Started", href: "#getting-started" },
-      { title: "Workflow Types", href: "#workflow-types" },
-      {
-        title: "Testing & Deployment",
-        href: "#testing-deployment",
-      },
+      { title: "Workflows", href: "#workflows" },
+      { title: "Nodes", href: "#nodes" },
+      { title: "Deployments", href: "#deployments" },
+      { title: "Executions", href: "#executions" },
+      { title: "Organizations", href: "#organizations" },
+      { title: "Practical Example", href: "#practical-example" },
     ],
   },
   {
@@ -53,9 +42,10 @@ const docsSections: DocsSection[] = [
     href: "/docs/nodes",
     icon: Sparkles,
     subsections: [
-      { title: "Node Browser", href: "#node-browser" },
-      { title: "Understanding Nodes", href: "#understanding-nodes" },
-      { title: "Common Patterns", href: "#common-patterns" },
+      { title: "Anatomy of a Node", href: "#node-anatomy" },
+      { title: "Node Categories", href: "#node-categories" },
+      { title: "Connecting Nodes", href: "#connecting-nodes" },
+      { title: "Node Library", href: "#node-browser" },
     ],
   },
   {
@@ -67,8 +57,17 @@ const docsSections: DocsSection[] = [
       { title: "Workflow Execution", href: "#workflow-execution" },
       { title: "Workflow Status", href: "#status-results" },
       { title: "Object Retrieval", href: "#object-retrieval" },
-      { title: "Rate Limits", href: "#rate-limits" },
       { title: "Error Handling", href: "#error-handling" },
+    ],
+  },
+  {
+    title: "Developers Guide",
+    href: "/docs/developers",
+    icon: Code,
+    subsections: [
+      { title: "Getting Started", href: "#getting-started" },
+      { title: "How to Contribute", href: "#how-to-contribute" },
+      { title: "Technology Stack", href: "#technology-stack" },
     ],
   },
 ];

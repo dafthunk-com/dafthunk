@@ -1,13 +1,7 @@
-import {
-  ArrowRight,
-  BookOpen,
-  Code,
-  Sparkles,
-  Workflow,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Github, Sparkles, Workflow } from "lucide-react";
 import { Link } from "react-router";
 
+import { ReadyToBuildBlock } from "@/components/docs/ready-to-build";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,22 +36,23 @@ export function DocsPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <BookOpen className="size-5 text-blue-500" />
-                  <CardTitle className="text-xl">Overview</CardTitle>
+                  <CardTitle className="text-xl">Core Concepts</CardTitle>
                 </div>
                 <CardDescription>
-                  Get started with Dafthunk's core concepts and features.
+                  Understand the fundamental building blocks of Dafthunk.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
-                  <li>Platform introduction and architecture</li>
-                  <li>Key features and capabilities</li>
-                  <li>Technology stack overview</li>
-                  <li>Quick start guide</li>
+                  <li>Workflows: The blueprint for your automation</li>
+                  <li>Nodes: Individual tasks and operations</li>
+                  <li>Deployments: Runnable versions of your workflows</li>
+                  <li>Executions: Single runs of a deployed workflow</li>
+                  <li>Organizations: Collaborative spaces for your team</li>
                 </ul>
                 <Button asChild>
-                  <Link to="/docs/overview">
-                    Get Started <ArrowRight className="ml-2 size-4" />
+                  <Link to="/docs/concepts">
+                    Learn Core Concepts <ArrowRight className="ml-2 size-4" />
                   </Link>
                 </Button>
               </CardContent>
@@ -66,44 +61,20 @@ export function DocsPage() {
             <Card className="border-2 border-green-500">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Workflow className="size-5 text-green-500" />
-                  <CardTitle className="text-xl">Workflows</CardTitle>
-                </div>
-                <CardDescription>
-                  Learn how to create, manage, and execute workflows.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
-                  <li>Creating your first workflow</li>
-                  <li>Workflow types and triggers</li>
-                  <li>Testing and deployment</li>
-                  <li>Monitoring and management</li>
-                </ul>
-                <Button asChild>
-                  <Link to="/docs/workflows">
-                    Learn Workflows <ArrowRight className="ml-2 size-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-purple-500">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="size-5 text-purple-500" />
+                  <Sparkles className="size-5 text-green-500" />
                   <CardTitle className="text-xl">Nodes Reference</CardTitle>
                 </div>
                 <CardDescription>
-                  Comprehensive guide to all 70+ available node types.
+                  Comprehensive guide to all available node types and their
+                  capabilities.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
-                  <li>AI and language models</li>
-                  <li>Image generation and processing</li>
-                  <li>Web scraping and HTTP requests</li>
-                  <li>Data processing and math operations</li>
+                  <li>Anatomy of a Node: Inputs, outputs, parameters</li>
+                  <li>Node Categories: AI & ML, Text, Network, Data, etc.</li>
+                  <li>Connecting Nodes: Defining data flow and logic</li>
+                  <li>Interactive Node Library browser</li>
                 </ul>
                 <Button asChild>
                   <Link to="/docs/nodes">
@@ -113,22 +84,22 @@ export function DocsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-orange-500">
+            <Card className="border-2 border-purple-500">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Code className="size-5 text-orange-500" />
+                  <Workflow className="size-5 text-purple-500" />
                   <CardTitle className="text-xl">API Reference</CardTitle>
                 </div>
                 <CardDescription>
-                  Complete API documentation for programmatic integrations.
+                  Integrate Dafthunk programmatically using our REST API.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
-                  <li>Authentication and API keys</li>
-                  <li>Workflow execution endpoints</li>
-                  <li>Status monitoring and results</li>
-                  <li>Code examples and SDKs</li>
+                  <li>Authentication with API keys</li>
+                  <li>Endpoints for workflow execution</li>
+                  <li>Checking execution status and results</li>
+                  <li>Retrieving generated objects</li>
                 </ul>
                 <Button asChild>
                   <Link to="/docs/api">
@@ -137,30 +108,34 @@ export function DocsPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            <Card className="border-2 border-orange-500">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Github className="size-5 text-orange-500" />
+                  <CardTitle className="text-xl">Developers Guide</CardTitle>
+                </div>
+                <CardDescription>
+                  Contribute to Dafthunk or integrate it into your projects.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
+                  <li>Setting up your local development environment</li>
+                  <li>How to contribute: Bug reports, features, PRs</li>
+                  <li>Overview of the technology stack</li>
+                  <li>Project structure and guidelines</li>
+                </ul>
+                <Button asChild>
+                  <Link to="/docs/developers">
+                    Read Dev Guide <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="bg-secondary p-6 rounded-lg">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-              <Zap className="size-6" />
-              Ready to Build?
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Jump straight into the action and start building your first
-              workflow with our visual editor.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button asChild>
-                <Link to="/workflows/playground">
-                  Open Playground <ArrowRight className="ml-2 size-4" />
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/dashboard">
-                  View Dashboard <ArrowRight className="ml-2 size-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
+          <ReadyToBuildBlock />
         </div>
       </div>
     </>

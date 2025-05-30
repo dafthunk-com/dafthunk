@@ -1,14 +1,9 @@
-import { ArrowRight } from "lucide-react";
-import { Link } from "react-router";
-
 import {
   EXECUTE_WORKFLOW_SNIPPETS,
   GET_EXECUTION_STATUS_SNIPPETS,
   GET_OBJECT_SNIPPETS,
 } from "@/components/deployments/api-snippets";
 import { CodeBlock } from "@/components/docs/code-block";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
@@ -31,7 +26,6 @@ export function DocsApiPage() {
       <div className="space-y-4 mb-8">
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">API Reference</h1>
-          <Badge variant="secondary">REST API</Badge>
         </div>
         <p className="text-lg text-muted-foreground max-w-3xl">
           Complete API documentation for integrating Dafthunk workflows into
@@ -46,28 +40,20 @@ export function DocsApiPage() {
         <CodeBlock>{BASE_URL}</CodeBlock>
 
         <h2 id="authentication">Authentication</h2>
-
-        <h3>API Key Authentication</h3>
         <p>
-          Secure your API requests using API keys generated from your dashboard.
+          API requests are authenticated using API keys. You can generate and
+          manage your API keys from the Dafthunk dashboard under{" "}
+          <strong>Settings → API Keys</strong>. Once you create a new API key,
+          give it a descriptive name and ensure you copy and store it securely,
+          as it won't be shown again.
         </p>
-
-        <h4>Getting API Keys</h4>
-        <ol>
-          <li>
-            Navigate to <strong>Settings → API Keys</strong>
-          </li>
-          <li>
-            Click <strong>"Create New API Key"</strong>
-          </li>
-          <li>Give your key a descriptive name</li>
-          <li>Copy and store the key securely</li>
-        </ol>
-
-        <h4>Using API Keys</h4>
-        <p>Include your API key in the Authorization header of all requests:</p>
+        <p>
+          To authenticate your requests, include the API key in the{" "}
+          <code>Authorization</code>
+          header, using the Bearer scheme:
+        </p>
         <CodeBlock language="http">
-          Authorization: Bearer your_api_key_here
+          Authorization: Bearer YOUR_API_KEY
         </CodeBlock>
 
         <h2 id="workflow-execution">Workflow Execution</h2>
@@ -97,16 +83,6 @@ export function DocsApiPage() {
   "parameter2": "value2",
   "file_url": "https://example.com/file.pdf"
 }`}</CodeBlock>
-
-        <p>
-          <strong>Query Parameters:</strong>
-        </p>
-        <ul>
-          <li>
-            <code>monitorProgress</code> (optional): Set to <code>true</code> to
-            enable real-time progress monitoring
-          </li>
-        </ul>
 
         <h4>Response</h4>
         <CodeBlock language="json">{`{
@@ -344,36 +320,6 @@ export function DocsApiPage() {
           </Tabs>
         </div>
 
-        <h2 id="rate-limits">Rate Limits</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Plan</th>
-              <th>Requests per Hour</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <strong>Free</strong>
-              </td>
-              <td>100 requests</td>
-            </tr>
-            <tr>
-              <td>
-                <strong>Pro</strong>
-              </td>
-              <td>1,000 requests</td>
-            </tr>
-            <tr>
-              <td>
-                <strong>Enterprise</strong>
-              </td>
-              <td>Custom limits</td>
-            </tr>
-          </tbody>
-        </table>
-
         <h2 id="error-handling">Error Handling</h2>
         <p>The API uses conventional HTTP status codes:</p>
         <table>
@@ -422,29 +368,6 @@ export function DocsApiPage() {
             </tr>
           </tbody>
         </table>
-
-        <hr />
-
-        <div className="my-8">
-          <h2 className="text-xl font-semibold mb-4">Start Building</h2>
-          <div className="text-muted-foreground mb-6">
-            Get your API key and start integrating Dafthunk workflows into your
-            applications.
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Button asChild>
-              <Link to="/settings/api-keys">
-                Get API Key <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/workflows/deployments">View Deployments</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/docs/workflows">Learn Workflows</Link>
-            </Button>
-          </div>
-        </div>
       </div>
     </>
   );

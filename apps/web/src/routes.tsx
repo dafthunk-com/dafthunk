@@ -15,9 +15,9 @@ import { DeploymentDetailPage } from "./pages/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/deployment-version-page";
 import { DeploymentsPage } from "./pages/deployments-page";
 import { DocsApiPage } from "./pages/docs/api-page";
+import { DocsOverviewPage } from "./pages/docs/concepts-page";
+import { DocsDevelopersPage } from "./pages/docs/developers-page";
 import { DocsNodesPage } from "./pages/docs/nodes-page";
-import { DocsOverviewPage } from "./pages/docs/overview-page";
-import { DocsWorkflowsPage } from "./pages/docs/workflows-page";
 import { DocsPage } from "./pages/docs-page";
 import { EditorPage } from "./pages/editor-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
@@ -165,7 +165,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/docs/overview",
+    path: "/docs/concepts",
     element: (
       <DocsLayout>
         <DocsOverviewPage />
@@ -174,24 +174,8 @@ export const routes: AppRouteObject[] = [
     handle: {
       head: (
         <HeadSeo
-          title="Overview - Documentation - Dafthunk"
+          title="Core Concepts - Documentation - Dafthunk"
           description="Get started with Dafthunk's core concepts and features."
-        />
-      ),
-    },
-  },
-  {
-    path: "/docs/workflows",
-    element: (
-      <DocsLayout>
-        <DocsWorkflowsPage />
-      </DocsLayout>
-    ),
-    handle: {
-      head: (
-        <HeadSeo
-          title="Workflows - Documentation - Dafthunk"
-          description="Learn how to create, manage, and execute workflows in Dafthunk."
         />
       ),
     },
@@ -224,6 +208,22 @@ export const routes: AppRouteObject[] = [
         <HeadSeo
           title="API Reference - Documentation - Dafthunk"
           description="Complete API documentation for integrating with Dafthunk workflows."
+        />
+      ),
+    },
+  },
+  {
+    path: "/docs/developers",
+    element: (
+      <DocsLayout>
+        <DocsDevelopersPage />
+      </DocsLayout>
+    ),
+    handle: {
+      head: (
+        <HeadSeo
+          title="Developers Guide - Documentation - Dafthunk"
+          description="Complete developers guide for contributing to Dafthunk."
         />
       ),
     },

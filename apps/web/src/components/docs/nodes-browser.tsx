@@ -8,7 +8,6 @@ import { useSearch } from "@/hooks/use-search";
 import { useNodeTypes } from "@/services/type-service";
 
 import { NodeCard } from "./node-card";
-import { NodesStats } from "./nodes-stats";
 
 type ViewMode = "card" | "list";
 
@@ -68,11 +67,6 @@ export function NodesBrowser() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Section */}
-      {!isNodeTypesLoading && !nodeTypesError && (
-        <NodesStats nodeTypes={nodeTypes} />
-      )}
-
       {/* Search and Filter Controls */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

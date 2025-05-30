@@ -1,10 +1,4 @@
-import { ArrowRight } from "lucide-react";
-import { Link } from "react-router";
-
-import { CodeBlock } from "@/components/docs/code-block";
 import { NodesBrowser } from "@/components/docs/nodes-browser";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 
 export function DocsNodesPage() {
@@ -16,186 +10,139 @@ export function DocsNodesPage() {
   return (
     <>
       {/* Header */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-4 mb-10">
         <div className="flex items-center gap-2">
           <h1 className="text-4xl font-bold tracking-tight">Nodes Reference</h1>
-          <Badge variant="secondary">70+ Types</Badge>
         </div>
         <p className="text-lg text-muted-foreground max-w-3xl">
-          Explore our comprehensive library of nodes for building powerful
-          workflow automations, from AI and data processing to integrations and
-          more.
+          In Dafthunk, Nodes are the fundamental units of any workflow. Each
+          node represents a specific operation, function, or action. By
+          connecting these nodes, you visually design the logic and data flow of
+          your automated processes. They are the essential components that make
+          visual programming in Dafthunk powerful and intuitive.
         </p>
       </div>
 
       {/* Content */}
-      <div className="prose prose-slate dark:prose-invert max-w-none docs-content">
-        <h2 id="node-browser">Node Browser</h2>
+      <div className="prose prose-slate dark:prose-invert max-w-none docs-content space-y-8">
+        <h2 id="node-anatomy">Anatomy of a Node</h2>
         <p>
-          Explore and search through all available nodes with real-time
-          filtering by category, name, and description:
-        </p>
-
-        <NodesBrowser />
-
-        <hr />
-
-        <h2 id="understanding-nodes">Understanding Nodes</h2>
-        <p>
-          Every node in Dafthunk represents a specific operation or function
-          that can be connected together to create powerful workflows. Nodes are
-          the building blocks that make visual programming possible.
-        </p>
-
-        <h3>Node Anatomy</h3>
-        <p>Each node consists of:</p>
-        <ul>
-          <li>
-            <strong>Inputs</strong> - Data or connections coming into the node
-          </li>
-          <li>
-            <strong>Outputs</strong> - Results or data flowing out of the node
-          </li>
-          <li>
-            <strong>Parameters</strong> - Configuration settings specific to the
-            node
-          </li>
-          <li>
-            <strong>Category</strong> - The functional group the node belongs to
-          </li>
-          <li>
-            <strong>Compatibility</strong> - Which workflow types support this
-            node
-          </li>
-        </ul>
-
-        <h3>Node Categories</h3>
-        <p>
-          Nodes are organized into logical categories based on their primary
-          function:
+          Each node in Dafthunk, regardless of its specific function, shares a
+          common structure designed for clarity and ease of use. Understanding
+          this anatomy is key to effectively building workflows:
         </p>
         <ul>
           <li>
-            <strong>AI & ML</strong> - Language models, image generation, and
-            machine learning
+            <strong>Inputs:</strong> These are the connection points where data
+            or control signals enter the node. Nodes can have multiple inputs,
+            each expecting a specific type of data.
           </li>
           <li>
-            <strong>Text</strong> - Text processing, formatting, and
-            manipulation
+            <strong>Outputs:</strong> These are connection points from which
+            data or signals exit the node after processing. The results of a
+            node's operation are passed to other nodes through its outputs.
           </li>
           <li>
-            <strong>Image</strong> - Image generation, analysis, and
-            transformation
+            <strong>Parameters:</strong> These are configurable settings that
+            allow you to customize the behavior of a node. Parameters might
+            include API keys, specific values for operations, or choices that
+            dictate how the node functions.
           </li>
           <li>
-            <strong>Audio</strong> - Speech processing, synthesis, and audio
-            manipulation
+            <strong>Category:</strong> Nodes are grouped into categories (e.g.,
+            AI & ML, Text, Data) based on their primary function, making them
+            easier to find and understand.
           </li>
           <li>
-            <strong>Network</strong> - HTTP requests, web scraping, and external
-            integrations
-          </li>
-          <li>
-            <strong>Data</strong> - JSON, XML, CSV processing and transformation
-          </li>
-          <li>
-            <strong>Math</strong> - Mathematical operations and calculations
-          </li>
-          <li>
-            <strong>Parameters</strong> - Input handling and form data
-            processing
-          </li>
-          <li>
-            <strong>Email</strong> - Email sending and processing capabilities
-          </li>
-          <li>
-            <strong>Document</strong> - Document processing and conversion
+            <strong>Compatibility:</strong> Information detailing which types of
+            workflows or environments support the specific node.
           </li>
         </ul>
 
-        <h3>Connecting Nodes</h3>
-        <p>Nodes work together by connecting outputs to inputs:</p>
+        <h2 id="node-categories">Node Categories</h2>
+        <p>
+          To help you navigate the extensive library, nodes are organized into
+          logical categories based on their core functionality:
+        </p>
+        <ul>
+          <li>
+            <strong>AI & ML:</strong> Leverage powerful language models, image
+            generation capabilities, and other machine learning tools.
+          </li>
+          <li>
+            <strong>Text:</strong> Perform a wide range of text processing
+            tasks, including formatting, extraction, and manipulation.
+          </li>
+          <li>
+            <strong>Image:</strong> Tools for image generation, analysis,
+            conversion, and transformation.
+          </li>
+          <li>
+            <strong>Audio:</strong> Nodes for speech processing, audio
+            synthesis, and other sound-related manipulations.
+          </li>
+          <li>
+            <strong>Network:</strong> Make HTTP requests, scrape web content,
+            and integrate with various external APIs and services.
+          </li>
+          <li>
+            <strong>Data:</strong> Process, transform, and manipulate data
+            structures like JSON, XML, and CSV.
+          </li>
+          <li>
+            <strong>Math:</strong> Perform mathematical operations,
+            calculations, and logical comparisons.
+          </li>
+          <li>
+            <strong>Parameters:</strong> Specialized nodes for handling inputs,
+            form data, and workflow arguments.
+          </li>
+          <li>
+            <strong>Email:</strong> Send and process emails, enabling automation
+            of communication tasks.
+          </li>
+          <li>
+            <strong>Document:</strong> Tools for processing, converting, and
+            extracting data from various document formats.
+          </li>
+        </ul>
+
+        <h2 id="connecting-nodes">Connecting Nodes</h2>
+        <p>
+          Workflows come to life by connecting nodes. This process defines how
+          data flows and the sequence of operations:
+        </p>
         <ol>
           <li>
-            <strong>Drag connections</strong> from output ports to input ports
+            <strong>Establish Connections:</strong> Drag from an output port of
+            one node to an input port of another. This creates a visual link
+            representing the path of data.
           </li>
           <li>
-            <strong>Data flows</strong> automatically through connected nodes
+            <strong>Data Transmission:</strong> Once connected, data produced by
+            an output port automatically flows to the connected input port of
+            the subsequent node.
           </li>
           <li>
-            <strong>Type validation</strong> ensures compatible connections
+            <strong>Type Validation:</strong> The system often performs type
+            validation to ensure that the data type of an output is compatible
+            with the expected input type, preventing errors.
           </li>
           <li>
-            <strong>Execution order</strong> is determined by the connection
-            graph
+            <strong>Execution Order:</strong> The connections form a directed
+            graph, which dictates the order in which nodes execute. Dafthunk
+            processes nodes based on these dependencies.
           </li>
         </ol>
 
-        <h3>Best Practices</h3>
-        <p>When working with nodes:</p>
-        <ul>
-          <li>
-            <strong>Start Simple</strong> - Begin with basic nodes and add
-            complexity gradually
-          </li>
-          <li>
-            <strong>Test Frequently</strong> - Use the playground to verify
-            individual node behavior
-          </li>
-          <li>
-            <strong>Handle Errors</strong> - Add error handling nodes for robust
-            workflows
-          </li>
-          <li>
-            <strong>Document Purpose</strong> - Use descriptive names for nodes
-            and workflows
-          </li>
-          <li>
-            <strong>Optimize Performance</strong> - Consider the computational
-            cost of complex nodes
-          </li>
-        </ul>
+        <h2 id="node-browser">Node Library</h2>
+        <p>
+          Explore and search through all available nodes using our interactive
+          browser. You can filter by category, name, and description in
+          real-time to quickly find the tools you need:
+        </p>
 
-        <h2 id="common-patterns">Common Patterns</h2>
-
-        <h3>Sequential Processing</h3>
-        <CodeBlock>Input → Transform → Validate → Output</CodeBlock>
-
-        <h3>Parallel Processing</h3>
-        <CodeBlock>
-          Input → Split → [Process A, Process B] → Merge → Output
-        </CodeBlock>
-
-        <h3>Conditional Logic</h3>
-        <CodeBlock>
-          Input → Condition → [True Path, False Path] → Combine → Output
-        </CodeBlock>
-
-        <h3>Data Transformation Pipeline</h3>
-        <CodeBlock>Raw Data → Parse → Clean → Transform → Store</CodeBlock>
-
-        <hr />
-
-        <div className="my-8">
-          <h2 className="text-xl font-semibold mb-4">Ready to Build?</h2>
-          <p className="text-muted-foreground mb-6">
-            Start creating workflows with these powerful nodes in the visual
-            editor.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Button asChild>
-              <Link to="/workflows/playground">
-                Open Playground <ArrowRight className="ml-2 size-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/docs/workflows">Learn Workflows</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/docs/api">API Reference</Link>
-            </Button>
-          </div>
-        </div>
+        <NodesBrowser />
       </div>
     </>
   );
