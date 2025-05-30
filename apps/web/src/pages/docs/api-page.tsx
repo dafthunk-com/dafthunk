@@ -1,4 +1,4 @@
-import { ArrowRight, Copy } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 
 import {
@@ -17,10 +17,6 @@ export function DocsApiPage() {
     { label: "Documentation", to: "/docs" },
     { label: "API" },
   ]);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
 
   const BASE_URL = "https://api.dafthunk.com";
 
@@ -134,84 +130,23 @@ export function DocsApiPage() {
               <TabsTrigger value="python">Python</TabsTrigger>
             </TabsList>
             <TabsContent value="curl" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="bash">
-                  {EXECUTE_WORKFLOW_SNIPPETS.curl(exampleExecuteUrl, true, [])}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      EXECUTE_WORKFLOW_SNIPPETS.curl(
-                        exampleExecuteUrl,
-                        true,
-                        []
-                      )
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="bash">
+                {EXECUTE_WORKFLOW_SNIPPETS.curl(exampleExecuteUrl, true, [])}
+              </CodeBlock>
             </TabsContent>
             <TabsContent value="javascript" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="javascript">
-                  {EXECUTE_WORKFLOW_SNIPPETS.javascript(
-                    exampleExecuteUrl,
-                    true,
-                    []
-                  )}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      EXECUTE_WORKFLOW_SNIPPETS.javascript(
-                        exampleExecuteUrl,
-                        true,
-                        []
-                      )
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="javascript">
+                {EXECUTE_WORKFLOW_SNIPPETS.javascript(
+                  exampleExecuteUrl,
+                  true,
+                  []
+                )}
+              </CodeBlock>
             </TabsContent>
             <TabsContent value="python" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="python">
-                  {EXECUTE_WORKFLOW_SNIPPETS.python(
-                    exampleExecuteUrl,
-                    true,
-                    []
-                  )}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      EXECUTE_WORKFLOW_SNIPPETS.python(
-                        exampleExecuteUrl,
-                        true,
-                        []
-                      )
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="python">
+                {EXECUTE_WORKFLOW_SNIPPETS.python(exampleExecuteUrl, true, [])}
+              </CodeBlock>
             </TabsContent>
           </Tabs>
         </div>
@@ -264,68 +199,19 @@ export function DocsApiPage() {
               <TabsTrigger value="python">Python</TabsTrigger>
             </TabsList>
             <TabsContent value="curl" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="bash">
-                  {GET_EXECUTION_STATUS_SNIPPETS.curl(exampleStatusBaseUrl)}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      GET_EXECUTION_STATUS_SNIPPETS.curl(exampleStatusBaseUrl)
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="bash">
+                {GET_EXECUTION_STATUS_SNIPPETS.curl(exampleStatusBaseUrl)}
+              </CodeBlock>
             </TabsContent>
             <TabsContent value="javascript" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="javascript">
-                  {GET_EXECUTION_STATUS_SNIPPETS.javascript(
-                    exampleStatusBaseUrl
-                  )}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      GET_EXECUTION_STATUS_SNIPPETS.javascript(
-                        exampleStatusBaseUrl
-                      )
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="javascript">
+                {GET_EXECUTION_STATUS_SNIPPETS.javascript(exampleStatusBaseUrl)}
+              </CodeBlock>
             </TabsContent>
             <TabsContent value="python" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="python">
-                  {GET_EXECUTION_STATUS_SNIPPETS.python(exampleStatusBaseUrl)}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      GET_EXECUTION_STATUS_SNIPPETS.python(exampleStatusBaseUrl)
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="python">
+                {GET_EXECUTION_STATUS_SNIPPETS.python(exampleStatusBaseUrl)}
+              </CodeBlock>
             </TabsContent>
           </Tabs>
         </div>
@@ -441,60 +327,19 @@ export function DocsApiPage() {
               <TabsTrigger value="python">Python</TabsTrigger>
             </TabsList>
             <TabsContent value="curl" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="bash">
-                  {GET_OBJECT_SNIPPETS.curl(exampleObjectBaseUrl)}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(GET_OBJECT_SNIPPETS.curl(exampleObjectBaseUrl))
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="bash">
+                {GET_OBJECT_SNIPPETS.curl(exampleObjectBaseUrl)}
+              </CodeBlock>
             </TabsContent>
             <TabsContent value="javascript" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="javascript">
-                  {GET_OBJECT_SNIPPETS.javascript(exampleObjectBaseUrl)}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(
-                      GET_OBJECT_SNIPPETS.javascript(exampleObjectBaseUrl)
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="javascript">
+                {GET_OBJECT_SNIPPETS.javascript(exampleObjectBaseUrl)}
+              </CodeBlock>
             </TabsContent>
             <TabsContent value="python" className="mt-4">
-              <div className="relative">
-                <CodeBlock language="python">
-                  {GET_OBJECT_SNIPPETS.python(exampleObjectBaseUrl)}
-                </CodeBlock>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-2 right-2 h-7 w-7 p-0"
-                  onClick={() =>
-                    handleCopy(GET_OBJECT_SNIPPETS.python(exampleObjectBaseUrl))
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </div>
+              <CodeBlock language="python">
+                {GET_OBJECT_SNIPPETS.python(exampleObjectBaseUrl)}
+              </CodeBlock>
             </TabsContent>
           </Tabs>
         </div>

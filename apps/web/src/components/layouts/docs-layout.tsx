@@ -1,16 +1,8 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpen,
-  Code,
-  Sparkles,
-  Workflow,
-} from "lucide-react";
+import { BookOpen, Code, Sparkles, Workflow } from "lucide-react";
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils/utils";
 
@@ -25,23 +17,6 @@ export interface DocsSection {
     title: string;
     href: string;
   }[];
-}
-
-export interface DocsNavigation {
-  previous?: {
-    title: string;
-    href: string;
-  };
-  next?: {
-    title: string;
-    href: string;
-  };
-}
-
-export interface TableOfContentsItem {
-  id: string;
-  title: string;
-  level: number;
 }
 
 interface DocsLayoutProps {

@@ -43,7 +43,7 @@ export function PublicExecutionPage() {
     if (preferredTheme) {
       setTheme(preferredTheme as "dark" | "light" | "system");
     }
-  }, [preferredTheme]);
+  }, [preferredTheme, setTheme]);
 
   useEffect(() => {
     if (
