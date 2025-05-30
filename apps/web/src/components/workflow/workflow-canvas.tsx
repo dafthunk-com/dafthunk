@@ -404,43 +404,37 @@ export function WorkflowCanvas({
         )}
 
         {/* Main Action Bar */}
-        {!readonly &&
-          (onAction ||
-            onDeploy ||
-            onToggleExpandedOutputs ||
-            onToggleSidebar) && (
-            <div className="absolute top-4 right-4 flex items-center rounded-lg shadow-lg bg-background z-50 overflow-hidden">
-              {onAction && (
-                <ActionButton
-                  onClick={onAction}
-                  workflowStatus={workflowStatus}
-                  disabled={nodes.length === 0}
-                />
-              )}
+        {((!readonly && (onAction || onDeploy || onToggleExpandedOutputs)) ||
+          onToggleSidebar) && (
+          <div className="absolute top-4 right-4 flex items-center rounded-lg shadow-lg bg-background z-50 overflow-hidden">
+            {!readonly && onAction && (
+              <ActionButton
+                onClick={onAction}
+                workflowStatus={workflowStatus}
+                disabled={nodes.length === 0}
+              />
+            )}
 
-              {onToggleExpandedOutputs && (
-                <OutputsToggle
-                  onClick={onToggleExpandedOutputs}
-                  expandedOutputs={expandedOutputs}
-                  disabled={!hasAnyOutputs}
-                />
-              )}
+            {!readonly && onToggleExpandedOutputs && (
+              <OutputsToggle
+                onClick={onToggleExpandedOutputs}
+                expandedOutputs={expandedOutputs}
+                disabled={!hasAnyOutputs}
+              />
+            )}
 
-              {onDeploy && (
-                <DeployButton
-                  onClick={onDeploy}
-                  disabled={nodes.length === 0}
-                />
-              )}
+            {!readonly && onDeploy && (
+              <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
+            )}
 
-              {onToggleSidebar && isSidebarVisible !== undefined && (
-                <SidebarToggle
-                  onClick={onToggleSidebar}
-                  isSidebarVisible={isSidebarVisible}
-                />
-              )}
-            </div>
-          )}
+            {onToggleSidebar && isSidebarVisible !== undefined && (
+              <SidebarToggle
+                onClick={onToggleSidebar}
+                isSidebarVisible={isSidebarVisible}
+              />
+            )}
+          </div>
+        )}
 
         {onAddNode && !readonly && (
           <CanvasButton
