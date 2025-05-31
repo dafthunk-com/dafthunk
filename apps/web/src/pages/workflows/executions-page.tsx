@@ -102,7 +102,8 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
       const { startedAt, endedAt } = execution;
 
       if (startedAt && endedAt) {
-        const durationMs = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+        const durationMs =
+          new Date(endedAt).getTime() - new Date(startedAt).getTime();
         const seconds = Math.floor((durationMs / 1000) % 60);
         const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
         // const hours = Math.floor((durationMs / (1000 * 60 * 60)) % 24); // Uncomment if hours are needed
@@ -115,7 +116,7 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
           formattedDuration += `${minutes}m `;
         }
         formattedDuration += `${seconds}s`;
-        
+
         return <div>{formattedDuration.trim()}</div>;
       }
       return <div>-</div>;
@@ -154,7 +155,6 @@ export function ExecutionsPage() {
     paginatedExecutions,
     executionsError,
     isExecutionsInitialLoading,
-    isExecutionsLoadingMore,
     isExecutionsReachingEnd,
     executionsObserverTargetRef,
   } = usePaginatedExecutions();
@@ -186,9 +186,7 @@ export function ExecutionsPage() {
 
   return (
     <TooltipProvider>
-      <InsetLayout
-        title="Executions"
-      >
+      <InsetLayout title="Executions">
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
         </p>
