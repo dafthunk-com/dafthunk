@@ -6,33 +6,51 @@ A workflow execution platform no one asked for built on top of the fantastic Clo
 
 ## 🔍 Overview
 
-Dafthunk (short for Dope as F\*\*\* Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution and Cloudflare AI for intelligent workflow processing.
+Dafthunk (short for Dope as F\*\*\* Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution, Cloudflare AI for intelligent workflow processing, and Cloudflare D1 for persistent storage.
 
 The platform features a visual workflow editor built with React Flow, allowing you to create complex workflows by connecting various node types, including AI-powered nodes for text processing, image classification, and more. Think digital LEGO, but with less risk to your bare feet at 2 AM.
 
 ## ✨ Features
 
-- **Visual Workflow Editor**: A drag-and-drop interface for creating and editing workflows that makes command-line enthusiasts mildly uncomfortable.
-- **AI-Powered Nodes**: Leverage Cloudflare AI for text summarization, sentiment analysis, translation, and image classification. We've joined the AI bandwagon and we're not even sorry about it.
-- **Serverless Execution**: Run workflows on Cloudflare's global edge network, where servers are merely a philosophical concept.
-- **Real-time Execution**: Watch your workflow results appear in real-time, for better or worse.
+- **Visual Workflow Editor**: A drag-and-drop interface built with React Flow for creating and editing workflows that makes command-line enthusiasts mildly uncomfortable.
+- **50+ AI-Powered Nodes**: Leverage Cloudflare AI for text summarization, sentiment analysis, translation, image classification, audio transcription, image generation (Stable Diffusion), and more. We've joined the AI bandwagon and we're not even sorry about it.
+- **Serverless Execution**: Run workflows on Cloudflare's global edge network using Cloudflare Workers, where servers are merely a philosophical concept.
+- **Real-time Execution**: Watch your workflow results appear in real-time with WebSockets, for better or worse.
 - **Persistent Storage**: Save and load workflows from Cloudflare D1 database with reasonable confidence that they'll still be there tomorrow.
-- **Modern UI**: Crafted with React, TailwindCSS, and Shadcn UI components because life's too short for vanilla CSS.
+- **Object Storage**: Store workflow outputs (images, audio, documents) in Cloudflare R2 with global CDN distribution.
+- **Modern UI**: Crafted with React 19, TailwindCSS, and Shadcn UI components because life's too short for vanilla CSS.
+- **API Integration**: RESTful API with comprehensive type safety using Zod validation.
+- **Authentication**: OAuth support for GitHub and Google providers.
 
 ## 🛠️ Technology Stack
 
 Our collection of carefully selected technologies, guaranteed to be outdated by the time you read this:
 
-- **Frontend**: React, TypeScript, TailwindCSS, Shadcn UI
-- **Workflow Editor**: React Flow
-- **Routing**: React Router
-- **Build Tool**: Vite
-- **Package Manager**: pnpm (stands for "please not another package manager")
-- **Database**: Cloudflare D1
-- **Serverless Functions**: Cloudflare Workers
-- **AI Integration**: Cloudflare AI
-- **Testing**: Vitest
-- **Deployment**: Cloudflare Pages
+### Both
+
+- **pnpm** for fast and efficient package management with workspace support.
+- **TypeScript** for static typing and enhanced developer experience.
+- **Vitest** for unit and integration testing.
+- **Cloudflare** for edge-optimized deployment and performance.
+
+### Backend
+
+- **Hono** for lightweight, expressive REST API development.
+- **Cloudflare Workers** for serverless function execution.
+- **Cloudflare D1** (SQLite) for database storage.
+- **Cloudflare R2** for object storage.
+- **Cloudflare AI** for AI model inference.
+- **Drizzle ORM** for type-safe database operations.
+- **Zod** for runtime type validation.
+
+### Frontend
+
+- **Vite** as the build tool and dev server for lightning-fast development.
+- **React 19** for building interactive user interfaces.
+- **React Router v7** for declarative client-side routing.
+- **React Flow (@xyflow/react)** for rendering interactive node-based diagrams.
+- **Tailwind CSS** for utility-first styling.
+- **shadcn/ui** for headless, accessible component primitives.
 
 ## 🚀 Getting Started
 
@@ -40,7 +58,7 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
 
 - Node.js (v18 or later)
 - pnpm (v8 or later)
-- Cloudflare account with Workers and D1 access
+- Cloudflare account with Workers, D1, R2, and AI access
 - A reasonable amount of patience
 
 ### 💻 Installation
@@ -90,47 +108,97 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
 
 ### 📁 Project Structure
 
-A sensible organization that we all pretend won't change dramatically tomorrow:
+A sensible monorepo organization using pnpm workspaces that we all pretend won't change dramatically tomorrow:
 
-- `/src` - Frontend React application
-  - `/assets` - Static assets
-  - `/components` - Reusable UI components
-  - `/config` - Configuration files
-  - `/lib` - Shared types, utilities, and constants
-  - `/pages` - Application pages
-  - `/services` - API services
-- `/functions` - Cloudflare Workers functions
-- `/db` - Database migrations and schema (handle with care)
+- **`apps/api/`** - Cloudflare Workers API backend
+  - `/src/routes/` - REST API endpoints
+  - `/src/nodes/` - Workflow node implementations (50+ types)
+  - `/src/db/` - Database schema and migrations
+  - `/src/runtime/` - Workflow execution engine
+  - `/src/middleware/` - Custom middleware
+- **`apps/web/`** - React frontend application
+  - `/src/components/` - Reusable UI components
+    - `/workflow/` - Visual workflow editor components
+    - `/ui/` - Shadcn UI components
+  - `/src/pages/` - Application pages and routes
+  - `/src/services/` - API service clients
+  - `/src/hooks/` - Custom React hooks
+  - `/functions/` - Cloudflare Pages functions
+- **`packages/types/`** - Shared TypeScript types
+
+### 🧑‍💻 Development Commands
+
+#### Root Level Commands
+
+```bash
+# Start all services in development mode
+pnpm dev
+
+# Build all packages and apps
+pnpm build
+
+# Run tests
+pnpm test
+
+# Type checking across all workspaces
+pnpm typecheck
+
+# Linting and formatting
+pnpm lint
+pnpm format
+pnpm fix
+
+# Dependency analysis
+pnpm knip
+```
+
+#### Workspace-Specific Commands
+
+```bash
+# API development
+pnpm --filter '@dafthunk/api' dev
+pnpm --filter '@dafthunk/api' deploy
+
+# Web development
+pnpm --filter '@dafthunk/web' dev
+pnpm --filter '@dafthunk/web' build
+pnpm --filter '@dafthunk/web' deploy
+
+# Types package
+pnpm --filter '@dafthunk/types' build
+```
 
 ### 🗄️ Database
 
-The project uses Cloudflare D1 as the database. Migrations are automatically applied when the project is deployed, but you can also apply them manually if you're feeling adventurous:
+The project uses Cloudflare D1 (SQLite) as the database with Drizzle ORM. Migrations are automatically applied when the project is deployed, but you can also apply them manually if you're feeling adventurous:
 
 #### 🧪 Development
 
 ```bash
+# Apply migrations to local database
 pnpm --filter '@dafthunk/api' db:migrate
+
+# Reset local database (dangerous!)
+pnpm --filter '@dafthunk/api' db:reset
+
+# Generate new migrations
+pnpm --filter '@dafthunk/api' db:generate
 ```
 
 To run queries against the development database:
 
 ```bash
-npx wrangler d1 execute DB --env development --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
-```
-
-To reset the development database when things have gone spectacularly wrong:
-
-```bash
-export CI=true
-pnpm --filter '@dafthunk/api' db:reset
+npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table';"
 ```
 
 #### 🚨 Production
 
-To apply migrations without resetting:
-
 ```bash
+# Apply migrations to production
 pnpm --filter '@dafthunk/api' db:prod:migrate
+
+# Reset production database (proceed with extreme caution!)
+pnpm --filter '@dafthunk/api' db:prod:reset
 ```
 
 To run queries against the production database:
@@ -139,18 +207,24 @@ To run queries against the production database:
 npx wrangler d1 execute DB --env production --command "SELECT name FROM sqlite_master WHERE type='table';" --remote
 ```
 
-To reset the production database (a decision we will continue to make carelessly for some time):
-
-```bash
-export CI=true
-pnpm --filter '@dafthunk/api' db:prod:reset
-```
-
-> For using D1 locally, use the `--local` flag instead of `--remote` when executing wrangler commands directly.
-
 ## 🚢 Deployment
 
-The main branch is deployed automatically on Cloudflare with a GitHub Action.
+The main branch is deployed automatically to Cloudflare using GitHub Actions:
+
+- **Frontend**: Deployed to Cloudflare Pages
+- **Backend**: Deployed to Cloudflare Workers
+- **Database**: Cloudflare D1 with automatic migrations
+- **Storage**: Cloudflare R2 for file storage
+
+Manual deployment commands:
+
+```bash
+# Deploy API to Cloudflare Workers
+pnpm --filter '@dafthunk/api' deploy
+
+# Deploy web app to Cloudflare Pages
+pnpm --filter '@dafthunk/web' deploy
+```
 
 ## 🤝 Contributing
 
