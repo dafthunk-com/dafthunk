@@ -45,9 +45,23 @@ export async function handleIncomingEmail(
   const { from, to, headers, raw } = message;
 
   // Extract the handle from the to address
-  const handle = to.split("@")[0];
-  const workflowId = handle.split(".")[0];
-  const version = handle.split(".")[1];
+  const localPart = to.split("@")[0];
+  const parts = localPart.split(".");
+  let workflowId: string;
+  let version: string;
+
+  if (parts.length === 1) {
+    workflowId = parts[0];
+    version = "latest"; // Default to latest if no version is specified
+  } else if (parts.length === 2) {
+    workflowId = parts[0];
+    version = parts[1];
+  } else {
+    console.error(
+      `Invalid email format: ${to}. Expected handle@domain.com or handle.version@domain.com`
+    );
+    return;
+  }
 
   const db = createDatabase(env.DB);
 
