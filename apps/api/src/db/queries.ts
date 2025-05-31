@@ -194,7 +194,7 @@ export async function getUserById(
  * @param organizationId Organization ID
  * @returns Array of workflows with basic info
  */
-export async function getWorkflowsByOrganization(
+export async function getWorkflowsByOrganizationId(
   db: ReturnType<typeof createDatabase>,
   organizationId: string
 ) {

@@ -26,7 +26,7 @@ import {
   getLatestDeploymentByWorkflowIdOrHandle,
   getOrganizationByHandle,
   getWorkflowByIdOrHandle,
-  getWorkflowsByOrganization,
+  getWorkflowsByOrganizationId,
   saveExecution,
   updateWorkflow,
   type WorkflowInsert,
@@ -55,7 +55,7 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
     return c.json({ error: "Organization ID not found in token" }, 401);
   }
 
-  const allWorkflows = await getWorkflowsByOrganization(db, orgId);
+  const allWorkflows = await getWorkflowsByOrganizationId(db, orgId);
 
   // Convert DB workflow objects to WorkflowWithMetadata objects
   const workflows: WorkflowWithMetadata[] = allWorkflows.map((workflow) => {

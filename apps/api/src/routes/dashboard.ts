@@ -8,7 +8,7 @@ import {
   ExecutionRow,
   ExecutionStatus,
   getDeploymentsGroupedByWorkflow,
-  getWorkflowsByOrganization,
+  getWorkflowsByOrganizationId,
   listExecutions,
 } from "../db";
 
@@ -30,7 +30,7 @@ dashboard.get("/", async (c) => {
 
   try {
     // Workflows count
-    const workflows = await getWorkflowsByOrganization(db, orgId);
+    const workflows = await getWorkflowsByOrganizationId(db, orgId);
     const workflowsCount = workflows.length;
 
     // Deployments count
