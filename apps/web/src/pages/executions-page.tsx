@@ -87,11 +87,39 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
     },
   },
   {
+    accessorKey: "endedAt",
+    header: "Ended At",
+    cell: ({ row }) => {
+      const date = row.getValue("endedAt") as Date | undefined | null;
+      const formatted = date ? format(date, "PPpp") : "-";
+      return <div className="font-medium">{formatted}</div>;
+    },
+  },
+  {
     accessorKey: "duration",
     header: "Duration",
     cell: ({ row }) => {
-      const duration = row.getValue("duration") as string | undefined;
-      return <div>{duration ?? "-"}</div>;
+      const execution = row.original as WorkflowExecution;
+      const { startedAt, endedAt } = execution;
+
+      if (startedAt && endedAt) {
+        const durationMs = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+        const seconds = Math.floor((durationMs / 1000) % 60);
+        const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
+        // const hours = Math.floor((durationMs / (1000 * 60 * 60)) % 24); // Uncomment if hours are needed
+
+        let formattedDuration = "";
+        // if (hours > 0) {
+        //   formattedDuration += `${hours}h `;
+        // }
+        if (minutes > 0) {
+          formattedDuration += `${minutes}m `;
+        }
+        formattedDuration += `${seconds}s`;
+        
+        return <div>{formattedDuration.trim()}</div>;
+      }
+      return <div>-</div>;
     },
   },
   {
@@ -161,11 +189,6 @@ export function ExecutionsPage() {
     <TooltipProvider>
       <InsetLayout
         title="Executions"
-        titleRight={
-          <div className="flex items-center gap-2">
-            {isExecutionsLoadingMore && <Spinner className="h-4 w-4" />}
-          </div>
-        }
       >
         <p className="text-muted-foreground mb-4">
           Monitor the execution history of your workflows.
