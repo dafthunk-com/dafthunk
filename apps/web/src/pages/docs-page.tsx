@@ -48,7 +48,6 @@ export function DocsPage() {
                   <li>Nodes: Individual tasks and operations</li>
                   <li>Deployments: Runnable versions of your workflows</li>
                   <li>Executions: Single runs of a deployed workflow</li>
-                  <li>Organizations: Collaborative spaces for your team</li>
                 </ul>
                 <Button asChild>
                   <Link to="/docs/concepts">
@@ -65,8 +64,7 @@ export function DocsPage() {
                   <CardTitle className="text-xl">Nodes Reference</CardTitle>
                 </div>
                 <CardDescription>
-                  Comprehensive guide to all available node types and their
-                  capabilities.
+                  Comprehensive guide to node types and capabilities.
                 </CardDescription>
               </CardHeader>
               <CardContent>
