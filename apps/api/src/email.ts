@@ -2,12 +2,11 @@ import { ExecutionContext } from "@cloudflare/workers-types";
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
-import { createDatabase } from "./db";
+import { createDatabase, getWorkflowByIdOrHandle } from "./db";
 import {
   ExecutionStatus,
   getDeploymentByWorkflowIdAndVersion,
-  getLatestDeploymentByWorkflowId,
-  getWorkflowById,
+  getLatestDeploymentByWorkflowIdOrHandle,
   saveExecution,
 } from "./db";
 
@@ -47,14 +46,14 @@ export async function handleIncomingEmail(
   // Extract the handle from the to address
   const localPart = to.split("@")[0];
   const parts = localPart.split(".");
-  let workflowId: string;
+  let workflowIdOrHandle: string;
   let version: string;
 
   if (parts.length === 1) {
-    workflowId = parts[0];
+    workflowIdOrHandle = parts[0];
     version = "latest"; // Default to latest if no version is specified
   } else if (parts.length === 2) {
-    workflowId = parts[0];
+    workflowIdOrHandle = parts[0];
     version = parts[1];
   } else {
     console.error(
@@ -72,7 +71,7 @@ export async function handleIncomingEmail(
 
   if (version === "dev") {
     // Get workflow data directly
-    workflow = await getWorkflowById(db, workflowId);
+    workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
     if (!workflow) {
       console.error("Workflow not found");
       return;
@@ -82,7 +81,10 @@ export async function handleIncomingEmail(
     // Get deployment based on version
     let deployment;
     if (version === "latest") {
-      deployment = await getLatestDeploymentByWorkflowId(db, workflowId);
+      deployment = await getLatestDeploymentByWorkflowIdOrHandle(
+        db,
+        workflowIdOrHandle
+      );
       if (!deployment) {
         console.error("Deployment not found");
         return;
@@ -90,7 +92,7 @@ export async function handleIncomingEmail(
     } else {
       deployment = await getDeploymentByWorkflowIdAndVersion(
         db,
-        workflowId,
+        workflowIdOrHandle,
         version
       );
       if (!deployment) {
@@ -104,6 +106,7 @@ export async function handleIncomingEmail(
     workflow = {
       id: deployment.workflowId,
       name: workflowData.name,
+      organizationId: deployment.organizationId,
     };
   }
 

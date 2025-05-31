@@ -97,8 +97,7 @@ publicRoutes.get("/executions/:id", async (c) => {
 
     const workflowRecord = await getWorkflowByIdOrHandle(
       db,
-      executionRecord.workflowId,
-      executionRecord.organizationId
+      executionRecord.workflowId
     );
 
     if (workflowRecord) {

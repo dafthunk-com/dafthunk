@@ -151,9 +151,9 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
 
   const orgId = c.get("organizationId")!;
 
-  const workflow = await getWorkflowByIdOrHandle(db, id, orgId);
+  const workflow = await getWorkflowByIdOrHandle(db, id);
 
-  if (!workflow) {
+  if (!workflow || workflow.organizationId !== orgId) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
@@ -194,9 +194,9 @@ workflowRoutes.put(
 
     const orgId = c.get("organizationId")!;
 
-    const existingWorkflow = await getWorkflowByIdOrHandle(db, id, orgId);
+    const existingWorkflow = await getWorkflowByIdOrHandle(db, id);
 
-    if (!existingWorkflow) {
+    if (!existingWorkflow || existingWorkflow.organizationId !== orgId) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
@@ -286,9 +286,9 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 
   const orgId = c.get("organizationId")!;
 
-  const existingWorkflow = await getWorkflowByIdOrHandle(db, id, orgId);
+  const existingWorkflow = await getWorkflowByIdOrHandle(db, id);
 
-  if (!existingWorkflow) {
+  if (!existingWorkflow || existingWorkflow.organizationId !== orgId) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
@@ -353,8 +353,8 @@ workflowRoutes.post(
 
     if (version === "dev") {
       // Get workflow data directly
-      workflow = await getWorkflowByIdOrHandle(db, idOrHandle, organization.id);
-      if (!workflow) {
+      workflow = await getWorkflowByIdOrHandle(db, idOrHandle);
+      if (!workflow || workflow.organizationId !== organization.id) {
         return c.json({ error: "Workflow not found" }, 404);
       }
       workflowData = workflow.data;

@@ -216,76 +216,78 @@ export async function getWorkflowsByOrganization(
  *
  * @param db Database instance
  * @param idOrHandle Workflow ID or handle
- * @param organizationId Organization ID
  * @returns Workflow record or undefined if not found
  */
 export async function getWorkflowByIdOrHandle(
   db: ReturnType<typeof createDatabase>,
-  idOrHandle: string,
-  organizationId: string
+  idOrHandle: string
 ): Promise<WorkflowRow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
     .where(
-      and(
-        or(eq(workflows.id, idOrHandle), eq(workflows.handle, idOrHandle)),
-        eq(workflows.organizationId, organizationId)
-      )
+      or(eq(workflows.id, idOrHandle), eq(workflows.handle, idOrHandle))
     );
   return workflow;
 }
 
 /**
- * Get a workflow by ID
+ * Get the latest deployment for a workflow
  *
  * @param db Database instance
- * @param idOrHandle Workflow ID
- * @returns Workflow record or undefined if not found
+ * @param workflowId Workflow ID
+ * @param organizationId Organization ID for security checks
+ * @returns The latest deployment or undefined if none found
  */
-export async function getWorkflowById(
+export async function getLatestDeploymentByWorkflowIdOrHandle(
   db: ReturnType<typeof createDatabase>,
-  id: string
-): Promise<WorkflowRow | undefined> {
-  const [workflow] = await db
-    .select()
-    .from(workflows)
-    .where(and(eq(workflows.id, id)));
-  return workflow;
-}
-
-export async function getLatestDeploymentByWorkflowId(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string
+  workflowIdOrHandle: string,
+  organizationId?: string
 ): Promise<DeploymentRow | undefined> {
-  const [deployment] = await db
+  const conditions = [
+    or(
+      eq(workflows.id, workflowIdOrHandle),
+      eq(workflows.handle, workflowIdOrHandle)
+    ),
+  ];
+
+  if (organizationId) {
+    conditions.push(eq(workflows.organizationId, organizationId));
+  }
+
+  const [firstResult] = await db
     .select()
     .from(deployments)
-    .where(eq(deployments.workflowId, workflowId))
+    .innerJoin(workflows, eq(deployments.workflowId, workflows.id))
+    .where(and(...conditions))
     .orderBy(desc(deployments.createdAt))
     .limit(1);
 
-  return deployment;
+  return firstResult?.deployments;
 }
 
 export async function getDeploymentByWorkflowIdAndVersion(
   db: ReturnType<typeof createDatabase>,
-  workflowId: string,
+  workflowIdOrHandle: string,
   version: string
 ): Promise<DeploymentRow | undefined> {
-  const [deployment] = await db
+  const [firstResult] = await db
     .select()
     .from(deployments)
     .innerJoin(
       workflows,
       and(
         eq(deployments.workflowId, workflows.id),
-        eq(workflows.id, workflowId)
+        or(
+          eq(workflows.id, workflowIdOrHandle),
+          eq(workflows.handle, workflowIdOrHandle)
+        )
       )
     )
-    .where(eq(deployments.version, parseInt(version, 10)));
+    .where(eq(deployments.version, parseInt(version, 10)))
+    .limit(1);
 
-  return deployment?.deployments;
+  return firstResult?.deployments;
 }
 
 /**
@@ -549,36 +551,6 @@ export async function deleteApiKey(
 
   // If we got a record back, it was deleted successfully
   return !!deletedApiKey;
-}
-
-/**
- * Get the latest deployment for a workflow
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @param organizationId Organization ID for security checks
- * @returns The latest deployment or undefined if none found
- */
-export async function getLatestDeploymentByWorkflowIdOrHandle(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationId: string
-): Promise<DeploymentRow | undefined> {
-  const [deployment] = await db
-    .select()
-    .from(deployments)
-    .innerJoin(
-      workflows,
-      and(
-        eq(deployments.workflowId, workflows.id),
-        eq(workflows.organizationId, organizationId),
-        or(eq(workflows.id, workflowId), eq(workflows.handle, workflowId))
-      )
-    )
-    .orderBy(desc(deployments.createdAt))
-    .limit(1);
-
-  return deployment?.deployments;
 }
 
 /**
