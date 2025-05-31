@@ -88,7 +88,6 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
  * Returns the latest deployment for a workflow
  */
 deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
-  const orgId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
   const db = createDatabase(c.env.DB);
 
@@ -144,7 +143,8 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
 
   // Get the latest version number and increment
   const latestVersion =
-    (await getLatestVersionNumberByWorkflowId(db, workflowIdOrHandle, orgId)) || 0;
+    (await getLatestVersionNumberByWorkflowId(db, workflowIdOrHandle, orgId)) ||
+    0;
   const newVersion = latestVersion + 1;
 
   // Create new deployment
@@ -177,48 +177,52 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
  * GET /deployments/history/:workflowUUID
  * Returns all deployments for a workflow
  */
-deploymentRoutes.get("/history/:workflowIdOrHandle", jwtMiddleware, async (c) => {
-  const orgId = c.get("organizationId")!;
-  const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-  const db = createDatabase(c.env.DB);
+deploymentRoutes.get(
+  "/history/:workflowIdOrHandle",
+  jwtMiddleware,
+  async (c) => {
+    const orgId = c.get("organizationId")!;
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+    const db = createDatabase(c.env.DB);
 
-  // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
-  if (!workflow) {
-    return c.json({ error: "Workflow not found" }, 404);
-  }
+    // Check if workflow exists and belongs to the organization
+    const workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
 
-  // Get all deployments for this workflow
-  const deploymentsList = await getDeploymentsByWorkflowId(
-    db,
-    workflowIdOrHandle,
-    orgId
-  );
+    // Get all deployments for this workflow
+    const deploymentsList = await getDeploymentsByWorkflowId(
+      db,
+      workflowIdOrHandle,
+      orgId
+    );
 
-  // Transform to match WorkflowDeploymentVersion type
-  const deploymentVersions = deploymentsList.map((deployment) => {
-    const workflowData = deployment.workflowData as WorkflowType;
-    return {
-      id: deployment.id,
-      workflowId: deployment.workflowId || "",
-      version: deployment.version,
-      createdAt: deployment.createdAt,
-      updatedAt: deployment.updatedAt,
-      nodes: workflowData.nodes || [],
-      edges: workflowData.edges || [],
+    // Transform to match WorkflowDeploymentVersion type
+    const deploymentVersions = deploymentsList.map((deployment) => {
+      const workflowData = deployment.workflowData as WorkflowType;
+      return {
+        id: deployment.id,
+        workflowId: deployment.workflowId || "",
+        version: deployment.version,
+        createdAt: deployment.createdAt,
+        updatedAt: deployment.updatedAt,
+        nodes: workflowData.nodes || [],
+        edges: workflowData.edges || [],
+      };
+    });
+
+    const response: GetWorkflowDeploymentsResponse = {
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+      },
+      deployments: deploymentVersions,
     };
-  });
 
-  const response: GetWorkflowDeploymentsResponse = {
-    workflow: {
-      id: workflow.id,
-      name: workflow.name,
-    },
-    deployments: deploymentVersions,
-  };
-
-  return c.json(response);
-});
+    return c.json(response);
+  }
+);
 
 /**
  * POST /deployments/version/:deploymentId/execute

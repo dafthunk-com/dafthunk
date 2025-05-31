@@ -225,9 +225,7 @@ export async function getWorkflowByIdOrHandle(
   const [workflow] = await db
     .select()
     .from(workflows)
-    .where(
-      or(eq(workflows.id, idOrHandle), eq(workflows.handle, idOrHandle))
-    );
+    .where(or(eq(workflows.id, idOrHandle), eq(workflows.handle, idOrHandle)));
   return workflow;
 }
 
@@ -242,15 +240,16 @@ export async function getLatestDeploymentByWorkflowIdOrHandle(
   db: ReturnType<typeof createDatabase>,
   workflowIdOrHandle: string
 ): Promise<DeploymentRow | undefined> {
-
   const [firstResult] = await db
     .select()
     .from(deployments)
     .innerJoin(workflows, eq(deployments.workflowId, workflows.id))
-    .where(or(
-      eq(workflows.id, workflowIdOrHandle),
-      eq(workflows.handle, workflowIdOrHandle)
-    ))
+    .where(
+      or(
+        eq(workflows.id, workflowIdOrHandle),
+        eq(workflows.handle, workflowIdOrHandle)
+      )
+    )
     .orderBy(desc(deployments.createdAt))
     .limit(1);
 
