@@ -257,7 +257,7 @@ export async function getLatestDeploymentByWorkflowIdOrHandle(
   return firstResult?.deployments;
 }
 
-export async function getDeploymentByWorkflowIdAndVersion(
+export async function getDeploymentByWorkflowIdOrHandleAndVersion(
   db: ReturnType<typeof createDatabase>,
   workflowIdOrHandle: string,
   version: string

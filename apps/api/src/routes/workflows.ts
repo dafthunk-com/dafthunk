@@ -22,7 +22,7 @@ import {
   createWorkflow,
   deleteWorkflow,
   ExecutionStatus,
-  getDeploymentByWorkflowIdAndVersion,
+  getDeploymentByWorkflowIdOrHandleAndVersion,
   getLatestDeploymentByWorkflowIdOrHandle,
   getOrganizationByHandle,
   getWorkflowByIdOrHandle,
@@ -373,7 +373,7 @@ workflowRoutes.post(
           );
         }
       } else {
-        deployment = await getDeploymentByWorkflowIdAndVersion(
+        deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
           db,
           idOrHandle,
           version

@@ -5,7 +5,7 @@ import { Bindings } from "./context";
 import { createDatabase, getWorkflowByIdOrHandle } from "./db";
 import {
   ExecutionStatus,
-  getDeploymentByWorkflowIdAndVersion,
+  getDeploymentByWorkflowIdOrHandleAndVersion,
   getLatestDeploymentByWorkflowIdOrHandle,
   saveExecution,
 } from "./db";
@@ -90,7 +90,7 @@ export async function handleIncomingEmail(
         return;
       }
     } else {
-      deployment = await getDeploymentByWorkflowIdAndVersion(
+      deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
         db,
         workflowIdOrHandle,
         version
