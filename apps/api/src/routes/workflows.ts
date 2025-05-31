@@ -22,7 +22,7 @@ import {
   createWorkflow,
   deleteWorkflow,
   ExecutionStatus,
-  getDeploymentByWorkflowIdOrHandleAndVersion,
+  getDeploymentByWorkflowIdAndVersion,
   getLatestDeploymentByWorkflowIdOrHandle,
   getOrganizationByHandle,
   getWorkflowByIdOrHandle,
@@ -373,14 +373,16 @@ workflowRoutes.post(
           );
         }
       } else {
-        deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
+        deployment = await getDeploymentByWorkflowIdAndVersion(
           db,
           idOrHandle,
-          version,
-          organization.id
+          version
         );
         if (!deployment) {
           return c.json({ error: "Deployment version not found" }, 404);
+        }
+        if (deployment.organizationId !== organization.id) {
+          return c.json({ error: "Deployment not authorized" }, 401);
         }
       }
 

@@ -729,31 +729,6 @@ export async function listExecutions(
   });
 }
 
-export async function getDeploymentByWorkflowIdOrHandleAndVersion(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  version: string,
-  organizationId: string
-) {
-  const [deployment] = await db
-    .select()
-    .from(deployments)
-    .innerJoin(
-      workflows,
-      and(
-        eq(deployments.workflowId, workflows.id),
-        eq(workflows.organizationId, organizationId),
-        or(
-          eq(workflows.id, workflowIdOrHandle),
-          eq(workflows.handle, workflowIdOrHandle)
-        )
-      )
-    )
-    .where(eq(deployments.version, parseInt(version, 10)));
-
-  return deployment?.deployments;
-}
-
 /**
  * Get an organization by its handle
  *
