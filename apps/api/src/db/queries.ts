@@ -236,30 +236,21 @@ export async function getWorkflowByIdOrHandle(
  *
  * @param db Database instance
  * @param workflowId Workflow ID
- * @param organizationId Organization ID for security checks
  * @returns The latest deployment or undefined if none found
  */
 export async function getLatestDeploymentByWorkflowIdOrHandle(
   db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  organizationId?: string
+  workflowIdOrHandle: string
 ): Promise<DeploymentRow | undefined> {
-  const conditions = [
-    or(
-      eq(workflows.id, workflowIdOrHandle),
-      eq(workflows.handle, workflowIdOrHandle)
-    ),
-  ];
-
-  if (organizationId) {
-    conditions.push(eq(workflows.organizationId, organizationId));
-  }
 
   const [firstResult] = await db
     .select()
     .from(deployments)
     .innerJoin(workflows, eq(deployments.workflowId, workflows.id))
-    .where(and(...conditions))
+    .where(or(
+      eq(workflows.id, workflowIdOrHandle),
+      eq(workflows.handle, workflowIdOrHandle)
+    ))
     .orderBy(desc(deployments.createdAt))
     .limit(1);
 

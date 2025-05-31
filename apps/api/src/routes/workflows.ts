@@ -364,8 +364,7 @@ workflowRoutes.post(
       if (version === "latest") {
         deployment = await getLatestDeploymentByWorkflowIdOrHandle(
           db,
-          idOrHandle,
-          organization.id
+          idOrHandle
         );
         if (!deployment) {
           return c.json(
