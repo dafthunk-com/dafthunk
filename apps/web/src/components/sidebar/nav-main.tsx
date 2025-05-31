@@ -54,7 +54,7 @@ export interface NavMainProps {
   footerItems?: NavMainItem[];
 }
 
-export function NavMain({ title, items, footerItems }: NavMainProps) {
+export function NavMain({ items, footerItems }: NavMainProps) {
   const { toggleSidebar, open } = useSidebar();
 
   return (
@@ -73,7 +73,7 @@ export function NavMain({ title, items, footerItems }: NavMainProps) {
                 open ? "opacity-100" : "opacity-0"
               )}
             >
-              {title}
+              Collapse
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>

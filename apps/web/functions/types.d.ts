@@ -4560,7 +4560,7 @@ interface BasicImageTransformationsGravityCoordinates {
  * features are applied to that new Request.
  *
  * Note: Currently, these properties cannot be tested in the
- * playground.
+ * workflows playground.
  */
 interface RequestInitCfProperties extends Record<string, unknown> {
   cacheEverything?: boolean;

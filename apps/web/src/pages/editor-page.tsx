@@ -134,7 +134,7 @@ export function EditorPage() {
 
   usePageBreadcrumbs(
     [
-      { label: "Playground", to: "/workflows/playground" },
+      { label: "Workflows", to: "/workflows/workflows" },
       { label: currentWorkflow?.name || "Workflow" },
     ],
     [currentWorkflow?.name]
@@ -260,7 +260,7 @@ export function EditorPage() {
     return (
       <WorkflowError
         message={`Workflow with ID "${id}" not found, or could not be prepared.`}
-        onRetry={() => navigate("/workflows/playground")}
+        onRetry={() => navigate("/workflows/workflows")}
       />
     );
   }

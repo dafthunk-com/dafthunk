@@ -115,7 +115,7 @@ export function ExecutionInfoCard({
               <p className="mt-1">
                 {workflowName ? (
                   <Link
-                    to={`/workflows/playground/${workflowId}`}
+                    to={`/workflows/workflows/${workflowId}`}
                     className="hover:underline text-primary"
                   >
                     {workflowName}
@@ -131,7 +131,7 @@ export function ExecutionInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/playground/${workflowId}`}
+                  to={`/workflows/workflows/${workflowId}`}
                   className="hover:underline font-mono text-xs"
                 >
                   {workflowId}

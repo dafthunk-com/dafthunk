@@ -268,7 +268,7 @@ function createColumns(
         const workflowId = row.original.id;
         return (
           <Link
-            to={`/workflows/playground/${workflowId}`}
+            to={`/workflows/workflows/${workflowId}`}
             className="hover:underline"
           >
             <div className="font-medium">{name || "Untitled Workflow"}</div>
@@ -284,7 +284,7 @@ function createColumns(
         const workflowId = row.original.id;
         return (
           <Link
-            to={`/workflows/playground/${workflowId}`}
+            to={`/workflows/workflows/${workflowId}`}
             className="font-mono text-xs hover:underline"
           >
             {handle}
@@ -326,7 +326,7 @@ function createColumns(
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() =>
-                    navigate(`/workflows/playground/${workflow.id}`)
+                    navigate(`/workflows/workflows/${workflow.id}`)
                   }
                 >
                   Edit Workflow
@@ -349,7 +349,7 @@ function createColumns(
   ];
 }
 
-export function PlaygroundPage() {
+export function WorkflowsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
@@ -376,7 +376,7 @@ export function PlaygroundPage() {
   );
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Playground" }]);
+    setBreadcrumbs([{ label: "Workflows" }]);
   }, [setBreadcrumbs]);
 
   const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
@@ -393,7 +393,7 @@ export function PlaygroundPage() {
       const newWorkflow = await createWorkflow(request, orgHandle);
 
       mutateWorkflows();
-      navigate(`/workflows/playground/${newWorkflow.id}`);
+      navigate(`/workflows/workflows/${newWorkflow.id}`);
     } catch (error) {
       console.error("Failed to create workflow:", error);
       // Optionally show a toast here

@@ -108,7 +108,7 @@ export function HomePage() {
                 size="default"
                 className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-medium w-full sm:w-auto"
               >
-                <Link to="/workflows/playground">
+                <Link to="/workflows/workflows">
                   Break it <Hammer className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -117,7 +117,7 @@ export function HomePage() {
                 size="default"
                 className="bg-gradient-to-r from-cyan-600 via-fuchsia-600 via-amber-600 via-blue-600 via-purple-600 to-pink-600 hover:from-cyan-700 hover:via-fuchsia-700 hover:via-amber-700 hover:via-blue-700 hover:via-purple-700 hover:to-pink-700 dark:from-cyan-500 dark:via-fuchsia-500 dark:via-amber-500 dark:via-blue-500 dark:via-purple-500 dark:to-pink-500 dark:hover:from-cyan-600 dark:hover:via-fuchsia-600 dark:hover:via-amber-600 dark:hover:via-blue-600 dark:hover:via-purple-600 dark:hover:to-pink-600 text-white font-medium w-full sm:w-auto"
               >
-                <Link to="/workflows/playground">
+                <Link to="/workflows/workflows">
                   Fix it <Sparkles className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -126,7 +126,7 @@ export function HomePage() {
                 size="default"
                 className="bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600 text-white font-medium w-full sm:w-auto"
               >
-                <Link to="/workflows/playground">
+                <Link to="/workflows/workflows">
                   Prompt it <Bot className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -402,7 +402,7 @@ export function HomePage() {
                   size="lg"
                   className="bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 dark:from-amber-500 dark:to-pink-500 dark:hover:from-amber-600 dark:hover:to-pink-600 text-white font-medium mt-10"
                 >
-                  <Link to="/workflows/playground">
+                  <Link to="/workflows/workflows">
                     Start Building Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

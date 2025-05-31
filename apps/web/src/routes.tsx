@@ -25,7 +25,7 @@ import { ExecutionsPage } from "./pages/executions-page";
 import { HomePage } from "./pages/home-page";
 import { LoginPage } from "./pages/login-page";
 import { NotFoundPage } from "./pages/not-found-page";
-import { PlaygroundPage } from "./pages/playground-page";
+import { WorkflowsPage } from "./pages/workflows-page";
 import { PrivacyPage } from "./pages/privacy-page";
 import { ProfilePage } from "./pages/profile-page";
 import { PublicExecutionPage } from "./pages/public-execution-page";
@@ -49,8 +49,8 @@ export type AppRouteObject = RouteObject & {
 
 const workflowsSidebarItems = [
   {
-    title: "Playground",
-    url: "/workflows/playground",
+    title: "Workflows",
+    url: "/workflows/workflows",
     icon: SquareTerminal,
   },
   {
@@ -230,10 +230,10 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/workflows",
-    element: <Navigate to="/workflows/playground" replace />,
+    element: <Navigate to="/workflows/workflows" replace />,
   },
   {
-    path: "/workflows/playground",
+    path: "/workflows/workflows",
     element: (
       <AppLayout
         sidebar={{
@@ -243,11 +243,11 @@ export const routes: AppRouteObject[] = [
         }}
       >
         <ProtectedRoute>
-          <PlaygroundPage />
+          <WorkflowsPage />
         </ProtectedRoute>
       </AppLayout>
     ),
-    handle: { head: <HeadSeo title="Playground - Workflows - Dafthunk" /> },
+    handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
   },
   {
     path: "/workflows/deployments",
@@ -341,7 +341,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/workflows/playground/:id",
+    path: "/workflows/workflows/:id",
     element: (
       <AppLayout
         sidebar={{

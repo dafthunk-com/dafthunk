@@ -38,7 +38,7 @@ export function DashboardPage() {
       };
 
       const newWorkflow = await createWorkflow(request, orgHandle);
-      navigate(`/workflows/playground/${newWorkflow.id}`);
+      navigate(`/workflows/workflows/${newWorkflow.id}`);
     } catch (error) {
       console.error("Failed to create workflow:", error);
       // Optionally show a toast here
@@ -91,7 +91,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/playground">Go to Playground</Link>
+              <Link to="/workflows/workflows">Go to Workflows</Link>
             </Button>
           </CardContent>
         </Card>

@@ -11,8 +11,8 @@ export function HomeFooter() {
       title: "Links",
       links: [
         {
-          label: "Playground",
-          to: "/workflows/playground",
+          label: "Workflows",
+          to: "/workflows/workflows",
         },
         {
           label: "Features",
