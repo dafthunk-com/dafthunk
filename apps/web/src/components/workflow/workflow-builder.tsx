@@ -41,7 +41,7 @@ export interface WorkflowBuilderProps {
   executeWorkflow?: (
     workflowId: string,
     onExecution: (execution: WorkflowExecution) => void
-  ) => void | (() => void);
+  ) => void | (() => void | Promise<void>);
   initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
@@ -81,7 +81,7 @@ export function WorkflowBuilder({
       initialWorkflowExecution?.nodeExecutions.find((n) => n.error)?.error ||
       "",
   });
-  const cleanupRef = useRef<(() => void) | null>(null);
+  const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
 
   const {
@@ -307,7 +307,12 @@ export function WorkflowBuilder({
         case "submitted":
         case "executing": {
           if (cleanupRef.current) {
-            cleanupRef.current();
+            const cleanup = cleanupRef.current();
+            if (cleanup instanceof Promise) {
+              cleanup.catch((error) => {
+                console.error("Error during cleanup:", error);
+              });
+            }
             cleanupRef.current = null;
           }
           setWorkflowStatus("cancelled");

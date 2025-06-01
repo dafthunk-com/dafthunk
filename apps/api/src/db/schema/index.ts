@@ -57,6 +57,7 @@ export const ExecutionStatus = {
   EXECUTING: "executing",
   COMPLETED: "completed",
   ERROR: "error",
+  CANCELLED: "cancelled",
 } as const;
 
 export type ExecutionStatusType =

@@ -1,4 +1,5 @@
 import {
+  CancelWorkflowExecutionResponse,
   CreateWorkflowRequest,
   CreateWorkflowResponse,
   DeleteWorkflowResponse,
@@ -24,6 +25,7 @@ import {
   deleteWorkflow,
   ExecutionStatus,
   getDeploymentByWorkflowIdOrHandleAndVersion,
+  getExecutionById,
   getLatestDeploymentByWorkflowIdOrHandle,
   getOrganizationByHandle,
   getWorkflowByIdOrHandle,
@@ -495,6 +497,104 @@ workflowRoutes.post(
     };
 
     return c.json(response, 201);
+  }
+);
+
+/**
+ * Cancel a running workflow execution
+ */
+workflowRoutes.post(
+  "/:idOrHandle/executions/:executionId/cancel",
+  apiKeyOrJwtMiddleware,
+  async (c) => {
+    const orgHandle = c.req.param("orgHandle");
+    const executionId = c.req.param("executionId");
+    const db = createDatabase(c.env.DB);
+
+    // Get organization from handle
+    const organization = await getOrganizationByHandle(db, orgHandle);
+    if (!organization) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
+    const orgIdFromAuth = c.get("organizationId")!;
+
+    // Verify that the orgId from token/API key matches the orgId from the orgHandle
+    if (organization.id !== orgIdFromAuth) {
+      return c.json({ error: "Forbidden: Organization mismatch" }, 403);
+    }
+
+    // Get the execution to verify it exists and belongs to this organization
+    const execution = await getExecutionById(db, executionId, organization.id);
+    if (!execution) {
+      return c.json({ error: "Execution not found" }, 404);
+    }
+
+    // Only allow cancellation of submitted or executing workflows
+    if (!["submitted", "executing"].includes(execution.status)) {
+      return c.json(
+        {
+          error: `Cannot cancel execution in status: ${execution.status}`,
+        },
+        400
+      );
+    }
+
+    try {
+      // Get the workflow instance and terminate it
+      const instance = await c.env.EXECUTE.get(executionId);
+      await instance.terminate();
+
+      // Update the execution status in the database
+      const now = new Date();
+      const updatedExecution = await saveExecution(db, {
+        id: executionId,
+        workflowId: execution.workflowId,
+        deploymentId: execution.deploymentId ?? undefined,
+        userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
+        organizationId: execution.organizationId,
+        status: ExecutionStatus.CANCELLED,
+        nodeExecutions: execution.data.nodeExecutions || [],
+        error: execution.error ?? "Execution cancelled by user",
+        visibility: execution.visibility,
+        updatedAt: now,
+        endedAt: now,
+        startedAt: execution.startedAt ?? undefined,
+      });
+
+      const response: CancelWorkflowExecutionResponse = {
+        id: updatedExecution.id,
+        status: "cancelled",
+        message: "Execution cancelled successfully",
+      };
+      return c.json(response);
+    } catch (error) {
+      console.error("Error cancelling execution:", error);
+
+      // If the instance doesn't exist or can't be terminated, still update the database
+      const now = new Date();
+      await saveExecution(db, {
+        id: executionId,
+        workflowId: execution.workflowId,
+        deploymentId: execution.deploymentId ?? undefined,
+        userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
+        organizationId: execution.organizationId,
+        status: ExecutionStatus.CANCELLED,
+        nodeExecutions: execution.data.nodeExecutions || [],
+        error: execution.error ?? "Execution cancelled by user",
+        visibility: execution.visibility,
+        updatedAt: now,
+        endedAt: now,
+        startedAt: execution.startedAt ?? undefined,
+      });
+
+      const response: CancelWorkflowExecutionResponse = {
+        id: executionId,
+        status: "cancelled",
+        message: "Execution cancelled (instance may have already completed)",
+      };
+      return c.json(response);
+    }
   }
 );
 

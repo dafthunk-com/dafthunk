@@ -1,4 +1,5 @@
 import {
+  CancelWorkflowExecutionResponse,
   CreateWorkflowRequest,
   CreateWorkflowResponse,
   DeleteWorkflowResponse,
@@ -285,6 +286,8 @@ export function useWorkflowExecution(orgHandle: string) {
   const pollingRef = useRef<{
     intervalId?: NodeJS.Timeout;
     cancelled: boolean;
+    currentExecutionId?: string;
+    currentWorkflowId?: string;
   }>({ cancelled: false });
 
   const cleanup = useCallback(() => {
@@ -293,6 +296,8 @@ export function useWorkflowExecution(orgHandle: string) {
     }
     pollingRef.current.cancelled = true;
     pollingRef.current.intervalId = undefined;
+    pollingRef.current.currentExecutionId = undefined;
+    pollingRef.current.currentWorkflowId = undefined;
   }, []);
 
   const executeAndPollWorkflow = useCallback(
@@ -350,6 +355,52 @@ export function useWorkflowExecution(orgHandle: string) {
     [orgHandle]
   );
 
+  const cancelWorkflowExecution = useCallback(
+    async (
+      workflowId: string,
+      executionId: string
+    ): Promise<CancelWorkflowExecutionResponse> => {
+      if (!orgHandle) {
+        throw new Error("Organization handle is required");
+      }
+
+      const response = await makeOrgRequest<CancelWorkflowExecutionResponse>(
+        orgHandle,
+        API_ENDPOINT_BASE,
+        `/${workflowId}/executions/${executionId}/cancel`,
+        {
+          method: "POST",
+        }
+      );
+
+      return response;
+    },
+    [orgHandle]
+  );
+
+  const cancelCurrentExecution = useCallback(async () => {
+    // Save execution IDs before cleanup clears them
+    const executionId = pollingRef.current.currentExecutionId;
+    const workflowId = pollingRef.current.currentWorkflowId;
+
+    // Stop polling first
+    cleanup();
+
+    // If we have a current execution, try to cancel it on the server
+    if (executionId && workflowId) {
+      try {
+        await cancelWorkflowExecution(workflowId, executionId);
+      } catch (error) {
+        console.error("Error cancelling workflow execution:", error);
+        // Don't throw - we still want to clean up locally
+      }
+    } else {
+      console.warn(
+        "No execution to cancel - execution ID or workflow ID not found"
+      );
+    }
+  }, [cleanup, cancelWorkflowExecution]);
+
   const performExecutionAndPoll = useCallback(
     (
       id: string,
@@ -362,11 +413,17 @@ export function useWorkflowExecution(orgHandle: string) {
       executeAndPollWorkflow(id, { monitorProgress: true, ...request })
         .then((initialExecution: WorkflowExecution) => {
           if (pollingRef.current.cancelled) return;
+
+          // Track the current execution
+          pollingRef.current.currentExecutionId = initialExecution.id;
+          pollingRef.current.currentWorkflowId = id;
+
           onExecutionUpdate(initialExecution);
 
           if (
             initialExecution.status === "completed" ||
-            initialExecution.status === "error"
+            initialExecution.status === "error" ||
+            initialExecution.status === "cancelled"
           ) {
             cleanup();
             return;
@@ -386,7 +443,8 @@ export function useWorkflowExecution(orgHandle: string) {
 
               if (
                 execution.status === "completed" ||
-                execution.status === "error"
+                execution.status === "error" ||
+                execution.status === "cancelled"
               ) {
                 cleanup();
               }
@@ -418,9 +476,9 @@ export function useWorkflowExecution(orgHandle: string) {
           });
         });
 
-      return cleanup;
+      return cancelCurrentExecution;
     },
-    [executeAndPollWorkflow, cleanup, orgHandle]
+    [executeAndPollWorkflow, cancelCurrentExecution, orgHandle]
   );
 
   const executeWorkflowWithForm = useCallback(
@@ -522,6 +580,7 @@ export function useWorkflowExecution(orgHandle: string) {
 
   return {
     executeWorkflow: executeWorkflowWithForm,
+    cancelWorkflowExecution,
     isFormDialogVisible,
     isJsonBodyDialogVisible,
     executionFormParameters: formParameters,

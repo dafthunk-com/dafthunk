@@ -296,3 +296,12 @@ export interface ExecuteWorkflowResponse {
   status: WorkflowExecutionStatus;
   nodeExecutions: NodeExecution[];
 }
+
+/**
+ * Response when cancelling a workflow execution
+ */
+export interface CancelWorkflowExecutionResponse {
+  id: string;
+  status: "cancelled";
+  message: string;
+}
