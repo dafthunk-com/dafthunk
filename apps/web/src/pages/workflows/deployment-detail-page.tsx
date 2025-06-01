@@ -4,8 +4,10 @@ import { format } from "date-fns";
 import {
   ArrowDown,
   ArrowUpToLine,
+  Clock,
   GitCommitHorizontal,
   History,
+  Mail,
   MoreHorizontal,
   Play,
 } from "lucide-react";
@@ -22,6 +24,13 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import {
   Dialog,
@@ -37,13 +46,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deployment-service";
-import { useWorkflowExecution } from "@/services/workflow-service";
+import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 // --- Inline deployment history columns and helper ---
@@ -154,14 +165,20 @@ export function DeploymentDetailPage() {
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
+  const [isApiIntegrationDialogOpen, setIsApiIntegrationDialogOpen] =
+    useState(false);
 
   const {
-    workflow,
+    workflow: workflowSummary,
     deployments,
     deploymentHistoryError,
     isDeploymentHistoryLoading,
     mutateHistory: mutateDeploymentHistory,
   } = useDeploymentHistory(workflowId!);
+
+  const { workflow, workflowError, isWorkflowLoading } = useWorkflow(
+    workflowId || null
+  );
 
   const {
     executeWorkflow,
@@ -175,10 +192,10 @@ export function DeploymentDetailPage() {
     deployments && deployments.length > 0 ? deployments[0] : null;
 
   useEffect(() => {
-    if (workflow) {
+    if (workflowSummary) {
       setBreadcrumbs([
         { label: "Deployments", to: "/workflows/deployments" },
-        { label: workflow.name },
+        { label: workflowSummary.name },
       ]);
     } else {
       setBreadcrumbs([
@@ -186,7 +203,7 @@ export function DeploymentDetailPage() {
         { label: "Detail" },
       ]);
     }
-  }, [workflow, setBreadcrumbs]);
+  }, [workflowSummary, setBreadcrumbs]);
 
   const deployWorkflow = async () => {
     if (!workflowId || !orgHandle) return;
@@ -254,21 +271,120 @@ export function DeploymentDetailPage() {
     </div>
   );
 
-  if (isDeploymentHistoryLoading) {
-    return <InsetLoading title={workflow?.name || "Workflow Deployments"} />;
-  } else if (deploymentHistoryError) {
+  const renderIntegrationSection = () => {
+    if (!workflow || !currentDeployment) return null;
+
+    switch (workflow.type) {
+      case "manual":
+        // No integration section for manual workflows
+        return null;
+
+      case "http_request":
+        return (
+          <ApiIntegrationCard
+            orgHandle={orgHandle}
+            workflowId={workflow.id}
+            deploymentVersion="latest"
+            nodes={adaptDeploymentNodesToReactFlowNodes(
+              currentDeployment.nodes
+            )}
+            nodeTemplates={nodeTemplates}
+          />
+        );
+
+      case "email_message":
+        const emailAddress = `${workflow.handle}@${orgHandle}.workflows.dafthunk.com`;
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <Mail className="mr-2 h-4 w-4" />
+                Email Integration
+              </CardTitle>
+              <CardDescription>
+                Send emails to this address to trigger the workflow
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="email-address">Email Address</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="email-address"
+                    value={emailAddress}
+                    readOnly
+                    className="font-mono h-9"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(emailAddress);
+                      toast.success("Email address copied to clipboard");
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case "cron":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-xl">
+                <Clock className="mr-2 h-4 w-4" />
+                Cron Integration
+              </CardTitle>
+              <CardDescription>
+                Schedule workflow execution using cron expressions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="cron-expression">Cron Expression</Label>
+                <Input
+                  id="cron-expression"
+                  placeholder="0 0 * * *"
+                  disabled
+                  className="font-mono"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Cron scheduling is currently disabled and will be available in
+                  a future update.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (isDeploymentHistoryLoading || isWorkflowLoading) {
+    return (
+      <InsetLoading title={workflowSummary?.name || "Workflow Deployments"} />
+    );
+  } else if (deploymentHistoryError || workflowError) {
     return (
       <InsetError
         title="Workflow Deployments"
         errorMessage={
-          "Error loading deployment details: " + deploymentHistoryError.message
+          "Error loading deployment details: " +
+          (deploymentHistoryError?.message ||
+            workflowError?.message ||
+            "Unknown error")
         }
       />
     );
   }
 
   return (
-    <InsetLayout title={workflow?.name || "Workflow Deployments"}>
+    <InsetLayout title={workflowSummary?.name || ""}>
       {workflow ? (
         <div className="space-y-6">
           <div className="space-y-2">
@@ -292,8 +408,8 @@ export function DeploymentDetailPage() {
           {currentDeployment ? (
             <>
               <WorkflowInfoCard
-                id={workflow.id}
-                name={workflow.name}
+                id={workflowSummary!.id}
+                name={workflowSummary!.name}
                 description="Details about the workflow being deployed"
               />
 
@@ -305,17 +421,7 @@ export function DeploymentDetailPage() {
                 description="Latest deployment of this workflow"
               />
 
-              {currentDeployment && (
-                <ApiIntegrationCard
-                  orgHandle={orgHandle}
-                  workflowId={workflow.id}
-                  deploymentVersion="latest"
-                  nodes={adaptDeploymentNodesToReactFlowNodes(
-                    currentDeployment.nodes
-                  )}
-                  nodeTemplates={nodeTemplates}
-                />
-              )}
+              {renderIntegrationSection()}
 
               <DataTableCard
                 title={
@@ -374,7 +480,7 @@ export function DeploymentDetailPage() {
           <DialogHeader>
             <DialogTitle>Deploy Workflow</DialogTitle>
             <DialogDescription>
-              This will create a new deployment of "{workflow?.name}".
+              This will create a new deployment of "{workflowSummary?.name}".
             </DialogDescription>
           </DialogHeader>
 
@@ -391,6 +497,43 @@ export function DeploymentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* API Integration Dialog */}
+      {workflow?.type === "http_request" && currentDeployment && (
+        <Dialog
+          open={isApiIntegrationDialogOpen}
+          onOpenChange={setIsApiIntegrationDialogOpen}
+        >
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>API Integration</DialogTitle>
+              <DialogDescription>
+                Configure HTTP endpoint integration for "{workflowSummary?.name}
+                "
+              </DialogDescription>
+            </DialogHeader>
+
+            <ApiIntegrationCard
+              orgHandle={orgHandle}
+              workflowId={workflowSummary!.id}
+              deploymentVersion="latest"
+              nodes={adaptDeploymentNodesToReactFlowNodes(
+                currentDeployment.nodes
+              )}
+              nodeTemplates={nodeTemplates}
+            />
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsApiIntegrationDialogOpen(false)}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </InsetLayout>
   );
 }
