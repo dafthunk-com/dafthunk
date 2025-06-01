@@ -13,7 +13,6 @@ import { cn } from "@/utils/utils";
 // Define the structure for status information
 type StatusInfo = {
   icon: React.ElementType;
-  color: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 };
 
@@ -21,37 +20,30 @@ type StatusInfo = {
 const statusMap: Record<WorkflowExecution["status"], StatusInfo> = {
   idle: {
     icon: CircleDashed,
-    color: "text-gray-500",
     variant: "translucent-inactive",
   },
   submitted: {
     icon: CircleDashed,
-    color: "text-blue-500",
     variant: "translucent-active",
   },
   executing: {
     icon: CircleDashed,
-    color: "text-blue-500",
-    variant: "translucent-active",
+    variant: "translucent-warning",
   },
   completed: {
     icon: CheckCircle2,
-    color: "text-green-500",
     variant: "translucent-success",
   },
   error: {
     icon: AlertCircle,
-    color: "text-red-500",
     variant: "translucent-error",
   },
   cancelled: {
     icon: CircleSlash,
-    color: "text-gray-500",
     variant: "translucent-inactive",
   },
   paused: {
     icon: CircleDashed,
-    color: "text-blue-500",
     variant: "translucent-active",
   },
 };
@@ -73,7 +65,6 @@ export function ExecutionStatusBadge({ status }: ExecutionStatusBadgeProps) {
       <Icon
         className={cn(
           "size-3 mr-0.5",
-          statusInfo.color,
           status === "executing" ? "animate-spin" : ""
         )}
       />
