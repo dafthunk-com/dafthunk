@@ -261,7 +261,7 @@ export function WorkflowNodeSelector({
           <DialogTitle>Add Node</DialogTitle>
         </DialogHeader>
 
-        <div className="relative px-4 mb-4">
+        <div className="relative px-4">
           <Search className="absolute left-6 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             ref={searchInputRef}

@@ -5,7 +5,7 @@ export interface WorkflowTemplate {
   name: string;
   description: string;
   category:
-    | "ai-automation"
+    | "text-processing"
     | "data-processing"
     | "communication"
     | "web-scraping"
@@ -21,7 +21,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
     id: "text-summarization",
     name: "Text Summarization",
     description: "Summarize long text content using AI",
-    category: "ai-automation",
+    category: "text-processing",
     type: "manual",
     tags: ["ai", "text", "summarization"],
     nodes: [
@@ -545,7 +545,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
     id: "text-translation",
     name: "Text Translation",
     description: "Translate text between different languages",
-    category: "ai-automation",
+    category: "text-processing",
     type: "manual",
     tags: ["translation", "language", "ai", "text"],
     nodes: [

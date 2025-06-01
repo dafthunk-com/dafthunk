@@ -1,5 +1,5 @@
 import {
-  Bot,
+  BookOpen,
   Calculator,
   FileText,
   Globe,
@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/utils/utils";
 
 import type { WorkflowTemplate } from "./workflow-templates";
 import { workflowTemplates } from "./workflow-templates";
@@ -30,7 +30,7 @@ export interface ImportTemplateDialogProps {
 }
 
 const categoryIcons = {
-  "ai-automation": Bot,
+  "text-processing": BookOpen,
   "data-processing": Calculator,
   communication: Mail,
   "web-scraping": Globe,
@@ -38,7 +38,7 @@ const categoryIcons = {
 } as const;
 
 const categoryLabels = {
-  "ai-automation": "AI Automation",
+  "text-processing": "Text Processing",
   "data-processing": "Data Processing",
   communication: "Communication",
   "web-scraping": "Web Scraping",
@@ -50,13 +50,18 @@ export function ImportTemplateDialog({
   onOpenChange,
   onImportTemplate,
 }: ImportTemplateDialogProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isImporting, setIsImporting] = useState(false);
 
+  // Get unique categories from templates
+  const categories = Array.from(
+    new Set(workflowTemplates.map((template) => template.category))
+  );
+
   const filteredTemplates = workflowTemplates.filter((template) => {
     const matchesCategory =
-      selectedCategory === "all" || template.category === selectedCategory;
+      !selectedCategory || template.category === selectedCategory;
     const matchesSearch =
       !searchQuery ||
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -67,14 +72,6 @@ export function ImportTemplateDialog({
 
     return matchesCategory && matchesSearch;
   });
-
-  const categories = [
-    "ai-automation",
-    "data-processing",
-    "communication",
-    "web-scraping",
-    "content-creation",
-  ] as const;
 
   const handleImportTemplate = async (template: WorkflowTemplate) => {
     setIsImporting(true);
@@ -150,48 +147,58 @@ export function ImportTemplateDialog({
             </div>
           </div>
 
+          {/* Categories */}
+          {categories.length > 0 && (
+            <div className="mb-4">
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  className={cn(
+                    "border rounded-md px-3 py-1.5 text-sm transition-colors",
+                    selectedCategory === null
+                      ? "bg-accent"
+                      : "hover:bg-accent/50"
+                  )}
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  All
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    className={cn(
+                      "border rounded-md px-3 py-1.5 text-sm transition-colors",
+                      selectedCategory === category
+                        ? "bg-accent"
+                        : "hover:bg-accent/50"
+                    )}
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {categoryLabels[category] || category}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Templates */}
           <div className="overflow-y-auto max-h-[500px]">
-            <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="all" className="text-xs">
-                  All
-                </TabsTrigger>
-                {categories.map((category) => {
-                  return (
-                    <TabsTrigger
-                      key={category}
-                      value={category}
-                      className="text-xs flex items-center gap-1"
-                    >
-                      <span className="hidden sm:inline">
-                        {categoryLabels[category].split(" ")[0]}
-                      </span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-
-              <TabsContent value={selectedCategory} className="mt-4">
-                {filteredTemplates.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                      No templates found
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Try adjusting your search or filter criteria.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {filteredTemplates.map((template) => (
-                      <TemplateCard key={template.id} template={template} />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+            {filteredTemplates.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                  No templates found
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Try adjusting your search or filter criteria.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {filteredTemplates.map((template) => (
+                  <TemplateCard key={template.id} template={template} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
