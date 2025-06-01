@@ -387,7 +387,8 @@ export const WorkflowNode = memo(
                 <div className="px-2 pt-1 pb-2 border-t space-y-2">
                   {data.outputs.map(
                     (output, index) =>
-                      output.value !== undefined && (
+                      output.value !== undefined &&
+                      !output.hidden && (
                         <div
                           key={`output-value-${output.id}-${index}`}
                           className="space-y-1"
