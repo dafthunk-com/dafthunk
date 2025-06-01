@@ -33,6 +33,29 @@ export const authService = {
     }
   },
 
+  // Refresh the access token using the refresh token
+  async refreshToken(): Promise<{ success: boolean; user?: User }> {
+    try {
+      const response = await makeRequest<{ success: boolean; user: User }>(
+        "/auth/refresh",
+        {
+          method: "POST",
+        }
+      );
+
+      if (response.success && response.user) {
+        // Update the SWR cache with the fresh user data
+        mutate(AUTH_USER_KEY, response.user, { revalidate: false });
+        return { success: true, user: response.user };
+      }
+
+      return { success: false };
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      return { success: false };
+    }
+  },
+
   // Login with a provider
   async loginWithProvider(provider: AuthProvider): Promise<void> {
     window.location.href = `${getApiBaseUrl()}/auth/login/${provider}`;

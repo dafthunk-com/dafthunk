@@ -1,11 +1,50 @@
 import { getApiBaseUrl } from "@/config/api";
 
+// Track if we're currently refreshing to avoid multiple simultaneous refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+/**
+ * Refresh the access token using the refresh token
+ * This is a standalone function to avoid circular dependencies
+ */
+const refreshAccessToken = async (): Promise<boolean> => {
+  if (isRefreshing && refreshPromise) {
+    // If already refreshing, wait for the existing refresh to complete
+    return refreshPromise;
+  }
+
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const response = await makeRequest<{ success: boolean }>(
+        "/auth/refresh",
+        {
+          method: "POST",
+        },
+        true // Skip refresh to avoid infinite loops
+      );
+
+      return response.success === true;
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      return false;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+};
+
 /**
  * Make a generic request to the API
  */
 export const makeRequest = async <T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  skipRefresh = false
 ): Promise<T> => {
   const fullUrl = `${getApiBaseUrl()}${endpoint}`;
 
@@ -29,11 +68,44 @@ export const makeRequest = async <T>(
 
   const response = await fetch(fullUrl, requestOptions);
 
+  // Check if token refresh is needed (only for successful requests)
+  if (
+    !skipRefresh &&
+    response.ok &&
+    response.headers.get("X-Token-Refresh-Needed") === "true"
+  ) {
+    // Trigger refresh in the background, don't wait for it
+    refreshAccessToken().catch((error) => {
+      console.error("Background token refresh failed:", error);
+    });
+  }
+
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error("Resource not found");
-    } else if (response.status === 401 || response.status === 403) {
+    } else if (response.status === 401 && !skipRefresh) {
+      // Try to refresh token once if we get 401
+      const refreshSuccess = await refreshAccessToken();
+      if (refreshSuccess) {
+        // Retry the original request with the new token
+        const retryResponse = await fetch(fullUrl, requestOptions);
+        if (retryResponse.ok) {
+          // Handle successful retry response
+          if (retryResponse.status === 204) {
+            return undefined as T;
+          }
+          const contentType = retryResponse.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            return undefined as T;
+          }
+          return retryResponse.json();
+        }
+      }
       throw new Error("Unauthorized access");
+    } else if (response.status === 401) {
+      throw new Error("Unauthorized access");
+    } else if (response.status === 403) {
+      throw new Error("Forbidden access");
     }
     // Attempt to parse error response body if available
     try {
@@ -61,7 +133,6 @@ export const makeRequest = async <T>(
     // consider what to return. For now, assuming it might be an issue or should be specifically handled by callers.
     // If T can be string for text responses, this needs more sophisticated handling.
     // For now, if it's not JSON and not 204, we'll assume it's an unexpected success scenario or should be handled by `response.text()` if needed.
-    // Let's assume for now that successful non-JSON responses (other than 204) are not expected by this generic util, or T would be ArrayBuffer/Blob/string.
     // To keep it simple and address the core issue of .json() failing:
     return undefined as T; // Or throw an error if non-JSON successful responses are unexpected
   }

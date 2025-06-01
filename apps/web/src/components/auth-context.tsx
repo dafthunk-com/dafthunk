@@ -17,6 +17,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
   logoutAllSessions: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  refreshToken: () => Promise<{ success: boolean; user?: User }>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.logoutAllSessions();
   };
 
+  const refreshToken = async (): Promise<{ success: boolean; user?: User }> => {
+    return authService.refreshToken();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -71,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         logoutAllSessions,
         refreshUser: refreshUserContext,
+        refreshToken,
       }}
     >
       {children}
