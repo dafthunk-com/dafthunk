@@ -292,7 +292,7 @@ export function DeploymentDetailPage() {
           />
         );
 
-      case "email_message":
+      case "email_message": {
         const emailAddress = `${workflow.handle}@${orgHandle}.workflows.dafthunk.com`;
         return (
           <Card>
@@ -329,6 +329,7 @@ export function DeploymentDetailPage() {
             </CardContent>
           </Card>
         );
+      }
 
       case "cron":
         return (
