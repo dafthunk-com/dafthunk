@@ -2,6 +2,7 @@ import { Grid, List, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CategoryFilterButtons } from "@/components/ui/category-filter-buttons";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearch } from "@/hooks/use-search";
@@ -99,29 +100,12 @@ export function NodesBrowser() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === null ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(null)}
-          >
-            All ({nodeTypes.length})
-          </Button>
-          {categoryCounts.map(({ category, count }) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              onClick={() =>
-                setSelectedCategory(
-                  selectedCategory === category ? null : category
-                )
-              }
-            >
-              {category} ({count})
-            </Button>
-          ))}
-        </div>
+        <CategoryFilterButtons
+          categories={categoryCounts}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          totalCount={nodeTypes.length}
+        />
       </div>
 
       {/* Loading State */}

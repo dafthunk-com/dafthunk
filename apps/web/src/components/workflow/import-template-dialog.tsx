@@ -7,10 +7,11 @@ import {
   Palette,
   Search,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CategoryFilterButtons } from "@/components/ui/category-filter-buttons";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { cn } from "@/utils/utils";
 
 import type { WorkflowTemplate } from "./workflow-templates";
@@ -54,10 +57,17 @@ export function ImportTemplateDialog({
   const [searchQuery, setSearchQuery] = useState("");
   const [isImporting, setIsImporting] = useState(false);
 
-  // Get unique categories from templates
-  const categories = Array.from(
-    new Set(workflowTemplates.map((template) => template.category))
-  );
+  // Get category counts
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    workflowTemplates.forEach((template) => {
+      const category = template.category;
+      counts[category] = (counts[category] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([category, count]) => ({ category, count }));
+  }, []);
 
   const filteredTemplates = workflowTemplates.filter((template) => {
     const matchesCategory =
@@ -73,6 +83,35 @@ export function ImportTemplateDialog({
     return matchesCategory && matchesSearch;
   });
 
+  // Use keyboard navigation hook
+  const {
+    activeElement,
+    focusedIndex,
+    searchInputRef,
+    handleKeyDown,
+    handleCategoryKeyDown,
+    handleItemKeyDown,
+    setCategoryButtonRef,
+    setItemRef,
+    setActiveElement,
+    setFocusedIndex,
+  } = useKeyboardNavigation({
+    open,
+    itemsCount: filteredTemplates.length,
+    categoriesCount: categoryCounts.length + 1, // +1 for "All" button
+    onClose: () => onOpenChange(false),
+    onSelectItem: async (index) => {
+      const template = filteredTemplates[index];
+      if (template) {
+        await handleImportTemplate(template);
+      }
+    },
+    onCategoryChange: (category) => {
+      setSelectedCategory(category);
+    },
+    categories: categoryCounts,
+  });
+
   const handleImportTemplate = async (template: WorkflowTemplate) => {
     setIsImporting(true);
     try {
@@ -83,11 +122,36 @@ export function ImportTemplateDialog({
     }
   };
 
-  const TemplateCard = ({ template }: { template: WorkflowTemplate }) => {
+  const TemplateCard = ({
+    template,
+    index,
+  }: {
+    template: WorkflowTemplate;
+    index: number;
+  }) => {
     const IconComponent = categoryIcons[template.category];
 
     return (
-      <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+      <div
+        ref={(el) => setItemRef(el, index)}
+        className={cn(
+          "border rounded-lg p-4 transition-all cursor-pointer",
+          focusedIndex === index && activeElement === "items"
+            ? "bg-accent border-primary/50"
+            : "hover:bg-muted/50"
+        )}
+        onClick={() => handleImportTemplate(template)}
+        onMouseEnter={() => {
+          setActiveElement("items");
+          setFocusedIndex(index);
+        }}
+        tabIndex={focusedIndex === index && activeElement === "items" ? 0 : -1}
+        onFocus={() => {
+          setActiveElement("items");
+          setFocusedIndex(index);
+        }}
+        onKeyDown={(e) => handleItemKeyDown(e, index)}
+      >
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-primary/10 rounded-md">
@@ -102,7 +166,10 @@ export function ImportTemplateDialog({
           </div>
           <Button
             size="sm"
-            onClick={() => handleImportTemplate(template)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleImportTemplate(template);
+            }}
             disabled={isImporting}
           >
             {isImporting ? "Importing..." : "Import"}
@@ -128,60 +195,69 @@ export function ImportTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+      <DialogContent
+        className="max-w-4xl max-h-[80vh] flex flex-col"
+        onKeyDown={handleKeyDown}
+        tabIndex={-1}
+      >
         <DialogHeader>
           <DialogTitle>Import Workflow Template</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 flex flex-col min-h-0">
           {/* Search */}
           <div className="flex gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
+                ref={searchInputRef}
                 placeholder="Search templates..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className={cn(
+                  "pl-10",
+                  activeElement === "search" && "bg-accent"
+                )}
+                onFocus={() => setActiveElement("search")}
               />
             </div>
           </div>
 
           {/* Categories */}
-          {categories.length > 0 && (
+          {categoryCounts.length > 0 && (
             <div className="mb-4">
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  className={cn(
-                    "border rounded-md px-3 py-1.5 text-sm transition-colors",
-                    selectedCategory === null
-                      ? "bg-accent"
-                      : "hover:bg-accent/50"
-                  )}
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  All
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    className={cn(
-                      "border rounded-md px-3 py-1.5 text-sm transition-colors",
-                      selectedCategory === category
-                        ? "bg-accent"
-                        : "hover:bg-accent/50"
-                    )}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {categoryLabels[category] || category}
-                  </button>
-                ))}
-              </div>
+              <CategoryFilterButtons
+                categories={categoryCounts.map(({ category, count }) => ({
+                  category: categoryLabels[category] || category,
+                  count,
+                }))}
+                selectedCategory={
+                  selectedCategory
+                    ? categoryLabels[selectedCategory] || selectedCategory
+                    : null
+                }
+                onCategoryChange={(categoryLabel) => {
+                  if (!categoryLabel) {
+                    setSelectedCategory(null);
+                    return;
+                  }
+                  // Find the original category key from the label
+                  const originalCategory = Object.entries(categoryLabels).find(
+                    ([, label]) => label === categoryLabel
+                  )?.[0];
+                  setSelectedCategory(originalCategory || categoryLabel);
+                }}
+                totalCount={workflowTemplates.length}
+                onKeyDown={handleCategoryKeyDown}
+                setCategoryButtonRef={setCategoryButtonRef}
+                activeElement={activeElement}
+                focusedIndex={focusedIndex}
+              />
             </div>
           )}
 
           {/* Templates */}
-          <div className="overflow-y-auto max-h-[500px]">
+          <ScrollArea className="flex-1">
             {filteredTemplates.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -193,13 +269,17 @@ export function ImportTemplateDialog({
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {filteredTemplates.map((template) => (
-                  <TemplateCard key={template.id} template={template} />
+              <div className="grid gap-4 md:grid-cols-2 p-1">
+                {filteredTemplates.map((template, index) => (
+                  <TemplateCard
+                    key={template.id}
+                    template={template}
+                    index={index}
+                  />
                 ))}
               </div>
             )}
-          </div>
+          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>
