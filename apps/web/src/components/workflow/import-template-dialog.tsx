@@ -55,7 +55,9 @@ export function ImportTemplateDialog({
 }: ImportTemplateDialogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isImporting, setIsImporting] = useState(false);
+  const [importingTemplateId, setImportingTemplateId] = useState<string | null>(
+    null
+  );
 
   // Get category counts
   const categoryCounts = useMemo(() => {
@@ -113,12 +115,12 @@ export function ImportTemplateDialog({
   });
 
   const handleImportTemplate = async (template: WorkflowTemplate) => {
-    setIsImporting(true);
+    setImportingTemplateId(template.id);
     try {
       await onImportTemplate(template);
       onOpenChange(false);
     } finally {
-      setIsImporting(false);
+      setImportingTemplateId(null);
     }
   };
 
@@ -170,9 +172,9 @@ export function ImportTemplateDialog({
               e.stopPropagation();
               handleImportTemplate(template);
             }}
-            disabled={isImporting}
+            disabled={importingTemplateId !== null}
           >
-            {isImporting ? "Importing..." : "Import"}
+            {importingTemplateId === template.id ? "Importing..." : "Import"}
           </Button>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
