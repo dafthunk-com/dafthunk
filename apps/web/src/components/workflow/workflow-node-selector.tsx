@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,30 @@ export function WorkflowNodeSelector({
   const categories = Array.from(
     new Set(templates.map((template) => template.category))
   );
+
+  // Get category color based on category name
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      ai: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+      text: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+      image:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      audio:
+        "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+      net: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+      json: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      number:
+        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+      parameter:
+        "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+      document: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+      email: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+    };
+    return (
+      colors[category.toLowerCase()] ||
+      "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+    );
+  };
 
   // Use the search hook with intelligent search
   const searchResults = useSearch({
@@ -253,7 +278,7 @@ export function WorkflowNodeSelector({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent
-        className="sm:max-w-[600px] h-[80vh] flex flex-col p-0"
+        className="sm:max-w-[700px] h-[80vh] flex flex-col p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
@@ -262,7 +287,7 @@ export function WorkflowNodeSelector({
         </DialogHeader>
 
         <div className="relative px-4">
-          <Search className="absolute left-6 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-6 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             ref={searchInputRef}
             placeholder="Search nodes..."
@@ -313,42 +338,77 @@ export function WorkflowNodeSelector({
         )}
 
         <ScrollArea className="flex-1 px-4 pb-4">
-          <div className="space-y-2">
-            {filteredTemplates.map((template, index) => (
-              <div
-                key={template.id}
-                ref={(el) => setNodeRef(el, index)}
-                className={cn(
-                  "border rounded-md p-3 cursor-pointer transition-colors",
-                  focusedIndex === index && activeElement === "nodes"
-                    ? "bg-accent"
-                    : "hover:bg-accent/50"
-                )}
-                onClick={() => selectNode(template)}
-                onMouseEnter={() => {
-                  setActiveElement("nodes");
-                  setFocusedIndex(index);
-                }}
-                tabIndex={
-                  focusedIndex === index && activeElement === "nodes" ? 0 : -1
-                }
-                onFocus={() => {
-                  setActiveElement("nodes");
-                  setFocusedIndex(index);
-                }}
-                onKeyDown={(e) => handleNodeKeyDown(e, index)}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-medium">{template.name}</h3>
+          <div className="space-y-3">
+            {filteredTemplates.map((template, index) => {
+              const inputCount = template.inputs?.length || 0;
+              const outputCount = template.outputs?.length || 0;
+
+              return (
+                <div
+                  key={template.id}
+                  ref={(el) => setNodeRef(el, index)}
+                  className={cn(
+                    "border rounded-lg p-4 cursor-pointer transition-all hover:border-primary/50",
+                    focusedIndex === index && activeElement === "nodes"
+                      ? "bg-accent border-primary/50"
+                      : "hover:bg-accent/50"
+                  )}
+                  onClick={() => selectNode(template)}
+                  onMouseEnter={() => {
+                    setActiveElement("nodes");
+                    setFocusedIndex(index);
+                  }}
+                  tabIndex={
+                    focusedIndex === index && activeElement === "nodes" ? 0 : -1
+                  }
+                  onFocus={() => {
+                    setActiveElement("nodes");
+                    setFocusedIndex(index);
+                  }}
+                  onKeyDown={(e) => handleNodeKeyDown(e, index)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-base leading-tight truncate">
+                          {template.name}
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className={`${getCategoryColor(template.category)} shrink-0 text-xs`}
+                        >
+                          {template.category}
+                        </Badge>
+                      </div>
+                      {template.description && (
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                          {template.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        {inputCount > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span className="font-medium">Inputs:</span>
+                            <span>{inputCount}</span>
+                          </div>
+                        )}
+                        {outputCount > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span className="font-medium">Outputs:</span>
+                            <span>{outputCount}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {template.description}
-                </p>
-              </div>
-            ))}
+              );
+            })}
             {filteredTemplates.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No nodes found matching your search
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="text-sm">No nodes found matching your search</p>
               </div>
             )}
           </div>
