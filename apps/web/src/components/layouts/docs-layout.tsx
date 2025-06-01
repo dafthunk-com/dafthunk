@@ -76,7 +76,7 @@ function DocsSidebar() {
   const location = useLocation();
 
   return (
-    <div className="w-72 border-r h-[calc(100vh-4rem)]">
+    <div className="w-56 border-r h-[calc(100vh-4rem)]">
       <ScrollArea className="h-full">
         <div className="p-4 space-y-2">
           {docsSections.map((section) => (
