@@ -702,12 +702,3 @@ export const workflowTemplates: WorkflowTemplate[] = [
     ],
   },
 ];
-
-export function getTemplatesByCategory(category?: string): WorkflowTemplate[] {
-  if (!category) return workflowTemplates;
-  return workflowTemplates.filter((template) => template.category === category);
-}
-
-export function getTemplateById(id: string): WorkflowTemplate | undefined {
-  return workflowTemplates.find((template) => template.id === id);
-}
