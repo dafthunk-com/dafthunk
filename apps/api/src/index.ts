@@ -39,7 +39,6 @@ app.route("/llms.txt", llmsRoutes);
 app.route("/public", publicRoutes);
 app.route("/types", typeRoutes);
 
-// Protected routes
 app.route("/:orgHandle/api-keys", apiKeyRoutes);
 app.route("/:orgHandle/dashboard", dashboardRoutes);
 app.route("/:orgHandle/deployments", deploymentRoutes);
