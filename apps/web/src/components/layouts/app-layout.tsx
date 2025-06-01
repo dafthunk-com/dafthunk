@@ -6,9 +6,11 @@ import { PageProvider } from "@/components/page-context";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { NavMainProps } from "@/components/sidebar/nav-main";
 import * as Sidebar from "@/components/ui/sidebar";
+import { cn } from "@/utils/utils";
 
 interface AppLayoutProps {
   children: ReactNode;
+  className?: string;
   sidebar?: {
     title: string;
     items: NavMainProps["items"];
@@ -16,7 +18,7 @@ interface AppLayoutProps {
   };
 }
 
-export function AppLayout({ children, sidebar }: AppLayoutProps) {
+export function AppLayout({ children, sidebar, className }: AppLayoutProps) {
   return (
     <PageProvider>
       <div className="flex h-screen w-screen overflow-hidden flex-col">
@@ -35,7 +37,12 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
               </Sidebar.SidebarInset>
             </Sidebar.SidebarProvider>
           ) : (
-            <div className="relative flex w-full flex-1 flex-col border rounded-md mx-2 mb-2 bg-background overflow-auto">
+            <div
+              className={cn(
+                "relative flex w-full flex-1 flex-col border rounded-md mx-2 mb-2 bg-background overflow-auto",
+                className
+              )}
+            >
               {children}
             </div>
           )}

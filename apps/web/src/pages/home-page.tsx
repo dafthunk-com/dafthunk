@@ -69,11 +69,12 @@ const features = [
 ];
 
 export function HomePage() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { theme } = useTheme();
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+  if (isAuthenticated && user) {
+    // Redirect waitlisted users to waitlist page, others to dashboard
+    return <Navigate to={user.inWaitlist ? "/waitlist" : "/dashboard"} />;
   }
 
   return (

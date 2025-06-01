@@ -10,7 +10,7 @@ import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 
 export function AppHeader() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const navLinkClasses =
     "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors";
@@ -30,20 +30,33 @@ export function AppHeader() {
         <nav className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
-              <NavLink
-                to="/dashboard"
-                className={navLinkClasses}
-                activeClassName={activeNavLinkClasses}
-              >
-                Dashboard
-              </NavLink>
-              <NavLink
-                to="/workflows"
-                className={navLinkClasses}
-                activeClassName={activeNavLinkClasses}
-              >
-                Workflows
-              </NavLink>
+              {!user?.inWaitlist && (
+                <>
+                  <NavLink
+                    to="/dashboard"
+                    className={navLinkClasses}
+                    activeClassName={activeNavLinkClasses}
+                  >
+                    Dashboard
+                  </NavLink>
+                  <NavLink
+                    to="/workflows"
+                    className={navLinkClasses}
+                    activeClassName={activeNavLinkClasses}
+                  >
+                    Workflows
+                  </NavLink>
+                </>
+              )}
+              {user?.inWaitlist && (
+                <NavLink
+                  to="/waitlist"
+                  className={navLinkClasses}
+                  activeClassName={activeNavLinkClasses}
+                >
+                  Waitlist
+                </NavLink>
+              )}
             </>
           ) : (
             <NavLink
@@ -62,7 +75,7 @@ export function AppHeader() {
           >
             Documentation
           </NavLink>
-          {isAuthenticated && (
+          {isAuthenticated && !user?.inWaitlist && (
             <NavLink
               to="/settings"
               className={navLinkClasses}

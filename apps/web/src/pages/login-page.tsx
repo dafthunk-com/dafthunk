@@ -4,10 +4,11 @@ import { useAuth } from "@/components/auth-context";
 import { LoginForm } from "@/components/login-form";
 
 export function LoginPage() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+  if (isAuthenticated && user) {
+    // Redirect waitlisted users to waitlist page, others to dashboard
+    return <Navigate to={user.inWaitlist ? "/waitlist" : "/dashboard"} />;
   }
 
   return (

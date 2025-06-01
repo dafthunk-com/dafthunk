@@ -51,7 +51,6 @@ export const jwtMiddleware = async (
     "/auth/login/google",
     "/auth/user",
     "/auth/logout",
-    "/auth/waitlist-status",
   ];
   if (payload.inWaitlist && !allowedPaths.includes(c.req.path)) {
     return c.json(
@@ -268,16 +267,6 @@ auth.get("/protected", jwtMiddleware, (c) => {
 
 auth.get("/user", jwtMiddleware, (c) => {
   return c.json({ user: c.get("jwtPayload") });
-});
-
-auth.get("/waitlist-status", jwtMiddleware, (c) => {
-  const payload = c.get("jwtPayload") as CustomJWTPayload;
-  return c.json({
-    inWaitlist: payload.inWaitlist,
-    message: payload.inWaitlist
-      ? "You are currently on our waitlist. We'll notify you when access is available."
-      : "You have full access to the platform.",
-  });
 });
 
 export default auth;

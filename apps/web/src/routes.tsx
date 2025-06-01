@@ -22,6 +22,7 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { PrivacyPage } from "./pages/privacy-page";
 import { ProfilePage } from "./pages/profile-page";
 import { TermsPage } from "./pages/terms-page";
+import { WaitlistPage } from "./pages/waitlist-page";
 import { DeploymentDetailPage } from "./pages/workflows/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/workflows/deployment-version-page";
 import { DeploymentsPage } from "./pages/workflows/deployments-page";
@@ -96,6 +97,22 @@ export const routes: AppRouteObject[] = [
     handle: {
       head: (
         <HeadSeo title="Login - Dafthunk" description="Login to Dafthunk." />
+      ),
+    },
+  },
+  {
+    path: "/waitlist",
+    element: (
+      <AppLayout className="bg-transparent border-none">
+        <WaitlistPage />
+      </AppLayout>
+    ),
+    handle: {
+      head: (
+        <HeadSeo
+          title="Waitlist - Dafthunk"
+          description="You're on the waitlist for Dafthunk. We'll notify you when your access is ready."
+        />
       ),
     },
   },
