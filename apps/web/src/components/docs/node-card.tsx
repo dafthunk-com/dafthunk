@@ -12,38 +12,193 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { getCategoryColor } from "@/utils/category-colors";
 
 interface NodeCardProps {
   nodeType: NodeType;
   variant?: "card" | "list";
 }
 
+interface NodeDetailsDialogProps {
+  nodeType: NodeType;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function NodeDetailsDialog({
+  nodeType,
+  isOpen,
+  onOpenChange,
+}: NodeDetailsDialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
+        <DialogHeader className="shrink-0">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                {nodeType.name}
+                <Badge
+                  variant="secondary"
+                  className={getCategoryColor(nodeType.category)}
+                >
+                  {nodeType.category}
+                </Badge>
+              </div>
+            </div>
+          </DialogTitle>
+          {nodeType.description && (
+            <DialogDescription className="text-base">
+              {nodeType.description}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-1 -mx-1">
+          <div className="space-y-6 py-4">
+            {/* Basic Information */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Basic Information</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-medium text-muted-foreground">
+                    Type ID:
+                  </span>
+                  <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
+                    {nodeType.type}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-medium text-muted-foreground">
+                    Unique ID:
+                  </span>
+                  <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
+                    {nodeType.id}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Compatibility */}
+            {nodeType.compatibility && nodeType.compatibility.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">
+                    Workflow Compatibility
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {nodeType.compatibility.map((type) => (
+                      <Badge key={type} variant="outline" className="text-xs">
+                        {type.replace("_", " ")}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Parameters List */}
+            {((nodeType.inputs && nodeType.inputs.length > 0) ||
+              (nodeType.outputs && nodeType.outputs.length > 0)) && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold">Parameters</h4>
+
+                  {/* Inputs */}
+                  {nodeType.inputs && nodeType.inputs.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Inputs ({nodeType.inputs.length})
+                      </h5>
+                      <div className="space-y-2">
+                        {nodeType.inputs.map((input, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-2 rounded border bg-blue-50/30 dark:bg-blue-950/10"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">
+                                  {input.name}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  {input.type}
+                                </Badge>
+                                {input.required && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-xs"
+                                  >
+                                    Required
+                                  </Badge>
+                                )}
+                              </div>
+                              {input.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {input.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Outputs */}
+                  {nodeType.outputs && nodeType.outputs.length > 0 && (
+                    <div className="space-y-2">
+                      <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Outputs ({nodeType.outputs.length})
+                      </h5>
+                      <div className="space-y-2">
+                        {nodeType.outputs.map((output, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-2 rounded border bg-green-50/30 dark:bg-green-950/10"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 shrink-0"></div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">
+                                  {output.name}
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  {output.type}
+                                </Badge>
+                              </div>
+                              {output.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {output.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4 border-t shrink-0">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Get category color based on category name
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      ai: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-      text: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-      image:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-      audio:
-        "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-      net: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-      json: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-      number:
-        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-      parameter:
-        "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-      document: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
-      email: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-    };
-    return (
-      colors[category.toLowerCase()] ||
-      "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-    );
-  };
 
   const inputCount = nodeType.inputs?.length || 0;
   const outputCount = nodeType.outputs?.length || 0;
@@ -52,7 +207,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
     return (
       <>
         <Card
-          className="cursor-pointer transition-all hover:border-primary/50"
+          className="cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50"
           onClick={() => setIsDialogOpen(true)}
         >
           <CardContent className="p-4">
@@ -108,171 +263,11 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
           </CardContent>
         </Card>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
-            <DialogHeader className="shrink-0">
-              <DialogTitle className="flex items-center gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    {nodeType.name}
-                    <Badge
-                      variant="secondary"
-                      className={getCategoryColor(nodeType.category)}
-                    >
-                      {nodeType.category}
-                    </Badge>
-                  </div>
-                </div>
-              </DialogTitle>
-              {nodeType.description && (
-                <DialogDescription className="text-base">
-                  {nodeType.description}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-
-            <div className="flex-1 overflow-y-auto px-1 -mx-1">
-              <div className="space-y-6 py-4">
-                {/* Basic Information */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold">Basic Information</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">
-                        Type ID:
-                      </span>
-                      <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
-                        {nodeType.type}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">
-                        Unique ID:
-                      </span>
-                      <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
-                        {nodeType.id}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Compatibility */}
-                {nodeType.compatibility &&
-                  nodeType.compatibility.length > 0 && (
-                    <>
-                      <Separator />
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-semibold">
-                          Workflow Compatibility
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {nodeType.compatibility.map((type) => (
-                            <Badge
-                              key={type}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {type.replace("_", " ")}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                {/* Inputs */}
-                {nodeType.inputs && nodeType.inputs.length > 0 && (
-                  <>
-                    <Separator />
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold">
-                        Inputs ({nodeType.inputs.length})
-                      </h4>
-                      <div className="space-y-3">
-                        {nodeType.inputs.map((input, index) => (
-                          <div
-                            key={index}
-                            className="border rounded-lg p-3 bg-blue-50/50 dark:bg-blue-950/20"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h5 className="font-medium text-sm">
-                                    {input.name}
-                                  </h5>
-                                  <Badge variant="outline" className="text-xs">
-                                    {input.type}
-                                  </Badge>
-                                  {input.required && (
-                                    <Badge
-                                      variant="destructive"
-                                      className="text-xs"
-                                    >
-                                      Required
-                                    </Badge>
-                                  )}
-                                </div>
-                                {input.description && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {input.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Outputs */}
-                {nodeType.outputs && nodeType.outputs.length > 0 && (
-                  <>
-                    <Separator />
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold">
-                        Outputs ({nodeType.outputs.length})
-                      </h4>
-                      <div className="space-y-3">
-                        {nodeType.outputs.map((output, index) => (
-                          <div
-                            key={index}
-                            className="border rounded-lg p-3 bg-green-50/50 dark:bg-green-950/20"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <h5 className="font-medium text-sm">
-                                    {output.name}
-                                  </h5>
-                                  <Badge variant="outline" className="text-xs">
-                                    {output.type}
-                                  </Badge>
-                                </div>
-                                {output.description && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {output.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t shrink-0">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Close
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <NodeDetailsDialog
+          nodeType={nodeType}
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
       </>
     );
   }
@@ -281,7 +276,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
   return (
     <>
       <Card
-        className="h-full cursor-pointer transition-all hover:border-primary/50"
+        className="h-full cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50"
         onClick={() => setIsDialogOpen(true)}
       >
         <CardHeader className="pb-2">
@@ -331,166 +326,11 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col gap-0">
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="flex items-center gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  {nodeType.name}
-                  <Badge
-                    variant="secondary"
-                    className={getCategoryColor(nodeType.category)}
-                  >
-                    {nodeType.category}
-                  </Badge>
-                </div>
-              </div>
-            </DialogTitle>
-            {nodeType.description && (
-              <DialogDescription className="text-base">
-                {nodeType.description}
-              </DialogDescription>
-            )}
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto px-1 -mx-1">
-            <div className="space-y-6 py-4">
-              {/* Basic Information */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold">Basic Information</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="font-medium text-muted-foreground">
-                      Type ID:
-                    </span>
-                    <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
-                      {nodeType.type}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-muted-foreground">
-                      Unique ID:
-                    </span>
-                    <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
-                      {nodeType.id}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Compatibility */}
-              {nodeType.compatibility && nodeType.compatibility.length > 0 && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold">
-                      Workflow Compatibility
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {nodeType.compatibility.map((type) => (
-                        <Badge key={type} variant="outline" className="text-xs">
-                          {type.replace("_", " ")}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Inputs */}
-              {nodeType.inputs && nodeType.inputs.length > 0 && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold">
-                      Inputs ({nodeType.inputs.length})
-                    </h4>
-                    <div className="space-y-3">
-                      {nodeType.inputs.map((input, index) => (
-                        <div
-                          key={index}
-                          className="border rounded-lg p-3 bg-blue-50/50 dark:bg-blue-950/20"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h5 className="font-medium text-sm">
-                                  {input.name}
-                                </h5>
-                                <Badge variant="outline" className="text-xs">
-                                  {input.type}
-                                </Badge>
-                                {input.required && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="text-xs"
-                                  >
-                                    Required
-                                  </Badge>
-                                )}
-                              </div>
-                              {input.description && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {input.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Outputs */}
-              {nodeType.outputs && nodeType.outputs.length > 0 && (
-                <>
-                  <Separator />
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold">
-                      Outputs ({nodeType.outputs.length})
-                    </h4>
-                    <div className="space-y-3">
-                      {nodeType.outputs.map((output, index) => (
-                        <div
-                          key={index}
-                          className="border rounded-lg p-3 bg-green-50/50 dark:bg-green-950/20"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h5 className="font-medium text-sm">
-                                  {output.name}
-                                </h5>
-                                <Badge variant="outline" className="text-xs">
-                                  {output.type}
-                                </Badge>
-                              </div>
-                              {output.description && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {output.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4 border-t shrink-0">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <NodeDetailsDialog
+        nodeType={nodeType}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </>
   );
 }
