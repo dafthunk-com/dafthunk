@@ -1,34 +1,10 @@
+import { AuthProvider, User } from "@dafthunk/types";
 import { mutate } from "swr";
 
 import { AUTH_USER_KEY } from "@/components/auth-context";
 import { getApiBaseUrl } from "@/config/api";
 
 import { makeRequest } from "./utils";
-
-export type OrganizationRoleType = "member" | "admin" | "owner";
-
-export interface OrganizationInfo {
-  id: string;
-  name: string;
-  handle: string;
-  role: OrganizationRoleType;
-}
-
-export interface User {
-  sub: string;
-  name: string;
-  email?: string;
-  provider: string;
-  avatarUrl?: string;
-  plan: string;
-  role: string;
-  inWaitlist?: boolean;
-  organization: OrganizationInfo;
-  iat?: number;
-  exp?: number;
-}
-
-export type AuthProvider = "github" | "google";
 
 export const authService = {
   // Check if the user is authenticated
@@ -53,25 +29,6 @@ export const authService = {
       return response.user;
     } catch (error) {
       console.error("Failed to get user info:", error);
-      return null;
-    }
-  },
-
-  // Check waitlist status
-  async getWaitlistStatus(): Promise<{
-    inWaitlist: boolean;
-    message: string;
-  } | null> {
-    try {
-      const response = await makeRequest<{
-        inWaitlist: boolean;
-        message: string;
-      }>("/auth/waitlist-status", {
-        method: "GET",
-      });
-      return response;
-    } catch (error) {
-      console.error("Failed to get waitlist status:", error);
       return null;
     }
   },

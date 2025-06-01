@@ -10,13 +10,14 @@ import {
   UpdateWorkflowResponse,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
+import { CustomJWTPayload } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 import { z } from "zod";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiContext } from "../context";
 import {
   createDatabase,
   createWorkflow,

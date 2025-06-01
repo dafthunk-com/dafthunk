@@ -8,11 +8,12 @@ import {
   WorkflowDeployment,
   WorkflowDeploymentVersion,
 } from "@dafthunk/types";
+import { CustomJWTPayload } from "@dafthunk/types";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
-import { ApiContext, CustomJWTPayload } from "../context";
+import { ApiContext } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";
 import {
   createDeployment,

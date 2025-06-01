@@ -1,12 +1,8 @@
+import { type AuthProvider, OrganizationInfo, User } from "@dafthunk/types";
 import { createContext, ReactNode, useContext, useState } from "react";
 import useSWR from "swr";
 
-import {
-  type AuthProvider,
-  authService,
-  OrganizationInfo,
-  User,
-} from "@/services/auth-service";
+import { authService } from "@/services/auth-service";
 
 export const AUTH_USER_KEY = "/auth/user";
 

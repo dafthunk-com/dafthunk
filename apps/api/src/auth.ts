@@ -1,3 +1,4 @@
+import { CustomJWTPayload, OrganizationInfo } from "@dafthunk/types";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { Context, Hono } from "hono";
@@ -5,7 +6,7 @@ import { deleteCookie, setCookie } from "hono/cookie";
 import { jwt } from "hono/jwt";
 import { SignJWT } from "jose";
 
-import { ApiContext, CustomJWTPayload, OrganizationInfo } from "./context";
+import { ApiContext } from "./context";
 import { createDatabase, OrganizationRole, saveUser, verifyApiKey } from "./db";
 // Constants
 const JWT_SECRET_TOKEN_NAME = "auth_token";

@@ -1,30 +1,9 @@
 import { Workflow } from "@cloudflare/workers-types";
 import { Fetcher } from "@cloudflare/workers-types";
+import { CustomJWTPayload } from "@dafthunk/types";
 import { JWTPayload } from "jose";
 
-import { OrganizationRoleType } from "./db/schema";
 import { RuntimeParams } from "./runtime/runtime";
-
-export interface OrganizationInfo {
-  id: string;
-  name: string;
-  handle: string;
-  role: OrganizationRoleType;
-}
-
-export interface CustomJWTPayload extends JWTPayload {
-  sub: string;
-  name: string;
-  email?: string;
-  provider: string;
-  avatarUrl?: string;
-  plan: string;
-  role: string;
-  inWaitlist: boolean;
-  organization: OrganizationInfo;
-  iat?: number;
-  exp?: number;
-}
 
 export interface Bindings {
   DB: D1Database;
@@ -57,7 +36,7 @@ export interface Bindings {
 }
 
 export interface Variables {
-  jwtPayload?: CustomJWTPayload;
+  jwtPayload?: CustomJWTPayload & JWTPayload;
   organizationId?: string;
 }
 
