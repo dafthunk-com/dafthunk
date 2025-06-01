@@ -20,6 +20,7 @@ import {
   ArrowUpToLine,
   Eye,
   EyeOff,
+  Maximize,
   PanelLeft,
   PanelLeftClose,
   Play,
@@ -27,7 +28,7 @@ import {
   Square,
   X,
 } from "lucide-react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -125,13 +126,24 @@ function StatusBar({ workflowStatus, nodeCount, readonly }: StatusBarProps) {
   );
 }
 
+interface ActionBarGroupProps {
+  children: React.ReactNode;
+}
+
+function ActionBarGroup({ children }: ActionBarGroupProps) {
+  return (
+    <div className="flex items-center gap-0.5 [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg">
+      {children}
+    </div>
+  );
+}
+
 interface ActionBarButtonProps {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
   className?: string;
   tooltip: React.ReactNode;
   children: React.ReactNode;
-  position?: "first" | "middle" | "last" | "only";
 }
 
 function ActionBarButton({
@@ -140,23 +152,15 @@ function ActionBarButton({
   className = "",
   tooltip,
   children,
-  position = "middle",
 }: ActionBarButtonProps) {
-  const roundingClass = {
-    first: "rounded-l-lg rounded-r-none",
-    middle: "rounded-none",
-    last: "rounded-r-lg rounded-l-none",
-    only: "rounded-lg",
-  }[position];
-
   return (
     <Tooltip delayDuration={0}>
-      <div className={cn("bg-background", roundingClass)}>
+      <div className="bg-background rounded-none overflow-hidden">
         <TooltipTrigger asChild>
           <Button
             onClick={onClick}
             disabled={disabled}
-            className={cn("h-10 px-3", roundingClass, className, {
+            className={cn("h-10 px-3 rounded-none", className, {
               "opacity-50 cursor-not-allowed": disabled,
             })}
           >
@@ -204,6 +208,7 @@ export interface WorkflowCanvasProps {
   readonly?: boolean;
   expandedOutputs?: boolean;
   onToggleExpandedOutputs?: (e: React.MouseEvent) => void;
+  onFitToScreen?: (e: React.MouseEvent) => void;
 }
 
 type ActionButtonProps = {
@@ -285,7 +290,6 @@ function ActionButton({
           </div>
         </div>
       }
-      position="first"
     >
       {config.icon}
     </ActionBarButton>
@@ -305,7 +309,6 @@ function DeployButton({
       disabled={disabled}
       className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
       tooltip={<p>Deploy Workflow</p>}
-      position="last"
     >
       <ArrowUpToLine className="!size-4" />
     </ActionBarButton>
@@ -315,19 +318,13 @@ function DeployButton({
 type SidebarToggleProps = {
   onClick: (e: React.MouseEvent) => void;
   isSidebarVisible: boolean;
-  position?: "first" | "middle" | "last" | "only";
 };
 
-function SidebarToggle({
-  onClick,
-  isSidebarVisible,
-  position = "only",
-}: SidebarToggleProps) {
+function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
   return (
     <ActionBarButton
       onClick={onClick}
       tooltip={<p>{isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}</p>}
-      position={position}
     >
       {isSidebarVisible ? (
         <PanelLeftClose className="!size-4 rotate-180" />
@@ -342,12 +339,10 @@ function OutputsToggle({
   onClick,
   expandedOutputs,
   disabled,
-  position = "middle",
 }: {
   onClick: (e: React.MouseEvent) => void;
   expandedOutputs: boolean;
   disabled?: boolean;
-  position?: "first" | "middle" | "last" | "only";
 }) {
   const tooltipText = disabled
     ? "No outputs to show"
@@ -359,15 +354,30 @@ function OutputsToggle({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600"
+      className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
       tooltip={<p>{tooltipText}</p>}
-      position={position}
     >
       {expandedOutputs ? (
         <EyeOff className="!size-4" />
       ) : (
         <Eye className="!size-4" />
       )}
+    </ActionBarButton>
+  );
+}
+
+function FitToScreenButton({
+  onClick,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
+      tooltip={<p>Fit to Screen</p>}
+    >
+      <Maximize className="!size-4" />
     </ActionBarButton>
   );
 }
@@ -395,6 +405,7 @@ export function WorkflowCanvas({
   readonly = false,
   expandedOutputs = false,
   onToggleExpandedOutputs,
+  onFitToScreen,
 }: WorkflowCanvasProps) {
   // Check if any nodes have output values
   const hasAnyOutputs = nodes.some((node) =>
@@ -486,7 +497,7 @@ export function WorkflowCanvas({
           <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
             {/* Run/Deploy Group - only shown when not readonly */}
             {!readonly && (onAction || onDeploy) && (
-              <div className="flex items-center gap-0.5">
+              <ActionBarGroup>
                 {onAction && (
                   <ActionButton
                     onClick={onAction}
@@ -501,23 +512,21 @@ export function WorkflowCanvas({
                     disabled={nodes.length === 0}
                   />
                 )}
-              </div>
+              </ActionBarGroup>
             )}
 
             {/* Preview/Sidebar Group - shown in both readonly and editable modes */}
-            {(onToggleExpandedOutputs ||
+            {(onFitToScreen ||
+              onToggleExpandedOutputs ||
               (onToggleSidebar && isSidebarVisible !== undefined)) && (
-              <div className="flex items-center gap-0.5">
+              <ActionBarGroup>
+                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
+
                 {onToggleExpandedOutputs && (
                   <OutputsToggle
                     onClick={onToggleExpandedOutputs}
                     expandedOutputs={expandedOutputs}
                     disabled={!hasAnyOutputs}
-                    position={
-                      onToggleSidebar && isSidebarVisible !== undefined
-                        ? "first"
-                        : "only"
-                    }
                   />
                 )}
 
@@ -525,10 +534,9 @@ export function WorkflowCanvas({
                   <SidebarToggle
                     onClick={onToggleSidebar}
                     isSidebarVisible={isSidebarVisible}
-                    position={onToggleExpandedOutputs ? "last" : "only"}
                   />
                 )}
-              </div>
+              </ActionBarGroup>
             )}
           </div>
         )}
@@ -537,7 +545,6 @@ export function WorkflowCanvas({
           <ActionBarButton
             onClick={onAddNode}
             tooltip="Add Node"
-            position="only"
             className="absolute bottom-4 right-4 z-50 size-10 rounded-full"
           >
             <Plus className="!size-5" />

@@ -103,6 +103,7 @@ export function WorkflowBuilder({
     handleNodeSelect,
     updateNodeExecution,
     setReactFlowInstance,
+    reactFlowInstance,
     connectionValidationState,
     isValidConnection,
     updateNodeData,
@@ -341,6 +342,17 @@ export function WorkflowBuilder({
     setCurrentExpandedOutputs((prev) => !prev);
   }, []);
 
+  const handleFitToScreen = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (reactFlowInstance) {
+        reactFlowInstance.fitView({ padding: 0.25 });
+      }
+    },
+    [reactFlowInstance]
+  );
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
@@ -382,6 +394,7 @@ export function WorkflowBuilder({
               readonly={readonly}
               expandedOutputs={currentExpandedOutputs}
               onToggleExpandedOutputs={toggleExpandedOutputs}
+              onFitToScreen={handleFitToScreen}
             />
           </div>
 
