@@ -381,9 +381,7 @@ export function WorkflowBuilder({
               isValidConnection={isValidConnection}
               readonly={readonly}
               expandedOutputs={currentExpandedOutputs}
-              onToggleExpandedOutputs={
-                readonly ? undefined : toggleExpandedOutputs
-              }
+              onToggleExpandedOutputs={toggleExpandedOutputs}
             />
           </div>
 

@@ -55,47 +55,73 @@ const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
 
-interface CanvasButtonProps {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  className?: string;
-  position: string;
-  tooltip: string;
-  children: React.ReactNode;
+interface StatusBarProps {
+  workflowStatus: WorkflowExecutionStatus;
+  nodeCount: number;
+  readonly?: boolean;
 }
 
-function CanvasButton({
-  onClick,
-  disabled = false,
-  className = "",
-  position,
-  tooltip,
-  children,
-}: CanvasButtonProps) {
-  const positionClass = position.startsWith("bottom-")
-    ? `absolute bottom-4 ${position} z-50`
-    : `absolute top-4 ${position} z-50`;
+function StatusBar({ workflowStatus, nodeCount, readonly }: StatusBarProps) {
+  const statusConfig = {
+    idle: { color: "text-gray-600", bg: "bg-gray-100", label: "Ready" },
+    submitted: {
+      color: "text-orange-600",
+      bg: "bg-orange-100",
+      label: "Queued",
+    },
+    executing: {
+      color: "text-yellow-600",
+      bg: "bg-yellow-400",
+      label: "Running",
+    },
+    completed: {
+      color: "text-green-600",
+      bg: "bg-green-100",
+      label: "Completed",
+    },
+    error: { color: "text-red-600", bg: "bg-red-100", label: "Error" },
+    cancelled: {
+      color: "text-neutral-600",
+      bg: "bg-neutral-100",
+      label: "Cancelled",
+    },
+    paused: { color: "text-blue-600", bg: "bg-blue-100", label: "Paused" },
+  };
+
+  const config = statusConfig[workflowStatus] || statusConfig.idle;
 
   return (
-    <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild>
-        <Button
-          onClick={onClick}
-          disabled={disabled}
-          className={cn(
-            "rounded-full h-10 w-10 p-0",
-            positionClass,
-            className,
-            { "opacity-50 cursor-not-allowed": disabled }
+    <div className="absolute bottom-4 left-4 flex items-center gap-3 z-50">
+      <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <div className={cn("w-2 h-2 rounded-full", config.bg)}>
+            <div
+              className={cn(
+                "w-full h-full rounded-full",
+                config.color.replace("text-", "bg-")
+              )}
+            />
+          </div>
+          <span className={cn("text-sm font-medium", config.color)}>
+            {config.label}
+          </span>
+        </div>
+
+        <div className="w-px h-4 bg-gray-300" />
+
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span>
+            {nodeCount} node{nodeCount !== 1 ? "s" : ""}
+          </span>
+          {readonly && (
+            <>
+              <span>•</span>
+              <span className="text-amber-600">Read-only</span>
+            </>
           )}
-        >
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -130,7 +156,7 @@ function ActionBarButton({
           <Button
             onClick={onClick}
             disabled={disabled}
-            className={cn("h-10 px-3", className, roundingClass, {
+            className={cn("h-10 px-3", roundingClass, className, {
               "opacity-50 cursor-not-allowed": disabled,
             })}
           >
@@ -214,8 +240,7 @@ function ActionButton({
       icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
       shortcut: "⌘⏎",
-      className:
-        "bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600",
+      className: "bg-green-600 hover:bg-green-700 text-white border-green-600",
     },
     error: {
       icon: <X className="!size-4" />,
@@ -227,8 +252,7 @@ function ActionButton({
       icon: <Play className="!size-4" />,
       title: "Restart Workflow",
       shortcut: "⌘⏎",
-      className:
-        "bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600",
+      className: "bg-green-600 hover:bg-green-700 text-white border-green-600",
     },
     paused: {
       icon: <Play className="!size-4" />,
@@ -251,7 +275,10 @@ function ActionButton({
           <span>{config.title}</span>
           <div className="flex items-center gap-1">
             {config.shortcut.split("").map((key) => (
-              <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              <kbd
+                key={key}
+                className="px-1 py-0.25 text-xs rounded border font-mono"
+              >
                 {key}
               </kbd>
             ))}
@@ -288,14 +315,19 @@ function DeployButton({
 type SidebarToggleProps = {
   onClick: (e: React.MouseEvent) => void;
   isSidebarVisible: boolean;
+  position?: "first" | "middle" | "last" | "only";
 };
 
-function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
+function SidebarToggle({
+  onClick,
+  isSidebarVisible,
+  position = "only",
+}: SidebarToggleProps) {
   return (
     <ActionBarButton
       onClick={onClick}
       tooltip={<p>{isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}</p>}
-      position="only"
+      position={position}
     >
       {isSidebarVisible ? (
         <PanelLeftClose className="!size-4 rotate-180" />
@@ -310,10 +342,12 @@ function OutputsToggle({
   onClick,
   expandedOutputs,
   disabled,
+  position = "middle",
 }: {
   onClick: (e: React.MouseEvent) => void;
   expandedOutputs: boolean;
   disabled?: boolean;
+  position?: "first" | "middle" | "last" | "only";
 }) {
   const tooltipText = disabled
     ? "No outputs to show"
@@ -327,7 +361,7 @@ function OutputsToggle({
       disabled={disabled}
       className="bg-neutral-600 hover:bg-neutral-700 text-white border-neutral-600"
       tooltip={<p>{tooltipText}</p>}
-      position="middle"
+      position={position}
     >
       {expandedOutputs ? (
         <EyeOff className="!size-4" />
@@ -433,62 +467,81 @@ export function WorkflowCanvas({
           className="stroke-foreground/5 opacity-50"
         />
 
-        {readonly && (
-          <div className="absolute top-4 left-4 bg-amber-100 px-3 py-1 rounded-md text-amber-800 text-sm font-medium shadow-sm border border-amber-200 z-50">
-            Read-only Mode
-          </div>
-        )}
+        {/* Status Bar */}
+        <StatusBar
+          workflowStatus={workflowStatus}
+          nodeCount={nodes.length}
+          readonly={readonly}
+        />
 
-        {/* Main Action Bar */}
-        {!readonly && (onAction || onDeploy || onToggleExpandedOutputs) && (
-          <div
-            className={cn(
-              "absolute top-4 flex items-center gap-0.5 z-50",
-              onToggleSidebar && isSidebarVisible !== undefined
-                ? "right-16" // Position to the left of sidebar with spacing
-                : "right-4" // Position at right edge if no sidebar
-            )}
-          >
-            {onAction && (
-              <ActionButton
-                onClick={onAction}
-                workflowStatus={workflowStatus}
-                disabled={nodes.length === 0}
-              />
+        {/* Action Bars */}
+        {((!readonly &&
+          (onAction ||
+            onDeploy ||
+            onToggleExpandedOutputs ||
+            (onToggleSidebar && isSidebarVisible !== undefined))) ||
+          (readonly &&
+            (onToggleExpandedOutputs ||
+              (onToggleSidebar && isSidebarVisible !== undefined)))) && (
+          <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
+            {/* Run/Deploy Group - only shown when not readonly */}
+            {!readonly && (onAction || onDeploy) && (
+              <div className="flex items-center gap-0.5">
+                {onAction && (
+                  <ActionButton
+                    onClick={onAction}
+                    workflowStatus={workflowStatus}
+                    disabled={nodes.length === 0}
+                  />
+                )}
+
+                {onDeploy && (
+                  <DeployButton
+                    onClick={onDeploy}
+                    disabled={nodes.length === 0}
+                  />
+                )}
+              </div>
             )}
 
-            {onToggleExpandedOutputs && (
-              <OutputsToggle
-                onClick={onToggleExpandedOutputs}
-                expandedOutputs={expandedOutputs}
-                disabled={!hasAnyOutputs}
-              />
-            )}
+            {/* Preview/Sidebar Group - shown in both readonly and editable modes */}
+            {(onToggleExpandedOutputs ||
+              (onToggleSidebar && isSidebarVisible !== undefined)) && (
+              <div className="flex items-center gap-0.5">
+                {onToggleExpandedOutputs && (
+                  <OutputsToggle
+                    onClick={onToggleExpandedOutputs}
+                    expandedOutputs={expandedOutputs}
+                    disabled={!hasAnyOutputs}
+                    position={
+                      onToggleSidebar && isSidebarVisible !== undefined
+                        ? "first"
+                        : "only"
+                    }
+                  />
+                )}
 
-            {onDeploy && (
-              <DeployButton onClick={onDeploy} disabled={nodes.length === 0} />
+                {onToggleSidebar && isSidebarVisible !== undefined && (
+                  <SidebarToggle
+                    onClick={onToggleSidebar}
+                    isSidebarVisible={isSidebarVisible}
+                    position={onToggleExpandedOutputs ? "last" : "only"}
+                  />
+                )}
+              </div>
             )}
-          </div>
-        )}
-
-        {/* Sidebar Toggle - Rightmost position */}
-        {onToggleSidebar && isSidebarVisible !== undefined && (
-          <div className="absolute top-4 right-4 z-50">
-            <SidebarToggle
-              onClick={onToggleSidebar}
-              isSidebarVisible={isSidebarVisible}
-            />
           </div>
         )}
 
         {onAddNode && !readonly && (
-          <CanvasButton
+          <ActionBarButton
             onClick={onAddNode}
-            position="bottom-4 right-4"
             tooltip="Add Node"
+            position="only"
+            className="absolute bottom-4 right-4 z-50 size-10 rounded-full"
           >
             <Plus className="!size-5" />
-          </CanvasButton>
+          </ActionBarButton>
         )}
       </ReactFlow>
     </TooltipProvider>

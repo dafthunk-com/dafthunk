@@ -159,9 +159,9 @@ export function PublicExecutionPage() {
             : "Shared Execution"
         }
         titleRight={<ExecutionStatusBadge status={execution.status} />}
-        className="overflow-hidden relative h-full"
-        titleClassName="relative mb-0"
-        childrenClassName="h-full w-full p-0"
+        className="overflow-hidden relative h-full flex flex-col"
+        titleClassName="relative mb-0 flex-none"
+        childrenClassName="flex-1 min-h-0 w-full p-0"
       >
         <WorkflowBuilder
           workflowId={execution.workflowId || execution.id}
