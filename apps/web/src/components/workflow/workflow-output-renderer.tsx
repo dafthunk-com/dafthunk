@@ -129,7 +129,7 @@ const DocumentRenderer = ({
         </div>
         <iframe
           src={objectUrl}
-          className={`w-full rounded-md border ${compact ? "h-32" : "h-64"}`}
+          className={`w-full rounded-md border nowheel ${compact ? "h-32" : "h-64"}`}
         />
       </div>
     );
@@ -215,7 +215,9 @@ const CodeRenderer = ({
   };
 
   return (
-    <div className={compact ? "mt-1" : "mt-2"}>
+    <div
+      className={`${compact ? "mt-1 max-h-[300px] overflow-y-auto nowheel" : "mt-2"}`}
+    >
       <CodeBlock
         language={getLanguage(type)}
         className="text-xs my-0 border [&_pre]:p-2"
@@ -237,7 +239,7 @@ const TextRenderer = ({
   <div
     className={
       compact
-        ? "text-xs p-1 mt-1 bg-secondary/50 rounded border whitespace-pre-line"
+        ? "text-xs p-1 mt-1 bg-secondary/50 rounded border whitespace-pre-line max-h-[300px] overflow-y-auto nowheel"
         : "w-full p-2 bg-secondary/50 rounded-md border border-border whitespace-pre-line"
     }
   >
