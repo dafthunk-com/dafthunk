@@ -221,6 +221,7 @@ export function ImportTemplateDialog({
                   activeElement === "search" && "bg-accent"
                 )}
                 onFocus={() => setActiveElement("search")}
+                disabled={importingTemplateId !== null}
               />
             </div>
           </div>
@@ -254,6 +255,7 @@ export function ImportTemplateDialog({
                 setCategoryButtonRef={setCategoryButtonRef}
                 activeElement={activeElement}
                 focusedIndex={focusedIndex}
+                disabled={importingTemplateId !== null}
               />
             </div>
           )}
