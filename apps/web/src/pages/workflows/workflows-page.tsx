@@ -33,6 +33,8 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
+import type { WorkflowTemplate } from "@/components/workflow/workflow-templates";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { createDeployment } from "@/services/deployment-service";
 import {
@@ -351,6 +353,7 @@ function createColumns(
 
 export function WorkflowsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
@@ -400,6 +403,27 @@ export function WorkflowsPage() {
     }
   };
 
+  const handleImportTemplate = async (template: WorkflowTemplate) => {
+    if (!orgHandle) return;
+
+    try {
+      const request: CreateWorkflowRequest = {
+        name: template.name,
+        type: template.type,
+        nodes: template.nodes,
+        edges: template.edges,
+      };
+
+      const newWorkflow = await createWorkflow(request, orgHandle);
+
+      mutateWorkflows();
+      navigate(`/workflows/workflows/${newWorkflow.id}`);
+    } catch (error) {
+      console.error("Failed to import template:", error);
+      // Optionally show a toast here
+    }
+  };
+
   if (isWorkflowsLoading) {
     return <InsetLoading title="Workflows" />;
   } else if (workflowsError) {
@@ -416,10 +440,18 @@ export function WorkflowsPage() {
             Create, manage, and run your workflows. Break it, fix it, prompt it,
             automatic.
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Workflow
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              Import from Template
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Workflow
+            </Button>
+          </div>
         </div>
         <DataTable
           columns={columns}
@@ -433,6 +465,11 @@ export function WorkflowsPage() {
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
           onCreateWorkflow={handleCreateWorkflow}
+        />
+        <ImportTemplateDialog
+          open={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          onImportTemplate={handleImportTemplate}
         />
         {deleteDialog}
         {renameDialog}
