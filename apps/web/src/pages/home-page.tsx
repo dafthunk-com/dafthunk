@@ -20,6 +20,7 @@ import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoDialog } from "@/components/video-dialog";
+import { HOMEPAGE_PUBLIC_EXECUTION_URL } from "@/utils/constants";
 
 const features = [
   {
@@ -91,7 +92,7 @@ export function HomePage() {
             <div className="max-w-prose mx-auto">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 sm:mb-8 relative text-center">
                 <h1 className="relative">
-                  <span className="bg-gradient-to-r from-cyan-600 via-fuchsia-600 via-amber-600 via-blue-600 via-purple-600 to-pink-600 dark:from-cyan-500 dark:via-fuchsia-500 dark:via-amber-500 dark:via-blue-500 dark:via-purple-500 dark:to-pink-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 bg-clip-text text-transparent">
                     Workflows
                   </span>{" "}
                   no one asked for.
@@ -116,7 +117,7 @@ export function HomePage() {
               <Button
                 asChild
                 size="default"
-                className="bg-gradient-to-r from-cyan-600 via-fuchsia-600 via-amber-600 via-blue-600 via-purple-600 to-pink-600 hover:from-cyan-700 hover:via-fuchsia-700 hover:via-amber-700 hover:via-blue-700 hover:via-purple-700 hover:to-pink-700 dark:from-cyan-500 dark:via-fuchsia-500 dark:via-amber-500 dark:via-blue-500 dark:via-purple-500 dark:to-pink-500 dark:hover:from-cyan-600 dark:hover:via-fuchsia-600 dark:hover:via-amber-600 dark:hover:via-blue-600 dark:hover:via-purple-600 dark:hover:to-pink-600 text-white font-medium w-full sm:w-auto"
+                className="bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 hover:from-cyan-700 hover:via-purple-700 hover:to-pink-700 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 dark:hover:from-cyan-600 dark:hover:via-purple-600 dark:hover:to-pink-600 text-white font-medium w-full sm:w-auto"
               >
                 <Link to="/workflows/workflows">
                   Fix it <Sparkles className="ml-2 h-4 w-4" />
@@ -154,7 +155,7 @@ export function HomePage() {
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
               <iframe
-                src={`https://www.dafthunk.com/public/executions/97e0f901-2d8c-46e7-b95a-437ca42eba15?fullscreen&theme=${theme}`}
+                src={`${HOMEPAGE_PUBLIC_EXECUTION_URL}&theme=${theme}`}
                 className="w-full h-full"
               />
             </div>

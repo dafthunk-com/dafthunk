@@ -1,12 +1,14 @@
 import Markdown from "react-markdown";
 
+import { CONTACT_EMAIL, WEBSITE_URL } from "@/utils/constants";
+
 const termsOfService = `
 **Effective Date:** May 29, 2025  
 **Last Updated:** May 29, 2025
 
 ## 1. Acceptance of Terms
 
-Welcome to Dafthunk. These Terms of Service ("Terms") govern your use of the Dafthunk website located at [www.dafthunk.com](https://www.dafthunk.com) and any related services provided by Dafthunk ("we," "us," or "our").
+Welcome to Dafthunk. These Terms of Service ("Terms") govern your use of the Dafthunk website located at [${WEBSITE_URL}](${WEBSITE_URL}) and any related services provided by Dafthunk ("we," "us," or "our").
 
 By accessing or using our service, you agree to be bound by these Terms. If you disagree with any part of these terms, then you may not access the service.
 
@@ -138,8 +140,8 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 If you have any questions about these Terms of Service, please contact us at:
 
 **Dafthunk**  
-Email: legal@dafthunk.com  
-Website: [www.dafthunk.com](https://www.dafthunk.com)
+Email: ${CONTACT_EMAIL}  
+Website: [${WEBSITE_URL}](${WEBSITE_URL})
 
 ## 17. Changes to Terms
 
