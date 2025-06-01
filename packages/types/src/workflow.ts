@@ -211,6 +211,7 @@ export interface WorkflowDeployment {
   latestDeploymentId: string;
   latestVersion: number;
   deploymentCount: number;
+  latestCreatedAt: string | Date;
 }
 
 /**

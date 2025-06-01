@@ -136,26 +136,21 @@ export async function saveUser(
     updatedAt: now,
   };
 
-  await db.insert(organizations).values(organization);
-
   // Create new user with the organization ID
-  const [user] = await db
-    .insert(users)
-    .values({
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      provider: userData.provider as ProviderType,
-      githubId: userData.githubId,
-      googleId: userData.googleId,
-      avatarUrl: userData.avatarUrl,
-      organizationId: organizationId,
-      plan: (userData.plan as PlanType) || Plan.TRIAL,
-      role: (userData.role as UserRoleType) || UserRole.USER,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .returning();
+  const newUser = {
+    id: userData.id,
+    name: userData.name,
+    email: userData.email,
+    provider: userData.provider as ProviderType,
+    githubId: userData.githubId,
+    googleId: userData.googleId,
+    avatarUrl: userData.avatarUrl,
+    organizationId: organizationId,
+    plan: (userData.plan as PlanType) || Plan.TRIAL,
+    role: (userData.role as UserRoleType) || UserRole.USER,
+    createdAt: now,
+    updatedAt: now,
+  };
 
   // Create membership with owner role
   const newMembership: MembershipInsert = {
@@ -166,9 +161,17 @@ export async function saveUser(
     updatedAt: now,
   };
 
-  await db.insert(memberships).values(newMembership);
+  // Execute all three operations in a single batch transaction
+  const [organizationResult, userResult] = await db.batch([
+    db.insert(organizations).values(organization).returning(),
+    db.insert(users).values(newUser).returning(),
+    db.insert(memberships).values(newMembership),
+  ]);
 
-  return { user, organization };
+  const [user] = userResult;
+  const [organizationRecord] = organizationResult;
+
+  return { user, organization: organizationRecord };
 }
 
 /**
@@ -601,43 +604,68 @@ export async function getDeploymentsGroupedByWorkflow(
   db: ReturnType<typeof createDatabase>,
   organizationId: string
 ): Promise<WorkflowDeployment[]> {
-  // First get all workflows that belong to the organization
-  const workflowsList = await db
+  // First, get the latest deployment per workflow
+  const latestDeploymentsSubquery = db
     .select({
-      id: workflows.id,
-      name: workflows.name,
+      workflowId: deployments.workflowId,
+      maxCreatedAt: sql<string>`MAX(${deployments.createdAt})`.as(
+        "maxCreatedAt"
+      ),
+    })
+    .from(deployments)
+    .where(eq(deployments.organizationId, organizationId))
+    .groupBy(deployments.workflowId)
+    .as("latest");
+
+  // Get deployment counts per workflow
+  const deploymentCountsSubquery = db
+    .select({
+      workflowId: deployments.workflowId,
+      count: sql<number>`COUNT(*)`.as("count"),
+    })
+    .from(deployments)
+    .where(eq(deployments.organizationId, organizationId))
+    .groupBy(deployments.workflowId)
+    .as("counts");
+
+  // Main query to get workflow details with latest deployment info
+  const results = await db
+    .select({
+      workflowId: workflows.id,
+      workflowName: workflows.name,
+      deploymentId: deployments.id,
+      version: deployments.version,
+      createdAt: deployments.createdAt,
+      deploymentCount: deploymentCountsSubquery.count,
     })
     .from(workflows)
-    .where(eq(workflows.organizationId, organizationId));
-
-  // Create a result array to store our response
-  const result: WorkflowDeployment[] = [];
-
-  // For each workflow, get the deployment count and latest deployment
-  for (const workflow of workflowsList) {
-    const deploymentsList = await db
-      .select()
-      .from(deployments)
-      .where(
-        and(
-          eq(deployments.workflowId, workflow.id),
-          eq(deployments.organizationId, organizationId)
-        )
+    .innerJoin(
+      latestDeploymentsSubquery,
+      eq(workflows.id, latestDeploymentsSubquery.workflowId)
+    )
+    .innerJoin(
+      deployments,
+      and(
+        eq(deployments.workflowId, latestDeploymentsSubquery.workflowId),
+        eq(deployments.createdAt, latestDeploymentsSubquery.maxCreatedAt)
       )
-      .orderBy(desc(deployments.createdAt));
+    )
+    .innerJoin(
+      deploymentCountsSubquery,
+      eq(workflows.id, deploymentCountsSubquery.workflowId)
+    )
+    .where(eq(workflows.organizationId, organizationId))
+    // Sort by the latest deployment date (most recent first)
+    .orderBy(desc(latestDeploymentsSubquery.maxCreatedAt));
 
-    if (deploymentsList.length > 0) {
-      result.push({
-        workflowId: workflow.id,
-        workflowName: workflow.name,
-        latestDeploymentId: deploymentsList[0].id,
-        latestVersion: deploymentsList[0].version,
-        deploymentCount: deploymentsList.length,
-      });
-    }
-  }
-
-  return result;
+  return results.map((row) => ({
+    workflowId: row.workflowId,
+    workflowName: row.workflowName,
+    latestDeploymentId: row.deploymentId,
+    latestVersion: row.version,
+    deploymentCount: row.deploymentCount,
+    latestCreatedAt: row.createdAt,
+  }));
 }
 
 /**
