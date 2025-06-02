@@ -198,93 +198,88 @@ export function ImportTemplateDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl max-h-[80vh] flex flex-col"
+        className="max-w-4xl h-[80vh] flex flex-col p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
-        <DialogHeader>
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>Import Workflow Template</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 flex flex-col min-h-0">
-          {/* Search */}
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                ref={searchInputRef}
-                placeholder="Search templates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn(
-                  "pl-10",
-                  activeElement === "search" && "bg-accent"
-                )}
-                onFocus={() => setActiveElement("search")}
-                disabled={importingTemplateId !== null}
-              />
-            </div>
+        {/* Search */}
+        <div className="px-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search templates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={cn("pl-10", activeElement === "search" && "bg-accent")}
+              onFocus={() => setActiveElement("search")}
+              disabled={importingTemplateId !== null}
+            />
           </div>
+        </div>
 
-          {/* Categories */}
-          {categoryCounts.length > 0 && (
-            <div className="mb-4">
-              <CategoryFilterButtons
-                categories={categoryCounts.map(({ category, count }) => ({
-                  category: categoryLabels[category] || category,
-                  count,
-                }))}
-                selectedCategory={
-                  selectedCategory
-                    ? categoryLabels[selectedCategory] || selectedCategory
-                    : null
+        {/* Categories */}
+        {categoryCounts.length > 0 && (
+          <div className="px-6">
+            <CategoryFilterButtons
+              categories={categoryCounts.map(({ category, count }) => ({
+                category: categoryLabels[category] || category,
+                count,
+              }))}
+              selectedCategory={
+                selectedCategory
+                  ? categoryLabels[selectedCategory] || selectedCategory
+                  : null
+              }
+              onCategoryChange={(categoryLabel) => {
+                if (!categoryLabel) {
+                  setSelectedCategory(null);
+                  return;
                 }
-                onCategoryChange={(categoryLabel) => {
-                  if (!categoryLabel) {
-                    setSelectedCategory(null);
-                    return;
-                  }
-                  // Find the original category key from the label
-                  const originalCategory = Object.entries(categoryLabels).find(
-                    ([, label]) => label === categoryLabel
-                  )?.[0];
-                  setSelectedCategory(originalCategory || categoryLabel);
-                }}
-                totalCount={workflowTemplates.length}
-                onKeyDown={handleCategoryKeyDown}
-                setCategoryButtonRef={setCategoryButtonRef}
-                activeElement={activeElement}
-                focusedIndex={focusedIndex}
-                disabled={importingTemplateId !== null}
-              />
+                // Find the original category key from the label
+                const originalCategory = Object.entries(categoryLabels).find(
+                  ([, label]) => label === categoryLabel
+                )?.[0];
+                setSelectedCategory(originalCategory || categoryLabel);
+              }}
+              totalCount={workflowTemplates.length}
+              onKeyDown={handleCategoryKeyDown}
+              setCategoryButtonRef={setCategoryButtonRef}
+              activeElement={activeElement}
+              focusedIndex={focusedIndex}
+              disabled={importingTemplateId !== null}
+            />
+          </div>
+        )}
+
+        {/* Templates */}
+        <ScrollArea className="flex-1 px-6 pb-6">
+          {filteredTemplates.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                No templates found
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Try adjusting your search or filter criteria.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {filteredTemplates.map((template, index) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  index={index}
+                />
+              ))}
             </div>
           )}
-
-          {/* Templates */}
-          <ScrollArea className="flex-1">
-            {filteredTemplates.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  No templates found
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Try adjusting your search or filter criteria.
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 p-1">
-                {filteredTemplates.map((template, index) => (
-                  <TemplateCard
-                    key={template.id}
-                    template={template}
-                    index={index}
-                  />
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
