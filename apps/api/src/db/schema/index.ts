@@ -8,6 +8,7 @@ import {
   index,
   integer,
   primaryKey,
+  uniqueIndex,
   sqliteTable,
   text,
 } from "drizzle-orm/sqlite-core";
@@ -199,7 +200,7 @@ export const workflows = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    handle: text("handle").notNull().unique(),
+    handle: text("handle").notNull(),
     data: text("data", { mode: "json" }).$type<WorkflowType>().notNull(),
     type: text("type")
       .$type<WorkflowTriggerTypeType>()
@@ -213,11 +214,11 @@ export const workflows = sqliteTable(
   },
   (table) => [
     index("workflows_name_idx").on(table.name),
-    index("workflows_handle_idx").on(table.handle),
     index("workflows_type_idx").on(table.type),
     index("workflows_organization_id_idx").on(table.organizationId),
     index("workflows_created_at_idx").on(table.createdAt),
     index("workflows_updated_at_idx").on(table.updatedAt),
+    uniqueIndex("workflows_organization_id_handle_unique_idx").on(table.organizationId, table.handle),
   ]
 );
 
