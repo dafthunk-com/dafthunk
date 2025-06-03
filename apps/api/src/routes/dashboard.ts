@@ -8,7 +8,7 @@ import {
   ExecutionRow,
   ExecutionStatus,
   getDeploymentsGroupedByWorkflow,
-  getWorkflowsByOrganizationId,
+  getWorkflows,
   listExecutions,
 } from "../db";
 
@@ -18,7 +18,7 @@ const dashboard = new Hono<ApiContext>();
 dashboard.use("*", jwtMiddleware);
 
 /**
- * GET /:orgHandle/dashboard
+ * GET /:organizationIdOrHandle/dashboard
  *
  * Get dashboard statistics for the organization
  */
@@ -30,7 +30,7 @@ dashboard.get("/", async (c) => {
 
   try {
     // Workflows count
-    const workflows = await getWorkflowsByOrganizationId(db, orgId);
+    const workflows = await getWorkflows(db, orgId);
     const workflowsCount = workflows.length;
 
     // Deployments count

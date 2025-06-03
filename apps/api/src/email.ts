@@ -2,11 +2,11 @@ import { ExecutionContext } from "@cloudflare/workers-types";
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
-import { createDatabase, getWorkflowByIdOrHandle } from "./db";
+import { createDatabase, getWorkflow } from "./db";
 import {
   ExecutionStatus,
-  getDeploymentByWorkflowIdOrHandleAndVersion,
-  getLatestDeploymentByWorkflowIdOrHandle,
+  getDeploymentByVersion,
+  getLatestDeployment,
   saveExecution,
 } from "./db";
 
@@ -46,18 +46,23 @@ export async function handleIncomingEmail(
   // Extract the handle from the to address
   const localPart = to.split("@")[0];
   const parts = localPart.split(".");
+  let organizationIdOrHandle: string;
   let workflowIdOrHandle: string;
   let version: string;
 
-  if (parts.length === 1) {
-    workflowIdOrHandle = parts[0];
+  if (parts.length === 2) {
+    // Format: organizationIdOrHandle.workflowIdOrHandle@domain.com
+    organizationIdOrHandle = parts[0];
+    workflowIdOrHandle = parts[1];
     version = "latest"; // Default to latest if no version is specified
-  } else if (parts.length === 2) {
-    workflowIdOrHandle = parts[0];
-    version = parts[1];
+  } else if (parts.length === 3) {
+    // Format: organizationIdOrHandle.workflowIdOrHandle.version@domain.com
+    organizationIdOrHandle = parts[0];
+    workflowIdOrHandle = parts[1];
+    version = parts[2];
   } else {
     console.error(
-      `Invalid email format: ${to}. Expected handle@domain.com or handle.version@domain.com`
+      `Invalid email format: ${to}. Expected organizationIdOrHandle.workflowIdOrHandle@domain.com or organizationIdOrHandle.workflowIdOrHandle.version@domain.com`
     );
     return;
   }
@@ -71,7 +76,11 @@ export async function handleIncomingEmail(
 
   if (version === "dev") {
     // Get workflow data directly
-    workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
+    workflow = await getWorkflow(
+      db,
+      workflowIdOrHandle,
+      organizationIdOrHandle
+    );
     if (!workflow) {
       console.error("Workflow not found");
       return;
@@ -81,18 +90,20 @@ export async function handleIncomingEmail(
     // Get deployment based on version
     let deployment;
     if (version === "latest") {
-      deployment = await getLatestDeploymentByWorkflowIdOrHandle(
+      deployment = await getLatestDeployment(
         db,
-        workflowIdOrHandle
+        workflowIdOrHandle,
+        organizationIdOrHandle
       );
       if (!deployment) {
         console.error("Deployment not found");
         return;
       }
     } else {
-      deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
+      deployment = await getDeploymentByVersion(
         db,
         workflowIdOrHandle,
+        organizationIdOrHandle,
         version
       );
       if (!deployment) {

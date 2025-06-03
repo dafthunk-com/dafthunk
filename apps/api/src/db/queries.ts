@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, SQL, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
 import {
@@ -176,6 +176,34 @@ export async function saveUser(
 }
 
 /**
+ * Check if a string is a valid UUID
+ *
+ * @param value The string to check
+ * @returns True if the string is a valid UUID, false otherwise
+ */
+export function isUUID(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+export function getOrganizationCondition(organizationIdOrHandle: string) {
+  if (isUUID(organizationIdOrHandle)) {
+    return eq(organizations.id, organizationIdOrHandle);
+  } else {
+    return eq(organizations.handle, organizationIdOrHandle);
+  }
+}
+
+export function getWorkflowCondition(workflowIdOrHandle: string) {
+  if (isUUID(workflowIdOrHandle)) {
+    return eq(workflows.id, workflowIdOrHandle);
+  } else {
+    return eq(workflows.handle, workflowIdOrHandle);
+  }
+}
+
+/**
  * Get a user by ID
  *
  * @param db Database instance
@@ -187,7 +215,6 @@ export async function getUserById(
   id: string
 ): Promise<UserRow | undefined> {
   const [user] = await db.select().from(users).where(eq(users.id, id));
-
   return user;
 }
 
@@ -195,14 +222,14 @@ export async function getUserById(
  * Get all workflows for an organization
  *
  * @param db Database instance
- * @param organizationId Organization ID
+ * @param organizationIdOrHandle Organization ID
  * @returns Array of workflows with basic info
  */
-export async function getWorkflowsByOrganizationId(
+export async function getWorkflows(
   db: ReturnType<typeof createDatabase>,
-  organizationId: string
+  organizationIdOrHandle: string
 ) {
-  return db
+  return await db
     .select({
       id: workflows.id,
       name: workflows.name,
@@ -212,25 +239,41 @@ export async function getWorkflowsByOrganizationId(
       updatedAt: workflows.updatedAt,
     })
     .from(workflows)
-    .where(eq(workflows.organizationId, organizationId));
+    .innerJoin(
+      organizations,
+      and(
+        eq(workflows.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
 }
 
 /**
  * Get a workflow by ID, ensuring it belongs to the specified organization
  *
  * @param db Database instance
- * @param idOrHandle Workflow ID or handle
+ * @param workflowIdOrHandle Workflow ID or handle
+ * @param organizationIdOrHandle Organization ID or handle
  * @returns Workflow record or undefined if not found
  */
-export async function getWorkflowByIdOrHandle(
+export async function getWorkflow(
   db: ReturnType<typeof createDatabase>,
-  idOrHandle: string
+  workflowIdOrHandle: string,
+  organizationIdOrHandle: string
 ): Promise<WorkflowRow | undefined> {
   const [workflow] = await db
     .select()
     .from(workflows)
-    .where(or(eq(workflows.id, idOrHandle), eq(workflows.handle, idOrHandle)));
-  return workflow;
+    .innerJoin(
+      organizations,
+      and(
+        eq(workflows.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle),
+        getWorkflowCondition(workflowIdOrHandle)
+      )
+    )
+    .limit(1);
+  return workflow?.workflows;
 }
 
 /**
@@ -238,32 +281,13 @@ export async function getWorkflowByIdOrHandle(
  *
  * @param db Database instance
  * @param workflowId Workflow ID
+ * @param organizationIdOrHandle Organization ID or handle
  * @returns The latest deployment or undefined if none found
  */
-export async function getLatestDeploymentByWorkflowIdOrHandle(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string
-): Promise<DeploymentRow | undefined> {
-  const [firstResult] = await db
-    .select()
-    .from(deployments)
-    .innerJoin(workflows, eq(deployments.workflowId, workflows.id))
-    .where(
-      or(
-        eq(workflows.id, workflowIdOrHandle),
-        eq(workflows.handle, workflowIdOrHandle)
-      )
-    )
-    .orderBy(desc(deployments.createdAt))
-    .limit(1);
-
-  return firstResult?.deployments;
-}
-
-export async function getDeploymentByWorkflowIdOrHandleAndVersion(
+export async function getLatestDeployment(
   db: ReturnType<typeof createDatabase>,
   workflowIdOrHandle: string,
-  version: string
+  organizationIdOrHandle: string
 ): Promise<DeploymentRow | undefined> {
   const [firstResult] = await db
     .select()
@@ -272,13 +296,40 @@ export async function getDeploymentByWorkflowIdOrHandleAndVersion(
       workflows,
       and(
         eq(deployments.workflowId, workflows.id),
-        or(
-          eq(workflows.id, workflowIdOrHandle),
-          eq(workflows.handle, workflowIdOrHandle)
-        )
+        getWorkflowCondition(workflowIdOrHandle)
       )
     )
-    .where(eq(deployments.version, parseInt(version, 10)))
+    .innerJoin(
+      organizations,
+      and(
+        eq(workflows.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .orderBy(desc(deployments.createdAt))
+    .limit(1);
+
+  return firstResult?.deployments;
+}
+
+export async function getDeploymentByVersion(
+  db: ReturnType<typeof createDatabase>,
+  workflowIdOrHandle: string,
+  organizationIdOrHandle: string,
+  version: string
+): Promise<DeploymentRow | undefined> {
+  const [firstResult] = await db
+    .select({ deployments: deployments })
+    .from(deployments)
+    .innerJoin(workflows, eq(deployments.workflowId, workflows.id))
+    .innerJoin(organizations, eq(workflows.organizationId, organizations.id))
+    .where(
+      and(
+        eq(deployments.version, parseInt(version, 10)),
+        getWorkflowCondition(workflowIdOrHandle),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
     .limit(1);
 
   return firstResult?.deployments;
@@ -361,20 +412,24 @@ export async function deleteWorkflow(
  * @param organizationId Organization ID
  * @returns Execution record or undefined if not found
  */
-export async function getExecutionById(
+export async function getExecution(
   db: ReturnType<typeof createDatabase>,
   id: string,
-  organizationId: string
+  organizationIdOrHandle: string
 ): Promise<ExecutionRow | undefined> {
-  const execution = await db
+  const [execution] = await db
     .select()
     .from(executions)
-    .where(
-      and(eq(executions.id, id), eq(executions.organizationId, organizationId))
+    .innerJoin(
+      organizations,
+      and(
+        eq(executions.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
     )
-    .get();
-
-  return execution;
+    .where(eq(executions.id, id))
+    .limit(1);
+  return execution?.executions;
 }
 
 /**
@@ -506,12 +561,12 @@ export async function verifyApiKey(
  * List API keys for an organization
  *
  * @param db Database instance
- * @param organizationId Organization ID
+ * @param organizationIdOrHandle Organization ID or handle
  * @returns Array of API key records (without the key hash)
  */
 export async function getApiKeys(
   db: ReturnType<typeof createDatabase>,
-  organizationId: string
+  organizationIdOrHandle: string
 ) {
   return db
     .select({
@@ -521,7 +576,13 @@ export async function getApiKeys(
       updatedAt: apiKeys.updatedAt,
     })
     .from(apiKeys)
-    .where(eq(apiKeys.organizationId, organizationId));
+    .innerJoin(
+      organizations,
+      and(
+        eq(apiKeys.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
 }
 
 /**
@@ -529,7 +590,7 @@ export async function getApiKeys(
  *
  * @param db Database instance
  * @param id Key ID
- * @param organizationId Organization ID
+ * @param organizationIdOrHandle Organization ID or handle
  * @returns True if key was deleted, false if not found
  */
 export async function deleteApiKey(
@@ -555,22 +616,22 @@ export async function deleteApiKey(
  * @param organizationId Organization ID for security checks
  * @returns The deployment or undefined if not found
  */
-export async function getDeploymentById(
+export async function getDeployment(
   db: ReturnType<typeof createDatabase>,
   id: string,
-  organizationId: string
+  organizationIdOrHandle: string
 ): Promise<DeploymentRow | undefined> {
-  const [deployment] = await db
-    .select()
+  const [resultRow] = await db
+    .select({ deployments: deployments })
     .from(deployments)
+    .innerJoin(organizations, eq(deployments.organizationId, organizations.id))
     .where(
       and(
         eq(deployments.id, id),
-        eq(deployments.organizationId, organizationId)
+        getOrganizationCondition(organizationIdOrHandle)
       )
     );
-
-  return deployment;
+  return resultRow?.deployments;
 }
 
 /**
@@ -603,7 +664,7 @@ export async function createDeployment(
  */
 export async function getDeploymentsGroupedByWorkflow(
   db: ReturnType<typeof createDatabase>,
-  organizationId: string
+  organizationIdOrHandle: string
 ): Promise<WorkflowDeployment[]> {
   // First, get the latest deployment per workflow
   const latestDeploymentsSubquery = db
@@ -614,7 +675,13 @@ export async function getDeploymentsGroupedByWorkflow(
       ),
     })
     .from(deployments)
-    .where(eq(deployments.organizationId, organizationId))
+    .innerJoin(
+      organizations,
+      and(
+        eq(deployments.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
     .groupBy(deployments.workflowId)
     .as("latest");
 
@@ -625,7 +692,13 @@ export async function getDeploymentsGroupedByWorkflow(
       count: sql<number>`COUNT(*)`.as("count"),
     })
     .from(deployments)
-    .where(eq(deployments.organizationId, organizationId))
+    .innerJoin(
+      organizations,
+      and(
+        eq(deployments.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
     .groupBy(deployments.workflowId)
     .as("counts");
 
@@ -655,7 +728,13 @@ export async function getDeploymentsGroupedByWorkflow(
       deploymentCountsSubquery,
       eq(workflows.id, deploymentCountsSubquery.workflowId)
     )
-    .where(eq(workflows.organizationId, organizationId))
+    .innerJoin(
+      organizations,
+      and(
+        eq(workflows.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
     // Sort by the latest deployment date (most recent first)
     .orderBy(desc(latestDeploymentsSubquery.maxCreatedAt));
 
@@ -677,21 +756,24 @@ export async function getDeploymentsGroupedByWorkflow(
  * @param organizationId Organization ID
  * @returns Array of deployment records
  */
-export async function getDeploymentsByWorkflowId(
+export async function getDeployments(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
-  organizationId: string
+  organizationIdOrHandle: string
 ): Promise<DeploymentRow[]> {
-  return db
-    .select()
+  const results = await db
+    .select({ deployments: deployments })
     .from(deployments)
+    .innerJoin(organizations, eq(deployments.organizationId, organizations.id))
     .where(
       and(
         eq(deployments.workflowId, workflowId),
-        eq(deployments.organizationId, organizationId)
+        getOrganizationCondition(organizationIdOrHandle)
       )
     )
     .orderBy(desc(deployments.createdAt));
+
+  return results.map((item) => item.deployments);
 }
 
 /**
@@ -702,24 +784,25 @@ export async function getDeploymentsByWorkflowId(
  * @param organizationId Organization ID
  * @returns The latest version number or null if no deployments exist
  */
-export async function getLatestVersionNumberByWorkflowId(
+export async function getLatestDeploymentsVersionNumbers(
   db: ReturnType<typeof createDatabase>,
   workflowId: string,
-  organizationId: string
+  organizationIdOrHandle: string
 ): Promise<number | null> {
-  const result = await db
+  const [resultRow] = await db
     .select({
-      maxVersion: sql<number>`MAX(${deployments.version})`,
+      maxVersion: sql<number>`MAX(${deployments.version})`.mapWith(Number),
     })
     .from(deployments)
+    .innerJoin(organizations, eq(deployments.organizationId, organizations.id))
     .where(
       and(
         eq(deployments.workflowId, workflowId),
-        eq(deployments.organizationId, organizationId)
+        getOrganizationCondition(organizationIdOrHandle)
       )
     );
 
-  return result[0]?.maxVersion || null;
+  return resultRow?.maxVersion ?? null;
 }
 
 /**
@@ -732,7 +815,7 @@ export async function getLatestVersionNumberByWorkflowId(
  */
 export async function listExecutions(
   db: ReturnType<typeof createDatabase>,
-  organizationId: string,
+  organizationIdOrHandle: string,
   options?: {
     workflowId?: string;
     deploymentId?: string;
@@ -740,21 +823,55 @@ export async function listExecutions(
     offset?: number;
   }
 ): Promise<ExecutionRow[]> {
-  return db.query.executions.findMany({
-    where: (executions, { eq, and }) =>
-      and(
-        eq(executions.organizationId, organizationId),
-        options?.workflowId
-          ? eq(executions.workflowId, options.workflowId)
-          : undefined,
-        options?.deploymentId
-          ? eq(executions.deploymentId, options.deploymentId)
-          : undefined
-      ),
-    orderBy: (executions, { desc }) => [desc(executions.createdAt)],
-    limit: options?.limit,
-    offset: options?.offset,
-  });
+  // Base query structure using an explicit join
+  // Explicitly select all columns from the executions table
+  let query = db
+    .select({ executions: executions })
+    .from(executions)
+    .innerJoin(organizations, eq(executions.organizationId, organizations.id))
+    .$dynamic(); // Use $dynamic() to allow for conditional query building
+
+  // Array to hold all conditions for the WHERE clause
+  const conditions = [];
+
+  // Add condition for organization (ID or Handle)
+  conditions.push(getOrganizationCondition(organizationIdOrHandle));
+
+  // Add optional condition for workflowId on the 'executions' table
+  if (options?.workflowId) {
+    conditions.push(eq(executions.workflowId, options.workflowId));
+  }
+
+  // Add optional condition for deploymentId on the 'executions' table
+  if (options?.deploymentId) {
+    conditions.push(eq(executions.deploymentId, options.deploymentId));
+  }
+
+  // Filter out any undefined conditions that might arise if optional fields are not provided
+  const validConditions = conditions.filter((c) => c !== undefined) as SQL[];
+  if (validConditions.length > 0) {
+    query = query.where(and(...validConditions));
+  }
+
+  // Apply ORDER BY to sort executions by creation date (descending)
+  query = query.orderBy(desc(executions.createdAt));
+
+  // Apply LIMIT if provided for pagination
+  if (options?.limit !== undefined) {
+    query = query.limit(options.limit);
+  }
+
+  // Apply OFFSET if provided for pagination
+  if (options?.offset !== undefined) {
+    query = query.offset(options.offset);
+  }
+
+  // Execute the query
+  const results = await query;
+
+  // Map results to return only ExecutionRow objects.
+  // Since we selected { executions: executions }, each item in 'results' will have an 'executions' property.
+  return results.map((item) => item.executions);
 }
 
 /**
@@ -764,14 +881,14 @@ export async function listExecutions(
  * @param handle Organization handle
  * @returns Organization record or undefined if not found
  */
-export async function getOrganizationByHandle(
+export async function getOrganization(
   db: ReturnType<typeof createDatabase>,
-  handle: string
+  organizationIdOrHandle: string
 ): Promise<typeof organizations.$inferSelect | undefined> {
   const [organization] = await db
     .select()
     .from(organizations)
-    .where(eq(organizations.handle, handle));
+    .where(getOrganizationCondition(organizationIdOrHandle));
 
   return organization;
 }
@@ -783,7 +900,7 @@ export async function getOrganizationByHandle(
  * @param id Execution ID
  * @returns Execution record or undefined if not found or not public
  */
-export async function getPublicExecutionById(
+export async function getPublicExecution(
   db: ReturnType<typeof createDatabase>,
   id: string
 ): Promise<ExecutionRow | undefined> {
@@ -802,7 +919,7 @@ export async function getPublicExecutionById(
  * @param workflowIds Array of workflow IDs
  * @returns Array of workflow IDs and names
  */
-export async function getWorkflowNamesByIds(
+export async function getWorkflowNames(
   db: ReturnType<typeof createDatabase>,
   workflowIds: string[]
 ): Promise<{ id: string; name: string }[]> {
@@ -819,14 +936,22 @@ export async function getWorkflowNamesByIds(
  * @param workflowId Workflow ID
  * @returns Workflow name or undefined if not found
  */
-export async function getWorkflowNameById(
+export async function getWorkflowName(
   db: ReturnType<typeof createDatabase>,
-  workflowId: string
+  workflowIdOrHandle: string,
+  organizationIdOrHandle: string
 ): Promise<string | undefined> {
   const [workflow] = await db
     .select({ name: workflows.name })
     .from(workflows)
-    .where(eq(workflows.id, workflowId));
+    .innerJoin(
+      organizations,
+      and(
+        eq(workflows.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getWorkflowCondition(workflowIdOrHandle));
 
   return workflow?.name;
 }

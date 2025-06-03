@@ -17,12 +17,12 @@ import { ApiContext } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";
 import {
   createDeployment,
-  getDeploymentById,
-  getDeploymentsByWorkflowId,
+  getDeployment,
+  getDeployments,
   getDeploymentsGroupedByWorkflow,
-  getLatestDeploymentByWorkflowIdOrHandle,
-  getLatestVersionNumberByWorkflowId,
-  getWorkflowByIdOrHandle,
+  getLatestDeployment,
+  getLatestDeploymentsVersionNumbers,
+  getWorkflow,
   saveExecution,
 } from "../db";
 
@@ -62,7 +62,7 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
   const deploymentId = c.req.param("deploymentId");
   const db = createDatabase(c.env.DB);
 
-  const deployment = await getDeploymentById(db, deploymentId, orgId);
+  const deployment = await getDeployment(db, deploymentId, orgId);
 
   if (!deployment) {
     return c.json({ error: "Deployment not found" }, 404);
@@ -89,20 +89,18 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
  * Returns the latest deployment for a workflow
  */
 deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
+  const orgId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
   const db = createDatabase(c.env.DB);
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
+  const workflow = await getWorkflow(db, workflowIdOrHandle, orgId);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
   // Get the latest deployment
-  const deployment = await getLatestDeploymentByWorkflowIdOrHandle(
-    db,
-    workflowIdOrHandle
-  );
+  const deployment = await getLatestDeployment(db, workflowIdOrHandle, orgId);
 
   if (!deployment) {
     return c.json({ error: "No deployments found for this workflow" }, 404);
@@ -135,7 +133,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const now = new Date();
 
   // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
+  const workflow = await getWorkflow(db, workflowIdOrHandle, orgId);
   if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
@@ -144,7 +142,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
 
   // Get the latest version number and increment
   const latestVersion =
-    (await getLatestVersionNumberByWorkflowId(db, workflowIdOrHandle, orgId)) ||
+    (await getLatestDeploymentsVersionNumbers(db, workflowIdOrHandle, orgId)) ||
     0;
   const newVersion = latestVersion + 1;
 
@@ -187,17 +185,13 @@ deploymentRoutes.get(
     const db = createDatabase(c.env.DB);
 
     // Check if workflow exists and belongs to the organization
-    const workflow = await getWorkflowByIdOrHandle(db, workflowIdOrHandle);
+    const workflow = await getWorkflow(db, workflowIdOrHandle, orgId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
     // Get all deployments for this workflow
-    const deploymentsList = await getDeploymentsByWorkflowId(
-      db,
-      workflowIdOrHandle,
-      orgId
-    );
+    const deploymentsList = await getDeployments(db, workflowIdOrHandle, orgId);
 
     // Transform to match WorkflowDeploymentVersion type
     const deploymentVersions = deploymentsList.map((deployment) => {
@@ -257,11 +251,7 @@ deploymentRoutes.post(
       new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
     // Get the deployment
-    const deployment = await getDeploymentById(
-      db,
-      deploymentId,
-      organizationId
-    );
+    const deployment = await getDeployment(db, deploymentId, organizationId);
 
     if (!deployment) {
       return c.json({ error: "Deployment not found" }, 404);

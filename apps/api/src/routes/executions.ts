@@ -12,11 +12,11 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
-  getExecutionById,
+  getExecution,
   getExecutionWithVisibility,
-  getOrganizationByHandle,
-  getWorkflowNameById,
-  getWorkflowNamesByIds,
+  getOrganization,
+  getWorkflowName,
+  getWorkflowNames,
   listExecutions,
   updateExecutionOgImageStatus,
   updateExecutionToPrivate,
@@ -27,31 +27,31 @@ import { generateExecutionOgImage } from "../utils/og-image-generator";
 const executionRoutes = new Hono<ApiContext>();
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
-  const orgHandle = c.req.param("orgHandle");
+  const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const organization = await getOrganizationByHandle(db, orgHandle);
+  const organization = await getOrganization(db, organizationIdOrHandle);
   if (!organization) {
     return c.json({ error: "Organization not found" }, 404);
   }
 
   const orgId = c.get("organizationId")!;
 
-  // Verify that the orgId from token/API key matches the orgId from the orgHandle
+  // Verify that the orgId from token/API key matches the orgId from the organizationIdOrHandle
   if (organization.id !== orgId) {
     return c.json({ error: "Forbidden: Organization mismatch" }, 403);
   }
 
   try {
-    const execution = await getExecutionById(db, id, orgId);
+    const execution = await getExecution(db, id, orgId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
     // Get workflow name
-    const workflowName = await getWorkflowNameById(db, execution.workflowId);
+    const workflowName = await getWorkflowName(db, execution.workflowId, orgId);
 
     const executionData = execution.data as WorkflowExecution;
     const workflowExecution: WorkflowExecution = {
@@ -79,7 +79,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
   const db = createDatabase(c.env.DB);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
-  const orgId = c.get("organizationId")!;
+  const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
 
   // Parse pagination params
   const parsedLimit = limit ? parseInt(limit, 10) : 20;
@@ -93,11 +93,15 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
     offset: parsedOffset,
   };
 
-  const executions = await listExecutions(db, orgId, queryParams);
+  const executions = await listExecutions(
+    db,
+    organizationIdOrHandle,
+    queryParams
+  );
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
-  const workflowNames = await getWorkflowNamesByIds(db, workflowIds);
+  const workflowNames = await getWorkflowNames(db, workflowIds);
   const workflowMap = new Map(workflowNames.map((w) => [w.id, w.name]));
 
   // Map to WorkflowExecution type
@@ -124,8 +128,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 executionRoutes.patch("/:id/share/public", jwtMiddleware, async (c) => {
   const executionId = c.req.param("id");
   const db = createDatabase(c.env.DB);
-
-  const orgId = c.get("organizationId")!;
+  const orgId = c.req.param("organizationIdOrHandle");
 
   try {
     const execution = await getExecutionWithVisibility(db, executionId, orgId);
@@ -170,10 +173,10 @@ executionRoutes.patch("/:id/share/private", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const orgId = c.get("organizationId")!;
+  const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
 
   try {
-    const execution = await getExecutionById(db, id, orgId);
+    const execution = await getExecution(db, id, organizationIdOrHandle);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
@@ -183,7 +186,7 @@ executionRoutes.patch("/:id/share/private", jwtMiddleware, async (c) => {
     // if it correctly filters by organizationId. If not, this check might be needed here.
     // However, getExecutionById already takes orgId, so it should be fine.
 
-    await updateExecutionToPrivate(db, id, orgId);
+    await updateExecutionToPrivate(db, id, organizationIdOrHandle);
 
     const response: UpdateExecutionVisibilityResponse = {
       success: true,

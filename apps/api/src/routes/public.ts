@@ -13,8 +13,8 @@ import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import {
   executions as executionsTable,
-  getPublicExecutionById,
-  getWorkflowByIdOrHandle,
+  getPublicExecution,
+  getWorkflow,
 } from "../db";
 import { ObjectStore } from "../runtime/object-store";
 
@@ -85,7 +85,7 @@ publicRoutes.get("/executions/:id", async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    const executionRecord = await getPublicExecutionById(db, id);
+    const executionRecord = await getPublicExecution(db, id);
 
     if (!executionRecord) {
       return c.json({ error: "Execution not found or not public" }, 404);
@@ -95,9 +95,10 @@ publicRoutes.get("/executions/:id", async (c) => {
     let workflowEdges: Workflow["edges"] = [];
     let workflowName = "Unknown Workflow";
 
-    const workflowRecord = await getWorkflowByIdOrHandle(
+    const workflowRecord = await getWorkflow(
       db,
-      executionRecord.workflowId
+      executionRecord.workflowId,
+      executionRecord.organizationId
     );
 
     if (workflowRecord) {

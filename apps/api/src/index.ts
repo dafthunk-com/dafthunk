@@ -39,12 +39,12 @@ app.route("/llms.txt", llmsRoutes);
 app.route("/public", publicRoutes);
 app.route("/types", typeRoutes);
 
-app.route("/:orgHandle/api-keys", apiKeyRoutes);
-app.route("/:orgHandle/dashboard", dashboardRoutes);
-app.route("/:orgHandle/deployments", deploymentRoutes);
-app.route("/:orgHandle/executions", executionRoutes);
-app.route("/:orgHandle/workflows", workflowRoutes);
-app.route("/:orgHandle/objects", objectRoutes);
+app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);
+app.route("/:organizationIdOrHandle/dashboard", dashboardRoutes);
+app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
+app.route("/:organizationIdOrHandle/executions", executionRoutes);
+app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
+app.route("/:organizationIdOrHandle/objects", objectRoutes);
 
 export default {
   email: handleIncomingEmail,

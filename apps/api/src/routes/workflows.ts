@@ -24,12 +24,12 @@ import {
   createWorkflow,
   deleteWorkflow,
   ExecutionStatus,
-  getDeploymentByWorkflowIdOrHandleAndVersion,
-  getExecutionById,
-  getLatestDeploymentByWorkflowIdOrHandle,
-  getOrganizationByHandle,
-  getWorkflowByIdOrHandle,
-  getWorkflowsByOrganizationId,
+  getDeploymentByVersion,
+  getExecution,
+  getLatestDeployment,
+  getOrganization,
+  getWorkflow,
+  getWorkflows,
   saveExecution,
   updateWorkflow,
   type WorkflowInsert,
@@ -58,7 +58,7 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
     return c.json({ error: "Organization ID not found in token" }, 401);
   }
 
-  const allWorkflows = await getWorkflowsByOrganizationId(db, orgId);
+  const allWorkflows = await getWorkflows(db, orgId);
 
   // Convert DB workflow objects to WorkflowWithMetadata objects
   const workflows: WorkflowWithMetadata[] = allWorkflows.map((workflow) => {
@@ -154,7 +154,7 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
 
   const orgId = c.get("organizationId")!;
 
-  const workflow = await getWorkflowByIdOrHandle(db, id);
+  const workflow = await getWorkflow(db, id, orgId);
 
   if (!workflow || workflow.organizationId !== orgId) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -197,7 +197,7 @@ workflowRoutes.put(
 
     const orgId = c.get("organizationId")!;
 
-    const existingWorkflow = await getWorkflowByIdOrHandle(db, id);
+    const existingWorkflow = await getWorkflow(db, id, orgId);
 
     if (!existingWorkflow || existingWorkflow.organizationId !== orgId) {
       return c.json({ error: "Workflow not found" }, 404);
@@ -289,7 +289,7 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 
   const orgId = c.get("organizationId")!;
 
-  const existingWorkflow = await getWorkflowByIdOrHandle(db, id);
+  const existingWorkflow = await getWorkflow(db, id, orgId);
 
   if (!existingWorkflow || existingWorkflow.organizationId !== orgId) {
     return c.json({ error: "Workflow not found" }, 404);
@@ -315,7 +315,7 @@ workflowRoutes.post(
   "/:idOrHandle/execute/:version",
   apiKeyOrJwtMiddleware,
   async (c) => {
-    const orgHandle = c.req.param("orgHandle");
+    const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
     const idOrHandle = c.req.param("idOrHandle");
     const version = c.req.param("version");
     const db = createDatabase(c.env.DB);
@@ -323,14 +323,14 @@ workflowRoutes.post(
       new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
     // Get organization from handle
-    const organization = await getOrganizationByHandle(db, orgHandle);
+    const organization = await getOrganization(db, organizationIdOrHandle);
     if (!organization) {
       return c.json({ error: "Organization not found" }, 404);
     }
 
     const orgIdFromAuth = c.get("organizationId")!;
 
-    // Verify that the orgId from token/API key matches the orgId from the orgHandle
+    // Verify that the orgId from token/API key matches the orgId from the organizationIdOrHandle
     if (organization.id !== orgIdFromAuth) {
       return c.json({ error: "Forbidden: Organization mismatch" }, 403);
     }
@@ -356,7 +356,7 @@ workflowRoutes.post(
 
     if (version === "dev") {
       // Get workflow data directly
-      workflow = await getWorkflowByIdOrHandle(db, idOrHandle);
+      workflow = await getWorkflow(db, idOrHandle, organizationIdOrHandle);
       if (!workflow || workflow.organizationId !== organization.id) {
         return c.json({ error: "Workflow not found" }, 404);
       }
@@ -365,9 +365,10 @@ workflowRoutes.post(
       // Get deployment based on version
       let deployment;
       if (version === "latest") {
-        deployment = await getLatestDeploymentByWorkflowIdOrHandle(
+        deployment = await getLatestDeployment(
           db,
-          idOrHandle
+          idOrHandle,
+          organizationIdOrHandle
         );
         if (!deployment) {
           return c.json(
@@ -376,9 +377,10 @@ workflowRoutes.post(
           );
         }
       } else {
-        deployment = await getDeploymentByWorkflowIdOrHandleAndVersion(
+        deployment = await getDeploymentByVersion(
           db,
           idOrHandle,
+          organizationIdOrHandle,
           version
         );
         if (!deployment) {
@@ -507,25 +509,25 @@ workflowRoutes.post(
   "/:idOrHandle/executions/:executionId/cancel",
   apiKeyOrJwtMiddleware,
   async (c) => {
-    const orgHandle = c.req.param("orgHandle");
+    const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
     const executionId = c.req.param("executionId");
     const db = createDatabase(c.env.DB);
 
     // Get organization from handle
-    const organization = await getOrganizationByHandle(db, orgHandle);
+    const organization = await getOrganization(db, organizationIdOrHandle);
     if (!organization) {
       return c.json({ error: "Organization not found" }, 404);
     }
 
     const orgIdFromAuth = c.get("organizationId")!;
 
-    // Verify that the orgId from token/API key matches the orgId from the orgHandle
+    // Verify that the orgId from token/API key matches the orgId from the organizationIdOrHandle
     if (organization.id !== orgIdFromAuth) {
       return c.json({ error: "Forbidden: Organization mismatch" }, 403);
     }
 
     // Get the execution to verify it exists and belongs to this organization
-    const execution = await getExecutionById(db, executionId, organization.id);
+    const execution = await getExecution(db, executionId, organization.id);
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }

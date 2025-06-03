@@ -8,9 +8,9 @@ import {
   index,
   integer,
   primaryKey,
-  uniqueIndex,
   sqliteTable,
   text,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 /**
@@ -218,7 +218,10 @@ export const workflows = sqliteTable(
     index("workflows_organization_id_idx").on(table.organizationId),
     index("workflows_created_at_idx").on(table.createdAt),
     index("workflows_updated_at_idx").on(table.updatedAt),
-    uniqueIndex("workflows_organization_id_handle_unique_idx").on(table.organizationId, table.handle),
+    uniqueIndex("workflows_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
   ]
 );
 
