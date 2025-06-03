@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth-context";
 import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
+import { EmailIntegrationCard } from "@/components/deployments/email-integration-card";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -293,41 +294,11 @@ export function DeploymentDetailPage() {
         );
 
       case "email_message": {
-        const emailAddress = `${workflow.handle}@${orgHandle}.workflows.dafthunk.com`;
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl">
-                <Mail className="mr-2 h-4 w-4" />
-                Email Integration
-              </CardTitle>
-              <CardDescription>
-                Send emails to this address to trigger the workflow
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="email-address">Email Address</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="email-address"
-                    value={emailAddress}
-                    readOnly
-                    className="font-mono h-9"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      navigator.clipboard.writeText(emailAddress);
-                      toast.success("Email address copied to clipboard");
-                    }}
-                  >
-                    Copy
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EmailIntegrationCard
+            orgHandle={orgHandle}
+            workflowHandle={workflow.handle}
+          />
         );
       }
 

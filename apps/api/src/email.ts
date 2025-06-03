@@ -45,26 +45,27 @@ export async function handleIncomingEmail(
 
   // Extract the handle from the to address
   const localPart = to.split("@")[0];
-  const parts = localPart.split(".");
-  let organizationIdOrHandle: string;
-  let workflowIdOrHandle: string;
-  let version: string;
+  const parts = localPart.split("+");
 
-  if (parts.length === 2) {
-    // Format: organizationIdOrHandle.workflowIdOrHandle@domain.com
-    organizationIdOrHandle = parts[0];
-    workflowIdOrHandle = parts[1];
-    version = "latest"; // Default to latest if no version is specified
-  } else if (parts.length === 3) {
-    // Format: organizationIdOrHandle.workflowIdOrHandle.version@domain.com
-    organizationIdOrHandle = parts[0];
-    workflowIdOrHandle = parts[1];
-    version = parts[2];
-  } else {
+  if (parts.length < 3 || parts.length > 4) {
     console.error(
-      `Invalid email format: ${to}. Expected organizationIdOrHandle.workflowIdOrHandle@domain.com or organizationIdOrHandle.workflowIdOrHandle.version@domain.com`
+      `Invalid email format: ${to}. Expected <type>+<organizationIdOrHandle>+<workflowIdOrHandle>[+<version>]@domain.com`
     );
     return;
+  }
+
+  let [triggerType, organizationIdOrHandle, workflowIdOrHandle, version] =
+    parts;
+
+  if (triggerType !== "workflow") {
+    console.error(
+      `Invalid trigger type: ${triggerType}. Expected "workflow".`
+    );
+    return;
+  }
+
+  if (!version) {
+    version = "latest";
   }
 
   const db = createDatabase(env.DB);

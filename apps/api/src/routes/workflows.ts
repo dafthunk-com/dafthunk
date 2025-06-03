@@ -21,6 +21,7 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
+  createHandle,
   createWorkflow,
   deleteWorkflow,
   ExecutionStatus,
@@ -96,10 +97,12 @@ workflowRoutes.post(
 
     const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
+    const workflowHandle = createHandle(workflowName);
+
     const workflowData = {
       id: workflowId,
       name: workflowName,
-      handle: workflowId,
+      handle: workflowHandle,
       type: data.type,
       nodes: Array.isArray(data.nodes) ? data.nodes : [],
       edges: Array.isArray(data.edges) ? data.edges : [],
