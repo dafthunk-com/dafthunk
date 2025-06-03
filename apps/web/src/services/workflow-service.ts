@@ -24,6 +24,7 @@ import useSWR from "swr";
 import { useAuth } from "@/components/auth-context";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type { JsonBodyParameter } from "@/components/workflow/execution-json-body-dialog";
+import type { EmailData } from "@/components/workflow/execution-email-dialog";
 import {
   NodeTemplate,
   WorkflowNodeType,
@@ -271,6 +272,7 @@ const wouldCreateIndirectCycle = (
 export function useWorkflowExecution(orgHandle: string) {
   const [isFormDialogVisible, setIsFormDialogVisible] = useState(false);
   const [isJsonBodyDialogVisible, setIsJsonBodyDialogVisible] = useState(false);
+  const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] = useState(false);
   const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
     []
   );
@@ -281,6 +283,7 @@ export function useWorkflowExecution(orgHandle: string) {
     id: string;
     onExecution: (execution: WorkflowExecution) => void;
     pendingFormData?: Record<string, any>;
+    workflowType?: string;
   } | null>(null);
 
   const pollingRef = useRef<{
@@ -486,7 +489,8 @@ export function useWorkflowExecution(orgHandle: string) {
       id: string,
       onExecution: (execution: WorkflowExecution) => void,
       uiNodes: ReactFlowNode<WorkflowNodeType>[],
-      nodeTemplatesData: NodeTemplate[] | undefined
+      nodeTemplatesData: NodeTemplate[] | undefined,
+      workflowTypeString?: string
     ): (() => void) | undefined => {
       cleanup();
 
@@ -502,41 +506,66 @@ export function useWorkflowExecution(orgHandle: string) {
         return undefined;
       }
 
-      const jsonBodyNode = uiNodes.find(
-        (node) => node.data.nodeType === "body-json"
-      );
-      const httpParameterNodes = extractDialogParametersFromNodes(
-        uiNodes,
-        nodeTemplatesData
+      const lowercasedWorkflowType = workflowTypeString?.toLowerCase();
+      console.log(
+        "[WorkflowService] executeWorkflowWithForm received workflowTypeString:",
+        workflowTypeString,
+        "Lowercased:",
+        lowercasedWorkflowType
       );
 
-      // Handle JSON body node if present
-      if (jsonBodyNode) {
-        setJsonBodyParameters([
-          {
-            nodeId: jsonBodyNode.id,
-            nameForForm: "jsonBody",
-            label: "JSON Body",
-            nodeName: jsonBodyNode.data.name,
-            isRequired: (jsonBodyNode.data.inputs.find(
-              (input) => input.id === "required"
-            )?.value ?? true) as boolean,
-          },
-        ]);
-        setIsJsonBodyDialogVisible(true);
-        setExecutionContext({ id, onExecution });
+      // Check for email workflow type first
+      if (lowercasedWorkflowType === "email_message") {
+        setIsEmailFormDialogVisible(true);
+        setExecutionContext({ id, onExecution, workflowType: workflowTypeString });
         return undefined;
       }
 
-      // Handle form parameters if present
-      if (httpParameterNodes.length > 0) {
-        setFormParameters(httpParameterNodes);
-        setIsFormDialogVisible(true);
-        setExecutionContext({ id, onExecution });
-        return undefined;
+      // Then check for HTTP workflow type for other dialogs
+      if (lowercasedWorkflowType === "http_request") {
+        const jsonBodyNode = uiNodes.find(
+          (node) => node.data.nodeType === "body-json"
+        );
+        const httpParameterNodes = extractDialogParametersFromNodes(
+          uiNodes,
+          nodeTemplatesData
+        );
+        console.log(
+          "[WorkflowService] HTTP_REQUEST block. jsonBodyNode:",
+          jsonBodyNode,
+          "httpParameterNodes:",
+          httpParameterNodes
+        );
+
+        // Handle JSON body node if present for HTTP workflows
+        if (jsonBodyNode) {
+          setJsonBodyParameters([
+            {
+              nodeId: jsonBodyNode.id,
+              nameForForm: "jsonBody",
+              label: "JSON Body",
+              nodeName: jsonBodyNode.data.name,
+              isRequired: (jsonBodyNode.data.inputs.find(
+                (input) => input.id === "required"
+              )?.value ?? true) as boolean,
+            },
+          ]);
+          setIsJsonBodyDialogVisible(true);
+          setExecutionContext({ id, onExecution, workflowType: workflowTypeString });
+          return undefined;
+        }
+
+        // Handle form parameters if present for HTTP workflows
+        if (httpParameterNodes.length > 0) {
+          setFormParameters(httpParameterNodes);
+          setIsFormDialogVisible(true);
+          setExecutionContext({ id, onExecution, workflowType: workflowTypeString });
+          return undefined;
+        }
       }
 
-      // If no parameters needed, execute directly
+      // If no specific dialog conditions met for 'email' or 'http' (with params),
+      // or if it's another workflow type, execute directly.
       return performExecutionAndPoll(id, onExecution);
     },
     [performExecutionAndPoll, cleanup]
@@ -568,9 +597,35 @@ export function useWorkflowExecution(orgHandle: string) {
     [executionContext, performExecutionAndPoll]
   );
 
+  const submitEmailFormData = useCallback(
+    (emailData: EmailData) => {
+      if (!executionContext) return;
+
+      const { id, onExecution } = executionContext;
+      // Construct the parameters as expected by the backend for an email trigger
+      // This might involve a specific structure, e.g., an "email" object
+      // For now, let's assume it takes these parameters directly, or nested under an "email" key.
+      // Adjust this based on how the backend expects to receive email trigger data.
+      const parameters = {
+        // Example: could be flat, or nested like { email: emailData }
+        // Based on typical HTTP triggers, they might be expected as top-level form data or a JSON body.
+        // If it's like a webhook, it might be JSON.
+        // Let's assume for now the backend expects these as direct parameters.
+        from: emailData.from,
+        subject: emailData.subject,
+        body: emailData.body,
+      };
+      performExecutionAndPoll(id, onExecution, { parameters });
+      setIsEmailFormDialogVisible(false);
+      setExecutionContext(null);
+    },
+    [executionContext, performExecutionAndPoll]
+  );
+
   const closeExecutionForm = useCallback(() => {
     setIsFormDialogVisible(false);
     setIsJsonBodyDialogVisible(false);
+    setIsEmailFormDialogVisible(false);
     setExecutionContext(null);
   }, []);
 
@@ -583,10 +638,12 @@ export function useWorkflowExecution(orgHandle: string) {
     cancelWorkflowExecution,
     isFormDialogVisible,
     isJsonBodyDialogVisible,
+    isEmailFormDialogVisible,
     executionFormParameters: formParameters,
     executionJsonBodyParameters: jsonBodyParameters,
     submitFormData,
     submitJsonBody,
+    submitEmailFormData,
     closeExecutionForm,
   };
 }

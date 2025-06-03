@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
+import { EmailDialog } from "@/components/workflow/execution-email-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
@@ -130,6 +131,8 @@ export function EditorPage() {
     submitFormData,
     submitJsonBody,
     closeExecutionForm,
+    isEmailFormDialogVisible,
+    submitEmailFormData,
   } = useWorkflowExecution(orgHandle);
 
   usePageBreadcrumbs(
@@ -174,10 +177,11 @@ export function EditorPage() {
         workflowIdFromBuilder,
         onExecutionFromBuilder,
         latestUiNodes,
-        nodeTemplates as any
+        nodeTemplates as any,
+        currentWorkflow?.type
       );
     },
-    [executeWorkflow, latestUiNodes, nodeTemplates]
+    [executeWorkflow, latestUiNodes, nodeTemplates, currentWorkflow?.type]
   );
 
   const handleRetryLoading = () => {
@@ -303,6 +307,14 @@ export function EditorPage() {
             onCancel={handleDialogCancel}
             parameters={executionJsonBodyParameters}
             onSubmit={submitJsonBody}
+          />
+        )}
+        {isEmailFormDialogVisible && submitEmailFormData && (
+          <EmailDialog
+            isOpen={isEmailFormDialogVisible}
+            onClose={closeExecutionForm}
+            onCancel={handleDialogCancel}
+            onSubmit={submitEmailFormData}
           />
         )}
       </div>
