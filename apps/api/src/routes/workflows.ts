@@ -398,53 +398,109 @@ workflowRoutes.post(
 
     // Get request body if it exists
     let body: any = undefined;
-    try {
-      const contentType = c.req.header("content-type");
-      if (contentType?.includes("application/json")) {
-        body = await c.req.json();
-      } else if (
-        contentType?.includes("multipart/form-data") ||
-        contentType?.includes("application/x-www-form-urlencoded")
-      ) {
-        formData = Object.fromEntries(await c.req.formData());
-        // Convert form data to body for consistency
-        body = Object.fromEntries(
-          Object.entries(formData).map(([key, value]) => [
-            key,
-            // Try to parse numbers
-            !isNaN(Number(value)) ? Number(value) : value,
-          ])
-        );
-      }
-    } catch (error) {
-      console.error("Error parsing request body:", error);
-      // Continue without body
+    const contentType = c.req.header("content-type");
+    if (contentType?.includes("application/json")) {
+      body = await c.req.json();
+    } else if (
+      contentType?.includes("multipart/form-data") ||
+      contentType?.includes("application/x-www-form-urlencoded")
+    ) {
+      formData = Object.fromEntries(await c.req.formData());
+      // Convert form data to body for consistency
+      body = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => {
+          // Try to parse numbers and booleans
+          if (typeof value === 'string') {
+            if (value.toLowerCase() === "true") return [key, true];
+            if (value.toLowerCase() === "false") return [key, false];
+            if (!isNaN(Number(value))) return [key, Number(value)];
+          }
+          return [key, value];
+        })
+      );
     }
 
-    // Trigger the runtime and get the instance id
-    const instance = await c.env.EXECUTE.create({
-      params: {
-        userId,
-        organizationId: organizationId,
-        workflow: {
-          id: workflow.id,
-          name: workflow.name,
-          handle: workflow.handle,
-          type: workflowData.type,
-          nodes: workflowData.nodes,
-          edges: workflowData.edges,
+    const baseExecutionParams = {
+      userId,
+      organizationId: organizationId,
+      workflow: {
+        id: workflow.id,
+        name: workflow.name,
+        handle: workflow.handle,
+        type: workflowData.type,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
+      },
+      monitorProgress,
+      deploymentId,
+    };
+
+    let finalExecutionParams: any;
+
+    if (workflowData.type === "email_message") {
+      const emailFrom = body?.from || "sender@example.com";
+      const emailSubject = body?.subject || "Default Subject";
+      const emailBody = body?.body || "Default email body.";
+      const emailTo = `workflow+${organizationId}+${workflow.handle || workflow.id}@dafthunk.com`;
+
+      const simulatedHeaders = {
+        "from": emailFrom,
+        "to": emailTo,
+        "subject": emailSubject,
+        "content-type": "text/plain; charset=us-ascii",
+        "date": new Date().toUTCString(),
+        "message-id": `<${uuid()}@dafthunk.com>`,
+      };
+
+      const simulatedRaw = `Received: from [127.0.0.1] (localhost [127.0.0.1])\n` +
+                         `by dafthunk.com (Postfix) with ESMTP id FAKEIDFORTEST\n` +
+                         `for <${emailTo}>; ${new Date().toUTCString()}\n` +
+                         `From: ${emailFrom}\n` +
+                         `To: ${emailTo}\n` +
+                         `Subject: ${emailSubject}\n` +
+                         `Date: ${new Date().toUTCString()}\n` +
+                         `Message-ID: <${simulatedHeaders["message-id"]}>\n` +
+                         `Content-Type: text/plain; charset=us-ascii\n` +
+                         `Content-Transfer-Encoding: 7bit\n\n` +
+                         `${emailBody}`;
+
+      finalExecutionParams = {
+        ...baseExecutionParams,
+        emailMessage: {
+          from: emailFrom,
+          to: emailTo,
+          headers: simulatedHeaders,
+          raw: simulatedRaw,
         },
-        monitorProgress,
-        deploymentId,
+      };
+    } else if (workflowData.type === "http_request") {
+      finalExecutionParams = {
+        ...baseExecutionParams,
         httpRequest: {
           url,
           method,
           headers,
           query,
-          formData,
-          body,
+          formData, // Will be undefined if not form-data content type
+          body,     // Parsed JSON or converted form-data
         },
-      },
+      };
+    } else {
+      // For other workflow types, include basic HTTP context without payload
+      finalExecutionParams = {
+        ...baseExecutionParams,
+        httpRequest: {
+          url,
+          method,
+          headers,
+          query,
+          // formData and body are intentionally omitted
+        },
+      };
+    }
+
+    const instance = await c.env.EXECUTE.create({
+      params: finalExecutionParams,
     });
     const executionId = instance.id;
 
