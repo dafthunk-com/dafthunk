@@ -551,7 +551,7 @@ export async function verifyApiKey(
   const [apiKeyRecord] = await db
     .select()
     .from(apiKeys)
-    .where(eq(apiKeys.id, hashedApiKey));
+    .where(eq(apiKeys.key, hashedApiKey));
 
   if (!apiKeyRecord || !apiKeyRecord.organizationId) {
     return null; // Key not found or not associated with an organization
