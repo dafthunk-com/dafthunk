@@ -7,6 +7,7 @@ import {
 } from "@dafthunk/types";
 import * as crypto from "crypto";
 import { and, desc, eq, inArray, SQL, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
 import {
@@ -682,85 +683,70 @@ export async function getDeploymentsGroupedByWorkflow(
   db: ReturnType<typeof createDatabase>,
   organizationIdOrHandle: string
 ): Promise<WorkflowDeployment[]> {
-  // First, get the latest deployment per workflow
-  const latestDeploymentsSubquery = db
-    .select({
-      workflowId: deployments.workflowId,
-      maxCreatedAt: sql<string>`MAX(${deployments.createdAt})`.as(
-        "maxCreatedAt"
-      ),
-    })
-    .from(deployments)
-    .innerJoin(
-      organizations,
-      and(
-        eq(deployments.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .groupBy(deployments.workflowId)
-    .as("latest");
+  const workflowDeploymentAggregates = db
+    .$with("workflow_deployment_aggregates")
+    .as(
+      db
+        .select({
+          workflowId: deployments.workflowId,
+          maxVersion: sql<number>`MAX(${deployments.version})`.mapWith(Number).as("max_version"),
+          deploymentCount: sql<number>`COUNT(${deployments.id})`.mapWith(Number).as("deployment_count"),
+        })
+        .from(deployments)
+        .innerJoin(
+          organizations,
+          and(
+            eq(deployments.organizationId, organizations.id),
+            getOrganizationCondition(organizationIdOrHandle)
+          )
+        )
+        .groupBy(deployments.workflowId)
+    );
 
-  // Get deployment counts per workflow
-  const deploymentCountsSubquery = db
-    .select({
-      workflowId: deployments.workflowId,
-      count: sql<number>`COUNT(*)`.as("count"),
-    })
-    .from(deployments)
-    .innerJoin(
-      organizations,
-      and(
-        eq(deployments.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .groupBy(deployments.workflowId)
-    .as("counts");
+  // Alias the deployments table to clearly refer to the specific deployment record
+  // that corresponds to the maxVersion. This is not strictly necessary if Drizzle handles
+  // self-joins well without it, but can improve clarity.
+  // Using a different alias name if 'latest_deployment' was used before or is confusing.
+  const actualLatestDeployment = alias(deployments, "actual_latest_deployment");
 
-  // Main query to get workflow details with latest deployment info
   const results = await db
+    .with(workflowDeploymentAggregates)
     .select({
       workflowId: workflows.id,
       workflowName: workflows.name,
-      deploymentId: deployments.id,
-      version: deployments.version,
-      createdAt: deployments.createdAt,
-      deploymentCount: deploymentCountsSubquery.count,
+      latestDeploymentId: actualLatestDeployment.id,
+      latestVersion: workflowDeploymentAggregates.maxVersion,
+      deploymentCount: workflowDeploymentAggregates.deploymentCount,
+      latestCreatedAt: actualLatestDeployment.createdAt,
     })
     .from(workflows)
     .innerJoin(
-      latestDeploymentsSubquery,
-      eq(workflows.id, latestDeploymentsSubquery.workflowId)
+      workflowDeploymentAggregates,
+      eq(workflows.id, workflowDeploymentAggregates.workflowId)
     )
     .innerJoin(
-      deployments,
+      actualLatestDeployment,
       and(
-        eq(deployments.workflowId, latestDeploymentsSubquery.workflowId),
-        eq(deployments.createdAt, latestDeploymentsSubquery.maxCreatedAt)
+        eq(actualLatestDeployment.workflowId, workflowDeploymentAggregates.workflowId),
+        eq(actualLatestDeployment.version, workflowDeploymentAggregates.maxVersion)
       )
     )
-    .innerJoin(
-      deploymentCountsSubquery,
-      eq(workflows.id, deploymentCountsSubquery.workflowId)
-    )
-    .innerJoin(
+    .innerJoin( // Ensure workflows themselves are filtered by the organization
       organizations,
       and(
         eq(workflows.organizationId, organizations.id),
         getOrganizationCondition(organizationIdOrHandle)
       )
     )
-    // Sort by the latest deployment date (most recent first)
-    .orderBy(desc(latestDeploymentsSubquery.maxCreatedAt));
+    .orderBy(desc(actualLatestDeployment.createdAt)); // Order by the actual latest deployment's creation time
 
   return results.map((row) => ({
     workflowId: row.workflowId,
     workflowName: row.workflowName,
-    latestDeploymentId: row.deploymentId,
-    latestVersion: row.version,
+    latestDeploymentId: row.latestDeploymentId,
+    latestVersion: row.latestVersion,
     deploymentCount: row.deploymentCount,
-    latestCreatedAt: row.createdAt,
+    latestCreatedAt: row.latestCreatedAt,
   }));
 }
 
@@ -1078,3 +1064,4 @@ export async function getExecutionWithVisibility(
 
   return execution;
 }
+
