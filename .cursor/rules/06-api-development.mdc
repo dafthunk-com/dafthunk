@@ -73,6 +73,19 @@ alwaysApply: false
 
 - **Custom Middleware for JWT and API key Auth (see [auth.ts](mdc:apps/api/src/auth.ts))**
 
+## Authorization & Organization Scoping
+
+- **Authentication & Context Establishment**:
+  - Authentication is handled by custom middleware detailed in `[auth.ts](mdc:apps/api/src/auth.ts)`.
+  - This middleware supports both **JWT (JSON Web Tokens)** for user sessions and **API Keys** for programmatic access.
+  - Upon successful authentication, the middleware establishes the **`organizationId`** in the request context (e.g., `c.set("organizationId", ...)`) based on the authenticated user or API key.
+
+- **Data Isolation**:
+  - Route handlers retrieve the `organizationId` from the request context (e.g., `c.get("organizationId")`).
+  - This `organizationId` is then consistently used in database queries and other business logic to scope data access.
+  - This ensures strict data isolation between different organizations, preventing unauthorized access or data leakage.
+  - The middleware guarantees that if a route handler is reached, a valid `organizationId` associated with the authenticated entity is available.
+
 ## Error Handling
 
 - **Global error handler**
