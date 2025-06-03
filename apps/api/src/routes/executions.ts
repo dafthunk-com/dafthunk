@@ -27,31 +27,19 @@ import { generateExecutionOgImage } from "../utils/og-image-generator";
 const executionRoutes = new Hono<ApiContext>();
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
-  const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
+  const organizationId = c.get("organizationId")!;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const organization = await getOrganization(db, organizationIdOrHandle);
-  if (!organization) {
-    return c.json({ error: "Organization not found" }, 404);
-  }
-
-  const orgId = c.get("organizationId")!;
-
-  // Verify that the orgId from token/API key matches the orgId from the organizationIdOrHandle
-  if (organization.id !== orgId) {
-    return c.json({ error: "Forbidden: Organization mismatch" }, 403);
-  }
-
   try {
-    const execution = await getExecution(db, id, orgId);
+    const execution = await getExecution(db, id, organizationId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
     // Get workflow name
-    const workflowName = await getWorkflowName(db, execution.workflowId, orgId);
+    const workflowName = await getWorkflowName(db, execution.workflowId, organizationId);
 
     const executionData = execution.data as WorkflowExecution;
     const workflowExecution: WorkflowExecution = {
@@ -79,7 +67,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
   const db = createDatabase(c.env.DB);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
-  const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
+  const organizationId = c.get("organizationId")!;
 
   // Parse pagination params
   const parsedLimit = limit ? parseInt(limit, 10) : 20;
@@ -95,7 +83,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 
   const executions = await listExecutions(
     db,
-    organizationIdOrHandle,
+    organizationId,
     queryParams
   );
 
@@ -128,23 +116,23 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 executionRoutes.patch("/:id/share/public", jwtMiddleware, async (c) => {
   const executionId = c.req.param("id");
   const db = createDatabase(c.env.DB);
-  const orgId = c.req.param("organizationIdOrHandle");
+  const organizationId = c.get("organizationId")!;
 
   try {
-    const execution = await getExecutionWithVisibility(db, executionId, orgId);
+    const execution = await getExecutionWithVisibility(db, executionId, organizationId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
-    await updateExecutionToPublic(db, executionId, orgId);
+    await updateExecutionToPublic(db, executionId, organizationId);
 
     if (!execution.ogImageGenerated && c.env.BROWSER) {
       try {
         await generateExecutionOgImage({
           env: c.env,
           executionId: executionId,
-          organizationId: orgId,
+          organizationId: organizationId,
         });
 
         await updateExecutionOgImageStatus(db, executionId);
@@ -173,10 +161,10 @@ executionRoutes.patch("/:id/share/private", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
+  const organizationId = c.get("organizationId")!;
 
   try {
-    const execution = await getExecution(db, id, organizationIdOrHandle);
+    const execution = await getExecution(db, id, organizationId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
@@ -186,7 +174,7 @@ executionRoutes.patch("/:id/share/private", jwtMiddleware, async (c) => {
     // if it correctly filters by organizationId. If not, this check might be needed here.
     // However, getExecutionById already takes orgId, so it should be fine.
 
-    await updateExecutionToPrivate(db, id, organizationIdOrHandle);
+    await updateExecutionToPrivate(db, id, organizationId);
 
     const response: UpdateExecutionVisibilityResponse = {
       success: true,

@@ -23,25 +23,24 @@ dashboard.use("*", jwtMiddleware);
  * Get dashboard statistics for the organization
  */
 dashboard.get("/", async (c) => {
-  const orgId = c.get("organizationId");
-  if (!orgId) return c.json({ error: "Unauthorized" }, 401);
+  const organizationId = c.get("organizationId")!;
 
   const db = createDatabase(c.env.DB);
 
   try {
     // Workflows count
-    const workflows = await getWorkflows(db, orgId);
+    const workflows = await getWorkflows(db, organizationId);
     const workflowsCount = workflows.length;
 
     // Deployments count
-    const deployments = await getDeploymentsGroupedByWorkflow(db, orgId);
+    const deployments = await getDeploymentsGroupedByWorkflow(db, organizationId);
     const deploymentsCount = deployments.reduce(
       (acc: number, w: { deploymentCount: number }) => acc + w.deploymentCount,
       0
     );
 
     // Executions stats
-    const executions: ExecutionRow[] = await listExecutions(db, orgId, {
+    const executions: ExecutionRow[] = await listExecutions(db, organizationId, {
       limit: 10,
     }); // limit for perf
     const totalExecutions = executions.length;

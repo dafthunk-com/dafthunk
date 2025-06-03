@@ -26,14 +26,11 @@ apiKeyRoutes.use("*", jwtMiddleware);
  * List all API keys for the current organization
  */
 apiKeyRoutes.get("/", async (c) => {
-  const orgId = c.get("organizationId");
-  if (!orgId) {
-    return c.json({ error: "Organization ID not found in token" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
   const db = createDatabase(c.env.DB);
 
   try {
-    const apiKeys = await getApiKeys(db, orgId);
+    const apiKeys = await getApiKeys(db, organizationId);
     const response: ListApiKeysResponse = { apiKeys };
     return c.json(response);
   } catch (error) {
@@ -56,15 +53,12 @@ apiKeyRoutes.post(
     }) as z.ZodType<CreateApiKeyRequest>
   ),
   async (c) => {
-    const orgId = c.get("organizationId");
-    if (!orgId) {
-      return c.json({ error: "Organization ID not found in token" }, 401);
-    }
+    const organizationId = c.get("organizationId")!;
     const db = createDatabase(c.env.DB);
     const { name } = c.req.valid("json");
 
     try {
-      const result = await createApiKey(db, orgId, name);
+      const result = await createApiKey(db, organizationId, name);
 
       const apiKeyWithSecret: ApiKeyWithSecret = {
         apiKey: result.rawApiKey,
@@ -88,15 +82,12 @@ apiKeyRoutes.post(
  * Delete an API key
  */
 apiKeyRoutes.delete("/:id", async (c) => {
-  const orgId = c.get("organizationId");
-  if (!orgId) {
-    return c.json({ error: "Organization ID not found in token" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
   const db = createDatabase(c.env.DB);
   const apiKeyId = c.req.param("id");
 
   try {
-    const success = await deleteApiKey(db, apiKeyId, orgId);
+    const success = await deleteApiKey(db, apiKeyId, organizationId);
 
     const response: DeleteApiKeyResponse = { success };
 

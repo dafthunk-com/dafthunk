@@ -524,37 +524,53 @@ export async function createApiKey(
 }
 
 /**
- * Verify an API key
+ * Verify an API key against an organization
  *
  * @param db Database instance
- * @param providedApiKey The key provided in the request
- * @returns The organization ID if key is valid, null otherwise
+ * @param providedApiKey The API key to verify
+ * @param organizationIdOrHandle The ID or handle of the organization to verify against
+ * @returns The organization ID if the key is valid for the organization, null otherwise
  */
 export async function verifyApiKey(
   db: ReturnType<typeof createDatabase>,
-  providedApiKey: string
+  providedApiKey: string,
+  organizationIdOrHandle: string
 ): Promise<string | null> {
-  // Hash the provided key directly without attempting to handle any prefix
+  if (!providedApiKey) {
+    return null;
+  }
+
+  // Hash the provided API key
   const hashedApiKey = crypto
     .createHash("sha256")
     .update(providedApiKey)
     .digest("hex");
 
-  // Find the key in the database
-  const [apiKey] = await db
-    .select({
-      id: apiKeys.id,
-      organizationId: apiKeys.organizationId,
-    })
+  // Query the database for the API key
+  const [apiKeyRecord] = await db
+    .select()
     .from(apiKeys)
-    .where(eq(apiKeys.key, hashedApiKey));
+    .where(eq(apiKeys.id, hashedApiKey));
 
-  // Check if key exists
-  if (!apiKey) {
-    return null;
+  if (!apiKeyRecord || !apiKeyRecord.organizationId) {
+    return null; // Key not found or not associated with an organization
   }
 
-  return apiKey.organizationId;
+  // Check if the API key belongs to the specified organization
+  const organizationCondition = getOrganizationCondition(
+    organizationIdOrHandle
+  );
+  const [organization] = await db
+    .select({ id: organizations.id })
+    .from(organizations)
+    .where(organizationCondition);
+
+  if (!organization || organization.id !== apiKeyRecord.organizationId) {
+    return null; // API key does not belong to the specified organization
+  }
+
+  // API key is valid and belongs to the specified organization
+  return apiKeyRecord.organizationId;
 }
 
 /**

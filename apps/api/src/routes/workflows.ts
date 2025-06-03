@@ -27,7 +27,6 @@ import {
   getDeploymentByVersion,
   getExecution,
   getLatestDeployment,
-  getOrganization,
   getWorkflow,
   getWorkflows,
   saveExecution,
@@ -52,18 +51,14 @@ const workflowRoutes = new Hono<ExtendedApiContext>();
 workflowRoutes.get("/", jwtMiddleware, async (c) => {
   const db = createDatabase(c.env.DB);
 
-  const orgId = c.get("organizationId");
-  if (!orgId) {
-    // This should ideally not happen if jwtMiddleware is working correctly
-    return c.json({ error: "Organization ID not found in token" }, 401);
-  }
+  const organizationId = c.get("organizationId")!;
 
-  const allWorkflows = await getWorkflows(db, orgId);
+  const allWorkflows = await getWorkflows(db, organizationId);
 
   // Convert DB workflow objects to WorkflowWithMetadata objects
   const workflows: WorkflowWithMetadata[] = allWorkflows.map((workflow) => {
     return {
-      id: workflow.id,
+      id:   workflow.id,
       name: workflow.name,
       handle: workflow.handle,
       type: workflow.data.type,
@@ -97,7 +92,7 @@ workflowRoutes.post(
     const data = c.req.valid("json");
     const now = new Date();
 
-    const orgId = c.get("organizationId")!;
+    const organizationId = c.get("organizationId")!;
 
     const workflowId = uuid();
     const workflowName = data.name || "Untitled Workflow";
@@ -115,7 +110,7 @@ workflowRoutes.post(
       name: workflowData.name,
       handle: workflowData.handle,
       data: workflowData,
-      organizationId: orgId,
+      organizationId: organizationId,
       createdAt: now,
       updatedAt: now,
     };
@@ -152,11 +147,9 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const orgId = c.get("organizationId")!;
-
-  const workflow = await getWorkflow(db, id, orgId);
-
-  if (!workflow || workflow.organizationId !== orgId) {
+  const organizationId = c.get("organizationId")!;
+  const workflow = await getWorkflow(db, id, organizationId);
+  if (!workflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
@@ -195,11 +188,11 @@ workflowRoutes.put(
     const id = c.req.param("id");
     const db = createDatabase(c.env.DB);
 
-    const orgId = c.get("organizationId")!;
+    const organizationId = c.get("organizationId")!;
 
-    const existingWorkflow = await getWorkflow(db, id, orgId);
+    const existingWorkflow = await getWorkflow(db, id, organizationId);
 
-    if (!existingWorkflow || existingWorkflow.organizationId !== orgId) {
+    if (!existingWorkflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
@@ -257,7 +250,7 @@ workflowRoutes.put(
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
 
-    const updatedWorkflow = await updateWorkflow(db, id, orgId, {
+    const updatedWorkflow = await updateWorkflow(db, id, organizationId, {
       name: data.name,
       data: updatedWorkflowData,
       updatedAt: now,
@@ -287,15 +280,15 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
 
-  const orgId = c.get("organizationId")!;
+  const organizationId = c.get("organizationId")!;
 
-  const existingWorkflow = await getWorkflow(db, id, orgId);
+  const existingWorkflow = await getWorkflow(db, id, organizationId);
 
-  if (!existingWorkflow || existingWorkflow.organizationId !== orgId) {
+  if (!existingWorkflow) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const deletedWorkflow = await deleteWorkflow(db, id, orgId);
+  const deletedWorkflow = await deleteWorkflow(db, id, organizationId);
 
   if (!deletedWorkflow) {
     return c.json({ error: "Failed to delete workflow" }, 500);
@@ -312,28 +305,15 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
  * - version can be a number for a specific deployment version
  */
 workflowRoutes.post(
-  "/:idOrHandle/execute/:version",
+  "/:workflowIdOrHandle/execute/:version",
   apiKeyOrJwtMiddleware,
   async (c) => {
-    const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
-    const idOrHandle = c.req.param("idOrHandle");
+    const organizationId = c.get("organizationId")!;
+    const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const version = c.req.param("version");
     const db = createDatabase(c.env.DB);
     const monitorProgress =
       new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-
-    // Get organization from handle
-    const organization = await getOrganization(db, organizationIdOrHandle);
-    if (!organization) {
-      return c.json({ error: "Organization not found" }, 404);
-    }
-
-    const orgIdFromAuth = c.get("organizationId")!;
-
-    // Verify that the orgId from token/API key matches the orgId from the organizationIdOrHandle
-    if (organization.id !== orgIdFromAuth) {
-      return c.json({ error: "Forbidden: Organization mismatch" }, 403);
-    }
 
     // Get organization ID from either JWT or API key auth
     let userId: string;
@@ -356,10 +336,7 @@ workflowRoutes.post(
 
     if (version === "dev") {
       // Get workflow data directly
-      workflow = await getWorkflow(db, idOrHandle, organizationIdOrHandle);
-      if (!workflow || workflow.organizationId !== organization.id) {
-        return c.json({ error: "Workflow not found" }, 404);
-      }
+      workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
       workflowData = workflow.data;
     } else {
       // Get deployment based on version
@@ -367,8 +344,8 @@ workflowRoutes.post(
       if (version === "latest") {
         deployment = await getLatestDeployment(
           db,
-          idOrHandle,
-          organizationIdOrHandle
+          workflowIdOrHandle,
+          organizationId
         );
         if (!deployment) {
           return c.json(
@@ -379,15 +356,12 @@ workflowRoutes.post(
       } else {
         deployment = await getDeploymentByVersion(
           db,
-          idOrHandle,
-          organizationIdOrHandle,
+          workflowIdOrHandle,
+          organizationId,
           version
         );
         if (!deployment) {
           return c.json({ error: "Deployment version not found" }, 404);
-        }
-        if (deployment.organizationId !== organization.id) {
-          return c.json({ error: "Deployment not authorized" }, 401);
         }
       }
 
@@ -448,7 +422,7 @@ workflowRoutes.post(
     const instance = await c.env.EXECUTE.create({
       params: {
         userId,
-        organizationId: organization.id,
+        organizationId: organizationId,
         workflow: {
           id: workflow.id,
           name: workflow.name,
@@ -483,7 +457,7 @@ workflowRoutes.post(
       workflowId: workflow.id,
       deploymentId,
       userId,
-      organizationId: organization.id,
+      organizationId: organizationId,
       status: ExecutionStatus.EXECUTING,
       visibility: "private",
       nodeExecutions,
@@ -506,28 +480,15 @@ workflowRoutes.post(
  * Cancel a running workflow execution
  */
 workflowRoutes.post(
-  "/:idOrHandle/executions/:executionId/cancel",
+  "/:workflowIdOrHandle/executions/:executionId/cancel",
   apiKeyOrJwtMiddleware,
   async (c) => {
-    const organizationIdOrHandle = c.req.param("organizationIdOrHandle");
+    const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
     const db = createDatabase(c.env.DB);
 
-    // Get organization from handle
-    const organization = await getOrganization(db, organizationIdOrHandle);
-    if (!organization) {
-      return c.json({ error: "Organization not found" }, 404);
-    }
-
-    const orgIdFromAuth = c.get("organizationId")!;
-
-    // Verify that the orgId from token/API key matches the orgId from the organizationIdOrHandle
-    if (organization.id !== orgIdFromAuth) {
-      return c.json({ error: "Forbidden: Organization mismatch" }, 403);
-    }
-
     // Get the execution to verify it exists and belongs to this organization
-    const execution = await getExecution(db, executionId, organization.id);
+    const execution = await getExecution(db, executionId, organizationId);
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }

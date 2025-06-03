@@ -130,6 +130,12 @@ export const apiKeyMiddleware = async (
   next: () => Promise<void>
 ) => {
   const authHeader = c.req.header("Authorization");
+  const organizationIdOrHandleFromUrl = c.req.param("organizationIdOrHandle");
+
+  if (!organizationIdOrHandleFromUrl) {
+    // This should ideally not happen if routes are configured correctly
+    return c.json({ error: "Organization ID or handle missing from URL" }, 400);
+  }
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return c.json({ error: "API key is required" }, 401);
@@ -138,14 +144,21 @@ export const apiKeyMiddleware = async (
   const apiKey = authHeader.substring(7); // Remove "Bearer " prefix
   const db = createDatabase(c.env.DB);
 
-  const organizationId = await verifyApiKey(db, apiKey);
+  const validatedOrganizationId = await verifyApiKey(
+    db,
+    apiKey,
+    organizationIdOrHandleFromUrl
+  );
 
-  if (!organizationId) {
-    return c.json({ error: "Invalid API key" }, 401);
+  if (!validatedOrganizationId) {
+    return c.json(
+      { error: "Invalid API key for the specified organization" },
+      401
+    );
   }
 
-  // Store the organization ID in the context for later use
-  c.set("organizationId", organizationId);
+  // Store the validated organization ID in the context for later use
+  c.set("organizationId", validatedOrganizationId);
 
   await next();
 };
@@ -156,13 +169,23 @@ export const apiKeyOrJwtMiddleware = async (
   next: () => Promise<void>
 ) => {
   const authHeader = c.req.header("Authorization");
+  const organizationIdOrHandleFromUrl = c.req.param("organizationIdOrHandle");
 
   // If Authorization header is present, try API key auth
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    return apiKeyMiddleware(c, next);
+    if (!organizationIdOrHandleFromUrl) {
+      return c.json(
+        {
+          error: "Organization ID or handle missing from URL for API key auth",
+        },
+        400
+      );
+    }
+    return apiKeyMiddleware(c, next); // apiKeyMiddleware will handle org verification
   }
 
-  // Otherwise, use JWT auth
+  // Otherwise, try JWT auth (which might not need organizationIdOrHandleFromUrl explicitly here,
+  // as JWT payload should contain organization info if needed by downstream handlers)
   return jwtMiddleware(c, next);
 };
 
