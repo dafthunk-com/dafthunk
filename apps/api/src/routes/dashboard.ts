@@ -71,6 +71,7 @@ dashboard.get("/", async (c) => {
       workflowName: workflows.find((w) => w.id === e.workflowId)?.name || "",
       status: e.status,
       startedAt: e.startedAt ? Number(e.startedAt) : Date.now(),
+      endedAt: e.endedAt ? Number(e.endedAt) : undefined,
     }));
 
     const stats: DashboardStats = {

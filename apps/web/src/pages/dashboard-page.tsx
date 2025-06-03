@@ -1,6 +1,6 @@
 import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
-import { formatDistanceToNow } from "date-fns";
-import { AlertCircle, Clock, Logs, Plus, Target, Workflow } from "lucide-react";
+import { format } from "date-fns";
+import { AlertCircle, Clock, Logs, Plus, Target, Workflow, MoreHorizontal, Eye } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
@@ -14,8 +14,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDashboard } from "@/services/dashboard-service";
 import { createWorkflow } from "@/services/workflow-service";
+
+// Define a type for recent execution items, mirroring DashboardStats.recentExecutions
+interface RecentExecutionItem {
+  id: string;
+  workflowName: string;
+  status: string;
+  startedAt: number;
+  endedAt?: number;
+}
 
 export function DashboardPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -175,26 +190,97 @@ export function DashboardPage() {
           },
           {
             accessorKey: "status",
-            header: "Status",
+            header: "Execution Status",
             cell: ({ row }) => {
-              const badgeStatus = row.original
-                .status as WorkflowExecutionStatus;
+              const execution = row.original as RecentExecutionItem;
+              const badgeStatus = execution.status as WorkflowExecutionStatus;
               return <ExecutionStatusBadge status={badgeStatus} />;
             },
           },
           {
             accessorKey: "startedAt",
-            header: "Started",
-            cell: ({ row }) => (
-              <span className="text-right text-xs text-muted-foreground">
-                {formatDistanceToNow(row.original.startedAt, {
-                  addSuffix: true,
-                })}
-              </span>
-            ),
+            header: "Started At",
+            cell: ({ row }) => {
+              const execution = row.original as RecentExecutionItem;
+              return (
+                <span className="text-xs text-muted-foreground">
+                  {execution.startedAt ? format(new Date(execution.startedAt), "PPpp") : "-"}
+                </span>
+              );
+            },
+          },
+          {
+            accessorKey: "endedAt",
+            header: "Ended At",
+            cell: ({ row }) => {
+              const execution = row.original as RecentExecutionItem;
+              const formatted = execution.endedAt
+                ? format(new Date(execution.endedAt), "PPpp")
+                : "-";
+              return (
+                <span className="text-xs text-muted-foreground">
+                  {formatted}
+                </span>
+              );
+            },
+          },
+          {
+            accessorKey: "duration",
+            header: "Duration",
+            cell: ({ row }) => {
+              const execution = row.original as RecentExecutionItem;
+              const { startedAt, endedAt } = execution;
+
+              if (startedAt && endedAt) {
+                const durationMs =
+                  new Date(endedAt).getTime() - new Date(startedAt).getTime();
+                const seconds = Math.floor((durationMs / 1000) % 60);
+                const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
+
+                let formattedDuration = "";
+                if (minutes > 0) {
+                  formattedDuration += `${minutes}m `;
+                }
+                formattedDuration += `${seconds}s`;
+                if (formattedDuration.trim() === "0s" && durationMs > 0 && durationMs < 1000) {
+                  formattedDuration = "<1s";
+                } else if (formattedDuration.trim() === "0s" && durationMs === 0) {
+                   formattedDuration = "0s";
+                }
+
+
+                return <div>{formattedDuration.trim()}</div>;
+              }
+              return <div>-</div>;
+            },
+          },
+          {
+            id: "actions",
+            cell: ({ row }) => {
+              const execution = row.original as RecentExecutionItem;
+              return (
+                <div className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to={`/workflows/executions/${execution.id}`}>
+                          View
+                        </Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              );
+            },
           },
         ]}
-        data={dashboardStats.recentExecutions}
+        data={dashboardStats.recentExecutions as RecentExecutionItem[]}
         emptyState={{
           title: "No executions",
           description: "There are no recent executions to display.",

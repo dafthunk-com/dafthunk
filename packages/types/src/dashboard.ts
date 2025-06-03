@@ -15,6 +15,7 @@ export interface DashboardStats {
     workflowName: string;
     status: string;
     startedAt: number;
+    endedAt?: number;
   }>;
 }
 
