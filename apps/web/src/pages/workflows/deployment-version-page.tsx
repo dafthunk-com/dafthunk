@@ -239,23 +239,27 @@ export function DeploymentVersionPage() {
                 createdAt={deploymentVersion.createdAt}
               />
 
-              {deploymentVersion && workflow && workflow.type === "http_request" && (
-                <ApiIntegrationCard
-                  orgHandle={orgHandle}
-                  workflowId={workflow.id}
-                  deploymentVersion={deploymentVersion.version.toString()}
-                  nodes={nodes}
-                  nodeTemplates={nodeTemplates}
-                />
-              )}
+              {deploymentVersion &&
+                workflow &&
+                workflow.type === "http_request" && (
+                  <ApiIntegrationCard
+                    orgHandle={orgHandle}
+                    workflowId={workflow.id}
+                    deploymentVersion={deploymentVersion.version.toString()}
+                    nodes={nodes}
+                    nodeTemplates={nodeTemplates}
+                  />
+                )}
 
-              {deploymentVersion && workflow && workflow.type === "email_message" && (
-                <EmailIntegrationCard
-                  orgHandle={orgHandle}
-                  workflowHandle={workflow.handle}
-                  deploymentVersion={deploymentVersion.version.toString()}
-                />
-              )}
+              {deploymentVersion &&
+                workflow &&
+                workflow.type === "email_message" && (
+                  <EmailIntegrationCard
+                    orgHandle={orgHandle}
+                    workflowHandle={workflow.handle}
+                    deploymentVersion={deploymentVersion.version.toString()}
+                  />
+                )}
             </TabsContent>
 
             <TabsContent value="workflow" className="mt-4">

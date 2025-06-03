@@ -14,7 +14,6 @@ import {
   createDatabase,
   getExecution,
   getExecutionWithVisibility,
-  getOrganization,
   getWorkflowName,
   getWorkflowNames,
   listExecutions,
@@ -39,7 +38,11 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
     }
 
     // Get workflow name
-    const workflowName = await getWorkflowName(db, execution.workflowId, organizationId);
+    const workflowName = await getWorkflowName(
+      db,
+      execution.workflowId,
+      organizationId
+    );
 
     const executionData = execution.data as WorkflowExecution;
     const workflowExecution: WorkflowExecution = {
@@ -81,11 +84,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
     offset: parsedOffset,
   };
 
-  const executions = await listExecutions(
-    db,
-    organizationId,
-    queryParams
-  );
+  const executions = await listExecutions(db, organizationId, queryParams);
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
@@ -119,7 +118,11 @@ executionRoutes.patch("/:id/share/public", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
 
   try {
-    const execution = await getExecutionWithVisibility(db, executionId, organizationId);
+    const execution = await getExecutionWithVisibility(
+      db,
+      executionId,
+      organizationId
+    );
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);

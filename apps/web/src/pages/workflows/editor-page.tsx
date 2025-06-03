@@ -6,9 +6,9 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
+import { EmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
-import { EmailDialog } from "@/components/workflow/execution-email-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {

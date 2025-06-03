@@ -44,7 +44,10 @@ deploymentRoutes.get("/", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const db = createDatabase(c.env.DB);
 
-  const groupedDeployments = await getDeploymentsGroupedByWorkflow(db, organizationId);
+  const groupedDeployments = await getDeploymentsGroupedByWorkflow(
+    db,
+    organizationId
+  );
 
   // Transform to match WorkflowDeployment type
   const typedDeployments: WorkflowDeployment[] = groupedDeployments;
@@ -100,7 +103,11 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   }
 
   // Get the latest deployment
-  const deployment = await getLatestDeployment(db, workflowIdOrHandle, organizationId);
+  const deployment = await getLatestDeployment(
+    db,
+    workflowIdOrHandle,
+    organizationId
+  );
 
   if (!deployment) {
     return c.json({ error: "No deployments found for this workflow" }, 404);
@@ -142,8 +149,11 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
 
   // Get the latest version number and increment
   const latestVersion =
-    (await getLatestDeploymentsVersionNumbers(db, workflowIdOrHandle, organizationId)) ||
-    0;
+    (await getLatestDeploymentsVersionNumbers(
+      db,
+      workflowIdOrHandle,
+      organizationId
+    )) || 0;
   const newVersion = latestVersion + 1;
 
   // Create new deployment
@@ -191,7 +201,11 @@ deploymentRoutes.get(
     }
 
     // Get all deployments for this workflow
-    const deploymentsList = await getDeployments(db, workflowIdOrHandle, organizationId);
+    const deploymentsList = await getDeployments(
+      db,
+      workflowIdOrHandle,
+      organizationId
+    );
 
     // Transform to match WorkflowDeploymentVersion type
     const deploymentVersions = deploymentsList.map((deployment) => {

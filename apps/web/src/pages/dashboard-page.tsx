@@ -1,6 +1,14 @@
 import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
 import { format } from "date-fns";
-import { AlertCircle, Clock, Logs, Plus, Target, Workflow, MoreHorizontal, Eye } from "lucide-react";
+import {
+  AlertCircle,
+  Clock,
+  Logs,
+  MoreHorizontal,
+  Plus,
+  Target,
+  Workflow,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
@@ -12,14 +20,14 @@ import { InsetLoading } from "@/components/inset-loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
-import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
 import { useDashboard } from "@/services/dashboard-service";
 import { createWorkflow } from "@/services/workflow-service";
 
@@ -204,7 +212,9 @@ export function DashboardPage() {
               const execution = row.original as RecentExecutionItem;
               return (
                 <span className="text-xs text-muted-foreground">
-                  {execution.startedAt ? format(new Date(execution.startedAt), "PPpp") : "-"}
+                  {execution.startedAt
+                    ? format(new Date(execution.startedAt), "PPpp")
+                    : "-"}
                 </span>
               );
             },
@@ -242,12 +252,18 @@ export function DashboardPage() {
                   formattedDuration += `${minutes}m `;
                 }
                 formattedDuration += `${seconds}s`;
-                if (formattedDuration.trim() === "0s" && durationMs > 0 && durationMs < 1000) {
+                if (
+                  formattedDuration.trim() === "0s" &&
+                  durationMs > 0 &&
+                  durationMs < 1000
+                ) {
                   formattedDuration = "<1s";
-                } else if (formattedDuration.trim() === "0s" && durationMs === 0) {
-                   formattedDuration = "0s";
+                } else if (
+                  formattedDuration.trim() === "0s" &&
+                  durationMs === 0
+                ) {
+                  formattedDuration = "0s";
                 }
-
 
                 return <div>{formattedDuration.trim()}</div>;
               }

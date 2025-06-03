@@ -689,8 +689,12 @@ export async function getDeploymentsGroupedByWorkflow(
       db
         .select({
           workflowId: deployments.workflowId,
-          maxVersion: sql<number>`MAX(${deployments.version})`.mapWith(Number).as("max_version"),
-          deploymentCount: sql<number>`COUNT(${deployments.id})`.mapWith(Number).as("deployment_count"),
+          maxVersion: sql<number>`MAX(${deployments.version})`
+            .mapWith(Number)
+            .as("max_version"),
+          deploymentCount: sql<number>`COUNT(${deployments.id})`
+            .mapWith(Number)
+            .as("deployment_count"),
         })
         .from(deployments)
         .innerJoin(
@@ -727,11 +731,18 @@ export async function getDeploymentsGroupedByWorkflow(
     .innerJoin(
       actualLatestDeployment,
       and(
-        eq(actualLatestDeployment.workflowId, workflowDeploymentAggregates.workflowId),
-        eq(actualLatestDeployment.version, workflowDeploymentAggregates.maxVersion)
+        eq(
+          actualLatestDeployment.workflowId,
+          workflowDeploymentAggregates.workflowId
+        ),
+        eq(
+          actualLatestDeployment.version,
+          workflowDeploymentAggregates.maxVersion
+        )
       )
     )
-    .innerJoin( // Ensure workflows themselves are filtered by the organization
+    .innerJoin(
+      // Ensure workflows themselves are filtered by the organization
       organizations,
       and(
         eq(workflows.organizationId, organizations.id),
@@ -1064,4 +1075,3 @@ export async function getExecutionWithVisibility(
 
   return execution;
 }
-

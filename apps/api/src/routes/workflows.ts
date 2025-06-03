@@ -59,7 +59,7 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
   // Convert DB workflow objects to WorkflowWithMetadata objects
   const workflows: WorkflowWithMetadata[] = allWorkflows.map((workflow) => {
     return {
-      id:   workflow.id,
+      id: workflow.id,
       name: workflow.name,
       handle: workflow.handle,
       type: workflow.data.type,

@@ -72,4 +72,4 @@ export function EmailIntegrationCard({
       </CardContent>
     </Card>
   );
-} 
+}

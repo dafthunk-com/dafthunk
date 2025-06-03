@@ -19,7 +19,10 @@ import { Textarea } from "@/components/ui/textarea"; // For body field
 
 // Define the Zod schema as the primary source of truth for the form's shape
 const emailDialogZodSchema = z.object({
-  from: z.string().email({ message: "Invalid email address for From field." }).min(1, { message: "From is required." }),
+  from: z
+    .string()
+    .email({ message: "Invalid email address for From field." })
+    .min(1, { message: "From is required." }),
   subject: z.string().min(1, { message: "Subject is required." }),
   body: z.string().min(1, { message: "Body is required." }),
 });
@@ -41,7 +44,6 @@ type Assert<T, U extends T> = U;
 type _SchemaMatchesData = Assert<EmailData, EmailDialogFormShape>;
 type _DataMatchesSchema = Assert<EmailDialogFormShape, EmailData>;
 
-
 type EmailDialogProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -61,7 +63,8 @@ export function EmailDialog({
     handleSubmit,
     reset,
     formState: { errors, isDirty, isValid },
-  } = useForm<EmailDialogFormShape>({ // Use the inferred type from the Zod schema
+  } = useForm<EmailDialogFormShape>({
+    // Use the inferred type from the Zod schema
     resolver: zodResolver(emailDialogZodSchema), // Use the Zod schema directly
     mode: "onChange",
     defaultValues: {
@@ -97,18 +100,25 @@ export function EmailDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Simulate Email Trigger</AlertDialogTitle>
           <AlertDialogDescription>
-            Fill in the details below to simulate sending an email. This will trigger the workflow.
+            Fill in the details below to simulate sending an email. This will
+            trigger the workflow.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form onSubmit={handleSubmit(processSubmit)} id="emailTriggerForm">
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div>
-              <Label htmlFor="from">From <span className="text-destructive font-medium">*</span></Label>
+              <Label htmlFor="from">
+                From <span className="text-destructive font-medium">*</span>
+              </Label>
               <Controller
                 name="from"
                 control={control}
                 render={({ field }) => (
-                  <Input id="from" {...field} placeholder="sender@example.com" />
+                  <Input
+                    id="from"
+                    {...field}
+                    placeholder="sender@example.com"
+                  />
                 )}
               />
               {errors.from && (
@@ -118,7 +128,9 @@ export function EmailDialog({
               )}
             </div>
             <div>
-              <Label htmlFor="subject">Subject <span className="text-destructive font-medium">*</span></Label>
+              <Label htmlFor="subject">
+                Subject <span className="text-destructive font-medium">*</span>
+              </Label>
               <Controller
                 name="subject"
                 control={control}
@@ -133,12 +145,19 @@ export function EmailDialog({
               )}
             </div>
             <div>
-              <Label htmlFor="body">Body <span className="text-destructive font-medium">*</span></Label>
+              <Label htmlFor="body">
+                Body <span className="text-destructive font-medium">*</span>
+              </Label>
               <Controller
                 name="body"
                 control={control}
                 render={({ field }) => (
-                  <Textarea id="body" {...field} placeholder="Email body content..." className="min-h-[100px]" />
+                  <Textarea
+                    id="body"
+                    {...field}
+                    placeholder="Email body content..."
+                    className="min-h-[100px]"
+                  />
                 )}
               />
               {errors.body && (
@@ -164,4 +183,4 @@ export function EmailDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-} 
+}

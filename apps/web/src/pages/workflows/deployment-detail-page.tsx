@@ -7,7 +7,6 @@ import {
   Clock,
   GitCommitHorizontal,
   History,
-  Mail,
   MoreHorizontal,
   Play,
 } from "lucide-react";

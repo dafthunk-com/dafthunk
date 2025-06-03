@@ -54,19 +54,21 @@ export async function handleIncomingEmail(
     return;
   }
 
-  let [triggerType, organizationIdOrHandle, workflowIdOrHandle, version] =
-    parts;
+  const [
+    triggerType,
+    organizationIdOrHandle,
+    workflowIdOrHandle,
+    deploymentVersion,
+  ] = parts;
+  const version = deploymentVersion || "latest";
 
   if (triggerType !== "workflow") {
-    console.error(
-      `Invalid trigger type: ${triggerType}. Expected "workflow".`
-    );
+    console.error(`Invalid trigger type: ${triggerType}. Expected "workflow".`);
     return;
   }
 
-  if (!version) {
-    version = "latest";
-  }
+  // TODO: Use triggerType if needed in the future. For now, it's parsed but not used.
+  console.log(`Parsed trigger type: ${triggerType}`);
 
   const db = createDatabase(env.DB);
 

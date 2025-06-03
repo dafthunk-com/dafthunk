@@ -22,9 +22,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 
 import { useAuth } from "@/components/auth-context";
+import type { EmailData } from "@/components/workflow/execution-email-dialog";
 import type { DialogFormParameter } from "@/components/workflow/execution-form-dialog";
 import type { JsonBodyParameter } from "@/components/workflow/execution-json-body-dialog";
-import type { EmailData } from "@/components/workflow/execution-email-dialog";
 import {
   NodeTemplate,
   WorkflowNodeType,
@@ -272,7 +272,8 @@ const wouldCreateIndirectCycle = (
 export function useWorkflowExecution(orgHandle: string) {
   const [isFormDialogVisible, setIsFormDialogVisible] = useState(false);
   const [isJsonBodyDialogVisible, setIsJsonBodyDialogVisible] = useState(false);
-  const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] = useState(false);
+  const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] =
+    useState(false);
   const [formParameters, setFormParameters] = useState<DialogFormParameter[]>(
     []
   );
@@ -517,7 +518,11 @@ export function useWorkflowExecution(orgHandle: string) {
       // Check for email workflow type first
       if (lowercasedWorkflowType === "email_message") {
         setIsEmailFormDialogVisible(true);
-        setExecutionContext({ id, onExecution, workflowType: workflowTypeString });
+        setExecutionContext({
+          id,
+          onExecution,
+          workflowType: workflowTypeString,
+        });
         return undefined;
       }
 
@@ -551,7 +556,11 @@ export function useWorkflowExecution(orgHandle: string) {
             },
           ]);
           setIsJsonBodyDialogVisible(true);
-          setExecutionContext({ id, onExecution, workflowType: workflowTypeString });
+          setExecutionContext({
+            id,
+            onExecution,
+            workflowType: workflowTypeString,
+          });
           return undefined;
         }
 
@@ -559,7 +568,11 @@ export function useWorkflowExecution(orgHandle: string) {
         if (httpParameterNodes.length > 0) {
           setFormParameters(httpParameterNodes);
           setIsFormDialogVisible(true);
-          setExecutionContext({ id, onExecution, workflowType: workflowTypeString });
+          setExecutionContext({
+            id,
+            onExecution,
+            workflowType: workflowTypeString,
+          });
           return undefined;
         }
       }
