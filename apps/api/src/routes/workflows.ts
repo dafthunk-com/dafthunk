@@ -400,7 +400,24 @@ workflowRoutes.post(
     let body: any = undefined;
     const contentType = c.req.header("content-type");
     if (contentType?.includes("application/json")) {
-      body = await c.req.json();
+      const contentLength = c.req.header("content-length");
+      if (contentLength && contentLength !== "0") {
+        try {
+          body = await c.req.json();
+        } catch (e: any) {
+          // Log the error for server-side diagnostics
+          console.error("Failed to parse JSON request body:", e.message);
+          // Return a 400 error if JSON is malformed
+          return c.json(
+            { error: "Invalid JSON in request body.", details: e.message },
+            400
+          );
+        }
+      } else {
+        // Content-Type is application/json but body is empty or content-length is 0.
+        // Set body to an empty object. Downstream logic will determine if this is acceptable.
+        body = {};
+      }
     } else if (
       contentType?.includes("multipart/form-data") ||
       contentType?.includes("application/x-www-form-urlencoded")
@@ -410,7 +427,7 @@ workflowRoutes.post(
       body = Object.fromEntries(
         Object.entries(formData).map(([key, value]) => {
           // Try to parse numbers and booleans
-          if (typeof value === 'string') {
+          if (typeof value === "string") {
             if (value.toLowerCase() === "true") return [key, true];
             if (value.toLowerCase() === "false") return [key, false];
             if (!isNaN(Number(value))) return [key, Number(value)];
@@ -444,25 +461,26 @@ workflowRoutes.post(
       const emailTo = `workflow+${organizationId}+${workflow.handle || workflow.id}@dafthunk.com`;
 
       const simulatedHeaders = {
-        "from": emailFrom,
-        "to": emailTo,
-        "subject": emailSubject,
+        from: emailFrom,
+        to: emailTo,
+        subject: emailSubject,
         "content-type": "text/plain; charset=us-ascii",
-        "date": new Date().toUTCString(),
+        date: new Date().toUTCString(),
         "message-id": `<${uuid()}@dafthunk.com>`,
       };
 
-      const simulatedRaw = `Received: from [127.0.0.1] (localhost [127.0.0.1])\n` +
-                         `by dafthunk.com (Postfix) with ESMTP id FAKEIDFORTEST\n` +
-                         `for <${emailTo}>; ${new Date().toUTCString()}\n` +
-                         `From: ${emailFrom}\n` +
-                         `To: ${emailTo}\n` +
-                         `Subject: ${emailSubject}\n` +
-                         `Date: ${new Date().toUTCString()}\n` +
-                         `Message-ID: <${simulatedHeaders["message-id"]}>\n` +
-                         `Content-Type: text/plain; charset=us-ascii\n` +
-                         `Content-Transfer-Encoding: 7bit\n\n` +
-                         `${emailBody}`;
+      const simulatedRaw =
+        `Received: from [127.0.0.1] (localhost [127.0.0.1])\n` +
+        `by dafthunk.com (Postfix) with ESMTP id FAKEIDFORTEST\n` +
+        `for <${emailTo}>; ${new Date().toUTCString()}\n` +
+        `From: ${emailFrom}\n` +
+        `To: ${emailTo}\n` +
+        `Subject: ${emailSubject}\n` +
+        `Date: ${new Date().toUTCString()}\n` +
+        `Message-ID: <${simulatedHeaders["message-id"]}>\n` +
+        `Content-Type: text/plain; charset=us-ascii\n` +
+        `Content-Transfer-Encoding: 7bit\n\n` +
+        `${emailBody}`;
 
       finalExecutionParams = {
         ...baseExecutionParams,
@@ -482,7 +500,7 @@ workflowRoutes.post(
           headers,
           query,
           formData, // Will be undefined if not form-data content type
-          body,     // Parsed JSON or converted form-data
+          body, // Parsed JSON or converted form-data
         },
       };
     } else {

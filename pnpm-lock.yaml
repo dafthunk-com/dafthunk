@@ -17,6 +17,9 @@ importers:
       '@aws-sdk/client-ses':
         specifier: ^3.812.0
         version: 3.812.0
+      '@cf-wasm/photon':
+        specifier: ^0.1.30
+        version: 0.1.30
       '@dafthunk/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -35,6 +38,9 @@ importers:
       drizzle-orm:
         specifier: 0.43.1
         version: 0.43.1(@cloudflare/workers-types@4.20250504.0)
+      exifreader:
+        specifier: ^4.31.0
+        version: 4.31.0
       hono:
         specifier: ^4.7.8
         version: 4.7.8
@@ -569,6 +575,12 @@ packages:
   '@babel/types@7.27.1':
     resolution: {integrity: sha512-+EzkxvLNfiUeKMgy/3luqfsCWFRXLb7U6wNQTk60tovuckwB15B191tJWvpp4HjiQWdJkCxO3Wbvc6jlk3Xb2Q==}
     engines: {node: '>=6.9.0'}
+
+  '@cf-wasm/internals@0.0.3':
+    resolution: {integrity: sha512-v6PmiQnJIrVvL2IdPg5aCqARSKw/U1JvFsms2cCt3Szx3/3EvtVVhN9MALCh6kZ2CV2fvzs3tmiYezRQ6JyqcQ==}
+
+  '@cf-wasm/photon@0.1.30':
+    resolution: {integrity: sha512-zOQoHTSkc6M88hR5WHVpqrwqC87clhdfCyfDYZaGqDiCmHFLPe/6UqC2GPAYrwpFTV1N2gJBJmYi1YE+WY3sbQ==}
 
   '@cloudflare/kv-asset-handler@0.4.0':
     resolution: {integrity: sha512-+tv3z+SPp+gqTIcImN9o0hqE9xyfQjI1XD9pL6NuKjua9B1y7mNYv0S9cP+QEbA4ppVgGZEmKOvHX5G5Ei1CVA==}
@@ -2448,6 +2460,10 @@ packages:
   '@vitest/utils@3.1.2':
     resolution: {integrity: sha512-5GGd0ytZ7BH3H6JTj9Kw7Prn1Nbg0wZVrIvou+UWxm54d+WoXXgAgjFJ8wn3LdagWLFSEfpPeyYrByZaGEZHLg==}
 
+  '@xmldom/xmldom@0.9.8':
+    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
+    engines: {node: '>=14.6'}
+
   '@xyflow/react@12.6.0':
     resolution: {integrity: sha512-YzsSK4SlpC6e9Ki1g6O9B1UH7xvz/bzWF+tJ+vWDD8Am5xJmFn0jYnCEuqvzvH8dRKb1NFBmyuqEGqWN39xXsA==}
     peerDependencies:
@@ -3233,6 +3249,9 @@ packages:
   eventsource@3.0.6:
     resolution: {integrity: sha512-l19WpE2m9hSuyP06+FbuUUf1G+R0SFLrtQfbRb9PRr+oimOfxQhgGCbVaXg5IvZyyTThJsxh6L/srkMiCeBPDA==}
     engines: {node: '>=18.0.0'}
+
+  exifreader@4.31.0:
+    resolution: {integrity: sha512-nwtWnoheEI0IuPQ9mascB105aMtj/Gg4GMP0Tbks2vw6UXrK2Bhab4Ogo9MKYW1KoyGj/FV6KVIhVbNCoj0WQA==}
 
   exit-hook@2.2.1:
     resolution: {integrity: sha512-eNTPlAD67BmP31LDINZ3U7HSF8l57TxOY2PmBJ1shpCvpnxBF93mWCE8YHBnXs8qiUZJc9WDcWIeC3a2HIAMfw==}
@@ -4342,6 +4361,9 @@ packages:
 
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
+
+  sax@1.2.4:
+    resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
 
   scheduler@0.26.0:
     resolution: {integrity: sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==}
@@ -5513,6 +5535,12 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@cf-wasm/internals@0.0.3': {}
+
+  '@cf-wasm/photon@0.1.30':
+    dependencies:
+      '@cf-wasm/internals': 0.0.3
 
   '@cloudflare/kv-asset-handler@0.4.0':
     dependencies:
@@ -7300,6 +7328,9 @@ snapshots:
       loupe: 3.1.3
       tinyrainbow: 2.0.0
 
+  '@xmldom/xmldom@0.9.8':
+    optional: true
+
   '@xyflow/react@12.6.0(@types/react@19.1.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@xyflow/system': 0.0.57
@@ -8062,6 +8093,10 @@ snapshots:
   eventsource@3.0.6:
     dependencies:
       eventsource-parser: 3.0.1
+
+  exifreader@4.31.0:
+    optionalDependencies:
+      '@xmldom/xmldom': 0.9.8
 
   exit-hook@2.2.1: {}
 
@@ -9377,6 +9412,8 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
+  sax@1.2.4: {}
+
   scheduler@0.26.0: {}
 
   scmp@2.1.0: {}
@@ -9721,6 +9758,10 @@ snapshots:
   ts-api-utils@2.1.0(typescript@5.8.3):
     dependencies:
       typescript: 5.8.3
+
+  ts-exif-parser@0.2.2:
+    dependencies:
+      sax: 1.2.4
 
   ts-interface-checker@0.1.13: {}
 

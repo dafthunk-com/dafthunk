@@ -1,0 +1,97 @@
+import ExifReader from "exifreader";
+import { NodeExecution, NodeType } from "@dafthunk/types";
+
+import {
+  ExecutableNode,
+  ImageParameter,
+  NodeContext,
+} from "../types";
+
+/**
+ * Extracts EXIF data from an image using the ExifReader library.
+ */
+export class ExifReaderNode extends ExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "exif-reader",
+    name: "EXIF Reader",
+    type: "exif-reader",
+    description: "Extracts EXIF data from an image.",
+    category: "Image",
+    icon: "file-text", // Using 'file-text' as an icon, similar to info.
+    inputs: [
+      {
+        name: "image",
+        type: "image",
+        description: "The input image to extract EXIF data from.",
+        required: true,
+      },
+    ],
+    outputs: [
+      {
+        name: "exifData",
+        type: "json", // Outputting as a JSON string
+        description: "EXIF data extracted from the image as a JSON string.",
+      },
+      {
+        name: "imagePassthrough",
+        type: "image",
+        description:
+          "The original image, passed through for further processing.",
+      },
+    ],
+  };
+
+  async execute(context: NodeContext): Promise<NodeExecution> {
+    const inputs = context.inputs as {
+      image?: ImageParameter;
+    };
+
+    const { image } = inputs;
+
+    if (!image || !image.data) {
+      return this.createErrorResult("Input image is missing or invalid.");
+    }
+
+    try {
+      // ExifReader.load() expects a Buffer or ArrayBuffer.
+      // Assuming image.data is Uint8Array, its .buffer property is ArrayBuffer.
+      const tags = await ExifReader.load(image.data.buffer);
+
+      // Remove potentially very large MakerNote tag to avoid large JSON output
+      if (tags["MakerNote"]) {
+        delete tags["MakerNote"];
+      }
+      // Also remove thumbnail data if present
+      // Add type assertion to handle complex type of tags["thumbnail"]
+      const thumbnailTag = tags["thumbnail"] as any;
+      if (thumbnailTag && thumbnailTag.image) {
+        delete thumbnailTag.image;
+      }
+
+
+      // Convert tags to a JSON string.
+      // BigInt values need to be handled for JSON.stringify
+      const replacer = (_key: string, value: any) =>
+        typeof value === "bigint" ? value.toString() : value;
+      const exifDataJson = JSON.stringify(tags, replacer, 2);
+
+      return this.createSuccessResult({
+        exifData: exifDataJson,
+        imagePassthrough: image,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Unknown error during EXIF data extraction.";
+      console.error(`[ExifReaderNode] Error: ${errorMessage}`, error);
+      if (error instanceof Error && error.message.includes("No Exif data")) {
+        return this.createSuccessResult({
+          exifData: "{}", // Return empty JSON if no EXIF data found
+          imagePassthrough: image,
+        });
+      }
+      return this.createErrorResult(errorMessage);
+    }
+  }
+} 
