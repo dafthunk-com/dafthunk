@@ -205,8 +205,18 @@ const converters = {
   json: {
     nodeToApi: (value: NodeParameterValue) =>
       (isPlainJsonObject(value) ? value : undefined) as ApiParameterValue,
-    apiToNode: (value: ApiParameterValue) =>
-      (isPlainJsonObject(value) ? value : undefined) as NodeParameterValue,
+    apiToNode: (value: ApiParameterValue) => {
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value);
+          return (isPlainJsonObject(parsed) ? parsed : undefined) as NodeParameterValue;
+        } catch (e) {
+          // If parsing fails, it's not valid JSON in string form
+          return undefined;
+        }
+      }
+      return (isPlainJsonObject(value) ? value : undefined) as NodeParameterValue;
+    },
   },
   any: {
     nodeToApi: (value: NodeParameterValue) => value as ApiParameterValue,

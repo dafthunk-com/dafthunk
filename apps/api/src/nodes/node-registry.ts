@@ -56,6 +56,7 @@ import { WebcamNode } from "./image/webcam-node";
 import { JsonBooleanExtractorNode } from "./json/json-boolean-extractor-node";
 import { JsonNumberExtractorNode } from "./json/json-number-extractor-node";
 import { JsonObjectArrayExtractorNode } from "./json/json-object-array-extractor-node";
+import { JsonScriptNode } from "./json/json-script-node";
 import { JsonStringExtractorNode } from "./json/json-string-extractor-node";
 import { JsonTemplateNode } from "./json/json-template-node";
 import { MonacoEditorNode } from "./json/monaco-editor-node";
@@ -177,6 +178,7 @@ export class NodeRegistry {
     this.registerImplementation(JsonBooleanExtractorNode);
     this.registerImplementation(JsonNumberExtractorNode);
     this.registerImplementation(JsonObjectArrayExtractorNode);
+    this.registerImplementation(JsonScriptNode);
     this.registerImplementation(JsonTemplateNode);
     this.registerImplementation(MultiVariableStringTemplateNode);
     this.registerImplementation(SingleVariableStringTemplateNode);
