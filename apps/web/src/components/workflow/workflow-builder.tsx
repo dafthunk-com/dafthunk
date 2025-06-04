@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
-import { WorkflowProvider, updateNodeName } from "./workflow-context";
+import { updateNodeName, WorkflowProvider } from "./workflow-context";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
@@ -114,6 +114,7 @@ export function WorkflowBuilder({
     deleteSelectedElement,
     isEditNodeNameDialogOpen,
     toggleEditNodeNameDialog,
+    applyLayout,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -260,7 +261,7 @@ export function WorkflowBuilder({
       setNodeNameToEdit(handleSelectedNode.data.name);
     } else if (!isEditNodeNameDialogOpen) {
       // Optionally reset when dialog closes, or leave as is if preferred
-      // setNodeNameToEdit(""); 
+      // setNodeNameToEdit("");
     }
   }, [isEditNodeNameDialogOpen, handleSelectedNode]);
 
@@ -419,7 +420,10 @@ export function WorkflowBuilder({
               selectedNode={handleSelectedNode}
               selectedEdge={handleSelectedEdge}
               onDeleteSelected={readonly ? undefined : deleteSelectedElement}
-              onEditLabel={readonly ? undefined : () => toggleEditNodeNameDialog(true)}
+              onEditLabel={
+                readonly ? undefined : () => toggleEditNodeNameDialog(true)
+              }
+              onApplyLayout={readonly ? undefined : applyLayout}
             />
           </div>
 
@@ -481,7 +485,10 @@ export function WorkflowBuilder({
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="node-name-input" className="text-sm font-medium">
+                <Label
+                  htmlFor="node-name-input"
+                  className="text-sm font-medium"
+                >
                   Node Label
                 </Label>
                 <Input

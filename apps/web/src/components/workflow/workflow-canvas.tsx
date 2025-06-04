@@ -21,14 +21,15 @@ import {
   Eye,
   EyeOff,
   Maximize,
+  Network,
   PanelLeft,
   PanelLeftClose,
+  PencilIcon,
   Play,
   Plus,
   Square,
   Trash2,
   X,
-  PencilIcon,
 } from "lucide-react";
 import React, { useEffect } from "react";
 
@@ -146,6 +147,7 @@ interface ActionBarButtonProps {
   className?: string;
   tooltip: React.ReactNode;
   children: React.ReactNode;
+  tooltipSide?: 'top' | 'bottom' | 'left' | 'right';
 }
 
 function ActionBarButton({
@@ -154,6 +156,7 @@ function ActionBarButton({
   className = "",
   tooltip,
   children,
+  tooltipSide = 'top',
 }: ActionBarButtonProps) {
   return (
     <Tooltip delayDuration={0}>
@@ -169,7 +172,7 @@ function ActionBarButton({
             {children}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{tooltip}</TooltipContent>
+        <TooltipContent side={tooltipSide}>{tooltip}</TooltipContent>
       </div>
     </Tooltip>
   );
@@ -215,6 +218,7 @@ export interface WorkflowCanvasProps {
   selectedEdge?: ReactFlowEdge<WorkflowEdgeType> | null;
   onDeleteSelected?: (e: React.MouseEvent) => void;
   onEditLabel?: (e: React.MouseEvent) => void;
+  onApplyLayout?: () => void;
 }
 
 type ActionButtonProps = {
@@ -281,6 +285,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={config.className}
+      tooltipSide="bottom"
       tooltip={
         <div className="flex items-center gap-2">
           <span>{config.title}</span>
@@ -314,6 +319,7 @@ function DeployButton({
       onClick={onClick}
       disabled={disabled}
       className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+      tooltipSide="bottom"
       tooltip={<p>Deploy Workflow</p>}
     >
       <ArrowUpToLine className="!size-4" />
@@ -330,6 +336,7 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
   return (
     <ActionBarButton
       onClick={onClick}
+      tooltipSide="bottom"
       tooltip={<p>{isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}</p>}
     >
       {isSidebarVisible ? (
@@ -361,6 +368,7 @@ function OutputsToggle({
       onClick={onClick}
       disabled={disabled}
       className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
+      tooltipSide="bottom"
       tooltip={<p>{tooltipText}</p>}
     >
       {expandedOutputs ? (
@@ -381,6 +389,7 @@ function FitToScreenButton({
     <ActionBarButton
       onClick={onClick}
       className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
+      tooltipSide="bottom"
       tooltip={<p>Fit to Screen</p>}
     >
       <Maximize className="!size-4" />
@@ -400,6 +409,7 @@ function DeleteButton({
       onClick={onClick}
       disabled={disabled}
       className="bg-red-500 hover:bg-red-600 text-white border-red-500"
+      tooltipSide="right"
       tooltip={<p>Delete Selected</p>}
     >
       <Trash2 className="!size-4" />
@@ -419,9 +429,50 @@ function EditLabelButton({
       onClick={onClick}
       disabled={disabled}
       className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+      tooltipSide="right"
       tooltip={<p>Edit Label</p>}
     >
       <PencilIcon className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
+function ApplyLayoutButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className="bg-purple-500 hover:bg-purple-600 text-white border-purple-500"
+      tooltipSide="right"
+      tooltip={<p>Reorganize Layout</p>}
+    >
+      <Network className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
+function AddNodeButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      tooltip="Add Node"
+      className="size-10 !p-0"
+      tooltipSide="right"
+    >
+      <Plus className="!size-5" />
     </ActionBarButton>
   );
 }
@@ -454,6 +505,7 @@ export function WorkflowCanvas({
   selectedEdge,
   onDeleteSelected,
   onEditLabel,
+  onApplyLayout,
 }: WorkflowCanvasProps) {
   // Check if any nodes have output values
   const hasAnyOutputs = nodes.some((node) =>
@@ -592,33 +644,49 @@ export function WorkflowCanvas({
           </div>
         )}
 
-        {onAddNode && !readonly && (
+        {!readonly && (
           <div
             className={cn(
-              "absolute top-4 left-4 z-50 flex flex-col items-center gap-0.5",
+              "absolute top-4 left-4 z-50 flex flex-col items-center"
+            )}
+          >
+            {/* Node-related buttons group */}
+            <div className={cn(
+              "flex flex-col items-center gap-0.5",
               "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
               "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
               "[&>*:only-child]:rounded-lg"
-            )}
-          >
-            <ActionBarButton
-              onClick={onAddNode}
-              tooltip="Add Node"
-              className="size-10 !p-0"
-            >
-              <Plus className="!size-5" />
-            </ActionBarButton>
-            {onEditLabel && (
-              <EditLabelButton
-                onClick={onEditLabel}
-                disabled={readonly || !selectedNode}
-              />
-            )}
-            {onDeleteSelected && (
-              <DeleteButton
-                onClick={onDeleteSelected}
-                disabled={readonly || (!selectedNode && !selectedEdge)}
-              />
+            )}>
+              {onAddNode && <AddNodeButton onClick={onAddNode} disabled={readonly} />}
+              {onEditLabel && (
+                <EditLabelButton
+                  onClick={onEditLabel}
+                  disabled={readonly || !selectedNode}
+                />
+              )}
+              {onDeleteSelected && (
+                <DeleteButton
+                  onClick={onDeleteSelected}
+                  disabled={readonly || (!selectedNode && !selectedEdge)}
+                />
+              )}
+            </div>
+
+            {/* Workflow-related buttons group */}
+            {(onApplyLayout) && (
+              <div className={cn(
+                "mt-2 flex flex-col items-center gap-0.5",
+                "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
+                "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
+                "[&>*:only-child]:rounded-lg"
+              )}>
+                {onApplyLayout && (
+                  <ApplyLayoutButton
+                    onClick={() => onApplyLayout()}
+                    disabled={readonly || nodes.length === 0}
+                  />
+                )}
+              </div>
             )}
           </div>
         )}
