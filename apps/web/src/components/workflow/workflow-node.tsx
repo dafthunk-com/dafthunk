@@ -15,10 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
@@ -37,7 +34,6 @@ import {
   clearNodeInput,
   convertValueByType,
   updateNodeInput,
-  updateNodeName,
   useWorkflow,
 } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
@@ -256,14 +252,11 @@ export const WorkflowNode = memo(
           {/* Header */}
           <div
             className={cn(
-              "pl-2 pr-1 py-1 flex justify-between items-center border-b hover:cursor-grab active:cursor-grabbing",
+              "px-1 py-1 flex justify-center items-center border-b hover:cursor-grab active:cursor-grabbing",
               "workflow-node-drag-handle"
             )}
           >
             <h3 className="text-xs font-medium truncate">{data.name}</h3>
-            <div className="flex gap-1">
-              {/* Edit label button removed from here */}
-            </div>
           </div>
 
           {/* Widget */}
@@ -279,7 +272,7 @@ export const WorkflowNode = memo(
           )}
 
           {/* Parameters */}
-          <div className="px-1 py-1 grid grid-cols-2 justify-between gap-2.5 nodrag">
+          <div className="px-1 py-1 grid grid-cols-2 justify-between gap-1 nodrag">
             {/* Input Parameters */}
             <div className="flex flex-col gap-1 flex-1">
               {data.inputs
@@ -332,7 +325,7 @@ export const WorkflowNode = memo(
           {hasOutputValues && (
             <>
               <div
-                className="px-2 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
+                className="px-1 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
                 onClick={() => setShowOutputs(!showOutputs)}
               >
                 <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
@@ -346,7 +339,7 @@ export const WorkflowNode = memo(
               </div>
 
               {showOutputs && (
-                <div className="px-2 pt-1 pb-2 border-t space-y-2">
+                <div className="px-1 pt-1 pb-2 border-t space-y-2">
                   {data.outputs.map(
                     (output, index) =>
                       output.value !== undefined &&
