@@ -82,6 +82,8 @@ interface UseWorkflowStateReturn {
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;
   deleteSelectedElement: () => void;
+  isEditNodeNameDialogOpen: boolean;
+  toggleEditNodeNameDialog: (open?: boolean) => void;
 }
 
 // Helper functions to replace workflowNodeStateService
@@ -222,6 +224,8 @@ export function useWorkflowState({
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
+  const [isEditNodeNameDialogOpen, setIsEditNodeNameDialogOpen] =
+    useState(false);
 
   const nodesRef = useRef(initialNodes);
   const edgesRef = useRef(initialEdges);
@@ -687,6 +691,11 @@ export function useWorkflowState({
     }
   }, [readonly, selectedNode, selectedEdge, deleteNode, deleteEdge]);
 
+  const toggleEditNodeNameDialog = useCallback((open?: boolean) => {
+    if (readonly) return;
+    setIsEditNodeNameDialogOpen((prev) => open === undefined ? !prev : open);
+  }, [readonly]);
+
   return {
     nodes,
     edges,
@@ -714,5 +723,7 @@ export function useWorkflowState({
     deleteNode: readonly ? () => {} : deleteNode,
     deleteEdge: readonly ? () => {} : deleteEdge,
     deleteSelectedElement: readonly ? () => {} : deleteSelectedElement,
+    isEditNodeNameDialogOpen,
+    toggleEditNodeNameDialog,
   };
 }

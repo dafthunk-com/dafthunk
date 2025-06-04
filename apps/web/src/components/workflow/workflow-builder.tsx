@@ -16,10 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import { useWorkflowState } from "./use-workflow-state";
 import { WorkflowCanvas } from "./workflow-canvas";
-import { WorkflowProvider } from "./workflow-context";
+import { WorkflowProvider, updateNodeName } from "./workflow-context";
 import { WorkflowNodeSelector } from "./workflow-node-selector";
 import { WorkflowSidebar } from "./workflow-sidebar";
 import type {
@@ -83,6 +85,7 @@ export function WorkflowBuilder({
   });
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
+  const [nodeNameToEdit, setNodeNameToEdit] = useState("");
 
   const {
     nodes,
@@ -109,6 +112,8 @@ export function WorkflowBuilder({
     updateNodeData,
     updateEdgeData,
     deleteSelectedElement,
+    isEditNodeNameDialogOpen,
+    toggleEditNodeNameDialog,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -248,6 +253,16 @@ export function WorkflowBuilder({
       }
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
+
+  // Update nodeNameToEdit when the dialog is opened and a node is selected
+  useEffect(() => {
+    if (isEditNodeNameDialogOpen && handleSelectedNode) {
+      setNodeNameToEdit(handleSelectedNode.data.name);
+    } else if (!isEditNodeNameDialogOpen) {
+      // Optionally reset when dialog closes, or leave as is if preferred
+      // setNodeNameToEdit(""); 
+    }
+  }, [isEditNodeNameDialogOpen, handleSelectedNode]);
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {
@@ -404,6 +419,7 @@ export function WorkflowBuilder({
               selectedNode={handleSelectedNode}
               selectedEdge={handleSelectedEdge}
               onDeleteSelected={readonly ? undefined : deleteSelectedElement}
+              onEditLabel={readonly ? undefined : () => toggleEditNodeNameDialog(true)}
             />
           </div>
 
@@ -446,6 +462,70 @@ export function WorkflowBuilder({
                 }
               >
                 Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={isEditNodeNameDialogOpen && !readonly && !!handleSelectedNode}
+          onOpenChange={(open) => {
+            if (!open) {
+              toggleEditNodeNameDialog(false);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Node Name</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="node-name-input" className="text-sm font-medium">
+                  Node Label
+                </Label>
+                <Input
+                  id="node-name-input"
+                  value={nodeNameToEdit}
+                  onChange={(e) => setNodeNameToEdit(e.target.value)}
+                  placeholder="Enter node name"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      if (handleSelectedNode && nodeNameToEdit.trim() !== "") {
+                        updateNodeName(
+                          handleSelectedNode.id,
+                          nodeNameToEdit,
+                          updateNodeData
+                        );
+                      }
+                      toggleEditNodeNameDialog(false);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => toggleEditNodeNameDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (handleSelectedNode && nodeNameToEdit.trim() !== "") {
+                    updateNodeName(
+                      handleSelectedNode.id,
+                      nodeNameToEdit,
+                      updateNodeData
+                    );
+                  }
+                  toggleEditNodeNameDialog(false);
+                }}
+                disabled={!nodeNameToEdit.trim()}
+              >
+                Save
               </Button>
             </DialogFooter>
           </DialogContent>

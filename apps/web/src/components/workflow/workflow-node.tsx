@@ -1,6 +1,6 @@
 import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
-import { ChevronDown, ChevronUp, PencilIcon, XCircleIcon } from "lucide-react";
+import { ChevronDown, ChevronUp, XCircleIcon } from "lucide-react";
 import { createElement, memo, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -148,8 +148,6 @@ export const WorkflowNode = memo(
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");
-    const [isEditingName, setIsEditingName] = useState(false);
-    const [nameValue, setNameValue] = useState(data.name);
 
     // Initialize showOutputs based on expandedOutputs and hasOutputValues
     useEffect(() => {
@@ -200,13 +198,6 @@ export const WorkflowNode = memo(
       }
     };
 
-    // Keep nameValue in sync with data.name when not editing
-    useEffect(() => {
-      if (!isEditingName) {
-        setNameValue(data.name);
-      }
-    }, [data.name, isEditingName]);
-
     const handleInputClick = (input: WorkflowParameter) => {
       if (readonly) return;
 
@@ -248,20 +239,6 @@ export const WorkflowNode = memo(
       }
     };
 
-    const handleNameClick = () => {
-      if (readonly) return;
-
-      setIsEditingName(true);
-      setNameValue(data.name);
-    };
-
-    const handleNameSave = () => {
-      if (readonly || nameValue.trim() === "") return;
-
-      updateNodeName(id, nameValue, updateNodeData);
-      setIsEditingName(false);
-    };
-
     return (
       <TooltipProvider>
         <div
@@ -285,22 +262,7 @@ export const WorkflowNode = memo(
           >
             <h3 className="text-xs font-medium truncate">{data.name}</h3>
             <div className="flex gap-1">
-              {!readonly && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={handleNameClick}
-                      className="inline-flex items-center justify-center w-5 h-5 rounded bg-neutral-100 text-blue-500 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-blue-500 dark:hover:bg-neutral-700 nodrag"
-                      aria-label="Edit node label"
-                    >
-                      <PencilIcon className="w-3 h-3" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit Label</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              {/* Edit label button removed from here */}
             </div>
           </div>
 
@@ -558,43 +520,6 @@ export const WorkflowNode = memo(
             <DialogFooter>
               <Button variant="outline" onClick={handleDialogClose}>
                 Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Label Edit Dialog */}
-        <Dialog
-          open={isEditingName && !readonly}
-          onOpenChange={(open) => !open && !readonly && setIsEditingName(false)}
-        >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Edit Node Name</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="label-value" className="text-sm font-medium">
-                    Node Label
-                  </Label>
-                  <span className="text-xs text-neutral-500">string</span>
-                </div>
-                <Input
-                  id="label-value"
-                  value={nameValue}
-                  onChange={(e) => setNameValue(e.target.value)}
-                  placeholder="Enter node name"
-                  disabled={readonly}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditingName(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleNameSave} disabled={readonly}>
-                Save
               </Button>
             </DialogFooter>
           </DialogContent>

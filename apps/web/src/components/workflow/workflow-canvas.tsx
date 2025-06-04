@@ -28,6 +28,7 @@ import {
   Square,
   Trash2,
   X,
+  PencilIcon,
 } from "lucide-react";
 import React, { useEffect } from "react";
 
@@ -213,6 +214,7 @@ export interface WorkflowCanvasProps {
   selectedNode?: ReactFlowNode<WorkflowNodeType> | null;
   selectedEdge?: ReactFlowEdge<WorkflowEdgeType> | null;
   onDeleteSelected?: (e: React.MouseEvent) => void;
+  onEditLabel?: (e: React.MouseEvent) => void;
 }
 
 type ActionButtonProps = {
@@ -405,6 +407,25 @@ function DeleteButton({
   );
 }
 
+function EditLabelButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+      tooltip={<p>Edit Label</p>}
+    >
+      <PencilIcon className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
 export function WorkflowCanvas({
   nodes,
   edges,
@@ -432,6 +453,7 @@ export function WorkflowCanvas({
   selectedNode,
   selectedEdge,
   onDeleteSelected,
+  onEditLabel,
 }: WorkflowCanvasProps) {
   // Check if any nodes have output values
   const hasAnyOutputs = nodes.some((node) =>
@@ -586,6 +608,12 @@ export function WorkflowCanvas({
             >
               <Plus className="!size-5" />
             </ActionBarButton>
+            {onEditLabel && (
+              <EditLabelButton
+                onClick={onEditLabel}
+                disabled={readonly || !selectedNode}
+              />
+            )}
             {onDeleteSelected && (
               <DeleteButton
                 onClick={onDeleteSelected}
