@@ -4,16 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * Absolute Value node implementation
+ * Square Root node implementation
  */
-export class AbsoluteValueNode extends ExecutableNode {
+export class SquareRootNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "absolute-value",
-    name: "Absolute Value",
-    type: "absolute-value",
-    description: "Calculates the absolute value of a number",
-    category: "Number",
-    icon: "absolute",
+    id: "square-root",
+    name: "Square Root",
+    type: "square-root",
+    description: "Calculates the square root of a number",
+    category: "Math",
+    icon: "square-root",
     inputs: [{ name: "value", type: "number", required: true }],
     outputs: [{ name: "result", type: "number" }],
   };
@@ -26,8 +26,14 @@ export class AbsoluteValueNode extends ExecutableNode {
         return this.createErrorResult("Input must be a number");
       }
 
+      if (value < 0) {
+        return this.createErrorResult(
+          "Square root of negative numbers is not supported"
+        );
+      }
+
       return this.createSuccessResult({
-        result: Math.abs(value),
+        result: Math.sqrt(value),
       });
     } catch (error) {
       return this.createErrorResult(

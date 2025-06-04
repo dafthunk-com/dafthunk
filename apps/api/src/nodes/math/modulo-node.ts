@@ -2,17 +2,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+
 /**
- * Addition node implementation
+ * Modulo node implementation
  */
-export class AdditionNode extends ExecutableNode {
+export class ModuloNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "addition",
-    name: "Addition",
-    type: "addition",
-    description: "Adds two numbers together",
-    category: "Number",
-    icon: "plus",
+    id: "modulo",
+    name: "Modulo",
+    type: "modulo",
+    description:
+      "Calculates the remainder when one number is divided by another",
+    category: "Math",
+    icon: "percent",
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },
@@ -29,8 +31,12 @@ export class AdditionNode extends ExecutableNode {
         return this.createErrorResult("Both inputs must be numbers");
       }
 
+      if (b === 0) {
+        return this.createErrorResult("Division by zero is not allowed");
+      }
+
       return this.createSuccessResult({
-        result: a + b,
+        result: a % b,
       });
     } catch (error) {
       return this.createErrorResult(

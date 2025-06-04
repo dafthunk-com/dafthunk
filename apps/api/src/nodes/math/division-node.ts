@@ -4,17 +4,16 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * Modulo node implementation
+ * Division node implementation
  */
-export class ModuloNode extends ExecutableNode {
+export class DivisionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "modulo",
-    name: "Modulo",
-    type: "modulo",
-    description:
-      "Calculates the remainder when one number is divided by another",
-    category: "Number",
-    icon: "percent",
+    id: "division",
+    name: "Division",
+    type: "division",
+    description: "Divides one number by another",
+    category: "Math",
+    icon: "divide",
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },
@@ -36,7 +35,7 @@ export class ModuloNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        result: a % b,
+        result: a / b,
       });
     } catch (error) {
       return this.createErrorResult(

@@ -4,34 +4,34 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * Subtraction node implementation
+ * Exponentiation node implementation
  */
-export class SubtractionNode extends ExecutableNode {
+export class ExponentiationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "subtraction",
-    name: "Subtraction",
-    type: "subtraction",
-    description: "Subtracts one number from another",
-    category: "Number",
-    icon: "minus",
+    id: "exponentiation",
+    name: "Exponentiation",
+    type: "exponentiation",
+    description: "Raises a base number to the power of an exponent",
+    category: "Math",
+    icon: "x-to-the-power-of-y",
     inputs: [
-      { name: "a", type: "number", required: true },
-      { name: "b", type: "number", required: true },
+      { name: "base", type: "number", required: true },
+      { name: "exponent", type: "number", required: true },
     ],
     outputs: [{ name: "result", type: "number" }],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const a = Number(context.inputs.a);
-      const b = Number(context.inputs.b);
+      const base = Number(context.inputs.base);
+      const exponent = Number(context.inputs.exponent);
 
-      if (isNaN(a) || isNaN(b)) {
+      if (isNaN(base) || isNaN(exponent)) {
         return this.createErrorResult("Both inputs must be numbers");
       }
 
       return this.createSuccessResult({
-        result: a - b,
+        result: Math.pow(base, exponent),
       });
     } catch (error) {
       return this.createErrorResult(
