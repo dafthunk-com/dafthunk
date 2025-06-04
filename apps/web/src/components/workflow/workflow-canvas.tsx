@@ -389,7 +389,7 @@ function FitToScreenButton({
     <ActionBarButton
       onClick={onClick}
       className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
-      tooltipSide="bottom"
+      tooltipSide="right"
       tooltip={<p>Fit to Screen</p>}
     >
       <Maximize className="!size-4" />
@@ -619,12 +619,8 @@ export function WorkflowCanvas({
             )}
 
             {/* Preview/Sidebar Group - shown in both readonly and editable modes */}
-            {(onFitToScreen ||
-              onToggleExpandedOutputs ||
-              (onToggleSidebar && isSidebarVisible !== undefined)) && (
+            {((onToggleExpandedOutputs || (onToggleSidebar && isSidebarVisible !== undefined))) && (
               <ActionBarGroup>
-                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
-
                 {onToggleExpandedOutputs && (
                   <OutputsToggle
                     onClick={onToggleExpandedOutputs}
@@ -673,7 +669,7 @@ export function WorkflowCanvas({
             </div>
 
             {/* Workflow-related buttons group */}
-            {(onApplyLayout) && (
+            {(onApplyLayout || onFitToScreen) && (
               <div className={cn(
                 "mt-2 flex flex-col items-center gap-0.5",
                 "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
@@ -685,6 +681,9 @@ export function WorkflowCanvas({
                     onClick={() => onApplyLayout()}
                     disabled={readonly || nodes.length === 0}
                   />
+                )}
+                {onFitToScreen && (
+                  <FitToScreenButton onClick={onFitToScreen} />
                 )}
               </div>
             )}
