@@ -209,13 +209,17 @@ const converters = {
       if (typeof value === "string") {
         try {
           const parsed = JSON.parse(value);
-          return (isPlainJsonObject(parsed) ? parsed : undefined) as NodeParameterValue;
-        } catch (e) {
+          return (
+            isPlainJsonObject(parsed) ? parsed : undefined
+          ) as NodeParameterValue;
+        } catch (_error) {
           // If parsing fails, it's not valid JSON in string form
           return undefined;
         }
       }
-      return (isPlainJsonObject(value) ? value : undefined) as NodeParameterValue;
+      return (
+        isPlainJsonObject(value) ? value : undefined
+      ) as NodeParameterValue;
     },
   },
   any: {

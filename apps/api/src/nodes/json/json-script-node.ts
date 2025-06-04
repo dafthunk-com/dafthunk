@@ -1,9 +1,5 @@
+import { getQuickJSWASMModule, QuickJSContext } from "@cf-wasm/quickjs";
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import {
-  getQuickJSWASMModule,
-  QuickJSContext,
-  QuickJSHandle,
-} from "@cf-wasm/quickjs";
 
 import { ExecutableNode, NodeContext } from "../types";
 
@@ -35,7 +31,8 @@ export class JsonScriptNode extends ExecutableNode {
       {
         name: "result",
         type: "json",
-        description: "The result of the script execution, expected to be a JSON object or array",
+        description:
+          "The result of the script execution, expected to be a JSON object or array",
       },
       {
         name: "error",
@@ -119,4 +116,4 @@ export class JsonScriptNode extends ExecutableNode {
       }
     }
   }
-} 
+}

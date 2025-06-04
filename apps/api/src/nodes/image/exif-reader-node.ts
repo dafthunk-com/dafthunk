@@ -1,11 +1,7 @@
-import ExifReader from "exifreader";
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import ExifReader from "exifreader";
 
-import {
-  ExecutableNode,
-  ImageParameter,
-  NodeContext,
-} from "../types";
+import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 
 /**
  * Extracts EXIF data from an image using the ExifReader library.
@@ -68,7 +64,6 @@ export class ExifReaderNode extends ExecutableNode {
         delete thumbnailTag.image;
       }
 
-
       // Convert tags to a JSON string.
       // BigInt values need to be handled for JSON.stringify
       const replacer = (_key: string, value: any) =>
@@ -94,4 +89,4 @@ export class ExifReaderNode extends ExecutableNode {
       return this.createErrorResult(errorMessage);
     }
   }
-} 
+}
