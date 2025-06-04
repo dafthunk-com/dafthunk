@@ -26,6 +26,7 @@ import {
   Play,
   Plus,
   Square,
+  Trash2,
   X,
 } from "lucide-react";
 import React, { useEffect } from "react";
@@ -209,6 +210,9 @@ export interface WorkflowCanvasProps {
   expandedOutputs?: boolean;
   onToggleExpandedOutputs?: (e: React.MouseEvent) => void;
   onFitToScreen?: (e: React.MouseEvent) => void;
+  selectedNode?: ReactFlowNode<WorkflowNodeType> | null;
+  selectedEdge?: ReactFlowEdge<WorkflowEdgeType> | null;
+  onDeleteSelected?: (e: React.MouseEvent) => void;
 }
 
 type ActionButtonProps = {
@@ -382,6 +386,25 @@ function FitToScreenButton({
   );
 }
 
+function DeleteButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className="bg-red-500 hover:bg-red-600 text-white border-red-500"
+      tooltip={<p>Delete Selected</p>}
+    >
+      <Trash2 className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
 export function WorkflowCanvas({
   nodes,
   edges,
@@ -406,6 +429,9 @@ export function WorkflowCanvas({
   expandedOutputs = false,
   onToggleExpandedOutputs,
   onFitToScreen,
+  selectedNode,
+  selectedEdge,
+  onDeleteSelected,
 }: WorkflowCanvasProps) {
   // Check if any nodes have output values
   const hasAnyOutputs = nodes.some((node) =>
@@ -545,13 +571,28 @@ export function WorkflowCanvas({
         )}
 
         {onAddNode && !readonly && (
-          <ActionBarButton
-            onClick={onAddNode}
-            tooltip="Add Node"
-            className="absolute bottom-4 right-4 z-50 size-10 rounded-full"
+          <div
+            className={cn(
+              "absolute top-4 left-4 z-50 flex flex-col items-center gap-0.5",
+              "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
+              "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
+              "[&>*:only-child]:rounded-lg"
+            )}
           >
-            <Plus className="!size-5" />
-          </ActionBarButton>
+            <ActionBarButton
+              onClick={onAddNode}
+              tooltip="Add Node"
+              className="size-10 !p-0"
+            >
+              <Plus className="!size-5" />
+            </ActionBarButton>
+            {onDeleteSelected && (
+              <DeleteButton
+                onClick={onDeleteSelected}
+                disabled={readonly || (!selectedNode && !selectedEdge)}
+              />
+            )}
+          </div>
         )}
       </ReactFlow>
     </TooltipProvider>

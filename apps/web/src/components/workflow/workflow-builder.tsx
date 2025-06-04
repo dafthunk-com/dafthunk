@@ -108,6 +108,7 @@ export function WorkflowBuilder({
     isValidConnection,
     updateNodeData,
     updateEdgeData,
+    deleteSelectedElement,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -400,6 +401,9 @@ export function WorkflowBuilder({
               expandedOutputs={currentExpandedOutputs}
               onToggleExpandedOutputs={toggleExpandedOutputs}
               onFitToScreen={handleFitToScreen}
+              selectedNode={handleSelectedNode}
+              selectedEdge={handleSelectedEdge}
+              onDeleteSelected={readonly ? undefined : deleteSelectedElement}
             />
           </div>
 

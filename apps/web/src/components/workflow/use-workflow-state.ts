@@ -80,6 +80,8 @@ interface UseWorkflowStateReturn {
   updateNodeData: (nodeId: string, data: Partial<WorkflowNodeType>) => void;
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;
+  deleteEdge: (edgeId: string) => void;
+  deleteSelectedElement: () => void;
 }
 
 // Helper functions to replace workflowNodeStateService
@@ -641,7 +643,11 @@ export function useWorkflowState({
   // Delete node and its connected edges
   const deleteNode = useCallback(
     (nodeId: string) => {
-      const nodeEdges = getConnectedEdges([{ id: nodeId } as any], edges);
+      if (readonly) return;
+      const nodeToDelete = nodes.find((n) => n.id === nodeId);
+      if (!nodeToDelete) return;
+
+      const nodeEdges = getConnectedEdges([nodeToDelete], edgesRef.current);
       const edgeIdsToRemove = nodeEdges.map((edge) => edge.id);
 
       if (edgeIdsToRemove.length > 0) {
@@ -656,8 +662,30 @@ export function useWorkflowState({
         setSelectedNode(null);
       }
     },
-    [edges, selectedNode, setEdges, setNodes]
+    [readonly, nodes, selectedNode, setEdges, setNodes]
   );
+
+  // Delete edge
+  const deleteEdge = useCallback(
+    (edgeId: string) => {
+      if (readonly) return;
+      setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
+      if (selectedEdge?.id === edgeId) {
+        setSelectedEdge(null);
+      }
+    },
+    [readonly, selectedEdge, setEdges]
+  );
+
+  // Delete selected element (node or edge)
+  const deleteSelectedElement = useCallback(() => {
+    if (readonly) return;
+    if (selectedNode) {
+      deleteNode(selectedNode.id);
+    } else if (selectedEdge) {
+      deleteEdge(selectedEdge.id);
+    }
+  }, [readonly, selectedNode, selectedEdge, deleteNode, deleteEdge]);
 
   return {
     nodes,
@@ -684,5 +712,7 @@ export function useWorkflowState({
     updateNodeData: readonly ? () => {} : updateNodeData,
     updateEdgeData: readonly ? () => {} : updateEdgeData,
     deleteNode: readonly ? () => {} : deleteNode,
+    deleteEdge: readonly ? () => {} : deleteEdge,
+    deleteSelectedElement: readonly ? () => {} : deleteSelectedElement,
   };
 }
