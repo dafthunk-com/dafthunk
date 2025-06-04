@@ -237,43 +237,43 @@ function ActionButton({
       icon: <Play className="!size-4" />,
       title: "Execute Workflow",
       shortcut: "⌘⏎",
-      className: "bg-green-600 hover:bg-green-700 text-white border-green-600",
+      className: "bg-green-600 hover:bg-green-700 text-white",
     },
     submitted: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
-      className: "bg-red-500 hover:bg-red-600 text-white border-red-500",
+      className: "bg-red-600 hover:bg-red-700 text-white",
     },
     executing: {
       icon: <Square className="!size-4" />,
       title: "Stop Execution",
       shortcut: "⌘⏎",
-      className: "bg-red-500 hover:bg-red-600 text-white border-red-500",
+      className: "bg-red-600 hover:bg-red-700 text-white",
     },
     completed: {
       icon: <X className="!size-4" />,
       title: "Clear Outputs & Reset",
       shortcut: "⌘⏎",
-      className: "bg-green-600 hover:bg-green-700 text-white border-green-600",
+      className: "bg-amber-500 hover:bg-amber-600 text-white",
     },
     error: {
       icon: <X className="!size-4" />,
       title: "Clear Errors & Reset",
       shortcut: "⌘⏎",
-      className: "bg-rose-600 hover:bg-rose-700 text-white border-rose-600",
+      className: "bg-amber-500 hover:bg-amber-600 text-white",
     },
     cancelled: {
       icon: <Play className="!size-4" />,
       title: "Restart Workflow",
       shortcut: "⌘⏎",
-      className: "bg-green-600 hover:bg-green-700 text-white border-green-600",
+      className: "bg-green-600 hover:bg-green-700 text-white",
     },
     paused: {
       icon: <Play className="!size-4" />,
       title: "Resume Workflow",
       shortcut: "⌘⏎",
-      className: "bg-blue-500 hover:bg-blue-600 text-white border-blue-500",
+      className: "bg-sky-600 hover:bg-sky-700 text-white",
     },
   };
 
@@ -318,7 +318,10 @@ function DeployButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+      className={cn(
+        "bg-blue-600 hover:bg-blue-700 text-white",
+        // Adjust if specific disabled styling for DeployButton is needed beyond ActionBarButton's default
+      )}
       tooltipSide="bottom"
       tooltip={<p>Deploy Workflow</p>}
     >
@@ -338,6 +341,7 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
       onClick={onClick}
       tooltipSide="bottom"
       tooltip={<p>{isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}</p>}
+      className="bg-neutral-500 hover:bg-neutral-600 text-white"
     >
       {isSidebarVisible ? (
         <PanelLeftClose className="!size-4 rotate-180" />
@@ -367,7 +371,7 @@ function OutputsToggle({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
+      className="bg-neutral-500 hover:bg-neutral-600 text-white"
       tooltipSide="bottom"
       tooltip={<p>{tooltipText}</p>}
     >
@@ -388,7 +392,7 @@ function FitToScreenButton({
   return (
     <ActionBarButton
       onClick={onClick}
-      className="bg-neutral-500 hover:bg-neutral-600 text-white border-neutral-500"
+      className="bg-neutral-500 hover:bg-neutral-600 text-white"
       tooltipSide="right"
       tooltip={<p>Fit to Screen</p>}
     >
@@ -408,7 +412,7 @@ function DeleteButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-red-500 hover:bg-red-600 text-white border-red-500"
+      className="bg-red-600 hover:bg-red-700 text-white"
       tooltipSide="right"
       tooltip={<p>Delete Selected</p>}
     >
@@ -428,7 +432,7 @@ function EditLabelButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+      className="bg-sky-500 hover:bg-sky-600 text-white"
       tooltipSide="right"
       tooltip={<p>Edit Label</p>}
     >
@@ -448,7 +452,7 @@ function ApplyLayoutButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-purple-500 hover:bg-purple-600 text-white border-purple-500"
+      className="bg-neutral-500 hover:bg-neutral-600 text-white"
       tooltipSide="right"
       tooltip={<p>Reorganize Layout</p>}
     >
@@ -469,7 +473,7 @@ function AddNodeButton({
       onClick={onClick}
       disabled={disabled}
       tooltip="Add Node"
-      className="size-10 !p-0"
+      className="size-10 !p-0 bg-blue-600 hover:bg-blue-700 text-white"
       tooltipSide="right"
     >
       <Plus className="!size-5" />
