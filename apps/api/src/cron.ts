@@ -1,41 +1,87 @@
 import CronParser from "cron-parser"; // Or your chosen cron library
-import { and, eq, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { Node, Workflow as WorkflowType } from "@dafthunk/types"; // Using Workflow as WorkflowType from types
+import { ExecutionContext } from "@cloudflare/workers-types";
 
-import { cronTriggers } from "./db/schema";
+import * as schema from "./db/schema";
+import { WorkflowRow } from "./db/schema";
+import { getDueCronTriggers, updateCronTriggerRunTimes, saveExecution } from "./db/queries";
+import { createDatabase, ExecutionStatusType } from "./db"; // Added ExecutionStatusType
+import { Bindings } from "./context"; // For the full env type
 
-// This is a placeholder. You need to implement how workflows are triggered.
-// If executeWorkflow becomes more complex or used elsewhere, it could also be in its own file.
+// This function will now handle the actual execution triggering and initial record saving
 async function executeWorkflow(
-  workflowId: string,
-  _env: any,
-  _ctx: any
+  workflowRow: WorkflowRow,
+  db: ReturnType<typeof createDatabase>,
+  env: Bindings,
+  _ctx: ExecutionContext
 ): Promise<void> {
-  console.log(`Executing workflow ${workflowId}`);
-  // Example: await fetch(`https://your-service.com/api/execute-workflow/${workflowId}`, { method: 'POST' });
-  // Or: directly call a function if workflow logic is bundled
-  // Remember to handle errors appropriately.
-  await Promise.resolve(); // Replace with actual workflow execution logic
+  console.log(`Attempting to execute workflow ${workflowRow.id} via cron.`);
+
+  // Assuming workflowRow.data is of type WorkflowType from @dafthunk/types
+  // which includes type, nodes, and edges.
+  const workflowData: WorkflowType = workflowRow.data;
+
+  try {
+    const executionInstance = await env.EXECUTE.create({
+      params: {
+        userId: "cron_trigger",
+        organizationId: workflowRow.organizationId,
+        workflow: {
+          id: workflowRow.id,
+          name: workflowRow.name,
+          handle: workflowRow.handle,
+          type: workflowData.type, // Reinstated: type from workflow data
+          nodes: workflowData.nodes, // Reinstated: nodes from workflow data
+          edges: workflowData.edges, // Reinstated: edges from workflow data
+        },
+        monitorProgress: false,
+        deploymentId: undefined,
+      },
+    });
+
+    const executionId = executionInstance.id;
+    console.log(`Workflow ${workflowRow.id} started with execution ID: ${executionId}`);
+
+    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
+      nodeId: node.id,
+      status: "idle" as const,
+    }));
+
+    await saveExecution(db, {
+      id: executionId,
+      workflowId: workflowRow.id,
+      deploymentId: undefined,
+      userId: "cron_trigger",
+      organizationId: workflowRow.organizationId,
+      status: "executing" as ExecutionStatusType,
+      visibility: "private",
+      nodeExecutions,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      startedAt: new Date(),
+    });
+    console.log(`Initial execution record saved for ${executionId}`);
+
+  } catch (execError) {
+    console.error(`Error executing workflow ${workflowRow.id} or saving initial record:`, execError);
+  }
 }
 
 export async function handleCronTriggers(
   event: ScheduledEvent,
-  env: { DB: D1Database },
+  env: Bindings, // Updated to use the full Bindings type
   ctx: ExecutionContext
 ): Promise<void> {
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
-  const db = drizzle(env.DB, { schema: { cronTriggers } });
+  // Ensure db is initialized correctly if createDatabase is the standard way
+  // drizzle can also be initialized with just env.DB and schema
+  const db = createDatabase(env.DB); 
 
   const now = new Date();
 
   try {
-    const dueTriggers = await db
-      .select()
-      .from(cronTriggers)
-      .where(
-        and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now))
-      )
-      .all();
+    const dueTriggers = await getDueCronTriggers(db, now);
 
     if (dueTriggers.length === 0) {
       console.log("No due cron triggers found.");
@@ -44,34 +90,35 @@ export async function handleCronTriggers(
 
     console.log(`Found ${dueTriggers.length} due cron triggers.`);
 
-    for (const trigger of dueTriggers) {
-      console.log(`Processing trigger for workflow: ${trigger.workflowId}`);
+    for (const item of dueTriggers) {
+      // item contains { cronTrigger: CronTriggerRow, workflow: WorkflowRow }
+      console.log(`Processing trigger for workflow: ${item.workflow.id}`);
       try {
-        // 1. Execute the workflow
-        await executeWorkflow(trigger.workflowId, env, ctx);
+        // 1. Execute the workflow (asynchronously, no await here if we don't wait for termination)
+        // However, executeWorkflow itself is async due to EXECUTE.create and saveExecution.
+        // We should await it to ensure the initial saveExecution completes before updating run times.
+        await executeWorkflow(item.workflow, db, env, ctx);
 
         // 2. Calculate next run time
-        const interval = CronParser.parse(trigger.cronExpression, {
+        const interval = CronParser.parse(item.cronTrigger.cronExpression, {
           currentDate: now,
         });
         const nextRun = interval.next().toDate();
 
         // 3. Update the trigger in the database
-        await db
-          .update(cronTriggers)
-          .set({
-            lastRun: now,
-            nextRunAt: nextRun,
-          })
-          .where(eq(cronTriggers.workflowId, trigger.workflowId))
-          .execute();
+        await updateCronTriggerRunTimes(
+          db,
+          item.cronTrigger.workflowId,
+          nextRun,
+          now
+        );
 
         console.log(
-          `Workflow ${trigger.workflowId} executed. Next run at: ${nextRun.toISOString()}`
+          `Workflow ${item.workflow.id} processing initiated. Next run at: ${nextRun.toISOString()}`
         );
       } catch (err) {
         console.error(
-          `Error processing trigger for workflow ${trigger.workflowId}:`,
+          `Error processing trigger for workflow ${item.workflow.id}:`,
           err
         );
         // Optionally, you might want to implement retry logic or disable the trigger after too many failures.

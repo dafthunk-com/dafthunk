@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, SQL, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, SQL, sql, lte } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -1080,12 +1080,12 @@ export async function getExecutionWithVisibility(
 }
 
 /**
- * Get a cron trigger for a workflow
+ * Get a cron trigger.
  *
  * @param db Database instance
  * @param workflowId Workflow ID
  * @param organizationIdOrHandle Organization ID or handle
- * @returns The cron trigger record or undefined if not found
+ * @returns Cron trigger record or undefined.
  */
 export async function getCronTrigger(
   db: ReturnType<typeof createDatabase>,
@@ -1110,34 +1110,79 @@ export async function getCronTrigger(
 }
 
 /**
- * Upsert a cron trigger for a workflow
+ * Create or update a cron trigger.
  *
  * @param db Database instance
- * @param values Values to insert or update
- * @returns The upserted cron trigger record
+ * @param values Cron trigger data.
+ * @returns The created or updated cron trigger record.
  */
 export async function upsertCronTrigger(
   db: ReturnType<typeof createDatabase>,
-  values: CronTriggerInsert & { updatedAt?: Date } // Allow updatedAt for explicit update
+  values: CronTriggerInsert
 ): Promise<CronTriggerRow> {
-  // Separate updatedAt for the 'set' part of onConflictDoUpdate
-  const { updatedAt, ...insertValues } = values;
-
-  const updateValues: Partial<CronTriggerInsert> & { updatedAt: Date } = {
-    cronExpression: values.cronExpression,
-    active: values.active,
-    nextRunAt: values.nextRunAt,
-    updatedAt: updatedAt || new Date(), // Use provided updatedAt or current time
+  const updateSet = {
+    ...values,
+    updatedAt: new Date(),
   };
-
   const [upsertedCron] = await db
     .insert(cronTriggers)
-    .values(insertValues) // createdAt will use default from schema
+    .values(values)
     .onConflictDoUpdate({
-      target: cronTriggers.workflowId, // Primary key for conflict
-      set: updateValues,
+      target: cronTriggers.workflowId,
+      set: updateSet,
     })
     .returning();
 
   return upsertedCron;
+}
+
+/**
+ * Update run times for a cron trigger.
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param nextRunAt New next run time
+ * @param lastRun Current execution time
+ * @returns Updated cron trigger record or undefined.
+ */
+export async function updateCronTriggerRunTimes(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  nextRunAt: Date,
+  lastRun: Date
+): Promise<CronTriggerRow | undefined> {
+  const [updatedTrigger] = await db
+    .update(cronTriggers)
+    .set({
+      lastRun: lastRun,
+      nextRunAt: nextRunAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(cronTriggers.workflowId, workflowId))
+    .returning();
+  return updatedTrigger;
+}
+
+/**
+ * Get due cron triggers with workflow data.
+ *
+ * @param db Database instance
+ * @param now Current time
+ * @returns Array of due cron triggers with workflow data.
+ */
+export async function getDueCronTriggers(
+  db: ReturnType<typeof createDatabase>,
+  now: Date
+): Promise<{ cronTrigger: CronTriggerRow; workflow: WorkflowRow }[]> {
+  return db
+    .select({
+      cronTrigger: cronTriggers,
+      workflow: workflows
+    })
+    .from(cronTriggers)
+    .innerJoin(workflows, eq(cronTriggers.workflowId, workflows.id))
+    .where(
+      and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now))
+    )
+    .all();
 }
