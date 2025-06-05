@@ -27,6 +27,7 @@ import {
   createDatabase,
   createHandle,
   createWorkflow,
+  type CronTriggerInsert,
   deleteWorkflow,
   ExecutionStatus,
   getCronTrigger,
@@ -330,6 +331,7 @@ workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
   const response: GetCronTriggerResponse = {
     workflowId: cron.workflowId,
     cronExpression: cron.cronExpression,
+    versionAlias: cron.versionAlias,
     active: cron.active,
     nextRunAt: cron.nextRunAt,
     createdAt: cron.createdAt,
@@ -344,6 +346,7 @@ workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
  */
 const UpsertCronTriggerRequestSchema = z.object({
   cronExpression: z.string().min(1, "Cron expression is required"),
+  versionAlias: z.string().optional(),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertCronTriggerRequest>;
 
@@ -385,14 +388,19 @@ workflowRoutes.put(
     }
 
     try {
-      // Use the new upsertCronTrigger query function
-      const upsertedCron = await upsertDbCronTrigger(db, {
+      const upsertData: CronTriggerInsert = {
         workflowId: workflow.id,
         cronExpression: data.cronExpression,
         active: isActive,
         nextRunAt: nextRunAt,
-        updatedAt: now, // Pass now for updatedAt during an update
-      });
+        updatedAt: now,
+      };
+
+      if (data.versionAlias) {
+        upsertData.versionAlias = data.versionAlias;
+      }
+      // Use the new upsertCronTrigger query function
+      const upsertedCron = await upsertDbCronTrigger(db, upsertData);
 
       if (!upsertedCron) {
         return c.json(

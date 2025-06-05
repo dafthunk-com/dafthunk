@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, SQL, sql, lte } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -1164,7 +1164,7 @@ export async function updateCronTriggerRunTimes(
 }
 
 /**
- * Get due cron triggers with workflow data.
+ * Get active due cron triggers with workflow, and deployment data.
  *
  * @param db Database instance
  * @param now Current time
@@ -1173,16 +1173,63 @@ export async function updateCronTriggerRunTimes(
 export async function getDueCronTriggers(
   db: ReturnType<typeof createDatabase>,
   now: Date
-): Promise<{ cronTrigger: CronTriggerRow; workflow: WorkflowRow }[]> {
-  return db
+): Promise<
+  {
+    cronTrigger: CronTriggerRow;
+    workflow: WorkflowRow;
+    deployment: DeploymentRow | null;
+  }[]
+> {
+  const latestByWorkflow = db
+    .select({
+      workflowId: deployments.workflowId,
+      latestVersion: sql<number>`MAX(${deployments.version})`.as(
+        "latest_version"
+      ),
+    })
+    .from(deployments)
+    .groupBy(deployments.workflowId)
+    .as("latest_by_workflow");
+
+  const latestDeployment = alias(deployments, "latest_deployment");
+  const selectedDeployment = alias(deployments, "selected_deployment");
+
+  const rows = await db
     .select({
       cronTrigger: cronTriggers,
-      workflow: workflows
+      workflow: workflows,
+      latestDeployment: latestDeployment,
+      selectedDeployment: selectedDeployment,
     })
     .from(cronTriggers)
-    .innerJoin(workflows, eq(cronTriggers.workflowId, workflows.id))
-    .where(
-      and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now))
+    .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
+    .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
+    .innerJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
+    .innerJoin(
+      latestDeployment,
+      and(
+        eq(latestDeployment.workflowId, latestByWorkflow.workflowId),
+        eq(latestDeployment.version, latestByWorkflow.latestVersion)
+      )
+    )
+    .leftJoin(
+      selectedDeployment,
+      and(
+        eq(selectedDeployment.workflowId, workflows.id),
+        eq(
+          selectedDeployment.version,
+          sql<number>`CAST(${cronTriggers.versionAlias} AS INTEGER)`
+        )
+      )
     )
     .all();
+
+  return rows.map((r) => ({
+    cronTrigger: r.cronTrigger,
+    workflow: r.workflow,
+    deployment:
+      r.cronTrigger.versionAlias === "latest"
+        ? r.latestDeployment
+        : (r.selectedDeployment ?? null),
+  }));
 }

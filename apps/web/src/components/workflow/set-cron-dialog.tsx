@@ -22,12 +22,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
 const cronSchema = z.object({
   cronExpression: z.string().min(1, "Cron expression is required."),
-  // Example: 5-field cron expression basic validation (can be enhanced)
-  // .regex(/^(\*|([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])|\*\/([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9])) (\*|([0-9]|1[0-9]|2[0-3])|\*\/([0-9]|1[0-9]|2[0-3])) (\*|([1-9]|1[0-9]|2[0-9]|3[0-1])|\*\/([1-9]|1[0-9]|2[0-9]|3[0-1])) (\*|([1-9]|1[0-2])|\*\/([1-9]|1[0-2])) (\*|([0-6])|\*\/([0-6]))$/, "Invalid cron expression format."),
+  versionAlias: z.string(),
   active: z.boolean(),
 });
 
@@ -39,6 +45,7 @@ const getInitialFormValues = (
 ): CronFormData => {
   return {
     cronExpression: initialData?.cronExpression || "",
+    versionAlias: initialData?.versionAlias || "dev",
     active: initialData?.active === undefined ? true : initialData.active,
   };
 };
@@ -48,6 +55,7 @@ interface SetCronDialogProps {
   onClose: () => void;
   onSubmit: (data: CronFormData) => void;
   initialData?: Partial<CronFormData>;
+  deploymentVersions?: number[];
   workflowName?: string;
 }
 
@@ -56,15 +64,19 @@ export function SetCronDialog({
   onClose,
   onSubmit,
   initialData,
+  deploymentVersions = [],
   workflowName,
 }: SetCronDialogProps) {
   const form = useForm<CronFormData>({
-    resolver: zodResolver(cronSchema), // Reverted to simple form
-    defaultValues: getInitialFormValues(initialData), // Use helper function
+    resolver: zodResolver(cronSchema),
+    defaultValues: {
+      cronExpression: initialData?.cronExpression || "",
+      versionAlias: initialData?.versionAlias || "dev",
+      active: initialData?.active ?? true,
+    },
   });
 
   useEffect(() => {
-    // Reset form with strictly typed values when initialData or isOpen changes
     form.reset(getInitialFormValues(initialData));
   }, [initialData, form, isOpen]);
 
@@ -102,6 +114,56 @@ export function SetCronDialog({
                   <FormDescription>
                     E.g., "0 * * * *" for hourly, or "*/5 * * * *" for every 5
                     minutes.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="versionAlias"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Version to Run</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a version to run" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="dev">
+                        <div className="flex items-center">
+                          <span className="font-medium">Development</span>
+                          <span className="text-muted-foreground ml-2 text-xs">
+                            - live-editing version
+                          </span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="latest">
+                        <div className="flex items-center">
+                          <span className="font-medium">Latest</span>
+                          <span className="text-muted-foreground ml-2 text-xs">
+                            - most recent deployment
+                          </span>
+                        </div>
+                      </SelectItem>
+                      {deploymentVersions.map((version) => (
+                        <SelectItem key={version} value={String(version)}>
+                          <div className="flex items-center">
+                            <span className="font-medium">
+                              Version {version}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Choose which workflow version this schedule will execute.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

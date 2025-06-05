@@ -1,4 +1,4 @@
-import type { CronTriggerRow } from "@dafthunk/types";
+import type { GetCronTriggerResponse } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -24,7 +24,10 @@ import type {
 } from "@/components/workflow/workflow-types";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { createDeployment } from "@/services/deployment-service";
+import {
+  createDeployment,
+  useDeploymentHistory,
+} from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
 import {
@@ -43,9 +46,8 @@ export function EditorPage() {
   const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
 
   const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
-  const [cronTriggerData, setCronTriggerData] = useState<CronTriggerRow | null>(
-    null
-  );
+  const [cronTriggerData, setCronTriggerData] =
+    useState<GetCronTriggerResponse | null>(null);
   const [isCronLoading, setIsCronLoading] = useState(false);
 
   const {
@@ -53,6 +55,12 @@ export function EditorPage() {
     workflowError: workflowDetailsError,
     isWorkflowLoading: isWorkflowDetailsLoading,
   } = useWorkflow(id || null);
+
+  const {
+    deployments: deploymentHistory,
+    isDeploymentHistoryLoading,
+    mutateHistory: mutateDeploymentHistory,
+  } = useDeploymentHistory(id!);
 
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
     currentWorkflow?.type
@@ -84,6 +92,11 @@ export function EditorPage() {
     [nodeTypes]
   );
 
+  const deploymentVersions = useMemo(
+    () => deploymentHistory.map((d) => d.version).sort((a, b) => b - a),
+    [deploymentHistory]
+  );
+
   const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
     []
   );
@@ -105,9 +118,10 @@ export function EditorPage() {
 
   const handleOpenSetCronDialog = useCallback(() => {
     if (currentWorkflow?.type === "cron") {
+      mutateDeploymentHistory();
       setIsSetCronDialogOpen(true);
     }
-  }, [currentWorkflow]);
+  }, [currentWorkflow, mutateDeploymentHistory]);
 
   const handleCloseSetCronDialog = useCallback(() => {
     setIsSetCronDialogOpen(false);
@@ -302,7 +316,8 @@ export function EditorPage() {
     isWorkflowDetailsLoading ||
     isNodeTypesLoading ||
     isWorkflowInitializing ||
-    isCronLoading
+    isCronLoading ||
+    isDeploymentHistoryLoading
   ) {
     return <InsetLoading />;
   }
@@ -388,7 +403,9 @@ export function EditorPage() {
                 cronTriggerData?.active === undefined
                   ? true
                   : cronTriggerData.active,
+              versionAlias: cronTriggerData?.versionAlias || "dev",
             }}
+            deploymentVersions={deploymentVersions}
             workflowName={currentWorkflow?.name}
           />
         )}
