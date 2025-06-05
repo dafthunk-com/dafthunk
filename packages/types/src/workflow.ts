@@ -306,12 +306,18 @@ export interface CancelWorkflowExecutionResponse {
 }
 
 /**
+ * The alias for the version of the workflow to run.
+ */
+export type VersionAlias = "dev" | "latest" | "version";
+
+/**
  * Represents the core data for a cron trigger.
  */
 export interface CronTrigger {
   workflowId: string;
   cronExpression: string;
-  versionAlias: string;
+  versionAlias: VersionAlias;
+  versionNumber: number | null;
   active: boolean;
 }
 
@@ -320,7 +326,8 @@ export interface CronTrigger {
  */
 export interface UpsertCronTriggerRequest {
   cronExpression: string;
-  versionAlias?: string;
+  versionAlias?: VersionAlias;
+  versionNumber?: number | null;
   active?: boolean;
 }
 
@@ -331,7 +338,8 @@ export interface UpsertCronTriggerRequest {
 export interface GetCronTriggerResponse {
   workflowId: string;
   cronExpression: string;
-  versionAlias: string;
+  versionAlias: VersionAlias;
+  versionNumber: number | null;
   active: boolean;
   nextRunAt: string | Date | null; // from DB
   createdAt: string | Date; // from DB

@@ -695,7 +695,12 @@ export const getCronTrigger = async (
 export const upsertCronTrigger = async (
   workflowId: string,
   orgHandle: string,
-  data: UpsertCronTriggerRequest
+  data: {
+    cronExpression: string;
+    versionAlias: "dev" | "latest" | "version";
+    versionNumber?: number | null;
+    active: boolean;
+  }
 ): Promise<UpsertCronTriggerResponse> => {
   return await makeOrgRequest<UpsertCronTriggerResponse>(
     orgHandle,

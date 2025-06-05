@@ -1202,9 +1202,14 @@ export async function getDueCronTriggers(
       selectedDeployment: selectedDeployment,
     })
     .from(cronTriggers)
-    .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
+    .where(
+      and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now))
+    )
     .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
-    .innerJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
+    .innerJoin(
+      latestByWorkflow,
+      eq(latestByWorkflow.workflowId, workflows.id)
+    )
     .innerJoin(
       latestDeployment,
       and(
@@ -1216,10 +1221,7 @@ export async function getDueCronTriggers(
       selectedDeployment,
       and(
         eq(selectedDeployment.workflowId, workflows.id),
-        eq(
-          selectedDeployment.version,
-          sql<number>`CAST(${cronTriggers.versionAlias} AS INTEGER)`
-        )
+        eq(selectedDeployment.version, cronTriggers.versionNumber)
       )
     )
     .all();
@@ -1230,6 +1232,8 @@ export async function getDueCronTriggers(
     deployment:
       r.cronTrigger.versionAlias === "latest"
         ? r.latestDeployment
-        : (r.selectedDeployment ?? null),
+        : r.cronTrigger.versionAlias === "version"
+          ? r.selectedDeployment
+          : null,
   }));
 }

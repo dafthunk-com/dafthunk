@@ -12,6 +12,7 @@ import {
   UpdateWorkflowResponse,
   UpsertCronTriggerRequest,
   UpsertCronTriggerResponse,
+  VersionAlias,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { CustomJWTPayload } from "@dafthunk/types";
@@ -331,7 +332,8 @@ workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
   const response: GetCronTriggerResponse = {
     workflowId: cron.workflowId,
     cronExpression: cron.cronExpression,
-    versionAlias: cron.versionAlias,
+    versionAlias: cron.versionAlias as VersionAlias,
+    versionNumber: cron.versionNumber,
     active: cron.active,
     nextRunAt: cron.nextRunAt,
     createdAt: cron.createdAt,
@@ -346,7 +348,8 @@ workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
  */
 const UpsertCronTriggerRequestSchema = z.object({
   cronExpression: z.string().min(1, "Cron expression is required"),
-  versionAlias: z.string().optional(),
+  versionAlias: z.enum(["dev", "latest", "version"]).optional(),
+  versionNumber: z.number().optional().nullable(),
   active: z.boolean().optional(),
 }) as z.ZodType<UpsertCronTriggerRequest>;
 
@@ -369,6 +372,13 @@ workflowRoutes.put(
       return c.json({ error: "Workflow is not a cron workflow" }, 400);
     }
 
+    if (data.versionAlias === "version" && !data.versionNumber) {
+      return c.json(
+        { error: "versionNumber is required when versionAlias is 'version'" },
+        400
+      );
+    }
+
     const now = new Date();
     const isActive = data.active ?? true;
     let nextRunAt: Date | null = null;
@@ -388,19 +398,16 @@ workflowRoutes.put(
     }
 
     try {
-      const upsertData: CronTriggerInsert = {
+      const upsertedCron = await upsertDbCronTrigger(db, {
         workflowId: workflow.id,
         cronExpression: data.cronExpression,
         active: isActive,
         nextRunAt: nextRunAt,
         updatedAt: now,
-      };
-
-      if (data.versionAlias) {
-        upsertData.versionAlias = data.versionAlias;
-      }
-      // Use the new upsertCronTrigger query function
-      const upsertedCron = await upsertDbCronTrigger(db, upsertData);
+        versionAlias: data.versionAlias,
+        versionNumber:
+          data.versionAlias === "version" ? data.versionNumber : null,
+      });
 
       if (!upsertedCron) {
         return c.json(
@@ -409,7 +416,10 @@ workflowRoutes.put(
         );
       }
 
-      const response: UpsertCronTriggerResponse = upsertedCron;
+      const response: UpsertCronTriggerResponse = {
+        ...upsertedCron,
+        versionAlias: upsertedCron.versionAlias as VersionAlias,
+      };
       return c.json(response, 200);
     } catch (dbError: any) {
       console.error("Error upserting cron trigger:", dbError);

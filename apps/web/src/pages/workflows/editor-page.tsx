@@ -131,7 +131,12 @@ export function EditorPage() {
     async (data: CronFormData) => {
       if (!id || !orgHandle) return;
       try {
-        const updatedCron = await upsertCronTrigger(id, orgHandle, data);
+        const updatedCron = await upsertCronTrigger(id, orgHandle, {
+          cronExpression: data.cronExpression,
+          active: data.active,
+          versionAlias: data.versionAlias,
+          versionNumber: data.versionNumber,
+        });
         setCronTriggerData(updatedCron);
         toast.success("Cron schedule saved successfully.");
         setIsSetCronDialogOpen(false);
@@ -404,6 +409,7 @@ export function EditorPage() {
                   ? true
                   : cronTriggerData.active,
               versionAlias: cronTriggerData?.versionAlias || "dev",
+              versionNumber: cronTriggerData?.versionNumber,
             }}
             deploymentVersions={deploymentVersions}
             workflowName={currentWorkflow?.name}

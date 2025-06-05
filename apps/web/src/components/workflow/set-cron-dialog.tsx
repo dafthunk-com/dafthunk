@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,25 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 
-const cronSchema = z.object({
-  cronExpression: z.string().min(1, "Cron expression is required."),
-  versionAlias: z.string(),
-  active: z.boolean(),
-});
+const cronSchema = z
+  .object({
+    cronExpression: z.string().min(1, "Cron expression is required."),
+    versionAlias: z.enum(["dev", "latest", "version"]),
+    versionNumber: z.coerce.number().optional().nullable(),
+    active: z.boolean(),
+  })
+  .refine(
+    (data) => {
+      if (data.versionAlias === "version") {
+        return data.versionNumber !== null && data.versionNumber !== undefined;
+      }
+      return true;
+    },
+    {
+      message: "A version must be selected.",
+      path: ["versionNumber"],
+    }
+  );
 
 export type CronFormData = z.infer<typeof cronSchema>;
 
@@ -46,6 +60,7 @@ const getInitialFormValues = (
   return {
     cronExpression: initialData?.cronExpression || "",
     versionAlias: initialData?.versionAlias || "dev",
+    versionNumber: initialData?.versionNumber,
     active: initialData?.active === undefined ? true : initialData.active,
   };
 };
@@ -69,16 +84,20 @@ export function SetCronDialog({
 }: SetCronDialogProps) {
   const form = useForm<CronFormData>({
     resolver: zodResolver(cronSchema),
-    defaultValues: {
-      cronExpression: initialData?.cronExpression || "",
-      versionAlias: initialData?.versionAlias || "dev",
-      active: initialData?.active ?? true,
-    },
+    defaultValues: getInitialFormValues(initialData),
   });
 
+  const versionAlias = useWatch({
+    control: form.control,
+    name: "versionAlias",
+  });
+
+  // Reset form values whenever initialData changes (e.g., after fetch or save)
   useEffect(() => {
-    form.reset(getInitialFormValues(initialData));
-  }, [initialData, form, isOpen]);
+    if (isOpen && initialData) {
+      form.reset(getInitialFormValues(initialData));
+    }
+  }, [initialData, isOpen, form]);
 
   const handleSubmit = (data: CronFormData) => {
     onSubmit(data);
@@ -127,7 +146,7 @@ export function SetCronDialog({
                   <FormLabel>Version to Run</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -151,15 +170,11 @@ export function SetCronDialog({
                           </span>
                         </div>
                       </SelectItem>
-                      {deploymentVersions.map((version) => (
-                        <SelectItem key={version} value={String(version)}>
-                          <div className="flex items-center">
-                            <span className="font-medium">
-                              Version {version}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="version">
+                        <div className="flex items-center">
+                          <span className="font-medium">Specific Version</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
@@ -169,6 +184,42 @@ export function SetCronDialog({
                 </FormItem>
               )}
             />
+            {versionAlias === "version" && (
+              <FormField
+                control={form.control}
+                name="versionNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Deployment Version</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ? String(field.value) : ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a deployment version" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {deploymentVersions.map((version) => (
+                          <SelectItem key={version} value={String(version)}>
+                            <div className="flex items-center">
+                              <span className="font-medium">
+                                Version {version}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose a specific deployment version to run.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="active"

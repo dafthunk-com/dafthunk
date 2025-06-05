@@ -75,6 +75,15 @@ export const WorkflowTriggerType = {
 export type WorkflowTriggerTypeType =
   (typeof WorkflowTriggerType)[keyof typeof WorkflowTriggerType];
 
+// Cron version alias types
+export const VersionAlias = {
+  DEV: "dev",
+  LATEST: "latest",
+  VERSION: "version",
+} as const;
+
+export type VersionAliasType = (typeof VersionAlias)[keyof typeof VersionAlias];
+
 /**
  * REUSABLE COLUMNS
  */
@@ -318,7 +327,11 @@ export const cronTriggers = sqliteTable(
       .primaryKey()
       .references(() => workflows.id, { onDelete: "cascade" }),
     cronExpression: text("cron_expression").notNull(),
-    versionAlias: text("version_alias").notNull().default("dev"),
+    versionAlias: text("version_alias")
+      .$type<VersionAliasType>()
+      .notNull()
+      .default(VersionAlias.DEV),
+    versionNumber: integer("version_number"),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     lastRun: integer("last_run", { mode: "timestamp" }),
     nextRunAt: integer("next_run_at", { mode: "timestamp" }),
@@ -328,13 +341,10 @@ export const cronTriggers = sqliteTable(
   (table) => [
     index("cron_triggers_workflow_id_idx").on(table.workflowId),
     index("cron_triggers_version_alias_idx").on(table.versionAlias),
+    index("cron_triggers_version_number_idx").on(table.versionNumber),
     index("cron_triggers_active_idx").on(table.active),
     index("cron_triggers_last_run_idx").on(table.lastRun),
     index("cron_triggers_next_run_at_idx").on(table.nextRunAt),
-    index("cron_triggers_active_next_run_at_idx").on(
-      table.active,
-      table.nextRunAt
-    ),
     index("cron_triggers_created_at_idx").on(table.createdAt),
     index("cron_triggers_updated_at_idx").on(table.updatedAt),
   ]
