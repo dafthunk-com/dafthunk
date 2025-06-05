@@ -34,6 +34,7 @@ import type {
 
 export interface WorkflowBuilderProps {
   workflowId: string;
+  workflowType?: string;
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
   nodeTemplates?: NodeTemplate[];
@@ -47,12 +48,14 @@ export interface WorkflowBuilderProps {
   initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
+  onSetSchedule?: () => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
 }
 
 export function WorkflowBuilder({
   workflowId,
+  workflowType,
   initialNodes = [],
   initialEdges = [],
   nodeTemplates = [],
@@ -63,6 +66,7 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   readonly = false,
   onDeployWorkflow,
+  onSetSchedule,
   createObjectUrl,
   expandedOutputs = false,
 }: WorkflowBuilderProps) {
@@ -410,6 +414,8 @@ export function WorkflowBuilder({
                 !readonly && onDeployWorkflow ? onDeployWorkflow : undefined
               }
               workflowStatus={workflowStatus}
+              workflowType={workflowType}
+              onSetSchedule={onSetSchedule}
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}

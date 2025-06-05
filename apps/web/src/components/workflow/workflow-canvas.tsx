@@ -18,6 +18,7 @@ import {
 } from "@xyflow/react";
 import {
   ArrowUpToLine,
+  Clock,
   Eye,
   EyeOff,
   Maximize,
@@ -147,7 +148,7 @@ interface ActionBarButtonProps {
   className?: string;
   tooltip: React.ReactNode;
   children: React.ReactNode;
-  tooltipSide?: 'top' | 'bottom' | 'left' | 'right';
+  tooltipSide?: "top" | "bottom" | "left" | "right";
 }
 
 function ActionBarButton({
@@ -156,7 +157,7 @@ function ActionBarButton({
   className = "",
   tooltip,
   children,
-  tooltipSide = 'top',
+  tooltipSide = "top",
 }: ActionBarButtonProps) {
   return (
     <Tooltip delayDuration={0}>
@@ -182,6 +183,7 @@ export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
   connectionValidationState?: ConnectionValidationState;
+  workflowType?: string;
   onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
   onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
   onConnect: OnConnect;
@@ -205,6 +207,7 @@ export interface WorkflowCanvasProps {
   onAddNode?: () => void;
   onAction?: (e: React.MouseEvent) => void;
   onDeploy?: (e: React.MouseEvent) => void;
+  onSetSchedule?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
@@ -319,7 +322,7 @@ function DeployButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "bg-blue-600 hover:bg-blue-700 text-white",
+        "bg-blue-600 hover:bg-blue-700 text-white"
         // Adjust if specific disabled styling for DeployButton is needed beyond ActionBarButton's default
       )}
       tooltipSide="bottom"
@@ -481,6 +484,26 @@ function AddNodeButton({
   );
 }
 
+function SetScheduleButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className="bg-purple-600 hover:bg-purple-700 text-white"
+      tooltipSide="bottom"
+      tooltip={<p>Set Schedule</p>}
+    >
+      <Clock className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
 export function WorkflowCanvas({
   nodes,
   edges,
@@ -496,6 +519,8 @@ export function WorkflowCanvas({
   onAddNode,
   onAction,
   onDeploy,
+  workflowType,
+  onSetSchedule,
   workflowStatus = "idle",
   onToggleSidebar,
   isSidebarVisible,
@@ -596,34 +621,44 @@ export function WorkflowCanvas({
         {((!readonly &&
           (onAction ||
             onDeploy ||
+            onSetSchedule ||
             onToggleExpandedOutputs ||
             (onToggleSidebar && isSidebarVisible !== undefined))) ||
           (readonly &&
             (onToggleExpandedOutputs ||
               (onToggleSidebar && isSidebarVisible !== undefined)))) && (
           <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
-            {/* Run/Deploy Group - only shown when not readonly */}
-            {!readonly && (onAction || onDeploy) && (
-              <ActionBarGroup>
-                {onAction && (
-                  <ActionButton
-                    onClick={onAction}
-                    workflowStatus={workflowStatus}
-                    disabled={nodes.length === 0}
-                  />
-                )}
-
-                {onDeploy && (
-                  <DeployButton
-                    onClick={onDeploy}
-                    disabled={nodes.length === 0}
-                  />
-                )}
-              </ActionBarGroup>
-            )}
+            {/* Run/Deploy/Schedule Group - only shown when not readonly */}
+            {!readonly &&
+              (onAction ||
+                onDeploy ||
+                (onSetSchedule && workflowType === "cron")) && (
+                <ActionBarGroup>
+                  {onAction && (
+                    <ActionButton
+                      onClick={onAction}
+                      workflowStatus={workflowStatus}
+                      disabled={nodes.length === 0}
+                    />
+                  )}
+                  {onDeploy && (
+                    <DeployButton
+                      onClick={onDeploy}
+                      disabled={nodes.length === 0}
+                    />
+                  )}
+                  {onSetSchedule && workflowType === "cron" && (
+                    <SetScheduleButton
+                      onClick={onSetSchedule}
+                      disabled={nodes.length === 0}
+                    />
+                  )}
+                </ActionBarGroup>
+              )}
 
             {/* Preview/Sidebar Group - shown in both readonly and editable modes */}
-            {((onToggleExpandedOutputs || (onToggleSidebar && isSidebarVisible !== undefined))) && (
+            {(onToggleExpandedOutputs ||
+              (onToggleSidebar && isSidebarVisible !== undefined)) && (
               <ActionBarGroup>
                 {onToggleExpandedOutputs && (
                   <OutputsToggle
@@ -651,13 +686,17 @@ export function WorkflowCanvas({
             )}
           >
             {/* Node-related buttons group */}
-            <div className={cn(
-              "flex flex-col items-center gap-0.5",
-              "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
-              "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
-              "[&>*:only-child]:rounded-lg"
-            )}>
-              {onAddNode && <AddNodeButton onClick={onAddNode} disabled={readonly} />}
+            <div
+              className={cn(
+                "flex flex-col items-center gap-0.5",
+                "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
+                "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
+                "[&>*:only-child]:rounded-lg"
+              )}
+            >
+              {onAddNode && (
+                <AddNodeButton onClick={onAddNode} disabled={readonly} />
+              )}
               {onEditLabel && (
                 <EditLabelButton
                   onClick={onEditLabel}
@@ -674,21 +713,21 @@ export function WorkflowCanvas({
 
             {/* Workflow-related buttons group */}
             {(onApplyLayout || onFitToScreen) && (
-              <div className={cn(
-                "mt-2 flex flex-col items-center gap-0.5",
-                "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
-                "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
-                "[&>*:only-child]:rounded-lg"
-              )}>
+              <div
+                className={cn(
+                  "mt-2 flex flex-col items-center gap-0.5",
+                  "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
+                  "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
+                  "[&>*:only-child]:rounded-lg"
+                )}
+              >
                 {onApplyLayout && (
                   <ApplyLayoutButton
                     onClick={() => onApplyLayout()}
                     disabled={readonly || nodes.length === 0}
                   />
                 )}
-                {onFitToScreen && (
-                  <FitToScreenButton onClick={onFitToScreen} />
-                )}
+                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
               </div>
             )}
           </div>

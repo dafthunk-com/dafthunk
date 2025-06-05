@@ -200,7 +200,6 @@ export interface WorkflowExecution {
   /** Timestamp when execution ended */
   endedAt?: Date;
 }
-
 /**
  * Represents a group of deployments for a workflow
  * Used for listing deployments grouped by workflow
@@ -305,3 +304,39 @@ export interface CancelWorkflowExecutionResponse {
   status: "cancelled";
   message: string;
 }
+
+/**
+ * Represents the core data for a cron trigger.
+ */
+export interface CronTrigger {
+  workflowId: string;
+  cronExpression: string;
+  active: boolean;
+}
+
+/**
+ * Request to create or update a cron trigger.
+ */
+export interface UpsertCronTriggerRequest {
+  cronExpression: string;
+  active?: boolean;
+}
+
+/**
+ * Response when getting a cron trigger.
+ * Includes the full trigger information including database-generated fields.
+ */
+export interface GetCronTriggerResponse {
+  workflowId: string;
+  cronExpression: string;
+  active: boolean;
+  nextRunAt: string | Date | null; // from DB
+  createdAt: string | Date; // from DB
+  updatedAt: string | Date; // from DB
+}
+
+/**
+ * Response when creating or updating a cron trigger.
+ * Returns the full trigger information.
+ */
+export type UpsertCronTriggerResponse = GetCronTriggerResponse;

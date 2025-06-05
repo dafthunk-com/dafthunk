@@ -703,49 +703,46 @@ export function useWorkflowState({
     [readonly]
   );
 
-  const applyLayout = useCallback(
-    () => {
-      if (readonly) return;
+  const applyLayout = useCallback(() => {
+    if (readonly) return;
 
-      const dagreGraph = new dagre.graphlib.Graph();
-      dagreGraph.setDefaultEdgeLabel(() => ({}));
-      dagreGraph.setGraph({ rankdir: 'LR', nodesep: 100, ranksep: 100 });
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: "LR", nodesep: 100, ranksep: 100 });
 
-      nodesRef.current.forEach((node) => {
-        // Ensure width and height are available, provide defaults if not
-        const nodeWidth = node.width || 200; // Default width
-        const nodeHeight = node.height || 100; // Default height
-        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-      });
+    nodesRef.current.forEach((node) => {
+      // Ensure width and height are available, provide defaults if not
+      const nodeWidth = node.width || 200; // Default width
+      const nodeHeight = node.height || 100; // Default height
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    });
 
-      edgesRef.current.forEach((edge) => {
-        dagreGraph.setEdge(edge.source, edge.target);
-      });
+    edgesRef.current.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
 
-      dagre.layout(dagreGraph);
+    dagre.layout(dagreGraph);
 
-      setNodes((nds) =>
-        nds.map((node) => {
-          const nodeWithPosition = dagreGraph.node(node.id);
-          // Adjust position to be an offset from the current viewport center
-          // This can help prevent nodes from flying too far off screen
-          const x = nodeWithPosition.x - (node.width || 200) / 2;
-          const y = nodeWithPosition.y - (node.height || 100) / 2;
+    setNodes((nds) =>
+      nds.map((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        // Adjust position to be an offset from the current viewport center
+        // This can help prevent nodes from flying too far off screen
+        const x = nodeWithPosition.x - (node.width || 200) / 2;
+        const y = nodeWithPosition.y - (node.height || 100) / 2;
 
-          return {
-            ...node,
-            position: { x, y },
-          };
-        })
-      );
+        return {
+          ...node,
+          position: { x, y },
+        };
+      })
+    );
 
-      // Optional: Fit view after layout
-      // setTimeout(() => {
-      //   reactFlowInstance?.fitView({ padding: 0.2, duration: 200 });
-      // }, 0);
-    },
-    [setNodes, readonly, reactFlowInstance]
-  );
+    // Optional: Fit view after layout
+    // setTimeout(() => {
+    //   reactFlowInstance?.fitView({ padding: 0.2, duration: 200 });
+    // }, 0);
+  }, [setNodes, readonly, reactFlowInstance]);
 
   return {
     nodes,

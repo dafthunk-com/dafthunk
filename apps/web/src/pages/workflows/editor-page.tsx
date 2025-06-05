@@ -1,3 +1,4 @@
+import type { CronTriggerRow } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -9,6 +10,10 @@ import { InsetLoading } from "@/components/inset-loading";
 import { EmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
+import {
+  type CronFormData,
+  SetCronDialog,
+} from "@/components/workflow/set-cron-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import { WorkflowError } from "@/components/workflow/workflow-error";
 import type {
@@ -22,7 +27,12 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { createDeployment } from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
-import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
+import {
+  getCronTrigger,
+  upsertCronTrigger,
+  useWorkflow,
+  useWorkflowExecution,
+} from "@/services/workflow-service";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +41,12 @@ export function EditorPage() {
   const orgHandle = organization?.handle || "";
 
   const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
+
+  const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
+  const [cronTriggerData, setCronTriggerData] = useState<CronTriggerRow | null>(
+    null
+  );
+  const [isCronLoading, setIsCronLoading] = useState(false);
 
   const {
     workflow: currentWorkflow,
@@ -44,7 +60,6 @@ export function EditorPage() {
 
   const { createObjectUrl } = useObjectService();
 
-  // Transform nodeTypes to NodeTemplate format expected by WorkflowBuilder
   const nodeTemplates: NodeTemplate[] = useMemo(
     () =>
       nodeTypes?.map((type) => ({
@@ -54,13 +69,13 @@ export function EditorPage() {
         description: type.description || "",
         category: type.category,
         inputs: type.inputs.map((input) => ({
-          id: input.name,
+          id: input.name, // Assuming name is unique identifier for input/output handles
           type: input.type,
           name: input.name,
           hidden: input.hidden,
         })),
         outputs: type.outputs.map((output) => ({
-          id: output.name,
+          id: output.name, // Assuming name is unique identifier for input/output handles
           type: output.type,
           name: output.name,
           hidden: output.hidden,
@@ -74,6 +89,44 @@ export function EditorPage() {
   );
   const [latestUiEdges, setLatestUiEdges] = useState<Edge<WorkflowEdgeType>[]>(
     []
+  );
+
+  useEffect(() => {
+    if (currentWorkflow?.type === "cron" && id && orgHandle) {
+      setIsCronLoading(true);
+      getCronTrigger(id, orgHandle)
+        .then(setCronTriggerData)
+        .catch((err) => {
+          console.error("Failed to fetch cron trigger data:", err);
+        })
+        .finally(() => setIsCronLoading(false));
+    }
+  }, [currentWorkflow, id, orgHandle]);
+
+  const handleOpenSetCronDialog = useCallback(() => {
+    if (currentWorkflow?.type === "cron") {
+      setIsSetCronDialogOpen(true);
+    }
+  }, [currentWorkflow]);
+
+  const handleCloseSetCronDialog = useCallback(() => {
+    setIsSetCronDialogOpen(false);
+  }, []);
+
+  const handleSaveCron = useCallback(
+    async (data: CronFormData) => {
+      if (!id || !orgHandle) return;
+      try {
+        const updatedCron = await upsertCronTrigger(id, orgHandle, data);
+        setCronTriggerData(updatedCron);
+        toast.success("Cron schedule saved successfully.");
+        setIsSetCronDialogOpen(false);
+      } catch (error) {
+        console.error("Failed to save cron schedule:", error);
+        toast.error("Failed to save cron schedule. Please try again.");
+      }
+    },
+    [id, orgHandle]
   );
 
   const {
@@ -248,7 +301,8 @@ export function EditorPage() {
   if (
     isWorkflowDetailsLoading ||
     isNodeTypesLoading ||
-    isWorkflowInitializing
+    isWorkflowInitializing ||
+    isCronLoading
   ) {
     return <InsetLoading />;
   }
@@ -280,6 +334,12 @@ export function EditorPage() {
           <WorkflowBuilder
             key={workflowBuilderKey}
             workflowId={id || ""}
+            workflowType={currentWorkflow?.type}
+            onSetSchedule={
+              currentWorkflow?.type === "cron"
+                ? handleOpenSetCronDialog
+                : undefined
+            }
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
             nodeTemplates={nodeTemplates}
@@ -315,6 +375,21 @@ export function EditorPage() {
             onClose={closeExecutionForm}
             onCancel={handleDialogCancel}
             onSubmit={submitEmailFormData}
+          />
+        )}
+        {isSetCronDialogOpen && (
+          <SetCronDialog
+            isOpen={isSetCronDialogOpen}
+            onClose={handleCloseSetCronDialog}
+            onSubmit={handleSaveCron}
+            initialData={{
+              cronExpression: cronTriggerData?.cronExpression || "",
+              active:
+                cronTriggerData?.active === undefined
+                  ? true
+                  : cronTriggerData.active,
+            }}
+            workflowName={currentWorkflow?.name}
           />
         )}
       </div>

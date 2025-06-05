@@ -310,6 +310,34 @@ export const executions = sqliteTable(
   ]
 );
 
+// Cron Triggers - Scheduled triggers for workflows
+export const cronTriggers = sqliteTable(
+  "cron_triggers",
+  {
+    workflowId: text("workflow_id")
+      .primaryKey()
+      .references(() => workflows.id, { onDelete: "cascade" }),
+    cronExpression: text("cron_expression").notNull(),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    lastRun: integer("last_run", { mode: "timestamp" }),
+    nextRunAt: integer("next_run_at", { mode: "timestamp" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("cron_triggers_workflow_id_idx").on(table.workflowId),
+    index("cron_triggers_active_idx").on(table.active),
+    index("cron_triggers_last_run_idx").on(table.lastRun),
+    index("cron_triggers_next_run_at_idx").on(table.nextRunAt),
+    index("cron_triggers_active_next_run_at_idx").on(
+      table.active,
+      table.nextRunAt
+    ),
+    index("cron_triggers_created_at_idx").on(table.createdAt),
+    index("cron_triggers_updated_at_idx").on(table.updatedAt),
+  ]
+);
+
 /**
  * RELATION DEFINITIONS
  */
@@ -359,6 +387,10 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
   }),
   executions: many(executions),
   deployments: many(deployments),
+  cronTrigger: one(cronTriggers, {
+    fields: [workflows.id],
+    references: [cronTriggers.workflowId],
+  }),
 }));
 
 export const executionsRelations = relations(executions, ({ one }) => ({
@@ -383,6 +415,13 @@ export const deploymentsRelations = relations(deployments, ({ one }) => ({
   }),
   workflow: one(workflows, {
     fields: [deployments.workflowId],
+    references: [workflows.id],
+  }),
+}));
+
+export const cronTriggersRelations = relations(cronTriggers, ({ one }) => ({
+  workflow: one(workflows, {
+    fields: [cronTriggers.workflowId],
     references: [workflows.id],
   }),
 }));
@@ -425,3 +464,6 @@ export type ExecutionInsert = typeof executions.$inferInsert;
 
 export type DeploymentRow = typeof deployments.$inferSelect;
 export type DeploymentInsert = typeof deployments.$inferInsert;
+
+export type CronTriggerRow = typeof cronTriggers.$inferSelect;
+export type CronTriggerInsert = typeof cronTriggers.$inferInsert;

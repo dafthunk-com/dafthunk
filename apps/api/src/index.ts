@@ -2,6 +2,7 @@ import { Hono } from "hono";
 export { Runtime } from "./runtime/runtime";
 import auth from "./auth";
 import { ApiContext } from "./context";
+import { handleCronTriggers } from "./cron";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { NodeRegistry } from "./nodes/node-registry";
@@ -47,6 +48,7 @@ app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
 
 export default {
+  scheduled: handleCronTriggers,
   email: handleIncomingEmail,
   fetch: app.fetch,
 };

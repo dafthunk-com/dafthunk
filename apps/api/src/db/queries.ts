@@ -14,6 +14,9 @@ import {
   type ApiKeyInsert,
   apiKeys,
   createDatabase,
+  type CronTriggerInsert,
+  type CronTriggerRow,
+  cronTriggers,
   type DeploymentInsert,
   type DeploymentRow,
   deployments,
@@ -1074,4 +1077,67 @@ export async function getExecutionWithVisibility(
     );
 
   return execution;
+}
+
+/**
+ * Get a cron trigger for a workflow
+ *
+ * @param db Database instance
+ * @param workflowId Workflow ID
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns The cron trigger record or undefined if not found
+ */
+export async function getCronTrigger(
+  db: ReturnType<typeof createDatabase>,
+  workflowId: string,
+  organizationIdOrHandle: string
+): Promise<CronTriggerRow | undefined> {
+  const [cronTrigger] = await db
+    .select()
+    .from(cronTriggers)
+    .innerJoin(workflows, eq(cronTriggers.workflowId, workflows.id))
+    .innerJoin(
+      organizations,
+      and(
+        eq(workflows.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(eq(cronTriggers.workflowId, workflowId))
+    .limit(1);
+
+  return cronTrigger?.cron_triggers;
+}
+
+/**
+ * Upsert a cron trigger for a workflow
+ *
+ * @param db Database instance
+ * @param values Values to insert or update
+ * @returns The upserted cron trigger record
+ */
+export async function upsertCronTrigger(
+  db: ReturnType<typeof createDatabase>,
+  values: CronTriggerInsert & { updatedAt?: Date } // Allow updatedAt for explicit update
+): Promise<CronTriggerRow> {
+  // Separate updatedAt for the 'set' part of onConflictDoUpdate
+  const { updatedAt, ...insertValues } = values;
+
+  const updateValues: Partial<CronTriggerInsert> & { updatedAt: Date } = {
+    cronExpression: values.cronExpression,
+    active: values.active,
+    nextRunAt: values.nextRunAt,
+    updatedAt: updatedAt || new Date(), // Use provided updatedAt or current time
+  };
+
+  const [upsertedCron] = await db
+    .insert(cronTriggers)
+    .values(insertValues) // createdAt will use default from schema
+    .onConflictDoUpdate({
+      target: cronTriggers.workflowId, // Primary key for conflict
+      set: updateValues,
+    })
+    .returning();
+
+  return upsertedCron;
 }

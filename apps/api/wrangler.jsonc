@@ -8,6 +8,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2024-10-22",
   "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
