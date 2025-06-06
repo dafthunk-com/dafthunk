@@ -264,11 +264,37 @@ export const workflowTemplates: WorkflowTemplate[] = [
     tags: ["email", "sentiment", "ai", "analysis"],
     nodes: [
       {
+        id: "email-parameters-1",
+        name: "Email Parameters",
+        type: "email-parameters",
+        description: "Extract email parameters from context",
+        position: { x: 100, y: 100 },
+        inputs: [],
+        outputs: [
+          {
+            name: "from",
+            type: "string",
+          },
+          {
+            name: "to",
+            type: "string",
+          },
+          {
+            name: "headers",
+            type: "json",
+          },
+          {
+            name: "raw",
+            type: "string",
+          },
+        ],
+      },
+      {
         id: "email-parser-1",
         name: "Email Parser",
         type: "email-parser",
         description: "Extract text from email",
-        position: { x: 100, y: 100 },
+        position: { x: 500, y: 100 },
         inputs: [
           {
             name: "rawEmail",
@@ -336,7 +362,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
         name: "DistilBERT SST-2 Int8",
         type: "distilbert-sst-2-int8",
         description: "Analyze sentiment of email content",
-        position: { x: 500, y: 100 },
+        position: { x: 900, y: 100 },
         inputs: [
           {
             name: "text",
@@ -346,17 +372,25 @@ export const workflowTemplates: WorkflowTemplate[] = [
         ],
         outputs: [
           {
-            name: "label",
-            type: "string",
+            name: "positive",
+            description: "positive",
+            type: "number",
           },
           {
-            name: "score",
+            name: "negative",
+            description: "negative",
             type: "number",
           },
         ],
       },
     ],
     edges: [
+      {
+        source: "email-parameters-1",
+        target: "email-parser-1",
+        sourceOutput: "raw",
+        targetInput: "rawEmail",
+      },
       {
         source: "email-parser-1",
         target: "sentiment-1",
