@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, SQL, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -1169,11 +1169,8 @@ export async function updateCronTriggerRunTimes(
 }
 
 /**
- * Get active due cron triggers with workflow, and deployment data.
- *
- * @param db Database instance
- * @param now Current time
- * @returns Array of due cron triggers with workflow data.
+ * Get active, due cron triggers together with the workflow and (optionally) a
+ * deployment that should be executed.
  */
 export async function getDueCronTriggers(
   db: ReturnType<typeof createDatabase>,
@@ -1207,15 +1204,10 @@ export async function getDueCronTriggers(
       selectedDeployment: selectedDeployment,
     })
     .from(cronTriggers)
-    .where(
-      and(
-        eq(cronTriggers.active, true),
-        sql`${cronTriggers.nextRunAt} <= ${Math.floor(now.getTime() / 1000)}`
-      )
-    )
+    .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
     .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
-    .innerJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
-    .innerJoin(
+    .leftJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
+    .leftJoin(
       latestDeployment,
       and(
         eq(latestDeployment.workflowId, latestByWorkflow.workflowId),
@@ -1231,14 +1223,21 @@ export async function getDueCronTriggers(
     )
     .all();
 
-  return rows.map((r) => ({
-    cronTrigger: r.cronTrigger,
-    workflow: r.workflow,
-    deployment:
-      r.cronTrigger.versionAlias === "latest"
-        ? r.latestDeployment
-        : r.cronTrigger.versionAlias === "version"
-          ? r.selectedDeployment
-          : null,
-  }));
+  return rows
+    .filter(
+      (r) =>
+        r.cronTrigger.versionAlias === "dev" ||
+        (r.cronTrigger.versionAlias === "latest" && r.latestDeployment) ||
+        (r.cronTrigger.versionAlias === "version" && r.selectedDeployment)
+    )
+    .map((r) => ({
+      cronTrigger: r.cronTrigger,
+      workflow: r.workflow,
+      deployment:
+        r.cronTrigger.versionAlias === "latest"
+          ? r.latestDeployment
+          : r.cronTrigger.versionAlias === "version"
+            ? r.selectedDeployment
+            : null,
+    }));
 }
