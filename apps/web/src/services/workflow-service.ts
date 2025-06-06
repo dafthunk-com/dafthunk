@@ -11,7 +11,6 @@ import {
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  UpsertCronTriggerRequest,
   UpsertCronTriggerResponse,
   WorkflowExecution,
   WorkflowWithMetadata,
@@ -687,6 +686,27 @@ export const getCronTrigger = async (
     console.error("Error fetching cron trigger:", error);
     throw error; // Re-throw other errors
   }
+};
+
+/**
+ * Hook to get a cron trigger for a specific workflow
+ */
+export const useCronTrigger = (workflowId: string) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+  const { data, error, isLoading, mutate } =
+    useSWR<GetCronTriggerResponse | null>(
+      orgHandle && workflowId
+        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/cron`
+        : null
+    );
+
+  return {
+    cronTrigger: data,
+    cronTriggerError: error || null,
+    isCronTriggerLoading: isLoading,
+    mutateCronTrigger: mutate,
+  };
 };
 
 /**

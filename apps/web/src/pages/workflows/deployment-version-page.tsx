@@ -5,9 +5,7 @@ import { useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
-import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
-import { EmailIntegrationCard } from "@/components/deployments/email-integration-card";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
@@ -238,28 +236,6 @@ export function DeploymentVersionPage() {
                 version={deploymentVersion.version}
                 createdAt={deploymentVersion.createdAt}
               />
-
-              {deploymentVersion &&
-                workflow &&
-                workflow.type === "http_request" && (
-                  <ApiIntegrationCard
-                    orgHandle={orgHandle}
-                    workflowId={workflow.id}
-                    deploymentVersion={deploymentVersion.version.toString()}
-                    nodes={nodes}
-                    nodeTemplates={nodeTemplates}
-                  />
-                )}
-
-              {deploymentVersion &&
-                workflow &&
-                workflow.type === "email_message" && (
-                  <EmailIntegrationCard
-                    orgHandle={orgHandle}
-                    workflowHandle={workflow.handle}
-                    deploymentVersion={deploymentVersion.version.toString()}
-                  />
-                )}
             </TabsContent>
 
             <TabsContent value="workflow" className="mt-4">

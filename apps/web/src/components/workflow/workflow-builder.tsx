@@ -1,4 +1,4 @@
-import type { ObjectReference } from "@dafthunk/types";
+import type { ObjectReference, WorkflowType } from "@dafthunk/types";
 import type {
   Connection,
   Edge as ReactFlowEdge,
@@ -34,7 +34,7 @@ import type {
 
 export interface WorkflowBuilderProps {
   workflowId: string;
-  workflowType?: string;
+  workflowType?: WorkflowType;
   initialNodes?: ReactFlowNode<WorkflowNodeType>[];
   initialEdges?: ReactFlowEdge<WorkflowEdgeType>[];
   nodeTemplates?: NodeTemplate[];
@@ -49,6 +49,8 @@ export interface WorkflowBuilderProps {
   readonly?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
   onSetSchedule?: () => void;
+  onShowHttpIntegration?: () => void;
+  onShowEmailTrigger?: () => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
 }
@@ -67,6 +69,8 @@ export function WorkflowBuilder({
   readonly = false,
   onDeployWorkflow,
   onSetSchedule,
+  onShowHttpIntegration,
+  onShowEmailTrigger,
   createObjectUrl,
   expandedOutputs = false,
 }: WorkflowBuilderProps) {
@@ -416,6 +420,8 @@ export function WorkflowBuilder({
               workflowStatus={workflowStatus}
               workflowType={workflowType}
               onSetSchedule={onSetSchedule}
+              onShowHttpIntegration={onShowHttpIntegration}
+              onShowEmailTrigger={onShowEmailTrigger}
               onToggleSidebar={toggleSidebar}
               isSidebarVisible={isSidebarVisible}
               isValidConnection={isValidConnection}
