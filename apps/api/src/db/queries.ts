@@ -1120,13 +1120,17 @@ export async function upsertCronTrigger(
   db: ReturnType<typeof createDatabase>,
   values: CronTriggerInsert
 ): Promise<CronTriggerRow> {
+  const now = new Date();
   const updateSet = {
     ...values,
-    updatedAt: new Date(),
+    updatedAt: now,
   };
   const [upsertedCron] = await db
     .insert(cronTriggers)
-    .values(values)
+    .values({
+      ...values,
+      updatedAt: now,
+    })
     .onConflictDoUpdate({
       target: cronTriggers.workflowId,
       set: updateSet,
@@ -1151,12 +1155,13 @@ export async function updateCronTriggerRunTimes(
   nextRunAt: Date,
   lastRun: Date
 ): Promise<CronTriggerRow | undefined> {
+  const now = new Date();
   const [updatedTrigger] = await db
     .update(cronTriggers)
     .set({
       lastRun: lastRun,
       nextRunAt: nextRunAt,
-      updatedAt: new Date(),
+      updatedAt: now,
     })
     .where(eq(cronTriggers.workflowId, workflowId))
     .returning();
@@ -1173,13 +1178,11 @@ export async function updateCronTriggerRunTimes(
 export async function getDueCronTriggers(
   db: ReturnType<typeof createDatabase>,
   now: Date
-): Promise<
-  {
-    cronTrigger: CronTriggerRow;
-    workflow: WorkflowRow;
-    deployment: DeploymentRow | null;
-  }[]
-> {
+): Promise<{
+  cronTrigger: CronTriggerRow;
+  workflow: WorkflowRow;
+  deployment: DeploymentRow | null;
+}[]> {
   const latestByWorkflow = db
     .select({
       workflowId: deployments.workflowId,
@@ -1202,7 +1205,12 @@ export async function getDueCronTriggers(
       selectedDeployment: selectedDeployment,
     })
     .from(cronTriggers)
-    .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
+    .where(
+      and(
+        eq(cronTriggers.active, true),
+        sql`${cronTriggers.nextRunAt} <= ${now.getTime()}`
+      )
+    )
     .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
     .innerJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
     .innerJoin(
