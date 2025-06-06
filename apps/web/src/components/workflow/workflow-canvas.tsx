@@ -66,60 +66,69 @@ interface StatusBarProps {
 
 function StatusBar({ workflowStatus, nodeCount, readonly }: StatusBarProps) {
   const statusConfig = {
-    idle: { color: "text-gray-600", bg: "bg-gray-100", label: "Ready" },
+    idle: {
+      color: "text-neutral-600 dark:text-neutral-400",
+      bg: "bg-neutral-200 dark:bg-neutral-700",
+      label: "Ready",
+    },
     submitted: {
-      color: "text-orange-600",
-      bg: "bg-orange-100",
+      color: "text-orange-600 dark:text-orange-400",
+      bg: "bg-orange-200 dark:bg-orange-900/50",
       label: "Queued",
     },
     executing: {
-      color: "text-yellow-600",
-      bg: "bg-yellow-400",
+      color: "text-yellow-600 dark:text-yellow-400",
+      bg: "bg-yellow-400 dark:bg-yellow-500",
       label: "Running",
     },
     completed: {
-      color: "text-green-600",
-      bg: "bg-green-100",
+      color: "text-green-600 dark:text-green-400",
+      bg: "bg-green-200 dark:bg-green-900/50",
       label: "Completed",
     },
-    error: { color: "text-red-600", bg: "bg-red-100", label: "Error" },
+    error: {
+      color: "text-red-600 dark:text-red-400",
+      bg: "bg-red-200 dark:bg-red-900/50",
+      label: "Error",
+    },
     cancelled: {
-      color: "text-neutral-600",
-      bg: "bg-neutral-100",
+      color: "text-gray-600 dark:text-gray-400",
+      bg: "bg-gray-200 dark:bg-gray-700",
       label: "Cancelled",
     },
-    paused: { color: "text-blue-600", bg: "bg-blue-100", label: "Paused" },
+    paused: {
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-200 dark:bg-blue-900/50",
+      label: "Paused",
+    },
   };
 
   const config = statusConfig[workflowStatus] || statusConfig.idle;
 
   return (
     <div className="absolute bottom-4 left-4 flex items-center gap-3 z-50">
-      <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm flex items-center gap-3">
+      <div className="bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 shadow-sm flex items-center gap-3">
         <div className="flex items-center gap-2">
           <div className={cn("w-2 h-2 rounded-full", config.bg)}>
-            <div
-              className={cn(
-                "w-full h-full rounded-full",
-                config.color.replace("text-", "bg-")
-              )}
-            />
+            <div className={cn("w-full h-full rounded-full")} />
           </div>
           <span className={cn("text-sm font-medium", config.color)}>
             {config.label}
           </span>
         </div>
 
-        <div className="w-px h-4 bg-gray-300" />
+        <div className="w-px h-4 bg-neutral-300 dark:bg-neutral-600" />
 
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
           <span>
             {nodeCount} node{nodeCount !== 1 ? "s" : ""}
           </span>
           {readonly && (
             <>
               <span>•</span>
-              <span className="text-amber-600">Read-only</span>
+              <span className="text-amber-600 dark:text-amber-400">
+                Read-only
+              </span>
             </>
           )}
         </div>

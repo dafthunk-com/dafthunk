@@ -441,14 +441,11 @@ export function WorkflowsPage() {
             automatic.
           </div>
           <div className="flex gap-2">
-
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create New Workflow
             </Button>
-            <Button
-              onClick={() => setIsImportDialogOpen(true)}
-            >
+            <Button onClick={() => setIsImportDialogOpen(true)}>
               <Import className="mr-2 h-4 w-4" />
               Import Workflow Template
             </Button>
