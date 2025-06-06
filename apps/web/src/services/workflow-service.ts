@@ -689,6 +689,27 @@ export const getCronTrigger = async (
 };
 
 /**
+ * Hook to get a cron trigger for a specific workflow
+ */
+export const useCronTrigger = (workflowId: string) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+  const { data, error, isLoading, mutate } =
+    useSWR<GetCronTriggerResponse | null>(
+      orgHandle && workflowId
+        ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/cron`
+        : null
+    );
+
+  return {
+    cronTrigger: data,
+    cronTriggerError: error || null,
+    isCronTriggerLoading: isLoading,
+    mutateCronTrigger: mutate,
+  };
+};
+
+/**
  * Create or update a cron trigger for a workflow
  */
 export const upsertCronTrigger = async (

@@ -9,12 +9,12 @@ import {
 } from "@/components/deployments/api-snippets";
 import { CodeBlock } from "@/components/docs/code-block";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   NodeTemplate,
@@ -23,7 +23,9 @@ import type {
 import { getApiBaseUrl } from "@/config/api";
 import { extractDialogParametersFromNodes } from "@/utils/utils";
 
-interface ApiIntegrationCardProps {
+interface HttpIntegrationDialogProps {
+  isOpen: boolean;
+  onClose: (open: boolean) => void;
   nodes: Node<WorkflowNodeType>[];
   nodeTemplates: NodeTemplate[];
   orgHandle: string;
@@ -31,13 +33,15 @@ interface ApiIntegrationCardProps {
   deploymentVersion: string;
 }
 
-export function ApiIntegrationCard({
+export function HttpIntegrationDialog({
+  isOpen,
+  onClose,
   nodes,
   nodeTemplates,
   orgHandle,
   workflowId,
   deploymentVersion,
-}: ApiIntegrationCardProps) {
+}: HttpIntegrationDialogProps) {
   const baseUrl = getApiBaseUrl().replace(/\/$/, "");
   const executeUrl = `${baseUrl}/${orgHandle}/workflows/${workflowId}/execute/${deploymentVersion}`;
   const statusBaseUrl = `${baseUrl}/${orgHandle}/executions`; // Execution ID will be appended in snippets
@@ -107,17 +111,17 @@ export function ApiIntegrationCard({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          <Terminal className="h-5 w-5" />
-          API Integration
-        </CardTitle>
-        <CardDescription>
-          Programmatically interact with this workflow deployment
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            <Terminal className="h-5 w-5" />
+            HTTP Integration
+          </DialogTitle>
+          <DialogDescription>
+            Programmatically interact with this workflow deployment
+          </DialogDescription>
+        </DialogHeader>
         <Tabs
           defaultValue="execute"
           className="w-full flex items-stretch border rounded-lg"
@@ -366,7 +370,7 @@ export function ApiIntegrationCard({
             </div>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }

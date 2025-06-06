@@ -3,7 +3,6 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
   ArrowDown,
-  Clock,
   GitCommitHorizontal,
   History,
   MoreHorizontal,
@@ -13,9 +12,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
-import { ApiIntegrationCard } from "@/components/deployments/api-integration-card";
 import { DeploymentInfoCard } from "@/components/deployments/deployment-info-card";
-import { EmailIntegrationCard } from "@/components/deployments/email-integration-card";
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -23,13 +20,6 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { ActionBarGroup } from "@/components/ui/action-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import {
   Dialog,
@@ -45,20 +35,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
+import { SetCronDialog } from "@/components/workflow/set-cron-dialog";
 import {
   ActionButton,
   DeployButton,
+  SetScheduleButton,
+  ShowEmailTriggerButton,
+  ShowHttpIntegrationButton,
 } from "@/components/workflow/workflow-canvas";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deployment-service";
-import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
+import {
+  useCronTrigger,
+  useWorkflow,
+  useWorkflowExecution,
+} from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -168,8 +166,9 @@ export function DeploymentDetailPage() {
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
-  const [isApiIntegrationDialogOpen, setIsApiIntegrationDialogOpen] =
-    useState(false);
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+
+  const { cronTrigger } = useCronTrigger(workflowId!);
 
   const {
     workflow: workflowSummary,
@@ -281,71 +280,6 @@ export function DeploymentDetailPage() {
     </div>
   );
 
-  const renderIntegrationSection = () => {
-    if (!workflow || !currentDeployment) return null;
-
-    switch (workflow.type) {
-      case "manual":
-        // No integration section for manual workflows
-        return null;
-
-      case "http_request":
-        return (
-          <ApiIntegrationCard
-            orgHandle={orgHandle}
-            workflowId={workflow.id}
-            deploymentVersion="latest"
-            nodes={adaptDeploymentNodesToReactFlowNodes(
-              currentDeployment.nodes
-            )}
-            nodeTemplates={nodeTemplates}
-          />
-        );
-
-      case "email_message": {
-        return (
-          <EmailIntegrationCard
-            orgHandle={orgHandle}
-            workflowHandle={workflow.handle}
-          />
-        );
-      }
-
-      case "cron":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-xl">
-                <Clock className="mr-2 h-4 w-4" />
-                Cron Integration
-              </CardTitle>
-              <CardDescription>
-                Schedule workflow execution using cron expressions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="cron-expression">Cron Expression</Label>
-                <Input
-                  id="cron-expression"
-                  placeholder="0 0 * * *"
-                  disabled
-                  className="font-mono"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Cron scheduling is currently disabled and will be available in
-                  a future update.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   if (isDeploymentHistoryLoading || isWorkflowLoading) {
     return (
       <InsetLoading title={workflowSummary?.name || "Workflow Deployments"} />
@@ -374,18 +308,43 @@ export function DeploymentDetailPage() {
                 Manage deployments for this workflow
               </p>
               <div className="flex gap-2">
-                <ActionBarGroup>
+                <ActionBarGroup className="[&_button]:h-9">
                   <ActionButton
                     onClick={handleExecuteLatestVersion}
                     disabled={isLastExecutionRunning}
-                    className="h-9"
+                    showTooltip={false}
+                    text="Execute Latest"
                   />
                   <DeployButton
                     onClick={() => setIsDeployDialogOpen(true)}
                     disabled={isDeploying}
                     text="Deploy Latest"
-                    className="h-9"
+                    tooltip=""
                   />
+                  {workflow.type === "http_request" && (
+                    <ShowHttpIntegrationButton
+                      onClick={() => setIsIntegrationDialogOpen(true)}
+                      disabled={isDeploying}
+                      text="Show HTTP Integration"
+                      tooltip=""
+                    />
+                  )}
+                  {workflow.type === "email_message" && (
+                    <ShowEmailTriggerButton
+                      onClick={() => setIsIntegrationDialogOpen(true)}
+                      disabled={isDeploying}
+                      text="Show Email Trigger"
+                      tooltip=""
+                    />
+                  )}
+                  {workflow.type === "cron" && (
+                    <SetScheduleButton
+                      onClick={() => setIsIntegrationDialogOpen(true)}
+                      disabled={isDeploying}
+                      text="Set Schedule"
+                      tooltip=""
+                    />
+                  )}
                 </ActionBarGroup>
               </div>
             </div>
@@ -406,8 +365,6 @@ export function DeploymentDetailPage() {
                 title="Current Deployment"
                 description="Latest deployment of this workflow"
               />
-
-              {renderIntegrationSection()}
 
               <DataTableCard
                 title={
@@ -484,41 +441,47 @@ export function DeploymentDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* API Integration Dialog */}
+      {/* HTTP Integration Dialog */}
       {workflow?.type === "http_request" && currentDeployment && (
-        <Dialog
-          open={isApiIntegrationDialogOpen}
-          onOpenChange={setIsApiIntegrationDialogOpen}
-        >
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>API Integration</DialogTitle>
-              <DialogDescription>
-                Configure HTTP endpoint integration for "{workflowSummary?.name}
-                "
-              </DialogDescription>
-            </DialogHeader>
+        <HttpIntegrationDialog
+          isOpen={isIntegrationDialogOpen}
+          onClose={setIsIntegrationDialogOpen}
+          nodes={adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes)}
+          nodeTemplates={nodeTemplates}
+          orgHandle={orgHandle}
+          workflowId={workflowId!}
+          deploymentVersion="latest"
+        />
+      )}
 
-            <ApiIntegrationCard
-              orgHandle={orgHandle}
-              workflowId={workflowSummary!.id}
-              deploymentVersion="latest"
-              nodes={adaptDeploymentNodesToReactFlowNodes(
-                currentDeployment.nodes
-              )}
-              nodeTemplates={nodeTemplates}
-            />
+      {/* Email Trigger Dialog */}
+      {workflow?.type === "email_message" && currentDeployment && (
+        <EmailTriggerDialog
+          isOpen={isIntegrationDialogOpen}
+          onClose={setIsIntegrationDialogOpen}
+          orgHandle={orgHandle}
+          workflowHandle={workflow.handle}
+          deploymentVersion="latest"
+        />
+      )}
 
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsApiIntegrationDialogOpen(false)}
-              >
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      {/* Cron Integration Dialog */}
+      {workflow?.type === "cron" && currentDeployment && (
+        <SetCronDialog
+          isOpen={isIntegrationDialogOpen}
+          onClose={() => setIsIntegrationDialogOpen(false)}
+          // TODO: Add submit handler
+          onSubmit={() => {}}
+          initialData={{
+            cronExpression: cronTrigger?.cronExpression || "",
+            active:
+              cronTrigger?.active === undefined ? true : cronTrigger.active,
+            versionAlias: cronTrigger?.versionAlias || "dev",
+            versionNumber: cronTrigger?.versionNumber,
+          }}
+          deploymentVersions={[currentDeployment.version]}
+          workflowName={workflowSummary?.name || ""}
+        />
       )}
     </InsetLayout>
   );

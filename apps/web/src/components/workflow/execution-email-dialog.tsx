@@ -15,10 +15,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea"; // For body field
+import { Textarea } from "@/components/ui/textarea";
 
-// Define the Zod schema as the primary source of truth for the form's shape
-const emailDialogZodSchema = z.object({
+const executionEmailDialogZodSchema = z.object({
   from: z
     .string()
     .email({ message: "Invalid email address for From field." })
@@ -27,24 +26,17 @@ const emailDialogZodSchema = z.object({
   body: z.string().min(1, { message: "Body is required." }),
 });
 
-// Infer the TypeScript type from the Zod schema. This will be used by the form.
-type EmailDialogFormShape = z.infer<typeof emailDialogZodSchema>;
+type ExecutionEmailDialogFormShape = z.infer<
+  typeof executionEmailDialogZodSchema
+>;
 
-// The EmailData interface is exported for use by parent components/services.
-// It must be structurally identical to EmailDialogFormShape.
 export interface EmailData {
   from: string;
   subject: string;
   body: string;
 }
 
-// Helper type assertion (optional, for development, can be removed)
-// This ensures EmailData and EmailDialogFormShape are compatible.
-type Assert<T, U extends T> = U;
-type _SchemaMatchesData = Assert<EmailData, EmailDialogFormShape>;
-type _DataMatchesSchema = Assert<EmailDialogFormShape, EmailData>;
-
-type EmailDialogProps = {
+type ExecutionEmailDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   // The onSubmit prop uses EmailData, which must align with EmailDialogFormShape
@@ -52,20 +44,20 @@ type EmailDialogProps = {
   onCancel?: () => void;
 };
 
-export function EmailDialog({
+export function ExecutionEmailDialog({
   isOpen,
   onClose,
   onSubmit,
   onCancel,
-}: EmailDialogProps) {
+}: ExecutionEmailDialogProps) {
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors, isDirty, isValid },
-  } = useForm<EmailDialogFormShape>({
-    // Use the inferred type from the Zod schema
-    resolver: zodResolver(emailDialogZodSchema), // Use the Zod schema directly
+  } = useForm<ExecutionEmailDialogFormShape>({
+    // @ts-expect-error - zodResolver is not typed correctly
+    resolver: zodResolver(executionEmailDialogZodSchema),
     mode: "onChange",
     defaultValues: {
       from: "",
@@ -85,7 +77,9 @@ export function EmailDialog({
   }, [isOpen, reset]);
 
   // processSubmit now works with EmailDialogFormShape
-  const processSubmit: SubmitHandler<EmailDialogFormShape> = (data) => {
+  const processSubmit: SubmitHandler<ExecutionEmailDialogFormShape> = (
+    data
+  ) => {
     // onSubmit expects EmailData. Since EmailDialogFormShape and EmailData are structurally identical,
     // this assignment is safe.
     onSubmit(data);

@@ -1,4 +1,3 @@
-import type { GetCronTriggerResponse } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -7,9 +6,10 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
-import { EmailDialog } from "@/components/workflow/execution-email-dialog";
+import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
+import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
 import {
   type CronFormData,
   SetCronDialog,
@@ -31,11 +31,12 @@ import {
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
 import {
-  getCronTrigger,
   upsertCronTrigger,
+  useCronTrigger,
   useWorkflow,
   useWorkflowExecution,
 } from "@/services/workflow-service";
+import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,9 +47,13 @@ export function EditorPage() {
   const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
 
   const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
-  const [cronTriggerData, setCronTriggerData] =
-    useState<GetCronTriggerResponse | null>(null);
-  const [isCronLoading, setIsCronLoading] = useState(false);
+  const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
+    useCronTrigger(id!);
+
+  const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
+    useState(false);
+  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
+    useState(false);
 
   const {
     workflow: currentWorkflow,
@@ -104,23 +109,9 @@ export function EditorPage() {
     []
   );
 
-  useEffect(() => {
-    if (currentWorkflow?.type === "cron" && id && orgHandle) {
-      setIsCronLoading(true);
-      getCronTrigger(id, orgHandle)
-        .then(setCronTriggerData)
-        .catch((err) => {
-          console.error("Failed to fetch cron trigger data:", err);
-        })
-        .finally(() => setIsCronLoading(false));
-    }
-  }, [currentWorkflow, id, orgHandle]);
-
   const handleOpenSetCronDialog = useCallback(() => {
-    if (currentWorkflow?.type === "cron") {
-      mutateDeploymentHistory();
-      setIsSetCronDialogOpen(true);
-    }
+    mutateDeploymentHistory();
+    setIsSetCronDialogOpen(true);
   }, [currentWorkflow, mutateDeploymentHistory]);
 
   const handleCloseSetCronDialog = useCallback(() => {
@@ -137,7 +128,7 @@ export function EditorPage() {
           versionAlias: data.versionAlias,
           versionNumber: data.versionNumber,
         });
-        setCronTriggerData(updatedCron);
+        mutateCronTrigger(updatedCron);
         toast.success("Cron schedule saved successfully.");
         setIsSetCronDialogOpen(false);
       } catch (error) {
@@ -145,7 +136,7 @@ export function EditorPage() {
         toast.error("Failed to save cron schedule. Please try again.");
       }
     },
-    [id, orgHandle]
+    [id, orgHandle, mutateCronTrigger]
   );
 
   const {
@@ -321,7 +312,7 @@ export function EditorPage() {
     isWorkflowDetailsLoading ||
     isNodeTypesLoading ||
     isWorkflowInitializing ||
-    isCronLoading ||
+    isCronTriggerLoading ||
     isDeploymentHistoryLoading
   ) {
     return <InsetLoading />;
@@ -360,6 +351,16 @@ export function EditorPage() {
                 ? handleOpenSetCronDialog
                 : undefined
             }
+            onShowHttpIntegration={
+              currentWorkflow?.type === "http_request"
+                ? () => setIsHttpIntegrationDialogOpen(true)
+                : undefined
+            }
+            onShowEmailTrigger={
+              currentWorkflow?.type === "email_message"
+                ? () => setIsEmailTriggerDialogOpen(true)
+                : undefined
+            }
             initialNodes={initialNodesForUI}
             initialEdges={initialEdgesForUI}
             nodeTemplates={nodeTemplates}
@@ -371,6 +372,17 @@ export function EditorPage() {
             createObjectUrl={createObjectUrl}
           />
         </div>
+        {currentWorkflow?.type === "http_request" && (
+          <HttpIntegrationDialog
+            isOpen={isHttpIntegrationDialogOpen}
+            onClose={() => setIsHttpIntegrationDialogOpen(false)}
+            orgHandle={orgHandle}
+            workflowId={id!}
+            deploymentVersion="dev"
+            nodes={latestUiNodes}
+            nodeTemplates={nodeTemplates}
+          />
+        )}
         {currentWorkflow?.type === "http_request" &&
           executionFormParameters.length > 0 && (
             <ExecutionFormDialog
@@ -392,7 +404,16 @@ export function EditorPage() {
             />
           )}
         {currentWorkflow?.type === "email_message" && (
-          <EmailDialog
+          <EmailTriggerDialog
+            isOpen={isEmailTriggerDialogOpen}
+            onClose={() => setIsEmailTriggerDialogOpen(false)}
+            orgHandle={orgHandle}
+            workflowHandle={currentWorkflow.handle}
+            deploymentVersion="dev"
+          />
+        )}
+        {currentWorkflow?.type === "email_message" && (
+          <ExecutionEmailDialog
             isOpen={isEmailFormDialogVisible}
             onClose={closeExecutionForm}
             onCancel={handleDialogCancel}
@@ -405,13 +426,11 @@ export function EditorPage() {
             onClose={handleCloseSetCronDialog}
             onSubmit={handleSaveCron}
             initialData={{
-              cronExpression: cronTriggerData?.cronExpression || "",
+              cronExpression: cronTrigger?.cronExpression || "",
               active:
-                cronTriggerData?.active === undefined
-                  ? true
-                  : cronTriggerData.active,
-              versionAlias: cronTriggerData?.versionAlias || "dev",
-              versionNumber: cronTriggerData?.versionNumber,
+                cronTrigger?.active === undefined ? true : cronTrigger.active,
+              versionAlias: cronTrigger?.versionAlias || "dev",
+              versionNumber: cronTrigger?.versionNumber,
             }}
             deploymentVersions={deploymentVersions}
             workflowName={currentWorkflow?.name}

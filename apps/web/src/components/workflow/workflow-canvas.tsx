@@ -21,6 +21,8 @@ import {
   Clock,
   Eye,
   EyeOff,
+  Globe,
+  Mail,
   Maximize,
   Network,
   PanelLeft,
@@ -46,6 +48,7 @@ import type {
   WorkflowExecutionStatus,
   WorkflowNodeType,
 } from "./workflow-types";
+import { WorkflowType } from "@dafthunk/types";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,
@@ -129,7 +132,7 @@ export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
   connectionValidationState?: ConnectionValidationState;
-  workflowType?: string;
+  workflowType?: WorkflowType;
   onNodesChange: OnNodesChange<ReactFlowNode<WorkflowNodeType>>;
   onEdgesChange: OnEdgesChange<ReactFlowEdge<WorkflowEdgeType>>;
   onConnect: OnConnect;
@@ -154,6 +157,8 @@ export interface WorkflowCanvasProps {
   onAction?: (e: React.MouseEvent) => void;
   onDeploy?: (e: React.MouseEvent) => void;
   onSetSchedule?: () => void;
+  onShowHttpIntegration?: () => void;
+  onShowEmailTrigger?: () => void;
   workflowStatus?: WorkflowExecutionStatus;
   onToggleSidebar?: (e: React.MouseEvent) => void;
   isSidebarVisible?: boolean;
@@ -175,6 +180,8 @@ type ActionButtonProps = {
   workflowStatus?: WorkflowExecutionStatus;
   disabled?: boolean;
   className?: string;
+  text?: string;
+  showTooltip?: boolean;
 };
 
 export function ActionButton({
@@ -182,6 +189,8 @@ export function ActionButton({
   workflowStatus = "idle",
   disabled,
   className = "",
+  text = "",
+  showTooltip = true,
 }: ActionButtonProps) {
   const statusConfig = {
     idle: {
@@ -238,22 +247,25 @@ export function ActionButton({
       className={cn(config.className, className)}
       tooltipSide="bottom"
       tooltip={
-        <div className="flex items-center gap-2">
-          <span>{config.title}</span>
-          <div className="flex items-center gap-1">
-            {config.shortcut.split("").map((key) => (
-              <kbd
-                key={key}
-                className="px-1 py-0.25 text-xs rounded border font-mono"
-              >
-                {key}
-              </kbd>
-            ))}
+        showTooltip && (
+          <div className="flex items-center gap-2">
+            <span>{config.title}</span>
+            <div className="flex items-center gap-1">
+              {config.shortcut.split("").map((key) => (
+                <kbd
+                  key={key}
+                  className="px-1 py-0.25 text-xs rounded border font-mono"
+                >
+                  {key}
+                </kbd>
+              ))}
+            </div>
           </div>
-        </div>
+        )
       }
     >
       {config.icon}
+      {text}
     </ActionBarButton>
   );
 }
@@ -263,23 +275,21 @@ export function DeployButton({
   disabled,
   text = "",
   className = "",
+  tooltip = "Deploy Workflow",
 }: {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
   text?: string;
   className?: string;
+  tooltip?: string;
 }) {
   return (
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        "bg-blue-600 hover:bg-blue-700 text-white",
-        className
-        // Adjust if specific disabled styling for DeployButton is needed beyond ActionBarButton's default
-      )}
+      className={cn("bg-blue-600 hover:bg-blue-700 text-white", className)}
       tooltipSide="bottom"
-      tooltip={<p>Deploy Workflow</p>}
+      tooltip={tooltip}
     >
       <ArrowUpToLine className="!size-4" />
       {text}
@@ -297,7 +307,7 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
     <ActionBarButton
       onClick={onClick}
       tooltipSide="bottom"
-      tooltip={<p>{isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}</p>}
+      tooltip={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
       className="bg-neutral-500 hover:bg-neutral-600 text-white"
     >
       {isSidebarVisible ? (
@@ -330,7 +340,7 @@ function OutputsToggle({
       disabled={disabled}
       className="bg-neutral-500 hover:bg-neutral-600 text-white"
       tooltipSide="bottom"
-      tooltip={<p>{tooltipText}</p>}
+      tooltip={tooltipText}
     >
       {expandedOutputs ? (
         <EyeOff className="!size-4" />
@@ -351,7 +361,7 @@ function FitToScreenButton({
       onClick={onClick}
       className="bg-neutral-500 hover:bg-neutral-600 text-white"
       tooltipSide="right"
-      tooltip={<p>Fit to Screen</p>}
+      tooltip="Fit to Screen"
     >
       <Maximize className="!size-4" />
     </ActionBarButton>
@@ -371,7 +381,7 @@ function DeleteButton({
       disabled={disabled}
       className="bg-red-600 hover:bg-red-700 text-white"
       tooltipSide="right"
-      tooltip={<p>Delete Selected</p>}
+      tooltip="Delete Selected"
     >
       <Trash2 className="!size-4" />
     </ActionBarButton>
@@ -391,7 +401,7 @@ function EditLabelButton({
       disabled={disabled}
       className="bg-sky-500 hover:bg-sky-600 text-white"
       tooltipSide="right"
-      tooltip={<p>Edit Label</p>}
+      tooltip="Edit Label"
     >
       <PencilIcon className="!size-4" />
     </ActionBarButton>
@@ -441,19 +451,80 @@ function AddNodeButton({
 export function SetScheduleButton({
   onClick,
   disabled,
+  className = "",
+  text = "",
+  tooltip = "Set Schedule",
 }: {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
+  className?: string;
+  text?: string;
+  tooltip?: string;
 }) {
   return (
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-purple-600 hover:bg-purple-700 text-white"
+      className={cn("bg-purple-600 hover:bg-purple-700 text-white", className)}
       tooltipSide="bottom"
-      tooltip={<p>Set Schedule</p>}
+      tooltip={tooltip}
     >
       <Clock className="!size-4" />
+      {text}
+    </ActionBarButton>
+  );
+}
+
+export function ShowHttpIntegrationButton({
+  onClick,
+  disabled,
+  className,
+  text = "",
+  tooltip = "Show HTTP Integration",
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  text?: string;
+  tooltip?: string;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={cn("bg-purple-600 hover:bg-purple-700 text-white", className)}
+      tooltipSide="bottom"
+      tooltip={tooltip}
+    >
+      <Globe className="!size-4" />
+      {text}
+    </ActionBarButton>
+  );
+}
+
+export function ShowEmailTriggerButton({
+  onClick,
+  disabled,
+  className = "",
+  text = "",
+  tooltip = "Show Email Trigger",
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  text?: string;
+  tooltip?: string;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={cn("bg-purple-600 hover:bg-purple-700 text-white", className)}
+      tooltipSide="bottom"
+      tooltip={tooltip}
+    >
+      <Mail className="!size-4" />
+      {text}
     </ActionBarButton>
   );
 }
@@ -475,6 +546,8 @@ export function WorkflowCanvas({
   onDeploy,
   workflowType,
   onSetSchedule,
+  onShowHttpIntegration,
+  onShowEmailTrigger,
   workflowStatus = "idle",
   onToggleSidebar,
   isSidebarVisible,
@@ -606,6 +679,14 @@ export function WorkflowCanvas({
                       onClick={onSetSchedule}
                       disabled={nodes.length === 0}
                     />
+                  )}
+                  {onShowHttpIntegration && workflowType === "http_request" && (
+                    <ShowHttpIntegrationButton
+                      onClick={onShowHttpIntegration}
+                    />
+                  )}
+                  {onShowEmailTrigger && workflowType === "email_message" && (
+                    <ShowEmailTriggerButton onClick={onShowEmailTrigger} />
                   )}
                 </ActionBarGroup>
               )}
