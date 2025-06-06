@@ -56,6 +56,12 @@ import {
 } from "@/services/deployment-service";
 import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { ActionBarGroup } from "@/components/ui/action-bar";
+import {
+  ActionButton,
+  DeployButton,
+} from "@/components/workflow/workflow-canvas";
+import type { WorkflowExecutionStatus } from "@dafthunk/types";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -229,11 +235,18 @@ export function DeploymentDetailPage() {
     }
   };
 
+  const [isLastExecutionRunning, setIsLastExecutionRunning] = useState(false);
+
   const handleExecuteLatestVersion = () => {
     if (!workflowId || !currentDeployment) return;
+    setIsLastExecutionRunning(true);
     executeWorkflow(
       workflowId,
       (execution) => {
+        if (execution.status !== "submitted") {
+          setIsLastExecutionRunning(false);
+        }
+
         if (execution.status === "submitted") {
           toast.success("Workflow execution submitted");
         } else if (execution.status === "completed") {
@@ -364,14 +377,19 @@ export function DeploymentDetailPage() {
                 Manage deployments for this workflow
               </p>
               <div className="flex gap-2">
-                <Button onClick={handleExecuteLatestVersion}>
-                  <Play className="mr-2 h-4 w-4" />
-                  Execute Latest Version
-                </Button>
-                <Button onClick={() => setIsDeployDialogOpen(true)}>
-                  <ArrowUpToLine className="mr-2 h-4 w-4" />
-                  Deploy Latest Version
-                </Button>
+                <ActionBarGroup>
+                  <ActionButton
+                    onClick={handleExecuteLatestVersion}
+                    disabled={isLastExecutionRunning}
+                    className="h-9"
+                  />
+                  <DeployButton
+                    onClick={() => setIsDeployDialogOpen(true)}
+                    disabled={isDeploying}
+                    text="Deploy Latest"
+                    className="h-9"
+                  />
+                </ActionBarGroup>
               </div>
             </div>
           </div>

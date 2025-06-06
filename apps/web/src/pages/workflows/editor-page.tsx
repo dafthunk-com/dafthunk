@@ -371,25 +371,27 @@ export function EditorPage() {
             createObjectUrl={createObjectUrl}
           />
         </div>
-        {isFormDialogVisible && executionFormParameters.length > 0 && (
-          <ExecutionFormDialog
-            isOpen={isFormDialogVisible}
-            onClose={closeExecutionForm}
-            onCancel={handleDialogCancel}
-            parameters={executionFormParameters}
-            onSubmit={submitFormData}
-          />
-        )}
-        {isJsonBodyDialogVisible && executionJsonBodyParameters.length > 0 && (
-          <ExecutionJsonBodyDialog
-            isOpen={isJsonBodyDialogVisible}
-            onClose={closeExecutionForm}
-            onCancel={handleDialogCancel}
-            parameters={executionJsonBodyParameters}
-            onSubmit={submitJsonBody}
-          />
-        )}
-        {isEmailFormDialogVisible && submitEmailFormData && (
+        {currentWorkflow?.type === "http_request" &&
+          executionFormParameters.length > 0 && (
+            <ExecutionFormDialog
+              isOpen={isFormDialogVisible}
+              onClose={closeExecutionForm}
+              onCancel={handleDialogCancel}
+              parameters={executionFormParameters}
+              onSubmit={submitFormData}
+            />
+          )}
+        {currentWorkflow?.type === "http_request" &&
+          executionJsonBodyParameters.length > 0 && (
+            <ExecutionJsonBodyDialog
+              isOpen={isJsonBodyDialogVisible}
+              onClose={closeExecutionForm}
+              onCancel={handleDialogCancel}
+              parameters={executionJsonBodyParameters}
+              onSubmit={submitJsonBody}
+            />
+          )}
+        {currentWorkflow?.type === "email_message" && (
           <EmailDialog
             isOpen={isEmailFormDialogVisible}
             onClose={closeExecutionForm}
@@ -397,7 +399,7 @@ export function EditorPage() {
             onSubmit={submitEmailFormData}
           />
         )}
-        {isSetCronDialogOpen && (
+        {currentWorkflow?.type === "cron" && (
           <SetCronDialog
             isOpen={isSetCronDialogOpen}
             onClose={handleCloseSetCronDialog}

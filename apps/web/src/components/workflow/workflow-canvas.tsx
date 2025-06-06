@@ -34,13 +34,8 @@ import {
 } from "lucide-react";
 import React, { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ActionBarButton, ActionBarGroup } from "@/components/ui/action-bar";
 import { cn } from "@/utils/utils";
 
 import { WorkflowConnectionLine, WorkflowEdge } from "./workflow-edge";
@@ -130,55 +125,6 @@ function StatusBar({ workflowStatus, nodeCount, readonly }: StatusBarProps) {
   );
 }
 
-interface ActionBarGroupProps {
-  children: React.ReactNode;
-}
-
-function ActionBarGroup({ children }: ActionBarGroupProps) {
-  return (
-    <div className="flex items-center gap-0.5 [&>*:first-child]:rounded-l-lg [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-r-lg [&>*:last-child]:rounded-l-none [&>*:only-child]:rounded-lg">
-      {children}
-    </div>
-  );
-}
-
-interface ActionBarButtonProps {
-  onClick: (e: React.MouseEvent) => void;
-  disabled?: boolean;
-  className?: string;
-  tooltip: React.ReactNode;
-  children: React.ReactNode;
-  tooltipSide?: "top" | "bottom" | "left" | "right";
-}
-
-function ActionBarButton({
-  onClick,
-  disabled = false,
-  className = "",
-  tooltip,
-  children,
-  tooltipSide = "top",
-}: ActionBarButtonProps) {
-  return (
-    <Tooltip delayDuration={0}>
-      <div className="bg-background rounded-none overflow-hidden">
-        <TooltipTrigger asChild>
-          <Button
-            onClick={onClick}
-            disabled={disabled}
-            className={cn("h-10 px-3 rounded-none", className, {
-              "opacity-50 cursor-not-allowed": disabled,
-            })}
-          >
-            {children}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side={tooltipSide}>{tooltip}</TooltipContent>
-      </div>
-    </Tooltip>
-  );
-}
-
 export interface WorkflowCanvasProps {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
@@ -226,14 +172,16 @@ export interface WorkflowCanvasProps {
 
 type ActionButtonProps = {
   onClick: (e: React.MouseEvent) => void;
-  workflowStatus: WorkflowExecutionStatus;
+  workflowStatus?: WorkflowExecutionStatus;
   disabled?: boolean;
+  className?: string;
 };
 
-function ActionButton({
+export function ActionButton({
   onClick,
-  workflowStatus,
+  workflowStatus = "idle",
   disabled,
+  className = "",
 }: ActionButtonProps) {
   const statusConfig = {
     idle: {
@@ -287,7 +235,7 @@ function ActionButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className={config.className}
+      className={cn(config.className, className)}
       tooltipSide="bottom"
       tooltip={
         <div className="flex items-center gap-2">
@@ -310,25 +258,31 @@ function ActionButton({
   );
 }
 
-function DeployButton({
+export function DeployButton({
   onClick,
   disabled,
+  text = "",
+  className = "",
 }: {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
+  text?: string;
+  className?: string;
 }) {
   return (
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "bg-blue-600 hover:bg-blue-700 text-white"
+        "bg-blue-600 hover:bg-blue-700 text-white",
+        className
         // Adjust if specific disabled styling for DeployButton is needed beyond ActionBarButton's default
       )}
       tooltipSide="bottom"
       tooltip={<p>Deploy Workflow</p>}
     >
       <ArrowUpToLine className="!size-4" />
+      {text}
     </ActionBarButton>
   );
 }
@@ -484,7 +438,7 @@ function AddNodeButton({
   );
 }
 
-function SetScheduleButton({
+export function SetScheduleButton({
   onClick,
   disabled,
 }: {
@@ -686,14 +640,7 @@ export function WorkflowCanvas({
             )}
           >
             {/* Node-related buttons group */}
-            <div
-              className={cn(
-                "flex flex-col items-center gap-0.5",
-                "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
-                "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
-                "[&>*:only-child]:rounded-lg"
-              )}
-            >
+            <ActionBarGroup vertical>
               {onAddNode && (
                 <AddNodeButton onClick={onAddNode} disabled={readonly} />
               )}
@@ -709,25 +656,22 @@ export function WorkflowCanvas({
                   disabled={readonly || (!selectedNode && !selectedEdge)}
                 />
               )}
-            </div>
+            </ActionBarGroup>
 
             {/* Workflow-related buttons group */}
             {(onApplyLayout || onFitToScreen) && (
-              <div
-                className={cn(
-                  "mt-2 flex flex-col items-center gap-0.5",
-                  "[&>*:first-child]:rounded-t-lg [&>*:first-child]:rounded-b-none",
-                  "[&>*:last-child]:rounded-b-lg [&>*:last-child]:rounded-t-none",
-                  "[&>*:only-child]:rounded-lg"
-                )}
-              >
-                {onApplyLayout && (
-                  <ApplyLayoutButton
-                    onClick={() => onApplyLayout()}
-                    disabled={readonly || nodes.length === 0}
-                  />
-                )}
-                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
+              <div className="mt-2">
+                <ActionBarGroup vertical>
+                  {onApplyLayout && (
+                    <ApplyLayoutButton
+                      onClick={() => onApplyLayout()}
+                      disabled={readonly || nodes.length === 0}
+                    />
+                  )}
+                  {onFitToScreen && (
+                    <FitToScreenButton onClick={onFitToScreen} />
+                  )}
+                </ActionBarGroup>
               </div>
             )}
           </div>
