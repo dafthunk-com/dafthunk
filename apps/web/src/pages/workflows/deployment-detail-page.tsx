@@ -7,7 +7,7 @@ import {
   History,
   MoreHorizontal,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -278,6 +278,11 @@ export function DeploymentDetailPage() {
     }
   };
 
+  const handleOpenSetCronDialog = useCallback(() => {
+    mutateCronTrigger(); // Ensure cron trigger data is fresh
+    setIsIntegrationDialogOpen(true);
+  }, [mutateCronTrigger]);
+
   const displayDeployments = expandedHistory
     ? deployments || []
     : deployments.slice(0, 3) || [];
@@ -361,7 +366,7 @@ export function DeploymentDetailPage() {
                   )}
                   {workflow.type === "cron" && (
                     <SetScheduleButton
-                      onClick={() => setIsIntegrationDialogOpen(true)}
+                      onClick={handleOpenSetCronDialog}
                       disabled={isDeploying}
                       text="Set Schedule"
                       tooltip=""
@@ -495,8 +500,7 @@ export function DeploymentDetailPage() {
           onSubmit={handleSaveCron}
           initialData={{
             cronExpression: cronTrigger?.cronExpression || "",
-            active:
-              cronTrigger?.active === undefined ? true : cronTrigger.active,
+            active: cronTrigger?.active === undefined ? true : cronTrigger.active,
             versionAlias: cronTrigger?.versionAlias || "dev",
             versionNumber: cronTrigger?.versionNumber,
           }}

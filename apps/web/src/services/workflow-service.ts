@@ -698,11 +698,28 @@ export const useCronTrigger = (workflowId: string) => {
     useSWR<GetCronTriggerResponse | null>(
       orgHandle && workflowId
         ? `/${orgHandle}${API_ENDPOINT_BASE}/${workflowId}/cron`
+        : null,
+      orgHandle && workflowId
+        ? async () => {
+            try {
+              const response = await makeOrgRequest<GetCronTriggerResponse>(
+                orgHandle,
+                API_ENDPOINT_BASE,
+                `/${workflowId}/cron`
+              );
+              return response;
+            } catch (error) {
+              if (error instanceof Error && 'status' in error && (error as any).status === 404) {
+                return null;
+              }
+              throw error;
+            }
+          }
         : null
     );
 
   return {
-    cronTrigger: data,
+    cronTrigger: data || null,
     cronTriggerError: error || null,
     isCronTriggerLoading: isLoading,
     mutateCronTrigger: mutate,

@@ -111,8 +111,9 @@ export function EditorPage() {
 
   const handleOpenSetCronDialog = useCallback(() => {
     mutateDeploymentHistory();
+    mutateCronTrigger();
     setIsSetCronDialogOpen(true);
-  }, [currentWorkflow, mutateDeploymentHistory]);
+  }, [mutateDeploymentHistory, mutateCronTrigger]);
 
   const handleCloseSetCronDialog = useCallback(() => {
     setIsSetCronDialogOpen(false);

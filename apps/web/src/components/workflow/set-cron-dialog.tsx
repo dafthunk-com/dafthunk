@@ -94,10 +94,10 @@ export function SetCronDialog({
 
   // Reset form values whenever initialData changes (e.g., after fetch or save)
   useEffect(() => {
-    if (isOpen && initialData) {
+    if (initialData) {
       form.reset(getInitialFormValues(initialData));
     }
-  }, [initialData, isOpen, form]);
+  }, [initialData, form]);
 
   const handleSubmit = (data: CronFormData) => {
     onSubmit(data);
