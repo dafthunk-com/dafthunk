@@ -11,7 +11,6 @@ import {
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
-  UpsertCronTriggerRequest,
   UpsertCronTriggerResponse,
   WorkflowExecution,
   WorkflowWithMetadata,

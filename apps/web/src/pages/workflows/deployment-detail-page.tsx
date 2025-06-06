@@ -3,12 +3,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
   ArrowDown,
-  ArrowUpToLine,
   Clock,
   GitCommitHorizontal,
   History,
   MoreHorizontal,
-  Play,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -22,6 +20,7 @@ import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { ActionBarGroup } from "@/components/ui/action-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +48,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import {
+  ActionButton,
+  DeployButton,
+} from "@/components/workflow/workflow-canvas";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
@@ -56,12 +59,6 @@ import {
 } from "@/services/deployment-service";
 import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { ActionBarGroup } from "@/components/ui/action-bar";
-import {
-  ActionButton,
-  DeployButton,
-} from "@/components/workflow/workflow-canvas";
-import type { WorkflowExecutionStatus } from "@dafthunk/types";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {

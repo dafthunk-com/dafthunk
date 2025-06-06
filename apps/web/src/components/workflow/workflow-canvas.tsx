@@ -34,8 +34,8 @@ import {
 } from "lucide-react";
 import React, { useEffect } from "react";
 
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { ActionBarButton, ActionBarGroup } from "@/components/ui/action-bar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
 import { WorkflowConnectionLine, WorkflowEdge } from "./workflow-edge";

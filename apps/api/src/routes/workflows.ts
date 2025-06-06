@@ -28,7 +28,6 @@ import {
   createDatabase,
   createHandle,
   createWorkflow,
-  type CronTriggerInsert,
   deleteWorkflow,
   ExecutionStatus,
   getCronTrigger,

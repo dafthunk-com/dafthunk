@@ -1202,14 +1202,9 @@ export async function getDueCronTriggers(
       selectedDeployment: selectedDeployment,
     })
     .from(cronTriggers)
-    .where(
-      and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now))
-    )
+    .where(and(eq(cronTriggers.active, true), lte(cronTriggers.nextRunAt, now)))
     .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
-    .innerJoin(
-      latestByWorkflow,
-      eq(latestByWorkflow.workflowId, workflows.id)
-    )
+    .innerJoin(latestByWorkflow, eq(latestByWorkflow.workflowId, workflows.id))
     .innerJoin(
       latestDeployment,
       and(
