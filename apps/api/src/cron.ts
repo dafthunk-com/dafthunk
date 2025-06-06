@@ -145,7 +145,7 @@ export async function handleCronTriggers(
         }
 
         const interval = CronParser.parse(cronTrigger.cronExpression, {
-          currentDate: now,
+          currentDate: cronTrigger.lastRun || now,
         });
         const nextRun = interval.next().toDate();
 

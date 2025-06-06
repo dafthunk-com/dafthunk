@@ -4,7 +4,7 @@ import {
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { Import, MoreHorizontal, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -441,15 +441,16 @@ export function WorkflowsPage() {
             automatic.
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsImportDialogOpen(true)}
-            >
-              Import from Template
-            </Button>
+
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Workflow
+              Create New Workflow
+            </Button>
+            <Button
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <Import className="mr-2 h-4 w-4" />
+              Import Workflow Template
             </Button>
           </div>
         </div>
