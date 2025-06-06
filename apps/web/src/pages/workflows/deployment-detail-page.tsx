@@ -35,6 +35,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
 import {
@@ -60,7 +61,6 @@ import {
   useWorkflowExecution,
 } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {

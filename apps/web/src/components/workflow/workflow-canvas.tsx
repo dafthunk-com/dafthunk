@@ -1,5 +1,6 @@
 import "@xyflow/react/dist/style.css";
 
+import { WorkflowType } from "@dafthunk/types";
 import {
   Background,
   BackgroundVariant,
@@ -48,7 +49,6 @@ import type {
   WorkflowExecutionStatus,
   WorkflowNodeType,
 } from "./workflow-types";
-import { WorkflowType } from "@dafthunk/types";
 
 const nodeTypes = {
   workflowNode: WorkflowNode,

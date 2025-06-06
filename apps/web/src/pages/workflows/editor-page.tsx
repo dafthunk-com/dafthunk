@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
+import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
@@ -36,7 +37,6 @@ import {
   useWorkflow,
   useWorkflowExecution,
 } from "@/services/workflow-service";
-import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
