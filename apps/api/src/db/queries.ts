@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -1178,11 +1178,13 @@ export async function updateCronTriggerRunTimes(
 export async function getDueCronTriggers(
   db: ReturnType<typeof createDatabase>,
   now: Date
-): Promise<{
-  cronTrigger: CronTriggerRow;
-  workflow: WorkflowRow;
-  deployment: DeploymentRow | null;
-}[]> {
+): Promise<
+  {
+    cronTrigger: CronTriggerRow;
+    workflow: WorkflowRow;
+    deployment: DeploymentRow | null;
+  }[]
+> {
   const latestByWorkflow = db
     .select({
       workflowId: deployments.workflowId,
