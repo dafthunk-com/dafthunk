@@ -1208,7 +1208,7 @@ export async function getDueCronTriggers(
     .where(
       and(
         eq(cronTriggers.active, true),
-        sql`${cronTriggers.nextRunAt} <= ${now.getTime()}`
+        sql`${cronTriggers.nextRunAt} <= ${Math.floor(now.getTime() / 1000)}`
       )
     )
     .innerJoin(workflows, eq(workflows.id, cronTriggers.workflowId))
