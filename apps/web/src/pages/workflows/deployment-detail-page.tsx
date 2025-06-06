@@ -37,7 +37,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
-import { SetCronDialog } from "@/components/workflow/set-cron-dialog";
+import {
+  type CronFormData,
+  SetCronDialog,
+} from "@/components/workflow/set-cron-dialog";
 import {
   ActionButton,
   DeployButton,
@@ -51,6 +54,7 @@ import {
   useDeploymentHistory,
 } from "@/services/deployment-service";
 import {
+  upsertCronTrigger,
   useCronTrigger,
   useWorkflow,
   useWorkflowExecution,
@@ -168,7 +172,7 @@ export function DeploymentDetailPage() {
   const [expandedHistory, setExpandedHistory] = useState(false);
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
 
-  const { cronTrigger } = useCronTrigger(workflowId!);
+  const { cronTrigger, mutateCronTrigger } = useCronTrigger(workflowId!);
 
   const {
     workflow: workflowSummary,
@@ -254,6 +258,24 @@ export function DeploymentDetailPage() {
       adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes),
       nodeTemplates
     );
+  };
+
+  const handleSaveCron = async (data: CronFormData) => {
+    if (!workflowId || !orgHandle) return;
+    try {
+      const updatedCron = await upsertCronTrigger(workflowId, orgHandle, {
+        cronExpression: data.cronExpression,
+        active: data.active,
+        versionAlias: data.versionAlias,
+        versionNumber: data.versionNumber,
+      });
+      mutateCronTrigger(updatedCron);
+      toast.success("Cron schedule saved successfully.");
+      setIsIntegrationDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to save cron schedule:", error);
+      toast.error("Failed to save cron schedule. Please try again.");
+    }
   };
 
   const displayDeployments = expandedHistory
@@ -470,8 +492,7 @@ export function DeploymentDetailPage() {
         <SetCronDialog
           isOpen={isIntegrationDialogOpen}
           onClose={() => setIsIntegrationDialogOpen(false)}
-          // TODO: Add submit handler
-          onSubmit={() => {}}
+          onSubmit={handleSaveCron}
           initialData={{
             cronExpression: cronTrigger?.cronExpression || "",
             active:
