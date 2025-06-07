@@ -9,7 +9,7 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
     name: "JSON Javascript Processor",
     type: "json-javascript-processor",
     description:
-      "Executes a JavaScript script with a JSON object as input. The input JSON is available as a global variable 'inputJson'. The result of the last expression is returned.",
+      "Executes a JavaScript script with a JSON object as input. The input JSON is available as a global variable 'json'. The result of the last expression is returned.",
     category: "JSON",
     icon: "code",
     inputs: [
@@ -23,7 +23,7 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
         name: "javascript",
         type: "string",
         description:
-          "JavaScript code to execute. 'inputJson' is available globally. The last expression's result is returned.",
+          "JavaScript code to execute. 'json' is available globally. The last expression's result is returned.",
         required: true,
       },
     ],
@@ -44,13 +44,13 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
   };
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
-    const { json, script } = context.inputs;
+    const { json, javascript } = context.inputs;
 
     if (json === undefined || json === null) {
       return this.createErrorResult("Missing JSON input object.");
     }
 
-    if (!script || typeof script !== "string" || script.trim() === "") {
+    if (!javascript || typeof javascript !== "string" || javascript.trim() === "") {
       return this.createErrorResult("Missing or empty script.");
     }
 
@@ -64,15 +64,15 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
       const jsonStringHandle = vm.newString(jsonStringified);
 
       // 2. Set this string handle to a temporary global variable in the VM
-      vm.setProp(vm.global, "__tempInputJsonString__", jsonStringHandle);
+      vm.setProp(vm.global, "__tempJsonString__", jsonStringHandle);
       jsonStringHandle.dispose(); // Dispose handle, vm's global has it now
 
-      // 3. Bootstrap script to parse the string and set globalThis.inputJson
+      // 3. Bootstrap script to parse the string and set globalThis.json
       const bootstrapScript = `
         try {
-          globalThis.inputJson = JSON.parse(globalThis.__tempInputJsonString__);
+          globalThis.json = JSON.parse(globalThis.__tempJsonString__);
         } finally {
-          delete globalThis.__tempInputJsonString__;
+          delete globalThis.__tempJsonString__;
         }
       `;
       const bootstrapResult = vm.evalCode(bootstrapScript);
@@ -81,15 +81,15 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
         const errorDump = vm.dump(bootstrapResult.error);
         bootstrapResult.error.dispose();
         return this.createErrorResult(
-          `Failed to initialize inputJson in VM: ${JSON.stringify(errorDump)}`
+          `Failed to initialize json in VM: ${JSON.stringify(errorDump)}`
         );
       }
       // Result of delete is boolean, or undefined if try/finally completes normally without returning a value from try.
       // In either case, dispose the handle for the result of the bootstrap script.
       bootstrapResult.value.dispose();
 
-      // 4. Now, 'inputJson' global variable is ready for the user's script
-      const evalResult = vm.evalCode(script);
+      // 4. Now, 'json' global variable is ready for the user's script
+      const evalResult = vm.evalCode(javascript);
 
       if (evalResult.error) {
         const errorDump = vm.dump(evalResult.error);
