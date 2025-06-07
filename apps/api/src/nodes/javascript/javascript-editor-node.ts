@@ -49,4 +49,4 @@ export class JavaScriptEditorNode extends ExecutableNode {
       );
     }
   }
-} 
+}
