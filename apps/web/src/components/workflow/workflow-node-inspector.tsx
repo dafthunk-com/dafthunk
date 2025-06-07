@@ -1,7 +1,7 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
 import { EyeIcon, EyeOffIcon, XCircleIcon } from "lucide-react";
-import { createElement, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,17 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
 
-import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
-import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
-import { DocumentWidget } from "./widgets/document-widget";
-import { InputTextWidget } from "./widgets/input-text-widget";
-import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
-import { NumberInputWidget } from "./widgets/number-input-widget";
-import { RadioGroupWidget } from "./widgets/radio-group-widget";
-import { SliderWidget } from "./widgets/slider-widget";
-import { TextAreaWidget } from "./widgets/text-area-widget";
-import { WebcamWidget } from "./widgets/webcam-widget";
-import { createWidgetConfig } from "./widgets/widget-factory";
 import {
   clearNodeInput,
   convertValueByType,
@@ -124,50 +113,6 @@ export function WorkflowNodeInspector({
     setLocalInputs(updatedInputs);
   };
 
-  // Check if the node is a widget node
-  const nodeType = node.data.nodeType;
-
-  // Get widget configuration
-  const widgetConfig = nodeType
-    ? createWidgetConfig(node.id, localInputs as WorkflowParameter[], nodeType)
-    : null;
-
-  const handleWidgetChange = (value: any) => {
-    if (readonly || !updateNodeData || !widgetConfig) return;
-
-    const valueInput = localInputs.find((i) => i.id === "value");
-    if (valueInput) {
-      const updatedInputs = updateNodeInput(
-        node.id,
-        valueInput.id,
-        value,
-        localInputs,
-        updateNodeData
-      );
-      setLocalInputs(updatedInputs);
-    }
-  };
-
-  const widgetComponents: Record<
-    string,
-    React.FC<{
-      config: any;
-      onChange: (value: any) => void;
-      readonly?: boolean;
-    }>
-  > = {
-    slider: SliderWidget,
-    "radio-group": RadioGroupWidget,
-    "text-area": TextAreaWidget,
-    "input-text": InputTextWidget,
-    "number-input": NumberInputWidget,
-    "monaco-editor": MonacoEditorWidget,
-    "canvas-doodle": CanvasDoodleWidget,
-    webcam: WebcamWidget,
-    "audio-recorder": AudioRecorderWidget,
-    document: DocumentWidget,
-  };
-
   return (
     <Card className="border-none shadow-none rounded-none h-full">
       <CardHeader className="pb-2">
@@ -192,18 +137,6 @@ export function WorkflowNodeInspector({
               className={readonly ? "opacity-70 cursor-not-allowed" : ""}
             />
           </div>
-
-          {/* Widget */}
-          {widgetConfig && nodeType && widgetComponents[nodeType] && (
-            <div className="space-y-2">
-              <Label>Widget</Label>
-              {createElement(widgetComponents[nodeType], {
-                config: widgetConfig,
-                onChange: handleWidgetChange,
-                readonly: readonly,
-              })}
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label>Inputs</Label>
