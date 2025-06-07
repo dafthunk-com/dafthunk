@@ -7,7 +7,7 @@ import {
   History,
   MoreHorizontal,
 } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -61,6 +61,8 @@ import {
   useWorkflowExecution,
 } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { useNodeTypes } from "@/services/type-service";
+import type { NodeTemplate } from "@/components/workflow/workflow-types";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -164,9 +166,6 @@ export function DeploymentDetailPage() {
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
-  // Use empty node templates array since we're in readonly mode
-  const nodeTemplates = [];
-
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
@@ -184,6 +183,32 @@ export function DeploymentDetailPage() {
 
   const { workflow, workflowError, isWorkflowLoading } = useWorkflow(
     workflowId || null
+  );
+
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.type);
+
+  const nodeTemplates: NodeTemplate[] = useMemo(
+    () =>
+      nodeTypes?.map((type) => ({
+        id: type.id,
+        type: type.id,
+        name: type.name,
+        description: type.description || "",
+        category: type.category,
+        inputs: type.inputs.map((input) => ({
+          id: input.name, // Assuming name is unique identifier for input/output handles
+          type: input.type,
+          name: input.name,
+          hidden: input.hidden,
+        })),
+        outputs: type.outputs.map((output) => ({
+          id: output.name, // Assuming name is unique identifier for input/output handles
+          type: output.type,
+          name: output.name,
+          hidden: output.hidden,
+        })),
+      })) || [],
+    [nodeTypes]
   );
 
   const {
@@ -238,7 +263,7 @@ export function DeploymentDetailPage() {
   const [isLastExecutionRunning, setIsLastExecutionRunning] = useState(false);
 
   const handleExecuteLatestVersion = () => {
-    if (!workflowId || !currentDeployment) return;
+    if (!workflowId || !currentDeployment || !workflow) return;
     setIsLastExecutionRunning(true);
     executeWorkflow(
       workflowId,
@@ -256,7 +281,8 @@ export function DeploymentDetailPage() {
         }
       },
       adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes),
-      nodeTemplates
+      nodeTemplates,
+      workflow.type
     );
   };
 
@@ -307,7 +333,7 @@ export function DeploymentDetailPage() {
     </div>
   );
 
-  if (isDeploymentHistoryLoading || isWorkflowLoading) {
+  if (isDeploymentHistoryLoading || isWorkflowLoading || isNodeTypesLoading) {
     return (
       <InsetLoading title={workflowSummary?.name || "Workflow Deployments"} />
     );
