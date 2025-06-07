@@ -709,7 +709,11 @@ export const useCronTrigger = (workflowId: string) => {
               );
               return response;
             } catch (error) {
-              if (error instanceof Error && 'status' in error && (error as any).status === 404) {
+              if (
+                error instanceof Error &&
+                "status" in error &&
+                (error as any).status === 404
+              ) {
                 return null;
               }
               throw error;

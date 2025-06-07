@@ -39,16 +39,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { DeployButton } from "@/components/workflow/workflow-canvas";
 import {
   createDeployment,
   useDeployments,
 } from "@/services/deployment-service";
 import { useWorkflows } from "@/services/workflow-service";
-import { ActionBarGroup } from "@/components/ui/action-bar";
 
 // --- Inline columns and type ---
 type DeploymentWithActions = WorkflowDeployment & {
@@ -160,7 +157,6 @@ export function DeploymentsPage() {
   // Dialog state for workflow deployment
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
 
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
@@ -170,7 +166,6 @@ export function DeploymentsPage() {
   const handleCreateDeployment = async () => {
     if (!selectedWorkflowId || !orgHandle) return;
 
-    setIsCreating(true);
     try {
       await createDeployment(selectedWorkflowId, orgHandle);
       toast.success("Deployment created successfully");
@@ -180,8 +175,6 @@ export function DeploymentsPage() {
       toast.error(
         err instanceof Error ? err.message : "Failed to create deployment"
       );
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -214,9 +207,12 @@ export function DeploymentsPage() {
             View and manage versioned snapshots of workflows ready for
             execution.
           </div>
-          <ActionBarGroup className="[&_button]:h-9">
-            <DeployButton onClick={handleOpenDialog} text="Deploy Workflow" />
-          </ActionBarGroup>
+          <div className="flex gap-2">
+            <Button onClick={handleOpenDialog}>
+              <ArrowUpToLine className="mr-2 h-4 w-4" />
+              Deploy Workflow
+            </Button>
+          </div>
         </div>
         <DataTable
           columns={columns}
@@ -240,7 +236,7 @@ export function DeploymentsPage() {
               <Select
                 value={selectedWorkflowId}
                 onValueChange={setSelectedWorkflowId}
-                disabled={isWorkflowsLoading || isCreating}
+                disabled={isWorkflowsLoading}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
@@ -271,17 +267,12 @@ export function DeploymentsPage() {
               </Select>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isCreating}>
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleCreateDeployment}
-                disabled={
-                  !selectedWorkflowId || isCreating || isWorkflowsLoading
-                }
+                disabled={!selectedWorkflowId || isWorkflowsLoading}
                 className="bg-primary hover:bg-primary/90"
               >
-                {isCreating ? <Spinner className="h-4 w-4 mr-2" /> : null}
                 Deploy
               </AlertDialogAction>
             </AlertDialogFooter>

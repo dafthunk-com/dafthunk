@@ -3,11 +3,16 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
   ArrowDown,
+  ArrowUpToLine,
+  CalendarClock,
   GitCommitHorizontal,
+  Globe,
   History,
+  Mail,
   MoreHorizontal,
+  Play,
 } from "lucide-react";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -17,7 +22,6 @@ import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { ActionBarGroup } from "@/components/ui/action-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableCard } from "@/components/ui/data-table-card";
@@ -42,18 +46,13 @@ import {
   type CronFormData,
   SetCronDialog,
 } from "@/components/workflow/set-cron-dialog";
-import {
-  ActionButton,
-  DeployButton,
-  SetScheduleButton,
-  ShowEmailTriggerButton,
-  ShowHttpIntegrationButton,
-} from "@/components/workflow/workflow-canvas";
+import type { NodeTemplate } from "@/components/workflow/workflow-types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
   useDeploymentHistory,
 } from "@/services/deployment-service";
+import { useNodeTypes } from "@/services/type-service";
 import {
   upsertCronTrigger,
   useCronTrigger,
@@ -61,8 +60,6 @@ import {
   useWorkflowExecution,
 } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { useNodeTypes } from "@/services/type-service";
-import type { NodeTemplate } from "@/components/workflow/workflow-types";
 
 // --- Inline deployment history columns and helper ---
 const formatDeploymentDate = (dateString: string | Date) => {
@@ -167,7 +164,6 @@ export function DeploymentDetailPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const [isDeployDialogOpen, setIsDeployDialogOpen] = useState(false);
-  const [isDeploying, setIsDeploying] = useState(false);
   const [expandedHistory, setExpandedHistory] = useState(false);
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
 
@@ -240,8 +236,6 @@ export function DeploymentDetailPage() {
     if (!workflowId || !orgHandle) return;
 
     try {
-      setIsDeploying(true);
-
       // Use the createDeployment function from deploymentService
       await createDeployment(workflowId, orgHandle);
 
@@ -255,23 +249,14 @@ export function DeploymentDetailPage() {
           ? error.message
           : "Failed to deploy workflow. Please try again."
       );
-    } finally {
-      setIsDeploying(false);
     }
   };
 
-  const [isLastExecutionRunning, setIsLastExecutionRunning] = useState(false);
-
   const handleExecuteLatestVersion = () => {
     if (!workflowId || !currentDeployment || !workflow) return;
-    setIsLastExecutionRunning(true);
     executeWorkflow(
       workflowId,
       (execution) => {
-        if (execution.status !== "submitted") {
-          setIsLastExecutionRunning(false);
-        }
-
         if (execution.status === "submitted") {
           toast.success("Workflow execution submitted");
         } else if (execution.status === "completed") {
@@ -361,38 +346,28 @@ export function DeploymentDetailPage() {
                 Manage deployments for this workflow
               </p>
               <div className="flex gap-2">
-                <ActionBarGroup className="[&_button]:h-9">
-                  <ActionButton
-                    onClick={handleExecuteLatestVersion}
-                    disabled={isLastExecutionRunning}
-                    showTooltip={false}
-                    text="Execute Latest"
-                  />
-                  {workflow.type === "http_request" && (
-                    <ShowHttpIntegrationButton
-                      onClick={() => setIsIntegrationDialogOpen(true)}
-                      disabled={isDeploying}
-                      text="Show HTTP Integration"
-                      tooltip=""
-                    />
-                  )}
-                  {workflow.type === "email_message" && (
-                    <ShowEmailTriggerButton
-                      onClick={() => setIsIntegrationDialogOpen(true)}
-                      disabled={isDeploying}
-                      text="Show Email Trigger"
-                      tooltip=""
-                    />
-                  )}
-                  {workflow.type === "cron" && (
-                    <SetScheduleButton
-                      onClick={handleOpenSetCronDialog}
-                      disabled={isDeploying}
-                      text="Set Schedule"
-                      tooltip=""
-                    />
-                  )}
-                </ActionBarGroup>
+                <Button onClick={handleExecuteLatestVersion}>
+                  <Play className="mr-2 h-4 w-4" />
+                  Execute Latest
+                </Button>
+                {workflow.type === "http_request" && (
+                  <Button onClick={() => setIsIntegrationDialogOpen(true)}>
+                    <Globe className="mr-2 h-4 w-4" />
+                    Show HTTP Integration
+                  </Button>
+                )}
+                {workflow.type === "email_message" && (
+                  <Button onClick={() => setIsIntegrationDialogOpen(true)}>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Show Email Trigger
+                  </Button>
+                )}
+                {workflow.type === "cron" && (
+                  <Button onClick={handleOpenSetCronDialog}>
+                    <CalendarClock className="mr-2 h-4 w-4" />
+                    Set Schedule
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -434,13 +409,13 @@ export function DeploymentDetailPage() {
           ) : (
             <div className="text-center py-10">
               <p className="text-lg">No deployments found for this workflow.</p>
-              <DeployButton
+              <Button
                 className="mt-4"
                 onClick={() => setIsDeployDialogOpen(true)}
-                disabled={isDeploying}
-                text="Deploy Workflow"
-                tooltip=""
-              />
+              >
+                <ArrowUpToLine className="mr-2 h-4 w-4" />
+                Deploy Workflow
+              </Button>
             </div>
           )}
 
@@ -482,9 +457,7 @@ export function DeploymentDetailPage() {
             >
               Cancel
             </Button>
-            <Button onClick={deployWorkflow} disabled={isDeploying}>
-              {isDeploying ? "Deploying..." : "Deploy"}
-            </Button>
+            <Button onClick={deployWorkflow}>Deploy</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -521,7 +494,8 @@ export function DeploymentDetailPage() {
           onSubmit={handleSaveCron}
           initialData={{
             cronExpression: cronTrigger?.cronExpression || "",
-            active: cronTrigger?.active === undefined ? true : cronTrigger.active,
+            active:
+              cronTrigger?.active === undefined ? true : cronTrigger.active,
             versionAlias: cronTrigger?.versionAlias || "dev",
             versionNumber: cronTrigger?.versionNumber,
           }}

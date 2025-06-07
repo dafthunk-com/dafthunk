@@ -1,5 +1,6 @@
 import type { WorkflowDeploymentVersion } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
+import { Globe, Play } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -11,21 +12,8 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
-import {
-  ActionButton,
-  DeployButton,
-  ShowHttpIntegrationButton,
-} from "@/components/workflow/workflow-canvas";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
   NodeTemplate,
@@ -33,15 +21,10 @@ import type {
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import {
-  createDeployment,
-  useDeploymentVersion,
-} from "@/services/deployment-service";
+import { useDeploymentVersion } from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
 import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
-import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { ActionBarGroup } from "@/components/ui/action-bar";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -55,7 +38,6 @@ export function DeploymentVersionPage() {
   const { createObjectUrl } = useObjectService();
 
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
-  const [isExecuting, setIsExecuting] = useState(false);
 
   const {
     deploymentVersion,
@@ -183,13 +165,9 @@ export function DeploymentVersionPage() {
 
   const handleExecuteThisVersion = useCallback(() => {
     if (!deploymentVersion?.workflowId || !workflow) return;
-    setIsExecuting(true);
     executeWorkflow(
       deploymentVersion.workflowId,
       (execution) => {
-        if (execution.status !== "submitted") {
-          setIsExecuting(false);
-        }
         if (execution.status === "submitted") {
           toast.success("Workflow execution submitted");
         } else if (execution.status === "completed") {
@@ -245,22 +223,16 @@ export function DeploymentVersionPage() {
                 Details for this workflow deployment version
               </p>
               <div className="flex gap-2">
-                <ActionBarGroup className="[&_button]:h-9">
-                  <ActionButton
-                    onClick={handleExecuteThisVersion}
-                    disabled={isExecuting}
-                    showTooltip={false}
-                    text="Execute this Version"
-                  />
-                  {workflow?.type === "http_request" && (
-                    <ShowHttpIntegrationButton
-                      onClick={() => setIsIntegrationDialogOpen(true)}
-                      disabled={isExecuting}
-                      text="Show HTTP Integration"
-                      tooltip="Show how to trigger this workflow via HTTP."
-                    />
-                  )}
-                </ActionBarGroup>
+                <Button onClick={handleExecuteThisVersion}>
+                  <Play className="mr-2 h-4 w-4" />
+                  Execute this Version
+                </Button>
+                {workflow?.type === "http_request" && (
+                  <Button onClick={() => setIsIntegrationDialogOpen(true)}>
+                    <Globe className="mr-2 h-4 w-4" />
+                    Show HTTP Integration
+                  </Button>
+                )}
               </div>
             </div>
           </div>
