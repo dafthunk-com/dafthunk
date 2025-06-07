@@ -691,7 +691,7 @@ export const getCronTrigger = async (
 /**
  * Hook to get a cron trigger for a specific workflow
  */
-export const useCronTrigger = (workflowId: string) => {
+export const useCronTrigger = (workflowId: string | null) => {
   const { organization } = useAuth();
   const orgHandle = organization?.handle;
   const { data, error, isLoading, mutate } =

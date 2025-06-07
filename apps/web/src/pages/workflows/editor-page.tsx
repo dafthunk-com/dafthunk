@@ -47,9 +47,6 @@ export function EditorPage() {
   const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
 
   const [isSetCronDialogOpen, setIsSetCronDialogOpen] = useState(false);
-  const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
-    useCronTrigger(id!);
-
   const [isHttpIntegrationDialogOpen, setIsHttpIntegrationDialogOpen] =
     useState(false);
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
@@ -60,6 +57,9 @@ export function EditorPage() {
     workflowError: workflowDetailsError,
     isWorkflowLoading: isWorkflowDetailsLoading,
   } = useWorkflow(id || null);
+
+  const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
+    useCronTrigger(currentWorkflow?.type === "cron" && id ? id : null);
 
   const {
     deployments: deploymentHistory,
