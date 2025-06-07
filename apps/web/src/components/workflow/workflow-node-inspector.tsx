@@ -139,7 +139,7 @@ export function WorkflowNodeInspector({
           </div>
 
           <div className="space-y-2">
-            <Label>Inputs</Label>
+            <h2 className="font-medium border-b border-border pb-2">Inputs</h2>
             <div className="space-y-2">
               {localInputs.length > 0 ? (
                 localInputs.map((input) => (
@@ -147,45 +147,11 @@ export function WorkflowNodeInspector({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span>{input.name}</span>
+                        <span className="text-xs text-neutral-500">
+                          {input.type}
+                        </span>
                       </div>
-                      <span className="text-xs text-neutral-500">
-                        {input.type}
-                      </span>
-                    </div>
-
-                    <div className="relative">
-                      {input.type === "string" ? (
-                        <Textarea
-                          placeholder={`Enter ${input.type} value`}
-                          value={
-                            input.value !== undefined ? String(input.value) : ""
-                          }
-                          onChange={(e) =>
-                            handleInputValueChange(input.id, e.target.value)
-                          }
-                          className={`text-sm min-h-[80px] resize-y pr-16 ${
-                            readonly ? "opacity-70 cursor-not-allowed" : ""
-                          }`}
-                          disabled={readonly}
-                        />
-                      ) : (
-                        <Input
-                          placeholder={`Enter ${input.type} value`}
-                          value={
-                            input.value !== undefined ? String(input.value) : ""
-                          }
-                          onChange={(e) =>
-                            handleInputValueChange(input.id, e.target.value)
-                          }
-                          className={`text-sm h-8 pr-16 ${
-                            readonly ? "opacity-70 cursor-not-allowed" : ""
-                          }`}
-                          disabled={readonly}
-                        />
-                      )}
-                      <div
-                        className={`absolute right-2 ${input.type === "string" ? "top-2" : "top-1/2 -translate-y-1/2"} flex items-center gap-2`}
-                      >
+                      <div className="flex items-center gap-2">
                         {input.value !== undefined && !readonly && (
                           <button
                             onClick={() => handleClearValue(input.id)}
@@ -215,6 +181,38 @@ export function WorkflowNodeInspector({
                         </Toggle>
                       </div>
                     </div>
+
+                    <div className="relative">
+                      {input.type === "string" ? (
+                        <Textarea
+                          placeholder={`Enter ${input.type} value`}
+                          value={
+                            input.value !== undefined ? String(input.value) : ""
+                          }
+                          onChange={(e) =>
+                            handleInputValueChange(input.id, e.target.value)
+                          }
+                          className={`text-sm min-h-[80px] resize-y ${
+                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={readonly}
+                        />
+                      ) : (
+                        <Input
+                          placeholder={`Enter ${input.type} value`}
+                          value={
+                            input.value !== undefined ? String(input.value) : ""
+                          }
+                          onChange={(e) =>
+                            handleInputValueChange(input.id, e.target.value)
+                          }
+                          className={`text-sm h-8 ${
+                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={readonly}
+                        />
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (
@@ -224,16 +222,18 @@ export function WorkflowNodeInspector({
           </div>
 
           <div className="space-y-2">
-            <Label>Outputs</Label>
+            <h2 className="font-medium border-b border-border pb-2">Outputs</h2>
             <div className="space-y-2">
               {localOutputs.length > 0 ? (
                 localOutputs.map((output) => (
                   <div key={output.id} className="text-sm space-y-1">
                     <div className="flex items-center justify-between">
-                      <span>{output.name}</span>
-                      <span className="text-xs text-neutral-500">
-                        {output.type}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>{output.name}</span>
+                        <span className="text-xs text-neutral-500">
+                          {output.type}
+                        </span>
+                      </div>
                     </div>
                     <WorkflowOutputRenderer
                       output={output}
