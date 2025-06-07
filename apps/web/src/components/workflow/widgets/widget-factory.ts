@@ -53,6 +53,13 @@ export interface JsonEditorWidgetConfig {
   value: string;
 }
 
+export interface JavaScriptEditorWidgetConfig {
+  type: "javascript-editor";
+  id: string;
+  name: string;
+  value: string;
+}
+
 interface CanvasDoodleConfig {
   type: "canvas-doodle";
   value: string;
@@ -89,6 +96,7 @@ export type WidgetConfig =
   | InputTextWidgetConfig
   | NumberInputWidgetConfig
   | JsonEditorWidgetConfig
+  | JavaScriptEditorWidgetConfig
   | CanvasDoodleConfig
   | WebcamConfig
   | AudioRecorderConfig
@@ -262,6 +270,24 @@ export function createWidgetConfig(
         id: nodeId,
         name: "JSON Editor",
         value: String(valueInput.value || "{}"),
+      };
+    }
+    case "javascript-editor": {
+      const valueInput = inputs.find((i) => i.id === "value");
+
+      // Ensure required inputs are present
+      if (!valueInput) {
+        console.warn(
+          `Missing required inputs for JavaScript Editor widget in node ${nodeId}`
+        );
+        return null;
+      }
+
+      return {
+        type: "javascript-editor",
+        id: nodeId,
+        name: "JavaScript Editor",
+        value: String(valueInput.value || "// Write your JavaScript code here"),
       };
     }
     case "canvas-doodle": {

@@ -60,6 +60,7 @@ import { JsonScriptNode } from "./json/json-script-node";
 import { JsonStringExtractorNode } from "./json/json-string-extractor-node";
 import { JsonTemplateNode } from "./json/json-template-node";
 import { JsonEditorNode } from "./json/json-editor-node";
+import { JavaScriptEditorNode } from "./javascript/javascript-editor-node";
 import { AbsoluteValueNode } from "./math/absolute-value-node";
 import { AdditionNode } from "./math/addition-node";
 import { DivisionNode } from "./math/division-node";
@@ -180,9 +181,8 @@ export class NodeRegistry {
     this.registerImplementation(JsonObjectArrayExtractorNode);
     this.registerImplementation(JsonScriptNode);
     this.registerImplementation(JsonTemplateNode);
-    this.registerImplementation(MultiVariableStringTemplateNode);
-    this.registerImplementation(SingleVariableStringTemplateNode);
     this.registerImplementation(JsonEditorNode);
+    this.registerImplementation(JavaScriptEditorNode);
     this.registerImplementation(LLaVA157BHFNode);
     this.registerImplementation(CanvasDoodleNode);
     this.registerImplementation(StableDiffusionXLBase10Node);
