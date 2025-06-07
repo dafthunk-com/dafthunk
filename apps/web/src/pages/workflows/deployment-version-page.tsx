@@ -11,17 +11,37 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
+import {
+  ActionButton,
+  DeployButton,
+  ShowHttpIntegrationButton,
+} from "@/components/workflow/workflow-canvas";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
+  NodeTemplate,
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useDeploymentVersion } from "@/services/deployment-service";
+import {
+  createDeployment,
+  useDeploymentVersion,
+} from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
+import { useNodeTypes } from "@/services/type-service";
 import { useWorkflow, useWorkflowExecution } from "@/services/workflow-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
+import { ActionBarGroup } from "@/components/ui/action-bar";
 
 export function DeploymentVersionPage() {
   const { deploymentId = "" } = useParams<{ deploymentId: string }>();
@@ -34,8 +54,8 @@ export function DeploymentVersionPage() {
 
   const { createObjectUrl } = useObjectService();
 
-  // Use empty node templates array since we're in readonly mode
-  const nodeTemplates = useMemo(() => [], []);
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
 
   const {
     deploymentVersion,
@@ -44,9 +64,34 @@ export function DeploymentVersionPage() {
     mutateDeploymentVersion,
   } = useDeploymentVersion(deploymentId);
 
-  // Use the new hook for Workflow Details from workflowService.ts
   const { workflow, workflowError, isWorkflowLoading } = useWorkflow(
     deploymentVersion?.workflowId || null
+  );
+
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.type);
+
+  const nodeTemplates: NodeTemplate[] = useMemo(
+    () =>
+      nodeTypes?.map((type) => ({
+        id: type.id,
+        type: type.id,
+        name: type.name,
+        description: type.description || "",
+        category: type.category,
+        inputs: type.inputs.map((input) => ({
+          id: input.name,
+          type: input.type,
+          name: input.name,
+          hidden: input.hidden,
+        })),
+        outputs: type.outputs.map((output) => ({
+          id: output.name,
+          type: output.type,
+          name: output.name,
+          hidden: output.hidden,
+        })),
+      })) || [],
+    [nodeTypes]
   );
 
   const {
@@ -56,25 +101,6 @@ export function DeploymentVersionPage() {
     submitFormData,
     closeExecutionForm,
   } = useWorkflowExecution(orgHandle);
-
-  // Update breadcrumbs when both workflow and deployment are available
-  useEffect(() => {
-    if (workflow && deploymentVersion) {
-      setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
-        {
-          label: workflow.name,
-          to: `/workflows/deployments/${workflow.id}`,
-        },
-        { label: `v${deploymentVersion.version}` },
-      ]);
-    } else if (deploymentVersion) {
-      setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
-        { label: `v${deploymentVersion.version}` },
-      ]);
-    }
-  }, [workflow, deploymentVersion, setBreadcrumbs]);
 
   const transformDeploymentToReactFlow = useCallback(
     (currentDeploymentData: WorkflowDeploymentVersion) => {
@@ -103,6 +129,7 @@ export function DeploymentVersionPage() {
               })),
               executionState: "idle" as const,
               nodeType: node.type,
+              createObjectUrl,
             },
           }));
         const reactFlowEdges: Edge<WorkflowEdgeType>[] =
@@ -129,8 +156,22 @@ export function DeploymentVersionPage() {
         toast.error("Failed to process workflow structure.");
       }
     },
-    []
+    [createObjectUrl]
   );
+
+  // Update breadcrumbs when both workflow and deployment are available
+  useEffect(() => {
+    if (workflow && deploymentVersion) {
+      setBreadcrumbs([
+        { label: "Deployments", to: "/workflows/deployments" },
+        {
+          label: workflow.name,
+          to: `/workflows/deployments/${workflow.id}`,
+        },
+        { label: `v${deploymentVersion.version}` },
+      ]);
+    }
+  }, [workflow, deploymentVersion, setBreadcrumbs]);
 
   useEffect(() => {
     if (deploymentVersion) {
@@ -138,25 +179,17 @@ export function DeploymentVersionPage() {
     }
   }, [deploymentVersion, transformDeploymentToReactFlow]);
 
-  useEffect(() => {
-    if (!deploymentVersion) return;
-    try {
-      const adaptedNodes = adaptDeploymentNodesToReactFlowNodes(
-        deploymentVersion.nodes
-      );
-      setNodes(adaptedNodes);
-    } catch (error) {
-      console.error("Error adapting nodes:", error);
-    }
-  }, [deploymentVersion]);
-
   const validateConnection = useCallback(() => false, []);
 
-  const handleExecuteVersion = useCallback(() => {
-    if (!deploymentVersion?.workflowId) return;
+  const handleExecuteThisVersion = useCallback(() => {
+    if (!deploymentVersion?.workflowId || !workflow) return;
+    setIsExecuting(true);
     executeWorkflow(
       deploymentVersion.workflowId,
       (execution) => {
+        if (execution.status !== "submitted") {
+          setIsExecuting(false);
+        }
         if (execution.status === "submitted") {
           toast.success("Workflow execution submitted");
         } else if (execution.status === "completed") {
@@ -166,11 +199,18 @@ export function DeploymentVersionPage() {
         }
       },
       nodes,
-      nodeTemplates
+      nodeTemplates,
+      workflow.type
     );
-  }, [deploymentVersion?.workflowId, executeWorkflow, nodes, nodeTemplates]);
+  }, [
+    deploymentVersion?.workflowId,
+    executeWorkflow,
+    nodes,
+    nodeTemplates,
+    workflow,
+  ]);
 
-  if (isDeploymentVersionLoading || isWorkflowLoading) {
+  if (isDeploymentVersionLoading || isWorkflowLoading || isNodeTypesLoading) {
     return <InsetLoading title="Deployment" />;
   }
 
@@ -204,7 +244,24 @@ export function DeploymentVersionPage() {
               <p className="text-muted-foreground">
                 Details for this workflow deployment version
               </p>
-              <Button onClick={handleExecuteVersion}>Execute Version</Button>
+              <div className="flex gap-2">
+                <ActionBarGroup className="[&_button]:h-9">
+                  <ActionButton
+                    onClick={handleExecuteThisVersion}
+                    disabled={isExecuting}
+                    showTooltip={false}
+                    text="Execute this Version"
+                  />
+                  {workflow?.type === "http_request" && (
+                    <ShowHttpIntegrationButton
+                      onClick={() => setIsIntegrationDialogOpen(true)}
+                      disabled={isExecuting}
+                      text="Show HTTP Integration"
+                      tooltip="Show how to trigger this workflow via HTTP."
+                    />
+                  )}
+                </ActionBarGroup>
+              </div>
             </div>
           </div>
 
@@ -275,6 +332,18 @@ export function DeploymentVersionPage() {
         <div className="text-center py-10">
           <p className="text-lg">Deployment not found</p>
         </div>
+      )}
+      {/* HTTP Integration Dialog */}
+      {workflow?.type === "http_request" && deploymentVersion && (
+        <HttpIntegrationDialog
+          isOpen={isIntegrationDialogOpen}
+          onClose={() => setIsIntegrationDialogOpen(false)}
+          nodes={nodes}
+          nodeTemplates={nodeTemplates}
+          orgHandle={orgHandle}
+          workflowId={deploymentVersion.workflowId}
+          deploymentVersion={String(deploymentVersion.version)}
+        />
       )}
     </InsetLayout>
   );

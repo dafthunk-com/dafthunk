@@ -368,12 +368,6 @@ export function DeploymentDetailPage() {
                     showTooltip={false}
                     text="Execute Latest"
                   />
-                  <DeployButton
-                    onClick={() => setIsDeployDialogOpen(true)}
-                    disabled={isDeploying}
-                    text="Deploy Latest"
-                    tooltip=""
-                  />
                   {workflow.type === "http_request" && (
                     <ShowHttpIntegrationButton
                       onClick={() => setIsIntegrationDialogOpen(true)}
@@ -440,12 +434,13 @@ export function DeploymentDetailPage() {
           ) : (
             <div className="text-center py-10">
               <p className="text-lg">No deployments found for this workflow.</p>
-              <Button
+              <DeployButton
                 className="mt-4"
                 onClick={() => setIsDeployDialogOpen(true)}
-              >
-                Deploy Workflow
-              </Button>
+                disabled={isDeploying}
+                text="Deploy Workflow"
+                tooltip=""
+              />
             </div>
           )}
 
