@@ -46,8 +46,8 @@ export interface NumberInputWidgetConfig {
   placeholder?: string;
 }
 
-export interface MonacoEditorWidgetConfig {
-  type: "monaco-editor";
+export interface JsonEditorWidgetConfig {
+  type: "json-editor";
   id: string;
   name: string;
   value: string;
@@ -88,7 +88,7 @@ export type WidgetConfig =
   | TextAreaWidgetConfig
   | InputTextWidgetConfig
   | NumberInputWidgetConfig
-  | MonacoEditorWidgetConfig
+  | JsonEditorWidgetConfig
   | CanvasDoodleConfig
   | WebcamConfig
   | AudioRecorderConfig
@@ -246,19 +246,19 @@ export function createWidgetConfig(
         placeholder,
       };
     }
-    case "monaco-editor": {
+    case "json-editor": {
       const valueInput = inputs.find((i) => i.id === "value");
 
       // Ensure required inputs are present
       if (!valueInput) {
         console.warn(
-          `Missing required inputs for Monaco Editor widget in node ${nodeId}`
+          `Missing required inputs for JSON Editor widget in node ${nodeId}`
         );
         return null;
       }
 
       return {
-        type: "monaco-editor",
+        type: "json-editor",
         id: nodeId,
         name: "JSON Editor",
         value: String(valueInput.value || "{}"),

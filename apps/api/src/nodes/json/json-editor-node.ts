@@ -4,18 +4,19 @@ import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
- * Monaco Editor node implementation
- * This node provides a Monaco Editor widget specifically for JSON editing.
+ * JSON Editor node implementation
+ * This node provides a JSON Editor widget specifically for JSON editing.
  *
  * The editor's current value is stored as an input parameter named "value"
  * and passed directly to the output.
  */
-export class MonacoEditorNode extends ExecutableNode {
+export class JsonEditorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "monaco-editor",
+    id: "json-editor",
     name: "JSON Editor",
-    type: "monaco-editor",
-    description: "A Monaco Editor widget for editing and validating JSON",
+    type: "json-editor",
+    description:
+      "A JSON Editor widget for editing and validating JSON",
     category: "JSON",
     icon: "code",
     inputs: [
@@ -39,8 +40,6 @@ export class MonacoEditorNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value } = context.inputs;
-
-      // Parse JSON
       try {
         const parsedValue = JSON.parse(value);
         return this.createSuccessResult({

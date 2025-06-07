@@ -2,21 +2,21 @@ import { Editor } from "@monaco-editor/react";
 
 import { Label } from "@/components/ui/label";
 
-interface MonacoEditorWidgetConfig {
+interface JsonEditorWidgetConfig {
   value: string;
 }
 
-interface MonacoEditorWidgetProps {
-  config: MonacoEditorWidgetConfig;
+interface JsonEditorWidgetProps {
+  config: JsonEditorWidgetConfig;
   onChange: (value: string) => void;
   compact?: boolean;
 }
 
-export function MonacoEditorWidget({
+export function JsonEditorWidget({
   config,
   onChange,
   compact = false,
-}: MonacoEditorWidgetProps) {
+}: JsonEditorWidgetProps) {
   const { value } = config;
 
   const handleEditorChange = (value: string | undefined) => {

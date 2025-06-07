@@ -21,7 +21,7 @@ import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
 import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
 import { DocumentWidget } from "./widgets/document-widget";
 import { InputTextWidget } from "./widgets/input-text-widget";
-import { MonacoEditorWidget } from "./widgets/monaco-editor-widget";
+import { JsonEditorWidget } from "./widgets/json-editor-widget";
 import { NumberInputWidget } from "./widgets/number-input-widget";
 import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import { SliderWidget } from "./widgets/slider-widget";
@@ -170,7 +170,7 @@ export const WorkflowNode = memo(
       "text-area": TextAreaWidget,
       "input-text": InputTextWidget,
       "number-input": NumberInputWidget,
-      "monaco-editor": MonacoEditorWidget,
+      "json-editor": JsonEditorWidget,
       "canvas-doodle": CanvasDoodleWidget,
       webcam: WebcamWidget,
       "audio-recorder": AudioRecorderWidget,
