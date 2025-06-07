@@ -43,6 +43,13 @@
       "when": 1749163639615,
       "tag": "0005_split_version_alias_column",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1749289788690,
+      "tag": "0006_allow_multiple_auth_providers_per_account",
+      "breakpoints": true
     }
   ]
 }

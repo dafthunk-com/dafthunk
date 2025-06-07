@@ -11,7 +11,6 @@ export interface User {
   sub: string;
   name: string;
   email?: string;
-  provider: string;
   avatarUrl?: string;
   plan: string;
   role: string;
@@ -25,7 +24,6 @@ export interface CustomJWTPayload {
   sub: string;
   name: string;
   email?: string;
-  provider: string;
   avatarUrl?: string;
   plan: string;
   role: string;

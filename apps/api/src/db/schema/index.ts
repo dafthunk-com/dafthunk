@@ -126,9 +126,8 @@ export const users = sqliteTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     email: text("email").unique(),
-    provider: text("provider").$type<ProviderType>().notNull(),
-    githubId: text("github_id"),
-    googleId: text("google_id"),
+    githubId: text("github_id").unique(),
+    googleId: text("google_id").unique(),
     avatarUrl: text("avatar_url"),
     organizationId: text("organization_id")
       .notNull()
@@ -142,11 +141,8 @@ export const users = sqliteTable(
     updatedAt: createUpdatedAt(),
   },
   (table) => [
-    index("users_provider_githubid_googleid_idx").on(
-      table.provider,
-      table.githubId,
-      table.googleId
-    ),
+    index("users_github_id_idx").on(table.githubId),
+    index("users_google_id_idx").on(table.googleId),
     index("users_organization_id_idx").on(table.organizationId),
     index("users_email_idx").on(table.email),
     index("users_name_idx").on(table.name),

@@ -30,7 +30,6 @@ import {
   organizations,
   Plan,
   type PlanType,
-  type ProviderType,
   UserRole,
   type UserRoleType,
   type UserRow,
@@ -90,22 +89,21 @@ export type SaveExecutionRecord = {
  * Data required to save a user record
  */
 export type UserData = {
-  id: string;
+  provider: "github" | "google";
+  providerId: string;
   name: string;
   email?: string;
-  provider: string;
-  githubId?: string;
-  googleId?: string;
   avatarUrl?: string;
   plan?: string;
   role?: string;
 };
 
 /**
- * Save a user to the database and ensure they belong to an organization
+ * Save a user to the database and ensure they belong to an organization.
+ * This function handles user creation and linking accounts via email.
  *
  * @param db Database instance
- * @param userData User data to save
+ * @param userData User data from the authentication provider
  * @returns Object containing the user and their main organization
  */
 export async function saveUser(
@@ -113,25 +111,53 @@ export async function saveUser(
   userData: UserData
 ): Promise<{ user: UserRow; organization: OrganizationInsert }> {
   const now = new Date();
+  const { provider, providerId, email, name, avatarUrl } = userData;
 
-  // Check if user already exists
-  const existingUser = await getUserById(db, userData.id);
+  // 1. Check if user exists with this provider ID
+  const providerColumn =
+    provider === "github" ? users.githubId : users.googleId;
+  const [existingUser] = await db
+    .select()
+    .from(users)
+    .where(eq(providerColumn, providerId));
 
   if (existingUser) {
-    // User exists, get their organization
     const [organization] = await db
       .select()
       .from(organizations)
       .where(eq(organizations.id, existingUser.organizationId));
-
     return { user: existingUser, organization };
   }
 
-  // User doesn't exist, create a new organization
-  const organizationId = uuidv7();
-  const handle = createHandle(userData.name);
+  // 2. If email is provided, check if a user exists with this email
+  if (email) {
+    const [userByEmail] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
 
-  // Create personal organization
+    if (userByEmail) {
+      // Link the new provider to the existing account
+      const [updatedUser] = await db
+        .update(users)
+        .set({ [provider === "github" ? "githubId" : "googleId"]: providerId })
+        .where(eq(users.id, userByEmail.id))
+        .returning();
+
+      const [organization] = await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.id, updatedUser.organizationId));
+
+      return { user: updatedUser, organization };
+    }
+  }
+
+  // 3. User doesn't exist, create a new user and organization
+  const userId = uuidv7();
+  const organizationId = uuidv7();
+  const handle = createHandle(name);
+
   const organization: OrganizationInsert = {
     id: organizationId,
     name: `Personal`,
@@ -140,15 +166,13 @@ export async function saveUser(
     updatedAt: now,
   };
 
-  // Create new user with the organization ID
   const newUser = {
-    id: userData.id,
-    name: userData.name,
-    email: userData.email,
-    provider: userData.provider as ProviderType,
-    githubId: userData.githubId,
-    googleId: userData.googleId,
-    avatarUrl: userData.avatarUrl,
+    id: userId,
+    name: name,
+    email: email,
+    githubId: provider === "github" ? providerId : undefined,
+    googleId: provider === "google" ? providerId : undefined,
+    avatarUrl: avatarUrl,
     organizationId: organizationId,
     plan: (userData.plan as PlanType) || Plan.TRIAL,
     role: (userData.role as UserRoleType) || UserRole.USER,
@@ -157,16 +181,14 @@ export async function saveUser(
     updatedAt: now,
   };
 
-  // Create membership with owner role
   const newMembership: MembershipInsert = {
-    userId: userData.id,
+    userId: userId,
     organizationId: organizationId,
     role: OrganizationRole.OWNER,
     createdAt: now,
     updatedAt: now,
   };
 
-  // Execute all three operations in a single batch transaction
   const [organizationResult, userResult] = await db.batch([
     db.insert(organizations).values(organization).returning(),
     db.insert(users).values(newUser).returning(),

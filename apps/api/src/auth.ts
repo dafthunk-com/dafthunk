@@ -268,7 +268,6 @@ auth.post("/refresh", async (c) => {
     sub: result.id,
     name: result.name,
     email: result.email ?? undefined,
-    provider: result.provider as "github" | "google",
     avatarUrl: result.avatarUrl ?? undefined,
     plan: result.plan,
     role: result.role,
@@ -327,11 +326,10 @@ auth.get(
 
     // Save user and create organization if needed
     const userData = {
-      id: userId,
+      provider: "github" as const,
+      providerId: userId,
       name: userName,
       email: userEmail,
-      provider: "github" as const,
-      githubId: userId,
       avatarUrl,
     };
     const { user: savedUser, organization: savedOrganization } = await saveUser(
@@ -347,10 +345,9 @@ auth.get(
     };
 
     const accessPayload: CustomJWTPayload = {
-      sub: userId,
+      sub: savedUser.id,
       name: userName,
       email: userEmail ?? undefined,
-      provider: "github",
       avatarUrl,
       plan: savedUser.plan,
       role: savedUser.role,
@@ -359,7 +356,7 @@ auth.get(
     };
 
     const refreshPayload = {
-      sub: userId,
+      sub: savedUser.id,
       organization: { id: savedOrganization.id },
     };
 
@@ -394,11 +391,10 @@ auth.get(
 
     // Save user and create organization if needed
     const userData = {
-      id: userId,
+      provider: "google" as const,
+      providerId: userId,
       name: userName,
       email: userEmail,
-      provider: "google" as const,
-      googleId: userId,
       avatarUrl,
     };
     const { user: savedUser, organization: savedOrganization } = await saveUser(
@@ -414,10 +410,9 @@ auth.get(
     };
 
     const accessPayload: CustomJWTPayload = {
-      sub: userId,
+      sub: savedUser.id,
       name: userName,
       email: userEmail,
-      provider: "google",
       avatarUrl: avatarUrl || undefined,
       plan: savedUser.plan,
       role: savedUser.role,
@@ -426,7 +421,7 @@ auth.get(
     };
 
     const refreshPayload = {
-      sub: userId,
+      sub: savedUser.id,
       organization: { id: savedOrganization.id },
     };
 
