@@ -3,11 +3,11 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class JsonScriptNode extends ExecutableNode {
+export class JsonJavascriptNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "json-script",
-    name: "JSON Script",
-    type: "json-script",
+    id: "json-javascript",
+    name: "JSON Javascript Processor",
+    type: "json-javascript",
     description:
       "Executes a JavaScript script with a JSON object as input. The input JSON is available as a global variable 'inputJson'. The result of the last expression is returned.",
     category: "JSON",
@@ -20,7 +20,7 @@ export class JsonScriptNode extends ExecutableNode {
         required: true,
       },
       {
-        name: "script",
+        name: "javascript",
         type: "string",
         description:
           "JavaScript code to execute. 'inputJson' is available globally. The last expression's result is returned.",
