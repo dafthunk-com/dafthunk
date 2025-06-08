@@ -137,9 +137,7 @@ export const WorkflowNode = memo(
     const { updateNodeData, readonly, expandedOutputs } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(true);
-    const hasVisibleOutputs = data.outputs.some(
-      (output) => !output.hidden
-    );
+    const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");

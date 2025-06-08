@@ -383,9 +383,11 @@ export function WorkflowValueRenderer({
               />
             );
           }
-          if (parameter.value.mimeType === "application/pdf" || 
-              parameter.value.mimeType.startsWith("application/") ||
-              parameter.value.mimeType.startsWith("text/")) {
+          if (
+            parameter.value.mimeType === "application/pdf" ||
+            parameter.value.mimeType.startsWith("application/") ||
+            parameter.value.mimeType.startsWith("text/")
+          ) {
             return (
               <DocumentRenderer
                 parameter={parameter}
@@ -399,7 +401,7 @@ export function WorkflowValueRenderer({
         return (
           <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
             <div className="text-xs text-neutral-500">
-              File ({parameter.value.mimeType || 'unknown type'})
+              File ({parameter.value.mimeType || "unknown type"})
             </div>
             <a
               href={objectUrl}
@@ -438,16 +440,14 @@ export function WorkflowValueRenderer({
   if (parameter.type === "any") {
     // Try to determine the best way to display the value
     if (parameter.value === null || parameter.value === undefined) {
-      return (
-        <div className="text-sm text-neutral-500 italic">
-          No value
-        </div>
-      );
+      return <div className="text-sm text-neutral-500 italic">No value</div>;
     }
 
     // Get the actual type for display
-    const actualType = Array.isArray(parameter.value) ? "array" : typeof parameter.value;
-    
+    const actualType = Array.isArray(parameter.value)
+      ? "array"
+      : typeof parameter.value;
+
     // If it's an object or array, use JSON formatting
     if (typeof parameter.value === "object") {
       const formattedValue = JSON.stringify(parameter.value, null, 2);

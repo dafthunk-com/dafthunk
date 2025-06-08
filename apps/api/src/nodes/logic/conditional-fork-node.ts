@@ -3,20 +3,27 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext, ParameterValue } from "../types";
 
-export class ConditionalNode extends ExecutableNode {
+/**
+ * Conditional Fork Node
+ *
+ * Splits the workflow into two branches based on a boolean condition.
+ * The 'true' output is taken if the condition is true, 'false' if the condition is false.
+ */
+export class ConditionalForkNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "conditional",
-    name: "Conditional",
-    type: "conditional",
+    id: "conditional-fork",
+    name: "Conditional Fork",
+    type: "conditional-fork",
     description:
-      "Outputs a value to one of two branches based on a boolean condition.",
+      "Splits the workflow into two branches based on a boolean condition. The 'true' output is taken if the condition is true, 'false' if false.",
     category: "Logic",
     icon: "git-branch",
     inputs: [
       {
         name: "condition",
         type: "boolean",
-        description: "The boolean condition to evaluate.",
+        description:
+          "The boolean condition to evaluate (true → 'true', false → 'false').",
         required: true,
       },
       {
@@ -28,12 +35,12 @@ export class ConditionalNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "true_case",
+        name: "true",
         type: "any",
         description: "Output if the condition is true.",
       },
       {
-        name: "false_case",
+        name: "false",
         type: "any",
         description: "Output if the condition is false.",
       },
@@ -57,11 +64,11 @@ export class ConditionalNode extends ExecutableNode {
 
     const outputs: Record<string, ParameterValue> = {};
     if (condition) {
-      outputs.true_case = value;
+      outputs.true = value;
     } else {
-      outputs.false_case = value;
+      outputs.false = value;
     }
 
     return this.createSuccessResult(outputs);
   }
-} 
+}

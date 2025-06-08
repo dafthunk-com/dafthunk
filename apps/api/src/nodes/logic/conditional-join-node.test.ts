@@ -1,22 +1,22 @@
-import { describe, it, expect } from "vitest";
 import { Node } from "@dafthunk/types";
+import { describe, expect, it } from "vitest";
 
-import { JoinXorNode } from "./join-xor-node";
+import { ConditionalJoinNode } from "./conditional-join-node";
 
-describe("JoinXorNode", () => {
+describe("ConditionalJoinNode", () => {
   const createTestNode = (): Node => ({
-    id: "test-join-xor",
-    name: "Test Join XOR",
-    type: "join-xor",
+    id: "test-conditional-join",
+    name: "Test Conditional Join",
+    type: "conditional-join",
     position: { x: 0, y: 0 },
     inputs: [
       {
-        name: "valueA",
+        name: "a",
         type: "any",
         required: false,
       },
       {
-        name: "valueB",
+        name: "b",
         type: "any",
         required: false,
       },
@@ -36,35 +36,39 @@ describe("JoinXorNode", () => {
     env: {} as any,
   });
 
-  it("should output valueA when only valueA is provided", async () => {
-    const node = new JoinXorNode(createTestNode());
+  it("should output 'a' when only 'a' is provided", async () => {
+    const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({
-      valueA: "hello from A",
+      a: "hello from a",
     });
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe("hello from A");
+    expect(result.outputs?.result).toBe("hello from a");
   });
 
-  it("should output valueB when only valueB is provided", async () => {
-    const node = new JoinXorNode(createTestNode());
+  it("should output 'b' when only 'b' is provided", async () => {
+    const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({
-      valueB: "hello from B",
+      b: "hello from b",
     });
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("completed");
-    expect(result.outputs?.result).toBe("hello from B");
+    expect(result.outputs?.result).toBe("hello from b");
   });
 
   it("should handle complex data types correctly", async () => {
-    const node = new JoinXorNode(createTestNode());
-    const complexData = { message: "complex data", count: 42, items: [1, 2, 3] };
+    const node = new ConditionalJoinNode(createTestNode());
+    const complexData = {
+      message: "complex data",
+      count: 42,
+      items: [1, 2, 3],
+    };
     const context = createNodeContext({
-      valueA: complexData,
+      a: complexData,
     });
 
     const result = await node.execute(context);
@@ -73,37 +77,36 @@ describe("JoinXorNode", () => {
     expect(result.outputs?.result).toEqual(complexData);
   });
 
-  it("should error when both inputs are provided (violates XOR)", async () => {
-    const node = new JoinXorNode(createTestNode());
+  it("should error when both inputs are provided (violates exclusive join)", async () => {
+    const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({
-      valueA: "hello from A",
-      valueB: "hello from B",
+      a: "hello from a",
+      b: "hello from b",
     });
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("both valueA and valueB were provided");
-    expect(result.error).toContain("violates the XOR condition");
+    expect(result.error).toContain("both 'a' and 'b' were provided");
+    expect(result.error).toContain("exclusive join condition");
   });
 
   it("should error when no inputs are provided", async () => {
-    const node = new JoinXorNode(createTestNode());
+    const node = new ConditionalJoinNode(createTestNode());
     const context = createNodeContext({});
 
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("neither valueA nor valueB was provided");
+    expect(result.error).toContain("neither 'a' nor 'b' was provided");
     expect(result.error).toContain("error in the workflow design");
   });
 
   it("should handle null and undefined values correctly", async () => {
-    const node = new JoinXorNode(createTestNode());
-    
+    const node = new ConditionalJoinNode(createTestNode());
     // null is a valid value, undefined means input wasn't provided
     const contextWithNull = createNodeContext({
-      valueA: null,
+      a: null,
     });
 
     const result = await node.execute(contextWithNull);
@@ -113,20 +116,16 @@ describe("JoinXorNode", () => {
   });
 
   it("should handle falsy values correctly", async () => {
-    const node = new JoinXorNode(createTestNode());
-    
+    const node = new ConditionalJoinNode(createTestNode());
     // Test various falsy values that are still valid inputs
     const falsyValues = [false, 0, "", null];
-    
     for (const value of falsyValues) {
       const context = createNodeContext({
-        valueA: value,
+        a: value,
       });
-
       const result = await node.execute(context);
-
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toBe(value);
     }
   });
-}); 
+});

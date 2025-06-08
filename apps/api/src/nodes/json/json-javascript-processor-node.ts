@@ -50,7 +50,11 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
       return this.createErrorResult("Missing JSON input object.");
     }
 
-    if (!javascript || typeof javascript !== "string" || javascript.trim() === "") {
+    if (
+      !javascript ||
+      typeof javascript !== "string" ||
+      javascript.trim() === ""
+    ) {
       return this.createErrorResult("Missing or empty script.");
     }
 

@@ -359,7 +359,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       return runtimeState;
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Required input")) {
+      if (
+        error instanceof Error &&
+        error.message.startsWith("Required input")
+      ) {
         runtimeState.skippedNodes.add(nodeIdentifier);
 
         // Determine final workflow status.
@@ -669,7 +672,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     runtimeState: RuntimeState,
     nodeId: string
   ): void {
-    if (runtimeState.skippedNodes.has(nodeId) || runtimeState.executedNodes.has(nodeId)) {
+    if (
+      runtimeState.skippedNodes.has(nodeId) ||
+      runtimeState.executedNodes.has(nodeId)
+    ) {
       return; // Already processed
     }
 
@@ -677,17 +683,20 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) return;
 
     // Check if this node has all required inputs satisfied
-    const allRequiredInputsSatisfied = this.nodeHasAllRequiredInputsSatisfied(runtimeState, nodeId);
+    const allRequiredInputsSatisfied = this.nodeHasAllRequiredInputsSatisfied(
+      runtimeState,
+      nodeId
+    );
 
     // Only skip if the node cannot execute (missing required inputs)
     if (!allRequiredInputsSatisfied) {
       runtimeState.skippedNodes.add(nodeId);
-      
+
       // Recursively check dependents of this skipped node
       const outgoingEdges = runtimeState.workflow.edges.filter(
         (edge) => edge.source === nodeId
       );
-      
+
       for (const edge of outgoingEdges) {
         this.markNodeAsSkippedIfNoValidInputs(runtimeState, edge.target);
       }
@@ -708,7 +717,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     // Get the node type definition to check for required inputs
     const executable = NodeRegistry.getInstance().createExecutableNode(node);
     if (!executable) return false;
-    
+
     const nodeTypeDefinition = (executable.constructor as any).nodeType;
     if (!nodeTypeDefinition) return false;
 

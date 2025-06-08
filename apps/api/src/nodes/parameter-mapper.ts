@@ -1,8 +1,9 @@
 import {
   JsonArray,
-  ParameterValue as ApiParameterValue,
   ObjectReference,
+  ParameterValue as ApiParameterValue,
 } from "@dafthunk/types";
+
 import { ObjectStore } from "../runtime/object-store";
 import {
   AudioParameter as NodeAudioParameter,
@@ -239,26 +240,47 @@ const converters = {
       executionId?: string
     ): Promise<ApiParameterValue> | ApiParameterValue => {
       // Handle binary types that need object storage
-      if (isImageParameter(value) || isDocumentParameter(value) || isAudioParameter(value)) {
+      if (
+        isImageParameter(value) ||
+        isDocumentParameter(value) ||
+        isAudioParameter(value)
+      ) {
         if (!objectStore || !organizationId) {
-          throw new Error(`ObjectStore and organizationId required for binary data`);
+          throw new Error(
+            `ObjectStore and organizationId required for binary data`
+          );
         }
         if (isImageParameter(value)) {
-          return converters.image.nodeToApi(value, objectStore, organizationId, executionId);
+          return converters.image.nodeToApi(
+            value,
+            objectStore,
+            organizationId,
+            executionId
+          );
         }
         if (isDocumentParameter(value)) {
-          return converters.document.nodeToApi(value, objectStore, organizationId, executionId);
+          return converters.document.nodeToApi(
+            value,
+            objectStore,
+            organizationId,
+            executionId
+          );
         }
         if (isAudioParameter(value)) {
-          return converters.audio.nodeToApi(value, objectStore, organizationId, executionId);
+          return converters.audio.nodeToApi(
+            value,
+            objectStore,
+            organizationId,
+            executionId
+          );
         }
       }
-      
+
       // Handle object references
       if (isObjectReference(value)) {
         return value;
       }
-      
+
       // Handle simple types (no async needed)
       return value as ApiParameterValue;
     },
@@ -271,7 +293,7 @@ const converters = {
         if (!objectStore) {
           throw new Error(`ObjectStore required to resolve object reference`);
         }
-        
+
         return (async () => {
           const result = await objectStore.readObject(value as ObjectReference);
           if (!result) return undefined;
@@ -308,7 +330,7 @@ const converters = {
           return value;
         }
       }
-      
+
       // Handle simple types
       return value as NodeParameterValue;
     },
@@ -374,13 +396,13 @@ export async function apiToNodeParameter(
 ): Promise<NodeParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
-  
+
   // Special handling for 'any' type - it decides internally whether it needs objectStore
   if (type === "any") {
     const result = (converter.apiToNode as any)(value, objectStore);
     return await Promise.resolve(result);
   }
-  
+
   if (converter.apiToNode.length === 2) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
     return await (converter.apiToNode as any)(value, objectStore);
