@@ -291,7 +291,7 @@ export const WorkflowNode = memo(
           {canShowOutputs && (
             <>
               <div
-                className="px-1 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
+                className="px-2 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
                 onClick={() => setShowOutputs(!showOutputs)}
               >
                 <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
@@ -305,7 +305,7 @@ export const WorkflowNode = memo(
               </div>
 
               {showOutputs && (
-                <div className="px-1 pt-1 pb-2 border-t space-y-2">
+                <div className="p-2 border-t space-y-2">
                   {data.outputs
                     .filter((output) => !output.hidden)
                     .map((output, index) => (
