@@ -57,7 +57,7 @@ const TypeBadge = ({
     "document": <StickyNoteIcon className="!size-3" />,
     "audio": <MusicIcon className="!size-3" />,
     "json": <BracesIcon className="!size-3" />,
-    "any": <AsteriskIcon className="!size-2" />,
+    "any": <AsteriskIcon className="!size-3" />,
   }[type];
 
   const handleClick = (e: React.MouseEvent) => {
@@ -90,25 +90,32 @@ const TypeBadge = ({
       <span
         className={cn(
           "inline-flex items-center justify-center w-5 h-5 rounded text-xs font-medium relative z-[1] transition-colors",
+          // Base styles are the same for readonly and interactive
           {
-            // Dark gray for connected parameters (both input and output)
-            "bg-neutral-400 text-neutral-900 hover:bg-neutral-500 dark:bg-neutral-500 dark:text-neutral-100 dark:hover:bg-neutral-600":
-              isConnected && !readonly,
-            // Medium gray for input parameters with values
-            "bg-neutral-300 text-neutral-800 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-700":
-              isInput && !isConnected && hasValue && !readonly,
-            // Light gray for unconnected parameters
-            "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700":
-              !isConnected && (!isInput || !hasValue) && !readonly,
-            // Readonly styles - no hover effects
-            "bg-neutral-400 text-neutral-900 dark:bg-neutral-500 dark:text-neutral-100 cursor-default":
-              isConnected && readonly,
-            "bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-200 cursor-default":
-              isInput && !isConnected && hasValue && readonly,
-            "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 cursor-default":
-              !isConnected && (!isInput || !hasValue) && readonly,
-            "cursor-pointer": !readonly,
-          }
+            // Connected:
+            "bg-neutral-400 text-neutral-800 dark:bg-neutral-300 dark:text-neutral-900":
+              isConnected,
+            // Has Value:
+            "bg-neutral-300 text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200":
+              isInput && !isConnected && hasValue,
+            // Default:
+            "bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400":
+              !isConnected && (!isInput || !hasValue),
+          },
+          // Interactive styles (hover and cursor) are applied conditionally
+          !readonly && {
+            "cursor-pointer": true,
+            // Connected (Interactive) hover
+            "hover:bg-neutral-600 dark:hover:bg-neutral-200": isConnected,
+            // Has Value (Interactive) hover
+            "hover:bg-neutral-500 dark:hover:bg-neutral-500":
+              isInput && !isConnected && hasValue,
+            // Default (Interactive) hover
+            "hover:bg-neutral-400 dark:hover:bg-neutral-700":
+              !isConnected && (!isInput || !hasValue),
+          },
+          // Readonly styles
+          readonly && "cursor-default"
         )}
         onClick={handleClick}
       >
