@@ -1,7 +1,7 @@
 import type { ParameterType } from "@dafthunk/types";
 
 // Node Types
-export type NodeExecutionState = "idle" | "executing" | "completed" | "error";
+export type NodeExecutionState = "idle" | "executing" | "completed" | "error" | "skipped";
 
 // Define InputOutputType using ParameterType
 export type InputOutputType = ParameterType["type"] | "any" | "unknown";

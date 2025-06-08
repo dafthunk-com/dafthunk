@@ -361,9 +361,59 @@ export function WorkflowValueRenderer({
             compact={compact}
           />
         );
+      case "any":
+        // For "any" type with object reference, try to determine the best renderer
+        // based on the object reference properties
+        if (parameter.value.mimeType) {
+          if (parameter.value.mimeType.startsWith("image/")) {
+            return (
+              <ImageRenderer
+                parameter={parameter}
+                compact={compact}
+                objectUrl={objectUrl}
+              />
+            );
+          }
+          if (parameter.value.mimeType.startsWith("audio/")) {
+            return (
+              <AudioRenderer
+                audioUrl={objectUrl}
+                onError={handleAudioError}
+                audioRef={audioRef}
+              />
+            );
+          }
+          if (parameter.value.mimeType === "application/pdf" || 
+              parameter.value.mimeType.startsWith("application/") ||
+              parameter.value.mimeType.startsWith("text/")) {
+            return (
+              <DocumentRenderer
+                parameter={parameter}
+                objectUrl={objectUrl}
+                compact={compact}
+              />
+            );
+          }
+        }
+        // Fallback for any type with object reference
+        return (
+          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+            <div className="text-xs text-neutral-500">
+              File ({parameter.value.mimeType || 'unknown type'})
+            </div>
+            <a
+              href={objectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:underline flex items-center"
+            >
+              View File
+            </a>
+          </div>
+        );
       default:
         return (
-          <div className="text-sm text-red-500">
+          <div className="text-sm text-orange-500">
             Unsupported object type: {parameter.type}
           </div>
         );
@@ -381,6 +431,57 @@ export function WorkflowValueRenderer({
         readonly={readonly}
         onChange={onChange}
       />
+    );
+  }
+
+  // Handle any type
+  if (parameter.type === "any") {
+    // Try to determine the best way to display the value
+    if (parameter.value === null || parameter.value === undefined) {
+      return (
+        <div className="text-sm text-neutral-500 italic">
+          No value
+        </div>
+      );
+    }
+
+    // Get the actual type for display
+    const actualType = Array.isArray(parameter.value) ? "array" : typeof parameter.value;
+    
+    // If it's an object or array, use JSON formatting
+    if (typeof parameter.value === "object") {
+      const formattedValue = JSON.stringify(parameter.value, null, 2);
+      return (
+        <div className="space-y-1">
+          <div className="text-xs text-neutral-500">
+            Any type (contains {actualType})
+          </div>
+          <CodeRenderer
+            value={formattedValue}
+            type="json"
+            compact={compact}
+            readonly={readonly}
+            onChange={onChange}
+          />
+        </div>
+      );
+    }
+
+    // For primitive values, use text renderer
+    const formattedValue = formatValue(parameter.value, actualType);
+    return (
+      <div className="space-y-1">
+        <div className="text-xs text-neutral-500">
+          Any type (contains {actualType})
+        </div>
+        <TextRenderer
+          value={formattedValue}
+          type={actualType}
+          compact={compact}
+          readonly={readonly}
+          onChange={onChange}
+        />
+      </div>
     );
   }
 

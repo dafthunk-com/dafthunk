@@ -246,6 +246,7 @@ export const WorkflowNode = memo(
               "border-yellow-400": data.executionState === "executing",
               "border-green-500": data.executionState === "completed",
               "border-red-500": data.executionState === "error",
+              "border-blue-400": data.executionState === "skipped",
             }
           )}
         >
