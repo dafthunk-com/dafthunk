@@ -1,4 +1,4 @@
-import type { WorkflowDeploymentVersion } from "@dafthunk/types";
+import type { DeploymentVersion } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import { Globe, Play } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -85,7 +85,7 @@ export function DeploymentVersionPage() {
   } = useWorkflowExecution(orgHandle);
 
   const transformDeploymentToReactFlow = useCallback(
-    (currentDeploymentData: WorkflowDeploymentVersion) => {
+    (currentDeploymentData: DeploymentVersion) => {
       if (!currentDeploymentData) return;
       try {
         const reactFlowNodes: Node<WorkflowNodeType>[] =

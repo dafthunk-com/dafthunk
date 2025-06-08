@@ -1,4 +1,4 @@
-import type { WorkflowDeploymentVersion } from "@dafthunk/types";
+import type { DeploymentVersion } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import {
@@ -72,7 +72,7 @@ const formatDeploymentDate = (dateString: string | Date) => {
 
 function createDeploymentHistoryColumns(
   currentDeploymentId: string
-): ColumnDef<WorkflowDeploymentVersion>[] {
+): ColumnDef<DeploymentVersion>[] {
   return [
     {
       accessorKey: "id",

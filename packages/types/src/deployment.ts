@@ -1,28 +1,51 @@
-import {
-  Workflow,
-  WorkflowDeployment,
-  WorkflowDeploymentVersion,
-} from "./workflow";
+import { Edge, Node, Workflow } from "./workflow";
+
+/**
+ * Represents a group of deployments for a workflow
+ * Used for listing deployments grouped by workflow
+ */
+export interface Deployment {
+  workflowId: string;
+  workflowName: string;
+  latestDeploymentId: string;
+  latestVersion: number;
+  deploymentCount: number;
+  latestCreatedAt: string | Date;
+}
+
+/**
+ * Represents a specific deployment version of a workflow
+ * Used for deployment details and execution
+ */
+export interface DeploymentVersion {
+  id: string;
+  workflowId: string;
+  version: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  nodes: Node[];
+  edges: Edge[];
+}
 
 /**
  * Response for listing all deployments grouped by workflow
  */
 export interface ListDeploymentsResponse {
-  workflows: WorkflowDeployment[];
+  workflows: Deployment[];
 }
 
 /**
  * Response for retrieving a specific deployment version
  * This is just an alias for WorkflowDeploymentVersion
  */
-export type GetDeploymentVersionResponse = WorkflowDeploymentVersion;
+export type GetDeploymentVersionResponse = DeploymentVersion;
 
 /**
  * Response for listing all deployments for a specific workflow
  */
 export interface GetWorkflowDeploymentsResponse {
   workflow: Pick<Workflow, "id" | "name">;
-  deployments: WorkflowDeploymentVersion[];
+  deployments: DeploymentVersion[];
 }
 
 /**

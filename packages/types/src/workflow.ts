@@ -205,32 +205,6 @@ export interface WorkflowExecution {
   /** Timestamp when execution ended */
   endedAt?: Date;
 }
-/**
- * Represents a group of deployments for a workflow
- * Used for listing deployments grouped by workflow
- */
-export interface WorkflowDeployment {
-  workflowId: string;
-  workflowName: string;
-  latestDeploymentId: string;
-  latestVersion: number;
-  deploymentCount: number;
-  latestCreatedAt: string | Date;
-}
-
-/**
- * Represents a specific deployment version of a workflow
- * Used for deployment details and execution
- */
-export interface WorkflowDeploymentVersion {
-  id: string;
-  workflowId: string;
-  version: number;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-  nodes: Node[];
-  edges: Edge[];
-}
 
 // Request and Response types
 

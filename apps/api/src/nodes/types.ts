@@ -1,5 +1,11 @@
 // Types for workflows
-import { Node, NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  Deployment,
+  Node,
+  NodeExecution,
+  NodeType,
+  Workflow,
+} from "@dafthunk/types";
 
 export type ImageParameter = {
   data: Uint8Array;
@@ -99,6 +105,8 @@ export interface EmailMessage {
 export interface NodeContext {
   nodeId: string;
   workflowId: string;
+  workflow: Workflow;
+  deployment?: Deployment;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;

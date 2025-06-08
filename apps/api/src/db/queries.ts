@@ -1,7 +1,7 @@
 import {
+  Deployment,
   NodeExecution,
   Workflow as WorkflowType,
-  WorkflowDeployment,
   WorkflowExecution,
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
@@ -707,7 +707,7 @@ export async function createDeployment(
 export async function getDeploymentsGroupedByWorkflow(
   db: ReturnType<typeof createDatabase>,
   organizationIdOrHandle: string
-): Promise<WorkflowDeployment[]> {
+): Promise<Deployment[]> {
   const workflowDeploymentAggregates = db
     .$with("workflow_deployment_aggregates")
     .as(

@@ -1,9 +1,9 @@
 import {
+  Deployment,
+  DeploymentVersion,
   GetDeploymentVersionResponse,
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
-  WorkflowDeployment,
-  WorkflowDeploymentVersion,
 } from "@dafthunk/types";
 import useSWR from "swr";
 
@@ -16,7 +16,7 @@ const API_ENDPOINT_BASE = "/deployments";
 
 // Hook return types
 type UseDeployments = {
-  deployments: WorkflowDeployment[];
+  deployments: Deployment[];
   deploymentsError: Error | null;
   isDeploymentsLoading: boolean;
   mutateDeployments: () => Promise<unknown>;
@@ -24,14 +24,14 @@ type UseDeployments = {
 
 type UseDeploymentHistory = {
   workflow: { id: string; name: string } | null;
-  deployments: WorkflowDeploymentVersion[];
+  deployments: DeploymentVersion[];
   deploymentHistoryError: Error | null;
   isDeploymentHistoryLoading: boolean;
   mutateHistory: () => Promise<unknown>;
 };
 
 type UseDeploymentVersion = {
-  deploymentVersion: WorkflowDeploymentVersion | null;
+  deploymentVersion: DeploymentVersion | null;
   deploymentVersionError: Error | null;
   isDeploymentVersionLoading: boolean;
   mutateDeploymentVersion: () => Promise<unknown>;
@@ -151,12 +151,12 @@ export const useDeploymentVersion = (
 export const createDeployment = async (
   workflowId: string,
   orgHandle: string
-): Promise<WorkflowDeploymentVersion> => {
+): Promise<DeploymentVersion> => {
   if (!workflowId || !orgHandle) {
     throw new Error("Workflow ID and organization handle are required");
   }
 
-  return await makeOrgRequest<WorkflowDeploymentVersion>(
+  return await makeOrgRequest<DeploymentVersion>(
     orgHandle,
     API_ENDPOINT_BASE,
     `/${workflowId}`,

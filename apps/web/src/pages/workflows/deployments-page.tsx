@@ -1,4 +1,4 @@
-import type { WorkflowDeployment } from "@dafthunk/types";
+import type { Deployment } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowUpToLine,
@@ -48,7 +48,7 @@ import {
 import { useWorkflows } from "@/services/workflow-service";
 
 // --- Inline columns and type ---
-type DeploymentWithActions = WorkflowDeployment & {
+type DeploymentWithActions = Deployment & {
   onViewLatest?: (workflowId: string) => void;
   onCreateDeployment?: (workflowId: string) => void;
 };

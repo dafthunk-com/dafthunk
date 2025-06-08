@@ -1,12 +1,12 @@
 import {
+  Deployment,
+  DeploymentVersion,
   ExecuteDeploymentResponse,
   GetDeploymentVersionResponse,
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
   Node,
   Workflow as WorkflowType,
-  WorkflowDeployment,
-  WorkflowDeploymentVersion,
 } from "@dafthunk/types";
 import { CustomJWTPayload } from "@dafthunk/types";
 import { Hono } from "hono";
@@ -50,7 +50,7 @@ deploymentRoutes.get("/", jwtMiddleware, async (c) => {
   );
 
   // Transform to match WorkflowDeployment type
-  const typedDeployments: WorkflowDeployment[] = groupedDeployments;
+  const typedDeployments: Deployment[] = groupedDeployments;
 
   const response: ListDeploymentsResponse = { workflows: typedDeployments };
   return c.json(response);
@@ -169,7 +169,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   });
 
   // Transform to match WorkflowDeploymentVersion type
-  const deploymentVersion: WorkflowDeploymentVersion = {
+  const deploymentVersion: DeploymentVersion = {
     id: newDeployment.id,
     workflowId: newDeployment.workflowId || "",
     version: newDeployment.version,
