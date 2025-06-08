@@ -113,6 +113,21 @@ export function WorkflowNodeInspector({
     setLocalInputs(updatedInputs);
   };
 
+  const handleToggleOutputVisibility = (outputId: string) => {
+    if (readonly || !updateNodeData) return;
+
+    const updatedOutputs = localOutputs.map((output) =>
+      output.id === outputId ? { ...output, hidden: !output.hidden } : output
+    );
+
+    updateNodeData(node.id, {
+      ...node.data,
+      outputs: updatedOutputs,
+    });
+
+    setLocalOutputs(updatedOutputs);
+  };
+
   return (
     <Card className="border-none shadow-none rounded-none h-full">
       <CardHeader className="pb-2">
@@ -233,6 +248,26 @@ export function WorkflowNodeInspector({
                         <span className="text-xs text-neutral-500">
                           {output.type}
                         </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Toggle
+                          size="sm"
+                          pressed={output.hidden}
+                          onPressedChange={() =>
+                            handleToggleOutputVisibility(output.id)
+                          }
+                          aria-label={`Toggle visibility for ${output.name}`}
+                          className={`bg-transparent data-[state=on]:bg-transparent hover:bg-transparent data-[state=on]:text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors ${
+                            readonly ? "opacity-70 cursor-not-allowed" : ""
+                          }`}
+                          disabled={readonly}
+                        >
+                          {output.hidden ? (
+                            <EyeOffIcon className="h-3 w-3" />
+                          ) : (
+                            <EyeIcon className="h-3 w-3" />
+                          )}
+                        </Toggle>
                       </div>
                     </div>
                     <WorkflowOutputRenderer

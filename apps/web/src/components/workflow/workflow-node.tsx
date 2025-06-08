@@ -137,21 +137,21 @@ export const WorkflowNode = memo(
     const { updateNodeData, readonly, expandedOutputs } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(true);
-    const hasOutputValues = data.outputs.some(
-      (output) => output.value !== undefined
+    const hasVisibleOutputs = data.outputs.some(
+      (output) => !output.hidden
     );
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
     const [inputValue, setInputValue] = useState<string>("");
 
-    // Initialize showOutputs based on expandedOutputs and hasOutputValues
+    // Initialize showOutputs based on expandedOutputs and hasVisibleOutputs
     useEffect(() => {
-      if (expandedOutputs && hasOutputValues) {
+      if (expandedOutputs && hasVisibleOutputs) {
         setShowOutputs(true);
       } else if (!expandedOutputs) {
         setShowOutputs(false);
       }
-    }, [expandedOutputs, hasOutputValues]);
+    }, [expandedOutputs, hasVisibleOutputs]);
 
     // Get node type
     const nodeType = data.nodeType || "";
@@ -322,8 +322,8 @@ export const WorkflowNode = memo(
             </div>
           </div>
 
-          {/* Output Values Section - Only shown when there are output values */}
-          {hasOutputValues && (
+          {/* Output Values Section - Only shown when there are visible outputs */}
+          {hasVisibleOutputs && (
             <>
               <div
                 className="px-1 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
@@ -341,25 +341,26 @@ export const WorkflowNode = memo(
 
               {showOutputs && (
                 <div className="px-1 pt-1 pb-2 border-t space-y-2">
-                  {data.outputs.map(
-                    (output, index) =>
-                      output.value !== undefined &&
-                      !output.hidden && (
-                        <div
-                          key={`output-value-${output.id}-${index}`}
-                          className="space-y-1"
-                        >
-                          <div className="text-xs font-medium">
-                            {output.name}
-                          </div>
-                          <WorkflowOutputRenderer
-                            output={output}
-                            createObjectUrl={data.createObjectUrl}
-                            compact={true}
-                          />
+                  {data.outputs
+                    .filter((output) => !output.hidden)
+                    .map((output, index) => (
+                      <div
+                        key={`output-value-${output.id}-${index}`}
+                        className="space-y-1"
+                      >
+                        <div className="text-xs font-medium flex items-center gap-2">
+                          <span>{output.name}</span>
+                          <span className="text-xs text-neutral-500">
+                            {output.type}
+                          </span>
                         </div>
-                      )
-                  )}
+                        <WorkflowOutputRenderer
+                          output={output}
+                          createObjectUrl={data.createObjectUrl}
+                          compact={true}
+                        />
+                      </div>
+                    ))}
                 </div>
               )}
             </>
