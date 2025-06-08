@@ -20,12 +20,12 @@ export function InputTextWidget({
   const { value, placeholder } = config;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-2">
       {!compact && <Label>Text Input</Label>}
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder || "Enter text..."}
         className={compact ? "text-sm" : ""}
       />
     </div>

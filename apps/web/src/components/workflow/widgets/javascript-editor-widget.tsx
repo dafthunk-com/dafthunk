@@ -31,7 +31,7 @@ export function JavaScriptEditorWidget({
     <div className="space-y-2">
       {!compact && <Label>JavaScript Editor</Label>}
       <div
-        className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible border relative`}
+        className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible relative`}
       >
         <Editor
           height="100%"
@@ -41,24 +41,24 @@ export function JavaScriptEditorWidget({
           options={{
             minimap: { enabled: false },
             lineNumbers: "on",
-            lineNumbersMinChars: 3,
-            lineDecorationsWidth: 0,
+            lineNumbersMinChars: 2,
+            lineDecorationsWidth: 4,
             glyphMargin: false,
-            folding: true,
-            fontSize: compact ? 8 : 14,
+            folding: false,
+            fontSize: compact ? 8 : 12,
             automaticLayout: true,
             padding: { top: 0, bottom: 0 },
             scrollbar: {
               vertical: "visible",
               horizontal: "visible",
               useShadows: false,
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8,
-              verticalSliderSize: 8,
-              horizontalSliderSize: 8,
+              verticalScrollbarSize: 4,
+              horizontalScrollbarSize: 4,
+              verticalSliderSize: 4,
+              horizontalSliderSize: 4,
               arrowSize: 0,
             },
-            renderLineHighlight: "all",
+            renderLineHighlight: "none",
             overviewRulerBorder: false,
             hideCursorInOverviewRuler: true,
             overviewRulerLanes: 0,
@@ -67,18 +67,18 @@ export function JavaScriptEditorWidget({
             formatOnPaste: true,
             formatOnType: true,
             wordWrap: "on",
-            renderWhitespace: "selection",
+            renderWhitespace: "none",
             bracketPairColorization: {
-              enabled: true,
+              enabled: false,
             },
             guides: {
-              indentation: true,
-              highlightActiveIndentation: true,
-              bracketPairs: true,
+              indentation: false,
+              highlightActiveIndentation: false,
+              bracketPairs: false,
             },
             renderFinalNewline: "on",
-            renderLineHighlightOnlyWhenFocus: false,
-            renderValidationDecorations: "on",
+            renderLineHighlightOnlyWhenFocus: true,
+            renderValidationDecorations: "off",
           }}
           onChange={handleEditorChange}
         />

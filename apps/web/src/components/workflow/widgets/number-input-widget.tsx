@@ -33,7 +33,7 @@ export function NumberInputWidget({
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2 p-2", className)}>
       {!compact && <Label>Number Input</Label>}
       <Input
         type="number"

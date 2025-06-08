@@ -82,7 +82,7 @@ export function DocumentWidget({
       <div className="relative w-full mx-auto">
         <div
           className={cn(
-            "border rounded-lg overflow-hidden bg-white",
+            "overflow-hidden bg-white",
             compact ? "p-2" : "p-4"
           )}
         >

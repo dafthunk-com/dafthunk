@@ -27,13 +27,13 @@ export function TextAreaWidget({
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2 p-2", className)}>
       {!compact && <Label>Text Area</Label>}
       <Textarea
         value={config.value || ""}
         onChange={handleChange}
         placeholder={config.placeholder || "Enter text..."}
-        className={cn(compact && "min-h-[80px] resize-y")}
+        className={cn(compact && "min-h-[100px]")}
         disabled={readonly}
       />
     </div>

@@ -146,7 +146,7 @@ export function WebcamWidget({
             </button>
           )}
         </div>
-        <div className="border rounded-lg overflow-hidden bg-white">
+        <div className="overflow-hidden bg-white">
           <div className="relative aspect-video bg-neutral-100">
             {imageReference ? (
               <img

@@ -40,7 +40,7 @@ export function JsonEditorWidget({
     <div className="space-y-2">
       {!compact && <Label>JSON Editor</Label>}
       <div
-        className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible border relative`}
+        className={`${compact ? "h-[200px]" : "h-[400px]"} overflow-visible relative`}
       >
         <Editor
           height="100%"
@@ -49,22 +49,22 @@ export function JsonEditorWidget({
           theme="vs"
           options={{
             minimap: { enabled: false },
-            lineNumbers: "off",
-            lineNumbersMinChars: 0,
-            lineDecorationsWidth: 0,
+            lineNumbers: "on",
+            lineNumbersMinChars: 2,
+            lineDecorationsWidth: 4,
             glyphMargin: false,
             folding: false,
-            fontSize: compact ? 8 : 14,
+            fontSize: compact ? 8 : 12,
             automaticLayout: true,
             padding: { top: 0, bottom: 0 },
             scrollbar: {
               vertical: "visible",
               horizontal: "visible",
               useShadows: false,
-              verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8,
-              verticalSliderSize: 8,
-              horizontalSliderSize: 8,
+              verticalScrollbarSize: 4,
+              horizontalScrollbarSize: 4,
+              verticalSliderSize: 4,
+              horizontalSliderSize: 4,
               arrowSize: 0,
             },
             renderLineHighlight: "none",
@@ -85,7 +85,7 @@ export function JsonEditorWidget({
               highlightActiveIndentation: false,
               bracketPairs: false,
             },
-            renderFinalNewline: "off",
+            renderFinalNewline: "on",
             renderLineHighlightOnlyWhenFocus: true,
             renderValidationDecorations: "off",
           }}

@@ -150,7 +150,7 @@ export function AudioRecorderWidget({
             </button>
           )}
         </div>
-        <div className="border rounded-lg overflow-hidden bg-white">
+        <div className="overflow-hidden bg-white">
           <div className="relative h-24 bg-neutral-100">
             {audioReference ? (
               <audio

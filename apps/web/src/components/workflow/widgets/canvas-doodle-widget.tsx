@@ -322,7 +322,7 @@ export function CanvasDoodleWidget({
           </Button>
         </div>
         {/* Canvas or Image */}
-        <div className="border rounded-lg overflow-hidden bg-white">
+        <div className="overflow-hidden bg-white">
           {imageReference ? (
             <div className="relative aspect-square">
               <img

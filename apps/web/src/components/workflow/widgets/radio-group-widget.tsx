@@ -28,7 +28,7 @@ export function RadioGroupWidget({
   const [value, setValue] = useState(config.value);
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2 p-2", className)}>
       <RadioGroup
         value={value}
         onValueChange={(value) => {
@@ -40,7 +40,7 @@ export function RadioGroupWidget({
         {config.options.map((option, i) => (
           <div key={i} className="flex items-center space-x-2">
             <RadioGroupItem value={option.value} id={option.value} />
-            <Label htmlFor={option.value}>{option.label}</Label>
+            <Label htmlFor={option.value} className="text-xs">{option.label}</Label>
           </div>
         ))}
       </RadioGroup>
