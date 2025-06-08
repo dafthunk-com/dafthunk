@@ -737,11 +737,7 @@ export function useWorkflowState({
         };
       })
     );
-
-    // Optional: Fit view after layout
-    // setTimeout(() => {
-    //   reactFlowInstance?.fitView({ padding: 0.2, duration: 200 });
-    // }, 0);
+    reactFlowInstance?.fitView();
   }, [setNodes, readonly, reactFlowInstance]);
 
   return {

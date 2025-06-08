@@ -27,7 +27,8 @@ export class Resnet50Node extends ExecutableNode {
       {
         name: "classifications",
         type: "json",
-        description: "JSON object with predicted classes with confidence scores",
+        description:
+          "JSON object with predicted classes with confidence scores",
       },
     ],
   };
