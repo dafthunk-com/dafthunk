@@ -24,15 +24,9 @@ export class ExifReaderNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "exifData",
-        type: "json", // Outputting as a JSON string
+        name: "data",
+        type: "json",
         description: "EXIF data extracted from the image as a JSON string.",
-      },
-      {
-        name: "imagePassthrough",
-        type: "image",
-        description:
-          "The original image, passed through for further processing.",
       },
     ],
   };
@@ -64,15 +58,8 @@ export class ExifReaderNode extends ExecutableNode {
         delete thumbnailTag.image;
       }
 
-      // Convert tags to a JSON string.
-      // BigInt values need to be handled for JSON.stringify
-      const replacer = (_key: string, value: any) =>
-        typeof value === "bigint" ? value.toString() : value;
-      const exifDataJson = JSON.stringify(tags, replacer, 2);
-
       return this.createSuccessResult({
-        exifData: exifDataJson,
-        imagePassthrough: image,
+        data: tags,
       });
     } catch (error) {
       const errorMessage =
