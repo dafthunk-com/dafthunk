@@ -653,36 +653,74 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         inactiveOutputs.includes(edge.sourceOutput)
     );
 
-    // Collect all nodes that should be skipped (including transitive dependents)
-    const nodesToSkip = new Set<string>();
-    const visited = new Set<string>();
-
-    const markNodeAndDependentsAsSkipped = (targetNodeId: string) => {
-      if (visited.has(targetNodeId)) return;
-      visited.add(targetNodeId);
-
-      nodesToSkip.add(targetNodeId);
-
-      // Find all edges from this node and recursively mark their targets
-      const outgoingEdges = runtimeState.workflow.edges.filter(
-        (edge) => edge.source === targetNodeId
-      );
-
-      for (const edge of outgoingEdges) {
-        markNodeAndDependentsAsSkipped(edge.target);
-      }
-    };
-
-    // Mark all target nodes of inactive edges and their dependents as skipped
+    // Process each target node of inactive edges
     for (const edge of inactiveEdges) {
-      markNodeAndDependentsAsSkipped(edge.target);
-    }
-
-    // Add all collected nodes to the skipped set
-    for (const nodeId of nodesToSkip) {
-      runtimeState.skippedNodes.add(nodeId);
+      this.markNodeAsSkippedIfNoValidInputs(runtimeState, edge.target);
     }
 
     return runtimeState;
+  }
+
+  /**
+   * Marks a node as skipped if it cannot execute due to missing required inputs.
+   * This is smarter than recursively skipping all dependents.
+   */
+  private markNodeAsSkippedIfNoValidInputs(
+    runtimeState: RuntimeState,
+    nodeId: string
+  ): void {
+    if (runtimeState.skippedNodes.has(nodeId) || runtimeState.executedNodes.has(nodeId)) {
+      return; // Already processed
+    }
+
+    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    // Check if this node has all required inputs satisfied
+    const allRequiredInputsSatisfied = this.nodeHasAllRequiredInputsSatisfied(runtimeState, nodeId);
+
+    // Only skip if the node cannot execute (missing required inputs)
+    if (!allRequiredInputsSatisfied) {
+      runtimeState.skippedNodes.add(nodeId);
+      
+      // Recursively check dependents of this skipped node
+      const outgoingEdges = runtimeState.workflow.edges.filter(
+        (edge) => edge.source === nodeId
+      );
+      
+      for (const edge of outgoingEdges) {
+        this.markNodeAsSkippedIfNoValidInputs(runtimeState, edge.target);
+      }
+    }
+  }
+
+  /**
+   * Checks if a node has all required inputs satisfied.
+   * A node can execute if all its required inputs are available.
+   */
+  private nodeHasAllRequiredInputsSatisfied(
+    runtimeState: RuntimeState,
+    nodeId: string
+  ): boolean {
+    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return false;
+
+    // Get the node type definition to check for required inputs
+    const executable = NodeRegistry.getInstance().createExecutableNode(node);
+    if (!executable) return false;
+    
+    const nodeTypeDefinition = (executable.constructor as any).nodeType;
+    if (!nodeTypeDefinition) return false;
+
+    const inputValues = this.collectNodeInputs(runtimeState, nodeId);
+
+    // Check each required input based on the node type definition (not workflow node definition)
+    for (const input of nodeTypeDefinition.inputs) {
+      if (input.required && inputValues[input.name] === undefined) {
+        return false; // Found a required input that's missing
+      }
+    }
+
+    return true; // All required inputs are satisfied
   }
 }

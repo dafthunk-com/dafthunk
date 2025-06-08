@@ -57,7 +57,7 @@ const features = [
     ),
     title: "Persistent Storage",
     description:
-      "Store your workflows with Cloudflare D1. Because sometimes, you actually want your data to stick around.",
+      "Store your everything with Cloudflare D1 and R2. Because sometimes, you actually want your data to stick around.",
     color: "border-l-purple-600/20 dark:border-l-purple-500/20",
   },
   {
