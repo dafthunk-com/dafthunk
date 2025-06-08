@@ -26,8 +26,8 @@ export class Resnet50Node extends ExecutableNode {
     outputs: [
       {
         name: "classifications",
-        type: "array",
-        description: "Array of predicted classes with confidence scores",
+        type: "json",
+        description: "JSON object with predicted classes with confidence scores",
       },
     ],
   };
@@ -45,8 +45,6 @@ export class Resnet50Node extends ExecutableNode {
         image: Array.from(image.data),
       });
 
-      // The result should be an array of classifications
-      // Each classification has score and label properties
       return this.createSuccessResult({
         classifications: result,
       });

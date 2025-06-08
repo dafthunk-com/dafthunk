@@ -213,23 +213,26 @@ const converters = {
       (isJsonArray(value) ? value : undefined) as NodeParameterValue,
   },
   json: {
-    nodeToApi: (value: NodeParameterValue) =>
-      (isPlainJsonObject(value) ? value : undefined) as ApiParameterValue,
+    nodeToApi: (value: NodeParameterValue) => {
+      // Exclude binary types from JSON conversion
+      if (
+        isImageParameter(value) ||
+        isDocumentParameter(value) ||
+        isAudioParameter(value)
+      ) {
+        return undefined;
+      }
+      return value as ApiParameterValue;
+    },
     apiToNode: (value: ApiParameterValue) => {
       if (typeof value === "string") {
         try {
-          const parsed = JSON.parse(value);
-          return (
-            isPlainJsonObject(parsed) ? parsed : undefined
-          ) as NodeParameterValue;
+          return JSON.parse(value) as NodeParameterValue;
         } catch (_error) {
-          // If parsing fails, it's not valid JSON in string form
-          return undefined;
+          return value as NodeParameterValue;
         }
       }
-      return (
-        isPlainJsonObject(value) ? value : undefined
-      ) as NodeParameterValue;
+      return value as NodeParameterValue;
     },
   },
   any: {

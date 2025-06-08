@@ -69,7 +69,7 @@ export type ParameterType =
     }
   | {
       type: "json";
-      value?: Record<string, any>;
+      value?: any;
     }
   | {
       type: "document";

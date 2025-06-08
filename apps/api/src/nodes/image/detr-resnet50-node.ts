@@ -26,9 +26,9 @@ export class DetrResnet50Node extends ExecutableNode {
     outputs: [
       {
         name: "detections",
-        type: "array",
+        type: "json",
         description:
-          "Array of detected objects with scores, labels, and bounding boxes",
+          "JSON object with detected objects with scores, labels, and bounding boxes",
       },
     ],
   };
