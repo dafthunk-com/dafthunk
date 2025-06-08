@@ -1,22 +1,12 @@
 import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
-import { ChevronDown, ChevronUp, XCircleIcon } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { createElement, memo, useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/utils/utils";
 
+import { InputEditDialog } from "./input-edit-dialog";
 import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
 import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
 import { DocumentWidget } from "./widgets/document-widget";
@@ -29,12 +19,7 @@ import { SliderWidget } from "./widgets/slider-widget";
 import { TextAreaWidget } from "./widgets/text-area-widget";
 import { WebcamWidget } from "./widgets/webcam-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
-import {
-  clearNodeInput,
-  convertValueByType,
-  updateNodeInput,
-  useWorkflow,
-} from "./workflow-context";
+import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { NodeExecutionState, WorkflowParameter } from "./workflow-types";
 
@@ -138,17 +123,15 @@ export const WorkflowNode = memo(
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(true);
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
+    const canShowOutputs =
+      hasVisibleOutputs &&
+      ["completed", "error", "skipped"].includes(data.executionState);
     const [selectedInput, setSelectedInput] =
       useState<WorkflowParameter | null>(null);
-    const [inputValue, setInputValue] = useState<string>("");
 
     // Initialize showOutputs based on expandedOutputs and hasVisibleOutputs
     useEffect(() => {
-      if (expandedOutputs && hasVisibleOutputs) {
-        setShowOutputs(true);
-      } else if (!expandedOutputs) {
-        setShowOutputs(false);
-      }
+      setShowOutputs(hasVisibleOutputs && !!expandedOutputs);
     }, [expandedOutputs, hasVisibleOutputs]);
 
     // Get node type
@@ -194,43 +177,11 @@ export const WorkflowNode = memo(
 
     const handleInputClick = (input: WorkflowParameter) => {
       if (readonly) return;
-
       setSelectedInput(input);
-      setInputValue(input.value !== undefined ? String(input.value) : "");
-    };
-
-    const handleInputChange = (value: string) => {
-      if (readonly || !selectedInput) return;
-
-      setInputValue(value);
-
-      // Auto-save as the user types
-      const typedValue = convertValueByType(value, selectedInput.type);
-      updateNodeInput(
-        id,
-        selectedInput.id,
-        typedValue,
-        data.inputs,
-        updateNodeData
-      );
-    };
-
-    const handleClearValue = () => {
-      if (readonly || !selectedInput) return;
-
-      clearNodeInput(id, selectedInput.id, data.inputs, updateNodeData);
-      setInputValue("");
     };
 
     const handleDialogClose = () => {
       setSelectedInput(null);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleDialogClose();
-      }
     };
 
     return (
@@ -320,8 +271,8 @@ export const WorkflowNode = memo(
             </div>
           </div>
 
-          {/* Output Values Section - Only shown when there are visible outputs */}
-          {hasVisibleOutputs && (
+          {/* Output Values Section */}
+          {canShowOutputs && (
             <>
               <div
                 className="px-1 py-1 border-t flex items-center justify-between nodrag cursor-pointer hover:bg-secondary/50"
@@ -390,133 +341,14 @@ export const WorkflowNode = memo(
           )}
         </div>
 
-        {/* Input Value Dialog */}
-        <Dialog
-          open={selectedInput !== null && !readonly}
-          onOpenChange={() => selectedInput && !readonly && handleDialogClose()}
-        >
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Edit Parameter</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {selectedInput && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="input-value"
-                      className="text-sm font-medium"
-                    >
-                      {selectedInput.name}
-                    </Label>
-                    <span className="text-xs text-neutral-500">
-                      {selectedInput.type}
-                    </span>
-                  </div>
-
-                  <div className="relative">
-                    {selectedInput.type === "boolean" ? (
-                      <div className="flex gap-2">
-                        <Button
-                          variant={
-                            inputValue === "true" ? "default" : "outline"
-                          }
-                          onClick={() => handleInputChange("true")}
-                          className="flex-1"
-                          disabled={readonly}
-                        >
-                          True
-                        </Button>
-                        <Button
-                          variant={
-                            inputValue === "false" ? "default" : "outline"
-                          }
-                          onClick={() => handleInputChange("false")}
-                          className="flex-1"
-                          disabled={readonly}
-                        >
-                          False
-                        </Button>
-                      </div>
-                    ) : selectedInput.type === "number" ? (
-                      <div className="relative">
-                        <Input
-                          id="input-value"
-                          type="number"
-                          value={inputValue}
-                          onChange={(e) => handleInputChange(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder="Enter number value"
-                          disabled={readonly}
-                        />
-                        {inputValue && !readonly && (
-                          <button
-                            onClick={handleClearValue}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                            aria-label="Clear value"
-                          >
-                            <XCircleIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    ) : selectedInput.type === "string" ? (
-                      <div className="relative">
-                        <Textarea
-                          id="input-value"
-                          value={inputValue}
-                          onChange={(e) => handleInputChange(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && e.ctrlKey) {
-                              e.preventDefault();
-                              handleDialogClose();
-                            }
-                          }}
-                          placeholder="Enter text value"
-                          className="min-h-[100px] resize-y"
-                          disabled={readonly}
-                        />
-                        {inputValue && !readonly && (
-                          <button
-                            onClick={handleClearValue}
-                            className="absolute right-2 top-2 text-neutral-400 hover:text-neutral-600"
-                            aria-label="Clear value"
-                          >
-                            <XCircleIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <Input
-                          id="input-value"
-                          value={inputValue}
-                          onChange={(e) => handleInputChange(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder="Enter text value"
-                          disabled={readonly}
-                        />
-                        {inputValue && !readonly && (
-                          <button
-                            onClick={handleClearValue}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
-                            aria-label="Clear value"
-                          >
-                            <XCircleIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={handleDialogClose}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <InputEditDialog
+          nodeId={id}
+          nodeInputs={data.inputs}
+          input={selectedInput}
+          isOpen={selectedInput !== null && !readonly}
+          onClose={handleDialogClose}
+          readonly={readonly}
+        />
       </TooltipProvider>
     );
   }

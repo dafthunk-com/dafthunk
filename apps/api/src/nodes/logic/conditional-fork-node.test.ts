@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { Node } from "@dafthunk/types";
+import { describe, expect, it } from "vitest";
 
 import { ConditionalForkNode } from "./conditional-fork-node";
 
@@ -112,4 +112,4 @@ describe("ConditionalForkNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toContain("Value input is required.");
   });
-}); 
+});
