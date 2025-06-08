@@ -56,6 +56,7 @@ export type RuntimeState = {
   workflow: Workflow;
   nodeOutputs: WorkflowOutputs;
   executedNodes: ExecutedNodeSet;
+  skippedNodes: ExecutedNodeSet;
   nodeErrors: NodeErrors;
   sortedNodes: SortedNodeList;
   status: WorkflowExecutionStatus;
@@ -98,6 +99,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       workflow,
       nodeOutputs: new Map(),
       executedNodes: new Set(),
+      skippedNodes: new Set(),
       nodeErrors: new Map(),
       sortedNodes: [],
       status: "submitted",
@@ -143,7 +145,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       // Execute nodes sequentially.
       for (const nodeIdentifier of runtimeState.sortedNodes) {
-        if (runtimeState.nodeErrors.has(nodeIdentifier)) {
+        if (
+          runtimeState.nodeErrors.has(nodeIdentifier) ||
+          runtimeState.skippedNodes.has(nodeIdentifier)
+        ) {
           continue; // Skip nodes that were already marked as failed.
         }
 
@@ -234,6 +239,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       workflow,
       nodeOutputs: new Map(),
       executedNodes: new Set(),
+      skippedNodes: new Set(),
       nodeErrors: new Map(),
       sortedNodes: orderedNodes,
       status: "executing",
@@ -324,6 +330,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           outputsForRuntime as NodeOutputs
         );
         runtimeState.executedNodes.add(nodeIdentifier);
+
+        // After successful execution, mark nodes connected to inactive outputs as skipped
+        runtimeState = this.markInactiveOutputNodesAsSkipped(
+          runtimeState,
+          nodeIdentifier,
+          result.outputs ?? {}
+        );
       } else {
         const failureMessage = result.error ?? "Unknown error";
         runtimeState.nodeErrors.set(nodeIdentifier, failureMessage);
@@ -335,6 +348,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         const allNodesVisited = runtimeState.sortedNodes.every(
           (id: string) =>
             runtimeState.executedNodes.has(id) ||
+            runtimeState.skippedNodes.has(id) ||
             runtimeState.nodeErrors.has(id)
         );
         runtimeState.status =
@@ -345,6 +359,24 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       return runtimeState;
     } catch (error) {
+      if (error instanceof Error && error.message.startsWith("Required input")) {
+        runtimeState.skippedNodes.add(nodeIdentifier);
+
+        // Determine final workflow status.
+        if (runtimeState.status !== "error") {
+          const allNodesVisited = runtimeState.sortedNodes.every(
+            (id: string) =>
+              runtimeState.executedNodes.has(id) ||
+              runtimeState.skippedNodes.has(id) ||
+              runtimeState.nodeErrors.has(id)
+          );
+          runtimeState.status =
+            allNodesVisited && runtimeState.nodeErrors.size === 0
+              ? "completed"
+              : "executing";
+        }
+        return runtimeState;
+      }
       const message = error instanceof Error ? error.message : String(error);
       runtimeState.nodeErrors.set(nodeIdentifier, message);
       runtimeState.status = "error";
@@ -543,6 +575,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           error: runtimeState.nodeErrors.get(node.id),
         };
       }
+      if (runtimeState.skippedNodes.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "skipped" as NodeExecutionStatus,
+        };
+      }
       return {
         nodeId: node.id,
         status: "executing" as NodeExecutionStatus,
@@ -585,5 +623,66 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       startedAt,
       endedAt,
     };
+  }
+
+  /**
+   * Marks nodes connected to inactive outputs as skipped.
+   * This is crucial for conditional logic where only one branch should execute.
+   */
+  private markInactiveOutputNodesAsSkipped(
+    runtimeState: RuntimeState,
+    nodeIdentifier: string,
+    nodeOutputs: Record<string, unknown>
+  ): RuntimeState {
+    const node = runtimeState.workflow.nodes.find(
+      (n) => n.id === nodeIdentifier
+    );
+    if (!node) return runtimeState;
+
+    // Find outputs that were NOT produced
+    const inactiveOutputs = node.outputs
+      .map((output) => output.name)
+      .filter((outputName) => !(outputName in nodeOutputs));
+
+    if (inactiveOutputs.length === 0) return runtimeState;
+
+    // Find all edges from this node's inactive outputs
+    const inactiveEdges = runtimeState.workflow.edges.filter(
+      (edge) =>
+        edge.source === nodeIdentifier &&
+        inactiveOutputs.includes(edge.sourceOutput)
+    );
+
+    // Collect all nodes that should be skipped (including transitive dependents)
+    const nodesToSkip = new Set<string>();
+    const visited = new Set<string>();
+
+    const markNodeAndDependentsAsSkipped = (targetNodeId: string) => {
+      if (visited.has(targetNodeId)) return;
+      visited.add(targetNodeId);
+
+      nodesToSkip.add(targetNodeId);
+
+      // Find all edges from this node and recursively mark their targets
+      const outgoingEdges = runtimeState.workflow.edges.filter(
+        (edge) => edge.source === targetNodeId
+      );
+
+      for (const edge of outgoingEdges) {
+        markNodeAndDependentsAsSkipped(edge.target);
+      }
+    };
+
+    // Mark all target nodes of inactive edges and their dependents as skipped
+    for (const edge of inactiveEdges) {
+      markNodeAndDependentsAsSkipped(edge.target);
+    }
+
+    // Add all collected nodes to the skipped set
+    for (const nodeId of nodesToSkip) {
+      runtimeState.skippedNodes.add(nodeId);
+    }
+
+    return runtimeState;
   }
 }

@@ -61,6 +61,7 @@ import { JsonNumberExtractorNode } from "./json/json-number-extractor-node";
 import { JsonObjectArrayExtractorNode } from "./json/json-object-array-extractor-node";
 import { JsonStringExtractorNode } from "./json/json-string-extractor-node";
 import { JsonTemplateNode } from "./json/json-template-node";
+import { ConditionalNode } from "./logic/conditional-node";
 import { AbsoluteValueNode } from "./math/absolute-value-node";
 import { AdditionNode } from "./math/addition-node";
 import { DivisionNode } from "./math/division-node";
@@ -189,6 +190,7 @@ export class NodeRegistry {
     this.registerImplementation(ExifReaderNode);
     this.registerImplementation(MelottsNode);
     this.registerImplementation(WebcamNode);
+    this.registerImplementation(ConditionalNode);
 
     this.registerImplementation(PhotonAddNoiseNode);
     this.registerImplementation(PhotonAdjustBrightnessNode);

@@ -1,9 +1,8 @@
 import {
   JsonArray,
   ParameterValue as ApiParameterValue,
+  ObjectReference,
 } from "@dafthunk/types";
-import { ObjectReference } from "@dafthunk/types";
-
 import { ObjectStore } from "../runtime/object-store";
 import {
   AudioParameter as NodeAudioParameter,
@@ -41,6 +40,16 @@ function isAudioParameter(value: unknown): value is NodeAudioParameter {
     "mimeType" in value &&
     value["data"] instanceof Uint8Array &&
     typeof value["mimeType"] === "string"
+  );
+}
+function isObjectReference(value: unknown): value is ObjectReference {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "id" in value &&
+    typeof (value as any).id === "string" &&
+    "mimeType" in value &&
+    typeof (value as any).mimeType === "string"
   );
 }
 function isPlainJsonObject(value: unknown): value is Record<string, any> {
@@ -223,8 +232,86 @@ const converters = {
     },
   },
   any: {
-    nodeToApi: (value: NodeParameterValue) => value as ApiParameterValue,
-    apiToNode: (value: ApiParameterValue) => value as NodeParameterValue,
+    nodeToApi: (
+      value: NodeParameterValue,
+      objectStore?: ObjectStore,
+      organizationId?: string,
+      executionId?: string
+    ): Promise<ApiParameterValue> | ApiParameterValue => {
+      // Handle binary types that need object storage
+      if (isImageParameter(value) || isDocumentParameter(value) || isAudioParameter(value)) {
+        if (!objectStore || !organizationId) {
+          throw new Error(`ObjectStore and organizationId required for binary data`);
+        }
+        if (isImageParameter(value)) {
+          return converters.image.nodeToApi(value, objectStore, organizationId, executionId);
+        }
+        if (isDocumentParameter(value)) {
+          return converters.document.nodeToApi(value, objectStore, organizationId, executionId);
+        }
+        if (isAudioParameter(value)) {
+          return converters.audio.nodeToApi(value, objectStore, organizationId, executionId);
+        }
+      }
+      
+      // Handle object references
+      if (isObjectReference(value)) {
+        return value;
+      }
+      
+      // Handle simple types (no async needed)
+      return value as ApiParameterValue;
+    },
+    apiToNode: (
+      value: ApiParameterValue,
+      objectStore?: ObjectStore
+    ): Promise<NodeParameterValue> | NodeParameterValue => {
+      // Handle object references that need to be resolved
+      if (isObjectReference(value)) {
+        if (!objectStore) {
+          throw new Error(`ObjectStore required to resolve object reference`);
+        }
+        
+        return (async () => {
+          const result = await objectStore.readObject(value as ObjectReference);
+          if (!result) return undefined;
+
+          const mimeType = (value as ObjectReference).mimeType;
+          if (mimeType.startsWith("image/")) {
+            return {
+              data: result.data,
+              mimeType,
+            } as NodeImageParameter;
+          }
+          if (mimeType.startsWith("audio/")) {
+            return {
+              data: result.data,
+              mimeType,
+            } as NodeAudioParameter;
+          }
+          return {
+            data: result.data,
+            mimeType,
+          } as NodeDocumentParameter;
+        })();
+      }
+
+      // Handle JSON strings
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value);
+          if (isPlainJsonObject(parsed) || isJsonArray(parsed)) {
+            return parsed;
+          }
+          return value;
+        } catch (_error) {
+          return value;
+        }
+      }
+      
+      // Handle simple types
+      return value as NodeParameterValue;
+    },
   },
 } as const;
 
@@ -242,6 +329,12 @@ export async function nodeToApiParameter(
 
   const fn = converter.nodeToApi;
 
+  // Special handling for 'any' type - it decides internally whether it needs objectStore
+  if (type === "any") {
+    const result = (fn as any)(value, objectStore, organizationId, executionId);
+    return await Promise.resolve(result);
+  }
+
   if (fn.length >= 3) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
     if (!organizationId)
@@ -258,14 +351,6 @@ export async function nodeToApiParameter(
           execId?: string
         ) => Promise<ApiParameterValue>
       )(value, objectStore, organizationId, executionId);
-    } else {
-      return await (
-        fn as (
-          v: NodeParameterValue,
-          os: ObjectStore,
-          orgId: string
-        ) => Promise<ApiParameterValue>
-      )(value, objectStore, organizationId);
     }
   } else if (fn.length === 2) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
@@ -289,6 +374,13 @@ export async function apiToNodeParameter(
 ): Promise<NodeParameterValue> {
   const converter = converters[type];
   if (!converter) throw new Error(`No converter for type: ${type}`);
+  
+  // Special handling for 'any' type - it decides internally whether it needs objectStore
+  if (type === "any") {
+    const result = (converter.apiToNode as any)(value, objectStore);
+    return await Promise.resolve(result);
+  }
+  
   if (converter.apiToNode.length === 2) {
     if (!objectStore) throw new Error(`ObjectStore required for type: ${type}`);
     return await (converter.apiToNode as any)(value, objectStore);

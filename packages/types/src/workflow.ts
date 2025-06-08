@@ -159,7 +159,12 @@ export interface WorkflowWithMetadata extends Workflow {
 /**
  * Possible node execution statuses
  */
-export type NodeExecutionStatus = "idle" | "executing" | "completed" | "error";
+export type NodeExecutionStatus =
+  | "idle"
+  | "executing"
+  | "completed"
+  | "error"
+  | "skipped";
 
 /**
  * Represents the execution state of a single node
