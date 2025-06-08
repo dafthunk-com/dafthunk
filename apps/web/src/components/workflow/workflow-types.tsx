@@ -9,7 +9,7 @@ export type NodeExecutionState =
   | "skipped";
 
 // Define InputOutputType using ParameterType
-export type InputOutputType = ParameterType["type"] | "any" | "unknown";
+export type InputOutputType = ParameterType["type"];
 
 // Parameter Types
 export interface WorkflowParameter {

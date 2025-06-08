@@ -1,6 +1,6 @@
 import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { AsteriskIcon, BracesIcon, CheckIcon, ChevronDown, ChevronUp, FileIcon, FileImageIcon, FileJsonIcon, FileMusicIcon, FileTextIcon, HashIcon, ImageIcon,  MusicIcon,  StickyNoteIcon,  TextIcon, TypeIcon } from "lucide-react";
 import { createElement, memo, useEffect, useState } from "react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +21,7 @@ import { WebcamWidget } from "./widgets/webcam-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
-import { NodeExecutionState, WorkflowParameter } from "./workflow-types";
+import { InputOutputType, NodeExecutionState, WorkflowParameter } from "./workflow-types";
 
 export interface WorkflowNodeType {
   name: string;
@@ -42,14 +42,23 @@ const TypeBadge = ({
   onInputClick,
   readonly,
 }: {
-  type: string;
+  type: InputOutputType;
   position: Position;
   id: string;
   parameter?: WorkflowParameter;
   onInputClick?: (param: WorkflowParameter) => void;
   readonly?: boolean;
 }) => {
-  const name = type.charAt(0).toUpperCase();
+  const icon = {
+    "string": <TypeIcon className="!size-3" />,
+    "number": <HashIcon className="!size-3" />,
+    "boolean": <CheckIcon className="!size-3" />,
+    "image": <ImageIcon className="!size-3" />,
+    "document": <StickyNoteIcon className="!size-3" />,
+    "audio": <MusicIcon className="!size-3" />,
+    "json": <BracesIcon className="!size-3" />,
+    "any": <AsteriskIcon className="!size-2" />,
+  }[type];
 
   const handleClick = (e: React.MouseEvent) => {
     if (readonly) return;
@@ -103,7 +112,7 @@ const TypeBadge = ({
         )}
         onClick={handleClick}
       >
-        {name}
+        {icon}
       </span>
     </div>
   );
