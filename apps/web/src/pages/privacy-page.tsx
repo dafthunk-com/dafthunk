@@ -1,14 +1,13 @@
 import Markdown from "react-markdown";
 
-import { CONTACT_EMAIL, WEBSITE_URL } from "@/utils/constants";
-
-const privacyPolicy = `
+export function PrivacyPage() {
+  const privacyPolicy = `
 **Effective Date:** May 29, 2025  
 **Last Updated:** May 29, 2025
 
 ## 1. Introduction
 
-Welcome to Dafthunk ("we," "our," or "us"). We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website [${WEBSITE_URL}](${WEBSITE_URL}) and use our services.
+Welcome to Dafthunk ("we," "our," or "us"). We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website [${import.meta.env.VITE_WEBSITE_URL}](${import.meta.env.VITE_WEBSITE_URL}) and use our services.
 
 Dafthunk is an open source platform released under the MIT License. While our source code is publicly available, this Privacy Policy governs how we handle your personal data when you use our hosted services.
 
@@ -108,12 +107,10 @@ We may update this Privacy Policy from time to time. We will notify you of any m
 If you have any questions about this Privacy Policy or wish to exercise your rights, please contact us at:
 
 **Dafthunk**  
-Email: ${CONTACT_EMAIL}  
-Website: [${WEBSITE_URL}](${WEBSITE_URL})
+Email: ${import.meta.env.VITE_CONTACT_EMAIL}  
+Website: [${import.meta.env.VITE_WEBSITE_URL}](${import.meta.env.VITE_WEBSITE_URL})
 
 For data protection inquiries, you may also contact the Swiss Federal Data Protection and Information Commissioner (FDPIC) if you believe your rights have been violated.
 `;
-
-export function PrivacyPage() {
   return <Markdown>{privacyPolicy}</Markdown>;
 }

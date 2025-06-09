@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { CONTACT_EMAIL } from "@/utils/constants";
 
 export function WaitlistPage() {
   usePageBreadcrumbs([{ label: "Waitlist" }]);
@@ -71,10 +70,10 @@ export function WaitlistPage() {
             <p>
               Questions? Contact us at{" "}
               <a
-                href={`mailto:${CONTACT_EMAIL}`}
+                href={`mailto:${import.meta.env.VITE_CONTACT_EMAIL}`}
                 className="font-medium text-foreground hover:underline"
               >
-                {CONTACT_EMAIL}
+                {import.meta.env.VITE_CONTACT_EMAIL}
               </a>
             </p>
           </div>

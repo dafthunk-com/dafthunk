@@ -20,7 +20,6 @@ import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoDialog } from "@/components/video-dialog";
-import { HOMEPAGE_PUBLIC_EXECUTION_URL } from "@/utils/constants";
 
 const features = [
   {
@@ -72,6 +71,8 @@ const features = [
 export function HomePage() {
   const { user, isAuthenticated } = useAuth();
   const { theme } = useTheme();
+
+  const homepagePublicExecutionUrl = `${import.meta.env.VITE_WEBSITE_URL}/public/executions/${import.meta.env.VITE_HOMEPAGE_PUBLIC_EXECUTION_ID}?fullscreen`;
 
   if (isAuthenticated && user) {
     // Redirect waitlisted users to waitlist page, others to dashboard
@@ -155,7 +156,7 @@ export function HomePage() {
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
               <iframe
-                src={`${HOMEPAGE_PUBLIC_EXECUTION_URL}&theme=${theme}`}
+                src={`${homepagePublicExecutionUrl}&theme=${theme}`}
                 className="w-full h-full"
               />
             </div>
