@@ -1,6 +1,17 @@
 import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
-import { AsteriskIcon, BracesIcon, CheckIcon, ChevronDown, ChevronUp, FileIcon, FileImageIcon, FileJsonIcon, FileMusicIcon, FileTextIcon, HashIcon, ImageIcon,  MusicIcon,  StickyNoteIcon,  TextIcon, TypeIcon } from "lucide-react";
+import {
+  AsteriskIcon,
+  BracesIcon,
+  CheckIcon,
+  ChevronDown,
+  ChevronUp,
+  HashIcon,
+  ImageIcon,
+  MusicIcon,
+  StickyNoteIcon,
+  TypeIcon,
+} from "lucide-react";
 import { createElement, memo, useEffect, useState } from "react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,14 +25,17 @@ import { InputTextWidget } from "./widgets/input-text-widget";
 import { JavaScriptEditorWidget } from "./widgets/javascript-editor-widget";
 import { JsonEditorWidget } from "./widgets/json-editor-widget";
 import { NumberInputWidget } from "./widgets/number-input-widget";
-import { RadioGroupWidget } from "./widgets/radio-group-widget";
 import { SliderWidget } from "./widgets/slider-widget";
 import { TextAreaWidget } from "./widgets/text-area-widget";
 import { WebcamWidget } from "./widgets/webcam-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
-import { InputOutputType, NodeExecutionState, WorkflowParameter } from "./workflow-types";
+import {
+  InputOutputType,
+  NodeExecutionState,
+  WorkflowParameter,
+} from "./workflow-types";
 
 export interface WorkflowNodeType {
   name: string;
@@ -50,14 +64,14 @@ const TypeBadge = ({
   readonly?: boolean;
 }) => {
   const icon = {
-    "string": <TypeIcon className="!size-3" />,
-    "number": <HashIcon className="!size-3" />,
-    "boolean": <CheckIcon className="!size-3" />,
-    "image": <ImageIcon className="!size-3" />,
-    "document": <StickyNoteIcon className="!size-3" />,
-    "audio": <MusicIcon className="!size-3" />,
-    "json": <BracesIcon className="!size-3" />,
-    "any": <AsteriskIcon className="!size-3" />,
+    string: <TypeIcon className="!size-3" />,
+    number: <HashIcon className="!size-3" />,
+    boolean: <CheckIcon className="!size-3" />,
+    image: <ImageIcon className="!size-3" />,
+    document: <StickyNoteIcon className="!size-3" />,
+    audio: <MusicIcon className="!size-3" />,
+    json: <BracesIcon className="!size-3" />,
+    any: <AsteriskIcon className="!size-3" />,
   }[type];
 
   const handleClick = (e: React.MouseEvent) => {
@@ -164,7 +178,6 @@ export const WorkflowNode = memo(
       }>
     > = {
       slider: SliderWidget,
-      "radio-group": RadioGroupWidget,
       "text-area": TextAreaWidget,
       "input-text": InputTextWidget,
       "number-input": NumberInputWidget,

@@ -94,7 +94,6 @@ import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
-import { RadioGroupNode } from "./text/radio-group-node";
 import { TextAreaNode } from "./text/text-area-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
@@ -152,7 +151,6 @@ export class NodeRegistry {
     this.registerImplementation(ExponentiationNode);
     this.registerImplementation(SquareRootNode);
     this.registerImplementation(AbsoluteValueNode);
-    this.registerImplementation(RadioGroupNode);
     this.registerImplementation(TextAreaNode);
     this.registerImplementation(InputTextNode);
     this.registerImplementation(ToStringNode);

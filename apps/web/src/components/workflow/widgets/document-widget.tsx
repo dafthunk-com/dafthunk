@@ -81,10 +81,7 @@ export function DocumentWidget({
       {!compact && <Label>Document Upload</Label>}
       <div className="relative w-full mx-auto">
         <div
-          className={cn(
-            "overflow-hidden bg-white",
-            compact ? "p-2" : "p-4"
-          )}
+          className={cn("overflow-hidden bg-white", compact ? "p-2" : "p-4")}
         >
           {fileName ? (
             <div className="flex items-center justify-between gap-2">

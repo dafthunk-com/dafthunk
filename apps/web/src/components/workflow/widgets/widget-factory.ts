@@ -10,14 +10,6 @@ export interface SliderWidgetConfig {
   step: number;
 }
 
-export interface RadioGroupWidgetConfig {
-  type: "radio-group";
-  id: string;
-  name: string;
-  value: string;
-  options: Array<{ value: string; label: string }>;
-}
-
 export interface TextAreaWidgetConfig {
   type: "text-area";
   id: string;
@@ -91,7 +83,6 @@ interface DocumentConfig {
 
 export type WidgetConfig =
   | SliderWidgetConfig
-  | RadioGroupWidgetConfig
   | TextAreaWidgetConfig
   | InputTextWidgetConfig
   | NumberInputWidgetConfig
@@ -118,41 +109,6 @@ export function createWidgetConfig(
         max: Number(inputs.find((i) => i.id === "max")?.value) || 100,
         step: Number(inputs.find((i) => i.id === "step")?.value) || 1,
       };
-    case "radio-group": {
-      const optionsInput = inputs.find((i) => i.id === "options");
-      let options: Array<{ value: string; label: string }> = [];
-
-      // Handle different possible formats of the options input
-      if (optionsInput?.value) {
-        if (Array.isArray(optionsInput.value)) {
-          options = optionsInput.value;
-        } else if (typeof optionsInput.value === "string") {
-          try {
-            const parsed = JSON.parse(optionsInput.value);
-            if (Array.isArray(parsed)) {
-              options = parsed;
-            }
-          } catch (_) {
-            console.warn("Failed to parse options JSON string");
-          }
-        }
-      }
-
-      // Ensure we have at least one default option
-      if (options.length === 0) {
-        options = [{ value: "option1", label: "Option 1" }];
-      }
-
-      return {
-        type: "radio-group",
-        id: nodeId,
-        name: "Radio Group",
-        value:
-          (inputs.find((i) => i.id === "value")?.value as string) ||
-          options[0].value,
-        options,
-      };
-    }
     case "text-area": {
       const valueInput = inputs.find((i) => i.id === "value");
       const placeholderInput = inputs.find((i) => i.id === "placeholder");
