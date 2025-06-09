@@ -17,11 +17,10 @@ import { DocsDevelopersPage } from "./pages/docs/developers-page";
 import { DocsNodesPage } from "./pages/docs/nodes-page";
 import { DocsPage } from "./pages/docs-page";
 import { HomePage } from "./pages/home-page";
+import { LegalPage } from "./pages/legal";
 import { LoginPage } from "./pages/login-page";
 import { NotFoundPage } from "./pages/not-found-page";
-import { PrivacyPage } from "./pages/privacy-page";
 import { ProfilePage } from "./pages/profile-page";
-import { TermsPage } from "./pages/terms-page";
 import { WaitlistPage } from "./pages/waitlist-page";
 import { DeploymentDetailPage } from "./pages/workflows/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/workflows/deployment-version-page";
@@ -408,22 +407,13 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/privacy",
+    path: "/legal",
     element: (
-      <ContentLayout title="Privacy Policy">
-        <PrivacyPage />
+      <ContentLayout title="Terms of Service and Privacy Policy">
+        <LegalPage />
       </ContentLayout>
     ),
-    handle: { head: <HeadSeo title="Privacy Policy - Dafthunk" /> },
-  },
-  {
-    path: "/terms",
-    element: (
-      <ContentLayout title="Terms of Service">
-        <TermsPage />
-      </ContentLayout>
-    ),
-    handle: { head: <HeadSeo title="Terms of Service - Dafthunk" /> },
+    handle: { head: <HeadSeo title="Terms of Service and Privacy Policy" /> },
   },
   {
     path: "*",

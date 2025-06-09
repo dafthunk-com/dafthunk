@@ -29,12 +29,12 @@ export function HomeFooter() {
       links: [
         {
           label: "Privacy Policy",
-          href: "/privacy", // Placeholder, update with actual link
+          href: "/legal",
           icon: <Shield className="h-4 w-4 mr-2" />,
         },
         {
           label: "Terms of Service",
-          href: "/terms", // Placeholder, update with actual link
+          href: "/legal",
           icon: <FileText className="h-4 w-4 mr-2" />,
         },
       ],

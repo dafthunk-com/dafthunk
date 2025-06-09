@@ -71,17 +71,10 @@ export function LoginForm({
       <div className="text-balance text-center text-xs text-muted-foreground">
         By signing in, you agree to our{" "}
         <Link
-          to="/terms"
+          to="/legal"
           className="underline underline-offset-4 hover:text-primary"
         >
-          Terms of Service
-        </Link>{" "}
-        and{" "}
-        <Link
-          to="/privacy"
-          className="underline underline-offset-4 hover:text-primary"
-        >
-          Privacy Policy
+          Terms of Service and Privacy Policy
         </Link>
         .
       </div>
