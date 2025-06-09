@@ -291,6 +291,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const context: NodeContext = {
         nodeId: nodeIdentifier,
         workflowId: runtimeState.workflow.id,
+        workflow: runtimeState.workflow,
         inputs: processedInputs,
         httpRequest,
         emailMessage,

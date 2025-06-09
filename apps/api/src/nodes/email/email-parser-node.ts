@@ -22,11 +22,11 @@ const formatAddresses = (addresses: any) => {
   return [];
 };
 
-export class EmailParserNode extends ExecutableNode {
+export class ParseEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "email-parser",
-    name: "Email Parser",
-    type: "email-parser",
+    id: "parse-email",
+    name: "Parse Email",
+    type: "parse-email",
     description:
       "Parses raw email content and extracts key fields like subject, body, sender, recipients, and attachments.",
     category: "Email",
@@ -34,7 +34,7 @@ export class EmailParserNode extends ExecutableNode {
     compatibility: ["email_message"],
     inputs: [
       {
-        name: "rawEmail",
+        name: "raw",
         type: "string",
         description: "The raw email content as a string.",
         required: true,
@@ -117,7 +117,7 @@ export class EmailParserNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const rawEmail = context.inputs?.rawEmail as string | undefined;
+      const rawEmail = context.inputs?.raw as string | undefined;
 
       if (!rawEmail || typeof rawEmail !== "string") {
         throw new Error(

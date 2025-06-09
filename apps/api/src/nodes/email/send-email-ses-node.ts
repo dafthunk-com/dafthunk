@@ -7,11 +7,11 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class SESEmailNode extends ExecutableNode {
+export class SendEmailSesNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "ses-email",
-    name: "Amazon SES Email",
-    type: "ses-email",
+    id: "send-email-ses",
+    name: "Send Email (SES)",
+    type: "send-email-ses",
     description: "Send an email using Amazon SES",
     category: "Email",
     icon: "mail",
@@ -39,12 +39,6 @@ export class SESEmailNode extends ExecutableNode {
         type: "string",
         description: "Email body (plain text)",
         required: false,
-      },
-      {
-        name: "from",
-        type: "string",
-        description: "Sender email address (optional, overrides default)",
-        hidden: true,
       },
       {
         name: "cc",
@@ -76,11 +70,12 @@ export class SESEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { to, subject, html, text, from, cc, replyTo } = context.inputs;
+    const { to, subject, html, text, cc, replyTo } = context.inputs;
     const accessKeyId = context.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = context.env.AWS_SECRET_ACCESS_KEY;
     const region = context.env.AWS_REGION;
     const defaultFrom = context.env.SES_DEFAULT_FROM;
+    const triggerFrom = context.emailMessage?.to;
 
     if (!accessKeyId || !secretAccessKey || !region) {
       return this.createErrorResult(
@@ -98,10 +93,10 @@ export class SESEmailNode extends ExecutableNode {
       );
     }
 
-    const sender = from || defaultFrom;
+    const sender = triggerFrom || defaultFrom;
     if (!sender) {
       return this.createErrorResult(
-        "No 'from' address provided and SES_DEFAULT_FROM is not set."
+        "No sender address available. Configure a default sender in SES_DEFAULT_FROM or trigger the workflow via email."
       );
     }
 

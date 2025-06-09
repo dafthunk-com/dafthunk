@@ -8,11 +8,11 @@ import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
 import { DocumentNode } from "./document/document-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
-import { EmailParametersNode } from "./email/email-parameters-node";
-import { EmailParserNode } from "./email/email-parser-node";
-import { ResendEmailNode } from "./email/resend-email-node";
-import { SendgridEmailNode } from "./email/sendgrid-email-node";
-import { SESEmailNode } from "./email/ses-email-node";
+import { ParseEmailNode } from "./email/email-parser-node";
+import { ReceiveEmailNode } from "./email/receive-email-node";
+import { SendEmailSendgridNode } from "./email/send-emai-sendgrid-node";
+import { SendEmailResendNode } from "./email/send-email-resend-node";
+import { SendEmailSesNode } from "./email/send-email-ses-node";
 import { CanvasDoodleNode } from "./image/canvas-doodle-node";
 import { DetrResnet50Node } from "./image/detr-resnet50-node";
 import { DreamShaper8LCMNode } from "./image/dream-shaper8-lcm-node";
@@ -141,8 +141,8 @@ export class NodeRegistry {
     this.registerImplementation(FormDataNumberNode);
     this.registerImplementation(FormDataBooleanNode);
     this.registerImplementation(JsonBodyNode);
-    this.registerImplementation(EmailParametersNode);
-    this.registerImplementation(EmailParserNode);
+    this.registerImplementation(ReceiveEmailNode);
+    this.registerImplementation(ParseEmailNode);
     this.registerImplementation(AdditionNode);
     this.registerImplementation(SubtractionNode);
     this.registerImplementation(MultiplicationNode);
@@ -239,16 +239,16 @@ export class NodeRegistry {
       this.registerImplementation(TwilioSmsNode);
     }
 
+    if (this.hasSESEmail) {
+      this.registerImplementation(SendEmailSesNode);
+    }
+
     if (this.hasSendgridEmail) {
-      this.registerImplementation(SendgridEmailNode);
+      this.registerImplementation(SendEmailSendgridNode);
     }
 
     if (this.hasResendEmail) {
-      this.registerImplementation(ResendEmailNode);
-    }
-
-    if (this.hasSESEmail) {
-      this.registerImplementation(SESEmailNode);
+      this.registerImplementation(SendEmailResendNode);
     }
   }
 

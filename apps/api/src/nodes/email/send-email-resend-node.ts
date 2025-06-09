@@ -3,11 +3,11 @@ import { Resend } from "resend";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class ResendEmailNode extends ExecutableNode {
+export class SendEmailResendNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "resend-email",
-    name: "Resend Email",
-    type: "resend-email",
+    id: "send-email-resend",
+    name: "Send Email (Resend)",
+    type: "send-email-resend",
     description: "Send an email using Resend",
     category: "Email",
     icon: "mail",
@@ -30,13 +30,6 @@ export class ResendEmailNode extends ExecutableNode {
         description: "Email body (HTML)",
         required: true,
       },
-      {
-        name: "from",
-        type: "string",
-        description:
-          "Sender email address (e.g., 'Acme <onboarding@resend.dev>', optional, overrides default)",
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -55,9 +48,10 @@ export class ResendEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { to, subject, body, from } = context.inputs;
+    const { to, subject, body } = context.inputs;
     const apiKey = context.env.RESEND_API_KEY;
     const defaultFrom = context.env.RESEND_DEFAULT_FROM;
+    const triggerFrom = context.emailMessage?.to;
 
     if (!apiKey) {
       return this.createErrorResult(
@@ -69,10 +63,10 @@ export class ResendEmailNode extends ExecutableNode {
         "'to', 'subject', and 'body' (HTML) are required inputs."
       );
     }
-    const sender = from || defaultFrom;
+    const sender = triggerFrom || defaultFrom;
     if (!sender) {
       return this.createErrorResult(
-        "No 'from' address provided and RESEND_DEFAULT_FROM is not set."
+        "No sender address available. Configure a default sender in RESEND_DEFAULT_FROM or trigger the workflow via email."
       );
     }
 

@@ -2,11 +2,11 @@ import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class EmailParametersNode extends ExecutableNode {
+export class ReceiveEmailNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "email-parameters",
-    name: "Email Parameters",
-    type: "email-parameters",
+    id: "receive-email",
+    name: "Receive Email",
+    type: "receive-email",
     description:
       "Extracts from, to, headers, and raw content from an incoming email.",
     category: "Email",

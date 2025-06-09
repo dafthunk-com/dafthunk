@@ -3,11 +3,11 @@ import sgMail from "@sendgrid/mail";
 
 import { ExecutableNode, NodeContext } from "../types";
 
-export class SendgridEmailNode extends ExecutableNode {
+export class SendEmailSendgridNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "sendgrid-email",
-    name: "Sendgrid Email",
-    type: "sendgrid-email",
+    id: "send-email-sendgrid",
+    name: "Send Email (Sendgrid)",
+    type: "send-email-sendgrid",
     description: "Send an email using Sendgrid",
     category: "Email",
     icon: "mail",
@@ -29,12 +29,6 @@ export class SendgridEmailNode extends ExecutableNode {
         type: "string",
         description: "Email body (HTML or plain text)",
         required: true,
-      },
-      {
-        name: "from",
-        type: "string",
-        description: "Sender email address (optional, overrides default)",
-        hidden: true,
       },
     ],
     outputs: [
@@ -60,9 +54,10 @@ export class SendgridEmailNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { to, subject, body, from } = context.inputs;
+    const { to, subject, body } = context.inputs;
     const apiKey = context.env.SENDGRID_API_KEY;
     const defaultFrom = context.env.SENDGRID_DEFAULT_FROM;
+    const triggerFrom = context.emailMessage?.to;
 
     if (!apiKey) {
       return this.createErrorResult(
@@ -74,10 +69,10 @@ export class SendgridEmailNode extends ExecutableNode {
         "'to', 'subject', and 'body' are required inputs."
       );
     }
-    const sender = from || defaultFrom;
+    const sender = triggerFrom || defaultFrom;
     if (!sender) {
       return this.createErrorResult(
-        "No 'from' address provided and SENDGRID_DEFAULT_FROM is not set."
+        "No sender address available. Configure a default sender in SENDGRID_DEFAULT_FROM or trigger the workflow via email."
       );
     }
 
