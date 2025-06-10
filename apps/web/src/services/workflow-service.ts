@@ -664,31 +664,6 @@ export function useWorkflowExecution(orgHandle: string) {
 }
 
 /**
- * Get cron trigger for a specific workflow
- */
-export const getCronTrigger = async (
-  workflowId: string,
-  orgHandle: string
-): Promise<GetCronTriggerResponse | null> => {
-  try {
-    const response = await makeOrgRequest<GetCronTriggerResponse>(
-      orgHandle,
-      API_ENDPOINT_BASE,
-      `/${workflowId}/cron`,
-      { method: "GET" }
-    );
-    return response;
-  } catch (error: any) {
-    if (error.message?.includes("404")) {
-      // Or a more specific error check if API returns structured errors
-      return null; // Not found is a valid state, not an error for this function
-    }
-    console.error("Error fetching cron trigger:", error);
-    throw error; // Re-throw other errors
-  }
-};
-
-/**
  * Hook to get a cron trigger for a specific workflow
  */
 export const useCronTrigger = (workflowId: string | null) => {

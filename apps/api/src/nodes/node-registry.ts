@@ -94,6 +94,8 @@ import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
+import { MultiVariableStringTemplateNode } from "./text/multi-variable-string-template-node";
+import { SingleVariableStringTemplateNode } from "./text/single-variable-string-template-node";
 import { TextAreaNode } from "./text/text-area-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
@@ -180,6 +182,8 @@ export class NodeRegistry {
     this.registerImplementation(JsonJavascriptProcessorNode);
     this.registerImplementation(JsonTemplateNode);
     this.registerImplementation(JsonEditorNode);
+    this.registerImplementation(MultiVariableStringTemplateNode);
+    this.registerImplementation(SingleVariableStringTemplateNode);
     this.registerImplementation(JavaScriptEditorNode);
     this.registerImplementation(LLaVA157BHFNode);
     this.registerImplementation(CanvasDoodleNode);

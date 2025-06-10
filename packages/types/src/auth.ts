@@ -16,6 +16,7 @@ export interface User {
   role: string;
   inWaitlist?: boolean;
   organization: OrganizationInfo;
+  provider: AuthProvider;
   iat?: number;
   exp?: number;
 }

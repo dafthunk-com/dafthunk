@@ -56,7 +56,6 @@ export function ExecutionEmailDialog({
     reset,
     formState: { errors, isDirty, isValid },
   } = useForm<ExecutionEmailDialogFormShape>({
-    // @ts-expect-error - zodResolver is not typed correctly
     resolver: zodResolver(executionEmailDialogZodSchema),
     mode: "onChange",
     defaultValues: {

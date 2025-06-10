@@ -230,21 +230,6 @@ export function getWorkflowCondition(workflowIdOrHandle: string) {
 }
 
 /**
- * Get a user by ID
- *
- * @param db Database instance
- * @param id User ID
- * @returns User record or undefined if not found
- */
-export async function getUserById(
-  db: ReturnType<typeof createDatabase>,
-  id: string
-): Promise<UserRow | undefined> {
-  const [user] = await db.select().from(users).where(eq(users.id, id));
-  return user;
-}
-
-/**
  * Get all workflows for an organization
  *
  * @param db Database instance
@@ -910,25 +895,6 @@ export async function listExecutions(
   // Map results to return only ExecutionRow objects.
   // Since we selected { executions: executions }, each item in 'results' will have an 'executions' property.
   return results.map((item) => item.executions);
-}
-
-/**
- * Get an organization by its handle
- *
- * @param db Database instance
- * @param handle Organization handle
- * @returns Organization record or undefined if not found
- */
-export async function getOrganization(
-  db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
-): Promise<typeof organizations.$inferSelect | undefined> {
-  const [organization] = await db
-    .select()
-    .from(organizations)
-    .where(getOrganizationCondition(organizationIdOrHandle));
-
-  return organization;
 }
 
 /**
