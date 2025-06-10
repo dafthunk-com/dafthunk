@@ -15,7 +15,7 @@ import {
   VersionAlias,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
-import { CustomJWTPayload } from "@dafthunk/types";
+import { JWTTokenPayload } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import CronParser from "cron-parser";
 import { Hono } from "hono";
@@ -46,7 +46,7 @@ import { validateWorkflow } from "../utils/workflows";
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
   Variables: {
-    jwtPayload?: CustomJWTPayload;
+    jwtPayload?: JWTTokenPayload;
     organizationId?: string;
   };
 };
@@ -452,7 +452,7 @@ workflowRoutes.post(
 
     // Get organization ID from either JWT or API key auth
     let userId: string;
-    const jwtPayload = c.get("jwtPayload") as CustomJWTPayload | undefined;
+    const jwtPayload = c.get("jwtPayload") as JWTTokenPayload | undefined;
 
     if (jwtPayload) {
       // Authentication was via JWT

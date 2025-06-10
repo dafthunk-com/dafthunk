@@ -1,4 +1,4 @@
-import { CustomJWTPayload, OrganizationInfo } from "@dafthunk/types";
+import { JWTTokenPayload, OrganizationInfo } from "@dafthunk/types";
 import { githubAuth } from "@hono/oauth-providers/github";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { eq } from "drizzle-orm";
@@ -22,11 +22,22 @@ const JWT_REFRESH_TOKEN_NAME = "refresh_token";
 const JWT_ACCESS_TOKEN_DURATION = 300; // 5 minutes
 const JWT_REFRESH_TOKEN_DURATION = 86400; // 1 days
 
+// Security validation
+const validateJWTSecret = (secret: string): void => {
+  if (!secret || secret.length < 32) {
+    throw new Error("JWT_SECRET must be at least 32 characters long");
+  }
+  if (secret === "your-secret-key" || secret === "development") {
+    throw new Error("JWT_SECRET must not use default/weak values");
+  }
+};
+
 // Utility functions
 const createAccessToken = async (
-  payload: CustomJWTPayload,
+  payload: JWTTokenPayload,
   jwtSecret: string
 ): Promise<string> => {
+  validateJWTSecret(jwtSecret);
   const secret = new TextEncoder().encode(jwtSecret);
   const expirationTime =
     Math.floor(Date.now() / 1000) + JWT_ACCESS_TOKEN_DURATION;
@@ -41,6 +52,7 @@ const createRefreshToken = async (
   payload: { sub: string; organization: { id: string } },
   jwtSecret: string
 ): Promise<string> => {
+  validateJWTSecret(jwtSecret);
   const secret = new TextEncoder().encode(jwtSecret);
   const expirationTime =
     Math.floor(Date.now() / 1000) + JWT_REFRESH_TOKEN_DURATION;
@@ -52,18 +64,70 @@ const createRefreshToken = async (
 };
 
 const verifyToken = async (token: string, jwtSecret: string) => {
+  validateJWTSecret(jwtSecret);
   const secret = new TextEncoder().encode(jwtSecret);
   try {
     const { payload } = await jwtVerify(token, secret);
     return payload;
-  } catch (_) {
+  } catch (error) {
+    // Log security event without exposing details
+    console.warn(
+      "Token verification failed:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return null;
   }
 };
 
 const urlToTopLevelDomain = (url: string): string => {
-  const parsedUrl = new URL(url);
-  return parsedUrl.hostname.split(".").slice(-2).join(".");
+  try {
+    const parsedUrl = new URL(url);
+    const parts = parsedUrl.hostname.split(".");
+
+    // For localhost development
+    if (
+      parsedUrl.hostname === "localhost" ||
+      parsedUrl.hostname === "127.0.0.1"
+    ) {
+      return parsedUrl.hostname;
+    }
+
+    // Validate hostname format
+    if (parts.length < 2) {
+      throw new Error("Invalid hostname format");
+    }
+
+    // Extract top-level domain (last two parts)
+    return parts.slice(-2).join(".");
+  } catch (error) {
+    console.error("Invalid URL for domain extraction:", url, error);
+    throw new Error("Invalid web host URL");
+  }
+};
+
+// Input validation helpers
+const validateUserData = (user: any, provider: string) => {
+  const requiredFields = ["id", "name"];
+  const missing = requiredFields.filter((field) => !user[field]);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required fields from ${provider}: ${missing.join(", ")}`
+    );
+  }
+
+  // Sanitize name to prevent potential injection
+  if (typeof user.name !== "string" || user.name.length > 255) {
+    throw new Error(`Invalid name format from ${provider}`);
+  }
+
+  // Validate email format if provided
+  if (user.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
+    console.warn(`Invalid email format from ${provider}:`, user.email);
+    user.email = undefined; // Clear invalid email
+  }
+
+  return user;
 };
 
 const setCookieOptions = (c: Context<ApiContext>, maxAge: number) => ({
@@ -89,7 +153,7 @@ export const jwtMiddleware = async (
   const payload = (await verifyToken(
     accessToken,
     c.env.JWT_SECRET
-  )) as CustomJWTPayload | null;
+  )) as JWTTokenPayload | null;
 
   if (!payload || !payload.organization?.id) {
     return c.json({ error: "Invalid or expired token" }, 401);
@@ -192,7 +256,7 @@ export const apiKeyOrJwtMiddleware = async (
 // Helper function to set both tokens
 const setAuthTokens = async (
   c: Context<ApiContext>,
-  accessPayload: CustomJWTPayload,
+  accessPayload: JWTTokenPayload,
   refreshPayload: { sub: string; organization: { id: string } }
 ) => {
   const accessToken = await createAccessToken(accessPayload, c.env.JWT_SECRET);
@@ -223,69 +287,79 @@ auth.post("/refresh", async (c) => {
   const refreshToken = getCookie(c, JWT_REFRESH_TOKEN_NAME);
 
   if (!refreshToken) {
-    return c.json({ error: "No refresh token - please log in again" }, 401);
+    return c.json({ error: "Authentication required" }, 401);
   }
 
   const payload = await verifyToken(refreshToken, c.env.JWT_SECRET);
 
   if (!payload || !payload.sub || !(payload.organization as any)?.id) {
-    return c.json({ error: "Invalid refresh token" }, 401);
+    console.warn("Invalid refresh token attempt", {
+      hasPayload: !!payload,
+      hasSub: !!payload?.sub,
+      hasOrg: !!(payload?.organization as any)?.id,
+    });
+    return c.json({ error: "Authentication required" }, 401);
   }
 
   const db = createDatabase(c.env.DB);
 
-  // Get fresh user data
-  const userResults = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, payload.sub as string));
+  try {
+    // Get fresh user data
+    const userResults = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, payload.sub as string));
 
-  const result = userResults[0];
-  if (!result) {
-    return c.json({ error: "User not found" }, 401);
+    if (userResults.length === 0) {
+      console.warn("User not found during refresh", { userId: payload.sub });
+      return c.json({ error: "Authentication required" }, 401);
+    }
+    const result = userResults[0];
+
+    // Get organization data
+    const orgResults = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, (payload.organization as any).id));
+
+    if (orgResults.length === 0) {
+      console.warn("Organization not found during refresh", {
+        orgId: (payload.organization as any).id,
+      });
+      return c.json({ error: "Authentication required" }, 401);
+    }
+    const orgResult = orgResults[0];
+
+    // Determine provider from githubId/googleId fields
+    const provider: "github" | "google" = result.githubId ? "github" : "google";
+
+    const accessPayload: JWTTokenPayload = {
+      sub: result.id,
+      name: result.name,
+      email: result.email ?? undefined,
+      avatarUrl: result.avatarUrl ?? undefined,
+      plan: result.plan,
+      role: result.role,
+      inWaitlist: result.inWaitlist,
+      provider,
+      organization: {
+        id: orgResult.id,
+        name: orgResult.name,
+        handle: orgResult.handle,
+        role: "member", // TODO: get actual role
+      },
+    };
+
+    await setAuthTokens(c, accessPayload, {
+      sub: result.id,
+      organization: { id: (payload.organization as any).id },
+    });
+
+    return c.json({ success: true, user: accessPayload });
+  } catch (error) {
+    console.error("Error during token refresh:", error);
+    return c.json({ error: "Authentication required" }, 401);
   }
-
-  // Get organization data
-  const orgResults = await db
-    .select()
-    .from(organizations)
-    .where(eq(organizations.id, (payload.organization as any).id as string));
-
-  const orgResult = orgResults[0];
-
-  if (!orgResult) {
-    return c.json({ error: "Organization not found" }, 401);
-  }
-
-  const organizationInfo: OrganizationInfo = {
-    id: orgResult.id,
-    name: orgResult.name,
-    handle: orgResult.handle,
-    role: OrganizationRole.OWNER,
-  };
-
-  const accessPayload: CustomJWTPayload = {
-    sub: result.id,
-    name: result.name,
-    email: result.email ?? undefined,
-    avatarUrl: result.avatarUrl ?? undefined,
-    plan: result.plan,
-    role: result.role,
-    inWaitlist: result.inWaitlist,
-    organization: organizationInfo,
-  };
-
-  const refreshPayload = {
-    sub: result.id,
-    organization: { id: orgResult.id },
-  };
-
-  await setAuthTokens(c, accessPayload, refreshPayload);
-
-  return c.json({
-    success: true,
-    user: accessPayload,
-  });
 });
 
 auth.post("/logout", (c) => {
@@ -314,55 +388,69 @@ auth.get(
   async (c) => {
     const user = c.get("user-github");
     if (!user) {
-      return c.json({ error: "No user data received from GitHub" }, 400);
+      return c.json({ error: "Authentication failed" }, 400);
     }
 
-    const userId = user.id?.toString() || "";
-    const userName = user.name || user.login || "";
-    const userEmail = user.email || undefined;
-    const avatarUrl = user.avatar_url;
+    try {
+      const validatedUser = validateUserData(
+        {
+          id: user.id,
+          name: user.name || user.login,
+          email: user.email,
+          avatar_url: user.avatar_url,
+        },
+        "GitHub"
+      );
 
-    const db = createDatabase(c.env.DB);
+      const userId = validatedUser.id.toString();
+      const userName = validatedUser.name;
+      const userEmail = validatedUser.email || undefined;
+      const avatarUrl = validatedUser.avatar_url;
 
-    // Save user and create organization if needed
-    const userData = {
-      provider: "github" as const,
-      providerId: userId,
-      name: userName,
-      email: userEmail,
-      avatarUrl,
-    };
-    const { user: savedUser, organization: savedOrganization } = await saveUser(
-      db,
-      userData
-    );
+      const db = createDatabase(c.env.DB);
 
-    const organizationInfo: OrganizationInfo = {
-      id: savedOrganization.id,
-      name: savedOrganization.name,
-      handle: savedOrganization.handle,
-      role: OrganizationRole.OWNER,
-    };
+      // Save user and create organization if needed
+      const userData = {
+        provider: "github" as const,
+        providerId: userId,
+        name: userName,
+        email: userEmail,
+        avatarUrl,
+      };
+      const { user: savedUser, organization: savedOrganization } =
+        await saveUser(db, userData);
 
-    const accessPayload: CustomJWTPayload = {
-      sub: savedUser.id,
-      name: userName,
-      email: userEmail ?? undefined,
-      avatarUrl,
-      plan: savedUser.plan,
-      role: savedUser.role,
-      inWaitlist: savedUser.inWaitlist,
-      organization: organizationInfo,
-    };
+      const organizationInfo: OrganizationInfo = {
+        id: savedOrganization.id,
+        name: savedOrganization.name,
+        handle: savedOrganization.handle,
+        role: OrganizationRole.OWNER,
+      };
 
-    const refreshPayload = {
-      sub: savedUser.id,
-      organization: { id: savedOrganization.id },
-    };
+      const accessPayload: JWTTokenPayload = {
+        sub: savedUser.id,
+        name: userName,
+        email: userEmail ?? undefined,
+        avatarUrl,
+        plan: savedUser.plan,
+        role: savedUser.role,
+        inWaitlist: savedUser.inWaitlist,
+        provider: "github",
+        organization: organizationInfo,
+      };
 
-    await setAuthTokens(c, accessPayload, refreshPayload);
+      const refreshPayload = {
+        sub: savedUser.id,
+        organization: { id: savedOrganization.id },
+      };
 
-    return c.redirect(c.env.WEB_HOST);
+      await setAuthTokens(c, accessPayload, refreshPayload);
+
+      return c.redirect(c.env.WEB_HOST);
+    } catch (error) {
+      console.error("GitHub authentication error:", error);
+      return c.json({ error: "Authentication failed" }, 400);
+    }
   }
 );
 
@@ -379,55 +467,69 @@ auth.get(
   async (c) => {
     const user = c.get("user-google");
     if (!user) {
-      return c.json({ error: "No user data received from Google" }, 400);
+      return c.json({ error: "Authentication failed" }, 400);
     }
 
-    const userId = user.id?.toString() || "";
-    const userName = user.name || "";
-    const userEmail = user.email as string | undefined;
-    const avatarUrl = user.picture;
+    try {
+      const validatedUser = validateUserData(
+        {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatar_url: user.picture,
+        },
+        "Google"
+      );
 
-    const db = createDatabase(c.env.DB);
+      const userId = validatedUser.id.toString();
+      const userName = validatedUser.name;
+      const userEmail = validatedUser.email as string | undefined;
+      const avatarUrl = validatedUser.avatar_url;
 
-    // Save user and create organization if needed
-    const userData = {
-      provider: "google" as const,
-      providerId: userId,
-      name: userName,
-      email: userEmail,
-      avatarUrl,
-    };
-    const { user: savedUser, organization: savedOrganization } = await saveUser(
-      db,
-      userData
-    );
+      const db = createDatabase(c.env.DB);
 
-    const organizationInfo: OrganizationInfo = {
-      id: savedOrganization.id,
-      name: savedOrganization.name,
-      handle: savedOrganization.handle,
-      role: OrganizationRole.OWNER,
-    };
+      // Save user and create organization if needed
+      const userData = {
+        provider: "google" as const,
+        providerId: userId,
+        name: userName,
+        email: userEmail,
+        avatarUrl,
+      };
+      const { user: savedUser, organization: savedOrganization } =
+        await saveUser(db, userData);
 
-    const accessPayload: CustomJWTPayload = {
-      sub: savedUser.id,
-      name: userName,
-      email: userEmail,
-      avatarUrl: avatarUrl || undefined,
-      plan: savedUser.plan,
-      role: savedUser.role,
-      inWaitlist: savedUser.inWaitlist,
-      organization: organizationInfo,
-    };
+      const organizationInfo: OrganizationInfo = {
+        id: savedOrganization.id,
+        name: savedOrganization.name,
+        handle: savedOrganization.handle,
+        role: OrganizationRole.OWNER,
+      };
 
-    const refreshPayload = {
-      sub: savedUser.id,
-      organization: { id: savedOrganization.id },
-    };
+      const accessPayload: JWTTokenPayload = {
+        sub: savedUser.id,
+        name: userName,
+        email: userEmail,
+        avatarUrl: avatarUrl ?? undefined,
+        plan: savedUser.plan,
+        role: savedUser.role,
+        inWaitlist: savedUser.inWaitlist,
+        provider: "google",
+        organization: organizationInfo,
+      };
 
-    await setAuthTokens(c, accessPayload, refreshPayload);
+      const refreshPayload = {
+        sub: savedUser.id,
+        organization: { id: savedOrganization.id },
+      };
 
-    return c.redirect(c.env.WEB_HOST);
+      await setAuthTokens(c, accessPayload, refreshPayload);
+
+      return c.redirect(c.env.WEB_HOST);
+    } catch (error) {
+      console.error("Google authentication error:", error);
+      return c.json({ error: "Authentication failed" }, 400);
+    }
   }
 );
 

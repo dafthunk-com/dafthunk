@@ -7,21 +7,8 @@ export interface OrganizationInfo {
   role: OrganizationRoleType;
 }
 
-export interface User {
-  sub: string;
-  name: string;
-  email?: string;
-  avatarUrl?: string;
-  plan: string;
-  role: string;
-  inWaitlist?: boolean;
-  organization: OrganizationInfo;
-  provider: AuthProvider;
-  iat?: number;
-  exp?: number;
-}
-
-export interface CustomJWTPayload {
+// Full user data as stored in database (includes provider info)
+export interface DatabaseUser {
   sub: string;
   name: string;
   email?: string;
@@ -30,6 +17,24 @@ export interface CustomJWTPayload {
   role: string;
   inWaitlist: boolean;
   organization: OrganizationInfo;
+  provider: AuthProvider;
+}
+
+// User data stored in JWT tokens (includes provider for frontend logic)
+export interface AuthUser {
+  sub: string;
+  name: string;
+  email?: string;
+  avatarUrl?: string;
+  plan: string;
+  role: string;
+  inWaitlist: boolean;
+  organization: OrganizationInfo;
+  provider: AuthProvider;
+}
+
+// JWT payload structure (AuthUser + standard JWT fields)
+export interface JWTTokenPayload extends AuthUser {
   iat?: number;
   exp?: number;
   [key: string]: unknown;
@@ -47,5 +52,5 @@ export interface AuthCheckResponse {
 }
 
 export interface UserResponse {
-  user: User;
+  user: DatabaseUser;
 }

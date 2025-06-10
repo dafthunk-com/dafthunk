@@ -3,7 +3,7 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAvatarUrl, getInitials } from "@/utils/user-utils";
+import { getInitials } from "@/utils/user-utils";
 
 // Helper function to format provider name
 const formatProviderName = (provider: string) => {
@@ -36,7 +36,7 @@ export function ProfilePage() {
     return plan.charAt(0).toUpperCase() + plan.slice(1);
   };
 
-  const avatarSrc = getAvatarUrl(user);
+  const avatarSrc = user.avatarUrl;
 
   return (
     <InsetLayout title="Profile">

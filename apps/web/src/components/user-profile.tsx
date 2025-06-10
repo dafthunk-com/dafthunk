@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getAvatarUrl, getInitials } from "@/utils/user-utils";
+import { getInitials } from "@/utils/user-utils";
 
 export function UserProfile() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -25,7 +25,7 @@ export function UserProfile() {
     await logout();
   };
 
-  const avatarSrc = getAvatarUrl(user);
+  const avatarSrc = user.avatarUrl;
 
   return (
     <DropdownMenu>

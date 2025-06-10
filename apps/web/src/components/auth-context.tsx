@@ -1,13 +1,23 @@
-import { type AuthProvider, OrganizationInfo, User } from "@dafthunk/types";
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  type AuthProvider,
+  JWTTokenPayload,
+  OrganizationInfo,
+} from "@dafthunk/types";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import useSWR from "swr";
 
-import { authService } from "@/services/auth-service";
+import { AuthError, authService } from "@/services/auth-service";
 
 export const AUTH_USER_KEY = "/auth/user";
 
 type AuthContextType = {
-  readonly user: User | null;
+  readonly user: JWTTokenPayload | null;
   readonly isAuthenticated: boolean;
   readonly isLoading: boolean;
   readonly error: Error | null;
@@ -17,7 +27,12 @@ type AuthContextType = {
   logout: () => Promise<void>;
   logoutAllSessions: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  refreshToken: () => Promise<{ success: boolean; user?: User }>;
+  refreshToken: () => Promise<{
+    success: boolean;
+    user?: JWTTokenPayload;
+    error?: string;
+  }>;
+  clearError: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,43 +40,108 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const {
     data: user,
-    error,
+    error: swrError,
     isLoading,
     mutate: mutateUser,
-  } = useSWR<User | null>(AUTH_USER_KEY, authService.getCurrentUser);
+  } = useSWR<JWTTokenPayload | null>(
+    AUTH_USER_KEY,
+    authService.getCurrentUser,
+    {
+      // Retry failed requests, but not for auth errors
+      shouldRetryOnError: (error) => !(error instanceof AuthError),
+      // Refresh user data every 5 minutes when tab is focused
+      refreshInterval: 5 * 60 * 1000,
+      // Only refresh when tab is visible
+      refreshWhenHidden: false,
+      // Validate user data structure
+      onSuccess: (data) => {
+        if (data && (!data.sub || !data.name)) {
+          console.error("Invalid user data structure received");
+          mutateUser(null, { revalidate: false });
+        }
+      },
+    }
+  );
 
   const [loginError, setLoginError] = useState<Error | null>(null);
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user?.sub;
 
-  // Extract organization information
-  const organization = user?.organization || null;
+  // Extract organization information with validation
+  const organization =
+    user?.organization && user.organization.id ? user.organization : null;
 
-  const refreshUserContext = async (): Promise<void> => {
-    await mutateUser();
-  };
+  const clearError = useCallback(() => {
+    setLoginError(null);
+  }, []);
 
-  const login = async (provider: AuthProvider): Promise<void> => {
+  const refreshUserContext = useCallback(async (): Promise<void> => {
+    try {
+      await mutateUser();
+    } catch (error) {
+      console.error("Failed to refresh user context:", error);
+      throw error;
+    }
+  }, [mutateUser]);
+
+  const login = useCallback(async (provider: AuthProvider): Promise<void> => {
     setLoginError(null);
     try {
       await authService.loginWithProvider(provider);
     } catch (err) {
       console.error("Login process error:", err);
-      setLoginError(err instanceof Error ? err : new Error(String(err)));
+      const error = err instanceof Error ? err : new Error(String(err));
+      setLoginError(error);
+      throw error;
     }
-  };
+  }, []);
 
-  const logout = async (): Promise<void> => {
-    await authService.logout();
-  };
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Don't throw - logout should always succeed from user perspective
+    }
+  }, []);
 
-  const logoutAllSessions = async (): Promise<void> => {
-    await authService.logoutAllSessions();
-  };
+  const logoutAllSessions = useCallback(async (): Promise<void> => {
+    try {
+      await authService.logoutAllSessions();
+    } catch (error) {
+      console.error("Logout all sessions error:", error);
+      // Don't throw - logout should always succeed from user perspective
+    }
+  }, []);
 
-  const refreshToken = async (): Promise<{ success: boolean; user?: User }> => {
-    return authService.refreshToken();
-  };
+  const refreshToken = useCallback(async (): Promise<{
+    success: boolean;
+    user?: JWTTokenPayload;
+    error?: string;
+  }> => {
+    try {
+      const result = await authService.refreshToken();
+
+      // If refresh was successful, update the SWR cache
+      if (result.success && result.user) {
+        mutateUser(result.user, { revalidate: false });
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }, [mutateUser]);
+
+  // Process errors for user-friendly messages
+  const processedError =
+    swrError instanceof AuthError
+      ? new Error("Authentication failed. Please log in again.")
+      : swrError;
 
   return (
     <AuthContext.Provider
@@ -69,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user || null,
         isAuthenticated,
         isLoading,
-        error,
+        error: processedError,
         loginError,
         organization,
         login,
@@ -77,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutAllSessions,
         refreshUser: refreshUserContext,
         refreshToken,
+        clearError,
       }}
     >
       {children}

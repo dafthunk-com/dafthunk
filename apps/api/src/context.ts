@@ -1,7 +1,6 @@
 import { Workflow } from "@cloudflare/workers-types";
 import { Fetcher } from "@cloudflare/workers-types";
-import { CustomJWTPayload } from "@dafthunk/types";
-import { JWTPayload } from "jose";
+import { JWTTokenPayload } from "@dafthunk/types";
 
 import { RuntimeParams } from "./runtime/runtime";
 
@@ -36,7 +35,9 @@ export interface Bindings {
 }
 
 export interface Variables {
-  jwtPayload?: CustomJWTPayload & JWTPayload;
+  // JWT payload containing authenticated user data
+  jwtPayload?: JWTTokenPayload;
+  // Organization ID for the current request context
   organizationId?: string;
 }
 

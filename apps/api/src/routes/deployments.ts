@@ -8,7 +8,7 @@ import {
   Node,
   Workflow as WorkflowType,
 } from "@dafthunk/types";
-import { CustomJWTPayload } from "@dafthunk/types";
+import { JWTTokenPayload } from "@dafthunk/types";
 import { Hono } from "hono";
 import { v7 as uuid } from "uuid";
 
@@ -29,7 +29,7 @@ import {
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
   Variables: {
-    jwtPayload?: CustomJWTPayload;
+    jwtPayload?: JWTTokenPayload;
     organizationId?: string;
   };
 };
