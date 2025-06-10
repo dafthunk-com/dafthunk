@@ -75,36 +75,43 @@ export class ParseEmailNode extends ExecutableNode {
         name: "bcc",
         type: "json",
         description: "BCC recipient's email address(es).",
+        hidden: true,
       },
       {
         name: "replyTo",
         type: "json",
         description: "Reply-to email address(es).",
+        hidden: true,
       },
       {
         name: "date",
         type: "string",
         description: "The date the email was sent (ISO string).",
+        hidden: true,
       },
       {
         name: "messageId",
         type: "string",
         description: "The unique message ID of the email.",
+        hidden: true,
       },
       {
         name: "inReplyTo",
         type: "string",
         description: "The message ID this email is a reply to.",
+        hidden: true,
       },
       {
         name: "references",
         type: "json", // Array of strings
         description: "Message IDs in the thread.",
+        hidden: true,
       },
       {
         name: "priority",
         type: "string", // 'high', 'normal', 'low'
         description: "The priority of the email.",
+        hidden: true,
       },
       // Consider adding attachments if needed in the future
       // { name: "attachments", type: "json", description: "List of attachments." },
