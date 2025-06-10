@@ -96,6 +96,15 @@ import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fa
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
 import { MultiVariableStringTemplateNode } from "./text/multi-variable-string-template-node";
 import { SingleVariableStringTemplateNode } from "./text/single-variable-string-template-node";
+import { StringConcatNode } from "./text/string-concat-node";
+import { StringIncludesNode } from "./text/string-includes-node";
+import { StringIndexOfNode } from "./text/string-index-of-node";
+import { StringLastIndexOfNode } from "./text/string-last-index-of-node";
+import { StringNormalizeNode } from "./text/string-normalize-node";
+import { StringSubstringNode } from "./text/string-substring-node";
+import { StringToLowerCaseNode } from "./text/string-to-lower-case-node";
+import { StringToUpperCaseNode } from "./text/string-to-upper-case-node";
+import { StringTrimNode } from "./text/string-trim-node";
 import { TextAreaNode } from "./text/text-area-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
@@ -193,9 +202,21 @@ export class NodeRegistry {
     this.registerImplementation(ExifReaderNode);
     this.registerImplementation(MelottsNode);
     this.registerImplementation(WebcamNode);
+
+    // String operations
+    this.registerImplementation(StringConcatNode);
+    this.registerImplementation(StringIncludesNode);
+    this.registerImplementation(StringIndexOfNode);
+    this.registerImplementation(StringLastIndexOfNode);
+    this.registerImplementation(StringNormalizeNode);
+    this.registerImplementation(StringSubstringNode);
+    this.registerImplementation(StringToLowerCaseNode);
+    this.registerImplementation(StringToUpperCaseNode);
+    this.registerImplementation(StringTrimNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
 
+    // Image operations
     this.registerImplementation(PhotonAddNoiseNode);
     this.registerImplementation(PhotonAdjustBrightnessNode);
     this.registerImplementation(PhotonAdjustContrastNode);
