@@ -1,4 +1,5 @@
 import { WorkflowType } from "@dafthunk/types";
+import { Clock, Globe, Mail, Play } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,34 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/utils/utils";
+
+const workflowTypes = [
+  {
+    type: "manual" as WorkflowType,
+    title: "Manual",
+    description: "Trigger workflows manually",
+    icon: Play,
+  },
+  {
+    type: "http_request" as WorkflowType,
+    title: "HTTP Request",
+    description: "Trigger workflows via HTTP endpoints",
+    icon: Globe,
+  },
+  {
+    type: "email_message" as WorkflowType,
+    title: "Email Message",
+    description: "Trigger workflows from email messages",
+    icon: Mail,
+  },
+  {
+    type: "cron" as WorkflowType,
+    title: "Scheduled",
+    description: "Trigger workflows on a schedule",
+    icon: Clock,
+  },
+];
 
 export type CreateWorkflowDialogProps = {
   open: boolean;
@@ -45,11 +67,11 @@ export function CreateWorkflowDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create New Workflow</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleCreateWorkflow} className="space-y-4">
+        <form onSubmit={handleCreateWorkflow} className="space-y-6">
           <div>
             <Label htmlFor="name">Workflow Name</Label>
             <Input
@@ -65,21 +87,38 @@ export function CreateWorkflowDialog({
             />
           </div>
           <div>
-            <Label htmlFor="type">Workflow Type</Label>
-            <Select
-              value={workflowType}
-              onValueChange={(value: WorkflowType) => setWorkflowType(value)}
-            >
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Select workflow type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={"manual"}>Manual</SelectItem>
-                <SelectItem value={"http_request"}>HTTP Request</SelectItem>
-                <SelectItem value={"email_message"}>Email Message</SelectItem>
-                <SelectItem value={"cron"}>Scheduled (Cron)</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Workflow Type</Label>
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              {workflowTypes.map((type) => {
+                const IconComponent = type.icon;
+                return (
+                  <div
+                    key={type.type}
+                    className={cn(
+                      "border rounded-lg p-4 transition-all cursor-pointer",
+                      workflowType === type.type
+                        ? "bg-accent border-primary/50"
+                        : "hover:bg-muted/50"
+                    )}
+                    onClick={() => setWorkflowType(type.type)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-primary/10 rounded-md">
+                        <IconComponent className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm mb-1">
+                          {type.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {type.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <Button
             type="submit"
