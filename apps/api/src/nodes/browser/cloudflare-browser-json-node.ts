@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Cloudflare Browser Rendering PDF Node (REST API version)
- * Calls the Cloudflare Browser Rendering REST API /pdf endpoint to fetch a PDF from a rendered page.
- * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/pdf/
+ * Cloudflare Browser Rendering JSON Node (REST API version)
+ * Calls the Cloudflare Browser Rendering REST API /json endpoint to fetch JSON from a rendered page.
+ * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/json/methods/create/
  */
-export class CloudflareBrowserPdfNode extends ExecutableNode {
+export class CloudflareBrowserJsonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "cloudflare-browser-pdf",
-    name: "Cloudflare Browser PDF",
-    type: "cloudflare-browser-pdf",
+    id: "cloudflare-browser-json",
+    name: "Cloudflare Browser JSON",
+    type: "cloudflare-browser-json",
     description:
-      "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",
-    category: "Net",
-    icon: "file-text",
+      "Fetch JSON from a rendered page using Cloudflare Browser Rendering.",
+    category: "Browser",
+    icon: "braces",
     inputs: [
       {
         name: "url",
@@ -30,10 +30,14 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
           "HTML content to render instead of navigating to a URL (optional)",
       },
       {
-        name: "pdfOptions",
+        name: "prompt",
+        type: "string",
+        description: "Prompt for extracting JSON (optional)",
+      },
+      {
+        name: "schema",
         type: "json",
-        description:
-          "PDF options (e.g. format, printBackground, etc.) (optional)",
+        description: "JSON schema for extraction (optional)",
       },
       {
         name: "gotoOptions",
@@ -50,9 +54,9 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "pdf",
-        type: "document",
-        description: "The captured PDF as a document (application/pdf)",
+        name: "json",
+        type: "json",
+        description: "Extracted JSON as returned by Cloudflare",
       },
       {
         name: "status",
@@ -70,7 +74,7 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, html, pdfOptions, gotoOptions, waitForSelector } =
+    const { url, html, prompt, schema, gotoOptions, waitForSelector } =
       context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
@@ -84,11 +88,12 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     // Build request body
     const body: Record<string, unknown> = { url };
     if (html) body.html = html;
-    if (pdfOptions) body.pdfOptions = pdfOptions;
+    if (prompt) body.prompt = prompt;
+    if (schema) body.schema = schema;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/pdf`;
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/json`;
 
     try {
       const response = await fetch(endpoint, {
@@ -101,27 +106,30 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
       });
 
       const status = response.status;
-      if (!response.ok) {
-        const errorText = await response.text();
+      const json: any = await response.json();
+      console.log("Cloudflare API response:", json);
+
+      // Only treat as error if HTTP is not ok, or errors array is present and non-empty
+      if (
+        !response.ok ||
+        (Array.isArray(json.errors) && json.errors.length > 0)
+      ) {
+        const errorMsg =
+          (json.errors && json.errors[0]?.message) || response.statusText;
         return this.createErrorResult(
-          `Cloudflare API error: ${status} - ${errorText}`
+          `Cloudflare API error: ${status} - ${errorMsg}`
         );
       }
 
-      // The response is a PDF file (binary)
-      const arrayBuffer = await response.arrayBuffer();
-      const pdfBuffer = new Uint8Array(arrayBuffer);
-      if (!pdfBuffer || pdfBuffer.length === 0) {
+      // The extracted JSON is in json.result (should be an object)
+      if (!json.result || typeof json.result !== "object") {
         return this.createErrorResult(
-          "Cloudflare API error: No valid PDF data returned"
+          "Cloudflare API error: No JSON result returned"
         );
       }
       return this.createSuccessResult({
-        pdf: {
-          data: pdfBuffer,
-          mimeType: "application/pdf",
-        },
         status,
+        json: json.result,
       });
     } catch (error) {
       return this.createErrorResult(

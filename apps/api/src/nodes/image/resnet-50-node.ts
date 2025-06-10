@@ -41,10 +41,16 @@ export class Resnet50Node extends ExecutableNode {
 
       const { image } = context.inputs;
 
-      // Run the ResNet-50 model for image classification
-      const result = await context.env.AI.run("@cf/microsoft/resnet-50", {
+      const params = {
         image: Array.from(image.data),
-      });
+      };
+
+      // Run the ResNet-50 model for image classification
+      const result = await context.env.AI.run(
+        "@cf/microsoft/resnet-50" as any,
+        params,
+        context.env.AI_OPTIONS
+      );
 
       return this.createSuccessResult({
         classifications: result,

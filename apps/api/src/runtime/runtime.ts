@@ -288,18 +288,31 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         inputValues
       );
 
+      // Configure AI Gateway options for all AI model requests
+      // If CLOUDFLARE_AI_GATEWAY_ID is set, all AI requests will be routed through the gateway
+      // for analytics, caching, and rate limiting. If not set, requests go directly to the model.
+      const aiOptions: AiOptions = {};
+      const gatewayId = this.env.CLOUDFLARE_AI_GATEWAY_ID;
+      if (gatewayId) {
+        aiOptions.gateway = {
+          id: gatewayId,
+          skipCache: false, // Enable caching by default for better performance
+        };
+      }
+
       const context: NodeContext = {
         nodeId: nodeIdentifier,
         workflowId: runtimeState.workflow.id,
         inputs: processedInputs,
         httpRequest,
         emailMessage,
-        // No progress feedback in this implementation.
         onProgress: () => {},
         env: {
           AI: this.env.AI,
+          AI_OPTIONS: aiOptions,
           CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
           CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
+          CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,
           TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
           TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
           TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,

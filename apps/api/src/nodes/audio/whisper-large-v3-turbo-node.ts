@@ -109,8 +109,9 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
 
       // Call Cloudflare AI Whisper Large V3 Turbo model
       const response = await context.env.AI.run(
-        "@cf/openai/whisper-large-v3-turbo",
-        params
+        "@cf/openai/whisper-large-v3-turbo" as any,
+        params,
+        context.env.AI_OPTIONS
       );
 
       // Extract the results

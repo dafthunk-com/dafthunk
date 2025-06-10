@@ -51,11 +51,17 @@ export class M2m10012bNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const result = await context.env.AI.run("@cf/meta/m2m100-1.2b", {
+      const params = {
         text,
         source_lang: sourceLang,
         target_lang: targetLang,
-      });
+      };
+
+      const result = await context.env.AI.run(
+        "@cf/meta/m2m100-1.2b" as any,
+        params,
+        context.env.AI_OPTIONS
+      );
 
       return this.createSuccessResult({
         translatedText: result.translated_text,

@@ -105,8 +105,9 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
 
       // Call Cloudflare AI UForm model
       const response = await context.env.AI.run(
-        "@cf/unum/uform-gen2-qwen-500m",
-        params
+        "@cf/unum/uform-gen2-qwen-500m" as any,
+        params,
+        context.env.AI_OPTIONS
       );
 
       if (!response.description) {

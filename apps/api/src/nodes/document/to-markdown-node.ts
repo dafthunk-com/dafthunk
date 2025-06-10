@@ -51,13 +51,18 @@ export class ToMarkdownNode extends ExecutableNode {
         type: documentInput.mimeType,
       });
 
-      // Call the toMarkdown API
-      const result = await context.env.AI.toMarkdown([
+      const params = [
         {
           name: `document.${extension}`,
           blob,
         },
-      ]);
+      ];
+
+      // Call the toMarkdown API
+      const result = await context.env.AI.toMarkdown(
+        params,
+        context.env.AI_OPTIONS
+      );
 
       if (!result || result.length === 0) {
         return this.createErrorResult("Failed to convert document to Markdown");

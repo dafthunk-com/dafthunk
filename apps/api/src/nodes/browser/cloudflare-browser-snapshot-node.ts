@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Cloudflare Browser Rendering JSON Node (REST API version)
- * Calls the Cloudflare Browser Rendering REST API /json endpoint to fetch JSON from a rendered page.
- * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/json/methods/create/
+ * Cloudflare Browser Rendering Snapshot Node (REST API version)
+ * Calls the Cloudflare Browser Rendering REST API /snapshot endpoint to get HTML content and screenshot.
+ * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/snapshot/
  */
-export class CloudflareBrowserJsonNode extends ExecutableNode {
+export class CloudflareBrowserSnapshotNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "cloudflare-browser-json",
-    name: "Cloudflare Browser JSON",
-    type: "cloudflare-browser-json",
+    id: "cloudflare-browser-snapshot",
+    name: "Cloudflare Browser Snapshot",
+    type: "cloudflare-browser-snapshot",
     description:
-      "Fetch JSON from a rendered page using Cloudflare Browser Rendering.",
-    category: "Net",
-    icon: "braces",
+      "Get HTML content and screenshot from a rendered page using Cloudflare Browser Rendering.",
+    category: "Browser",
+    icon: "camera",
     inputs: [
       {
         name: "url",
@@ -30,14 +30,17 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
           "HTML content to render instead of navigating to a URL (optional)",
       },
       {
-        name: "prompt",
-        type: "string",
-        description: "Prompt for extracting JSON (optional)",
+        name: "screenshotOptions",
+        type: "json",
+        description:
+          "Screenshot options (e.g. fullPage, omitBackground, clip, etc.) (optional)",
       },
       {
-        name: "schema",
+        name: "viewport",
         type: "json",
-        description: "JSON schema for extraction (optional)",
+        description:
+          "Viewport settings (width, height, deviceScaleFactor, etc.) (optional)",
+        hidden: true,
       },
       {
         name: "gotoOptions",
@@ -48,15 +51,20 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
       {
         name: "waitForSelector",
         type: "string",
-        description: "Wait for selector before extracting (optional)",
+        description: "Wait for selector before capturing (optional)",
         hidden: true,
       },
     ],
     outputs: [
       {
-        name: "json",
-        type: "json",
-        description: "Extracted JSON as returned by Cloudflare",
+        name: "content",
+        type: "string",
+        description: "The rendered HTML content",
+      },
+      {
+        name: "screenshot",
+        type: "image",
+        description: "The captured screenshot as an image (PNG)",
       },
       {
         name: "status",
@@ -74,8 +82,14 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, html, prompt, schema, gotoOptions, waitForSelector } =
-      context.inputs;
+    const {
+      url,
+      html,
+      screenshotOptions,
+      viewport,
+      gotoOptions,
+      waitForSelector,
+    } = context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
@@ -88,12 +102,12 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     // Build request body
     const body: Record<string, unknown> = { url };
     if (html) body.html = html;
-    if (prompt) body.prompt = prompt;
-    if (schema) body.schema = schema;
+    if (screenshotOptions) body.screenshotOptions = screenshotOptions;
+    if (viewport) body.viewport = viewport;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/json`;
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/snapshot`;
 
     try {
       const response = await fetch(endpoint, {
@@ -121,15 +135,32 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
         );
       }
 
-      // The extracted JSON is in json.result (should be an object)
-      if (!json.result || typeof json.result !== "object") {
+      // The response should have both content and screenshot in result
+      if (
+        !json.result ||
+        typeof json.result.content !== "string" ||
+        !json.result.screenshot
+      ) {
         return this.createErrorResult(
-          "Cloudflare API error: No JSON result returned"
+          "Cloudflare API error: Invalid snapshot response format"
         );
       }
+
+      // Convert base64 screenshot to buffer
+      const screenshotData = Buffer.from(json.result.screenshot, "base64");
+      if (!screenshotData || screenshotData.length === 0) {
+        return this.createErrorResult(
+          "Cloudflare API error: Invalid screenshot data"
+        );
+      }
+
       return this.createSuccessResult({
         status,
-        json: json.result,
+        content: json.result.content,
+        screenshot: {
+          data: new Uint8Array(screenshotData),
+          mimeType: "image/png",
+        },
       });
     } catch (error) {
       return this.createErrorResult(

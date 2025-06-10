@@ -121,7 +121,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       const validatedGuidance = guidance ?? defaultGuidance;
 
       // Prepare the inputs for the model
-      const inputs: AiTextToImageInput = {
+      const params: AiTextToImageInput = {
         prompt,
         width: validatedWidth,
         height: validatedHeight,
@@ -130,13 +130,14 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       };
 
       // Add optional parameters if provided
-      if (negative_prompt) inputs.negative_prompt = negative_prompt;
-      if (seed) inputs.seed = seed;
+      if (negative_prompt) params.negative_prompt = negative_prompt;
+      if (seed) params.seed = seed;
 
       // Run the Stable Diffusion XL Base model
       const stream = (await context.env.AI.run(
-        "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-        inputs
+        "@cf/stabilityai/stable-diffusion-xl-base-1.0" as any,
+        params,
+        context.env.AI_OPTIONS
       )) as ReadableStream;
 
       const response = new Response(stream);

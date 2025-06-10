@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Cloudflare Browser Rendering Scrape Node (REST API version)
- * Calls the Cloudflare Browser Rendering REST API /scrape endpoint to scrape elements from a rendered page.
- * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/scrape/
+ * Cloudflare Browser Rendering PDF Node (REST API version)
+ * Calls the Cloudflare Browser Rendering REST API /pdf endpoint to fetch a PDF from a rendered page.
+ * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/pdf/
  */
-export class CloudflareBrowserScrapeNode extends ExecutableNode {
+export class CloudflareBrowserPdfNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "cloudflare-browser-scrape",
-    name: "Cloudflare Browser Scrape",
-    type: "cloudflare-browser-scrape",
+    id: "cloudflare-browser-pdf",
+    name: "Cloudflare Browser PDF",
+    type: "cloudflare-browser-pdf",
     description:
-      "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
-    category: "Net",
-    icon: "search",
+      "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",
+    category: "Browser",
+    icon: "file-text",
     inputs: [
       {
         name: "url",
@@ -30,11 +30,10 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
           "HTML content to render instead of navigating to a URL (optional)",
       },
       {
-        name: "elements",
+        name: "pdfOptions",
         type: "json",
         description:
-          "Array of CSS selectors to scrape (required, use 'elements' as per API)",
-        required: true,
+          "PDF options (e.g. format, printBackground, etc.) (optional)",
       },
       {
         name: "gotoOptions",
@@ -45,16 +44,15 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       {
         name: "waitForSelector",
         type: "string",
-        description: "Wait for selector before scraping (optional)",
+        description: "Wait for selector before extracting (optional)",
         hidden: true,
       },
     ],
     outputs: [
       {
-        name: "results",
-        type: "json",
-        description:
-          "Array of scraped results as returned by Cloudflare [{ result, selector }]",
+        name: "pdf",
+        type: "document",
+        description: "The captured PDF as a document (application/pdf)",
       },
       {
         name: "status",
@@ -72,26 +70,25 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, html, elements, gotoOptions, waitForSelector } =
+    const { url, html, pdfOptions, gotoOptions, waitForSelector } =
       context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    console.log(url, elements, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN);
-
-    if (!url || !elements || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
       );
     }
 
     // Build request body
-    const body: Record<string, unknown> = { url, elements };
+    const body: Record<string, unknown> = { url };
     if (html) body.html = html;
+    if (pdfOptions) body.pdfOptions = pdfOptions;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/pdf`;
 
     try {
       const response = await fetch(endpoint, {
@@ -104,30 +101,27 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       });
 
       const status = response.status;
-      const json: any = await response.json();
-      console.log("Cloudflare API response:", json);
-
-      // Only treat as error if HTTP is not ok, or errors array is present and non-empty
-      if (
-        !response.ok ||
-        (Array.isArray(json.errors) && json.errors.length > 0)
-      ) {
-        const errorMsg =
-          (json.errors && json.errors[0]?.message) || response.statusText;
+      if (!response.ok) {
+        const errorText = await response.text();
         return this.createErrorResult(
-          `Cloudflare API error: ${status} - ${errorMsg}`
+          `Cloudflare API error: ${status} - ${errorText}`
         );
       }
 
-      // The results are in json.result (should be an array of { result, selector })
-      if (!Array.isArray(json.result)) {
+      // The response is a PDF file (binary)
+      const arrayBuffer = await response.arrayBuffer();
+      const pdfBuffer = new Uint8Array(arrayBuffer);
+      if (!pdfBuffer || pdfBuffer.length === 0) {
         return this.createErrorResult(
-          "Cloudflare API error: No results array returned"
+          "Cloudflare API error: No valid PDF data returned"
         );
       }
       return this.createSuccessResult({
+        pdf: {
+          data: pdfBuffer,
+          mimeType: "application/pdf",
+        },
         status,
-        results: json.result,
       });
     } catch (error) {
       return this.createErrorResult(

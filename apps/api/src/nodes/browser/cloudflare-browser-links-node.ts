@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Cloudflare Browser Rendering Markdown Node (REST API version)
- * Calls the Cloudflare Browser Rendering REST API /markdown endpoint to fetch markdown from a rendered page.
- * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/markdown/
+ * Cloudflare Browser Rendering Links Node (REST API version)
+ * Calls the Cloudflare Browser Rendering REST API /links endpoint to fetch all links from a rendered page.
+ * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/links/
  */
-export class CloudflareBrowserMarkdownNode extends ExecutableNode {
+export class CloudflareBrowserLinksNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "cloudflare-browser-markdown",
-    name: "Cloudflare Browser Markdown",
-    type: "cloudflare-browser-markdown",
+    id: "cloudflare-browser-links",
+    name: "Cloudflare Browser Links",
+    type: "cloudflare-browser-links",
     description:
-      "Fetch markdown from a rendered page using Cloudflare Browser Rendering.",
-    category: "Net",
-    icon: "markdown",
+      "Fetch all links from a rendered page using Cloudflare Browser Rendering.",
+    category: "Browser",
+    icon: "link",
     inputs: [
       {
         name: "url",
@@ -44,9 +44,9 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "markdown",
-        type: "string",
-        description: "Markdown as returned by Cloudflare",
+        name: "links",
+        type: "json",
+        description: "Array of links as returned by Cloudflare",
       },
       {
         name: "status",
@@ -80,7 +80,7 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/markdown`;
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/links`;
 
     try {
       const response = await fetch(endpoint, {
@@ -108,15 +108,15 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
         );
       }
 
-      // The markdown is in json.result (should be a string)
-      if (typeof json.result !== "string") {
+      // The links are in json.result (should be an array of strings)
+      if (!Array.isArray(json.result)) {
         return this.createErrorResult(
-          "Cloudflare API error: No markdown string returned"
+          "Cloudflare API error: No links array returned"
         );
       }
       return this.createSuccessResult({
         status,
-        markdown: json.result,
+        links: json.result,
       });
     } catch (error) {
       return this.createErrorResult(

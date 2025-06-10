@@ -46,13 +46,16 @@ export class Flux1SchnellNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
+      const params = {
+        prompt,
+        steps,
+      };
+
       // Run the FLUX.1 schnell model for text-to-image generation
       const result = await context.env.AI.run(
-        "@cf/black-forest-labs/flux-1-schnell",
-        {
-          prompt,
-          steps,
-        }
+        "@cf/black-forest-labs/flux-1-schnell" as any,
+        params,
+        context.env.AI_OPTIONS
       );
 
       // Convert base64 string to Uint8Array

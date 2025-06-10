@@ -52,13 +52,16 @@ export class Llama318BInstructFastNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
+      const params = {
+        prompt,
+        seed,
+        temperature,
+      };
+
       const result = await context.env.AI.run(
         "@cf/meta/llama-3.1-8b-instruct-fast" as any,
-        {
-          prompt,
-          seed,
-          temperature,
-        }
+        params,
+        context.env.AI_OPTIONS
       );
 
       return this.createSuccessResult({

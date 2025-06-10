@@ -117,19 +117,22 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
       const maskData =
         mask.data instanceof Uint8Array ? mask.data : new Uint8Array(mask.data);
 
+      const params = {
+        prompt,
+        negative_prompt: negative_prompt || "",
+        image: Array.from(imageData),
+        mask: Array.from(maskData),
+        num_steps: validatedSteps,
+        strength: validatedStrength,
+        guidance: validatedGuidance,
+        ...(seed !== undefined && { seed }),
+      };
+
       // Call Cloudflare AI Stable Diffusion Inpainting model
       const stream = (await context.env.AI.run(
-        "@cf/runwayml/stable-diffusion-v1-5-inpainting",
-        {
-          prompt,
-          negative_prompt: negative_prompt || "",
-          image: Array.from(imageData),
-          mask: Array.from(maskData),
-          num_steps: validatedSteps,
-          strength: validatedStrength,
-          guidance: validatedGuidance,
-          ...(seed !== undefined && { seed }),
-        }
+        "@cf/runwayml/stable-diffusion-v1-5-inpainting" as any,
+        params,
+        context.env.AI_OPTIONS
       )) as ReadableStream;
 
       const response = new Response(stream);

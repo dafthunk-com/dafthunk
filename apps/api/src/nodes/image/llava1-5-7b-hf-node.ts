@@ -96,8 +96,9 @@ export class LLaVA157BHFNode extends ExecutableNode {
 
       // Call Cloudflare AI LLaVA model
       const response = await context.env.AI.run(
-        "@cf/llava-hf/llava-1.5-7b-hf",
-        params
+        "@cf/llava-hf/llava-1.5-7b-hf" as any,
+        params,
+        context.env.AI_OPTIONS
       );
 
       return this.createSuccessResult({

@@ -3,19 +3,19 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 import { ExecutableNode, NodeContext } from "../types";
 
 /**
- * Cloudflare Browser Rendering Links Node (REST API version)
- * Calls the Cloudflare Browser Rendering REST API /links endpoint to fetch all links from a rendered page.
- * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/links/
+ * Cloudflare Browser Rendering Scrape Node (REST API version)
+ * Calls the Cloudflare Browser Rendering REST API /scrape endpoint to scrape elements from a rendered page.
+ * See: https://developers.cloudflare.com/api/resources/browser_rendering/subresources/scrape/
  */
-export class CloudflareBrowserLinksNode extends ExecutableNode {
+export class CloudflareBrowserScrapeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "cloudflare-browser-links",
-    name: "Cloudflare Browser Links",
-    type: "cloudflare-browser-links",
+    id: "cloudflare-browser-scrape",
+    name: "Cloudflare Browser Scrape",
+    type: "cloudflare-browser-scrape",
     description:
-      "Fetch all links from a rendered page using Cloudflare Browser Rendering.",
-    category: "Net",
-    icon: "link",
+      "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
+    category: "Browser",
+    icon: "search",
     inputs: [
       {
         name: "url",
@@ -30,6 +30,13 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
           "HTML content to render instead of navigating to a URL (optional)",
       },
       {
+        name: "elements",
+        type: "json",
+        description:
+          "Array of CSS selectors to scrape (required, use 'elements' as per API)",
+        required: true,
+      },
+      {
         name: "gotoOptions",
         type: "json",
         description: "Options for page navigation (optional)",
@@ -38,15 +45,16 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
       {
         name: "waitForSelector",
         type: "string",
-        description: "Wait for selector before extracting (optional)",
+        description: "Wait for selector before scraping (optional)",
         hidden: true,
       },
     ],
     outputs: [
       {
-        name: "links",
+        name: "results",
         type: "json",
-        description: "Array of links as returned by Cloudflare",
+        description:
+          "Array of scraped results as returned by Cloudflare [{ result, selector }]",
       },
       {
         name: "status",
@@ -64,23 +72,26 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
-    const { url, html, gotoOptions, waitForSelector } = context.inputs;
+    const { url, html, elements, gotoOptions, waitForSelector } =
+      context.inputs;
 
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = context.env;
 
-    if (!url || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+    console.log(url, elements, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN);
+
+    if (!url || !elements || !CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       return this.createErrorResult(
-        "'url', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
+        "'url', 'elements', 'CLOUDFLARE_ACCOUNT_ID', and 'CLOUDFLARE_API_TOKEN' are required."
       );
     }
 
     // Build request body
-    const body: Record<string, unknown> = { url };
+    const body: Record<string, unknown> = { url, elements };
     if (html) body.html = html;
     if (gotoOptions) body.gotoOptions = gotoOptions;
     if (waitForSelector) body.waitForSelector = waitForSelector;
 
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/links`;
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
 
     try {
       const response = await fetch(endpoint, {
@@ -108,15 +119,15 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
         );
       }
 
-      // The links are in json.result (should be an array of strings)
+      // The results are in json.result (should be an array of { result, selector })
       if (!Array.isArray(json.result)) {
         return this.createErrorResult(
-          "Cloudflare API error: No links array returned"
+          "Cloudflare API error: No results array returned"
         );
       }
       return this.createSuccessResult({
         status,
-        links: json.result,
+        results: json.result,
       });
     } catch (error) {
       return this.createErrorResult(

@@ -45,10 +45,16 @@ export class DetrResnet50Node extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      // Run the DETR-ResNet-50 model for object detection
-      const result = await context.env.AI.run("@cf/facebook/detr-resnet-50", {
+      const params = {
         image: Array.from(image.data),
-      });
+      };
+
+      // Run the DETR-ResNet-50 model for object detection
+      const result = await context.env.AI.run(
+        "@cf/facebook/detr-resnet-50" as any,
+        params,
+        context.env.AI_OPTIONS
+      );
 
       return this.createSuccessResult({
         detections: result,

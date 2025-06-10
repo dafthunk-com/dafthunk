@@ -88,7 +88,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
       const validatedGuidance = guidance || 7.5;
 
       // Prepare inputs for the model
-      const inputs = {
+      const params = {
         prompt,
         negative_prompt: negative_prompt || "",
         height: validatedHeight,
@@ -99,8 +99,9 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
 
       // Call Cloudflare AI SDXL-Lightning model
       const stream = (await context.env.AI.run(
-        "@cf/bytedance/stable-diffusion-xl-lightning",
-        inputs
+        "@cf/bytedance/stable-diffusion-xl-lightning" as any,
+        params,
+        context.env.AI_OPTIONS
       )) as ReadableStream;
 
       const response = new Response(stream);

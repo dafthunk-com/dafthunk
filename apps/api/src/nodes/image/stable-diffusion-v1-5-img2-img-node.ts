@@ -94,17 +94,20 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
           ? image.data
           : new Uint8Array(image.data);
 
+      const params = {
+        prompt: prompt || "enhance this image",
+        negative_prompt: negative_prompt || "",
+        image: Array.from(imageData), // Convert to regular array as required by the API
+        strength: validatedStrength,
+        guidance: validatedGuidance,
+        num_steps: validatedSteps,
+      };
+
       // Call Cloudflare AI Stable Diffusion v1.5 img2img model
       const stream = (await context.env.AI.run(
-        "@cf/runwayml/stable-diffusion-v1-5-img2img",
-        {
-          prompt: prompt || "enhance this image",
-          negative_prompt: negative_prompt || "",
-          image: Array.from(imageData), // Convert to regular array as required by the API
-          strength: validatedStrength,
-          guidance: validatedGuidance,
-          num_steps: validatedSteps,
-        }
+        "@cf/runwayml/stable-diffusion-v1-5-img2img" as any,
+        params,
+        context.env.AI_OPTIONS
       )) as ReadableStream;
 
       const response = new Response(stream);

@@ -102,12 +102,6 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
         type: "string",
         description: "Generated text response",
       },
-      {
-        name: "usage",
-        type: "string",
-        hidden: true,
-        description: "Token usage statistics",
-      },
     ],
   };
 
@@ -151,8 +145,9 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
       }
 
       const result = await context.env.AI.run(
-        "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
-        params
+        "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b" as any,
+        params,
+        context.env.AI_OPTIONS
       );
 
       if (result instanceof ReadableStream) {
@@ -174,7 +169,6 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
         const typedResult = result as DeepseekNonStreamedOutput;
         return this.createSuccessResult({
           response: typedResult.response,
-          usage: typedResult.usage ? JSON.stringify(typedResult.usage) : "",
         });
       }
     } catch (error) {

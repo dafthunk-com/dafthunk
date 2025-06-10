@@ -89,12 +89,6 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         type: "string",
         description: "Generated text response",
       },
-      {
-        name: "usage",
-        type: "string",
-        hidden: true,
-        description: "Token usage statistics",
-      },
     ],
   };
 
@@ -146,8 +140,9 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       }
 
       const result = await context.env.AI.run(
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast" as any, // Bypass AiModels type error
-        params
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast" as any,
+        params,
+        context.env.AI_OPTIONS
       );
 
       if (result instanceof ReadableStream) {
@@ -167,7 +162,6 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         const typedResult = result as Llama3370BNonStreamedOutput;
         return this.createSuccessResult({
           response: typedResult.response,
-          usage: typedResult.usage ? JSON.stringify(typedResult.usage) : "",
         });
       }
     } catch (error) {

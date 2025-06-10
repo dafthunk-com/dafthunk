@@ -46,12 +46,18 @@ export class MelottsNode extends ExecutableNode {
 
       const { prompt, lang } = context.inputs;
 
-      // Call Cloudflare AI MeloTTS model
-      // Request raw binary response instead of JSON
-      const response = await context.env.AI.run("@cf/myshell-ai/melotts", {
+      const params = {
         prompt,
         lang: lang || "en",
-      });
+      };
+
+      // Call Cloudflare AI MeloTTS model
+      // Request raw binary response instead of JSON
+      const response = await context.env.AI.run(
+        "@cf/myshell-ai/melotts" as any,
+        params,
+        context.env.AI_OPTIONS
+      );
 
       // Handle different response types from the API
       let audioBuffer;
