@@ -20,6 +20,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     description: "Generates text using Llama 3.3 70B model with fp8 precision",
     category: "Text",
     icon: "ai",
+    usage: 10,
     inputs: [
       {
         name: "prompt",

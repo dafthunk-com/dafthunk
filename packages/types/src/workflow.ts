@@ -99,6 +99,7 @@ export interface NodeType {
   description?: string;
   category: string;
   icon: string;
+  usage?: number;
   inputs: Parameter[];
   outputs: Parameter[];
   compatibility?: WorkflowType[]; // Optional array of workflow types this node is compatible with

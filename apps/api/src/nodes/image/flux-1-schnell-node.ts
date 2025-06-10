@@ -14,6 +14,7 @@ export class Flux1SchnellNode extends ExecutableNode {
       "Generates images from text descriptions using the FLUX.1 schnell model",
     category: "Image",
     icon: "image",
+    usage: 10,
     inputs: [
       {
         name: "prompt",

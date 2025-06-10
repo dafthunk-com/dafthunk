@@ -1,5 +1,6 @@
 import { Workflow } from "@cloudflare/workers-types";
 import { Fetcher } from "@cloudflare/workers-types";
+import { AnalyticsEngineDataset } from "@cloudflare/workers-types";
 import { JWTTokenPayload } from "@dafthunk/types";
 
 import { RuntimeParams } from "./runtime/runtime";
@@ -11,6 +12,7 @@ export interface Bindings {
   AI: Ai;
   KV: KVNamespace;
   BROWSER: Fetcher;
+  COMPUTE: AnalyticsEngineDataset;
   WEB_HOST: string;
   EMAIL_DOMAIN: string;
   JWT_SECRET: string;

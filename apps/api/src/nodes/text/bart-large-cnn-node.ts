@@ -13,6 +13,7 @@ export class BartLargeCnnNode extends ExecutableNode {
     description: "Summarizes text using BART-large-CNN model",
     category: "Text",
     icon: "summarize",
+    usage: 10,
     inputs: [
       {
         name: "inputText",

@@ -14,6 +14,7 @@ export class MelottsNode extends ExecutableNode {
     description: "Converts text to natural-sounding speech using MeloTTS",
     category: "Audio",
     icon: "audio",
+    usage: 10,
     inputs: [
       {
         name: "prompt",

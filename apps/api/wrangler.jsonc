@@ -63,6 +63,9 @@
       "class_name": "Runtime",
     },
   ],
+  "analytics_engine_datasets": [
+    { "binding": "COMPUTE", "dataset": "dafthunk-compute" },
+  ],
 
   /**
    * Environment Variables
@@ -113,6 +116,9 @@
           "id": "dd17ff67a75c41768dc30078eec37c46",
           "preview_id": "dd17ff67a75c41768dc30078eec37c46",
         },
+      ],
+      "analytics_engine_datasets": [
+        { "binding": "COMPUTE", "dataset": "dafthunk-compute" },
       ],
       "vars": {
         "WEB_HOST": "https://www.dafthunk.com",

@@ -11,6 +11,7 @@ export class SendEmailResendNode extends ExecutableNode {
     description: "Send an email using Resend",
     category: "Email",
     icon: "mail",
+    usage: 10,
     inputs: [
       {
         name: "to",

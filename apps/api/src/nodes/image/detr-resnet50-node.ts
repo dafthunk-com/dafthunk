@@ -15,6 +15,7 @@ export class DetrResnet50Node extends ExecutableNode {
       "Detects and classifies objects in images using DETR-ResNet-50 model",
     category: "Image",
     icon: "image",
+    usage: 10,
     inputs: [
       {
         name: "image",

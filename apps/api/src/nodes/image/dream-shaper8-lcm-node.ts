@@ -15,6 +15,7 @@ export class DreamShaper8LCMNode extends ExecutableNode {
       "Generates images from text descriptions using the DreamShaper 8 LCM model",
     category: "Image",
     icon: "image",
+    usage: 10,
     inputs: [
       {
         name: "prompt",

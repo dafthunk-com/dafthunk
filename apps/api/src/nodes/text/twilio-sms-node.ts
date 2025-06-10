@@ -11,6 +11,7 @@ export class TwilioSmsNode extends ExecutableNode {
     description: "Send an SMS using Twilio",
     category: "Text",
     icon: "message-square",
+    usage: 10,
     inputs: [
       {
         name: "to",

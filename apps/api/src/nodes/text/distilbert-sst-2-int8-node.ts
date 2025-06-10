@@ -15,6 +15,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
       "Analyzes the sentiment of text using Distilbert SST-2 Int8 model",
     category: "Text",
     icon: "mood",
+    usage: 10,
     inputs: [
       {
         name: "text",

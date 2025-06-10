@@ -326,4 +326,12 @@ export class NodeRegistry {
         !nodeType.compatibility || nodeType.compatibility.includes(workflowType)
     );
   }
+
+  public getNodeType(nodeType: string): NodeType {
+    const Implementation = this.implementations.get(nodeType);
+    if (!Implementation) {
+      throw new Error(`Node type not found: ${nodeType}`);
+    }
+    return Implementation.nodeType;
+  }
 }

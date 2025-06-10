@@ -15,6 +15,7 @@ export class SendEmailSesNode extends ExecutableNode {
     description: "Send an email using Amazon SES",
     category: "Email",
     icon: "mail",
+    usage: 10,
     inputs: [
       {
         name: "to",

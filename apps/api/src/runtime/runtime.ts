@@ -158,6 +158,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           async () =>
             this.executeNode(
               runtimeState,
+              workflow.id,
               nodeIdentifier,
               organizationId,
               instanceId,
@@ -251,6 +252,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    */
   private async executeNode(
     runtimeState: RuntimeState,
+    workflowId: string,
     nodeIdentifier: string,
     organizationId: string,
     executionId: string,
@@ -267,6 +269,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
       return { ...runtimeState, status: "error" };
     }
+
+    const nodeType = NodeRegistry.getInstance().getNodeType(node.type);
+    this.env.COMPUTE.writeDataPoint({
+      indexes: [organizationId],
+      blobs: [organizationId, workflowId, node.id],
+      doubles: [nodeType.usage ?? 1],
+    });
 
     // Resolve the runnable implementation.
     const executable = NodeRegistry.getInstance().createExecutableNode(node);

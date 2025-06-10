@@ -15,6 +15,7 @@ export class WhisperTinyEnNode extends ExecutableNode {
       "Transcribes English speech from audio files using OpenAI's Whisper Tiny English model - optimized for English speech recognition",
     category: "Audio",
     icon: "mic",
+    usage: 10,
     inputs: [
       {
         name: "audio",

@@ -13,6 +13,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     description: "Generates text",
     category: "Text",
     icon: "ai",
+    usage: 10,
     inputs: [
       {
         name: "prompt",

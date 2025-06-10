@@ -15,6 +15,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
       "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
     category: "Image",
     icon: "wand",
+    usage: 10,
     inputs: [
       {
         name: "prompt",
