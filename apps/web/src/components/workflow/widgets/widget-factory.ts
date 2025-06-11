@@ -317,6 +317,16 @@ export function createWidgetConfig(
         value: value || "",
       };
     }
+    case "rag-search": {
+      const value = inputs.find((i) => i.id === "datasetId")?.value as string;
+
+      return {
+        type: "dataset-selector",
+        id: nodeId,
+        name: "Dataset Selector",
+        value: value || "",
+      };
+    }
     default:
       return null;
   }

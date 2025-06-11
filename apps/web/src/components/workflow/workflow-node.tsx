@@ -189,6 +189,7 @@ export const WorkflowNode = memo(
       "audio-recorder": AudioRecorderWidget,
       document: DocumentWidget,
       "rag-ai-search": DatasetSelectorWidget,
+      "rag-search": DatasetSelectorWidget,
     };
 
     // Get widget configuration if this is a widget node
@@ -201,7 +202,7 @@ export const WorkflowNode = memo(
       if (readonly || !updateNodeData || !widgetConfig) return;
 
       // Handle dataset selector specifically
-      if (nodeType === "rag-ai-search") {
+      if (nodeType === "rag-ai-search" || nodeType === "rag-search") {
         const datasetIdInput = data.inputs.find((i) => i.id === "datasetId");
         if (datasetIdInput) {
           updateNodeInput(

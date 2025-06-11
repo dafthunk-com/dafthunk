@@ -1,7 +1,6 @@
 import { Node, WorkflowType } from "@dafthunk/types";
 import { NodeType } from "@dafthunk/types";
 
-import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
@@ -87,6 +86,8 @@ import { FormDataBooleanNode } from "./parameter/form-data-boolean-node";
 import { FormDataNumberNode } from "./parameter/form-data-number-node";
 import { FormDataStringNode } from "./parameter/form-data-string-node";
 import { JsonBodyNode } from "./parameter/json-body-node";
+import { RagAiSearchNode } from "./rag/rag-ai-search-node";
+import { RagSearchNode } from "./rag/rag-search-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
@@ -150,6 +151,7 @@ export class NodeRegistry {
     );
 
     this.registerImplementation(RagAiSearchNode);
+    this.registerImplementation(RagSearchNode);
     this.registerImplementation(FormDataStringNode);
     this.registerImplementation(FormDataNumberNode);
     this.registerImplementation(FormDataBooleanNode);
