@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, lte, SQL, sql, or } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -17,6 +17,9 @@ import {
   type CronTriggerInsert,
   type CronTriggerRow,
   cronTriggers,
+  type DatasetInsert,
+  type DatasetRow,
+  datasets,
   type DeploymentInsert,
   type DeploymentRow,
   deployments,
@@ -37,9 +40,6 @@ import {
   type WorkflowInsert,
   type WorkflowRow,
   workflows,
-  type DatasetInsert,
-  type DatasetRow,
-  datasets,
 } from "./index";
 
 /**

@@ -1,4 +1,11 @@
-import { KeyRound, Logs, SquareTerminal, Target, User, Database } from "lucide-react";
+import {
+  Database,
+  KeyRound,
+  Logs,
+  SquareTerminal,
+  Target,
+  User,
+} from "lucide-react";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
@@ -11,6 +18,8 @@ import { ProtectedRoute } from "./components/protected-route";
 import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { DashboardPage } from "./pages/dashboard-page";
+import { DatasetDetailPage } from "./pages/datasets/dataset-detail-page";
+import { DatasetsPage } from "./pages/datasets/datasets-page";
 import { DocsApiPage } from "./pages/docs/api-page";
 import { DocsOverviewPage } from "./pages/docs/concepts-page";
 import { DocsDevelopersPage } from "./pages/docs/developers-page";
@@ -30,8 +39,6 @@ import { ExecutionDetailPage } from "./pages/workflows/execution-detail-page";
 import { ExecutionsPage } from "./pages/workflows/executions-page";
 import { PublicExecutionPage } from "./pages/workflows/public-execution-page";
 import { WorkflowsPage } from "./pages/workflows/workflows-page";
-import { DatasetsPage } from "./pages/datasets/datasets-page";
-import { DatasetDetailPage } from "./pages/datasets/dataset-detail-page";
 
 export interface RouteHandle {
   head?:

@@ -1,15 +1,21 @@
+import { DatasetFile } from "@dafthunk/types";
 import { useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Button } from "@/components/ui/button";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { useAuth } from "@/components/auth-context";
-import { useDataset, useDatasetFiles, uploadDatasetFile, deleteDatasetFile } from "@/services/dataset-service";
-import { DatasetFile } from "@dafthunk/types";
+import {
+  deleteDatasetFile,
+  downloadDatasetFile,
+  uploadDatasetFile,
+  useDataset,
+  useDatasetFiles,
+} from "@/services/dataset-service";
 
 export function DatasetDetailPage() {
   const { datasetId } = useParams<{ datasetId: string }>();
@@ -17,18 +23,13 @@ export function DatasetDetailPage() {
   const { organization } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    dataset,
-    datasetError,
-    isDatasetLoading,
-  } = useDataset(datasetId || null);
+  const { dataset, datasetError, isDatasetLoading } = useDataset(
+    datasetId || null
+  );
 
-  const {
-    files,
-    filesError,
-    isFilesLoading,
-    mutateFiles,
-  } = useDatasetFiles(datasetId || null);
+  const { files, filesError, isFilesLoading, mutateFiles } = useDatasetFiles(
+    datasetId || null
+  );
 
   useEffect(() => {
     if (datasetId) {
@@ -41,21 +42,19 @@ export function DatasetDetailPage() {
 
   useEffect(() => {
     if (datasetError) {
-      toast.error(
-        `Failed to fetch dataset details: ${datasetError.message}`
-      );
+      toast.error(`Failed to fetch dataset details: ${datasetError.message}`);
     }
   }, [datasetError]);
 
   useEffect(() => {
     if (filesError) {
-      toast.error(
-        `Failed to fetch dataset files: ${filesError.message}`
-      );
+      toast.error(`Failed to fetch dataset files: ${filesError.message}`);
     }
   }, [filesError]);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !datasetId || !organization?.handle) return;
 
@@ -73,7 +72,11 @@ export function DatasetDetailPage() {
     if (!datasetId || !organization?.handle) return;
 
     try {
-      await deleteDatasetFile(datasetId, file.key.split("/").pop() || "", organization.handle);
+      await deleteDatasetFile(
+        datasetId,
+        file.key.split("/").pop() || "",
+        organization.handle
+      );
       toast.success("File deleted successfully");
       mutateFiles();
     } catch (error) {
@@ -82,14 +85,26 @@ export function DatasetDetailPage() {
     }
   };
 
+  const handleFileDownload = async (file: DatasetFile) => {
+    if (!datasetId || !organization?.handle) return;
+
+    try {
+      await downloadDatasetFile(
+        datasetId,
+        file.key.split("/").pop() || "",
+        organization.handle
+      );
+    } catch (error) {
+      toast.error("Failed to download file");
+      console.error("Download error:", error);
+    }
+  };
+
   if (isDatasetLoading) {
     return <InsetLoading title="Dataset Details" />;
   } else if (datasetError) {
     return (
-      <InsetError
-        title="Dataset Details"
-        errorMessage={datasetError.message}
-      />
+      <InsetError title="Dataset Details" errorMessage={datasetError.message} />
     );
   }
 
@@ -107,7 +122,9 @@ export function DatasetDetailPage() {
     <InsetLayout title={dataset.name}>
       <div className="space-y-6">
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-          <h3 className="font-semibold leading-none tracking-tight mb-4">Dataset Information</h3>
+          <h3 className="font-semibold leading-none tracking-tight mb-4">
+            Dataset Information
+          </h3>
           <div className="space-y-4">
             <div>
               <span className="text-sm text-muted-foreground">Name:</span>
@@ -119,11 +136,17 @@ export function DatasetDetailPage() {
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Created:</span>
-              <p className="font-medium">{new Date(dataset.createdAt).toLocaleString()}</p>
+              <p className="font-medium">
+                {new Date(dataset.createdAt).toLocaleString()}
+              </p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Last Updated:</span>
-              <p className="font-medium">{new Date(dataset.updatedAt).toLocaleString()}</p>
+              <span className="text-sm text-muted-foreground">
+                Last Updated:
+              </span>
+              <p className="font-medium">
+                {new Date(dataset.updatedAt).toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
@@ -173,14 +196,23 @@ export function DatasetDetailPage() {
                       {(file.size / 1024).toFixed(1)} KB
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleFileDelete(file)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    Delete
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileDownload(file)}
+                    >
+                      Download
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileDelete(file)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -189,4 +221,4 @@ export function DatasetDetailPage() {
       </div>
     </InsetLayout>
   );
-} 
+}

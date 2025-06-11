@@ -1,20 +1,20 @@
 import {
   CreateDatasetRequest,
   CreateDatasetResponse,
+  DeleteDatasetFileResponse,
   DeleteDatasetResponse,
   GetDatasetResponse,
+  ListDatasetFilesResponse,
   ListDatasetsResponse,
   UpdateDatasetRequest,
   UpdateDatasetResponse,
-  DatasetFile,
-  ListDatasetFilesResponse,
   UploadDatasetFileResponse,
-  DeleteDatasetFileResponse,
 } from "@dafthunk/types";
-import { useCallback } from "react";
 import useSWR from "swr";
 
 import { useAuth } from "@/components/auth-context";
+import { getApiBaseUrl } from "@/config/api";
+
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for datasets
@@ -223,4 +223,31 @@ export const deleteDatasetFile = async (
   );
 
   return response;
-}; 
+};
+
+/**
+ * Download a file from a dataset
+ */
+export const downloadDatasetFile = async (
+  datasetId: string,
+  filename: string,
+  orgHandle: string
+): Promise<void> => {
+  console.log("Downloading file:", filename, "from dataset:", datasetId);
+
+  // Create the download URL
+  const downloadUrl = `${getApiBaseUrl()}/${orgHandle}${API_ENDPOINT_BASE}/${datasetId}/files/${filename}`;
+  console.log("Download URL:", downloadUrl);
+
+  // Use window.open to trigger download - this avoids CORS issues
+  // The browser will handle the authentication cookies automatically
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = filename;
+  link.target = "_blank";
+
+  // Append to document, click, and remove
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};

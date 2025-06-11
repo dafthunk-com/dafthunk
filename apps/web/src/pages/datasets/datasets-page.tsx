@@ -1,3 +1,5 @@
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -26,8 +28,6 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
-import { MoreHorizontal, Plus } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
 import {
   createDataset,
   deleteDataset,
@@ -37,7 +37,7 @@ import {
 
 // --- Inline useDatasetActions ---
 function useDatasetActions() {
-  const { datasets, mutateDatasets } = useDatasets();
+  const { mutateDatasets } = useDatasets();
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
@@ -219,9 +219,7 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onClick={() =>
-                    navigate(`/datasets/datasets/${dataset.id}`)
-                  }
+                  onClick={() => navigate(`/datasets/datasets/${dataset.id}`)}
                 >
                   View Dataset
                 </DropdownMenuItem>
@@ -250,18 +248,10 @@ export function DatasetsPage() {
   const { datasets, datasetsError, isDatasetsLoading, mutateDatasets } =
     useDatasets();
 
-  const {
-    deleteDialog,
-    renameDialog,
-    openDeleteDialog,
-    openRenameDialog,
-  } = useDatasetActions();
+  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
+    useDatasetActions();
 
-  const columns = createColumns(
-    openDeleteDialog,
-    openRenameDialog,
-    navigate
-  );
+  const columns = createColumns(openDeleteDialog, openRenameDialog, navigate);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Datasets" }]);
@@ -283,9 +273,7 @@ export function DatasetsPage() {
   if (isDatasetsLoading) {
     return <InsetLoading title="Datasets" />;
   } else if (datasetsError) {
-    return (
-      <InsetError title="Datasets" errorMessage={datasetsError.message} />
-    );
+    return <InsetError title="Datasets" errorMessage={datasetsError.message} />;
   }
 
   return (
@@ -293,7 +281,8 @@ export function DatasetsPage() {
       <InsetLayout title="Datasets">
         <div className="flex items-center justify-between mb-6">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create, manage, and organize your datasets. Upload, process, and share your data with ease.
+            Create, manage, and organize your datasets. Upload, process, and
+            share your data with ease.
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -352,4 +341,4 @@ export function DatasetsPage() {
       </InsetLayout>
     </TooltipProvider>
   );
-} 
+}
