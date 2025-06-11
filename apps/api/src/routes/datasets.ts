@@ -203,7 +203,7 @@ datasetRoutes.post("/:id/upload", jwtMiddleware, async (c) => {
     }
 
     // Create the R2 path following the multitenant pattern
-    const r2Path = `${organizationId}/${id}/${file.name}`;
+    const r2Path = `${id}/${file.name}`;
 
     // Upload to R2
     await c.env.DATASETS.put(r2Path, await file.arrayBuffer(), {
@@ -243,7 +243,7 @@ datasetRoutes.get("/:id/files", jwtMiddleware, async (c) => {
 
   try {
     // List objects in the dataset's directory
-    const prefix = `${organizationId}/${id}/`;
+    const prefix = `${id}/`;
     const files = await c.env.DATASETS.list({ prefix });
 
     const response: ListDatasetFilesResponse = {
@@ -277,7 +277,7 @@ datasetRoutes.delete("/:id/files/:filename", jwtMiddleware, async (c) => {
   }
 
   try {
-    const r2Path = `${organizationId}/${id}/${filename}`;
+    const r2Path = `${id}/${filename}`;
     await c.env.DATASETS.delete(r2Path);
 
     const response: DeleteDatasetFileResponse = {
@@ -308,7 +308,7 @@ datasetRoutes.get("/:id/files/:filename", jwtMiddleware, async (c) => {
   }
 
   try {
-    const r2Path = `${organizationId}/${id}/${filename}`;
+    const r2Path = `${id}/${filename}`;
     const object = await c.env.DATASETS.get(r2Path);
 
     if (!object) {

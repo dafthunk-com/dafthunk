@@ -2,6 +2,7 @@ import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
+import { createDatabase, getDataset } from "../../db";
 
 /**
  * RAG Search node implementation
@@ -98,8 +99,15 @@ export class RagSearchNode extends ExecutableNode {
         return this.createErrorResult("AI binding is not available");
       }
 
+      // Verify dataset exists and belongs to organization
+      const db = createDatabase(context.env.DB);
+      const dataset = await getDataset(db, datasetId, organizationId);
+      if (!dataset) {
+        return this.createErrorResult("Dataset not found or access denied");
+      }
+
       // Create multi-tenant folder filter
-      const folderPrefix = `${organizationId}/${datasetId}/`;
+      const folderPrefix = `${datasetId}/`;
 
       // Prepare AutoRAG search parameters - only include defined values
       const searchParams: any = {

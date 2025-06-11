@@ -105,6 +105,7 @@ export interface NodeContext {
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
   env: {
+    DB: D1Database;
     AI: Ai;
     AI_OPTIONS: AiOptions;
     RESSOURCES: R2Bucket;

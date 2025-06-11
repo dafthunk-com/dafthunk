@@ -318,6 +318,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         emailMessage,
         onProgress: () => {},
         env: {
+          DB: this.env.DB,
           AI: this.env.AI,
           AI_OPTIONS: aiOptions,
           RESSOURCES: this.env.RESSOURCES,
