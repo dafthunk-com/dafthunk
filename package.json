@@ -6,6 +6,7 @@
   "preinstall": "npx only-allow pnpm",
   "scripts": {
     "dev": "pnpm --parallel dev",
+    "dev:preview": "pnpm --parallel dev:preview",
     "format": "pnpm --parallel format",
     "lint": "pnpm run typecheck && pnpm --parallel lint && pnpm run knip",
     "typecheck": "pnpm --parallel typecheck",

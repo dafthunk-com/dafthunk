@@ -34,7 +34,7 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
   }
 
   try {
-    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
     const result = await objectStore.readObject(reference);
 
@@ -111,7 +111,7 @@ objectRoutes.post("/", jwtMiddleware, async (c) => {
   }
 
   try {
-    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
     const buffer = await file.arrayBuffer();
     const data = new Uint8Array(buffer);
     const reference = await objectStore.writeObject(
@@ -142,7 +142,7 @@ objectRoutes.delete("/:id", jwtMiddleware, async (c) => {
   }
 
   try {
-    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
 
     // Check if the object exists and if the user has permission to delete it
@@ -186,7 +186,7 @@ objectRoutes.get("/metadata/:id", jwtMiddleware, async (c) => {
   }
 
   try {
-    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
 
     const result = await objectStore.readObject(reference);
@@ -232,7 +232,7 @@ objectRoutes.get("/list", jwtMiddleware, async (c) => {
   }
 
   try {
-    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
     const objectList = await objectStore.listObjects(organizationId);
 
     const response: ListObjectsResponse = { objects: objectList };

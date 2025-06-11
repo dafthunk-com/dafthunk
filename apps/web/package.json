@@ -11,6 +11,7 @@
     "fix": "eslint --fix . && pnpm run format",
     "test": "vitest run",
     "dev": "tsx watch server.ts",
+    "dev:preview": "tsx watch server.ts",
     "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
     "deploy": "wrangler pages deploy ./dist",
     "format": "prettier --write .",

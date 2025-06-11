@@ -30,7 +30,7 @@ publicRoutes.get("/objects", async (c) => {
   }
 
   try {
-    const objectStore = new ObjectStore(c.env.BUCKET);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
     const reference: ObjectReference = { id: objectId, mimeType };
     const result = await objectStore.readObject(reference);
 
@@ -139,7 +139,7 @@ publicRoutes.get("/images/:key", async (c) => {
   const key = c.req.param("key");
 
   try {
-    const object = await c.env.BUCKET.get("images/" + key);
+    const object = await c.env.RESSOURCES.get("images/" + key);
     const mimeType = object?.httpMetadata?.contentType;
 
     if (!object || !mimeType) {

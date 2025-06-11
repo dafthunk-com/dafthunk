@@ -472,7 +472,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
     const processed: Record<string, unknown> = {};
-    const objectStore = new ObjectStore(this.env.BUCKET);
+    const objectStore = new ObjectStore(this.env.RESSOURCES);
 
     for (const definition of node.inputs) {
       const { name, type, required } = definition;
@@ -516,7 +516,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
     const processed: Record<string, unknown> = {};
-    const objectStore = new ObjectStore(this.env.BUCKET);
+    const objectStore = new ObjectStore(this.env.RESSOURCES);
 
     for (const definition of node.outputs) {
       const { name, type } = definition;

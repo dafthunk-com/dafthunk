@@ -42,7 +42,7 @@ export async function generateExecutionOgImage({
     });
 
     const key = `images/og-execution-${executionId}.jpeg`;
-    await env.BUCKET.put(key, screenshotBuffer, {
+    await env.RESSOURCES.put(key, screenshotBuffer, {
       httpMetadata: {
         contentType: "image/jpeg",
         cacheControl: "public, max-age=31536000",

@@ -8,11 +8,10 @@ import { RuntimeParams } from "./runtime/runtime";
 export interface Bindings {
   DB: D1Database;
   EXECUTE: Workflow<RuntimeParams>;
-  BUCKET: R2Bucket;
+  RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;
   DATASETS_AUTORAG: string;
   AI: Ai;
-  KV: KVNamespace;
   BROWSER: Fetcher;
   COMPUTE: AnalyticsEngineDataset;
   WEB_HOST: string;

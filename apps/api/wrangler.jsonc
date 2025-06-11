@@ -33,42 +33,33 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "workflow-development",
-      "database_id": "a89e76fb-ac20-49fc-a797-6a0f08a1dfd7",
-      // TODO: Update this to the correct preview database id
-      "preview_database_id": "01b80cb4-7115-47e0-a26c-f7970e1a6605",
+      "database_name": "dafthunk-development",
+      "database_id": "05b1b8e5-d566-47b8-9085-161de45bbd25",
+      "preview_database_id": "05b1b8e5-d566-47b8-9085-161de45bbd25",
       "migrations_dir": "./src/db/migrations",
     },
   ],
   "r2_buckets": [
     {
-      "binding": "BUCKET",
-      "bucket_name": "workflow-development",
-      // TODO: Update this to the correct preview bucket name
-      "preview_bucket_name": "workflow-development-preview",
+      "binding": "RESSOURCES",
+      "bucket_name": "dafthunk-ressources-development",
+      "preview_bucket_name": "dafthunk-ressources-development",
     },
     {
       "binding": "DATASETS",
-      "bucket_name": "dafthunk-datasets",
-    },
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "868c7fd3732e42c4ad1c6f65939d1bfc",
-      // TODO: Update this to the correct preview kv namespace id
-      "preview_id": "e1547dbff039449eb2eb89dbc9a0376c",
+      "bucket_name": "dafthunk-datasets-development",
+      "preview_bucket_name": "dafthunk-datasets-development",
     },
   ],
   "workflows": [
     {
-      "name": "workflows-starter",
+      "name": "dafthunk-api",
       "binding": "EXECUTE",
       "class_name": "Runtime",
     },
   ],
   "analytics_engine_datasets": [
-    { "binding": "COMPUTE", "dataset": "dafthunk-compute" },
+    { "binding": "COMPUTE", "dataset": "dafthunk-compute-development" },
   ],
 
   /**
@@ -88,7 +79,7 @@
       },
       "workflows": [
         {
-          "name": "workflows-starter",
+          "name": "dafthunk-api",
           "binding": "EXECUTE",
           "class_name": "Runtime",
         },
@@ -102,31 +93,24 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "workflow-production",
-          "database_id": "9c1418f1-4099-4e42-9143-6d4ee2069f60",
-          "preview_database_id": "9c1418f1-4099-4e42-9143-6d4ee2069f60",
+          "database_name": "dafthunk-production",
+          "database_id": "1d40113a-d6ec-4a46-8ba8-7958ee15b79a",
+          "preview_database_id": "1d40113a-d6ec-4a46-8ba8-7958ee15b79a",
           "migrations_dir": "./src/db/migrations",
         },
       ],
       "r2_buckets": [
         {
-          "binding": "BUCKET",
-          "bucket_name": "workflow-production",
+          "binding": "RESSOURCES",
+          "bucket_name": "dafthunk-ressources-production",
         },
         {
           "binding": "DATASETS",
-          "bucket_name": "dafthunk-datasets",
-        },
-      ],
-      "kv_namespaces": [
-        {
-          "binding": "KV",
-          "id": "dd17ff67a75c41768dc30078eec37c46",
-          "preview_id": "dd17ff67a75c41768dc30078eec37c46",
+          "bucket_name": "dafthunk-datasets-production",
         },
       ],
       "analytics_engine_datasets": [
-        { "binding": "COMPUTE", "dataset": "dafthunk-compute" },
+        { "binding": "COMPUTE", "dataset": "dafthunk-compute-production" },
       ],
       "vars": {
         "WEB_HOST": "https://www.dafthunk.com",
