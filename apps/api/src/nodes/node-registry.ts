@@ -1,6 +1,7 @@
 import { Node, WorkflowType } from "@dafthunk/types";
 import { NodeType } from "@dafthunk/types";
 
+import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
@@ -148,6 +149,7 @@ export class NodeRegistry {
       env.SES_DEFAULT_FROM
     );
 
+    this.registerImplementation(RagAiSearchNode);
     this.registerImplementation(FormDataStringNode);
     this.registerImplementation(FormDataNumberNode);
     this.registerImplementation(FormDataBooleanNode);

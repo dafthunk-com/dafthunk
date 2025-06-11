@@ -312,6 +312,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const context: NodeContext = {
         nodeId: nodeIdentifier,
         workflowId: runtimeState.workflow.id,
+        organizationId,
         inputs: processedInputs,
         httpRequest,
         emailMessage,
@@ -319,6 +320,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         env: {
           AI: this.env.AI,
           AI_OPTIONS: aiOptions,
+          RESSOURCES: this.env.RESSOURCES,
+          DATASETS: this.env.DATASETS,
+          DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
           CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
           CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
           CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,

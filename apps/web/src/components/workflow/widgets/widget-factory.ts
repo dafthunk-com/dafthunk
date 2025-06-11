@@ -81,6 +81,13 @@ interface DocumentConfig {
   mimeType: string;
 }
 
+interface DatasetSelectorConfig {
+  type: "dataset-selector";
+  id: string;
+  name: string;
+  value: string;
+}
+
 export type WidgetConfig =
   | SliderWidgetConfig
   | TextAreaWidgetConfig
@@ -91,7 +98,8 @@ export type WidgetConfig =
   | CanvasDoodleConfig
   | WebcamConfig
   | AudioRecorderConfig
-  | DocumentConfig;
+  | DocumentConfig
+  | DatasetSelectorConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -297,6 +305,16 @@ export function createWidgetConfig(
         type: "document",
         value: value || "",
         mimeType: mimeType || "application/pdf",
+      };
+    }
+    case "rag-ai-search": {
+      const value = inputs.find((i) => i.id === "datasetId")?.value as string;
+
+      return {
+        type: "dataset-selector",
+        id: nodeId,
+        name: "Dataset Selector",
+        value: value || "",
       };
     }
     default:

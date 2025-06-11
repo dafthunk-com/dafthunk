@@ -20,6 +20,7 @@ import { cn } from "@/utils/utils";
 import { InputEditDialog } from "./input-edit-dialog";
 import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
 import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
+import { DatasetSelectorWidget } from "./widgets/dataset-selector-widget";
 import { DocumentWidget } from "./widgets/document-widget";
 import { InputTextWidget } from "./widgets/input-text-widget";
 import { JavaScriptEditorWidget } from "./widgets/javascript-editor-widget";
@@ -187,6 +188,7 @@ export const WorkflowNode = memo(
       webcam: WebcamWidget,
       "audio-recorder": AudioRecorderWidget,
       document: DocumentWidget,
+      "rag-ai-search": DatasetSelectorWidget,
     };
 
     // Get widget configuration if this is a widget node
@@ -198,6 +200,22 @@ export const WorkflowNode = memo(
     const handleWidgetChange = (value: any) => {
       if (readonly || !updateNodeData || !widgetConfig) return;
 
+      // Handle dataset selector specifically
+      if (nodeType === "rag-ai-search") {
+        const datasetIdInput = data.inputs.find((i) => i.id === "datasetId");
+        if (datasetIdInput) {
+          updateNodeInput(
+            id,
+            datasetIdInput.id,
+            value,
+            data.inputs,
+            updateNodeData
+          );
+        }
+        return;
+      }
+
+      // Handle other widgets
       const valueInput = data.inputs.find((i) => i.id === "value");
       if (valueInput) {
         updateNodeInput(id, valueInput.id, value, data.inputs, updateNodeData);

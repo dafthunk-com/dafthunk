@@ -99,6 +99,7 @@ export interface EmailMessage {
 export interface NodeContext {
   nodeId: string;
   workflowId: string;
+  organizationId: string;
   inputs: Record<string, any>;
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
@@ -106,6 +107,9 @@ export interface NodeContext {
   env: {
     AI: Ai;
     AI_OPTIONS: AiOptions;
+    RESSOURCES: R2Bucket;
+    DATASETS: R2Bucket;
+    DATASETS_AUTORAG: string;
     EMAIL_DOMAIN: string;
     CLOUDFLARE_ACCOUNT_ID?: string;
     CLOUDFLARE_API_TOKEN?: string;

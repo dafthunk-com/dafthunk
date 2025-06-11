@@ -23,3 +23,12 @@ export interface BaseWidgetProps<T extends BaseWidgetConfig> {
 export interface SliderWidgetProps extends BaseWidgetProps<SliderWidgetConfig> {
   config: SliderWidgetConfig;
 }
+
+export interface DatasetSelectorWidgetConfig extends BaseWidgetConfig {
+  type: "dataset-selector";
+}
+
+export interface DatasetSelectorWidgetProps
+  extends BaseWidgetProps<DatasetSelectorWidgetConfig> {
+  config: DatasetSelectorWidgetConfig;
+}

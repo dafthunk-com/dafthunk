@@ -212,12 +212,12 @@ export const downloadDatasetFile = async (
 ): Promise<void> => {
   // Create the download URL
   const downloadUrl = `${getApiBaseUrl()}/${orgHandle}${API_ENDPOINT_BASE}/${datasetId}/files/${filename}`;
-  
+
   const link = document.createElement("a");
   link.href = downloadUrl;
   link.download = filename;
   link.target = "_blank";
-  
+
   // Append to document, click, and remove
   document.body.appendChild(link);
   link.click();
