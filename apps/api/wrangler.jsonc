@@ -47,6 +47,10 @@
       // TODO: Update this to the correct preview bucket name
       "preview_bucket_name": "workflow-development-preview",
     },
+    {
+      "binding": "DATASETS",
+      "bucket_name": "dafthunk-datasets",
+    },
   ],
   "kv_namespaces": [
     {
@@ -108,6 +112,10 @@
         {
           "binding": "BUCKET",
           "bucket_name": "workflow-production",
+        },
+        {
+          "binding": "DATASETS",
+          "bucket_name": "dafthunk-datasets",
         },
       ],
       "kv_namespaces": [

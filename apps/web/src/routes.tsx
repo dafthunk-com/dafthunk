@@ -1,4 +1,4 @@
-import { KeyRound, Logs, SquareTerminal, Target, User } from "lucide-react";
+import { KeyRound, Logs, SquareTerminal, Target, User, Database } from "lucide-react";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
@@ -30,6 +30,7 @@ import { ExecutionDetailPage } from "./pages/workflows/execution-detail-page";
 import { ExecutionsPage } from "./pages/workflows/executions-page";
 import { PublicExecutionPage } from "./pages/workflows/public-execution-page";
 import { WorkflowsPage } from "./pages/workflows/workflows-page";
+import { DatasetsPage } from "./pages/datasets/datasets-page";
 
 export interface RouteHandle {
   head?:
@@ -75,6 +76,14 @@ const settingsSidebarItems = [
     title: "API Keys",
     url: "/settings/api-keys",
     icon: KeyRound,
+  },
+];
+
+const datasetsSidebarItems = [
+  {
+    title: "Datasets",
+    url: "/datasets/datasets",
+    icon: Database,
   },
 ];
 
@@ -243,6 +252,27 @@ export const routes: AppRouteObject[] = [
         />
       ),
     },
+  },
+  {
+    path: "/datasets",
+    element: <Navigate to="/datasets/datasets" replace />,
+  },
+  {
+    path: "/datasets/datasets",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Datasets",
+          items: datasetsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DatasetsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Datasets - Datasets - Dafthunk" /> },
   },
   {
     path: "/workflows",
