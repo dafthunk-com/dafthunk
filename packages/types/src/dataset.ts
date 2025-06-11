@@ -1,4 +1,3 @@
-
 // Dataset Types
 export interface CreateDatasetRequest {
     name: string;
@@ -44,5 +43,29 @@ export interface CreateDatasetRequest {
   
   export interface DeleteDatasetResponse {
     id: string;
+  }
+  
+  // Dataset File Types
+  export interface DatasetFile {
+    key: string;
+    size: number;
+    uploaded: string;
+  }
+  
+  export interface ListDatasetFilesResponse {
+    files: DatasetFile[];
+  }
+  
+  export interface UploadDatasetFileResponse {
+    success: boolean;
+    path: string;
+    filename: string;
+    size: number;
+    type: string;
+  }
+  
+  export interface DeleteDatasetFileResponse {
+    success: boolean;
+    path: string;
   }
   

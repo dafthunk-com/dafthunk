@@ -6,6 +6,10 @@ import {
   ListDatasetsResponse,
   UpdateDatasetRequest,
   UpdateDatasetResponse,
+  DatasetFile,
+  ListDatasetFilesResponse,
+  UploadDatasetFileResponse,
+  DeleteDatasetFileResponse,
 } from "@dafthunk/types";
 import { useCallback } from "react";
 import useSWR from "swr";
@@ -141,4 +145,82 @@ export const deleteDataset = async (
       method: "DELETE",
     }
   );
+};
+
+/**
+ * Upload a file to a dataset
+ */
+export const uploadDatasetFile = async (
+  datasetId: string,
+  file: File,
+  orgHandle: string
+): Promise<UploadDatasetFileResponse> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await makeOrgRequest<UploadDatasetFileResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${datasetId}/upload`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  return response;
+};
+
+/**
+ * Hook to list files in a dataset
+ */
+export const useDatasetFiles = (datasetId: string | null) => {
+  const { organization } = useAuth();
+  const orgHandle = organization?.handle;
+
+  // Create a unique SWR key that includes the organization handle and dataset ID
+  const swrKey =
+    orgHandle && datasetId
+      ? `/${orgHandle}${API_ENDPOINT_BASE}/${datasetId}/files`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR<ListDatasetFilesResponse>(
+    swrKey,
+    swrKey && orgHandle && datasetId
+      ? async () => {
+          return await makeOrgRequest<ListDatasetFilesResponse>(
+            orgHandle,
+            API_ENDPOINT_BASE,
+            `/${datasetId}/files`
+          );
+        }
+      : null
+  );
+
+  return {
+    files: data?.files || [],
+    filesError: error || null,
+    isFilesLoading: isLoading,
+    mutateFiles: mutate,
+  };
+};
+
+/**
+ * Delete a file from a dataset
+ */
+export const deleteDatasetFile = async (
+  datasetId: string,
+  filename: string,
+  orgHandle: string
+): Promise<DeleteDatasetFileResponse> => {
+  const response = await makeOrgRequest<DeleteDatasetFileResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${datasetId}/files/${filename}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  return response;
 }; 

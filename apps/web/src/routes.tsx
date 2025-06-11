@@ -31,6 +31,7 @@ import { ExecutionsPage } from "./pages/workflows/executions-page";
 import { PublicExecutionPage } from "./pages/workflows/public-execution-page";
 import { WorkflowsPage } from "./pages/workflows/workflows-page";
 import { DatasetsPage } from "./pages/datasets/datasets-page";
+import { DatasetDetailPage } from "./pages/datasets/dataset-detail-page";
 
 export interface RouteHandle {
   head?:
@@ -273,6 +274,23 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Datasets - Datasets - Dafthunk" /> },
+  },
+  {
+    path: "/datasets/datasets/:datasetId",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Datasets",
+          items: datasetsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DatasetDetailPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Dataset Details - Datasets - Dafthunk" /> },
   },
   {
     path: "/workflows",
