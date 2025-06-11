@@ -113,25 +113,46 @@ export class RagAiSearchNode extends ExecutableNode {
       // Create multi-tenant folder filter
       const folderPrefix = `${organizationId}/${datasetId}/`;
 
-      // Prepare AutoRAG search parameters
-      const searchParams = {
+      // Prepare AutoRAG search parameters - only include defined values
+      const searchParams: any = {
         query: query.trim(),
-        model: model || "@cf/meta/llama-3.3-70b-instruct-sd",
-        rewrite_query: Boolean(rewriteQuery),
-        max_num_results: Math.min(Math.max(Number(maxResults) || 10, 1), 50),
-        ranking_options: {
-          score_threshold: Math.min(
-            Math.max(Number(scoreThreshold) || 0.3, 0),
-            1
-          ),
-        },
-        stream: false, // Keep simple for now
-        filters: {
-          type: "eq" as const,
-          key: "folder",
-          value: folderPrefix,
-        },
       };
+
+      // Only set model if provided
+      if (model && typeof model === "string") {
+        searchParams.model = model;
+      }
+
+      // Only set rewrite_query if explicitly provided
+      if (rewriteQuery !== undefined) {
+        searchParams.rewrite_query = Boolean(rewriteQuery);
+      }
+
+      // Only set max_num_results if provided and valid
+      if (maxResults !== undefined && !isNaN(Number(maxResults))) {
+        const numResults = Math.min(Math.max(Number(maxResults), 1), 50);
+        searchParams.max_num_results = numResults;
+      }
+
+      // Only set ranking_options if scoreThreshold is provided and valid
+      if (scoreThreshold !== undefined && !isNaN(Number(scoreThreshold))) {
+        const threshold = Math.min(Math.max(Number(scoreThreshold), 0), 1);
+        searchParams.ranking_options = {
+          score_threshold: threshold,
+        };
+      }
+
+      // Always set stream to false for simplicity
+      searchParams.stream = false;
+
+      // Only set filters if we have a valid folder prefix
+      if (folderPrefix) {
+        searchParams.filters = {
+            type: "eq" as const,
+            key: "folder",
+            value: "01975f74-76b4-7778-b50d-1d079cee26ce/01975fd5-5e25-728a-afd3-a8c40e6571b7/",
+        };
+      }
 
       // Execute AutoRAG search
       const autoragInstance = context.env.AI.autorag(

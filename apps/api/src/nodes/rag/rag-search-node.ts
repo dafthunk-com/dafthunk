@@ -101,23 +101,38 @@ export class RagSearchNode extends ExecutableNode {
       // Create multi-tenant folder filter
       const folderPrefix = `${organizationId}/${datasetId}/`;
 
-      // Prepare AutoRAG search parameters
-      const searchParams = {
+      // Prepare AutoRAG search parameters - only include defined values
+      const searchParams: any = {
         query: query.trim(),
-        rewrite_query: Boolean(rewriteQuery),
-        max_num_results: Math.min(Math.max(Number(maxResults) || 10, 1), 50),
-        ranking_options: {
-          score_threshold: Math.min(
-            Math.max(Number(scoreThreshold) || 0.3, 0),
-            1
-          ),
-        },
-        filters: {
+      };
+
+      // Only set rewrite_query if explicitly provided
+      if (rewriteQuery !== undefined) {
+        searchParams.rewrite_query = Boolean(rewriteQuery);
+      }
+
+      // Only set max_num_results if provided and valid
+      if (maxResults !== undefined && !isNaN(Number(maxResults))) {
+        const numResults = Math.min(Math.max(Number(maxResults), 1), 50);
+        searchParams.max_num_results = numResults;
+      }
+
+      // Only set ranking_options if scoreThreshold is provided and valid
+      if (scoreThreshold !== undefined && !isNaN(Number(scoreThreshold))) {
+        const threshold = Math.min(Math.max(Number(scoreThreshold), 0), 1);
+        searchParams.ranking_options = {
+          score_threshold: threshold,
+        };
+      }
+
+      // Only set filters if we have a valid folder prefix
+      if (folderPrefix) {
+        searchParams.filters = {
           type: "eq" as const,
           key: "folder",
           value: folderPrefix,
-        },
-      };
+        };
+      }
 
       // Execute AutoRAG search (search only, no generation)
       const autoragInstance = context.env.AI.autorag(
