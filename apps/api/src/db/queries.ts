@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, SQL, sql, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -37,6 +37,9 @@ import {
   type WorkflowInsert,
   type WorkflowRow,
   workflows,
+  type DatasetInsert,
+  type DatasetRow,
+  datasets,
 } from "./index";
 
 /**
@@ -226,6 +229,14 @@ export function getWorkflowCondition(workflowIdOrHandle: string) {
     return eq(workflows.id, workflowIdOrHandle);
   } else {
     return eq(workflows.handle, workflowIdOrHandle);
+  }
+}
+
+export function getDatasetCondition(datasetIdOrHandle: string) {
+  if (isUUID(datasetIdOrHandle)) {
+    return eq(datasets.id, datasetIdOrHandle);
+  } else {
+    return eq(datasets.handle, datasetIdOrHandle);
   }
 }
 
@@ -1228,4 +1239,126 @@ export async function getDueCronTriggers(
             ? r.selectedDeployment
             : null,
     }));
+}
+
+/**
+ * Get all datasets for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of datasets with basic info
+ */
+export async function getDatasets(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      id: datasets.id,
+      name: datasets.name,
+      handle: datasets.handle,
+      createdAt: datasets.createdAt,
+      updatedAt: datasets.updatedAt,
+    })
+    .from(datasets)
+    .innerJoin(
+      organizations,
+      and(
+        eq(datasets.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get a dataset by ID or handle, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param datasetIdOrHandle Dataset ID or handle
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Dataset record or undefined if not found
+ */
+export async function getDataset(
+  db: ReturnType<typeof createDatabase>,
+  datasetIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<DatasetRow | undefined> {
+  const [dataset] = await db
+    .select()
+    .from(datasets)
+    .innerJoin(
+      organizations,
+      and(
+        eq(datasets.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    )
+    .where(getDatasetCondition(datasetIdOrHandle))
+    .limit(1);
+  return dataset?.datasets;
+}
+
+/**
+ * Create a new dataset
+ *
+ * @param db Database instance
+ * @param newDataset Dataset data to insert
+ * @returns Created dataset record
+ */
+export async function createDataset(
+  db: ReturnType<typeof createDatabase>,
+  newDataset: DatasetInsert
+): Promise<DatasetRow> {
+  const [dataset] = await db.insert(datasets).values(newDataset).returning();
+
+  return dataset;
+}
+
+/**
+ * Update a dataset, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Dataset ID
+ * @param organizationId Organization ID
+ * @param data Updated dataset data
+ * @returns Updated dataset record
+ */
+export async function updateDataset(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  data: Partial<DatasetRow>
+): Promise<DatasetRow> {
+  const [dataset] = await db
+    .update(datasets)
+    .set(data)
+    .where(
+      and(eq(datasets.id, id), eq(datasets.organizationId, organizationId))
+    )
+    .returning();
+
+  return dataset;
+}
+
+/**
+ * Delete a dataset, ensuring it belongs to the specified organization
+ *
+ * @param db Database instance
+ * @param id Dataset ID
+ * @param organizationId Organization ID
+ * @returns Deleted dataset record
+ */
+export async function deleteDataset(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<DatasetRow | undefined> {
+  const [dataset] = await db
+    .delete(datasets)
+    .where(
+      and(eq(datasets.id, id), eq(datasets.organizationId, organizationId))
+    )
+    .returning();
+
+  return dataset;
 }

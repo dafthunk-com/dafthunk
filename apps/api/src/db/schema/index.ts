@@ -346,6 +346,31 @@ export const cronTriggers = sqliteTable(
   ]
 );
 
+// Datasets - Data collections associated with organizations
+export const datasets = sqliteTable(
+  "datasets",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    handle: text("handle").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("datasets_name_idx").on(table.name),
+    index("datasets_handle_idx").on(table.handle),
+    index("datasets_organization_id_idx").on(table.organizationId),
+    index("datasets_created_at_idx").on(table.createdAt),
+    uniqueIndex("datasets_organization_id_handle_unique_idx").on(
+      table.organizationId,
+      table.handle
+    ),
+  ]
+);
+
 /**
  * RELATION DEFINITIONS
  */
@@ -366,6 +391,7 @@ export const organizationsRelations = relations(
     executions: many(executions),
     deployments: many(deployments),
     apiKeys: many(apiKeys),
+    datasets: many(datasets),
     users: one(users),
   })
 );
@@ -434,6 +460,13 @@ export const cronTriggersRelations = relations(cronTriggers, ({ one }) => ({
   }),
 }));
 
+export const datasetsRelations = relations(datasets, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [datasets.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 /**
  * HELPER FUNCTIONS
  */
@@ -475,3 +508,6 @@ export type DeploymentInsert = typeof deployments.$inferInsert;
 
 export type CronTriggerRow = typeof cronTriggers.$inferSelect;
 export type CronTriggerInsert = typeof cronTriggers.$inferInsert;
+
+export type DatasetRow = typeof datasets.$inferSelect;
+export type DatasetInsert = typeof datasets.$inferInsert;

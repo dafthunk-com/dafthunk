@@ -8,6 +8,7 @@ import { corsMiddleware } from "./middleware/cors";
 import { NodeRegistry } from "./nodes/node-registry";
 import apiKeyRoutes from "./routes/api-keys";
 import dashboardRoutes from "./routes/dashboard";
+import datasetRoutes from "./routes/datasets";
 import deploymentRoutes from "./routes/deployments";
 import executionRoutes from "./routes/executions";
 import health from "./routes/health";
@@ -42,6 +43,7 @@ app.route("/types", typeRoutes);
 
 app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);
 app.route("/:organizationIdOrHandle/dashboard", dashboardRoutes);
+app.route("/:organizationIdOrHandle/datasets", datasetRoutes);
 app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
 app.route("/:organizationIdOrHandle/executions", executionRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);

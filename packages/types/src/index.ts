@@ -6,3 +6,4 @@ export * from "./execution";
 export * from "./objects";
 export * from "./types";
 export * from "./workflow";
+export * from "./dataset";
