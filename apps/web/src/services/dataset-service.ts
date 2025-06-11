@@ -6,8 +6,6 @@ import {
   GetDatasetResponse,
   ListDatasetFilesResponse,
   ListDatasetsResponse,
-  UpdateDatasetRequest,
-  UpdateDatasetResponse,
   UploadDatasetFileResponse,
 } from "@dafthunk/types";
 import useSWR from "swr";
@@ -102,27 +100,6 @@ export const createDataset = async (
     "",
     {
       method: "POST",
-      body: JSON.stringify(request),
-    }
-  );
-
-  return response;
-};
-
-/**
- * Update an existing dataset
- */
-export const updateDataset = async (
-  id: string,
-  request: UpdateDatasetRequest,
-  orgHandle: string
-): Promise<UpdateDatasetResponse> => {
-  const response = await makeOrgRequest<UpdateDatasetResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${id}`,
-    {
-      method: "PUT",
       body: JSON.stringify(request),
     }
   );
@@ -233,19 +210,14 @@ export const downloadDatasetFile = async (
   filename: string,
   orgHandle: string
 ): Promise<void> => {
-  console.log("Downloading file:", filename, "from dataset:", datasetId);
-
   // Create the download URL
   const downloadUrl = `${getApiBaseUrl()}/${orgHandle}${API_ENDPOINT_BASE}/${datasetId}/files/${filename}`;
-  console.log("Download URL:", downloadUrl);
-
-  // Use window.open to trigger download - this avoids CORS issues
-  // The browser will handle the authentication cookies automatically
+  
   const link = document.createElement("a");
   link.href = downloadUrl;
   link.download = filename;
   link.target = "_blank";
-
+  
   // Append to document, click, and remove
   document.body.appendChild(link);
   link.click();

@@ -31,23 +31,17 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDataset,
   deleteDataset,
-  updateDataset,
   useDatasets,
 } from "@/services/dataset-service";
 
-// --- Inline useDatasetActions ---
 function useDatasetActions() {
   const { mutateDatasets } = useDatasets();
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [datasetToDelete, setDatasetToDelete] = useState<any | null>(null);
-  const [datasetToRename, setDatasetToRename] = useState<any | null>(null);
-  const [renameDatasetName, setRenameDatasetName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isRenaming, setIsRenaming] = useState(false);
 
   const handleDeleteDataset = async () => {
     if (!datasetToDelete || !orgHandle) return;
@@ -59,26 +53,6 @@ function useDatasetActions() {
       mutateDatasets();
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  const handleRenameDataset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!datasetToRename || !orgHandle) return;
-    setIsRenaming(true);
-    try {
-      await updateDataset(
-        datasetToRename.id,
-        {
-          name: renameDatasetName,
-        },
-        orgHandle
-      );
-      setRenameDialogOpen(false);
-      setDatasetToRename(null);
-      mutateDatasets();
-    } finally {
-      setIsRenaming(false);
     }
   };
 
@@ -114,61 +88,17 @@ function useDatasetActions() {
     </Dialog>
   );
 
-  const renameDialog = (
-    <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Rename Dataset</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleRenameDataset} className="space-y-4">
-          <div>
-            <Label htmlFor="rename-name">Dataset Name</Label>
-            <Input
-              id="rename-name"
-              value={renameDatasetName}
-              onChange={(e) => setRenameDatasetName(e.target.value)}
-              placeholder="Enter dataset name"
-              className="mt-2"
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => setRenameDialogOpen(false)}
-              disabled={isRenaming}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isRenaming}>
-              {isRenaming ? <Spinner className="h-4 w-4 mr-2" /> : null}
-              Rename
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-
   return {
     deleteDialog,
-    renameDialog,
     openDeleteDialog: (dataset: any) => {
       setDatasetToDelete(dataset);
       setDeleteDialogOpen(true);
     },
-    openRenameDialog: (dataset: any) => {
-      setDatasetToRename(dataset);
-      setRenameDatasetName(dataset.name || "");
-      setRenameDialogOpen(true);
-    },
   };
 }
 
-// --- Inline createColumns ---
 function createColumns(
   openDeleteDialog: (dataset: any) => void,
-  openRenameDialog: (dataset: any) => void,
   navigate: ReturnType<typeof useNavigate>
 ): ColumnDef<any>[] {
   return [
@@ -223,9 +153,6 @@ function createColumns(
                 >
                   View Dataset
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openRenameDialog(dataset)}>
-                  Rename Dataset
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeleteDialog(dataset)}>
                   Delete Dataset
                 </DropdownMenuItem>
@@ -248,10 +175,9 @@ export function DatasetsPage() {
   const { datasets, datasetsError, isDatasetsLoading, mutateDatasets } =
     useDatasets();
 
-  const { deleteDialog, renameDialog, openDeleteDialog, openRenameDialog } =
-    useDatasetActions();
+  const { deleteDialog, openDeleteDialog } = useDatasetActions();
 
-  const columns = createColumns(openDeleteDialog, openRenameDialog, navigate);
+  const columns = createColumns(openDeleteDialog, navigate);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Datasets" }]);
@@ -266,7 +192,6 @@ export function DatasetsPage() {
       navigate(`/datasets/datasets/${newDataset.id}`);
     } catch (error) {
       console.error("Failed to create dataset:", error);
-      // Optionally show a toast here
     }
   };
 
@@ -337,7 +262,6 @@ export function DatasetsPage() {
           </DialogContent>
         </Dialog>
         {deleteDialog}
-        {renameDialog}
       </InsetLayout>
     </TooltipProvider>
   );
