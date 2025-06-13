@@ -183,7 +183,8 @@ export type WorkflowExecutionStatus =
   | "completed"
   | "error"
   | "cancelled"
-  | "paused";
+  | "paused"
+  | "exhausted";
 
 /**
  * Represents a workflow execution

@@ -1,12 +1,10 @@
-import { Workflow } from "@cloudflare/workers-types";
-import { Fetcher } from "@cloudflare/workers-types";
-import { AnalyticsEngineDataset } from "@cloudflare/workers-types";
 import { JWTTokenPayload } from "@dafthunk/types";
 
 import { RuntimeParams } from "./runtime/runtime";
 
 export interface Bindings {
   DB: D1Database;
+  KV: KVNamespace;
   EXECUTE: Workflow<RuntimeParams>;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;

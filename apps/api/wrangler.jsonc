@@ -39,6 +39,12 @@
       "migrations_dir": "./src/db/migrations",
     },
   ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "TODO"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "RESSOURCES",
@@ -97,6 +103,12 @@
           "database_id": "1d40113a-d6ec-4a46-8ba8-7958ee15b79a",
           "preview_database_id": "1d40113a-d6ec-4a46-8ba8-7958ee15b79a",
           "migrations_dir": "./src/db/migrations",
+        },
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "TODO"
         },
       ],
       "r2_buckets": [
