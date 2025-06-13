@@ -109,6 +109,7 @@ export const organizations = sqliteTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     handle: text("handle").notNull().unique(),
+    computeCredits: integer("compute_credits").notNull().default(1000),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },

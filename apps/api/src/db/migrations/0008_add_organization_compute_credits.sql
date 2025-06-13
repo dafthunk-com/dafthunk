@@ -1,0 +1,1 @@
+ALTER TABLE `organizations` ADD `compute_credits` integer DEFAULT 1000 NOT NULL;

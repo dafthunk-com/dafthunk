@@ -57,6 +57,13 @@
       "when": 1749634472152,
       "tag": "0007_add_datasets_table",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1749823763329,
+      "tag": "0008_add_organization_compute_credits",
+      "breakpoints": true
     }
   ]
 }
