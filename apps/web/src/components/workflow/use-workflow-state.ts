@@ -918,15 +918,6 @@ export function useWorkflowState({
 
     // Calculate paste position
     const pasteOffset = { x: 50, y: 50 };
-    let pastePosition = { x: 100, y: 100 };
-
-    // If we have a ReactFlow instance, try to paste at viewport center
-    if (reactFlowInstance) {
-      pastePosition = reactFlowInstance.screenToFlowPosition({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-      });
-    }
 
     // Create ID mapping for nodes
     const nodeIdMap = new Map<string, string>();
