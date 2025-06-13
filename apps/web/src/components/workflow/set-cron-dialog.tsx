@@ -83,6 +83,7 @@ export function SetCronDialog({
   workflowName,
 }: SetCronDialogProps) {
   const form = useForm<CronFormData>({
+    // @ts-ignore
     resolver: zodResolver(cronSchema),
     defaultValues: getInitialFormValues(initialData),
   });

@@ -32,6 +32,7 @@ describe("ConditionalJoinNode", () => {
   const createNodeContext = (inputs: Record<string, unknown>) => ({
     nodeId: "test-node-id",
     workflowId: "test-workflow-id",
+    organizationId: "test-organization-id",
     inputs,
     env: {} as any,
   });

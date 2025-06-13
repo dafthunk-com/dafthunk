@@ -6,7 +6,7 @@ const OG_IMAGE_WIDTH = 1200;
 const OG_IMAGE_HEIGHT = 630;
 
 interface OgImageGeneratorParams {
-  env: Pick<Bindings, "BROWSER" | "WEB_HOST" | "BUCKET">;
+  env: Pick<Bindings, "BROWSER" | "WEB_HOST" | "RESSOURCES">;
   executionId: string;
   organizationId: string;
   sharedExecutionPath?: string;

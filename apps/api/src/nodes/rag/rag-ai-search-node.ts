@@ -1,8 +1,8 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { createDatabase, getDataset } from "../../db";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { createDatabase, getDataset } from "../../db";
 
 /**
  * RAG AI Search node implementation
@@ -156,9 +156,9 @@ export class RagAiSearchNode extends ExecutableNode {
       // Only set filters if we have a valid folder prefix
       if (folderPrefix) {
         searchParams.filters = {
-            type: "eq" as const,
-            key: "folder",
-            value: folderPrefix,
+          type: "eq" as const,
+          key: "folder",
+          value: folderPrefix,
         };
       }
 
