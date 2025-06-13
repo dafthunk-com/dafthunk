@@ -36,7 +36,7 @@ export class RegexExtractNode extends ExecutableNode {
     outputs: [
       {
         name: "matches",
-        type: "array",
+        type: "json",
         description: "Array of matched strings (empty if no match).",
       },
     ],

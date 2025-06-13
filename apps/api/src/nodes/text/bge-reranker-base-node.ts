@@ -25,7 +25,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
       },
       {
         name: "contexts",
-        type: "array",
+        type: "json",
         description: "Array of text passages to rank",
         required: true,
       },
@@ -39,7 +39,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
     outputs: [
       {
         name: "rankings",
-        type: "array",
+        type: "json",
         description: "Array of ranked results with scores",
       },
     ],

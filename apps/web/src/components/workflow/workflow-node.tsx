@@ -3,7 +3,6 @@ import { Handle, Position } from "@xyflow/react";
 import {
   AsteriskIcon,
   BracesIcon,
-  BracketsIcon,
   CheckIcon,
   ChevronDown,
   ChevronUp,
@@ -65,17 +64,16 @@ const TypeBadge = ({
   onInputClick?: (param: WorkflowParameter) => void;
   readonly?: boolean;
 }) => {
-  const icon = {
+  const icon: Record<InputOutputType, React.ReactNode> = {
     string: <TypeIcon className="!size-3" />,
     number: <HashIcon className="!size-3" />,
     boolean: <CheckIcon className="!size-3" />,
     image: <ImageIcon className="!size-3" />,
     document: <StickyNoteIcon className="!size-3" />,
     audio: <MusicIcon className="!size-3" />,
-    array: <BracketsIcon className="!size-3" />,
     json: <BracesIcon className="!size-3" />,
     any: <AsteriskIcon className="!size-3" />,
-  }[type];
+  } satisfies Record<InputOutputType, React.ReactNode>;
 
   const handleClick = (e: React.MouseEvent) => {
     if (readonly) return;
@@ -136,7 +134,7 @@ const TypeBadge = ({
         )}
         onClick={handleClick}
       >
-        {icon}
+        {icon[type]}
       </span>
     </div>
   );

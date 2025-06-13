@@ -35,7 +35,7 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
       },
       {
         name: "missingVariables",
-        type: "array",
+        type: "json",
         description:
           "Array of variable names that were not found in the variables object",
         hidden: true,

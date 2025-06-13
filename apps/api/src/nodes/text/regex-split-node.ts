@@ -34,7 +34,7 @@ export class RegexSplitNode extends ExecutableNode {
     outputs: [
       {
         name: "result",
-        type: "array",
+        type: "json",
         description: "Array of strings split by the pattern.",
       },
     ],

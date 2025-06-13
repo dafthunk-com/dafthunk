@@ -38,7 +38,7 @@ export class WhisperTinyEnNode extends ExecutableNode {
       },
       {
         name: "words",
-        type: "array",
+        type: "json",
         description: "Detailed word timing information",
         hidden: true,
       },
