@@ -151,6 +151,7 @@ export interface WorkflowCanvasProps {
     event: React.MouseEvent,
     node: ReactFlowNode<WorkflowNodeType>
   ) => void;
+  onNodeDoubleClick?: (event: React.MouseEvent) => void;
   onEdgeClick: (
     event: React.MouseEvent,
     edge: ReactFlowEdge<WorkflowEdgeType>
@@ -547,6 +548,7 @@ export function WorkflowCanvas({
   onConnectStart,
   onConnectEnd,
   onNodeClick,
+  onNodeDoubleClick,
   onEdgeClick,
   onPaneClick,
   onInit,
@@ -609,6 +611,7 @@ export function WorkflowCanvas({
         onConnectStart={readonly ? () => {} : onConnectStart}
         onConnectEnd={readonly ? () => {} : onConnectEnd}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}

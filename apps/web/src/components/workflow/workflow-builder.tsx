@@ -383,6 +383,11 @@ export function WorkflowBuilder({
     [reactFlowInstance]
   );
 
+  const handleNodeDoubleClick = useCallback((event: React.MouseEvent) => {
+    event.stopPropagation();
+    setIsSidebarVisible(true);
+  }, []);
+
   return (
     <ReactFlowProvider>
       <WorkflowProvider
@@ -405,6 +410,7 @@ export function WorkflowBuilder({
               onConnectStart={readonly ? () => {} : onConnectStart}
               onConnectEnd={readonly ? () => {} : onConnectEnd}
               onNodeClick={handleNodeClick}
+              onNodeDoubleClick={handleNodeDoubleClick}
               onEdgeClick={handleEdgeClick}
               onPaneClick={handlePaneClick}
               onInit={setReactFlowInstance}
