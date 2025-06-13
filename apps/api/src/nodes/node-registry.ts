@@ -97,6 +97,10 @@ import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-nod
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
 import { MultiVariableStringTemplateNode } from "./text/multi-variable-string-template-node";
+import { RegexExtractNode } from "./text/regex-extract-node";
+import { RegexMatchNode } from "./text/regex-match-node";
+import { RegexReplaceNode } from "./text/regex-replace-node";
+import { RegexSplitNode } from "./text/regex-split-node";
 import { SingleVariableStringTemplateNode } from "./text/single-variable-string-template-node";
 import { StringConcatNode } from "./text/string-concat-node";
 import { StringIncludesNode } from "./text/string-includes-node";
@@ -217,6 +221,10 @@ export class NodeRegistry {
     this.registerImplementation(StringToLowerCaseNode);
     this.registerImplementation(StringToUpperCaseNode);
     this.registerImplementation(StringTrimNode);
+    this.registerImplementation(RegexMatchNode);
+    this.registerImplementation(RegexExtractNode);
+    this.registerImplementation(RegexReplaceNode);
+    this.registerImplementation(RegexSplitNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
 
