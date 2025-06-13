@@ -1,4 +1,4 @@
-import { BillingCreditsResponse } from "@dafthunk/types";
+import { UsageCreditsResponse } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
@@ -6,12 +6,12 @@ import { ApiContext } from "../context";
 import { createDatabase, getOrganizationComputeCredits } from "../db";
 import { getOrganizationComputeUsage } from "../utils/credits";
 
-const billing = new Hono<ApiContext>();
+const usage = new Hono<ApiContext>();
 
-billing.use("*", jwtMiddleware);
+usage.use("*", jwtMiddleware);
 
 // Get compute usage for an organization
-billing.get("/credits", async (c) => {
+usage.get("/credits", async (c) => {
   const organizationId = c.get("organizationId")!;
 
   try {
@@ -33,9 +33,11 @@ billing.get("/credits", async (c) => {
       organizationId
     );
 
-    return c.json<BillingCreditsResponse>({
+    return c.json<UsageCreditsResponse>({
       computeCredits,
       computeUsage,
+      remainingCredits: Math.max(0, computeCredits - computeUsage),
+      usagePercentage: Math.min(100, (computeUsage / computeCredits) * 100),
     });
   } catch (error) {
     console.error("Failed to get compute usage:", error);
@@ -48,4 +50,4 @@ billing.get("/credits", async (c) => {
   }
 });
 
-export default billing;
+export default usage;

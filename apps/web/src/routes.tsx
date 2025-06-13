@@ -1,4 +1,5 @@
 import {
+  ChartNoAxesColumn,
   Database,
   KeyRound,
   Logs,
@@ -30,6 +31,7 @@ import { LegalPage } from "./pages/legal";
 import { LoginPage } from "./pages/login-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProfilePage } from "./pages/profile-page";
+import { UsagePage } from "./pages/usage-page";
 import { WaitlistPage } from "./pages/waitlist-page";
 import { DeploymentDetailPage } from "./pages/workflows/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/workflows/deployment-version-page";
@@ -79,6 +81,11 @@ const settingsSidebarItems = [
     title: "Profile",
     url: "/settings/profile",
     icon: User,
+  },
+  {
+    title: "Usage",
+    url: "/settings/usage",
+    icon: ChartNoAxesColumn,
   },
   {
     title: "API Keys",
@@ -152,6 +159,23 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/settings/usage",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Settings",
+          items: settingsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <UsagePage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Usage - Settings - Dafthunk" /> },
   },
   {
     path: "/settings/api-keys",

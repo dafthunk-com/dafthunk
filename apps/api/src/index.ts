@@ -7,7 +7,6 @@ import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { NodeRegistry } from "./nodes/node-registry";
 import apiKeyRoutes from "./routes/api-keys";
-import billingRoutes from "./routes/billing";
 import dashboardRoutes from "./routes/dashboard";
 import datasetRoutes from "./routes/datasets";
 import deploymentRoutes from "./routes/deployments";
@@ -18,6 +17,7 @@ import objectRoutes from "./routes/objects";
 import publicRoutes from "./routes/public";
 import robotsRoutes from "./routes/robots";
 import typeRoutes from "./routes/types";
+import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 
 // Initialize Hono app with types
@@ -49,7 +49,7 @@ app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
 app.route("/:organizationIdOrHandle/executions", executionRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
-app.route("/:organizationIdOrHandle/billing", billingRoutes);
+app.route("/:organizationIdOrHandle/usage", usageRoutes);
 
 export default {
   scheduled: handleCronTriggers,

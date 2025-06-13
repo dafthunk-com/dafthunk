@@ -1,7 +1,7 @@
 import { ApiKey } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Copy, MoreHorizontal } from "lucide-react";
+import { Copy, MoreHorizontal, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -176,7 +176,7 @@ export function ApiKeysPage() {
           applications.
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
-          + Create API Key
+          <Plus /> Create API Key
         </Button>
       </div>
       <DataTable
