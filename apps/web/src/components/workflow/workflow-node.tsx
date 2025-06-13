@@ -3,6 +3,7 @@ import { Handle, Position } from "@xyflow/react";
 import {
   AsteriskIcon,
   BracesIcon,
+  BracketsIcon,
   CheckIcon,
   ChevronDown,
   ChevronUp,
@@ -71,6 +72,7 @@ const TypeBadge = ({
     image: <ImageIcon className="!size-3" />,
     document: <StickyNoteIcon className="!size-3" />,
     audio: <MusicIcon className="!size-3" />,
+    array: <BracketsIcon className="!size-3" />,
     json: <BracesIcon className="!size-3" />,
     any: <AsteriskIcon className="!size-3" />,
   }[type];
