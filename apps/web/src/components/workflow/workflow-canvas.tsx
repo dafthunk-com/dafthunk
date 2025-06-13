@@ -677,7 +677,12 @@ export function WorkflowCanvas({
                     <ActionButton
                       onClick={onAction}
                       workflowStatus={workflowStatus}
-                      disabled={nodes.length === 0}
+                      disabled={
+                        (workflowStatus === "idle" ||
+                          workflowStatus === "submitted" ||
+                          workflowStatus === "executing") &&
+                        nodes.length === 0
+                      }
                     />
                   )}
                   {onDeploy && (
