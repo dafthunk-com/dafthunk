@@ -22,7 +22,7 @@ export function AppHeaderBreadcrumb() {
 
   return (
     <Breadcrumb className="ml-4 hidden md:flex">
-      <BreadcrumbList>
+      <BreadcrumbList className="flex-nowrap">
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;
           return (

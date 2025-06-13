@@ -19,10 +19,13 @@ import {
 } from "@xyflow/react";
 import {
   ArrowUpToLine,
+  ClipboardPaste,
   Clock,
+  Copy,
   Eye,
   EyeOff,
   Globe,
+  Layers2,
   Mail,
   Maximize,
   Network,
@@ -31,6 +34,7 @@ import {
   PencilIcon,
   Play,
   Plus,
+  Scissors,
   Square,
   Trash2,
   X,
@@ -57,6 +61,9 @@ const nodeTypes = {
 const edgeTypes = {
   workflowEdge: WorkflowEdge,
 };
+
+const actionBarButtonOutlineClassName =
+  "bg-neutral-200 hover:bg-neutral-300 text-neutral-700 dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:text-neutral-300";
 
 interface StatusBarProps {
   workflowStatus: WorkflowExecutionStatus;
@@ -147,16 +154,7 @@ export interface WorkflowCanvasProps {
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
-  onNodeClick: (
-    event: React.MouseEvent,
-    node: ReactFlowNode<WorkflowNodeType>
-  ) => void;
   onNodeDoubleClick?: (event: React.MouseEvent) => void;
-  onEdgeClick: (
-    event: React.MouseEvent,
-    edge: ReactFlowEdge<WorkflowEdgeType>
-  ) => void;
-  onPaneClick: () => void;
   onInit: (
     instance: ReactFlowInstance<
       ReactFlowNode<WorkflowNodeType>,
@@ -178,11 +176,16 @@ export interface WorkflowCanvasProps {
   expandedOutputs?: boolean;
   onToggleExpandedOutputs?: (e: React.MouseEvent) => void;
   onFitToScreen?: (e: React.MouseEvent) => void;
-  selectedNode?: ReactFlowNode<WorkflowNodeType> | null;
-  selectedEdge?: ReactFlowEdge<WorkflowEdgeType> | null;
+  selectedNodes: ReactFlowNode<WorkflowNodeType>[];
+  selectedEdges: ReactFlowEdge<WorkflowEdgeType>[];
   onDeleteSelected?: (e: React.MouseEvent) => void;
+  onDuplicateSelected?: (e: React.MouseEvent) => void;
   onEditLabel?: (e: React.MouseEvent) => void;
   onApplyLayout?: () => void;
+  onCopySelected?: () => void;
+  onCutSelected?: () => void;
+  onPasteFromClipboard?: () => void;
+  hasClipboardData?: boolean;
 }
 
 type ActionButtonProps = {
@@ -318,7 +321,7 @@ function SidebarToggle({ onClick, isSidebarVisible }: SidebarToggleProps) {
       onClick={onClick}
       tooltipSide="bottom"
       tooltip={isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
-      className="bg-neutral-500 hover:bg-neutral-600 text-white"
+      className={actionBarButtonOutlineClassName}
     >
       {isSidebarVisible ? (
         <PanelLeftClose className="!size-4 rotate-180" />
@@ -348,7 +351,7 @@ function OutputsToggle({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-neutral-500 hover:bg-neutral-600 text-white"
+      className={actionBarButtonOutlineClassName}
       tooltipSide="bottom"
       tooltip={tooltipText}
     >
@@ -369,7 +372,7 @@ function FitToScreenButton({
   return (
     <ActionBarButton
       onClick={onClick}
-      className="bg-neutral-500 hover:bg-neutral-600 text-white"
+      className={actionBarButtonOutlineClassName}
       tooltipSide="right"
       tooltip="Fit to Screen"
     >
@@ -389,11 +392,55 @@ function DeleteButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-red-600 hover:bg-red-700 text-white"
+      className={cn(
+        actionBarButtonOutlineClassName,
+        "text-red-600 dark:text-red-500"
+      )}
       tooltipSide="right"
-      tooltip="Delete Selected"
+      tooltip={
+        <div className="flex items-center gap-2">
+          <span>Delete</span>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              ⌫
+            </kbd>
+          </div>
+        </div>
+      }
     >
       <Trash2 className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
+function DuplicateButton({
+  onClick,
+  disabled,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={actionBarButtonOutlineClassName}
+      tooltipSide="right"
+      tooltip={
+        <div className="flex items-center gap-2">
+          <span>Duplicate</span>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              ⌘
+            </kbd>
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              D
+            </kbd>
+          </div>
+        </div>
+      }
+    >
+      <Layers2 className="!size-4" />
     </ActionBarButton>
   );
 }
@@ -409,9 +456,9 @@ function EditLabelButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-sky-500 hover:bg-sky-600 text-white"
+      className={actionBarButtonOutlineClassName}
       tooltipSide="right"
-      tooltip="Edit Label"
+      tooltip="Edit Label(s)"
     >
       <PencilIcon className="!size-4" />
     </ActionBarButton>
@@ -429,7 +476,7 @@ function ApplyLayoutButton({
     <ActionBarButton
       onClick={onClick}
       disabled={disabled}
-      className="bg-neutral-500 hover:bg-neutral-600 text-white"
+      className={actionBarButtonOutlineClassName}
       tooltipSide="right"
       tooltip={<p>Reorganize Layout</p>}
     >
@@ -539,6 +586,108 @@ export function ShowEmailTriggerButton({
   );
 }
 
+function CopyButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={actionBarButtonOutlineClassName}
+      tooltipSide="right"
+      tooltip={
+        <div className="flex items-center gap-2">
+          <span>Copy</span>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              ⌘
+            </kbd>
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              C
+            </kbd>
+          </div>
+        </div>
+      }
+    >
+      <Copy className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
+function CutButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        actionBarButtonOutlineClassName,
+        "text-orange-600 dark:text-orange-500"
+      )}
+      tooltipSide="right"
+      tooltip={
+        <div className="flex items-center gap-2">
+          <span>Cut</span>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              ⌘
+            </kbd>
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              X
+            </kbd>
+          </div>
+        </div>
+      }
+    >
+      <Scissors className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
+function PasteButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <ActionBarButton
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        actionBarButtonOutlineClassName,
+        "text-green-600 dark:text-green-500"
+      )}
+      tooltipSide="right"
+      tooltip={
+        <div className="flex items-center gap-2">
+          <span>Paste</span>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              ⌘
+            </kbd>
+            <kbd className="px-1 py-0.25 text-xs rounded border font-mono">
+              V
+            </kbd>
+          </div>
+        </div>
+      }
+    >
+      <ClipboardPaste className="!size-4" />
+    </ActionBarButton>
+  );
+}
+
 export function WorkflowCanvas({
   nodes,
   edges,
@@ -547,10 +696,7 @@ export function WorkflowCanvas({
   onConnect,
   onConnectStart,
   onConnectEnd,
-  onNodeClick,
   onNodeDoubleClick,
-  onEdgeClick,
-  onPaneClick,
   onInit,
   onAddNode,
   onAction,
@@ -568,16 +714,26 @@ export function WorkflowCanvas({
   expandedOutputs = false,
   onToggleExpandedOutputs,
   onFitToScreen,
-  selectedNode,
-  selectedEdge,
+  selectedNodes,
+  selectedEdges,
   onDeleteSelected,
+  onDuplicateSelected,
   onEditLabel,
   onApplyLayout,
+  onCopySelected,
+  onCutSelected,
+  onPasteFromClipboard,
+  hasClipboardData = false,
 }: WorkflowCanvasProps) {
   // Check if any nodes have output values
   const hasAnyOutputs = nodes.some((node) =>
     node.data.outputs.some((output) => output.value !== undefined)
   );
+
+  // Get selected elements for button states
+  const hasSelectedElements =
+    selectedNodes.length > 0 || selectedEdges.length > 0;
+  const hasSelectedNodes = selectedNodes.length > 0;
 
   // Keyboard shortcut handling
   useEffect(() => {
@@ -605,15 +761,12 @@ export function WorkflowCanvas({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={readonly ? () => {} : onNodesChange}
+        onNodesChange={onNodesChange}
         onEdgesChange={readonly ? () => {} : onEdgesChange}
         onConnect={readonly ? () => {} : onConnect}
         onConnectStart={readonly ? () => {} : onConnectStart}
         onConnectEnd={readonly ? () => {} : onConnectEnd}
-        onNodeClick={onNodeClick}
         onNodeDoubleClick={onNodeDoubleClick}
-        onEdgeClick={onEdgeClick}
-        onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Strict}
@@ -633,6 +786,7 @@ export function WorkflowCanvas({
         nodesConnectable={!readonly}
         elementsSelectable={true}
         selectNodesOnDrag={!readonly}
+        multiSelectionKeyCode="Shift"
         panOnDrag={true}
       >
         {showControls && (
@@ -734,7 +888,7 @@ export function WorkflowCanvas({
         {!readonly && (
           <div
             className={cn(
-              "absolute top-4 left-4 z-50 flex flex-col items-center"
+              "absolute top-4 left-4 z-50 flex flex-col items-center gap-2"
             )}
           >
             {/* Node-related buttons group */}
@@ -745,32 +899,65 @@ export function WorkflowCanvas({
               {onEditLabel && (
                 <EditLabelButton
                   onClick={onEditLabel}
-                  disabled={readonly || !selectedNode}
+                  disabled={
+                    readonly || (!hasSelectedNodes && !selectedNodes.length)
+                  }
+                />
+              )}
+            </ActionBarGroup>
+
+            {/* Edit operations group */}
+            <ActionBarGroup vertical>
+              {onCopySelected && (
+                <CopyButton
+                  onClick={onCopySelected}
+                  disabled={readonly || !hasSelectedNodes}
+                />
+              )}
+              {onCutSelected && (
+                <CutButton
+                  onClick={onCutSelected}
+                  disabled={readonly || !hasSelectedNodes}
+                />
+              )}
+              {onPasteFromClipboard && (
+                <PasteButton
+                  onClick={onPasteFromClipboard}
+                  disabled={readonly || !hasClipboardData}
+                />
+              )}
+              {onDuplicateSelected && (
+                <DuplicateButton
+                  onClick={onDuplicateSelected}
+                  disabled={
+                    readonly || (!hasSelectedNodes && !selectedNodes.length)
+                  }
                 />
               )}
               {onDeleteSelected && (
                 <DeleteButton
                   onClick={onDeleteSelected}
-                  disabled={readonly || (!selectedNode && !selectedEdge)}
+                  disabled={
+                    readonly ||
+                    (!hasSelectedElements &&
+                      !selectedNodes.length &&
+                      !selectedEdges.length)
+                  }
                 />
               )}
             </ActionBarGroup>
 
             {/* Workflow-related buttons group */}
             {(onApplyLayout || onFitToScreen) && (
-              <div className="mt-2">
-                <ActionBarGroup vertical>
-                  {onApplyLayout && (
-                    <ApplyLayoutButton
-                      onClick={() => onApplyLayout()}
-                      disabled={readonly || nodes.length === 0}
-                    />
-                  )}
-                  {onFitToScreen && (
-                    <FitToScreenButton onClick={onFitToScreen} />
-                  )}
-                </ActionBarGroup>
-              </div>
+              <ActionBarGroup vertical>
+                {onApplyLayout && (
+                  <ApplyLayoutButton
+                    onClick={() => onApplyLayout()}
+                    disabled={readonly || nodes.length === 0}
+                  />
+                )}
+                {onFitToScreen && <FitToScreenButton onClick={onFitToScreen} />}
+              </ActionBarGroup>
             )}
           </div>
         )}

@@ -108,3 +108,29 @@ export const updateNodeName = (
 ): void => {
   updateNodeData?.(nodeId, { name });
 };
+
+export const updateMultipleNodeNames = (
+  nodeIds: string[],
+  nameTemplate: string,
+  updateNodeData?: UpdateNodeFn
+): void => {
+  if (!updateNodeData || nodeIds.length === 0) return;
+
+  nodeIds.forEach((nodeId, index) => {
+    // If template contains {index}, replace it with the current index (1-based)
+    // If template contains {index0}, replace it with 0-based index
+    // Otherwise, just use the template as-is for single nodes, or append number for multiple
+    let finalName = nameTemplate;
+
+    if (nameTemplate.includes("{index}")) {
+      finalName = nameTemplate.replace(/\{index\}/g, (index + 1).toString());
+    } else if (nameTemplate.includes("{index0}")) {
+      finalName = nameTemplate.replace(/\{index0\}/g, index.toString());
+    } else if (nodeIds.length > 1) {
+      // For multiple nodes without index template, append number
+      finalName = `${nameTemplate} ${index + 1}`;
+    }
+
+    updateNodeData(nodeId, { name: finalName });
+  });
+};

@@ -42,11 +42,17 @@ type NodeExecutionUpdate = {
   error?: string;
 };
 
+interface ClipboardData {
+  nodes: ReactFlowNode<WorkflowNodeType>[];
+  edges: ReactFlowEdge<WorkflowEdgeType>[];
+  isCut: boolean;
+}
+
 interface UseWorkflowStateReturn {
   nodes: ReactFlowNode<WorkflowNodeType>[];
   edges: ReactFlowEdge<WorkflowEdgeType>[];
-  selectedNode: ReactFlowNode<WorkflowNodeType> | null;
-  selectedEdge: ReactFlowEdge<WorkflowEdgeType> | null;
+  selectedNodes: ReactFlowNode<WorkflowNodeType>[];
+  selectedEdges: ReactFlowEdge<WorkflowEdgeType>[];
   reactFlowInstance: ReactFlowInstance<
     ReactFlowNode<WorkflowNodeType>,
     ReactFlowEdge<WorkflowEdgeType>
@@ -60,15 +66,6 @@ interface UseWorkflowStateReturn {
   onConnectEnd: OnConnectEnd;
   connectionValidationState: ConnectionValidationState;
   isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
-  handleNodeClick: (
-    event: React.MouseEvent,
-    node: ReactFlowNode<WorkflowNodeType>
-  ) => void;
-  handleEdgeClick: (
-    event: React.MouseEvent,
-    edge: ReactFlowEdge<WorkflowEdgeType>
-  ) => void;
-  handlePaneClick: () => void;
   handleAddNode: () => void;
   handleNodeSelect: (template: NodeTemplate) => void;
   setReactFlowInstance: (
@@ -82,10 +79,16 @@ interface UseWorkflowStateReturn {
   updateEdgeData: (edgeId: string, data: Partial<WorkflowEdgeType>) => void;
   deleteNode: (nodeId: string) => void;
   deleteEdge: (edgeId: string) => void;
-  deleteSelectedElement: () => void;
+  deleteSelected: () => void;
+  duplicateNode: (nodeId: string) => void;
+  duplicateSelected: () => void;
   isEditNodeNameDialogOpen: boolean;
   toggleEditNodeNameDialog: (open?: boolean) => void;
   applyLayout: () => void;
+  copySelected: () => void;
+  cutSelected: () => void;
+  pasteFromClipboard: () => void;
+  hasClipboardData: boolean;
 }
 
 // Helper functions to replace workflowNodeStateService
@@ -217,8 +220,6 @@ export function useWorkflowState({
     useNodesState<ReactFlowNode<WorkflowNodeType>>(initialNodes);
   const [edges, setEdges, onEdgesChange] =
     useEdgesState<ReactFlowEdge<WorkflowEdgeType>>(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<any | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<any | null>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
     ReactFlowNode<WorkflowNodeType>,
     ReactFlowEdge<WorkflowEdgeType>
@@ -228,9 +229,25 @@ export function useWorkflowState({
     useState<ConnectionValidationState>("default");
   const [isEditNodeNameDialogOpen, setIsEditNodeNameDialogOpen] =
     useState(false);
+  const [clipboardData, setClipboardData] = useState<ClipboardData | null>(
+    null
+  );
 
   const nodesRef = useRef(initialNodes);
   const edgesRef = useRef(initialEdges);
+
+  // Get selected nodes and edges directly from the arrays
+  const selectedNodes = nodes.filter((node) => node.selected);
+  const selectedEdges = edges.filter((edge) => edge.selected);
+
+  console.log(
+    "Selected nodes:",
+    selectedNodes.map((n) => ({ id: n.id, selected: n.selected }))
+  );
+  console.log(
+    "Selected edges:",
+    selectedEdges.map((e) => ({ id: e.id, selected: e.selected }))
+  );
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -291,7 +308,7 @@ export function useWorkflowState({
     if (newNodesStructurallyDifferent || anyCurrentNodeMissingFunction) {
       setNodes(newNodesWithCreateObjectUrl);
     }
-  }, [initialNodes, readonly, setNodes, createObjectUrl]);
+  }, [initialNodes, readonly, nodes, setNodes, createObjectUrl]);
 
   // Effect to update edges when initialEdges prop changes
   useEffect(() => {
@@ -303,7 +320,7 @@ export function useWorkflowState({
         setEdges(initialEdges);
       }
     }
-  }, [initialEdges, readonly, setEdges]); // Removed edges, relying on edgesRef.current
+  }, [initialEdges, readonly, setEdges]);
 
   // Effect to notify parent of changes for nodes
   useEffect(() => {
@@ -368,81 +385,31 @@ export function useWorkflowState({
     }
   }, [edges, onEdgesChangePersistCallback, initialEdges, readonly]);
 
-  // Effect to keep selectedNode in sync with nodes state
-  useEffect(() => {
-    if (selectedNode) {
-      const updatedNodeInCurrentNodes = nodes.find(
-        (node) => node.id === selectedNode.id
-      );
-      if (updatedNodeInCurrentNodes) {
-        // Node still exists, check if its data has changed compared to our selectedNode state
-        if (
-          JSON.stringify(updatedNodeInCurrentNodes) !==
-          JSON.stringify(selectedNode)
-        ) {
-          setSelectedNode(updatedNodeInCurrentNodes);
-        }
-      } else {
-        // Node with selectedNode.id no longer exists in the nodes array
-        setSelectedNode(null);
-      }
-    }
-  }, [nodes, selectedNode]);
-
   // Custom onNodesChange handler for readonly mode
   const handleNodesChangeInternal = useCallback(
     (changes: any) => {
+      console.log("handleNodesChangeInternal called:", { readonly, changes });
+
       if (readonly) {
+        // In readonly mode, only allow selection changes and block destructive changes
         const filteredChanges = changes.filter(
-          (change: any) => change.type !== "position"
+          (change: any) => change.type === "select"
         );
+        console.log("Filtered changes in readonly mode:", filteredChanges);
+
         if (filteredChanges.length > 0) {
+          console.log("Applying filtered changes:", filteredChanges);
           onNodesChange(filteredChanges);
+        } else {
+          console.log("No selection changes to apply");
         }
-        // If there are only non-selection changes, we effectively ignore them.
       } else {
+        console.log("Not readonly, applying all changes:", changes);
         onNodesChange(changes);
       }
     },
     [onNodesChange, readonly]
   );
-
-  // Handle node selection
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: any) => {
-    event.stopPropagation();
-    setSelectedNode(node);
-    setSelectedEdge(null);
-  }, []);
-
-  // Handle edge selection
-  const handleEdgeClick = useCallback(
-    (event: React.MouseEvent, edge: any) => {
-      event.stopPropagation();
-      setSelectedEdge(edge);
-      setSelectedNode(null);
-
-      setEdges((eds) =>
-        eds.map((e) => ({
-          ...e,
-          zIndex: e.id === edge.id ? 1000 : 0,
-        }))
-      );
-    },
-    [setEdges]
-  );
-
-  // Handle pane click (deselect)
-  const handlePaneClick = useCallback(() => {
-    setSelectedNode(null);
-    setSelectedEdge(null);
-
-    setEdges((eds) =>
-      eds.map((e) => ({
-        ...e,
-        zIndex: 0,
-      }))
-    );
-  }, [setEdges]);
 
   // Connection event handlers
   const onConnectStart = useCallback(() => {
@@ -663,12 +630,30 @@ export function useWorkflowState({
       }
 
       setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-
-      if (selectedNode?.id === nodeId) {
-        setSelectedNode(null);
-      }
     },
-    [readonly, nodes, selectedNode, setEdges, setNodes]
+    [readonly, nodes, setEdges, setNodes]
+  );
+
+  // Delete multiple nodes and their connected edges
+  const deleteNodes = useCallback(
+    (nodeIds: string[]) => {
+      if (readonly || nodeIds.length === 0) return;
+
+      const nodesToDelete = nodes.filter((n) => nodeIds.includes(n.id));
+      if (nodesToDelete.length === 0) return;
+
+      const nodeEdges = getConnectedEdges(nodesToDelete, edgesRef.current);
+      const edgeIdsToRemove = nodeEdges.map((edge) => edge.id);
+
+      if (edgeIdsToRemove.length > 0) {
+        setEdges((eds) =>
+          eds.filter((edge) => !edgeIdsToRemove.includes(edge.id))
+        );
+      }
+
+      setNodes((nds) => nds.filter((node) => !nodeIds.includes(node.id)));
+    },
+    [readonly, nodes, setEdges, setNodes]
   );
 
   // Delete edge
@@ -676,22 +661,181 @@ export function useWorkflowState({
     (edgeId: string) => {
       if (readonly) return;
       setEdges((eds) => eds.filter((edge) => edge.id !== edgeId));
-      if (selectedEdge?.id === edgeId) {
-        setSelectedEdge(null);
-      }
     },
-    [readonly, selectedEdge, setEdges]
+    [readonly, setEdges]
   );
 
-  // Delete selected element (node or edge)
-  const deleteSelectedElement = useCallback(() => {
+  // Delete multiple edges
+  const deleteEdges = useCallback(
+    (edgeIds: string[]) => {
+      if (readonly || edgeIds.length === 0) return;
+
+      setEdges((eds) => eds.filter((edge) => !edgeIds.includes(edge.id)));
+    },
+    [readonly, setEdges]
+  );
+
+  // Duplicate node
+  const duplicateNode = useCallback(
+    (nodeId: string) => {
+      if (readonly) return;
+      const nodeToDuplicate = nodes.find((n) => n.id === nodeId);
+      if (!nodeToDuplicate) return;
+
+      // Create a new node with a unique ID and offset position
+      const newNode: ReactFlowNode<WorkflowNodeType> = {
+        ...nodeToDuplicate,
+        id: `${nodeToDuplicate.data.nodeType || "node"}-${Date.now()}`,
+        position: {
+          x: nodeToDuplicate.position.x + 250, // Offset by 250px to the right
+          y: nodeToDuplicate.position.y + 50, // Offset by 50px down
+        },
+        selected: true, // Mark the new node as selected
+        data: {
+          ...nodeToDuplicate.data,
+          // Reset execution state for the duplicated node
+          executionState: "idle" as NodeExecutionState,
+          error: undefined,
+          // Reset output values
+          outputs: nodeToDuplicate.data.outputs.map((output) => ({
+            ...output,
+            value: undefined,
+            isConnected: false,
+          })),
+          // Reset input connections
+          inputs: nodeToDuplicate.data.inputs.map((input) => ({
+            ...input,
+            isConnected: false,
+          })),
+        },
+      };
+
+      // Update nodes array: add new node and deselect all others
+      setNodes((nds) => [
+        ...nds.map((n) => ({ ...n, selected: false })),
+        newNode,
+      ]);
+
+      // Clear edge selection
+      setEdges((eds) =>
+        eds.map((edge) => ({
+          ...edge,
+          selected: false,
+          zIndex: 0,
+        }))
+      );
+    },
+    [readonly, nodes, setNodes, setEdges]
+  );
+
+  // Delete selected elements (nodes or edges)
+  const deleteSelected = useCallback(() => {
     if (readonly) return;
-    if (selectedNode) {
-      deleteNode(selectedNode.id);
-    } else if (selectedEdge) {
-      deleteEdge(selectedEdge.id);
+
+    if (selectedNodes.length > 0) {
+      deleteNodes(selectedNodes.map((n) => n.id));
+    } else if (selectedEdges.length > 0) {
+      deleteEdges(selectedEdges.map((e) => e.id));
     }
-  }, [readonly, selectedNode, selectedEdge, deleteNode, deleteEdge]);
+  }, [readonly, selectedNodes, selectedEdges, deleteNodes, deleteEdges]);
+
+  // Duplicate selected elements (nodes and edges)
+  const duplicateSelected = useCallback(() => {
+    if (readonly || (selectedNodes.length === 0 && selectedEdges.length === 0))
+      return;
+
+    if (selectedNodes.length > 0) {
+      // Get edges that connect selected nodes, plus any manually selected edges
+      const selectedNodeIds = selectedNodes.map((node) => node.id);
+      const connectedEdges = edges.filter(
+        (edge) =>
+          selectedNodeIds.includes(edge.source) &&
+          selectedNodeIds.includes(edge.target)
+      );
+
+      // Combine connected edges with manually selected edges (avoiding duplicates)
+      const allSelectedEdges = [
+        ...new Set([...connectedEdges, ...selectedEdges]),
+      ];
+
+      // Calculate duplicate position offset
+      const duplicateOffset = { x: 250, y: 50 };
+      const timestamp = Date.now();
+
+      // Create ID mapping for nodes
+      const nodeIdMap = new Map<string, string>();
+
+      // Create new nodes with new IDs
+      const newNodes = selectedNodes.map((node, index) => {
+        const newId = `${node.data.nodeType || "node"}-${timestamp}-${index}`;
+        nodeIdMap.set(node.id, newId);
+
+        return {
+          ...node,
+          id: newId,
+          position: {
+            x: node.position.x + duplicateOffset.x,
+            y: node.position.y + duplicateOffset.y,
+          },
+          selected: true, // Mark the new nodes as selected
+          data: {
+            ...node.data,
+            // Reset execution state for the duplicated node
+            executionState: "idle" as NodeExecutionState,
+            error: undefined,
+            // Reset output values
+            outputs: node.data.outputs.map((output) => ({
+              ...output,
+              value: undefined,
+              isConnected: false,
+            })),
+            // Reset input connections
+            inputs: node.data.inputs.map((input) => ({
+              ...input,
+              isConnected: false,
+            })),
+          },
+        };
+      });
+
+      // Create new edges with updated node IDs (only for edges that connect duplicated nodes)
+      const newEdges = allSelectedEdges
+        .filter(
+          (edge) => nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)
+        )
+        .map((edge) => ({
+          ...edge,
+          id: `${nodeIdMap.get(edge.source)}-${edge.sourceHandle}-${nodeIdMap.get(edge.target)}-${edge.targetHandle}`,
+          source: nodeIdMap.get(edge.source)!,
+          target: nodeIdMap.get(edge.target)!,
+          selected: true, // Select duplicated edges
+          data: {
+            ...edge.data,
+            createObjectUrl,
+          },
+        }));
+
+      // Update nodes array: deselect all existing nodes and add new nodes
+      setNodes((nds) => [
+        ...nds.map((n) => ({ ...n, selected: false })),
+        ...newNodes,
+      ]);
+
+      // Update edges array: deselect all existing edges and add new edges
+      setEdges((eds) => [
+        ...eds.map((e) => ({ ...e, selected: false })),
+        ...newEdges,
+      ]);
+    }
+  }, [
+    readonly,
+    selectedNodes,
+    selectedEdges,
+    edges,
+    setNodes,
+    setEdges,
+    createObjectUrl,
+  ]);
 
   const toggleEditNodeNameDialog = useCallback(
     (open?: boolean) => {
@@ -740,11 +884,215 @@ export function useWorkflowState({
     reactFlowInstance?.fitView();
   }, [setNodes, readonly, reactFlowInstance]);
 
+  // Clipboard operations
+  const copySelected = useCallback(() => {
+    if (readonly || (selectedNodes.length === 0 && selectedEdges.length === 0))
+      return;
+
+    // Get edges that connect selected nodes, plus any manually selected edges
+    const selectedNodeIds = selectedNodes.map((node) => node.id);
+    const connectedEdges = edges.filter(
+      (edge) =>
+        selectedNodeIds.includes(edge.source) &&
+        selectedNodeIds.includes(edge.target)
+    );
+
+    // Combine connected edges with manually selected edges (avoiding duplicates)
+    const allSelectedEdges = [
+      ...new Set([...connectedEdges, ...selectedEdges]),
+    ];
+
+    setClipboardData({
+      nodes: selectedNodes.map((node) => ({
+        ...node,
+        selected: false, // Don't copy selection state
+      })),
+      edges: allSelectedEdges.map((edge) => ({
+        ...edge,
+        selected: false, // Don't copy selection state
+      })),
+      isCut: false,
+    });
+  }, [readonly, selectedNodes, selectedEdges, edges]);
+
+  const cutSelected = useCallback(() => {
+    if (readonly || (selectedNodes.length === 0 && selectedEdges.length === 0))
+      return;
+
+    // Copy first, then delete
+    copySelected();
+    deleteSelected();
+
+    // Mark as cut in clipboard
+    setClipboardData((prev) => (prev ? { ...prev, isCut: true } : null));
+  }, [readonly, selectedNodes, selectedEdges, copySelected, deleteSelected]);
+
+  const pasteFromClipboard = useCallback(() => {
+    if (readonly || !clipboardData || clipboardData.nodes.length === 0) return;
+
+    // Calculate paste position
+    const pasteOffset = { x: 50, y: 50 };
+    let pastePosition = { x: 100, y: 100 };
+
+    // If we have a ReactFlow instance, try to paste at viewport center
+    if (reactFlowInstance) {
+      pastePosition = reactFlowInstance.screenToFlowPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+    }
+
+    // Create ID mapping for nodes
+    const nodeIdMap = new Map<string, string>();
+    const timestamp = Date.now();
+
+    // Create new nodes with new IDs
+    const newNodes = clipboardData.nodes.map((node, index) => {
+      const newId = `${node.data.nodeType || "node"}-${timestamp}-${index}`;
+      nodeIdMap.set(node.id, newId);
+
+      return {
+        ...node,
+        id: newId,
+        position: {
+          x: node.position.x + pastePosition.x + pasteOffset.x,
+          y: node.position.y + pastePosition.y + pasteOffset.y,
+        },
+        selected: true, // Select pasted nodes
+        data: {
+          ...node.data,
+          // Reset execution state for pasted nodes
+          executionState: "idle" as NodeExecutionState,
+          error: undefined,
+          // Reset output values
+          outputs: node.data.outputs.map((output) => ({
+            ...output,
+            value: undefined,
+            isConnected: false,
+          })),
+          // Reset input connections
+          inputs: node.data.inputs.map((input) => ({
+            ...input,
+            isConnected: false,
+          })),
+          createObjectUrl,
+        },
+      };
+    });
+
+    // Create new edges with updated node IDs
+    const newEdges = clipboardData.edges
+      .filter(
+        (edge) => nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)
+      )
+      .map((edge) => ({
+        ...edge,
+        id: `${nodeIdMap.get(edge.source)}-${edge.sourceHandle}-${nodeIdMap.get(edge.target)}-${edge.targetHandle}`,
+        source: nodeIdMap.get(edge.source)!,
+        target: nodeIdMap.get(edge.target)!,
+        selected: true, // Select pasted edges
+        data: {
+          ...edge.data,
+          createObjectUrl,
+        },
+      }));
+
+    // Clear existing selections and add new nodes/edges
+    setNodes((nds) => [
+      ...nds.map((n) => ({ ...n, selected: false })),
+      ...newNodes,
+    ]);
+
+    setEdges((eds) => [
+      ...eds.map((e) => ({ ...e, selected: false })),
+      ...newEdges,
+    ]);
+
+    // Clear clipboard if it was cut data
+    if (clipboardData.isCut) {
+      setClipboardData(null);
+    }
+  }, [
+    readonly,
+    clipboardData,
+    reactFlowInstance,
+    setNodes,
+    setEdges,
+    createObjectUrl,
+  ]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if we're in an input field
+      const target = event.target as HTMLElement;
+      const isInputField =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.contentEditable === "true";
+
+      if (isInputField) return;
+
+      const isMac = /mac/i.test(navigator.userAgent);
+      const isCtrlOrCmd = isMac ? event.metaKey : event.ctrlKey;
+
+      if (isCtrlOrCmd) {
+        switch (event.key.toLowerCase()) {
+          case "c":
+            if (
+              !readonly &&
+              (selectedNodes.length > 0 || selectedEdges.length > 0)
+            ) {
+              event.preventDefault();
+              copySelected();
+            }
+            break;
+          case "x":
+            if (
+              !readonly &&
+              (selectedNodes.length > 0 || selectedEdges.length > 0)
+            ) {
+              event.preventDefault();
+              cutSelected();
+            }
+            break;
+          case "v":
+            if (!readonly && clipboardData) {
+              event.preventDefault();
+              pasteFromClipboard();
+            }
+            break;
+          case "d":
+            if (
+              !readonly &&
+              (selectedNodes.length > 0 || selectedEdges.length > 0)
+            ) {
+              event.preventDefault();
+              duplicateSelected();
+            }
+            break;
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [
+    readonly,
+    selectedNodes,
+    selectedEdges,
+    clipboardData,
+    copySelected,
+    cutSelected,
+    pasteFromClipboard,
+    duplicateSelected,
+  ]);
+
   return {
     nodes,
     edges,
-    selectedNode,
-    selectedEdge,
+    selectedNodes,
+    selectedEdges,
     reactFlowInstance,
     isNodeSelectorOpen,
     setIsNodeSelectorOpen,
@@ -755,9 +1103,6 @@ export function useWorkflowState({
     onConnectEnd,
     connectionValidationState,
     isValidConnection,
-    handleNodeClick,
-    handleEdgeClick,
-    handlePaneClick,
     handleAddNode,
     handleNodeSelect,
     setReactFlowInstance,
@@ -766,9 +1111,15 @@ export function useWorkflowState({
     updateEdgeData: readonly ? () => {} : updateEdgeData,
     deleteNode: readonly ? () => {} : deleteNode,
     deleteEdge: readonly ? () => {} : deleteEdge,
-    deleteSelectedElement: readonly ? () => {} : deleteSelectedElement,
+    deleteSelected: readonly ? () => {} : deleteSelected,
+    duplicateNode: readonly ? () => {} : duplicateNode,
+    duplicateSelected: readonly ? () => {} : duplicateSelected,
     isEditNodeNameDialogOpen,
     toggleEditNodeNameDialog,
     applyLayout,
+    copySelected: readonly ? () => {} : copySelected,
+    cutSelected: readonly ? () => {} : cutSelected,
+    pasteFromClipboard: readonly ? () => {} : pasteFromClipboard,
+    hasClipboardData: !!clipboardData && clipboardData.nodes.length > 0,
   };
 }

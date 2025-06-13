@@ -98,8 +98,8 @@ export function WorkflowBuilder({
   const {
     nodes,
     edges,
-    selectedNode: handleSelectedNode,
-    selectedEdge: handleSelectedEdge,
+    selectedNodes,
+    selectedEdges,
     isNodeSelectorOpen: handleIsNodeSelectorOpen,
     setIsNodeSelectorOpen: handleSetIsNodeSelectorOpen,
     onNodesChange,
@@ -107,9 +107,6 @@ export function WorkflowBuilder({
     onConnect,
     onConnectStart,
     onConnectEnd,
-    handleNodeClick,
-    handleEdgeClick,
-    handlePaneClick,
     handleAddNode,
     handleNodeSelect,
     updateNodeExecution,
@@ -119,10 +116,15 @@ export function WorkflowBuilder({
     isValidConnection,
     updateNodeData,
     updateEdgeData,
-    deleteSelectedElement,
+    deleteSelected,
+    duplicateSelected,
     isEditNodeNameDialogOpen,
     toggleEditNodeNameDialog,
     applyLayout,
+    copySelected,
+    cutSelected,
+    pasteFromClipboard,
+    hasClipboardData,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -263,15 +265,20 @@ export function WorkflowBuilder({
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
 
-  // Update nodeNameToEdit when the dialog is opened and a node is selected
+  // Update nodeNameToEdit when the dialog is opened
   useEffect(() => {
-    if (isEditNodeNameDialogOpen && handleSelectedNode) {
-      setNodeNameToEdit(handleSelectedNode.data.name);
-    } else if (!isEditNodeNameDialogOpen) {
-      // Optionally reset when dialog closes, or leave as is if preferred
-      // setNodeNameToEdit("");
+    if (isEditNodeNameDialogOpen) {
+      if (selectedNodes.length > 0) {
+        // For multiple nodes, use a template or the first node's name
+        if (selectedNodes.length === 1) {
+          setNodeNameToEdit(selectedNodes[0].data.name);
+        } else {
+          // For multiple nodes, suggest a template
+          setNodeNameToEdit("Node {index}");
+        }
+      }
     }
-  }, [isEditNodeNameDialogOpen, handleSelectedNode]);
+  }, [isEditNodeNameDialogOpen, selectedNodes]);
 
   const resetNodeStates = useCallback(() => {
     nodes.forEach((node) => {
@@ -404,15 +411,12 @@ export function WorkflowBuilder({
               nodes={nodes}
               edges={edges}
               connectionValidationState={connectionValidationState}
-              onNodesChange={readonly ? () => {} : onNodesChange}
+              onNodesChange={onNodesChange}
               onEdgesChange={readonly ? () => {} : onEdgesChange}
               onConnect={readonly ? () => {} : onConnect}
               onConnectStart={readonly ? () => {} : onConnectStart}
               onConnectEnd={readonly ? () => {} : onConnectEnd}
-              onNodeClick={handleNodeClick}
               onNodeDoubleClick={handleNodeDoubleClick}
-              onEdgeClick={handleEdgeClick}
-              onPaneClick={handlePaneClick}
               onInit={setReactFlowInstance}
               onAddNode={readonly ? undefined : handleAddNode}
               onAction={
@@ -435,21 +439,26 @@ export function WorkflowBuilder({
               expandedOutputs={currentExpandedOutputs}
               onToggleExpandedOutputs={toggleExpandedOutputs}
               onFitToScreen={handleFitToScreen}
-              selectedNode={handleSelectedNode}
-              selectedEdge={handleSelectedEdge}
-              onDeleteSelected={readonly ? undefined : deleteSelectedElement}
+              selectedNodes={selectedNodes}
+              selectedEdges={selectedEdges}
+              onDeleteSelected={readonly ? undefined : deleteSelected}
+              onDuplicateSelected={readonly ? undefined : duplicateSelected}
               onEditLabel={
                 readonly ? undefined : () => toggleEditNodeNameDialog(true)
               }
               onApplyLayout={readonly ? undefined : applyLayout}
+              onCopySelected={readonly ? undefined : copySelected}
+              onCutSelected={readonly ? undefined : cutSelected}
+              onPasteFromClipboard={readonly ? undefined : pasteFromClipboard}
+              hasClipboardData={hasClipboardData}
             />
           </div>
 
           {isSidebarVisible && (
             <div className="w-96">
               <WorkflowSidebar
-                node={handleSelectedNode}
-                edge={handleSelectedEdge}
+                selectedNodes={selectedNodes}
+                selectedEdges={selectedEdges}
                 onNodeUpdate={readonly ? undefined : updateNodeData}
                 onEdgeUpdate={readonly ? undefined : updateEdgeData}
                 createObjectUrl={createObjectUrl}
@@ -490,7 +499,9 @@ export function WorkflowBuilder({
         </Dialog>
 
         <Dialog
-          open={isEditNodeNameDialogOpen && !readonly && !!handleSelectedNode}
+          open={
+            isEditNodeNameDialogOpen && !readonly && selectedNodes.length > 0
+          }
           onOpenChange={(open) => {
             if (!open) {
               toggleEditNodeNameDialog(false);
@@ -517,9 +528,12 @@ export function WorkflowBuilder({
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      if (handleSelectedNode && nodeNameToEdit.trim() !== "") {
+                      if (
+                        selectedNodes.length > 0 &&
+                        nodeNameToEdit.trim() !== ""
+                      ) {
                         updateNodeName(
-                          handleSelectedNode.id,
+                          selectedNodes[0].id,
                           nodeNameToEdit,
                           updateNodeData
                         );
@@ -539,9 +553,12 @@ export function WorkflowBuilder({
               </Button>
               <Button
                 onClick={() => {
-                  if (handleSelectedNode && nodeNameToEdit.trim() !== "") {
+                  if (
+                    selectedNodes.length > 0 &&
+                    nodeNameToEdit.trim() !== ""
+                  ) {
                     updateNodeName(
-                      handleSelectedNode.id,
+                      selectedNodes[0].id,
                       nodeNameToEdit,
                       updateNodeData
                     );
