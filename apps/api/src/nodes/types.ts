@@ -58,10 +58,6 @@ export type ParameterType =
       value?: ImageParameter;
     }
   | {
-      type: "array";
-      value?: Array<any>;
-    }
-  | {
       type: "json";
       value?: any;
     }

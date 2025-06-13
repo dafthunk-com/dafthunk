@@ -54,10 +54,6 @@ export type ParameterType =
       value?: ObjectReference;
     }
   | {
-      type: "array";
-      value?: JsonArray;
-    }
-  | {
       type: "json";
       value?: JsonObject;
     }

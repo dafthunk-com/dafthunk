@@ -68,7 +68,7 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
       },
       {
         name: "segments",
-        type: "array",
+        type: "json",
         description: "Detailed transcription segments with timing information",
         hidden: true,
       },

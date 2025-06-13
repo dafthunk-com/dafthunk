@@ -23,7 +23,7 @@ export const formatValue = (value: any, type: string): string => {
   try {
     if (type === "audio" || type === "image" || type === "document") {
       return ""; // Don't display data as text for types handled by dedicated renderers
-    } else if (type === "json" || type === "array") {
+    } else if (type === "json") {
       return JSON.stringify(value, null, 2);
     } else if (type === "boolean") {
       return value ? "true" : "false";
@@ -178,7 +178,6 @@ const CodeRenderer = ({
   const getLanguage = (type: string): string => {
     switch (type) {
       case "json":
-      case "array":
         return "json";
       case "javascript":
       case "js":
@@ -423,7 +422,7 @@ export function WorkflowValueRenderer({
   }
 
   // Handle code-like content
-  if (parameter.type === "json" || parameter.type === "array") {
+  if (parameter.type === "json") {
     const formattedValue = formatValue(parameter.value, parameter.type);
     return (
       <CodeRenderer
@@ -443,18 +442,13 @@ export function WorkflowValueRenderer({
       return <div className="text-sm text-neutral-500 italic">No value</div>;
     }
 
-    // Get the actual type for display
-    const actualType = Array.isArray(parameter.value)
-      ? "array"
-      : typeof parameter.value;
-
-    // If it's an object or array, use JSON formatting
-    if (typeof parameter.value === "object") {
+    // If it's an object use JSON formatting
+    if (Array.isArray(parameter.value) || typeof parameter.value === "object") {
       const formattedValue = JSON.stringify(parameter.value, null, 2);
       return (
         <div className="space-y-1">
           <div className="text-xs text-neutral-500">
-            Any type (contains {actualType})
+            Any type (contains json)
           </div>
           <CodeRenderer
             value={formattedValue}
@@ -466,6 +460,8 @@ export function WorkflowValueRenderer({
         </div>
       );
     }
+
+    const actualType = typeof parameter.value;
 
     // For primitive values, use text renderer
     const formattedValue = formatValue(parameter.value, actualType);
