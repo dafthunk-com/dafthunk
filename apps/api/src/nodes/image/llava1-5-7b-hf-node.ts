@@ -15,7 +15,7 @@ export class LLaVA157BHFNode extends ExecutableNode {
       "Generates text descriptions from images using LLaVA 1.5 7B model",
     category: "Image",
     icon: "image",
-    usage: 10,
+    computeCost: 10,
     inputs: [
       {
         name: "image",

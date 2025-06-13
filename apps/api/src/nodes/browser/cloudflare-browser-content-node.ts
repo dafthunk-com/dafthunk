@@ -16,7 +16,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       "Fetch fully rendered HTML from a URL using Cloudflare Browser Rendering.",
     category: "Browser",
     icon: "globe",
-    usage: 10,
+    computeCost: 10,
     inputs: [
       {
         name: "url",

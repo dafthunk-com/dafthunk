@@ -15,7 +15,7 @@ export class Resnet50Node extends ExecutableNode {
       "Classifies images using the ResNet-50 model trained on ImageNet",
     category: "Image",
     icon: "image",
-    usage: 10,
+    computeCost: 10,
     inputs: [
       {
         name: "image",

@@ -15,7 +15,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
       "Reranks text passages based on their relevance to a query using BGE Reranker Base model",
     category: "Text",
     icon: "search",
-    usage: 10,
+    computeCost: 10,
     inputs: [
       {
         name: "query",

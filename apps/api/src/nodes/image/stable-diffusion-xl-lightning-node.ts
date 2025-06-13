@@ -15,7 +15,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
       "Generates images from text descriptions using Stable Diffusion XL Lightning",
     category: "Image",
     icon: "wand",
-    usage: 10,
+    computeCost: 10,
     inputs: [
       {
         name: "prompt",

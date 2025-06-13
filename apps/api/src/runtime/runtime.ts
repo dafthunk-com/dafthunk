@@ -274,7 +274,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     this.env.COMPUTE.writeDataPoint({
       indexes: [organizationId],
       blobs: [organizationId, workflowId, node.id],
-      doubles: [nodeType.usage ?? 1],
+      doubles: [nodeType.computeCost ?? 1],
     });
 
     // Resolve the runnable implementation.

@@ -16,7 +16,7 @@ export class ToMarkdownNode extends ExecutableNode {
       "Converts various document formats to Markdown using Cloudflare Workers AI",
     category: "Document",
     icon: "file-text",
-    usage: 10,
+    computeCost: 10,
     inputs: [
       {
         name: "document",
