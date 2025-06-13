@@ -1,6 +1,7 @@
 import {
   JsonArray,
   JsonObject,
+  Node,
   NodeExecutionStatus,
   ObjectReference,
   Workflow,
@@ -24,6 +25,10 @@ import {
 } from "../nodes/parameter-mapper";
 import { HttpRequest, NodeContext } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
+import {
+  getOrganizationComputeUsage,
+  updateOrganizationComputeUsage,
+} from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
 import { ObjectStore } from "./object-store";
 
@@ -46,6 +51,7 @@ export type RuntimeParams = {
   workflow: Workflow;
   userId: string;
   organizationId: string;
+  computeCredits: number;
   monitorProgress?: boolean;
   deploymentId?: string;
   httpRequest?: HttpRequest;
@@ -91,6 +97,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       monitorProgress = false,
       httpRequest,
       emailMessage,
+      computeCredits,
     } = event.payload;
     const instanceId = event.instanceId;
 
@@ -115,6 +122,30 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       startedAt: undefined,
       endedAt: undefined,
     } as WorkflowExecution;
+
+    if (
+      !(await this.hasEnoughComputeCredits(
+        organizationId,
+        computeCredits,
+        this.getNodesComputeCost(workflow.nodes)
+      ))
+    ) {
+      runtimeState = { ...runtimeState, status: "exhausted" };
+      return await step.do(
+        "persist exhausted execution state",
+        Runtime.defaultStepConfig,
+        async () =>
+          this.saveExecutionState(
+            userId,
+            organizationId,
+            workflow.id,
+            instanceId,
+            runtimeState,
+            new Date(),
+            new Date()
+          )
+      );
+    }
 
     try {
       // Prepare workflow (validation + ordering).
@@ -200,8 +231,18 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionRecord = await step.do(
         "persist final execution record",
         Runtime.defaultStepConfig,
-        async () =>
-          this.saveExecutionState(
+        async () => {
+          await updateOrganizationComputeUsage(
+            this.env.KV,
+            organizationId,
+            // Update organization compute credits for executed nodes
+            this.getNodesComputeCost(
+              runtimeState.workflow.nodes.filter((node) =>
+                runtimeState.executedNodes.has(node.id)
+              )
+            )
+          );
+          return this.saveExecutionState(
             userId,
             organizationId,
             workflow.id,
@@ -209,11 +250,37 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             runtimeState,
             executionRecord.startedAt,
             executionRecord.endedAt
-          )
+          );
+        }
       );
     }
 
     return executionRecord;
+  }
+
+  /**
+   * Checks if the organization has enough compute credits to execute a workflow.
+   */
+  private async hasEnoughComputeCredits(
+    organizationId: string,
+    computeCredits: number,
+    computeCost: number
+  ): Promise<boolean> {
+    const computeUsage = await getOrganizationComputeUsage(
+      this.env.KV,
+      organizationId
+    );
+    return computeUsage + computeCost <= computeCredits;
+  }
+
+  /**
+   * Returns the compute cost of a list of nodes.
+   */
+  private getNodesComputeCost(nodes: Node[]): number {
+    return nodes.reduce((acc, node) => {
+      const nodeType = NodeRegistry.getInstance().getNodeType(node.type);
+      return acc + (nodeType.computeCost ?? 1);
+    }, 0);
   }
 
   /**

@@ -62,7 +62,8 @@ export type WorkflowExecutionStatus =
   | "completed"
   | "error"
   | "cancelled"
-  | "paused";
+  | "paused"
+  | "exhausted";
 
 // Simplified local execution type to use in the workflow builder
 export type WorkflowNodeExecution = {

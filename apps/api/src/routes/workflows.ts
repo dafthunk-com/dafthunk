@@ -34,6 +34,7 @@ import {
   getDeploymentByVersion,
   getExecution,
   getLatestDeployment,
+  getOrganizationComputeCredits,
   getWorkflow,
   getWorkflows,
   saveExecution,
@@ -450,6 +451,15 @@ workflowRoutes.post(
     const monitorProgress =
       new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
+    // Get organization compute credits
+    const computeCredits = await getOrganizationComputeCredits(
+      db,
+      organizationId
+    );
+    if (computeCredits === undefined) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
     // Get organization ID from either JWT or API key auth
     let userId: string;
     const jwtPayload = c.get("jwtPayload") as JWTTokenPayload | undefined;
@@ -570,8 +580,6 @@ workflowRoutes.post(
     }
 
     const baseExecutionParams = {
-      userId,
-      organizationId: organizationId,
       workflow: {
         id: workflow.id,
         name: workflow.name,
@@ -580,6 +588,9 @@ workflowRoutes.post(
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },
+      userId,
+      organizationId,
+      computeCredits,
       monitorProgress,
       deploymentId,
     };

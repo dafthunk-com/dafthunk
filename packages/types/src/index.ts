@@ -1,5 +1,6 @@
 export * from "./api-key";
 export * from "./auth";
+export * from "./billing";
 export * from "./dashboard";
 export * from "./dataset";
 export * from "./deployment";

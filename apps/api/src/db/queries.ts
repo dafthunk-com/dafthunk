@@ -1362,3 +1362,22 @@ export async function deleteDataset(
 
   return dataset;
 }
+
+/**
+ * Get an organization's compute credits
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Organization's compute credits or undefined if not found
+ */
+export async function getOrganizationComputeCredits(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+): Promise<number | undefined> {
+  const [organization] = await db
+    .select({ computeCredits: organizations.computeCredits })
+    .from(organizations)
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .limit(1);
+  return organization?.computeCredits;
+}

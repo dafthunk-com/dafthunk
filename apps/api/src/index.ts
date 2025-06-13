@@ -7,6 +7,7 @@ import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { NodeRegistry } from "./nodes/node-registry";
 import apiKeyRoutes from "./routes/api-keys";
+import billingRoutes from "./routes/billing";
 import dashboardRoutes from "./routes/dashboard";
 import datasetRoutes from "./routes/datasets";
 import deploymentRoutes from "./routes/deployments";
@@ -48,6 +49,7 @@ app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
 app.route("/:organizationIdOrHandle/executions", executionRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
+app.route("/:organizationIdOrHandle/billing", billingRoutes);
 
 export default {
   scheduled: handleCronTriggers,

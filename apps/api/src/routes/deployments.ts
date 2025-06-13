@@ -22,6 +22,7 @@ import {
   getDeploymentsGroupedByWorkflow,
   getLatestDeployment,
   getLatestDeploymentsVersionNumbers,
+  getOrganizationComputeCredits,
   getWorkflow,
   saveExecution,
 } from "../db";
@@ -263,6 +264,15 @@ deploymentRoutes.post(
     const monitorProgress =
       new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
+    // Get organization compute credits
+    const computeCredits = await getOrganizationComputeCredits(
+      db,
+      organizationId
+    );
+    if (computeCredits === undefined) {
+      return c.json({ error: "Organization not found" }, 404);
+    }
+
     // Get the deployment
     const deployment = await getDeployment(db, deploymentId, organizationId);
 
@@ -312,6 +322,7 @@ deploymentRoutes.post(
       params: {
         userId,
         organizationId,
+        computeCredits,
         workflow: {
           id: deployment.workflowId || "",
           name: workflowData.name,

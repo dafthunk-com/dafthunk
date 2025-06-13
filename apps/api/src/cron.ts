@@ -6,6 +6,7 @@ import { Bindings } from "./context";
 import { createDatabase, ExecutionStatusType } from "./db";
 import {
   getDueCronTriggers,
+  getOrganizationComputeCredits,
   saveExecution,
   updateCronTriggerRunTimes,
 } from "./db/queries";
@@ -27,10 +28,21 @@ async function executeWorkflow(
   console.log(`Attempting to execute workflow ${workflowInfo.id} via cron.`);
 
   try {
+    // Get organization compute credits
+    const computeCredits = await getOrganizationComputeCredits(
+      db,
+      workflowInfo.organizationId
+    );
+    if (computeCredits === undefined) {
+      console.error("Organization not found");
+      return;
+    }
+
     const executionInstance = await env.EXECUTE.create({
       params: {
         userId: "cron_trigger",
         organizationId: workflowInfo.organizationId,
+        computeCredits,
         workflow: {
           id: workflowInfo.id,
           name: workflowData.name,

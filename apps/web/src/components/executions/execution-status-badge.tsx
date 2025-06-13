@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   CircleDashed,
   CircleSlash,
+  Zap,
 } from "lucide-react";
 
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -45,6 +46,10 @@ const statusMap: Record<WorkflowExecution["status"], StatusInfo> = {
   paused: {
     icon: CircleDashed,
     variant: "translucent-active",
+  },
+  exhausted: {
+    icon: Zap,
+    variant: "translucent-error",
   },
 };
 

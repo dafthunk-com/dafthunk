@@ -2,7 +2,11 @@ import { ExecutionContext } from "@cloudflare/workers-types";
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
-import { createDatabase, getWorkflow } from "./db";
+import {
+  createDatabase,
+  getOrganizationComputeCredits,
+  getWorkflow,
+} from "./db";
 import {
   ExecutionStatus,
   getDeploymentByVersion,
@@ -132,11 +136,22 @@ export async function handleIncomingEmail(
     return;
   }
 
+  // Get organization compute credits
+  const computeCredits = await getOrganizationComputeCredits(
+    db,
+    workflow.organizationId
+  );
+  if (computeCredits === undefined) {
+    console.error("Organization not found");
+    return;
+  }
+
   // Trigger the runtime and get the instance id
   const instance = await env.EXECUTE.create({
     params: {
       userId: "email",
       organizationId: workflow.organizationId,
+      computeCredits,
       workflow: {
         id: workflow.id,
         name: workflow.name,
