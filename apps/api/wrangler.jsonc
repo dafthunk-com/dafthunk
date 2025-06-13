@@ -42,8 +42,8 @@
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "TODO"
-    }
+      "id": "f4c065abb26742bdb9655c3cdda905b7",
+    },
   ],
   "r2_buckets": [
     {
@@ -108,7 +108,7 @@
       "kv_namespaces": [
         {
           "binding": "KV",
-          "id": "TODO"
+          "id": "f6129098413146f7ba3b4c6ac8bd0c82",
         },
       ],
       "r2_buckets": [
