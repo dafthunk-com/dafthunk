@@ -240,15 +240,6 @@ export function useWorkflowState({
   const selectedNodes = nodes.filter((node) => node.selected);
   const selectedEdges = edges.filter((edge) => edge.selected);
 
-  console.log(
-    "Selected nodes:",
-    selectedNodes.map((n) => ({ id: n.id, selected: n.selected }))
-  );
-  console.log(
-    "Selected edges:",
-    selectedEdges.map((e) => ({ id: e.id, selected: e.selected }))
-  );
-
   useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
@@ -289,7 +280,7 @@ export function useWorkflowState({
       position: n.position,
       data: { ...n.data, createObjectUrl: undefined },
     }));
-    const currentNodesStrippedForCompare = nodes.map((n) => ({
+    const currentNodesStrippedForCompare = nodesRef.current.map((n) => ({
       ...n,
       position: n.position,
       data: { ...n.data, createObjectUrl: undefined },
@@ -303,12 +294,14 @@ export function useWorkflowState({
     // (i.e., we expect nodes to exist and have the function).
     const anyCurrentNodeMissingFunction =
       newNodesWithCreateObjectUrl.length > 0 &&
-      nodes.some((n) => typeof n.data.createObjectUrl !== "function");
+      nodesRef.current.some(
+        (n) => typeof n.data.createObjectUrl !== "function"
+      );
 
     if (newNodesStructurallyDifferent || anyCurrentNodeMissingFunction) {
       setNodes(newNodesWithCreateObjectUrl);
     }
-  }, [initialNodes, readonly, nodes, setNodes, createObjectUrl]);
+  }, [initialNodes, readonly, setNodes, createObjectUrl]);
 
   // Effect to update edges when initialEdges prop changes
   useEffect(() => {
@@ -388,23 +381,16 @@ export function useWorkflowState({
   // Custom onNodesChange handler for readonly mode
   const handleNodesChangeInternal = useCallback(
     (changes: any) => {
-      console.log("handleNodesChangeInternal called:", { readonly, changes });
-
       if (readonly) {
         // In readonly mode, only allow selection changes and block destructive changes
         const filteredChanges = changes.filter(
           (change: any) => change.type === "select"
         );
-        console.log("Filtered changes in readonly mode:", filteredChanges);
 
         if (filteredChanges.length > 0) {
-          console.log("Applying filtered changes:", filteredChanges);
           onNodesChange(filteredChanges);
-        } else {
-          console.log("No selection changes to apply");
         }
       } else {
-        console.log("Not readonly, applying all changes:", changes);
         onNodesChange(changes);
       }
     },
@@ -759,7 +745,7 @@ export function useWorkflowState({
       ];
 
       // Calculate duplicate position offset
-      const duplicateOffset = { x: 250, y: 50 };
+      const duplicateOffset = { x: 50, y: 50 };
       const timestamp = Date.now();
 
       // Create ID mapping for nodes
@@ -955,8 +941,8 @@ export function useWorkflowState({
         ...node,
         id: newId,
         position: {
-          x: node.position.x + pastePosition.x + pasteOffset.x,
-          y: node.position.y + pastePosition.y + pasteOffset.y,
+          x: node.position.x + pasteOffset.x,
+          y: node.position.y + pasteOffset.y,
         },
         selected: true, // Select pasted nodes
         data: {
