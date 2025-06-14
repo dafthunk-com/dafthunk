@@ -25,6 +25,8 @@ export function usePageBreadcrumbs(
     return () => {
       setBreadcrumbs([]);
     };
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...dependencies]);
 
   // Return the setter for cases where breadcrumbs need to be updated dynamically

@@ -9,11 +9,11 @@
   "compatibility_date": "2024-10-22",
   "compatibility_flags": ["nodejs_compat"],
   "triggers": {
-    "crons": ["* * * * *"],
+    "crons": ["* * * * *"]
   },
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1,
+    "head_sampling_rate": 1
   },
   /**
    * Smart Placement
@@ -28,7 +28,7 @@
    * https://developers.cloudflare.com/workers/runtime-apis/bindings/
    */
   "ai": {
-    "binding": "AI",
+    "binding": "AI"
   },
   "d1_databases": [
     {
@@ -36,36 +36,36 @@
       "database_name": "dafthunk-development",
       "database_id": "05b1b8e5-d566-47b8-9085-161de45bbd25",
       "preview_database_id": "05b1b8e5-d566-47b8-9085-161de45bbd25",
-      "migrations_dir": "./src/db/migrations",
-    },
+      "migrations_dir": "./src/db/migrations"
+    }
   ],
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "f4c065abb26742bdb9655c3cdda905b7",
-    },
+      "id": "f4c065abb26742bdb9655c3cdda905b7"
+    }
   ],
   "r2_buckets": [
     {
       "binding": "RESSOURCES",
       "bucket_name": "dafthunk-ressources-development",
-      "preview_bucket_name": "dafthunk-ressources-development",
+      "preview_bucket_name": "dafthunk-ressources-development"
     },
     {
       "binding": "DATASETS",
       "bucket_name": "dafthunk-datasets-development",
-      "preview_bucket_name": "dafthunk-datasets-development",
-    },
+      "preview_bucket_name": "dafthunk-datasets-development"
+    }
   ],
   "workflows": [
     {
       "name": "dafthunk-api",
       "binding": "EXECUTE",
-      "class_name": "Runtime",
-    },
+      "class_name": "Runtime"
+    }
   ],
   "analytics_engine_datasets": [
-    { "binding": "COMPUTE", "dataset": "dafthunk-compute-development" },
+    { "binding": "COMPUTE", "dataset": "dafthunk-compute-development" }
   ],
 
   /**
@@ -73,7 +73,7 @@
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
   "vars": {
-    "WEB_HOST": "https://www.dafthunk.com",
+    "WEB_HOST": "https://www.dafthunk.com"
   },
   "env": {
     "production": {
@@ -81,20 +81,20 @@
       "compatibility_date": "2024-10-22",
       "observability": {
         "enabled": true,
-        "head_sampling_rate": 1,
+        "head_sampling_rate": 1
       },
       "workflows": [
         {
           "name": "dafthunk-api",
           "binding": "EXECUTE",
-          "class_name": "Runtime",
-        },
+          "class_name": "Runtime"
+        }
       ],
       "browser": {
-        "binding": "BROWSER",
+        "binding": "BROWSER"
       },
       "ai": {
-        "binding": "AI",
+        "binding": "AI"
       },
       "d1_databases": [
         {
@@ -102,33 +102,33 @@
           "database_name": "dafthunk-production",
           "database_id": "1d40113a-d6ec-4a46-8ba8-7958ee15b79a",
           "preview_database_id": "1d40113a-d6ec-4a46-8ba8-7958ee15b79a",
-          "migrations_dir": "./src/db/migrations",
-        },
+          "migrations_dir": "./src/db/migrations"
+        }
       ],
       "kv_namespaces": [
         {
           "binding": "KV",
-          "id": "f6129098413146f7ba3b4c6ac8bd0c82",
-        },
+          "id": "f6129098413146f7ba3b4c6ac8bd0c82"
+        }
       ],
       "r2_buckets": [
         {
           "binding": "RESSOURCES",
-          "bucket_name": "dafthunk-ressources-production",
+          "bucket_name": "dafthunk-ressources-production"
         },
         {
           "binding": "DATASETS",
-          "bucket_name": "dafthunk-datasets-production",
-        },
+          "bucket_name": "dafthunk-datasets-production"
+        }
       ],
       "analytics_engine_datasets": [
-        { "binding": "COMPUTE", "dataset": "dafthunk-compute-production" },
+        { "binding": "COMPUTE", "dataset": "dafthunk-compute-production" }
       ],
       "vars": {
-        "WEB_HOST": "https://www.dafthunk.com",
-      },
-    },
-  },
+        "WEB_HOST": "https://www.dafthunk.com"
+      }
+    }
+  }
   /**
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/

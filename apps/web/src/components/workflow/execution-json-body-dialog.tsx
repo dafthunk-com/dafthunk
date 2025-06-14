@@ -1,11 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import {
-  Controller,
-  type Resolver,
-  SubmitHandler,
-  useForm,
-} from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import {
@@ -92,7 +87,7 @@ export function ExecutionJsonBodyDialog({
     reset,
     formState: { errors, isDirty, isValid },
   } = useForm<FormValues>({
-    resolver: zodResolver(validationSchema) as unknown as Resolver<FormValues>,
+    resolver: zodResolver(validationSchema),
     mode: "onChange",
     defaultValues: parameters.reduce((acc, param) => {
       acc[param.nameForForm] = "";

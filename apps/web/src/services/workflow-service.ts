@@ -484,7 +484,7 @@ export function useWorkflowExecution(orgHandle: string) {
 
       return cancelCurrentExecution;
     },
-    [executeAndPollWorkflow, cancelCurrentExecution, orgHandle]
+    [executeAndPollWorkflow, cancelCurrentExecution, orgHandle, cleanup]
   );
 
   const executeWorkflowWithForm = useCallback(
