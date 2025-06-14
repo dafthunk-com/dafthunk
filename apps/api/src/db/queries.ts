@@ -516,8 +516,9 @@ export async function createApiKey(
   const id = uuidv7();
   const now = new Date();
 
-  // Generate a secure random key
-  const rawApiKey = crypto.randomBytes(32).toString("hex");
+  // Generate a secure random key with prefix
+  const rawKeyBytes = crypto.randomBytes(32).toString("hex");
+  const rawApiKey = `dk_${rawKeyBytes}`;
 
   // Hash the key for storage
   const hashedApiKey = crypto

@@ -9,11 +9,13 @@ import { TestNodeRegistry } from "../nodes/test-node-registry";
  * Uses proper Miniflare bindings for D1, R2, AI, etc. from vitest-pool-workers.
  * The bindings (DB, RESSOURCES, DATASETS, AI, etc.) are automatically available
  * through the cloudflare:test module from the wrangler.test.jsonc configuration.
- * 
+ *
  * Call this in test setup files or at the beginning of tests
  * that need to use workflow nodes.
  */
-export function initializeTestEnvironment(envOverrides: Record<string, any> = {}) {
+export function initializeTestEnvironment(
+  envOverrides: Record<string, any> = {}
+) {
   // Use real Miniflare bindings from vitest-pool-workers
   // The env object includes all bindings from wrangler.test.jsonc:
   // - DB (D1 database)
