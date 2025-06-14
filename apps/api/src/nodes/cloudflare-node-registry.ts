@@ -1,11 +1,9 @@
-import { Node, WorkflowType } from "@dafthunk/types";
-import { NodeType } from "@dafthunk/types";
-
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
+import { BaseNodeRegistry } from "./base-node-registry";
 import { CloudflareBrowserContentNode } from "./browser/cloudflare-browser-content-node";
 import { CloudflareBrowserJsonNode } from "./browser/cloudflare-browser-json-node";
 import { CloudflareBrowserLinksNode } from "./browser/cloudflare-browser-links-node";
@@ -114,46 +112,32 @@ import { StringTrimNode } from "./text/string-trim-node";
 import { TextAreaNode } from "./text/text-area-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
-import { ExecutableNode } from "./types";
 
-export interface NodeImplementationConstructor {
-  new (node: Node, env?: Record<string, any>): ExecutableNode;
-  readonly nodeType: NodeType;
-}
-
-export class NodeRegistry {
-  private static instance: NodeRegistry;
-  private static env: Record<string, any> | undefined;
-
-  private implementations: Map<string, NodeImplementationConstructor> =
-    new Map();
-
-  private hasCloudflare: boolean = false;
-  private hasTwilioSms: boolean = false;
-  private hasSendgridEmail: boolean = false;
-  private hasResendEmail: boolean = false;
-  private hasSESEmail: boolean = false;
-
-  private constructor(env: Record<string, any>) {
-    this.hasCloudflare = !!(
-      env.CLOUDFLARE_API_KEY && env.CLOUDFLARE_ACCOUNT_ID
+export class CloudflareNodeRegistry extends BaseNodeRegistry {
+  protected registerNodes(): void {
+    // Initialize environment feature flags as local variables
+    const hasCloudflare = !!(
+      this.env.CLOUDFLARE_API_KEY && this.env.CLOUDFLARE_ACCOUNT_ID
     );
-    this.hasTwilioSms = !!(
-      env.TWILIO_ACCOUNT_SID &&
-      env.TWILIO_AUTH_TOKEN &&
-      env.TWILIO_PHONE_NUMBER
+    const hasTwilioSms = !!(
+      this.env.TWILIO_ACCOUNT_SID &&
+      this.env.TWILIO_AUTH_TOKEN &&
+      this.env.TWILIO_PHONE_NUMBER
     );
-    this.hasSendgridEmail = !!(
-      env.SENDGRID_API_KEY && env.SENDGRID_DEFAULT_FROM
+    const hasSendgridEmail = !!(
+      this.env.SENDGRID_API_KEY && this.env.SENDGRID_DEFAULT_FROM
     );
-    this.hasResendEmail = !!(env.RESEND_API_KEY && env.RESEND_DEFAULT_FROM);
-    this.hasSESEmail = !!(
-      env.AWS_ACCESS_KEY_ID &&
-      env.AWS_SECRET_ACCESS_KEY &&
-      env.AWS_REGION &&
-      env.SES_DEFAULT_FROM
+    const hasResendEmail = !!(
+      this.env.RESEND_API_KEY && this.env.RESEND_DEFAULT_FROM
+    );
+    const hasSESEmail = !!(
+      this.env.AWS_ACCESS_KEY_ID &&
+      this.env.AWS_SECRET_ACCESS_KEY &&
+      this.env.AWS_REGION &&
+      this.env.SES_DEFAULT_FROM
     );
 
+    // Register all core nodes
     this.registerImplementation(RagAiSearchNode);
     this.registerImplementation(RagSearchNode);
     this.registerImplementation(FormDataStringNode);
@@ -261,7 +245,8 @@ export class NodeRegistry {
     this.registerImplementation(DocumentNode);
     this.registerImplementation(HttpRequestNode);
 
-    if (this.hasCloudflare) {
+    // Conditional registrations based on environment
+    if (hasCloudflare) {
       this.registerImplementation(CloudflareBrowserContentNode);
       this.registerImplementation(CloudflareBrowserJsonNode);
       this.registerImplementation(CloudflareBrowserLinksNode);
@@ -272,78 +257,20 @@ export class NodeRegistry {
       this.registerImplementation(CloudflareBrowserSnapshotNode);
     }
 
-    if (this.hasTwilioSms) {
+    if (hasTwilioSms) {
       this.registerImplementation(TwilioSmsNode);
     }
 
-    if (this.hasSESEmail) {
+    if (hasSESEmail) {
       this.registerImplementation(SendEmailSesNode);
     }
 
-    if (this.hasSendgridEmail) {
+    if (hasSendgridEmail) {
       this.registerImplementation(SendEmailSendgridNode);
     }
 
-    if (this.hasResendEmail) {
+    if (hasResendEmail) {
       this.registerImplementation(SendEmailResendNode);
     }
-  }
-
-  public static initialize(env: Record<string, any>): void {
-    if (!NodeRegistry.env) {
-      NodeRegistry.env = env;
-    }
-  }
-
-  public static getInstance(): NodeRegistry {
-    if (!NodeRegistry.env) {
-      throw new Error(
-        "NodeRegistry not initialized. Call NodeRegistry.initialize(env) first."
-      );
-    }
-    if (!NodeRegistry.instance) {
-      NodeRegistry.instance = new NodeRegistry(NodeRegistry.env);
-    }
-    return NodeRegistry.instance;
-  }
-
-  public registerImplementation(
-    Implementation: NodeImplementationConstructor
-  ): void {
-    if (!Implementation?.nodeType?.type) {
-      throw new Error("NodeType is not defined");
-    }
-    this.implementations.set(Implementation.nodeType.type, Implementation);
-  }
-
-  public createExecutableNode(node: Node): ExecutableNode | undefined {
-    const Implementation = this.implementations.get(node.type);
-    if (!Implementation) {
-      return undefined;
-    }
-    return new Implementation(node, NodeRegistry.env);
-  }
-
-  public getNodeTypes(workflowType?: WorkflowType): NodeType[] {
-    const nodeTypes = Array.from(this.implementations.values()).map(
-      (implementation) => implementation.nodeType
-    );
-
-    if (!workflowType) {
-      return nodeTypes;
-    }
-
-    return nodeTypes.filter(
-      (nodeType) =>
-        !nodeType.compatibility || nodeType.compatibility.includes(workflowType)
-    );
-  }
-
-  public getNodeType(nodeType: string): NodeType {
-    const Implementation = this.implementations.get(nodeType);
-    if (!Implementation) {
-      throw new Error(`Node type not found: ${nodeType}`);
-    }
-    return Implementation.nodeType;
   }
 }

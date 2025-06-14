@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@cloudflare/puppeteer": "^1.0.2",
+    "@cloudflare/vitest-pool-workers": "^0.8.38",
     "@cloudflare/workers-types": "^4.20250504.0",
     "@eslint/js": "^9.26.0",
     "@types/mailparser": "^3.4.6",

@@ -18,7 +18,7 @@ import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
 import { createDatabase, ExecutionStatusType, saveExecution } from "../db";
-import { NodeRegistry } from "../nodes/node-registry";
+import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import {
   apiToNodeParameter,
   nodeToApiParameter,
@@ -88,7 +88,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    * The main entrypoint called by the Workflows engine.
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    NodeRegistry.initialize(this.env);
+    CloudflareNodeRegistry.initialize(this.env);
 
     const {
       workflow,
@@ -278,7 +278,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    */
   private getNodesComputeCost(nodes: Node[]): number {
     return nodes.reduce((acc, node) => {
-      const nodeType = NodeRegistry.getInstance().getNodeType(node.type);
+      const nodeType = CloudflareNodeRegistry.getInstance().getNodeType(
+        node.type
+      );
       return acc + (nodeType.computeCost ?? 1);
     }, 0);
   }
@@ -337,7 +339,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return { ...runtimeState, status: "error" };
     }
 
-    const nodeType = NodeRegistry.getInstance().getNodeType(node.type);
+    const nodeType = CloudflareNodeRegistry.getInstance().getNodeType(
+      node.type
+    );
     this.env.COMPUTE.writeDataPoint({
       indexes: [organizationId],
       blobs: [organizationId, workflowId, node.id],
@@ -345,7 +349,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     });
 
     // Resolve the runnable implementation.
-    const executable = NodeRegistry.getInstance().createExecutableNode(node);
+    const executable =
+      CloudflareNodeRegistry.getInstance().createExecutableNode(node);
     if (!executable) {
       runtimeState.nodeErrors.set(
         nodeIdentifier,
@@ -809,7 +814,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) return false;
 
     // Get the node type definition to check for required inputs
-    const executable = NodeRegistry.getInstance().createExecutableNode(node);
+    const executable =
+      CloudflareNodeRegistry.getInstance().createExecutableNode(node);
     if (!executable) return false;
 
     const nodeTypeDefinition = (executable.constructor as any).nodeType;

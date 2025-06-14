@@ -5,7 +5,6 @@ import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
-import { cn } from "@/utils/utils";
 
 interface CanvasDoodleConfig {
   value: any; // Now stores an object reference
@@ -266,21 +265,22 @@ export function CanvasDoodleWidget({
               className="size-3 rounded-full border-4"
               style={{ borderColor: currentColor }}
             />
-            
+
             {/* Available colors (visible on hover) */}
-            {isColorBarOpen && COLORS.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => {
-                  setCurrentColor(color);
-                  setIsColorBarOpen(false);
-                }}
-                className="size-3 rounded-full"
-                style={{ backgroundColor: color }}
-                aria-label={`Select color ${color}`}
-              />
-            ))}
+            {isColorBarOpen &&
+              COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => {
+                    setCurrentColor(color);
+                    setIsColorBarOpen(false);
+                  }}
+                  className="size-3 rounded-full"
+                  style={{ backgroundColor: color }}
+                  aria-label={`Select color ${color}`}
+                />
+              ))}
           </div>
         </div>
         {/* Action Buttons */}

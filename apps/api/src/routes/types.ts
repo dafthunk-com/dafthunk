@@ -2,13 +2,13 @@ import { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { ApiContext } from "../context";
-import { NodeRegistry } from "../nodes/node-registry";
+import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 
 const typeRoutes = new Hono<ApiContext>();
 
 typeRoutes.get("/", (c) => {
   try {
-    const registry = NodeRegistry.getInstance();
+    const registry = CloudflareNodeRegistry.getInstance();
     const workflowType = c.req.query("workflowType") as
       | WorkflowType
       | undefined;

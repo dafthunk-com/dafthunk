@@ -6,7 +6,7 @@ import { handleCronTriggers } from "./cron";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
-import { NodeRegistry } from "./nodes/node-registry";
+import { CloudflareNodeRegistry } from "./nodes/cloudflare-node-registry";
 import apiKeyRoutes from "./routes/api-keys";
 import dashboardRoutes from "./routes/dashboard";
 import datasetRoutes from "./routes/datasets";
@@ -26,7 +26,7 @@ const app = new Hono<ApiContext>();
 
 // Middleware to initialize NodeRegistry
 app.use("*", async (c, next) => {
-  NodeRegistry.initialize(c.env);
+  CloudflareNodeRegistry.initialize(c.env);
   await next();
 });
 
