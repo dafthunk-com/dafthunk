@@ -42,6 +42,7 @@
     "@cf-wasm/photon": "^0.1.30",
     "@cf-wasm/quickjs": "^0.0.6",
     "@dafthunk/types": "workspace:*",
+    "@hono-rate-limiter/cloudflare": "^0.2.2",
     "@hono/oauth-providers": "^0.7.1",
     "@hono/zod-validator": "^0.5.0",
     "@sendgrid/mail": "^8.1.5",

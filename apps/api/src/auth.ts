@@ -17,7 +17,7 @@ import {
 } from "./db";
 
 // Constants
-const JWT_ACCESS_TOKEN_NAME = "access_token";
+export const JWT_ACCESS_TOKEN_NAME = "access_token";
 const JWT_REFRESH_TOKEN_NAME = "refresh_token";
 const JWT_ACCESS_TOKEN_DURATION = 300; // 5 minutes
 const JWT_REFRESH_TOKEN_DURATION = 86400; // 1 days
@@ -75,6 +75,19 @@ const verifyToken = async (token: string, jwtSecret: string) => {
       "Token verification failed:",
       error instanceof Error ? error.message : "Unknown error"
     );
+    return null;
+  }
+};
+
+export const verifyTokenForRateLimit = async (
+  token: string,
+  jwtSecret: string
+): Promise<JWTTokenPayload | null> => {
+  try {
+    const secret = new TextEncoder().encode(jwtSecret);
+    const { payload } = await jwtVerify(token, secret);
+    return payload as JWTTokenPayload;
+  } catch {
     return null;
   }
 };

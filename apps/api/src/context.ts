@@ -5,6 +5,8 @@ import { RuntimeParams } from "./runtime/runtime";
 export interface Bindings {
   DB: D1Database;
   KV: KVNamespace;
+  RATE_LIMIT_DEFAULT: RateLimit;
+  RATE_LIMIT_AUTH: RateLimit;
   EXECUTE: Workflow<RuntimeParams>;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;
