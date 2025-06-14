@@ -180,9 +180,17 @@ export function useEditableWorkflow({
         await updateWorkflow(workflowId, workflowToSave, orgHandle);
       } catch (error) {
         console.error("Error saving workflow via useEditableWorkflow:", error);
-        setSavingError(
-          error instanceof Error ? error.message : "Failed to save workflow."
-        );
+
+        // If it's an authentication error, the user might need to refresh/login again
+        if (error instanceof Error && error.message.includes("Unauthorized")) {
+          setSavingError(
+            "Authentication expired. Please refresh the page or login again."
+          );
+        } else {
+          setSavingError(
+            error instanceof Error ? error.message : "Failed to save workflow."
+          );
+        }
       }
     },
     [workflowId, organization, currentWorkflow]

@@ -125,11 +125,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If refresh was successful, update the SWR cache
       if (result.success && result.user) {
         mutateUser(result.user, { revalidate: false });
+      } else if (!result.success) {
+        // If refresh failed, clear the user data to trigger re-authentication
+        console.warn("Token refresh failed, clearing user data");
+        mutateUser(null, { revalidate: false });
       }
 
       return result;
     } catch (error) {
       console.error("Token refresh error:", error);
+      // Clear user data on refresh error to trigger re-authentication
+      mutateUser(null, { revalidate: false });
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

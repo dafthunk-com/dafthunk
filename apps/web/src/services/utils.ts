@@ -1,3 +1,5 @@
+import { JWTTokenPayload } from "@dafthunk/types";
+
 import { getApiBaseUrl } from "@/config/api";
 
 // Track if we're currently refreshing to avoid multiple simultaneous refresh attempts
@@ -6,7 +8,7 @@ let refreshPromise: Promise<boolean> | null = null;
 
 /**
  * Refresh the access token using the refresh token
- * This is a standalone function to avoid circular dependencies
+ * This is a shared function that updates both cookies and SWR cache
  */
 const refreshAccessToken = async (): Promise<boolean> => {
   if (isRefreshing && refreshPromise) {
@@ -17,15 +19,34 @@ const refreshAccessToken = async (): Promise<boolean> => {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      const response = await makeRequest<{ success: boolean }>(
+      const response = await makeRequest<{
+        success: boolean;
+        user?: JWTTokenPayload;
+      }>(
         "/auth/refresh",
         {
           method: "POST",
         },
-        true // Skip refresh to avoid infinite loops
-      );
+        true
+      ); // Skip refresh to avoid infinite loops
 
-      return response.success === true;
+      if (response.success && response.user) {
+        // Update the SWR cache with the fresh user data to keep auth context in sync
+        // We need to import mutate dynamically to avoid circular dependencies
+        const { mutate } = await import("swr");
+        const { AUTH_USER_KEY } = await import("@/components/auth-context");
+
+        // Validate user data before updating cache
+        if (!response.user.sub || !response.user.name) {
+          console.error("Invalid user data in refresh response");
+          return false;
+        }
+
+        mutate(AUTH_USER_KEY, response.user, { revalidate: false });
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error("Token refresh failed:", error);
       return false;
