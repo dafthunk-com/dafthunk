@@ -26,21 +26,21 @@ const features = [
     icon: <Workflow className="h-12 w-12 text-cyan-600 dark:text-cyan-500" />,
     title: "Visual Workflow Editor",
     description:
-      "A drag-and-drop interface so easy, even your cat could automate your chores. (Results may vary.)",
+      "A drag-and-drop interface for creating and editing workflows that makes command-line enthusiasts mildly uncomfortable.",
     color: "border-l-cyan-600/20 dark:border-l-cyan-500/20",
   },
   {
     icon: <Cpu className="h-12 w-12 text-fuchsia-600 dark:text-fuchsia-500" />,
     title: "AI-Powered Nodes",
     description:
-      "Jump on the AI bandwagon: text summarization, image analysis, and more, all without reading a single research paper.",
+      "Leverage Cloudflare AI for text summarization, sentiment analysis, translation, image classification, audio transcription, image generation, and more.",
     color: "border-l-fuchsia-600/20 dark:border-l-fuchsia-500/20",
   },
   {
     icon: <Share2 className="h-12 w-12 text-amber-600 dark:text-amber-500" />,
     title: "Serverless Execution",
     description:
-      "Run workflows on Cloudflare's edge, where servers are just a rumor. Deploy, forget, and hope for the best.",
+      "Run workflows on Cloudflare's global network using Cloudflare Workers, where servers are merely a philosophical concept.",
     color: "border-l-amber-600/20 dark:border-l-amber-500/20",
   },
   {
@@ -56,14 +56,14 @@ const features = [
     ),
     title: "Persistent Storage",
     description:
-      "Store your everything with Cloudflare D1 and R2. Because sometimes, you actually want your data to stick around.",
+      "Save and load execution data from Cloudflare D1 and R2 with reasonable confidence that they'll still be there tomorrow.",
     color: "border-l-purple-600/20 dark:border-l-purple-500/20",
   },
   {
     icon: <Rocket className="h-12 w-12 text-pink-600 dark:text-pink-500" />,
     title: "Triggers & Integrations",
     description:
-      "Nothing happens unless something happens. So we made it happen with HTTP APIs, emails, and more.",
+      "Nothing happens unless something happens. So you can make it happen with HTTP APIs, emails, and more.",
     color: "border-l-pink-600/20 dark:border-l-pink-500/20",
   },
 ];

@@ -2,31 +2,28 @@
 
 > Break it, fix it, prompt it, automatic, automatic, ...
 
-A workflow execution platform no one asked for built on top of the fantastic Cloudflare infrastructure.
+A workflow execution platform built on top of the fantastic Cloudflare infrastructure.
 
 ## 🔍 Overview
 
-Dafthunk (short for Dope as F\*\*\* Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's edge infrastructure, it leverages Cloudflare Workers for serverless execution, Cloudflare AI for intelligent workflow processing, and Cloudflare D1 for persistent storage.
+[Daf·thunk](https://en.wikipedia.org/wiki/Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's infrastructure, it leverages Cloudflare Workers and Workflows for serverless execution, Cloudflare AI for intelligent processing, and Cloudflare D1, R2, and KV for persistent storage.
 
-The platform features a visual workflow editor built with React Flow, allowing you to create complex workflows by connecting various node types, including AI-powered nodes for text processing, image classification, and more. Think digital LEGO, but with less risk to your bare feet at 2 AM.
+The platform features a visual workflow editor built with [React Flow](https://reactflow.dev/), allowing you to create complex workflows by connecting various node types, including AI-powered nodes for text processing, image classification, and more. Think digital LEGO, but with less risk to your bare feet at 2 AM.
 
 ## ✨ Features
 
-- **Visual Workflow Editor**: A drag-and-drop interface built with React Flow for creating and editing workflows that makes command-line enthusiasts mildly uncomfortable.
-- **50+ AI-Powered Nodes**: Leverage Cloudflare AI for text summarization, sentiment analysis, translation, image classification, audio transcription, image generation (Stable Diffusion), and more. We've joined the AI bandwagon and we're not even sorry about it.
-- **Serverless Execution**: Run workflows on Cloudflare's global edge network using Cloudflare Workers, where servers are merely a philosophical concept.
-- **Real-time Execution**: Watch your workflow results appear in real-time with WebSockets, for better or worse.
-- **Persistent Storage**: Save and load workflows from Cloudflare D1 database with reasonable confidence that they'll still be there tomorrow.
-- **Object Storage**: Store workflow outputs (images, audio, documents) in Cloudflare R2 with global CDN distribution.
-- **Modern UI**: Crafted with React 19, TailwindCSS, and Shadcn UI components because life's too short for vanilla CSS.
-- **API Integration**: RESTful API with comprehensive type safety using Zod validation.
-- **Authentication**: OAuth support for GitHub and Google providers.
+- **Visual Workflow Editor**: A drag-and-drop interface for creating and editing workflows that makes command-line enthusiasts mildly uncomfortable.
+- **AI-Powered Nodes**: Leverage Cloudflare AI for text summarization, sentiment analysis, translation, image classification, audio transcription, image generation, and more.
+- **Serverless Execution**: Run workflows on Cloudflare's global network using Cloudflare Workers, where servers are merely a philosophical concept.
+- **Live Monitoring**: Watch your workflows succeed, fail, or do something in between, all live with a UI or an API.
+- **Persistent Storage**: Save and load execution data from Cloudflare D1 and R2 with reasonable confidence that they'll still be there tomorrow.
+- **Triggers & Integrations**: Nothing happens unless something happens. So you can make it happen with HTTP APIs, emails, and more.
 
 ## 🛠️ Technology Stack
 
 Our collection of carefully selected technologies, guaranteed to be outdated by the time you read this:
 
-### Both
+### Environment
 
 - **pnpm** for fast and efficient package management with workspace support.
 - **TypeScript** for static typing and enhanced developer experience.
