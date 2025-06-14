@@ -51,7 +51,7 @@ const cronSchema = z
     }
   );
 
-export type CronFormData = z.infer<typeof cronSchema>;
+type CronFormData = z.infer<typeof cronSchema>;
 
 // Helper function to create strictly typed default values
 const getInitialFormValues = (
@@ -60,7 +60,7 @@ const getInitialFormValues = (
   return {
     cronExpression: initialData?.cronExpression || "",
     versionAlias: initialData?.versionAlias || "dev",
-    versionNumber: initialData?.versionNumber,
+    versionNumber: initialData?.versionNumber || null,
     active: initialData?.active === undefined ? true : initialData.active,
   };
 };
@@ -82,8 +82,7 @@ export function SetCronDialog({
   deploymentVersions = [],
   workflowName,
 }: SetCronDialogProps) {
-  const form = useForm<CronFormData>({
-    // @ts-ignore
+  const form = useForm({
     resolver: zodResolver(cronSchema),
     defaultValues: getInitialFormValues(initialData),
   });

@@ -1,11 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo } from "react";
-import {
-  Controller,
-  type Resolver,
-  SubmitHandler,
-  useForm,
-} from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import {
@@ -168,8 +163,7 @@ export function ExecutionFormDialog({
     reset,
     formState: { errors, isDirty, isValid },
   } = useForm<FormValues>({
-    // @ts-ignore - zodResolver is not typed correctly
-    resolver: zodResolver(validationSchema) as unknown as Resolver<FormValues>,
+    resolver: zodResolver(validationSchema),
     mode: "onChange",
     defaultValues: getDefaultFormValues(parameters),
   });

@@ -1,8 +1,8 @@
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
-import { codeToHtml } from "shiki";
 
 import { Button } from "@/components/ui/button";
+import { shikiHighlightCode } from "@/utils/shiki";
 import { cn } from "@/utils/utils";
 
 interface CodeBlockProps {
@@ -30,13 +30,7 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
         // Extract language from className if not provided directly
         const lang = language || className?.replace("language-", "") || "text";
 
-        const html = await codeToHtml(codeString, {
-          lang,
-          themes: {
-            light: "github-light",
-            dark: "github-dark",
-          },
-        });
+        const html = shikiHighlightCode(codeString, lang);
 
         setHighlightedCode(html);
       } catch (error) {
