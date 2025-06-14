@@ -989,14 +989,7 @@ export function useWorkflowState({
     if (clipboardData.isCut) {
       setClipboardData(null);
     }
-  }, [
-    readonly,
-    clipboardData,
-    reactFlowInstance,
-    setNodes,
-    setEdges,
-    createObjectUrl,
-  ]);
+  }, [readonly, clipboardData, setNodes, setEdges, createObjectUrl]);
 
   // Keyboard shortcuts
   useEffect(() => {
