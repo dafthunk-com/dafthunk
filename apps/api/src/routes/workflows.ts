@@ -43,6 +43,7 @@ import {
   type WorkflowInsert,
 } from "../db";
 import { validateWorkflow } from "../utils/workflows";
+import { createRateLimitMiddleware } from "../middleware/rate-limit";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -443,6 +444,7 @@ workflowRoutes.put(
 workflowRoutes.post(
   "/:workflowIdOrHandle/execute/:version",
   apiKeyOrJwtMiddleware,
+  (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");

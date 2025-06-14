@@ -26,6 +26,7 @@ import {
   getWorkflow,
   saveExecution,
 } from "../db";
+import { createRateLimitMiddleware } from "../middleware/rate-limit";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -242,6 +243,7 @@ deploymentRoutes.get(
 deploymentRoutes.post(
   "/version/:deploymentId/execute",
   apiKeyOrJwtMiddleware,
+  (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
     // Get organization ID and user ID from either JWT or API key auth
     let organizationId: string;

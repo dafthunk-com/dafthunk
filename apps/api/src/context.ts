@@ -7,6 +7,7 @@ export interface Bindings {
   KV: KVNamespace;
   RATE_LIMIT_DEFAULT: RateLimit;
   RATE_LIMIT_AUTH: RateLimit;
+  RATE_LIMIT_EXECUTE: RateLimit;
   EXECUTE: Workflow<RuntimeParams>;
   RESSOURCES: R2Bucket;
   DATASETS: R2Bucket;

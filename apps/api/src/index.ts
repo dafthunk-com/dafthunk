@@ -40,7 +40,7 @@ app.use("*", async (c, next) => {
   }
 
   // Use stricter rate limiting for auth routes
-  if (c.req.path.startsWith("/auth")) {
+  if (c.req.path.startsWith("/auth/login") || c.req.path === "/auth/refresh") {
     const rateLimit = createRateLimitMiddleware(c.env.RATE_LIMIT_AUTH);
     return rateLimit(c, next);
   }
