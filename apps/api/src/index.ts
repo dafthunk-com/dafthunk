@@ -5,6 +5,7 @@ import { ApiContext } from "./context";
 import { handleCronTriggers } from "./cron";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
+import { createRateLimitMiddleware } from "./middleware/rate-limit";
 import { NodeRegistry } from "./nodes/node-registry";
 import apiKeyRoutes from "./routes/api-keys";
 import dashboardRoutes from "./routes/dashboard";
@@ -31,6 +32,23 @@ app.use("*", async (c, next) => {
 
 // Global middleware
 app.use("*", corsMiddleware);
+
+// Apply rate limiting to all routes except health check
+app.use("*", async (c, next) => {
+  if (c.req.path === "/health") {
+    return next();
+  }
+
+  // Use stricter rate limiting for auth routes
+  if (c.req.path.startsWith("/auth")) {
+    const rateLimit = createRateLimitMiddleware(c.env.RATE_LIMIT_AUTH);
+    return rateLimit(c, next);
+  }
+
+  // Use default rate limiting for other routes
+  const rateLimit = createRateLimitMiddleware(c.env.RATE_LIMIT_DEFAULT);
+  return rateLimit(c, next);
+});
 
 // Mount routes
 app.route("/health", health);

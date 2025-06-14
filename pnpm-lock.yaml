@@ -26,6 +26,9 @@ importers:
       '@dafthunk/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@hono-rate-limiter/cloudflare':
+        specifier: ^0.2.2
+        version: 0.2.2(@cloudflare/workers-types@4.20250614.0)(hono@4.7.11)
       '@hono/oauth-providers':
         specifier: ^0.7.1
         version: 0.7.1(hono@4.7.11)
@@ -1195,6 +1198,12 @@ packages:
     peerDependencies:
       '@fortawesome/fontawesome-svg-core': ~1 || ~6
       react: '>=16.3'
+
+  '@hono-rate-limiter/cloudflare@0.2.2':
+    resolution: {integrity: sha512-wMnqeV+cb5Wov2npLIMFtCVm3tiNMtqw9LhPWSzSMwHOzh2qbhI3mCS6s962fxcJ6UUNJhRqDbVMEsB/NinCIQ==}
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20240529.0
+      hono: ^4.4.8
 
   '@hono/oauth-providers@0.7.1':
     resolution: {integrity: sha512-NJ9weiJ5Af+/Waq0q/DIMofxkKlK32pVl7/iXh/Q0dumRKftn1A41h3d5clsNtwNsKfADErtshbdD1Q89/bFag==}
@@ -5938,6 +5947,11 @@ snapshots:
       '@fortawesome/fontawesome-svg-core': 6.7.2
       prop-types: 15.8.1
       react: 19.1.0
+
+  '@hono-rate-limiter/cloudflare@0.2.2(@cloudflare/workers-types@4.20250614.0)(hono@4.7.11)':
+    dependencies:
+      '@cloudflare/workers-types': 4.20250614.0
+      hono: 4.7.11
 
   '@hono/oauth-providers@0.7.1(hono@4.7.11)':
     dependencies:

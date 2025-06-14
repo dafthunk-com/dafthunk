@@ -67,6 +67,28 @@
   "analytics_engine_datasets": [
     { "binding": "COMPUTE", "dataset": "dafthunk-compute-development" }
   ],
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "RATE_LIMIT_DEFAULT",
+        "type": "ratelimit",
+        "namespace_id": "1001",
+        "simple": {
+          "limit": 500,
+          "period": 60
+        }
+      },
+      {
+        "name": "RATE_LIMIT_AUTH",
+        "type": "ratelimit",
+        "namespace_id": "1002",
+        "simple": {
+          "limit": 10,
+          "period": 60
+        }
+      }
+    ]
+  },
 
   /**
    * Environment Variables
