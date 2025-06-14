@@ -20,6 +20,13 @@ export const createRateLimitMiddleware = (rateLimitBinding: RateLimit) => {
         }
       }
 
+      // Try to get API key from header bearer token
+      const authHeader = c.req.header("Authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const apiKey = authHeader.substring(7);
+        return `api:${apiKey}`;
+      }
+
       // Fall back to IP address
       return c.req.header("cf-connecting-ip") ?? "";
     },
