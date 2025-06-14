@@ -59,8 +59,8 @@ export function CanvasDoodleWidget({
 
     // Set canvas size with 2x scaling for sharp rendering
     const dpr = window.devicePixelRatio || 1;
-    const displayWidth = 344; // Doubled from 172 for higher resolution
-    const displayHeight = 344; // Doubled from 172 for higher resolution
+    const displayWidth = 396; // Doubled from 172 for higher resolution
+    const displayHeight = 396; // Doubled from 172 for higher resolution
     const scaleFactor = Math.min(dpr, 2); // Cap at 2x for performance
 
     // Set the canvas dimensions for high resolution
@@ -232,8 +232,8 @@ export function CanvasDoodleWidget({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const displayWidth = 344;
-    const displayHeight = 344;
+    const displayWidth = 396;
+    const displayHeight = 396;
 
     // Clear the canvas with white background
     ctx.fillStyle = "white";
@@ -251,50 +251,35 @@ export function CanvasDoodleWidget({
     <div className="space-y-2">
       {!compact && <Label>Canvas Doodle</Label>}
       <div className="relative w-full mx-auto">
-        {/* Collapsible Color Bar */}
+        {/* Color Picker */}
         <div
           ref={colorBarRef}
-          className="absolute bottom-2 left-2 z-10 flex items-end"
+          className="absolute bottom-2 left-2 z-10"
           onMouseEnter={() => setIsColorBarOpen(true)}
           onMouseLeave={() => setIsColorBarOpen(false)}
-          onFocus={() => setIsColorBarOpen(true)}
-          onBlur={() => setIsColorBarOpen(false)}
           tabIndex={0}
-          aria-label="Color picker bar"
+          aria-label="Color picker"
         >
-          <div
-            className={cn(
-              "flex flex-row gap-1 transition-all",
-              isColorBarOpen ? "gap-0.5" : "gap-0"
-            )}
-            style={{
-              width: isColorBarOpen ? `${COLORS.length * 1}rem` : "0.75rem",
-              overflow: "hidden",
-            }}
-          >
-            {COLORS.map((color) => (
+          <div className="flex flex-row gap-1">
+            {/* Selected color indicator (always visible) */}
+            <div
+              className="size-3 rounded-full border-4"
+              style={{ borderColor: currentColor }}
+            />
+            
+            {/* Available colors (visible on hover) */}
+            {isColorBarOpen && COLORS.map((color) => (
               <button
                 key={color}
                 type="button"
-                onClick={() => setCurrentColor(color)}
-                className={cn(
-                  "size-3 rounded-full flex flex-shrink-0 items-center justify-center transition-all",
-                  !isColorBarOpen &&
-                    color !== currentColor &&
-                    "opacity-0 scale-0 pointer-events-none flex-shrink",
-                  (isColorBarOpen || color === currentColor) &&
-                    "opacity-100 scale-100"
-                )}
-                style={{
-                  backgroundColor: color,
+                onClick={() => {
+                  setCurrentColor(color);
+                  setIsColorBarOpen(false);
                 }}
+                className="size-3 rounded-full"
+                style={{ backgroundColor: color }}
                 aria-label={`Select color ${color}`}
-                tabIndex={isColorBarOpen || color === currentColor ? 0 : -1}
-              >
-                {currentColor === color && (
-                  <span className="block w-2 h-2 rounded-full bg-white" />
-                )}
-              </button>
+              />
             ))}
           </div>
         </div>
