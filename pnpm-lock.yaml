@@ -118,7 +118,7 @@ importers:
         specifier: ^3.1.2
         version: 3.2.3(@types/debug@4.1.12)(@types/node@22.15.31)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0)
       wrangler:
-        specifier: ^4.14.1
+        specifier: ^4.20.0
         version: 4.20.0(@cloudflare/workers-types@4.20250614.0)
 
   apps/web:
@@ -329,7 +329,7 @@ importers:
         specifier: ^3.1.2
         version: 3.2.3(@types/debug@4.1.12)(@types/node@22.15.31)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0)
       wrangler:
-        specifier: ^4.14.1
+        specifier: ^4.20.0
         version: 4.20.0(@cloudflare/workers-types@4.20250614.0)
 
   packages/types:
