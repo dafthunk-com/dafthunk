@@ -190,11 +190,17 @@ export function DashboardPage() {
           {
             accessorKey: "workflowName",
             header: "Workflow",
-            cell: ({ row }) => (
-              <span className="font-medium truncate">
-                {row.original.workflowName}
-              </span>
-            ),
+            cell: ({ row }) => {
+              const execution = row.original as RecentExecutionItem;
+              return (
+                <Link
+                  to={`/workflows/executions/${execution.id}`}
+                  className="font-medium truncate hover:underline text-primary"
+                >
+                  {execution.workflowName}
+                </Link>
+              );
+            },
           },
           {
             accessorKey: "status",
