@@ -1,5 +1,5 @@
 import {
-  ChartNoAxesColumn,
+  ChartNoAxesCombined,
   Database,
   KeyRound,
   Logs,
@@ -85,7 +85,7 @@ const settingsSidebarItems = [
   {
     title: "Usage",
     url: "/settings/usage",
-    icon: ChartNoAxesColumn,
+    icon: ChartNoAxesCombined,
   },
   {
     title: "API Keys",

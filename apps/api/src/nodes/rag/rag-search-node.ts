@@ -18,6 +18,7 @@ export class RagSearchNode extends ExecutableNode {
     description: "Search through datasets and return relevant results",
     category: "AI",
     icon: "search",
+    computeCost: 10,
     inputs: [
       {
         name: "query",

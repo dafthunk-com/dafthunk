@@ -1,4 +1,9 @@
-import { CircleUserRound, KeyRound, LogOut } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  CircleUserRound,
+  KeyRound,
+  LogOut,
+} from "lucide-react";
 import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
@@ -53,6 +58,12 @@ export function UserProfile() {
               <Link to="/settings/profile" className="flex items-center">
                 <CircleUserRound className="mr-2 size-4 text-muted-foreground" />
                 <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link to="/settings/usage" className="flex items-center">
+                <ChartNoAxesCombined className="mr-2 size-4 text-muted-foreground" />
+                <span>Usage</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="cursor-pointer">
