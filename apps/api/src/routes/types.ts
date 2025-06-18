@@ -1,6 +1,7 @@
 import { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { Hono } from "hono";
 
+import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 
@@ -8,7 +9,11 @@ const typeRoutes = new Hono<ApiContext>();
 
 typeRoutes.get("/", (c) => {
   try {
-    const registry = CloudflareNodeRegistry.getInstance();
+    const jwtPayload = c.get("jwtPayload");
+    const registry = new CloudflareNodeRegistry(
+      c.env,
+      jwtPayload?.developerMode ?? false
+    );
     const workflowType = c.req.query("workflowType") as
       | WorkflowType
       | undefined;

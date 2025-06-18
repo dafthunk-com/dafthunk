@@ -84,12 +84,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     timeout: "10 minutes",
   };
 
+  private nodeRegistry: CloudflareNodeRegistry;
+
+  constructor(env: Bindings, options?: any) {
+    super(env as any, options);
+    this.nodeRegistry = new CloudflareNodeRegistry(env, true);
+  }
+
   /**
    * The main entrypoint called by the Workflows engine.
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
-    CloudflareNodeRegistry.initialize(this.env);
-
     const {
       workflow,
       userId,
@@ -278,9 +283,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
    */
   private getNodesComputeCost(nodes: Node[]): number {
     return nodes.reduce((acc, node) => {
-      const nodeType = CloudflareNodeRegistry.getInstance().getNodeType(
-        node.type
-      );
+      const nodeType = this.nodeRegistry.getNodeType(node.type);
       return acc + (nodeType.computeCost ?? 1);
     }, 0);
   }
@@ -339,9 +342,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return { ...runtimeState, status: "error" };
     }
 
-    const nodeType = CloudflareNodeRegistry.getInstance().getNodeType(
-      node.type
-    );
+    const nodeType = this.nodeRegistry.getNodeType(node.type);
     this.env.COMPUTE.writeDataPoint({
       indexes: [organizationId],
       blobs: [organizationId, workflowId, node.id],
@@ -349,8 +350,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     });
 
     // Resolve the runnable implementation.
-    const executable =
-      CloudflareNodeRegistry.getInstance().createExecutableNode(node);
+    const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
       runtimeState.nodeErrors.set(
         nodeIdentifier,
@@ -814,8 +814,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     if (!node) return false;
 
     // Get the node type definition to check for required inputs
-    const executable =
-      CloudflareNodeRegistry.getInstance().createExecutableNode(node);
+    const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) return false;
 
     const nodeTypeDefinition = (executable.constructor as any).nodeType;

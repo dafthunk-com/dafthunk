@@ -1,6 +1,7 @@
 import { Node, WorkflowType } from "@dafthunk/types";
 import { NodeType } from "@dafthunk/types";
 
+import { Bindings } from "../context";
 import { ExecutableNode } from "./types";
 
 export interface NodeImplementationConstructor {
@@ -10,16 +11,16 @@ export interface NodeImplementationConstructor {
 
 /**
  * Abstract base class for node registries that provides common functionality
- * for managing node implementations, singleton pattern, and node operations.
+ * for managing node implementations and node operations.
  */
 export abstract class BaseNodeRegistry {
-  protected static instances: Map<string, BaseNodeRegistry> = new Map();
-  protected static environments: Map<string, Record<string, any>> = new Map();
-
   protected implementations: Map<string, NodeImplementationConstructor> =
     new Map();
 
-  public constructor(protected env: Record<string, any>) {
+  public constructor(
+    protected env: Bindings,
+    protected developerMode: boolean
+  ) {
     this.registerNodes();
   }
 
@@ -27,41 +28,6 @@ export abstract class BaseNodeRegistry {
    * Abstract method that each registry must implement to register its specific nodes
    */
   protected abstract registerNodes(): void;
-
-  /**
-   * Initialize the registry with environment variables
-   */
-  public static initialize<T extends BaseNodeRegistry>(
-    this: new (env: Record<string, any>) => T,
-    env: Record<string, any>
-  ): void {
-    const registryName = this.name;
-    if (!BaseNodeRegistry.environments.has(registryName)) {
-      BaseNodeRegistry.environments.set(registryName, env);
-    }
-  }
-
-  /**
-   * Get singleton instance of the registry
-   */
-  public static getInstance<T extends BaseNodeRegistry>(
-    this: new (env: Record<string, any>) => T
-  ): T {
-    const registryName = this.name;
-    const env = BaseNodeRegistry.environments.get(registryName);
-
-    if (!env) {
-      throw new Error(
-        `${registryName} not initialized. Call ${registryName}.initialize(env) first.`
-      );
-    }
-
-    if (!BaseNodeRegistry.instances.has(registryName)) {
-      BaseNodeRegistry.instances.set(registryName, new this(env));
-    }
-
-    return BaseNodeRegistry.instances.get(registryName) as T;
-  }
 
   /**
    * Register a node implementation

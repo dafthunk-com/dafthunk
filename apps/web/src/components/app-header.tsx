@@ -39,13 +39,15 @@ export function AppHeader() {
                   >
                     Dashboard
                   </NavLink>
-                  <NavLink
-                    to="/datasets"
-                    className={navLinkClasses}
-                    activeClassName={activeNavLinkClasses}
-                  >
-                    Datasets
-                  </NavLink>
+                  {user?.developerMode && (
+                    <NavLink
+                      to="/datasets"
+                      className={navLinkClasses}
+                      activeClassName={activeNavLinkClasses}
+                    >
+                      Datasets
+                    </NavLink>
+                  )}
                   <NavLink
                     to="/workflows"
                     className={navLinkClasses}

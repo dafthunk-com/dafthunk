@@ -117,7 +117,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
     // Initialize environment feature flags as local variables
     const hasCloudflare = !!(
-      this.env.CLOUDFLARE_API_KEY && this.env.CLOUDFLARE_ACCOUNT_ID
+      this.env.CLOUDFLARE_ACCOUNT_ID && this.env.CLOUDFLARE_API_TOKEN
     );
     const hasTwilioSms = !!(
       this.env.TWILIO_ACCOUNT_SID &&
@@ -138,8 +138,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     );
 
     // Register all core nodes
-    this.registerImplementation(RagAiSearchNode);
-    this.registerImplementation(RagSearchNode);
     this.registerImplementation(FormDataStringNode);
     this.registerImplementation(FormDataNumberNode);
     this.registerImplementation(FormDataBooleanNode);
@@ -271,6 +269,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     if (hasResendEmail) {
       this.registerImplementation(SendEmailResendNode);
+    }
+
+    if (this.developerMode) {
+      this.registerImplementation(RagAiSearchNode);
+      this.registerImplementation(RagSearchNode);
     }
   }
 }

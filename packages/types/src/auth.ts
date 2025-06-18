@@ -16,6 +16,7 @@ export interface DatabaseUser {
   plan: string;
   role: string;
   inWaitlist: boolean;
+  developerMode: boolean;
   organization: OrganizationInfo;
   provider: AuthProvider;
 }
@@ -29,6 +30,7 @@ export interface AuthUser {
   plan: string;
   role: string;
   inWaitlist: boolean;
+  developerMode: boolean;
   organization: OrganizationInfo;
   provider: AuthProvider;
 }

@@ -354,6 +354,7 @@ auth.post("/refresh", async (c) => {
       plan: result.plan,
       role: result.role,
       inWaitlist: result.inWaitlist,
+      developerMode: result.developerMode,
       provider,
       organization: {
         id: orgResult.id,
@@ -448,6 +449,7 @@ auth.get(
         plan: savedUser.plan,
         role: savedUser.role,
         inWaitlist: savedUser.inWaitlist,
+        developerMode: savedUser.developerMode,
         provider: "github",
         organization: organizationInfo,
       };
@@ -527,6 +529,7 @@ auth.get(
         plan: savedUser.plan,
         role: savedUser.role,
         inWaitlist: savedUser.inWaitlist,
+        developerMode: savedUser.developerMode,
         provider: "google",
         organization: organizationInfo,
       };

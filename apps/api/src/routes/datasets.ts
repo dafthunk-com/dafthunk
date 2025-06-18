@@ -26,6 +26,7 @@ import {
   getDatasets,
   updateDataset,
 } from "../db";
+import { developerModeMiddleware } from "../middleware/developer-mode";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -36,10 +37,13 @@ type ExtendedApiContext = ApiContext & {
 
 const datasetRoutes = new Hono<ExtendedApiContext>();
 
+// Apply early access middleware to all dataset routes
+datasetRoutes.use("*", jwtMiddleware, developerModeMiddleware);
+
 /**
  * List all datasets for the current organization
  */
-datasetRoutes.get("/", jwtMiddleware, async (c) => {
+datasetRoutes.get("/", async (c) => {
   const db = createDatabase(c.env.DB);
   const organizationId = c.get("organizationId")!;
 
@@ -54,7 +58,6 @@ datasetRoutes.get("/", jwtMiddleware, async (c) => {
  */
 datasetRoutes.post(
   "/",
-  jwtMiddleware,
   zValidator(
     "json",
     z.object({
@@ -95,7 +98,7 @@ datasetRoutes.post(
 /**
  * Get a specific dataset by ID
  */
-datasetRoutes.get("/:id", jwtMiddleware, async (c) => {
+datasetRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
   const organizationId = c.get("organizationId")!;
@@ -121,7 +124,6 @@ datasetRoutes.get("/:id", jwtMiddleware, async (c) => {
  */
 datasetRoutes.put(
   "/:id",
-  jwtMiddleware,
   zValidator(
     "json",
     z.object({
@@ -161,7 +163,7 @@ datasetRoutes.put(
 /**
  * Delete a dataset by ID
  */
-datasetRoutes.delete("/:id", jwtMiddleware, async (c) => {
+datasetRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
   const organizationId = c.get("organizationId")!;
@@ -183,7 +185,7 @@ datasetRoutes.delete("/:id", jwtMiddleware, async (c) => {
 /**
  * Upload a file to a dataset
  */
-datasetRoutes.post("/:id/upload", jwtMiddleware, async (c) => {
+datasetRoutes.post("/:id/upload", async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
   const organizationId = c.get("organizationId")!;
@@ -230,7 +232,7 @@ datasetRoutes.post("/:id/upload", jwtMiddleware, async (c) => {
 /**
  * List files in a dataset
  */
-datasetRoutes.get("/:id/files", jwtMiddleware, async (c) => {
+datasetRoutes.get("/:id/files", async (c) => {
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
   const organizationId = c.get("organizationId")!;
@@ -264,7 +266,7 @@ datasetRoutes.get("/:id/files", jwtMiddleware, async (c) => {
 /**
  * Delete a file from a dataset
  */
-datasetRoutes.delete("/:id/files/:filename", jwtMiddleware, async (c) => {
+datasetRoutes.delete("/:id/files/:filename", async (c) => {
   const id = c.req.param("id");
   const filename = c.req.param("filename");
   const db = createDatabase(c.env.DB);
@@ -295,7 +297,7 @@ datasetRoutes.delete("/:id/files/:filename", jwtMiddleware, async (c) => {
 /**
  * Download a file from a dataset
  */
-datasetRoutes.get("/:id/files/:filename", jwtMiddleware, async (c) => {
+datasetRoutes.get("/:id/files/:filename", async (c) => {
   const id = c.req.param("id");
   const filename = c.req.param("filename");
   const db = createDatabase(c.env.DB);

@@ -6,7 +6,6 @@ import { handleCronTriggers } from "./cron";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
-import { CloudflareNodeRegistry } from "./nodes/cloudflare-node-registry";
 import apiKeyRoutes from "./routes/api-keys";
 import dashboardRoutes from "./routes/dashboard";
 import datasetRoutes from "./routes/datasets";
@@ -15,6 +14,7 @@ import executionRoutes from "./routes/executions";
 import health from "./routes/health";
 import llmsRoutes from "./routes/llms";
 import objectRoutes from "./routes/objects";
+import profileRoutes from "./routes/profile";
 import publicRoutes from "./routes/public";
 import robotsRoutes from "./routes/robots";
 import typeRoutes from "./routes/types";
@@ -23,12 +23,6 @@ import workflowRoutes from "./routes/workflows";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
-
-// Middleware to initialize NodeRegistry
-app.use("*", async (c, next) => {
-  CloudflareNodeRegistry.initialize(c.env);
-  await next();
-});
 
 // Global middleware
 app.use("*", corsMiddleware);
@@ -53,6 +47,7 @@ app.use("*", async (c, next) => {
 // Mount routes
 app.route("/health", health);
 app.route("/auth", auth);
+app.route("/profile", profileRoutes);
 app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 
