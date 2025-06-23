@@ -86,8 +86,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   private nodeRegistry: CloudflareNodeRegistry;
 
-  constructor(env: Bindings, options?: any) {
-    super(env as any, options);
+  constructor(ctx: ExecutionContext, env: Bindings) {
+    super(ctx, env);
     this.nodeRegistry = new CloudflareNodeRegistry(env, true);
   }
 
