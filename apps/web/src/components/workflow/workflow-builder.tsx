@@ -261,6 +261,11 @@ export function WorkflowBuilder({
             message: errorNode.error || "Unknown error",
           });
         }
+      } else if (initialWorkflowExecution.status === "exhausted") {
+        setErrorDialogState({
+          open: true,
+          message: "You have run out of compute credits.",
+        });
       }
     }
   }, [initialWorkflowExecution, nodes, updateNodeData]);
@@ -321,6 +326,11 @@ export function WorkflowBuilder({
             execution.nodeExecutions.find((n) => n.error)?.error ||
             "Unknown error",
         });
+      } else if (execution.status === "exhausted") {
+        setErrorDialogState({
+          open: true,
+          message: "You have run out of compute credits.",
+        });
       }
     });
   }, [executeWorkflow, workflowId, resetNodeStates, updateNodeExecution]);
@@ -351,7 +361,8 @@ export function WorkflowBuilder({
           break;
         }
         case "completed":
-        case "error": {
+        case "error":
+        case "exhausted": {
           resetNodeStates();
           setWorkflowStatus("idle");
           break;

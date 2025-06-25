@@ -263,6 +263,10 @@ export function DeploymentDetailPage() {
           toast.success("Workflow execution completed");
         } else if (execution.status === "error") {
           toast.error("Workflow execution failed");
+        } else if (execution.status === "exhausted") {
+          toast.error(
+            "Workflow execution failed: You have run out of compute credits."
+          );
         }
       },
       adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes),

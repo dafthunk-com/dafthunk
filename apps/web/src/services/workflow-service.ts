@@ -433,7 +433,8 @@ export function useWorkflowExecution(orgHandle: string) {
           if (
             initialExecution.status === "completed" ||
             initialExecution.status === "error" ||
-            initialExecution.status === "cancelled"
+            initialExecution.status === "cancelled" ||
+            initialExecution.status === "exhausted"
           ) {
             cleanup();
             return;
@@ -454,7 +455,8 @@ export function useWorkflowExecution(orgHandle: string) {
               if (
                 execution.status === "completed" ||
                 execution.status === "error" ||
-                execution.status === "cancelled"
+                execution.status === "cancelled" ||
+                execution.status === "exhausted"
               ) {
                 cleanup();
               }
