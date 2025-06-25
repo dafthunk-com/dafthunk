@@ -1,4 +1,4 @@
-import { Calendar, Layers } from "lucide-react";
+import { Layers } from "lucide-react";
 
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -127,52 +127,26 @@ export function UsagePage() {
         </div>
       </div>
 
-      {/* Information Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* How Credits Work Card */}
-        <div className="bg-card rounded-lg border p-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Layers className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold">How Credits Work</h3>
+      {/* How Credits Work Card */}
+      <div className="bg-card rounded-lg border p-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Layers className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>
-                Compute credits are consumed based on the individual nodes that
-                execute within your workflows. Each node type has a different
-                credit cost depending on its computational requirements.
-              </p>
-              <p>
-                The total cost of a workflow execution is the sum of all
-                executed nodes. More complex workflows with many nodes or
-                resource-intensive operations will consume more credits.
-              </p>
-            </div>
+            <h3 className="text-lg font-semibold">How Credits Work</h3>
           </div>
-        </div>
-
-        {/* Credit Cycle Card */}
-        <div className="bg-card rounded-lg border p-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold">Credit Cycle</h3>
-            </div>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>
-                Credits reset monthly at the beginning of each month. Your usage
-                counter returns to zero and you receive your full monthly
-                allocation.
-              </p>
-              <p>
-                Unused credits do not roll over to the next month, so make sure
-                to utilize your full allocation each month.
-              </p>
-            </div>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              Compute credits are consumed based on the individual nodes that
+              execute within your workflows. Each node type has a different
+              credit cost depending on its computational requirements.
+            </p>
+            <p>
+              The total cost of a workflow execution is the sum of all executed
+              nodes. More complex workflows with many nodes or
+              resource-intensive operations will consume more credits.
+            </p>
           </div>
         </div>
       </div>
