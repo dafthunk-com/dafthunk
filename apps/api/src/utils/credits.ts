@@ -25,12 +25,9 @@ export async function updateOrganizationComputeUsage(
 }
 
 /**
- * Gets the compute usage key for an organization for the current month.
- * Format: {organizationId}:compute-usage:{YYYY-MM}
+ * Gets the compute usage key for an organization.
+ * Format: {organizationId}:compute-usage
  */
 function getComputeUsageKey(organizationId: string): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${organizationId}:compute-usage:${year}-${month}`;
+  return `${organizationId}:compute-usage`;
 }
