@@ -5,7 +5,7 @@ import {
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
 } from "@dafthunk/types";
-import useSWR from "swr";
+import useSWR, { type SWRConfiguration } from "swr";
 
 import { useAuth } from "@/components/auth-context";
 
@@ -73,7 +73,8 @@ export const useDeployments = (): UseDeployments => {
  * Hook to get deployment history for a specific workflow
  */
 export const useDeploymentHistory = (
-  workflowId: string
+  workflowId: string,
+  options?: SWRConfiguration<GetWorkflowDeploymentsResponse>
 ): UseDeploymentHistory => {
   const { organization } = useAuth();
   const orgHandle = organization?.handle;
@@ -94,7 +95,8 @@ export const useDeploymentHistory = (
             `/history/${workflowId}`
           );
         }
-      : null
+      : null,
+    options
   );
 
   return {

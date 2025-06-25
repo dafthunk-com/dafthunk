@@ -56,19 +56,22 @@ export function EditorPage() {
     workflow: currentWorkflow,
     workflowError: workflowDetailsError,
     isWorkflowLoading: isWorkflowDetailsLoading,
-  } = useWorkflow(id || null);
+  } = useWorkflow(id || null, { revalidateOnFocus: false });
 
   const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
-    useCronTrigger(currentWorkflow?.type === "cron" && id ? id : null);
+    useCronTrigger(currentWorkflow?.type === "cron" && id ? id : null, {
+      revalidateOnFocus: false,
+    });
 
   const {
     deployments: deploymentHistory,
     isDeploymentHistoryLoading,
     mutateHistory: mutateDeploymentHistory,
-  } = useDeploymentHistory(id!);
+  } = useDeploymentHistory(id!, { revalidateOnFocus: false });
 
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
-    currentWorkflow?.type
+    currentWorkflow?.type,
+    { revalidateOnFocus: false }
   );
 
   const { createObjectUrl } = useObjectService();

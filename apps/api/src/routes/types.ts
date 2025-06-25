@@ -1,7 +1,6 @@
 import { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { Hono } from "hono";
 
-import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 

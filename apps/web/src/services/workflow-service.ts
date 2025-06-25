@@ -21,7 +21,7 @@ import {
   Node as ReactFlowNode,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
+import useSWR, { type SWRConfiguration } from "swr";
 
 import { useAuth } from "@/components/auth-context";
 import type { EmailData } from "@/components/workflow/execution-email-dialog";
@@ -86,7 +86,10 @@ export const useWorkflows = (): {
 /**
  * Hook to get a specific workflow by ID
  */
-export const useWorkflow = (id: string | null) => {
+export const useWorkflow = (
+  id: string | null,
+  options?: SWRConfiguration<WorkflowWithMetadata>
+) => {
   const { organization } = useAuth();
   const orgHandle = organization?.handle;
 
@@ -104,7 +107,8 @@ export const useWorkflow = (id: string | null) => {
             `/${id}`
           );
         }
-      : null
+      : null,
+    options
   );
 
   return {
@@ -666,7 +670,10 @@ export function useWorkflowExecution(orgHandle: string) {
 /**
  * Hook to get a cron trigger for a specific workflow
  */
-export const useCronTrigger = (workflowId: string | null) => {
+export const useCronTrigger = (
+  workflowId: string | null,
+  options?: SWRConfiguration<GetCronTriggerResponse | null>
+) => {
   const { organization } = useAuth();
   const orgHandle = organization?.handle;
   const { data, error, isLoading, mutate } =
@@ -694,7 +701,8 @@ export const useCronTrigger = (workflowId: string | null) => {
               throw error;
             }
           }
-        : null
+        : null,
+      options
     );
 
   return {
