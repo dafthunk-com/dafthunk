@@ -1,10 +1,8 @@
-import { ChevronLeft } from "lucide-react";
+import { Bot, ChevronLeft } from "lucide-react";
 import { ReactNode } from "react";
 import { useNavigate } from "react-router";
 
 import { cn } from "@/utils/utils";
-
-import { Logo } from "../logo";
 
 interface ContentLayoutProps {
   title: string;
@@ -38,7 +36,7 @@ export function ContentLayout({ title, children }: ContentLayoutProps) {
       <section className="md mb-12 text-justify">{children}</section>
       <div className="flex w-full justify-center">
         <a href="/" aria-label="Dafthunk Homepage">
-          <Logo />
+          <Bot className="h-6 w-6 text-foreground" />
         </a>
       </div>
     </div>

@@ -1,7 +1,5 @@
-import { FileText, Github, Shield } from "lucide-react";
+import { Bot, FileText, Github, Shield } from "lucide-react";
 import { Link } from "react-router";
-
-import { Logo } from "../logo";
 
 export function HomeFooter() {
   const currentYear = new Date().getFullYear();
@@ -58,8 +56,8 @@ export function HomeFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Logo and Copyright - Spans 2 columns on larger screens if needed or adjust grid */}
           <div className="md:col-span-1 lg:col-span-1 flex flex-col items-start">
-            <Link to="/" className="flex items-center gap-2 mb-3">
-              <Logo />
+            <Link to="/" className="flex items-center">
+              <Bot className="h-6 w-6 text-foreground" />
             </Link>
           </div>
 
