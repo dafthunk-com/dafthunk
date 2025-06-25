@@ -12,7 +12,6 @@ export interface UserProfile {
   organizationId: string;
   plan: string;
   role: string;
-  inWaitlist: boolean;
   developerMode: boolean;
   createdAt: Date;
   updatedAt: Date;

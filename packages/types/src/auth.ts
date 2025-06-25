@@ -15,7 +15,6 @@ export interface DatabaseUser {
   avatarUrl?: string;
   plan: string;
   role: string;
-  inWaitlist: boolean;
   developerMode: boolean;
   organization: OrganizationInfo;
   provider: AuthProvider;
@@ -29,7 +28,6 @@ export interface AuthUser {
   avatarUrl?: string;
   plan: string;
   role: string;
-  inWaitlist: boolean;
   developerMode: boolean;
   organization: OrganizationInfo;
   provider: AuthProvider;
@@ -43,11 +41,6 @@ export interface JWTTokenPayload extends AuthUser {
 }
 
 export type AuthProvider = "github" | "google";
-
-export interface WaitlistStatus {
-  inWaitlist: boolean;
-  message: string;
-}
 
 export interface AuthCheckResponse {
   ok: boolean;

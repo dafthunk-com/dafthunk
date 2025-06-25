@@ -52,29 +52,25 @@ export function UserProfile() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {!user.inWaitlist && (
-          <>
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/settings/profile" className="flex items-center">
-                <CircleUserRound className="mr-2 size-4 text-muted-foreground" />
-                <span>Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/settings/usage" className="flex items-center">
-                <ChartNoAxesCombined className="mr-2 size-4 text-muted-foreground" />
-                <span>Usage</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/settings/api-keys" className="flex items-center">
-                <KeyRound className="mr-2 size-4 text-muted-foreground" />
-                <span>API Keys</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/settings/profile" className="flex items-center">
+            <CircleUserRound className="mr-2 size-4 text-muted-foreground" />
+            <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/settings/usage" className="flex items-center">
+            <ChartNoAxesCombined className="mr-2 size-4 text-muted-foreground" />
+            <span>Usage</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link to="/settings/api-keys" className="flex items-center">
+            <KeyRound className="mr-2 size-4 text-muted-foreground" />
+            <span>API Keys</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
           <LogOut className="mr-2 size-4 text-muted-foreground" />
           <span>Log out</span>

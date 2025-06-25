@@ -49,7 +49,6 @@ profile.get("/", async (c) => {
       organizationId: user.organizationId,
       plan: user.plan,
       role: user.role,
-      inWaitlist: user.inWaitlist,
       developerMode: user.developerMode,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

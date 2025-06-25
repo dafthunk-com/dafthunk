@@ -71,6 +71,13 @@
       "when": 1750239511699,
       "tag": "0009_add_developer_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1750831963943,
+      "tag": "0010_remove_user_in_waitlist",
+      "breakpoints": true
     }
   ]
 }

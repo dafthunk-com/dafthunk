@@ -75,8 +75,7 @@ export function HomePage() {
   const homepagePublicExecutionUrl = `${import.meta.env.VITE_WEBSITE_URL}/public/executions/${import.meta.env.VITE_HOMEPAGE_PUBLIC_EXECUTION_ID}?fullscreen`;
 
   if (isAuthenticated && user) {
-    // Redirect waitlisted users to waitlist page, others to dashboard
-    return <Navigate to={user.inWaitlist ? "/waitlist" : "/dashboard"} />;
+    return <Navigate to="/dashboard" />;
   }
 
   return (

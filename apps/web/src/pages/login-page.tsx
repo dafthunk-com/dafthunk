@@ -7,8 +7,7 @@ export function LoginPage() {
   const { user, isAuthenticated } = useAuth();
 
   if (isAuthenticated && user) {
-    // Redirect waitlisted users to waitlist page, others to dashboard
-    return <Navigate to={user.inWaitlist ? "/waitlist" : "/dashboard"} />;
+    return <Navigate to="/dashboard" />;
   }
 
   return (

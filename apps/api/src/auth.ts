@@ -181,21 +181,6 @@ export const jwtMiddleware = async (
     c.header("X-Token-Refresh-Needed", "true");
   }
 
-  const allowedPaths = [
-    "/auth/login/github",
-    "/auth/login/google",
-    "/auth/user",
-    "/auth/logout",
-    "/auth/refresh",
-  ];
-
-  if (payload.inWaitlist && !allowedPaths.includes(c.req.path)) {
-    return c.json(
-      { error: "Access denied. You are currently on our waitlist." },
-      403
-    );
-  }
-
   c.set("jwtPayload", payload);
   c.set("organizationId", payload.organization.id);
   await next();
@@ -353,7 +338,6 @@ auth.post("/refresh", async (c) => {
       avatarUrl: result.avatarUrl ?? undefined,
       plan: result.plan,
       role: result.role,
-      inWaitlist: result.inWaitlist,
       developerMode: result.developerMode,
       provider,
       organization: {
@@ -448,7 +432,6 @@ auth.get(
         avatarUrl,
         plan: savedUser.plan,
         role: savedUser.role,
-        inWaitlist: savedUser.inWaitlist,
         developerMode: savedUser.developerMode,
         provider: "github",
         organization: organizationInfo,
@@ -528,7 +511,6 @@ auth.get(
         avatarUrl: avatarUrl ?? undefined,
         plan: savedUser.plan,
         role: savedUser.role,
-        inWaitlist: savedUser.inWaitlist,
         developerMode: savedUser.developerMode,
         provider: "google",
         organization: organizationInfo,

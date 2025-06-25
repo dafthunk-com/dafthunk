@@ -179,7 +179,6 @@ export async function saveUser(
     organizationId: organizationId,
     plan: (userData.plan as PlanType) || Plan.TRIAL,
     role: (userData.role as UserRoleType) || UserRole.USER,
-    inWaitlist: false,
     createdAt: now,
     updatedAt: now,
   };

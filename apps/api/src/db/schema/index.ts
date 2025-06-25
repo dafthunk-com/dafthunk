@@ -135,9 +135,6 @@ export const users = sqliteTable(
       .references(() => organizations.id, { onDelete: "cascade" }),
     plan: text("plan").$type<PlanType>().notNull().default(Plan.TRIAL),
     role: text("role").$type<UserRoleType>().notNull().default(UserRole.USER),
-    inWaitlist: integer("in_waitlist", { mode: "boolean" })
-      .notNull()
-      .default(false),
     developerMode: integer("developer_mode", { mode: "boolean" })
       .notNull()
       .default(false),
@@ -152,7 +149,6 @@ export const users = sqliteTable(
     index("users_name_idx").on(table.name),
     index("users_plan_idx").on(table.plan),
     index("users_role_idx").on(table.role),
-    index("users_in_waitlist_idx").on(table.inWaitlist),
     index("users_developer_mode_idx").on(table.developerMode),
     index("users_created_at_idx").on(table.createdAt),
   ]
