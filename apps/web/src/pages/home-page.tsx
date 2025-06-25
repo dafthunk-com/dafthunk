@@ -1,21 +1,19 @@
 import {
   ArrowRight,
-  Bot,
   Cpu,
   Database,
   Github,
-  Hammer,
   Music,
   PlayCircle,
   Rocket,
   Share2,
-  Sparkles,
   Workflow,
 } from "lucide-react";
 import { Link, Navigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { HomeFooter } from "@/components/layouts/home-footer";
+import { HomeHeader } from "@/components/layouts/home-header";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,17 +78,18 @@ export function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
-      <main>
+      <HomeHeader />
+      <main className="pt-16">
         {/* Hero Section */}
         <section className="mx-auto relative py-20 md:py-32">
           <div className="container mx-auto px-6">
             <img
               src="/logo.svg"
               alt="dafthunk"
-              className="h-12 sm:h-24 dark:invert mb-10 sm:mb-16 mx-auto"
+              className="h-12 sm:h-24 dark:invert mb-6 sm:mb-8 mx-auto"
             />
             <div className="max-w-prose mx-auto">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6 sm:mb-8 relative text-center">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-5 relative text-center">
                 <h1 className="relative">
                   <span className="bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 bg-clip-text text-transparent">
                     Workflows
@@ -98,7 +97,7 @@ export function HomePage() {
                   no one asked for.
                 </h1>
               </div>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-10 sm:mb-16 text-center">
+              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 text-center">
                 Automate the crap, then automate the fun, then automate
                 automating.
               </p>
@@ -107,49 +106,29 @@ export function HomePage() {
             <div className="flex flex-col sm:flex-row justify-center w-full items-center gap-3 sm:gap-4 mb-16 sm:mb-24">
               <Button
                 asChild
-                size="default"
-                className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-medium w-full sm:w-auto"
+                size="lg"
+                className="bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600 text-white border-0"
               >
-                <Link to="/workflows/workflows">
-                  Break it <Hammer className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="default"
-                className="bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 hover:from-cyan-700 hover:via-purple-700 hover:to-pink-700 dark:from-cyan-500 dark:via-purple-500 dark:to-pink-500 dark:hover:from-cyan-600 dark:hover:via-purple-600 dark:hover:to-pink-600 text-white font-medium w-full sm:w-auto"
-              >
-                <Link to="/workflows/workflows">
-                  Fix it <Sparkles className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="default"
-                className="bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600 text-white font-medium w-full sm:w-auto"
-              >
-                <Link to="/workflows/workflows">
-                  Prompt it <Bot className="ml-2 h-4 w-4" />
+                <Link to="/login">
+                  Start Building Now <ArrowRight className="ml-1 size-4" />
                 </Link>
               </Button>
               <VideoDialog videoId="D8K90hX4PrE">
                 <Button
                   variant="outline"
-                  size="default"
-                  className="border-amber-200 hover:border-amber-300 dark:border-amber-800 dark:hover:border-amber-700 text-amber-700 dark:text-amber-500 font-medium w-full sm:w-auto group"
+                  size="lg"
+                  className="px-3 border-amber-200 hover:border-amber-300 dark:border-amber-800 dark:hover:border-amber-700 text-amber-700 dark:text-amber-500 font-medium w-full sm:w-auto group"
                 >
-                  Technologic{" "}
-                  <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                  <Music className="h-4 w-4 group-hover:animate-pulse" />
                 </Button>
               </VideoDialog>
               <VideoDialog videoId="D8K90hX4PrE">
                 <Button
                   variant="outline"
-                  size="default"
-                  className="border-blue-200 hover:border-blue-300 dark:border-blue-800 dark:hover:border-blue-700 text-blue-700 dark:text-blue-500 font-medium w-full sm:w-auto group"
+                  size="lg"
+                  className="px-3 border-blue-200 hover:border-blue-300 dark:border-blue-800 dark:hover:border-blue-700 text-blue-700 dark:text-blue-500 font-medium w-full sm:w-auto group"
                 >
-                  Technologic{" "}
-                  <Music className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                  <Music className="h-4 w-4 group-hover:animate-pulse" />
                 </Button>
               </VideoDialog>
             </div>
