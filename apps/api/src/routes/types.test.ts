@@ -11,8 +11,10 @@ import typeRoutes from "./types";
 
 // Mock the CloudflareNodeRegistry to use TestNodeRegistry instead
 vi.mock("../nodes/cloudflare-node-registry", () => ({
-  CloudflareNodeRegistry: {
-    getInstance: () => getTestNodeRegistry(),
+  CloudflareNodeRegistry: class {
+    constructor(_env: any, _developerMode: boolean) {
+      return getTestNodeRegistry();
+    }
   },
 }));
 
