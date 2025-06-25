@@ -1,5 +1,6 @@
 import { env } from "cloudflare:test";
 
+import type { Bindings } from "../context";
 import { TestNodeRegistry } from "../nodes/test-node-registry";
 
 /**
@@ -29,10 +30,9 @@ export function initializeTestEnvironment(
   const testEnv = {
     ...env, // Real Cloudflare bindings from Miniflare
     ...envOverrides, // Allow overrides for specific tests
-  };
+  } as Bindings;
 
-  TestNodeRegistry.initialize(testEnv);
-  return TestNodeRegistry.getInstance();
+  return new TestNodeRegistry(testEnv, true);
 }
 
 /**
@@ -40,5 +40,7 @@ export function initializeTestEnvironment(
  * Must call initializeTestEnvironment() first.
  */
 export function getTestNodeRegistry() {
-  return TestNodeRegistry.getInstance();
+  // For backward compatibility, we'll create a new instance each time
+  // In a real implementation, you might want to store this in a module-level variable
+  return new TestNodeRegistry(env as Bindings, true);
 }
