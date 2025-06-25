@@ -122,24 +122,6 @@ export function HomePage() {
                   Start Building Now <ArrowRight className="ml-1 size-4" />
                 </Link>
               </Button>
-              <VideoDialog videoId="D8K90hX4PrE">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-3 border-amber-200 hover:border-amber-300 dark:border-amber-800 dark:hover:border-amber-700 text-amber-700 dark:text-amber-500 font-medium w-full sm:w-auto group"
-                >
-                  <Music className="h-4 w-4 group-hover:animate-pulse" />
-                </Button>
-              </VideoDialog>
-              <VideoDialog videoId="D8K90hX4PrE">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-3 border-blue-200 hover:border-blue-300 dark:border-blue-800 dark:hover:border-blue-700 text-blue-700 dark:text-blue-500 font-medium w-full sm:w-auto group"
-                >
-                  <Music className="h-4 w-4 group-hover:animate-pulse" />
-                </Button>
-              </VideoDialog>
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
               <iframe
