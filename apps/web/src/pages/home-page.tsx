@@ -15,6 +15,7 @@ import { useAuth } from "@/components/auth-context";
 import { HomeFooter } from "@/components/layouts/home-footer";
 import { HomeHeader } from "@/components/layouts/home-header";
 import { useTheme } from "@/components/theme-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoDialog } from "@/components/video-dialog";
@@ -83,11 +84,19 @@ export function HomePage() {
         {/* Hero Section */}
         <section className="mx-auto relative py-20 md:py-32">
           <div className="container mx-auto px-6">
-            <img
-              src="/logo.svg"
-              alt="dafthunk"
-              className="h-12 sm:h-24 dark:invert mb-6 sm:mb-8 mx-auto"
-            />
+            <div className="flex flex-col gap-6 items-center">
+              <Badge
+                variant="secondary"
+                className="bg-pink-300 text-black border border-pink-600 hover:bg-pink-300 dark:bg-pink-700 dark:border-pink-400 dark:text-pink-300 font-mono"
+              >
+                ALPHA Preview
+              </Badge>
+              <img
+                src="/logo.svg"
+                alt="dafthunk"
+                className="h-12 sm:h-24 dark:invert mb-4"
+              />
+            </div>
             <div className="max-w-prose mx-auto">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 sm:mb-5 relative text-center">
                 <h1 className="relative">
