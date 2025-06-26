@@ -258,7 +258,7 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {widgetConfig && nodeType && widgetComponents[nodeType] && (
+          {!readonly && widgetConfig && nodeType && widgetComponents[nodeType] && (
             <div className="px-0 py-0 border-b nodrag">
               {createElement(widgetComponents[nodeType], {
                 config: widgetConfig,
