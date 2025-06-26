@@ -45,7 +45,7 @@ export function HomeHeader() {
             <Bot className="h-6 w-6 text-foreground" />
           </Link>
 
-          {/* Navigation Links and Sign In Button */}
+          {/* Navigation Links and login Button */}
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-6">
               <button
@@ -76,13 +76,13 @@ export function HomeHeader() {
               </Link>
             </div>
 
-            {/* Sign In Button */}
+            {/* Login Button */}
             <Button
               asChild
               size="sm"
               className="bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600 text-white border-0"
             >
-              <Link to="/login">Sign In</Link>
+              <Link to="/login">Login</Link>
             </Button>
           </div>
         </div>
