@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bot, GithubIcon } from "lucide-react";
+import { ArrowUpRight, Bot } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 

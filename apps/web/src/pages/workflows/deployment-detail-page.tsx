@@ -265,7 +265,7 @@ export function DeploymentDetailPage() {
           toast.error("Workflow execution failed");
         } else if (execution.status === "exhausted") {
           toast.error(
-            "Workflow execution failed: You have run out of compute credits."
+            "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk."
           );
         }
       },

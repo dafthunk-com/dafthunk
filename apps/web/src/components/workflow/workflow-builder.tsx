@@ -264,7 +264,8 @@ export function WorkflowBuilder({
       } else if (initialWorkflowExecution.status === "exhausted") {
         setErrorDialogState({
           open: true,
-          message: "You have run out of compute credits.",
+          message:
+            "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
         });
       }
     }
@@ -329,7 +330,8 @@ export function WorkflowBuilder({
       } else if (execution.status === "exhausted") {
         setErrorDialogState({
           open: true,
-          message: "You have run out of compute credits.",
+          message:
+            "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk.",
         });
       }
     });

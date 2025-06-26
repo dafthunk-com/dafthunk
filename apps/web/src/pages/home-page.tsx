@@ -3,7 +3,6 @@ import {
   Cpu,
   Database,
   Github,
-  Music,
   PlayCircle,
   Rocket,
   Share2,
