@@ -122,6 +122,16 @@ export function HomePage() {
                   Start Building Now <ArrowRight className="ml-1 size-4" />
                 </Link>
               </Button>
+              <VideoDialog videoId="5EjJz1Dhtz0">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 hover:bg-muted/50"
+                >
+                  Whatch the Demo
+                  <PlayCircle className="mr-2 size-4" />
+                </Button>
+              </VideoDialog>
             </div>
             <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
               <iframe
