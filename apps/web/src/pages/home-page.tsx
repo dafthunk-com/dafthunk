@@ -89,12 +89,12 @@ export function HomePage() {
                 variant="secondary"
                 className="bg-pink-300 text-black border border-pink-600 hover:bg-pink-300 dark:bg-pink-700 dark:border-pink-400 dark:text-pink-300 font-mono"
               >
-                ALPHA Preview
+                Early Preview
               </Badge>
               <img
                 src="/logo.svg"
                 alt="dafthunk"
-                className="h-12 sm:h-24 dark:invert mb-4"
+                className="h-12 sm:h-24 dark:invert mb-4 mt-4"
               />
             </div>
             <div className="max-w-prose mx-auto">
@@ -179,7 +179,7 @@ export function HomePage() {
         </section>
 
         {/* Origin Story Section */}
-        <section className="py-20">
+        <section id="story" className="py-20">
           <div className="container px-6 max-w-6xl mx-auto">
             <div className="text-center mb-8">
               <span className="text-cyan-600 dark:text-cyan-500 font-medium uppercase tracking-wider text-xs">

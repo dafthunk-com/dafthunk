@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bot } from "lucide-react";
+import { ArrowUpRight, Bot, GithubIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
@@ -20,6 +20,13 @@ export function HomeHeader() {
     const featuresSection = document.getElementById("features");
     if (featuresSection) {
       featuresSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const scrollToStory = () => {
+    const storySection = document.getElementById("story");
+    if (storySection) {
+      storySection.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -47,11 +54,24 @@ export function HomeHeader() {
               >
                 Features
               </button>
+              <button
+                onClick={scrollToStory}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Story
+              </button>
               <Link
                 to="/docs"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
               >
                 Documentation
+              </Link>
+              <Link
+                to="https://github.com/dafthunk-com/dafthunk"
+                target="_blank"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                GitHub
                 <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
