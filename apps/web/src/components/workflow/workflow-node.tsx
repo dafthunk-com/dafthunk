@@ -258,16 +258,19 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {!readonly && widgetConfig && nodeType && widgetComponents[nodeType] && (
-            <div className="px-0 py-0 border-b nodrag">
-              {createElement(widgetComponents[nodeType], {
-                config: widgetConfig,
-                onChange: handleWidgetChange,
-                compact: true,
-                readonly: readonly,
-              })}
-            </div>
-          )}
+          {!readonly &&
+            widgetConfig &&
+            nodeType &&
+            widgetComponents[nodeType] && (
+              <div className="px-0 py-0 border-b nodrag">
+                {createElement(widgetComponents[nodeType], {
+                  config: widgetConfig,
+                  onChange: handleWidgetChange,
+                  compact: true,
+                  readonly: readonly,
+                })}
+              </div>
+            )}
 
           {/* Parameters */}
           <div className="px-1 py-1 grid grid-cols-2 justify-between gap-1 nodrag">
