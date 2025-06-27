@@ -4,6 +4,8 @@
 
 A workflow execution platform built on top of the fantastic Cloudflare infrastructure.
 
+![Workflow](./images/workflow.png)
+
 ## 🔍 Overview
 
 [Daf·thunk](https://en.wikipedia.org/wiki/Thunk) is a powerful, visual workflow automation platform that allows you to create, manage, and execute workflows directly in your browser. Built on Cloudflare's infrastructure, it leverages Cloudflare Workers and Workflows for serverless execution, Cloudflare AI for intelligent processing, and Cloudflare D1, R2, and KV for persistent storage.
