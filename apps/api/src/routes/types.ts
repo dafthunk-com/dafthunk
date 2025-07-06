@@ -3,10 +3,11 @@ import { Hono } from "hono";
 
 import { ApiContext } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { optionalJwtMiddleware } from "../auth";
 
 const typeRoutes = new Hono<ApiContext>();
 
-typeRoutes.get("/", (c) => {
+typeRoutes.get("/", optionalJwtMiddleware, (c) => {
   try {
     const jwtPayload = c.get("jwtPayload");
     const registry = new CloudflareNodeRegistry(

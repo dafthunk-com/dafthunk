@@ -186,6 +186,37 @@ export const jwtMiddleware = async (
   await next();
 };
 
+// Optional auth middleware that doesn't require a token to be present
+export const optionalJwtMiddleware = async (
+  c: Context<ApiContext>,
+  next: () => Promise<void>
+) => {
+  const accessToken = getCookie(c, JWT_ACCESS_TOKEN_NAME);
+
+  if (accessToken) {
+    const payload = (await verifyToken(
+      accessToken,
+      c.env.JWT_SECRET
+    )) as JWTTokenPayload | null;
+
+    if (payload && payload.organization?.id) {
+      // Check if token is about to expire (less than 5 minutes left)
+      const now = Math.floor(Date.now() / 1000);
+      const exp = payload.exp as number;
+
+      if (exp - now < 300) {
+        // 5 minutes
+        c.header("X-Token-Refresh-Needed", "true");
+      }
+
+      c.set("jwtPayload", payload);
+      c.set("organizationId", payload.organization.id);
+    }
+  }
+
+  await next();
+};
+
 // API key authentication middleware
 export const apiKeyMiddleware = async (
   c: Context<ApiContext>,
