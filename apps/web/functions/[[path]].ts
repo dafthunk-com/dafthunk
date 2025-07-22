@@ -1,9 +1,27 @@
 import { initializeApiBaseUrl } from "../src/config/api";
 import { render } from "../src/entry-server";
+import {
+  applySecurityHeadersToResponse,
+  shouldApplySecurityHeaders,
+} from "../src/utils/security-headers";
 
 interface Env {
   ASSETS: Fetcher;
   VITE_API_HOST?: string;
+}
+
+/**
+ * Apply security headers to responses
+ */
+function addSecurityHeaders(response: Response): Response {
+  const contentType = response.headers.get("content-type");
+  if (shouldApplySecurityHeaders(contentType, response.status)) {
+    return applySecurityHeadersToResponse(response, {
+      environment: "production",
+      enforceHttps: true,
+    });
+  }
+  return response;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -36,13 +54,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       .replace(`<!--app-head-->`, rendered.headHtml ?? "")
       .replace(`<!--app-html-->`, "");
 
-    return new Response(html, {
+    const response = new Response(html, {
       headers: { "Content-Type": "text/html" },
       status: 200,
     });
+
+    return addSecurityHeaders(response);
   } catch (e: any) {
     if (e instanceof Response) {
-      return e;
+      return addSecurityHeaders(e);
     }
     console.error("SSR Function Error:", e.stack || e);
     try {
@@ -55,9 +75,14 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     } catch (fetchError) {
       console.error("SSR Fallback ASSETS.fetch error:", fetchError);
     }
-    return new Response("Internal Server Error. Please try again later.", {
-      status: 500,
-      headers: { "Content-Type": "text/html" },
-    });
+    const errorResponse = new Response(
+      "Internal Server Error. Please try again later.",
+      {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      }
+    );
+
+    return addSecurityHeaders(errorResponse);
   }
 };

@@ -3,8 +3,44 @@ import fs from "node:fs/promises";
 import express from "express";
 import { createServer } from "vite";
 
+import {
+  applySecurityHeaders,
+  shouldApplySecurityHeaders,
+} from "./src/utils/security-headers";
+
 const port = process.env.PORT || 3000;
 const app = express();
+
+/**
+ * Middleware to add security headers to responses
+ */
+app.use((_, res, next) => {
+  const originalJson = res.json;
+  const originalSend = res.send;
+
+  res.send = function (body) {
+    addSecurityHeaders(this);
+    return originalSend.call(this, body);
+  };
+
+  res.json = function (obj) {
+    addSecurityHeaders(this);
+    return originalJson.call(this, obj);
+  };
+
+  function addSecurityHeaders(response: express.Response) {
+    const contentType = response.get("Content-Type");
+    if (shouldApplySecurityHeaders(contentType, response.statusCode)) {
+      applySecurityHeaders(response, {
+        environment:
+          process.env.NODE_ENV === "production" ? "production" : "development",
+        enforceHttps: process.env.NODE_ENV === "production",
+      });
+    }
+  }
+
+  next();
+});
 
 const vite = await createServer({
   server: { middlewareMode: true },

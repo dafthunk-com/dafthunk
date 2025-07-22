@@ -1,9 +1,9 @@
 import { GetNodeTypesResponse, WorkflowType } from "@dafthunk/types";
 import { Hono } from "hono";
 
+import { optionalJwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { optionalJwtMiddleware } from "../auth";
 
 const typeRoutes = new Hono<ApiContext>();
 
