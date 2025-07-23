@@ -4,8 +4,9 @@ import express from "express";
 import { createServer } from "vite";
 
 import {
-  applySecurityHeaders,
-  shouldApplySecurityHeaders,
+  addSecurityHeaders,
+  generateNonce,
+  injectNonceIntoHTML,
 } from "./src/utils/security-headers";
 
 const port = process.env.PORT || 3000;
@@ -18,26 +19,28 @@ app.use((_, res, next) => {
   const originalJson = res.json;
   const originalSend = res.send;
 
+  // Store nonce on the response object for later use
+  res.locals.nonce = generateNonce();
+  const environment =
+    (process.env.NODE_ENV as "development" | "production") ?? "development";
+
   res.send = function (body) {
-    addSecurityHeaders(this);
+    addSecurityHeaders(this, {
+      environment,
+      nonce: res.locals.nonce,
+      enforceHttps: false,
+    });
     return originalSend.call(this, body);
   };
 
   res.json = function (obj) {
-    addSecurityHeaders(this);
+    addSecurityHeaders(this, {
+      environment,
+      nonce: res.locals.nonce,
+      enforceHttps: false,
+    });
     return originalJson.call(this, obj);
   };
-
-  function addSecurityHeaders(response: express.Response) {
-    const contentType = response.get("Content-Type");
-    if (shouldApplySecurityHeaders(contentType, response.statusCode)) {
-      applySecurityHeaders(response, {
-        environment:
-          process.env.NODE_ENV === "production" ? "production" : "development",
-        enforceHttps: process.env.NODE_ENV === "production",
-      });
-    }
-  }
 
   next();
 });
@@ -69,9 +72,12 @@ app.use("*all", async (req, res) => {
 
     const rendered = await render(fetchRequest);
 
-    const html = template
+    let html = template
       .replace(`<!--app-head-->`, rendered.headHtml ?? "")
       .replace(`<!--app-html-->`, "");
+
+    // Inject nonce into script tags
+    html = injectNonceIntoHTML(html, res.locals.nonce);
 
     res.status(200).set({ "Content-Type": "text/html" }).send(html);
   } catch (e: any) {

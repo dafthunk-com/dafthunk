@@ -1,30 +1,18 @@
 import { initializeApiBaseUrl } from "../src/config/api";
 import { render } from "../src/entry-server";
-import {
-  applySecurityHeadersToResponse,
-  shouldApplySecurityHeaders,
-} from "../src/utils/security-headers";
+import { injectNonceIntoHTML } from "../src/utils/security-headers";
 
-interface Env {
+export interface Data extends Record<string, unknown> {
+  nonce: string;
+}
+
+export interface Env {
   ASSETS: Fetcher;
   VITE_API_HOST?: string;
+  NONCE: string;
 }
 
-/**
- * Apply security headers to responses
- */
-function addSecurityHeaders(response: Response): Response {
-  const contentType = response.headers.get("content-type");
-  if (shouldApplySecurityHeaders(contentType, response.status)) {
-    return applySecurityHeadersToResponse(response, {
-      environment: "production",
-      enforceHttps: true,
-    });
-  }
-  return response;
-}
-
-export const onRequest: PagesFunction<Env> = async (context) => {
+export const onRequest: PagesFunction<Env, any, Data> = async (context) => {
   const { request, env } = context;
   initializeApiBaseUrl(env.VITE_API_HOST);
 
@@ -50,19 +38,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const template = await indexHtmlResponse.text();
 
     const rendered = await render(request.clone() as unknown as Request);
-    const html = template
+    let html = template
       .replace(`<!--app-head-->`, rendered.headHtml ?? "")
       .replace(`<!--app-html-->`, "");
+
+    // Inject nonce into script tags
+    html = injectNonceIntoHTML(html, context.data.nonce);
 
     const response = new Response(html, {
       headers: { "Content-Type": "text/html" },
       status: 200,
     });
 
-    return addSecurityHeaders(response);
+    return response;
   } catch (e: any) {
     if (e instanceof Response) {
-      return addSecurityHeaders(e);
+      return e;
     }
     console.error("SSR Function Error:", e.stack || e);
     try {
@@ -83,6 +74,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     );
 
-    return addSecurityHeaders(errorResponse);
+    return errorResponse;
   }
 };
