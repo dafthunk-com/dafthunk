@@ -1,8 +1,11 @@
 {
   "workspaces": {
     "apps/web": {
-      "entry": ["src/entry-client.tsx", "src/entry-server.tsx"],
-      "ignore": ["functions/*"]
+      "entry": [
+        "src/entry-client.tsx",
+        "src/entry-server.tsx",
+        "functions/\\[\\[path\\]\\].ts"
+      ]
     },
     "apps/api": {
       "ignore": ["src/db/schema/index.ts"]

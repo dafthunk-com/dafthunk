@@ -26,7 +26,8 @@ export function getSecurityHeaders(
   // Base CSP configuration
   const baseCsp = {
     "default-src": "'self'",
-    "script-src": "'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com", // React/Vite compatibility + Cloudflare Insights
+    "script-src":
+      "'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com", // React/Vite compatibility + Cloudflare Insights
     "style-src": "'self' 'unsafe-inline'", // Tailwind/CSS-in-JS support
     "img-src": "'self' data: https:",
     "font-src": "'self' data:",
