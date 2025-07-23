@@ -133,7 +133,7 @@ export class CloudflareBrowserContentNode extends ExecutableNode {
       const status = response.status;
       const json: any = await response.json();
 
-      if (!response.ok || !json.status) {
+      if (!response.ok) {
         const errorMsg =
           (json.errors && json.errors[0]?.message) || response.statusText;
         return this.createErrorResult(
