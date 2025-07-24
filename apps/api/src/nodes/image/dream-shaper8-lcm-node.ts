@@ -137,7 +137,7 @@ export class DreamShaper8LCMNode extends ExecutableNode {
 
       // Run the DreamShaper 8 LCM model
       const stream = (await context.env.AI.run(
-        "@cf/lykon/dreamshaper-8-lcm" as any,
+        "@cf/lykon/dreamshaper-8-lcm",
         inputs,
         context.env.AI_OPTIONS
       )) as ReadableStream;

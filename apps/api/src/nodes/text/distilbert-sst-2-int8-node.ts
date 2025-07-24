@@ -46,13 +46,11 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const params = {
-        text,
-      };
-
       const result = await context.env.AI.run(
-        "@cf/huggingface/distilbert-sst-2-int8" as any,
-        params,
+        "@cf/huggingface/distilbert-sst-2-int8",
+        {
+          text,
+        },
         context.env.AI_OPTIONS
       );
 

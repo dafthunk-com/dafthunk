@@ -55,24 +55,24 @@ export class BgeRerankerBaseNode extends ExecutableNode {
 
       const formattedContexts = contexts.map((text: any) => ({ text }));
 
-      const params = {
-        query,
-        contexts: formattedContexts,
-        ...(topK && { top_k: topK }),
-      };
-
-      const result = await context.env.AI.run(
-        "@cf/baai/bge-reranker-base" as any,
-        params,
+      const result = (await context.env.AI.run(
+        "@cf/baai/bge-reranker-base",
+        {
+          query,
+          contexts: formattedContexts,
+          ...(topK && { top_k: topK }),
+        },
         context.env.AI_OPTIONS
-      );
+      )) as Ai_Cf_Baai_Bge_Reranker_Base_Output;
 
       // Map the results to include the original text
-      const rankings = result.response?.map((item: any) => ({
-        id: item.id,
-        score: item.score,
-        text: contexts[item.id],
-      }));
+      const rankings = result.response
+        ?.filter((item) => item.id !== undefined)
+        .map((item) => ({
+          id: item.id,
+          score: item.score,
+          text: contexts[item.id as number],
+        }));
 
       return this.createSuccessResult({
         rankings,

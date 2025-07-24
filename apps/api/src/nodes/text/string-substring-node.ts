@@ -77,7 +77,7 @@ export class StringSubstringNode extends ExecutableNode {
       }
 
       // Handle out of bounds start index
-      if (start < 0 || start >= haystack.length) {
+      if (start < 0 || start > haystack.length) {
         return this.createErrorResult("Start index is out of bounds");
       }
 

@@ -9,7 +9,7 @@
       ]
     },
     "apps/api": {
-      "ignore": ["src/db/schema/index.ts"]
+      "ignore": ["src/db/schema/index.ts", "scripts/*"]
     }
   },
   "ignoreExportsUsedInFile": true

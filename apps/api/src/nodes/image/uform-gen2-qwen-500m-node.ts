@@ -92,7 +92,7 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
           : new Uint8Array(image.data);
 
       // Prepare parameters for the model
-      const params: any = {
+      const params: Ai_Cf_Unum_Uform_Gen2_Qwen_500M_Input = {
         image: Array.from(imageData), // Convert to regular array as required by the API
         prompt: prompt || "Generate a caption for this image",
         max_tokens: max_tokens || 512,
@@ -106,7 +106,7 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
 
       // Call Cloudflare AI UForm model
       const response = await context.env.AI.run(
-        "@cf/unum/uform-gen2-qwen-500m" as any,
+        "@cf/unum/uform-gen2-qwen-500m",
         params,
         context.env.AI_OPTIONS
       );

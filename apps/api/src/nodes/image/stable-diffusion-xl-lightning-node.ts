@@ -88,20 +88,17 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
       const validatedSteps = Math.min(Math.max(num_steps || 20, 1), 20);
       const validatedGuidance = guidance || 7.5;
 
-      // Prepare inputs for the model
-      const params = {
-        prompt,
-        negative_prompt: negative_prompt || "",
-        height: validatedHeight,
-        width: validatedWidth,
-        num_steps: validatedSteps,
-        guidance: validatedGuidance,
-      };
-
       // Call Cloudflare AI SDXL-Lightning model
       const stream = (await context.env.AI.run(
-        "@cf/bytedance/stable-diffusion-xl-lightning" as any,
-        params,
+        "@cf/bytedance/stable-diffusion-xl-lightning",
+        {
+          prompt,
+          negative_prompt: negative_prompt || "",
+          height: validatedHeight,
+          width: validatedWidth,
+          num_steps: validatedSteps,
+          guidance: validatedGuidance,
+        },
         context.env.AI_OPTIONS
       )) as ReadableStream;
 

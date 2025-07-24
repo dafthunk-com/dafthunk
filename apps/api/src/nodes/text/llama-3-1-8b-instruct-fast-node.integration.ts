@@ -1,8 +1,9 @@
-import { expect, it, describe } from "vitest";
-import { env } from "cloudflare:test";
 import { Node } from "@dafthunk/types";
-import { Llama318BInstructFastNode } from "./llama-3-1-8b-instruct-fast-node";
+import { env } from "cloudflare:test";
+import { describe, expect, it } from "vitest";
+
 import { NodeContext } from "../types";
+import { Llama318BInstructFastNode } from "./llama-3-1-8b-instruct-fast-node";
 
 describe("Llama318BInstructFastNode", () => {
   it("should execute manually", async () => {
@@ -26,5 +27,6 @@ describe("Llama318BInstructFastNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
     expect(result.outputs?.response).toBeDefined();
+    expect(typeof result.outputs?.response).toBe("string");
   });
 });

@@ -59,14 +59,12 @@ export class WhisperTinyEnNode extends ExecutableNode {
 
       const { audio } = context.inputs;
 
-      const params = {
-        audio: Array.from(audio.data),
-      };
-
       // Call Cloudflare AI Whisper Tiny English model
       const response = await context.env.AI.run(
-        "@cf/openai/whisper-tiny-en" as any,
-        params,
+        "@cf/openai/whisper-tiny-en",
+        {
+          audio: Array.from(audio.data),
+        },
         context.env.AI_OPTIONS
       );
 

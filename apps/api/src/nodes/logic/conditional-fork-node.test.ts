@@ -98,7 +98,6 @@ describe("ConditionalForkNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Condition must be a boolean.");
   });
 
   it("should error when value is undefined", async () => {

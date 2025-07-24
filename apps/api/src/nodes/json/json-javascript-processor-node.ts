@@ -92,8 +92,32 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
       // In either case, dispose the handle for the result of the bootstrap script.
       bootstrapResult.value.dispose();
 
-      // 4. Now, 'json' global variable is ready for the user's script
-      const evalResult = vm.evalCode(javascript);
+      // 4. Prepare the user's script - wrap in parentheses if it starts with '{' to handle object literals
+      const scriptToExecute = javascript.trim();
+
+      // If the script starts with '{', try wrapping it in parentheses first to treat it as an expression
+      const shouldTryWrapping = scriptToExecute.startsWith("{");
+
+      if (shouldTryWrapping) {
+        const wrappedScript = `(${scriptToExecute})`;
+        const wrappedResult = vm.evalCode(wrappedScript);
+
+        if (wrappedResult.error) {
+          // If wrapping failed, dispose the error and try without wrapping
+          wrappedResult.error.dispose();
+        } else {
+          // Wrapping succeeded, use this result
+          const resultOutput = vm.dump(wrappedResult.value);
+          wrappedResult.value.dispose();
+          return this.createSuccessResult({
+            result: resultOutput,
+            error: null,
+          });
+        }
+      }
+
+      // 5. Execute the original script (either it didn't start with '{' or wrapping failed)
+      const evalResult = vm.evalCode(scriptToExecute);
 
       if (evalResult.error) {
         const errorDump = vm.dump(evalResult.error);

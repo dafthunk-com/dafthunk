@@ -45,7 +45,7 @@ export class ExifReaderNode extends ExecutableNode {
     try {
       // ExifReader.load() expects a Buffer or ArrayBuffer.
       // Assuming image.data is Uint8Array, its .buffer property is ArrayBuffer.
-      const tags = await ExifReader.load(image.data.buffer);
+      const tags = ExifReader.load(image.data.buffer);
 
       // Remove potentially very large MakerNote tag to avoid large JSON output
       if (tags["MakerNote"]) {

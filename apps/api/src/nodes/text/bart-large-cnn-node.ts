@@ -46,14 +46,12 @@ export class BartLargeCnnNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const params = {
-        input_text: inputText,
-        max_length: maxLength,
-      };
-
       const result = await context.env.AI.run(
-        "@cf/facebook/bart-large-cnn" as any,
-        params,
+        "@cf/facebook/bart-large-cnn",
+        {
+          input_text: inputText,
+          max_length: maxLength,
+        },
         context.env.AI_OPTIONS
       );
 

@@ -59,14 +59,12 @@ export class WhisperNode extends ExecutableNode {
 
       const { audio } = context.inputs;
 
-      const params = {
-        audio: Array.from(audio.data),
-      };
-
       // Call Cloudflare AI Whisper model
       const response = await context.env.AI.run(
-        "@cf/openai/whisper" as any,
-        params,
+        "@cf/openai/whisper",
+        {
+          audio: Array.from(audio.data),
+        },
         context.env.AI_OPTIONS
       );
 

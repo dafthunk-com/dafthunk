@@ -53,7 +53,7 @@ export class JsonBodyNode extends ExecutableNode {
 
       // Extract JSON from the request body
       const body = context.httpRequest.body;
-      if (body === undefined || body === null) {
+      if (body === undefined) {
         if (isRequired) {
           return this.createErrorResult(
             "JSON body is required but not provided"
@@ -65,10 +65,8 @@ export class JsonBodyNode extends ExecutableNode {
       }
 
       // The body should already be parsed by the time it reaches here
-      // If it's not a valid JSON structure but required, return an error
-      if (typeof body !== "object" && isRequired) {
-        return this.createErrorResult("Invalid JSON body");
-      }
+      // Accept any valid JSON value (object, array, string, number, boolean, null)
+      // Only reject if it's undefined when required
 
       return this.createSuccessResult({
         value: body,

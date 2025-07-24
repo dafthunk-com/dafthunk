@@ -39,6 +39,12 @@ export class JsonEditorNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { value } = context.inputs;
+
+      // Handle null, undefined, or empty string
+      if (value === null || value === undefined || value === "") {
+        return this.createErrorResult("Invalid JSON");
+      }
+
       try {
         const parsedValue = JSON.parse(value);
         return this.createSuccessResult({

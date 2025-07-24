@@ -55,7 +55,7 @@ export class MelottsNode extends ExecutableNode {
       // Call Cloudflare AI MeloTTS model
       // Request raw binary response instead of JSON
       const response = await context.env.AI.run(
-        "@cf/myshell-ai/melotts" as any,
+        "@cf/myshell-ai/melotts",
         params,
         context.env.AI_OPTIONS
       );

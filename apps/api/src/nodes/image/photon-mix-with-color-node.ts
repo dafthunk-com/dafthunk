@@ -134,9 +134,7 @@ export class PhotonMixWithColorNode extends ExecutableNode {
       if (photonImage) {
         photonImage.free();
       }
-      if (mixColorRgb) {
-        mixColorRgb.free(); // Rgb objects also need to be freed
-      }
+      // Note: Do not free mixColorRgb as mix_with_colour consumes it
     }
   }
 }

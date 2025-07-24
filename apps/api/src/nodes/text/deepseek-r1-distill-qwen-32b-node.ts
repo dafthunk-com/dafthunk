@@ -126,7 +126,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const params: any = {
+      const params: BaseAiTextGeneration["inputs"] = {
         temperature,
         max_tokens,
         top_p,
@@ -146,7 +146,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
       }
 
       const result = await context.env.AI.run(
-        "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b" as any,
+        "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
         params,
         context.env.AI_OPTIONS
       );

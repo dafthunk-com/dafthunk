@@ -136,7 +136,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
 
       // Run the Stable Diffusion XL Base model
       const stream = (await context.env.AI.run(
-        "@cf/stabilityai/stable-diffusion-xl-base-1.0" as any,
+        "@cf/stabilityai/stable-diffusion-xl-base-1.0",
         params,
         context.env.AI_OPTIONS
       )) as ReadableStream;

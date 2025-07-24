@@ -112,7 +112,8 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const params: any = {
+      const params: Ai_Cf_Meta_Llama_3_3_70B_Instruct_Fp8_Fast_Input = {
+        messages: [],
         temperature,
         max_tokens,
         top_p,
@@ -133,7 +134,12 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
           // Optionally, handle the error, e.g., by falling back to prompt or returning an error result
         }
       } else if (prompt) {
-        params.prompt = prompt;
+        params.messages = [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ];
       } else {
         return this.createErrorResult(
           "Either prompt or messages must be provided."
@@ -141,7 +147,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       }
 
       const result = await context.env.AI.run(
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast" as any,
+        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
         params,
         context.env.AI_OPTIONS
       );

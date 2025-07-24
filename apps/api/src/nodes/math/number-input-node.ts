@@ -82,7 +82,7 @@ export class NumberInputNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        value: value,
+        value: Number(value),
       });
     } catch (error) {
       return this.createErrorResult(

@@ -52,20 +52,27 @@ export class M2m10012bNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const params = {
-        text,
-        source_lang: sourceLang,
-        target_lang: targetLang,
-      };
-
-      const result = await context.env.AI.run(
-        "@cf/meta/m2m100-1.2b" as any,
-        params,
+      const response = await context.env.AI.run(
+        "@cf/meta/m2m100-1.2b",
+        {
+          text,
+          source_lang: sourceLang,
+          target_lang: targetLang,
+        },
         context.env.AI_OPTIONS
       );
 
+      // Extract the translated_text from the response
+      const translatedText = (response as any).translated_text;
+
+      if (!translatedText || typeof translatedText !== "string") {
+        return this.createErrorResult(
+          "Invalid response from translation model"
+        );
+      }
+
       return this.createSuccessResult({
-        translatedText: result.translated_text,
+        translatedText,
       });
     } catch (error) {
       return this.createErrorResult(

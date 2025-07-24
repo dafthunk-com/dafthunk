@@ -96,9 +96,12 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
       const { audio, task, language, vad_filter, initial_prompt, prefix } =
         context.inputs;
 
+      // Convert audio data to base64 string for Whisper Large V3 Turbo
+      const audioBase64 = btoa(String.fromCharCode(...audio.data));
+
       // Prepare the request parameters
       const params: Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input = {
-        audio: audio,
+        audio: audioBase64,
       };
 
       // Add optional parameters if provided
@@ -110,7 +113,7 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
 
       // Call Cloudflare AI Whisper Large V3 Turbo model
       const response = await context.env.AI.run(
-        "@cf/openai/whisper-large-v3-turbo" as any,
+        "@cf/openai/whisper-large-v3-turbo",
         params,
         context.env.AI_OPTIONS
       );

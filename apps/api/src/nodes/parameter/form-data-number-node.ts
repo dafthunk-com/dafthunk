@@ -79,7 +79,7 @@ export class FormDataNumberNode extends ExecutableNode {
 
       // Parse the value as a number
       const numValue = Number(rawValue);
-      if (isNaN(numValue)) {
+      if (isNaN(numValue) || rawValue === "") {
         throw new Error(`Parameter "${paramName}" must be a valid number`);
       }
 

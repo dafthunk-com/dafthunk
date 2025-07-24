@@ -84,7 +84,7 @@ export class LLaVA157BHFNode extends ExecutableNode {
       const imageData = Array.from(new Uint8Array(image.data));
 
       // Prepare parameters for the model
-      const params: any = {
+      const params: AiImageToTextInput = {
         image: imageData,
         prompt,
         max_tokens,
@@ -97,7 +97,7 @@ export class LLaVA157BHFNode extends ExecutableNode {
 
       // Call Cloudflare AI LLaVA model
       const response = await context.env.AI.run(
-        "@cf/llava-hf/llava-1.5-7b-hf" as any,
+        "@cf/llava-hf/llava-1.5-7b-hf",
         params,
         context.env.AI_OPTIONS
       );

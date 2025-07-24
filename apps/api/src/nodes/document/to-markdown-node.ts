@@ -41,6 +41,12 @@ export class ToMarkdownNode extends ExecutableNode {
         mimeType: string;
       };
 
+      if (!documentInput || !documentInput.data || !documentInput.mimeType) {
+        return this.createErrorResult(
+          "Document input is required but not provided"
+        );
+      }
+
       if (!context.env?.AI) {
         return this.createErrorResult("AI service is not available");
       }
