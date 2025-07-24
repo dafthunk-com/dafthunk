@@ -2,9 +2,14 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dafthunk-web",
   "compatibility_date": "2024-02-23",
+  "main": "./worker/index.ts",
 
-  // Pages configuration
-  "pages_build_output_dir": "dist",
+  // Static assets configuration
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "run_worker_first": true
+  },
 
   "vars": {
     "VITE_API_HOST": "https://api.dafthunk.com",

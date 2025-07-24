@@ -12,8 +12,8 @@
     "test": "vitest run --passWithNoTests",
     "dev": "tsx watch server.ts",
     "dev:preview": "tsx watch server.ts",
-    "preview": "pnpm run build && wrangler pages dev ./dist --port 3000",
-    "deploy": "wrangler pages deploy ./dist",
+    "preview": "pnpm run build && wrangler dev --port 3000",
+    "deploy": "wrangler deploy",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -88,6 +88,6 @@
     "typescript-eslint": "^8.31.1",
     "vite": "^6.3.4",
     "vitest": "^3.1.2",
-    "wrangler": "^4.20.0"
+    "wrangler": "^4.26.0"
   }
 }
