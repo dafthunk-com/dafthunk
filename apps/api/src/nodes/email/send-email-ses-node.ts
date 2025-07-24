@@ -13,7 +13,7 @@ export class SendEmailSesNode extends ExecutableNode {
     name: "Send Email (SES)",
     type: "send-email-ses",
     description: "Send an email using Amazon SES",
-    category: "Email",
+    tags: ["Email"],
     icon: "mail",
     computeCost: 10,
     inputs: [

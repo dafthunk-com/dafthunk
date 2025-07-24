@@ -9,7 +9,7 @@ export class SendEmailResendNode extends ExecutableNode {
     name: "Send Email (Resend)",
     type: "send-email-resend",
     description: "Send an email using Resend",
-    category: "Email",
+    tags: ["Email"],
     icon: "mail",
     computeCost: 10,
     inputs: [

@@ -9,7 +9,7 @@ export class ReceiveEmailNode extends ExecutableNode {
     type: "receive-email",
     description:
       "Extracts from, to, headers, and raw content from an incoming email.",
-    category: "Email",
+    tags: ["Email"],
     icon: "mail",
     compatibility: ["email_message"],
     inputs: [],

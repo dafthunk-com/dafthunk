@@ -9,7 +9,7 @@ export class SendEmailSendgridNode extends ExecutableNode {
     name: "Send Email (Sendgrid)",
     type: "send-email-sendgrid",
     description: "Send an email using Sendgrid",
-    category: "Email",
+    tags: ["Email"],
     icon: "mail",
     computeCost: 10,
     inputs: [

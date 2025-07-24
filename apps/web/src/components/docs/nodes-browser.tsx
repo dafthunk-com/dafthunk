@@ -25,17 +25,19 @@ export function NodesBrowser() {
     searchFields: (nodeType) => [
       nodeType.name,
       nodeType.description || "",
-      nodeType.category,
+      ...nodeType.tags,
       nodeType.type,
     ],
   });
 
-  // Get unique categories and their counts
+  // Get unique categories and their counts (using first tag as primary category)
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     nodeTypes.forEach((nodeType) => {
-      const category = nodeType.category;
-      counts[category] = (counts[category] || 0) + 1;
+      const category = nodeType.tags[0]; // Use first tag as primary category
+      if (category) {
+        counts[category] = (counts[category] || 0) + 1;
+      }
     });
     return Object.entries(counts)
       .sort(([a], [b]) => a.localeCompare(b))
@@ -46,10 +48,10 @@ export function NodesBrowser() {
   const filteredNodes = useMemo(() => {
     let filtered = searchResults;
 
-    // Filter by category
+    // Filter by category (check if any tag matches)
     if (selectedCategory) {
-      filtered = filtered.filter(
-        (nodeType) => nodeType.category === selectedCategory
+      filtered = filtered.filter((nodeType) =>
+        nodeType.tags.includes(selectedCategory)
       );
     }
 

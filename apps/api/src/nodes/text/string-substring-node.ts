@@ -10,7 +10,7 @@ export class StringSubstringNode extends ExecutableNode {
     type: "string-substring",
     description:
       "Extract a substring from a string using start index (inclusive) and end index (exclusive)",
-    category: "Text",
+    tags: ["Text"],
     icon: "scissors",
     inputs: [
       {

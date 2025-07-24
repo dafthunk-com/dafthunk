@@ -10,7 +10,7 @@ export class RegexExtractNode extends ExecutableNode {
     type: "regex-extract",
     description:
       "Extract all matches of a regular expression pattern from a string.",
-    category: "Text",
+    tags: ["Text"],
     icon: "search",
     inputs: [
       {

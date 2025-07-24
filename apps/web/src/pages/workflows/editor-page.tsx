@@ -83,7 +83,7 @@ export function EditorPage() {
         type: type.id,
         name: type.name,
         description: type.description || "",
-        category: type.category,
+        tags: type.tags,
         inputs: type.inputs.map((input) => ({
           id: input.name, // Assuming name is unique identifier for input/output handles
           type: input.type,

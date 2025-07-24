@@ -34,12 +34,14 @@ export function WorkflowNodeSelector({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Get category counts
+  // Get category counts (using first tag as primary category)
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     templates.forEach((template) => {
-      const category = template.category;
-      counts[category] = (counts[category] || 0) + 1;
+      const category = template.tags[0]; // Use first tag as primary category
+      if (category) {
+        counts[category] = (counts[category] || 0) + 1;
+      }
     });
     return Object.entries(counts)
       .sort(([a], [b]) => a.localeCompare(b))
@@ -53,14 +55,14 @@ export function WorkflowNodeSelector({
     searchFields: (template) => [
       template.name,
       template.description,
-      template.category,
+      ...template.tags,
     ],
   });
 
   // Filter templates based on search results and selected category
   const filteredTemplates = searchResults.filter((template) => {
     const matchesCategory =
-      !selectedCategory || template.category === selectedCategory;
+      !selectedCategory || template.tags.includes(selectedCategory);
     return matchesCategory;
   });
 
@@ -171,12 +173,17 @@ export function WorkflowNodeSelector({
                         <h3 className="font-semibold text-base leading-tight truncate">
                           {template.name}
                         </h3>
-                        <Badge
-                          variant="secondary"
-                          className={`${getCategoryColor(template.category)} shrink-0 text-xs`}
-                        >
-                          {template.category}
-                        </Badge>
+                        <div className="flex gap-1 shrink-0">
+                          {template.tags.map((tag, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className={`${getCategoryColor([tag])} text-xs`}
+                            >
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                       {template.description && (
                         <p className="text-sm text-muted-foreground leading-relaxed mb-3">

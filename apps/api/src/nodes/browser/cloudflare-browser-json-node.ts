@@ -14,7 +14,7 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     type: "cloudflare-browser-json",
     description:
       "Fetch JSON from a rendered page using Cloudflare Browser Rendering.",
-    category: "Browser",
+    tags: ["Browser"],
     icon: "braces",
     computeCost: 10,
     inputs: [

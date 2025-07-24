@@ -9,7 +9,7 @@ export class StringIncludesNode extends ExecutableNode {
     name: "String Includes",
     type: "string-includes",
     description: "Check if one string includes another string",
-    category: "Text",
+    tags: ["Text"],
     icon: "search",
     inputs: [
       {

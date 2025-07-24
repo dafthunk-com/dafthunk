@@ -13,7 +13,7 @@ export class PhotonGrayscaleNode extends ExecutableNode {
     type: "photon-grayscale",
     description:
       "Converts an image to grayscale using Photon (human-corrected algorithm).",
-    category: "Image",
+    tags: ["Image"],
     icon: "droplet", // Placeholder icon
     inputs: [
       {

@@ -11,7 +11,7 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
     type: "json-object-array-extractor",
     description:
       "Extract a JSON object or array from a JSON object using JSONPath",
-    category: "JSON",
+    tags: ["JSON"],
     icon: "braces",
     inputs: [
       {

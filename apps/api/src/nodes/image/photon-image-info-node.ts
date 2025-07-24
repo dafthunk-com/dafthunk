@@ -14,7 +14,7 @@ export class PhotonImageInfoNode extends ExecutableNode {
     type: "photon-image-info",
     description:
       "Extracts width, height, mime type, and estimated filesize from an image. Also passes the original image through.",
-    category: "Image",
+    tags: ["Image"],
     icon: "info",
     inputs: [
       {

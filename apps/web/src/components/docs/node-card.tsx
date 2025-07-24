@@ -38,12 +38,15 @@ function NodeDetailsDialog({
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 {nodeType.name}
-                <Badge
-                  variant="secondary"
-                  className={getCategoryColor(nodeType.category)}
-                >
-                  {nodeType.category}
-                </Badge>
+                {nodeType.tags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className={getCategoryColor([tag])}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
               </div>
             </div>
           </DialogTitle>
@@ -217,12 +220,15 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                 <CardTitle className="text-base font-semibold leading-tight truncate">
                   {nodeType.name}
                 </CardTitle>
-                <Badge
-                  variant="secondary"
-                  className={`${getCategoryColor(nodeType.category)} shrink-0 text-xs`}
-                >
-                  {nodeType.category}
-                </Badge>
+                {nodeType.tags.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className={`${getCategoryColor([tag])} shrink-0 text-xs`}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
               </div>
 
               {/* Description */}
@@ -286,12 +292,17 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                 {nodeType.name}
               </CardTitle>
             </div>
-            <Badge
-              variant="secondary"
-              className={`${getCategoryColor(nodeType.category)} shrink-0 text-xs`}
-            >
-              {nodeType.category}
-            </Badge>
+            <div className="flex gap-1 shrink-0">
+              {nodeType.tags.map((tag, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className={`${getCategoryColor([tag])} text-xs`}
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">

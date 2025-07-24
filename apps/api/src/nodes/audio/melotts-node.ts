@@ -12,7 +12,7 @@ export class MelottsNode extends ExecutableNode {
     name: "MeloTTS",
     type: "melotts",
     description: "Converts text to natural-sounding speech using MeloTTS",
-    category: "Audio",
+    tags: ["Audio"],
     icon: "audio",
     computeCost: 10,
     inputs: [

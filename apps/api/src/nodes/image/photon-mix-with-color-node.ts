@@ -17,7 +17,7 @@ export class PhotonMixWithColorNode extends ExecutableNode {
     type: "photon-mix-with-color",
     description:
       "Blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).",
-    category: "Image",
+    tags: ["Image"],
     icon: "droplet", // Icon suggesting color application or mixing
     inputs: [
       {

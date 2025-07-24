@@ -66,7 +66,7 @@ describe("Types Route Tests", () => {
       expect(nodeType).toHaveProperty("id");
       expect(nodeType).toHaveProperty("name");
       expect(nodeType).toHaveProperty("type");
-      expect(nodeType).toHaveProperty("category");
+      expect(nodeType).toHaveProperty("tags");
       expect(nodeType).toHaveProperty("icon");
       expect(nodeType).toHaveProperty("inputs");
       expect(nodeType).toHaveProperty("outputs");
@@ -74,7 +74,7 @@ describe("Types Route Tests", () => {
       expect(typeof nodeType.id).toBe("string");
       expect(typeof nodeType.name).toBe("string");
       expect(typeof nodeType.type).toBe("string");
-      expect(typeof nodeType.category).toBe("string");
+      expect(Array.isArray(nodeType.tags)).toBe(true);
       expect(typeof nodeType.icon).toBe("string");
       expect(Array.isArray(nodeType.inputs)).toBe(true);
       expect(Array.isArray(nodeType.outputs)).toBe(true);
@@ -244,7 +244,7 @@ describe("Types Route Tests", () => {
         expect(nodeType.id).toBeDefined();
         expect(nodeType.name).toBeDefined();
         expect(nodeType.type).toBeDefined();
-        expect(nodeType.category).toBeDefined();
+        expect(nodeType.tags).toBeDefined();
         expect(nodeType.icon).toBeDefined();
         expect(nodeType.inputs).toBeDefined();
         expect(nodeType.outputs).toBeDefined();
@@ -253,7 +253,7 @@ describe("Types Route Tests", () => {
         expect(typeof nodeType.id).toBe("string");
         expect(typeof nodeType.name).toBe("string");
         expect(typeof nodeType.type).toBe("string");
-        expect(typeof nodeType.category).toBe("string");
+        expect(Array.isArray(nodeType.tags)).toBe(true);
         expect(typeof nodeType.icon).toBe("string");
         expect(Array.isArray(nodeType.inputs)).toBe(true);
         expect(Array.isArray(nodeType.outputs)).toBe(true);

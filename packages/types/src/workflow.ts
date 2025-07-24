@@ -93,7 +93,7 @@ export interface NodeType {
   name: string;
   type: string;
   description?: string;
-  category: string;
+  tags: string[];
   icon: string;
   computeCost?: number;
   inputs: Parameter[];

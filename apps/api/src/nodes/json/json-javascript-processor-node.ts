@@ -10,7 +10,7 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
     type: "json-javascript-processor",
     description:
       "Executes a JavaScript script with a JSON object as input. The input JSON is available as a global variable 'json'. The result of the last expression is returned.",
-    category: "JSON",
+    tags: ["JSON"],
     icon: "code",
     inputs: [
       {

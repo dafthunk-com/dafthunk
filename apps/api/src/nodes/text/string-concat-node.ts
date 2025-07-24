@@ -9,7 +9,7 @@ export class StringConcatNode extends ExecutableNode {
     name: "String Concat",
     type: "string-concat",
     description: "Concatenate two strings together",
-    category: "Text",
+    tags: ["Text"],
     icon: "link",
     inputs: [
       {

@@ -12,7 +12,7 @@ export class DivisionNode extends ExecutableNode {
     name: "Division",
     type: "division",
     description: "Divides one number by another",
-    category: "Math",
+    tags: ["Math"],
     icon: "divide",
     inputs: [
       { name: "a", type: "number", required: true },

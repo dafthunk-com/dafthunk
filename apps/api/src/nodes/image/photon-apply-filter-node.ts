@@ -16,7 +16,7 @@ export class PhotonApplyFilterNode extends ExecutableNode {
     type: "photon-apply-filter",
     description:
       "Applies a named preset filter to an image (e.g., 'vintage', 'oceanic', 'lofi').",
-    category: "Image",
+    tags: ["Image"],
     icon: "filter",
     inputs: [
       {

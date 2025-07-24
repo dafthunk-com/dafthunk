@@ -9,7 +9,7 @@ export class StringLastIndexOfNode extends ExecutableNode {
     name: "String Last Index Of",
     type: "string-last-index-of",
     description: "Find the last index of a substring within a string",
-    category: "Text",
+    tags: ["Text"],
     icon: "search",
     inputs: [
       {

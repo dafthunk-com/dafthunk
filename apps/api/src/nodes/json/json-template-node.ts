@@ -10,7 +10,7 @@ export class JsonTemplateNode extends ExecutableNode {
     type: "json-template",
     description:
       "Create a JSON object using a template with variable injection using ${variableName} syntax",
-    category: "JSON",
+    tags: ["JSON"],
     icon: "code",
     inputs: [
       {

@@ -13,7 +13,7 @@ export class PhotonEmbossNode extends ExecutableNode {
     type: "photon-emboss",
     description:
       "Applies an emboss effect to an image, giving it a carved or stamped appearance.",
-    category: "Image",
+    tags: ["Image"],
     icon: "trending-up", // Icon that might suggest a raised/3D effect
     inputs: [
       {

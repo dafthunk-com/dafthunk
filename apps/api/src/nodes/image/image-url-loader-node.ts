@@ -9,7 +9,7 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     name: "Image URL Loader",
     type: "image-url-loader",
     description: "Loads an image from a URL and converts it to a data array",
-    category: "Image",
+    tags: ["Image"],
     icon: "link",
     computeCost: 10,
     inputs: [

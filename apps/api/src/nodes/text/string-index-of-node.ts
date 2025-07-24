@@ -9,7 +9,7 @@ export class StringIndexOfNode extends ExecutableNode {
     name: "String Index Of",
     type: "string-index-of",
     description: "Find the index of a substring within a string",
-    category: "Text",
+    tags: ["Text"],
     icon: "search",
     inputs: [
       {

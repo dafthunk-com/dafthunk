@@ -9,7 +9,7 @@ export class StringTrimNode extends ExecutableNode {
     name: "String Trim",
     type: "string-trim",
     description: "Remove whitespace from both ends of a string",
-    category: "Text",
+    tags: ["Text"],
     icon: "scissors",
     inputs: [
       {

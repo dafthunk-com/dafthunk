@@ -1,7 +1,10 @@
 /**
- * Get category color classes based on category name
+ * Get category color classes based on category name or tags array
  */
-export function getCategoryColor(category: string): string {
+export function getCategoryColor(categoryOrTags: string | string[]): string {
+  const category = Array.isArray(categoryOrTags)
+    ? categoryOrTags[0]
+    : categoryOrTags;
   const colors: Record<string, string> = {
     ai: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
     text: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",

@@ -13,7 +13,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
     type: "stable-diffusion-xl-lightning",
     description:
       "Generates images from text descriptions using Stable Diffusion XL Lightning",
-    category: "Image",
+    tags: ["Image"],
     icon: "wand",
     computeCost: 10,
     inputs: [

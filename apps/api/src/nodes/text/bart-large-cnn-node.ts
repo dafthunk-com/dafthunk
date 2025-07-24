@@ -11,7 +11,7 @@ export class BartLargeCnnNode extends ExecutableNode {
     name: "BART Large CNN",
     type: "bart-large-cnn",
     description: "Summarizes text using BART-large-CNN model",
-    category: "Text",
+    tags: ["Text"],
     icon: "summarize",
     computeCost: 10,
     inputs: [

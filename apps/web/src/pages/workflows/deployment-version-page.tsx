@@ -59,7 +59,7 @@ export function DeploymentVersionPage() {
         type: type.id,
         name: type.name,
         description: type.description || "",
-        category: type.category,
+        tags: type.tags,
         inputs: type.inputs.map((input) => ({
           id: input.name,
           type: input.type,

@@ -12,7 +12,7 @@ export class PhotonEdgeDetectionNode extends ExecutableNode {
     name: "Photon Edge Detection",
     type: "photon-edge-detection",
     description: "Highlights edges in an image using Photon.",
-    category: "Image",
+    tags: ["Image"],
     icon: "minimize-2", // Placeholder icon, could be something like a Sobel filter icon
     inputs: [
       {

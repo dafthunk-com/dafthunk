@@ -9,7 +9,7 @@ export class StringToUpperCaseNode extends ExecutableNode {
     name: "String To Upper Case",
     type: "string-to-upper-case",
     description: "Convert a string to uppercase",
-    category: "Text",
+    tags: ["Text"],
     icon: "text",
     inputs: [
       {

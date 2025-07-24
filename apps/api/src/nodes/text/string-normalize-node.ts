@@ -9,7 +9,7 @@ export class StringNormalizeNode extends ExecutableNode {
     name: "String Normalize",
     type: "string-normalize",
     description: "Normalize a string using the Unicode Normalization forms",
-    category: "Text",
+    tags: ["Text"],
     icon: "text",
     inputs: [
       {

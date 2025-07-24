@@ -13,7 +13,7 @@ export class PhotonAdjustBrightnessNode extends ExecutableNode {
     type: "photon-adjust-brightness",
     description:
       "Adjusts image brightness. Positive values increase, negative values decrease.",
-    category: "Image",
+    tags: ["Image"],
     icon: "sun",
     inputs: [
       {

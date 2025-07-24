@@ -13,7 +13,7 @@ export class DocumentNode extends ExecutableNode {
     name: "Document",
     type: "document",
     description: "A document widget for uploading files",
-    category: "Document",
+    tags: ["Document"],
     icon: "file",
     inputs: [
       {

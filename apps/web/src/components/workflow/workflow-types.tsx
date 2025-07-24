@@ -46,7 +46,7 @@ export interface NodeTemplate {
   type: string;
   name: string;
   description: string;
-  category: string;
+  tags: string[];
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
 }

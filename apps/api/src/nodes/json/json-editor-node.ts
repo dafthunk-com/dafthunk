@@ -16,7 +16,7 @@ export class JsonEditorNode extends ExecutableNode {
     name: "JSON Editor",
     type: "json-editor",
     description: "A JSON Editor widget for editing and validating JSON",
-    category: "JSON",
+    tags: ["JSON"],
     icon: "code",
     inputs: [
       {

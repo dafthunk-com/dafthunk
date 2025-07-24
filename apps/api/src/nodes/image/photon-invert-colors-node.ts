@@ -12,7 +12,7 @@ export class PhotonInvertColorsNode extends ExecutableNode {
     name: "Photon Invert Colors",
     type: "photon-invert-colors",
     description: "Inverts the colors of an image using Photon.",
-    category: "Image",
+    tags: ["Image"],
     icon: "aperture", // Placeholder icon, consider a more specific one
     inputs: [
       {

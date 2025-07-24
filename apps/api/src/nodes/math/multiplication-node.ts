@@ -12,7 +12,7 @@ export class MultiplicationNode extends ExecutableNode {
     name: "Multiplication",
     type: "multiplication",
     description: "Multiplies two numbers",
-    category: "Math",
+    tags: ["Math"],
     icon: "x",
     inputs: [
       { name: "a", type: "number", required: true },

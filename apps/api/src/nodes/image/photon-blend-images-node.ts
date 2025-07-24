@@ -13,7 +13,7 @@ export class PhotonBlendImagesNode extends ExecutableNode {
     type: "photon-blend-images",
     description:
       "Blends two images using a specified blend mode (e.g., 'overlay', 'multiply', 'screen', 'lighten', 'darken').",
-    category: "Image",
+    tags: ["Image"],
     icon: "layers", // Icon suggesting multiple layers or blending
     inputs: [
       {
