@@ -1,11 +1,32 @@
 import { Node } from "@dafthunk/types";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NodeContext } from "../types";
 import { HttpRequestNode } from "./http-request-node";
 
+// Mock fetch
+global.fetch = vi.fn();
+
 describe("HttpRequestNode", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("should make a GET request successfully", async () => {
+    const mockResponse = {
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi
+        .fn()
+        .mockResolvedValue(JSON.stringify({ url: "https://httpbin.org/get" })),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -31,6 +52,20 @@ describe("HttpRequestNode", () => {
   });
 
   it("should make a POST request with body", async () => {
+    const mockResponse = {
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi
+        .fn()
+        .mockResolvedValue(JSON.stringify({ json: { test: "data" } })),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -60,6 +95,22 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle query parameters", async () => {
+    const mockResponse = {
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          args: { param1: "value1", param2: "value2" },
+        })
+      ),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -86,6 +137,25 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle custom headers", async () => {
+    const mockResponse = {
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          headers: {
+            "X-Custom-Header": "test-value",
+            "User-Agent": "test-agent",
+          },
+        })
+      ),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -118,6 +188,10 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle timeout", async () => {
+    (global.fetch as any).mockRejectedValue(
+      new Error("The user aborted a request.")
+    );
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -180,6 +254,20 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle PUT request", async () => {
+    const mockResponse = {
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi
+        .fn()
+        .mockResolvedValue(JSON.stringify({ json: { update: "data" } })),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -206,6 +294,18 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle DELETE request", async () => {
+    const mockResponse = {
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi.fn().mockResolvedValue(JSON.stringify({})),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -227,6 +327,18 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle 404 error", async () => {
+    const mockResponse = {
+      status: 404,
+      statusText: "NOT FOUND",
+      headers: new Map([
+        ["content-type", "text/html"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi.fn().mockResolvedValue("Not Found"),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
@@ -248,6 +360,18 @@ describe("HttpRequestNode", () => {
   });
 
   it("should handle 500 error", async () => {
+    const mockResponse = {
+      status: 500,
+      statusText: "INTERNAL SERVER ERROR",
+      headers: new Map([
+        ["content-type", "text/html"],
+        ["server", "httpbin.org"],
+      ]),
+      text: vi.fn().mockResolvedValue("Internal Server Error"),
+    };
+
+    (global.fetch as any).mockResolvedValue(mockResponse);
+
     const nodeId = "http-request";
     const node = new HttpRequestNode({
       nodeId,
