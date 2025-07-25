@@ -160,6 +160,102 @@ const DocumentRenderer = ({
   );
 };
 
+// Geometry renderer for GeoJSON geometries
+const GeometryRenderer = ({
+  parameter,
+  compact,
+  readonly,
+  onChange,
+}: {
+  parameter: WorkflowParameter;
+  compact?: boolean;
+  readonly?: boolean;
+  onChange?: (value: any) => void;
+}) => {
+  const getGeometryTypeLabel = (type: string): string => {
+    switch (type) {
+      case "point":
+        return "Point";
+      case "multipoint":
+        return "MultiPoint";
+      case "linestring":
+        return "LineString";
+      case "multilinestring":
+        return "MultiLineString";
+      case "polygon":
+        return "Polygon";
+      case "multipolygon":
+        return "MultiPolygon";
+      case "geometry":
+        return "Geometry";
+      case "geometrycollection":
+        return "GeometryCollection";
+      case "feature":
+        return "Feature";
+      case "featurecollection":
+        return "FeatureCollection";
+      default:
+        return "GeoJSON";
+    }
+  };
+
+  const formatGeoJSON = (value: any): string => {
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch (e) {
+      console.warn("Error formatting GeoJSON:", e);
+      return String(value);
+    }
+  };
+
+  const formattedValue = formatGeoJSON(parameter.value);
+  const geometryLabel = getGeometryTypeLabel(parameter.type);
+
+  if (readonly) {
+    return (
+      <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-neutral-500">
+            {geometryLabel} (GeoJSON)
+          </div>
+        </div>
+        <div
+          className={`${compact ? "max-h-[300px] overflow-y-auto nowheel" : ""}`}
+        >
+          <CodeBlock
+            language="json"
+            className="text-xs my-0 border [&_pre]:p-2"
+          >
+            {formattedValue}
+          </CodeBlock>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+      <div className="text-xs text-neutral-500">
+        {geometryLabel} (GeoJSON)
+      </div>
+      <Textarea
+        value={formattedValue}
+        onChange={(e) => {
+          try {
+            const parsed = JSON.parse(e.target.value);
+            onChange?.(parsed);
+          } catch {
+            // Allow invalid JSON while typing
+            onChange?.(e.target.value);
+          }
+        }}
+        className="text-xs font-mono min-h-[120px]"
+        placeholder={`Enter ${geometryLabel} GeoJSON`}
+      />
+    </div>
+  );
+};
+
 // Code renderer for JSON, arrays, and other code-like content
 const CodeRenderer = ({
   value,
@@ -360,6 +456,15 @@ export function WorkflowValueRenderer({
             compact={compact}
           />
         );
+      case "geometry":
+        return (
+          <GeometryRenderer
+            parameter={parameter}
+            compact={compact}
+            readonly={readonly}
+            onChange={onChange}
+          />
+        );
       case "any":
         // For "any" type with object reference, try to determine the best renderer
         // based on the object reference properties
@@ -419,6 +524,29 @@ export function WorkflowValueRenderer({
           </div>
         );
     }
+  }
+
+  // Handle geometry types
+  if (
+    parameter.type === "point" ||
+    parameter.type === "multipoint" ||
+    parameter.type === "linestring" ||
+    parameter.type === "multilinestring" ||
+    parameter.type === "polygon" ||
+    parameter.type === "multipolygon" ||
+    parameter.type === "geometry" ||
+    parameter.type === "geometrycollection" ||
+    parameter.type === "feature" ||
+    parameter.type === "featurecollection"
+  ) {
+    return (
+      <GeometryRenderer
+        parameter={parameter}
+        compact={compact}
+        readonly={readonly}
+        onChange={onChange}
+      />
+    );
   }
 
   // Handle code-like content
