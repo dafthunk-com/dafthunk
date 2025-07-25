@@ -115,6 +115,7 @@ import { TwilioSmsNode } from "./text/twilio-sms-node";
 import { GeoJsonGeometryNode } from "./geo/geojson-geometry-node";
 import { WktGeometryNode } from "./geo/wkt-geometry-node";
 import { EnvelopeNode } from "./geo/envelope-node";
+import { CentroidNode } from "./geo/centroid-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -248,6 +249,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(GeoJsonGeometryNode);
     this.registerImplementation(WktGeometryNode);
     this.registerImplementation(EnvelopeNode);
+    this.registerImplementation(CentroidNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
