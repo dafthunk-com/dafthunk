@@ -2,14 +2,24 @@ import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
 import {
   AsteriskIcon,
+  BoxesIcon,
+  BoxIcon,
   BracesIcon,
+  ChartNoAxesGanttIcon,
   CheckIcon,
   ChevronDown,
   ChevronUp,
+  DiamondIcon,
+  DotIcon,
+  EllipsisIcon,
   HashIcon,
   ImageIcon,
+  LayersIcon,
+  MinusIcon,
   MusicIcon,
+  ShapesIcon,
   StickyNoteIcon,
+  TriangleIcon,
   TypeIcon,
 } from "lucide-react";
 import { createElement, memo, useEffect, useState } from "react";
@@ -72,6 +82,16 @@ const TypeBadge = ({
     document: <StickyNoteIcon className="!size-3" />,
     audio: <MusicIcon className="!size-3" />,
     json: <BracesIcon className="!size-3" />,
+    point: <DotIcon className="!size-3" />,
+    multipoint: <EllipsisIcon className="!size-3" />,
+    linestring: <MinusIcon className="!size-3" />,
+    multilinestring: <ChartNoAxesGanttIcon className="!size-3" />,
+    polygon: <TriangleIcon className="!size-3" />,
+    multipolygon: <ShapesIcon className="!size-3" />,
+    geometry: <BoxIcon className="!size-3" />,
+    geometrycollection: <BoxesIcon className="!size-3" />,
+    feature: <DiamondIcon className="!size-3" />,
+    featurecollection: <LayersIcon className="!size-3" />,
     any: <AsteriskIcon className="!size-3" />,
   } satisfies Record<InputOutputType, React.ReactNode>;
 
