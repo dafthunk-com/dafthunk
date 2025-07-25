@@ -41,6 +41,7 @@
     "@radix-ui/react-toggle": "^1.1.6",
     "@radix-ui/react-tooltip": "^1.2.4",
     "@tanstack/react-table": "^8.21.3",
+    "@turf/turf": "^7.2.0",
     "@xyflow/react": "^12.6.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.507.0",
