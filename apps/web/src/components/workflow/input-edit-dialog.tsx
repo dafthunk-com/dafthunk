@@ -156,6 +156,32 @@ export function InputEditDialog({
                     </button>
                   )}
                 </div>
+              ) : input.type === "json" ? (
+                <div className="relative">
+                  <Textarea
+                    id="input-value"
+                    value={inputValue}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && e.ctrlKey) {
+                        e.preventDefault();
+                        onClose();
+                      }
+                    }}
+                    placeholder="Enter json value"
+                    className="min-h-[100px] resize-y"
+                    disabled={readonly}
+                  />
+                  {inputValue && !readonly && (
+                    <button
+                      onClick={handleClearValue}
+                      className="absolute right-2 top-2 text-neutral-400 hover:text-neutral-600"
+                      aria-label="Clear value"
+                    >
+                      <XCircleIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div className="relative">
                   <Input
