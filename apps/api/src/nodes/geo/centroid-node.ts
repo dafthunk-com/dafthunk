@@ -33,12 +33,6 @@ export class CentroidNode extends ExecutableNode {
         type: "geojson",
         description: "A Point feature representing the centroid of the input",
       },
-      {
-        name: "coordinates",
-        type: "json",
-        description: "The centroid coordinates as [longitude, latitude]",
-        hidden: true,
-      },
     ],
   };
 
@@ -87,18 +81,8 @@ export class CentroidNode extends ExecutableNode {
         return this.createErrorResult("Unable to calculate centroid - GeoJSON may be empty or invalid");
       }
 
-      // Extract coordinates
-      const coordinates = centroidPoint.geometry.coordinates;
-      
-      // Validate coordinates
-      if (!Array.isArray(coordinates) || coordinates.length < 2 || 
-          !coordinates.every(coord => typeof coord === "number" && isFinite(coord))) {
-        return this.createErrorResult("Unable to calculate centroid - invalid coordinates generated");
-      }
-
       return this.createSuccessResult({
         centroid: centroidPoint,
-        coordinates: coordinates,
       });
 
     } catch (err) {
