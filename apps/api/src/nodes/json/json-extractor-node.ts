@@ -4,13 +4,12 @@ import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
-export class JsonObjectArrayExtractorNode extends ExecutableNode {
+export class JsonExtractorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "json-object-array-extractor",
-    name: "JSON Object/Array Extractor",
-    type: "json-object-array-extractor",
-    description:
-      "Extract a JSON object or array from a JSON object using JSONPath",
+    id: "json-extractor",
+    name: "JSON Extractor",
+    type: "json-extractor",
+    description: "Extract a JSON value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "braces",
     inputs: [
@@ -30,8 +29,7 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
       {
         name: "defaultValue",
         type: "json",
-        description:
-          "Default value if no JSON object/array is found at the path",
+        description: "Default value if no JSON value is found at the path",
         hidden: true,
       },
     ],
@@ -39,13 +37,12 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
       {
         name: "value",
         type: "json",
-        description: "The extracted JSON value (object or array)",
+        description: "The extracted JSON value",
       },
       {
         name: "found",
         type: "boolean",
-        description:
-          "Whether a JSON object or array was found at the specified path",
+        description: "Whether a JSON value was found at the specified path",
         hidden: true,
       },
     ],
@@ -70,7 +67,7 @@ export class JsonObjectArrayExtractorNode extends ExecutableNode {
       try {
         const results = JSONPath({ path, json });
 
-        // Get the first result that is a JSON object or array
+        // Get the first result that is a JSON value
         const jsonValue = results.find((value: any) => this.isJsonValue(value));
         const found = this.isJsonValue(jsonValue);
 
