@@ -214,11 +214,6 @@ const GeometryRenderer = ({
   if (readonly) {
     return (
       <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-neutral-500">
-            {geometryLabel} (GeoJSON)
-          </div>
-        </div>
         <div
           className={`${compact ? "max-h-[300px] overflow-y-auto nowheel" : ""}`}
         >

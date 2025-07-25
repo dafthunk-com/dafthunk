@@ -113,6 +113,7 @@ import { TextAreaNode } from "./text/text-area-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
 import { GeoJsonGeometryNode } from "./geo/geojson-geometry-node";
+import { WktGeometryNode } from "./geo/wkt-geometry-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -244,6 +245,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(DocumentNode);
     this.registerImplementation(HttpRequestNode);
     this.registerImplementation(GeoJsonGeometryNode);
+    this.registerImplementation(WktGeometryNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {

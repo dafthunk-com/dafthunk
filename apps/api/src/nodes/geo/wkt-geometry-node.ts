@@ -1,0 +1,92 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+import {
+  Geometry,
+  GeometryCollection,
+} from "@dafthunk/types";
+import wellknown from "wellknown";
+
+import { ExecutableNode } from "../types";
+import { NodeContext } from "../types";
+
+export class WktGeometryNode extends ExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "wkt-geometry",
+    name: "WKT Geometry",
+    type: "wkt-geometry",
+    description: "Parse a Well-Known Text (WKT) geometry string and convert to GeoJSON",
+    tags: ["Geo", "WKT", "Parser"],
+    icon: "map",
+    inputs: [
+      {
+        name: "wkt",
+        type: "string",
+        description: "The WKT geometry string to parse",
+        required: true,
+      },
+    ],
+    outputs: [
+      {
+        name: "geometry",
+        type: "geometry",
+        description: "The parsed geometry object in GeoJSON format",
+      },
+      {
+        name: "geometryType",
+        type: "string",
+        description: "The type of geometry (Point, LineString, etc.)",
+        hidden: true,
+      },
+    ],
+  };
+
+  private isValidGeometry(geom: any): geom is Geometry | GeometryCollection {
+    if (!geom || typeof geom !== "object" || !geom.type) {
+      return false;
+    }
+
+    const validTypes = [
+      "Point", "MultiPoint", "LineString", "MultiLineString", 
+      "Polygon", "MultiPolygon", "GeometryCollection"
+    ];
+
+    return validTypes.includes(geom.type);
+  }
+
+  public async execute(context: NodeContext): Promise<NodeExecution> {
+    try {
+      const { wkt } = context.inputs;
+
+      if (wkt === undefined || wkt === null || typeof wkt !== "string") {
+        return this.createErrorResult("Invalid or missing WKT string input");
+      }
+
+      // Trim whitespace from the WKT string
+      const trimmedWkt = wkt.trim();
+      
+      if (trimmedWkt.length === 0) {
+        return this.createErrorResult("Empty WKT string provided");
+      }
+
+      // Parse the WKT string using wellknown library
+      const parsedGeometry = wellknown.parse(trimmedWkt);
+
+      if (!parsedGeometry) {
+        return this.createErrorResult("Failed to parse WKT string: invalid or unsupported WKT format");
+      }
+
+      // Validate the parsed geometry
+      if (!this.isValidGeometry(parsedGeometry)) {
+        return this.createErrorResult("Parsed WKT resulted in invalid geometry");
+      }
+
+      return this.createSuccessResult({
+        geometry: parsedGeometry,
+        geometryType: parsedGeometry.type,
+      });
+
+    } catch (err) {
+      const error = err as Error;
+      return this.createErrorResult(`Error parsing WKT geometry: ${error.message}`);
+    }
+  }
+} 
