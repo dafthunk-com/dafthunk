@@ -40,38 +40,141 @@ export type DocumentParameter = {
     | "application/vnd.apple.numbers";
 };
 
+export type Position = [number, number] | [number, number, number];
+// [longitude, latitude] or [longitude, latitude, elevation]
+
+// Base Geometry Interface
+export interface Geometry {
+  type: string;
+  coordinates: any;
+}
+
+export interface Point extends Geometry {
+  type: "Point";
+  coordinates: Position;
+}
+
+export interface MultiPoint extends Geometry {
+  type: "MultiPoint";
+  coordinates: Position[];
+}
+
+export interface LineString extends Geometry {
+  type: "LineString";
+  coordinates: Position[];
+}
+
+export interface MultiLineString extends Geometry {
+  type: "MultiLineString";
+  coordinates: Position[][];
+}
+
+export interface Polygon extends Geometry {
+  type: "Polygon";
+  coordinates: Position[][];
+  // First ring = outer boundary, others = holes
+}
+
+export interface MultiPolygon extends Geometry {
+  type: "MultiPolygon";
+  coordinates: Position[][][];
+}
+
+export interface GeometryCollection {
+  type: "GeometryCollection";
+  geometries: Geometry[];
+}
+
+export interface Feature<
+  G extends Geometry | GeometryCollection = Geometry,
+  P = { [key: string]: any },
+> {
+  type: "Feature";
+  geometry: G;
+  properties: P | null;
+  id?: string | number;
+}
+
+export interface FeatureCollection<
+  G extends Geometry | GeometryCollection = Geometry,
+  P = { [key: string]: any },
+> {
+  type: "FeatureCollection";
+  features: Array<Feature<G, P>>;
+}
+
 export type ParameterType =
   | {
       type: "string";
-      value?: string;
+      value: string;
     }
   | {
       type: "number";
-      value?: number;
+      value: number;
     }
   | {
       type: "boolean";
-      value?: boolean;
+      value: boolean;
     }
   | {
       type: "image";
-      value?: ImageParameter;
+      value: ImageParameter;
     }
   | {
       type: "json";
-      value?: any;
+      value: any;
     }
   | {
       type: "document";
-      value?: DocumentParameter;
+      value: DocumentParameter;
     }
   | {
       type: "audio";
-      value?: AudioParameter;
+      value: AudioParameter;
+    }
+  | {
+      type: "Point";
+      value: Point;
+    }
+  | {
+      type: "MultiPoint";
+      value: MultiPoint;
+    }
+  | {
+      type: "LineString";
+      value: LineString;
+    }
+  | {
+      type: "MultiLineString";
+      value: MultiLineString;
+    }
+  | {
+      type: "Polygon";
+      value: Polygon;
+    }
+  | {
+      type: "MultiPolygon";
+      value: MultiPolygon;
+    }
+  | {
+      type: "Geometry";
+      value: Geometry;
+    }
+  | {
+      type: "GeometryCollection";
+      value: GeometryCollection;
+    }
+  | {
+      type: "Feature";
+      value: Feature;
+    }
+  | {
+      type: "FeatureCollection";
+      value: FeatureCollection;
     }
   | {
       type: "any";
-      value?: any;
+      value: any;
     };
 
 export type ParameterValue = ParameterType["value"];
