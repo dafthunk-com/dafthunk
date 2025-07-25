@@ -4,8 +4,7 @@
       "entry": [
         "src/entry-client.tsx",
         "src/entry-server.tsx",
-        "functions/\\[\\[path\\]\\].ts",
-        "functions/_middleware.ts"
+        "worker/index.ts"
       ]
     },
     "apps/api": {
