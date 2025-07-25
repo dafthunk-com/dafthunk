@@ -133,43 +133,43 @@ export type ParameterType =
       value: AudioParameter;
     }
   | {
-      type: "Point";
+      type: "point";
       value: Point;
     }
   | {
-      type: "MultiPoint";
+      type: "multipoint";
       value: MultiPoint;
     }
   | {
-      type: "LineString";
+      type: "linestring";
       value: LineString;
     }
   | {
-      type: "MultiLineString";
+      type: "multilinestring";
       value: MultiLineString;
     }
   | {
-      type: "Polygon";
+      type: "polygon";
       value: Polygon;
     }
   | {
-      type: "MultiPolygon";
+      type: "multipolygon";
       value: MultiPolygon;
     }
   | {
-      type: "Geometry";
+      type: "geometry";
       value: Geometry;
     }
   | {
-      type: "GeometryCollection";
+      type: "geometrycollection";
       value: GeometryCollection;
     }
   | {
-      type: "Feature";
+      type: "feature";
       value: Feature;
     }
   | {
-      type: "FeatureCollection";
+      type: "featurecollection";
       value: FeatureCollection;
     }
   | {

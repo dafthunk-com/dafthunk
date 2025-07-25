@@ -23,6 +23,7 @@ function isImageParameter(value: unknown): value is NodeImageParameter {
     typeof value["mimeType"] === "string"
   );
 }
+
 function isDocumentParameter(value: unknown): value is NodeDocumentParameter {
   return (
     !!value &&
@@ -33,6 +34,7 @@ function isDocumentParameter(value: unknown): value is NodeDocumentParameter {
     typeof value["mimeType"] === "string"
   );
 }
+
 function isAudioParameter(value: unknown): value is NodeAudioParameter {
   return (
     !!value &&
@@ -43,6 +45,7 @@ function isAudioParameter(value: unknown): value is NodeAudioParameter {
     typeof value["mimeType"] === "string"
   );
 }
+
 function isObjectReference(value: unknown): value is ObjectReference {
   return (
     !!value &&
@@ -53,6 +56,7 @@ function isObjectReference(value: unknown): value is ObjectReference {
     typeof (value as any).mimeType === "string"
   );
 }
+
 function isPlainJsonObject(value: unknown): value is Record<string, any> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   if (
@@ -64,6 +68,7 @@ function isPlainJsonObject(value: unknown): value is Record<string, any> {
   if (value instanceof Uint8Array) return false;
   return true;
 }
+
 function isJsonArray(value: unknown): value is JsonArray {
   if (!Array.isArray(value)) return false;
   if (
@@ -84,25 +89,47 @@ function isJsonArray(value: unknown): value is JsonArray {
   );
 }
 
+// Helper functions for common converter patterns
+const createJsonParsingNodeToApi = () => (value: NodeParameterValue) =>
+  value as ApiParameterValue;
+const createJsonParsingApiToNode = () => (value: ApiParameterValue) => {
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value) as NodeParameterValue;
+    } catch (_error) {
+      return value as NodeParameterValue;
+    }
+  }
+  return value as NodeParameterValue;
+};
+
+const typeValidatingNodeToApi =
+  (expectedType: string) => (value: NodeParameterValue) =>
+    typeof value === expectedType ? value : undefined;
+const typeValidatingApiToNode =
+  (expectedType: string) => (value: ApiParameterValue) =>
+    typeof value === expectedType ? value : undefined;
+
+const createValidatedNodeToApi =
+  (validator: (value: unknown) => boolean) => (value: NodeParameterValue) =>
+    (validator(value) ? value : undefined) as ApiParameterValue;
+const createValidatedApiToNode =
+  (validator: (value: unknown) => boolean) => (value: ApiParameterValue) =>
+    (validator(value) ? value : undefined) as NodeParameterValue;
+
 // Static mapping of converters
 const converters = {
   string: {
-    nodeToApi: (value: NodeParameterValue) =>
-      typeof value === "string" ? value : undefined,
-    apiToNode: (value: ApiParameterValue) =>
-      typeof value === "string" ? value : undefined,
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
   },
   number: {
-    nodeToApi: (value: NodeParameterValue) =>
-      typeof value === "number" ? value : undefined,
-    apiToNode: (value: ApiParameterValue) =>
-      typeof value === "number" ? value : undefined,
+    nodeToApi: typeValidatingNodeToApi("number"),
+    apiToNode: typeValidatingApiToNode("number"),
   },
   boolean: {
-    nodeToApi: (value: NodeParameterValue) =>
-      typeof value === "boolean" ? value : undefined,
-    apiToNode: (value: ApiParameterValue) =>
-      typeof value === "boolean" ? value : undefined,
+    nodeToApi: typeValidatingNodeToApi("boolean"),
+    apiToNode: typeValidatingApiToNode("boolean"),
   },
   image: {
     nodeToApi: async (
@@ -207,33 +234,52 @@ const converters = {
     },
   },
   array: {
-    nodeToApi: (value: NodeParameterValue) =>
-      (isJsonArray(value) ? value : undefined) as ApiParameterValue,
-    apiToNode: (value: ApiParameterValue) =>
-      (isJsonArray(value) ? value : undefined) as NodeParameterValue,
+    nodeToApi: createValidatedNodeToApi(isJsonArray),
+    apiToNode: createValidatedApiToNode(isJsonArray),
   },
   json: {
-    nodeToApi: (value: NodeParameterValue) => {
-      // Exclude binary types from JSON conversion
-      if (
-        isImageParameter(value) ||
-        isDocumentParameter(value) ||
-        isAudioParameter(value)
-      ) {
-        return undefined;
-      }
-      return value as ApiParameterValue;
-    },
-    apiToNode: (value: ApiParameterValue) => {
-      if (typeof value === "string") {
-        try {
-          return JSON.parse(value) as NodeParameterValue;
-        } catch (_error) {
-          return value as NodeParameterValue;
-        }
-      }
-      return value as NodeParameterValue;
-    },
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  point: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  multipoint: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  linestring: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  multilinestring: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  polygon: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  multipolygon: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  geometry: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  geometrycollection: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  feature: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
+  featurecollection: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
   },
   any: {
     nodeToApi: (
