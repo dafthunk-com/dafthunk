@@ -1,5 +1,4 @@
 import {
-  JsonArray,
   ObjectReference,
   ParameterValue as ApiParameterValue,
 } from "@dafthunk/types";
@@ -57,38 +56,6 @@ function isObjectReference(value: unknown): value is ObjectReference {
   );
 }
 
-function isPlainJsonObject(value: unknown): value is Record<string, any> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  if (
-    isImageParameter(value) ||
-    isDocumentParameter(value) ||
-    isAudioParameter(value)
-  )
-    return false;
-  if (value instanceof Uint8Array) return false;
-  return true;
-}
-
-function isJsonArray(value: unknown): value is JsonArray {
-  if (!Array.isArray(value)) return false;
-  if (
-    isImageParameter(value) ||
-    isDocumentParameter(value) ||
-    isAudioParameter(value)
-  )
-    return false;
-  return value.every(
-    (el) =>
-      el === null ||
-      el === undefined ||
-      typeof el === "string" ||
-      typeof el === "number" ||
-      typeof el === "boolean" ||
-      isPlainJsonObject(el) ||
-      isJsonArray(el)
-  );
-}
-
 // Helper functions for common converter patterns
 const createJsonParsingNodeToApi = () => (value: NodeParameterValue) =>
   value as ApiParameterValue;
@@ -109,13 +76,6 @@ const typeValidatingNodeToApi =
 const typeValidatingApiToNode =
   (expectedType: string) => (value: ApiParameterValue) =>
     typeof value === expectedType ? value : undefined;
-
-const createValidatedNodeToApi =
-  (validator: (value: unknown) => boolean) => (value: NodeParameterValue) =>
-    (validator(value) ? value : undefined) as ApiParameterValue;
-const createValidatedApiToNode =
-  (validator: (value: unknown) => boolean) => (value: ApiParameterValue) =>
-    (validator(value) ? value : undefined) as NodeParameterValue;
 
 // Static mapping of converters
 const converters = {
@@ -232,10 +192,6 @@ const converters = {
         mimeType: (value as ObjectReference).mimeType,
       } as NodeAudioParameter;
     },
-  },
-  array: {
-    nodeToApi: createValidatedNodeToApi(isJsonArray),
-    apiToNode: createValidatedApiToNode(isJsonArray),
   },
   json: {
     nodeToApi: createJsonParsingNodeToApi(),
@@ -371,10 +327,8 @@ const converters = {
       if (typeof value === "string") {
         try {
           const parsed = JSON.parse(value);
-          if (isPlainJsonObject(parsed) || isJsonArray(parsed)) {
-            return parsed;
-          }
-          return value;
+          // Return parsed JSON (objects, arrays, primitives)
+          return parsed;
         } catch (_error) {
           return value;
         }

@@ -217,7 +217,7 @@ describe("JsonObjectArrayExtractorNode", () => {
         { type: "string", value: "hello" },
         { type: "object", value: { key: "value" } },
         { type: "number", value: 42 },
-        { type: "array", value: [1, 2, 3] },
+        { type: "json", value: [1, 2, 3] },
       ],
     };
     const context = {
