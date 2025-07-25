@@ -237,6 +237,10 @@ const converters = {
     nodeToApi: createJsonParsingNodeToApi(),
     apiToNode: createJsonParsingApiToNode(),
   },
+  geojson: {
+    nodeToApi: createJsonParsingNodeToApi(),
+    apiToNode: createJsonParsingApiToNode(),
+  },
   any: {
     nodeToApi: (
       value: NodeParameterValue,

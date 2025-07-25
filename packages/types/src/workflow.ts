@@ -97,6 +97,11 @@ export interface FeatureCollection<
   features: Array<Feature<G, P>>;
 }
 
+export type GeoJSON =
+  | Geometry
+  | Feature<Geometry>
+  | FeatureCollection<Geometry>;
+
 /**
  * Parameter type definitions for workflow nodes
  */
@@ -168,6 +173,10 @@ export type ParameterType =
   | {
       type: "featurecollection";
       value?: FeatureCollection;
+    }
+  | {
+      type: "geojson";
+      value?: GeoJSON;
     }
   | {
       type: "any";

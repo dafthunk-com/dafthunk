@@ -13,6 +13,7 @@ import {
   NodeType,
   Point,
   Polygon,
+  GeoJSON,
 } from "@dafthunk/types";
 
 export type ImageParameter = {
@@ -122,6 +123,10 @@ export type ParameterType =
   | {
       type: "featurecollection";
       value?: FeatureCollection;
+    }
+  | {
+      type: "geojson";
+      value?: GeoJSON;
     }
   | {
       type: "any";
