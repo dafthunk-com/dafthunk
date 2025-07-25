@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { isObjectReference } from "@/services/object-service";
 
+import { GeoJSONCanvasRenderer } from "./geojson-canvas-renderer";
 import { WorkflowParameter } from "./workflow-types";
 
 interface WorkflowValueRendererProps {
@@ -213,7 +214,14 @@ const GeoJSONRenderer = ({
 
   if (readonly) {
     return (
-      <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+      <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
+        <GeoJSONCanvasRenderer
+          geojson={parameter.value}
+          compact={compact}
+          width={compact ? 300 : 400}
+          height={compact ? 200 : 300}
+        />
+        
         <div
           className={`${compact ? "max-h-[300px] overflow-y-auto nowheel" : ""}`}
         >
@@ -229,10 +237,16 @@ const GeoJSONRenderer = ({
   }
 
   return (
-    <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-      <div className="text-xs text-neutral-500">
-        {geometryLabel} (GeoJSON)
-      </div>
+    <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
+      {parameter.value && (
+        <GeoJSONCanvasRenderer
+          geojson={parameter.value}
+          compact={compact}
+          width={compact ? 300 : 400}
+          height={compact ? 200 : 300}
+        />
+      )}
+      
       <Textarea
         value={formattedValue}
         onChange={(e) => {
