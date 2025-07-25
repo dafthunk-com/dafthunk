@@ -26,8 +26,8 @@ export class WktGeometryNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "geometry",
-        type: "geometry",
+        name: "geojson",
+        type: "geojson",
         description: "The parsed geometry object in GeoJSON format",
       },
       {
@@ -80,7 +80,7 @@ export class WktGeometryNode extends ExecutableNode {
       }
 
       return this.createSuccessResult({
-        geometry: parsedGeometry,
+        geojson: parsedGeometry,
         geometryType: parsedGeometry.type,
       });
 

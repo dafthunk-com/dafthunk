@@ -30,7 +30,7 @@ describe("WktGeometryNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "Point",
         coordinates: [-122.4194, 37.7749]
       });
@@ -45,7 +45,7 @@ describe("WktGeometryNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "Point",
         coordinates: [-122.4194, 37.7749, 100]
       });
@@ -73,7 +73,7 @@ describe("WktGeometryNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.geometryType).toBe("MultiPoint");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "MultiPoint",
         coordinates: [
           [-122.4194, 37.7749],
@@ -93,7 +93,7 @@ describe("WktGeometryNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.geometryType).toBe("LineString");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "LineString",
         coordinates: [
           [-122.4194, 37.7749],
@@ -127,7 +127,7 @@ describe("WktGeometryNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.geometryType).toBe("Polygon");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "Polygon",
         coordinates: [[
           [-122.4194, 37.7749],
@@ -148,7 +148,7 @@ describe("WktGeometryNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.geometryType).toBe("Polygon");
-      expect(result.outputs?.geometry?.coordinates).toHaveLength(2); // Outer ring + hole
+      expect(result.outputs?.geojson?.coordinates).toHaveLength(2); // Outer ring + hole
     });
   });
 
@@ -175,7 +175,7 @@ describe("WktGeometryNode", () => {
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.geometryType).toBe("GeometryCollection");
-      expect(result.outputs?.geometry?.geometries).toHaveLength(2);
+      expect(result.outputs?.geojson?.geometries).toHaveLength(2);
     });
   });
 

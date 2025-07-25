@@ -31,8 +31,8 @@ export class GeoJsonGeometryNode extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "geometry",
-        type: "geometry",
+        name: "geojson",
+        type: "geojson",
         description: "The parsed geometry object",
       },
       {
@@ -147,14 +147,14 @@ export class GeoJsonGeometryNode extends ExecutableNode {
       // Check if it's a valid geometry or geometry collection
       if (this.isValidGeometry(json)) {
         return this.createSuccessResult({
-          geometry: json,
+          geojson: json,
           geometryType: json.type,
         });
       }
 
       if (this.isValidGeometryCollection(json)) {
         return this.createSuccessResult({
-          geometry: json,
+          geojson: json,
           geometryType: json.type,
         });
       }

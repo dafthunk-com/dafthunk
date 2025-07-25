@@ -33,7 +33,7 @@ describe("GeoJsonGeometryNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "Point",
         coordinates: [-122.4194, 37.7749]
       });
@@ -51,7 +51,7 @@ describe("GeoJsonGeometryNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometry).toEqual({
+      expect(result.outputs?.geojson).toEqual({
         type: "Point",
         coordinates: [-122.4194, 37.7749, 100]
       });

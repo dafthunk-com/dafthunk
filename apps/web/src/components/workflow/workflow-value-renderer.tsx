@@ -161,7 +161,7 @@ const DocumentRenderer = ({
 };
 
 // Geometry renderer for GeoJSON geometries
-const GeometryRenderer = ({
+const GeoJSONRenderer = ({
   parameter,
   compact,
   readonly,
@@ -451,9 +451,19 @@ export function WorkflowValueRenderer({
             compact={compact}
           />
         );
+      case "point":
+      case "multipoint":
+      case "linestring":
+      case "multilinestring":
+      case "polygon":
+      case "multipolygon":
       case "geometry":
+      case "geometrycollection":
+      case "feature":
+      case "featurecollection":
+      case "geojson":
         return (
-          <GeometryRenderer
+          <GeoJSONRenderer
             parameter={parameter}
             compact={compact}
             readonly={readonly}
@@ -532,10 +542,11 @@ export function WorkflowValueRenderer({
     parameter.type === "geometry" ||
     parameter.type === "geometrycollection" ||
     parameter.type === "feature" ||
-    parameter.type === "featurecollection"
+    parameter.type === "featurecollection" ||
+    parameter.type === "geojson"
   ) {
     return (
-      <GeometryRenderer
+      <GeoJSONRenderer
         parameter={parameter}
         compact={compact}
         readonly={readonly}
