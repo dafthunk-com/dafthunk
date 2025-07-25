@@ -33,6 +33,70 @@ export interface JsonObject {
  */
 export type JsonArray = Array<JsonValue>;
 
+// GeoJSON Types
+export type Coordinate = [number, number] | [number, number, number];
+// [longitude, latitude] or [longitude, latitude, elevation]
+
+// Base Geometry Interface
+export interface Geometry {
+  type: string;
+  coordinates: any;
+}
+
+export interface Point extends Geometry {
+  type: "Point";
+  coordinates: Coordinate;
+}
+
+export interface MultiPoint extends Geometry {
+  type: "MultiPoint";
+  coordinates: Coordinate[];
+}
+
+export interface LineString extends Geometry {
+  type: "LineString";
+  coordinates: Coordinate[];
+}
+
+export interface MultiLineString extends Geometry {
+  type: "MultiLineString";
+  coordinates: Coordinate[][];
+}
+
+export interface Polygon extends Geometry {
+  type: "Polygon";
+  coordinates: Coordinate[][];
+  // First ring = outer boundary, others = holes
+}
+
+export interface MultiPolygon extends Geometry {
+  type: "MultiPolygon";
+  coordinates: Coordinate[][][];
+}
+
+export interface GeometryCollection {
+  type: "GeometryCollection";
+  geometries: Geometry[];
+}
+
+export interface Feature<
+  G extends Geometry | GeometryCollection = Geometry,
+  P = { [key: string]: any },
+> {
+  type: "Feature";
+  geometry: G;
+  properties: P | null;
+  id?: string | number;
+}
+
+export interface FeatureCollection<
+  G extends Geometry | GeometryCollection = Geometry,
+  P = { [key: string]: any },
+> {
+  type: "FeatureCollection";
+  features: Array<Feature<G, P>>;
+}
+
 /**
  * Parameter type definitions for workflow nodes
  */
@@ -64,6 +128,46 @@ export type ParameterType =
   | {
       type: "audio";
       value?: ObjectReference;
+    }
+  | {
+      type: "point";
+      value?: Point;
+    }
+  | {
+      type: "multipoint";
+      value?: MultiPoint;
+    }
+  | {
+      type: "linestring";
+      value?: LineString;
+    }
+  | {
+      type: "multilinestring";
+      value?: MultiLineString;
+    }
+  | {
+      type: "polygon";
+      value?: Polygon;
+    }
+  | {
+      type: "multipolygon";
+      value?: MultiPolygon;
+    }
+  | {
+      type: "geometry";
+      value?: Geometry;
+    }
+  | {
+      type: "geometrycollection";
+      value?: GeometryCollection;
+    }
+  | {
+      type: "feature";
+      value?: Feature;
+    }
+  | {
+      type: "featurecollection";
+      value?: FeatureCollection;
     }
   | {
       type: "any";
