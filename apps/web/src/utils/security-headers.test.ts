@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { generateNonce, injectNonceIntoHTML } from "./security-headers";
+import { generateNonce, injectNonceIntoHTML, addSecurityHeaders } from "./security-headers";
 
 describe("Security headers functionality", () => {
   describe("generateNonce", () => {
@@ -144,6 +144,87 @@ window.$RefreshSig$ = () => (type) => type;</script>
       expect(result).toContain(
         `<script nonce="${testNonce}" src="/test.js"></script>`
       );
+    });
+  });
+
+  describe("addSecurityHeaders", () => {
+    it("should include jsdelivr CDN in CSP script-src directive", () => {
+      const mockResponse = new Response("<html></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+
+      const securedResponse = addSecurityHeaders(mockResponse, {
+        environment: "production",
+        nonce: "test-nonce",
+      });
+
+      const cspHeader = securedResponse.headers.get("Content-Security-Policy");
+      expect(cspHeader).toBeTruthy();
+      expect(cspHeader).toContain("script-src");
+      expect(cspHeader).toContain("https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain("https://static.cloudflareinsights.com");
+      expect(cspHeader).toContain("'nonce-test-nonce'");
+      expect(cspHeader).toContain("blob:");
+      expect(cspHeader).toContain("style-src");
+      expect(cspHeader).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain("worker-src");
+      expect(cspHeader).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
+    });
+
+    it("should include jsdelivr CDN even without nonce", () => {
+      const mockResponse = new Response("<html></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+
+      const securedResponse = addSecurityHeaders(mockResponse, {
+        environment: "production",
+      });
+
+      const cspHeader = securedResponse.headers.get("Content-Security-Policy");
+      expect(cspHeader).toBeTruthy();
+      expect(cspHeader).toContain("script-src");
+      expect(cspHeader).toContain("https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain("https://static.cloudflareinsights.com");
+      expect(cspHeader).toContain("blob:");
+      expect(cspHeader).toContain("style-src");
+      expect(cspHeader).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain("worker-src");
+      expect(cspHeader).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
+    });
+
+    it("should not apply security headers to non-HTML responses", () => {
+      const mockResponse = new Response('{"data": "test"}', {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+
+      const securedResponse = addSecurityHeaders(mockResponse);
+
+      const cspHeader = securedResponse.headers.get("Content-Security-Policy");
+      expect(cspHeader).toBeNull();
+    });
+
+    it("should allow Monaco Editor workers with proper CSP directives", () => {
+      const mockResponse = new Response("<html></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+
+      const securedResponse = addSecurityHeaders(mockResponse, {
+        environment: "development",
+        nonce: "monaco-test-nonce",
+      });
+
+      const cspHeader = securedResponse.headers.get("Content-Security-Policy");
+      expect(cspHeader).toBeTruthy();
+      
+      // Check that all Monaco Editor requirements are met
+      expect(cspHeader).toContain("script-src 'self' 'nonce-monaco-test-nonce' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:");
+      expect(cspHeader).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain("font-src 'self' data: https://cdn.jsdelivr.net");
     });
   });
 });
