@@ -24,7 +24,7 @@ describe("WktGeometryNode", () => {
   describe("Point geometry", () => {
     it("should parse valid POINT WKT", async () => {
       const context = createMockContext({
-        wkt: "POINT(-122.4194 37.7749)"
+        wkt: "POINT(-122 37)"
       });
 
       const result = await node.execute(context);
@@ -32,14 +32,13 @@ describe("WktGeometryNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.geojson).toEqual({
         type: "Point",
-        coordinates: [-122.4194, 37.7749]
+        coordinates: [-122, 37]
       });
-      expect(result.outputs?.geometryType).toBe("Point");
     });
 
     it("should parse POINT WKT with elevation", async () => {
       const context = createMockContext({
-        wkt: "POINT Z(-122.4194 37.7749 100)"
+        wkt: "POINT Z(-122 37 100)"
       });
 
       const result = await node.execute(context);
@@ -47,7 +46,7 @@ describe("WktGeometryNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.geojson).toEqual({
         type: "Point",
-        coordinates: [-122.4194, 37.7749, 100]
+        coordinates: [-122, 37, 100]
       });
     });
 
@@ -66,18 +65,17 @@ describe("WktGeometryNode", () => {
   describe("MultiPoint geometry", () => {
     it("should parse valid MULTIPOINT WKT", async () => {
       const context = createMockContext({
-        wkt: "MULTIPOINT((-122.4194 37.7749), (-122.4094 37.7849))"
+        wkt: "MULTIPOINT((-122 37), (-120 35))"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("MultiPoint");
       expect(result.outputs?.geojson).toEqual({
         type: "MultiPoint",
         coordinates: [
-          [-122.4194, 37.7749],
-          [-122.4094, 37.7849]
+          [-122, 37],
+          [-120, 35]
         ]
       });
     });
@@ -86,19 +84,18 @@ describe("WktGeometryNode", () => {
   describe("LineString geometry", () => {
     it("should parse valid LINESTRING WKT", async () => {
       const context = createMockContext({
-        wkt: "LINESTRING(-122.4194 37.7749, -122.4094 37.7849, -122.3994 37.7949)"
+        wkt: "LINESTRING(-122 37, -120 35, -118 33)"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("LineString");
       expect(result.outputs?.geojson).toEqual({
         type: "LineString",
         coordinates: [
-          [-122.4194, 37.7749],
-          [-122.4094, 37.7849],
-          [-122.3994, 37.7949]
+          [-122, 37],
+          [-120, 35],
+          [-118, 33]
         ]
       });
     });
@@ -107,47 +104,51 @@ describe("WktGeometryNode", () => {
   describe("MultiLineString geometry", () => {
     it("should parse valid MULTILINESTRING WKT", async () => {
       const context = createMockContext({
-        wkt: "MULTILINESTRING((-122.4194 37.7749, -122.4094 37.7849), (-122.3994 37.7949, -122.3894 37.8049))"
+        wkt: "MULTILINESTRING((-122 37, -120 35), (-118 33, -116 31))"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("MultiLineString");
+      expect(result.outputs?.geojson).toEqual({
+        type: "MultiLineString",
+        coordinates: [
+          [[-122, 37], [-120, 35]],
+          [[-118, 33], [-116, 31]]
+        ]
+      });
     });
   });
 
   describe("Polygon geometry", () => {
     it("should parse valid POLYGON WKT", async () => {
       const context = createMockContext({
-        wkt: "POLYGON((-122.4194 37.7749, -122.4094 37.7749, -122.4094 37.7849, -122.4194 37.7849, -122.4194 37.7749))"
+        wkt: "POLYGON((-122 37, -120 37, -120 35, -122 35, -122 37))"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("Polygon");
       expect(result.outputs?.geojson).toEqual({
         type: "Polygon",
         coordinates: [[
-          [-122.4194, 37.7749],
-          [-122.4094, 37.7749],
-          [-122.4094, 37.7849],
-          [-122.4194, 37.7849],
-          [-122.4194, 37.7749]
+          [-122, 37],
+          [-120, 37],
+          [-120, 35],
+          [-122, 35],
+          [-122, 37]
         ]]
       });
     });
 
     it("should parse POLYGON with holes", async () => {
       const context = createMockContext({
-        wkt: "POLYGON((-122.4194 37.7749, -122.4094 37.7749, -122.4094 37.7849, -122.4194 37.7849, -122.4194 37.7749), (-122.4150 37.7780, -122.4140 37.7780, -122.4140 37.7820, -122.4150 37.7820, -122.4150 37.7780))"
+        wkt: "POLYGON((-122 37, -120 37, -120 35, -122 35, -122 37), (-121 36, -121 36, -121 35, -121 35, -121 36))"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("Polygon");
       expect(result.outputs?.geojson?.coordinates).toHaveLength(2); // Outer ring + hole
     });
   });
@@ -155,26 +156,31 @@ describe("WktGeometryNode", () => {
   describe("MultiPolygon geometry", () => {
     it("should parse valid MULTIPOLYGON WKT", async () => {
       const context = createMockContext({
-        wkt: "MULTIPOLYGON(((-122.4194 37.7749, -122.4094 37.7749, -122.4094 37.7849, -122.4194 37.7849, -122.4194 37.7749)), ((-122.3994 37.7949, -122.3894 37.7949, -122.3894 37.8049, -122.3994 37.8049, -122.3994 37.7949)))"
+        wkt: "MULTIPOLYGON(((-122 37, -120 37, -120 35, -122 35, -122 37)), ((-118 33, -116 33, -116 31, -118 31, -118 33)))"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("MultiPolygon");
+      expect(result.outputs?.geojson).toEqual({
+        type: "MultiPolygon",
+        coordinates: [
+          [[[-122, 37], [-120, 37], [-120, 35], [-122, 35], [-122, 37]]],
+          [[[-118, 33], [-116, 33], [-116, 31], [-118, 31], [-118, 33]]]
+        ]
+      });
     });
   });
 
   describe("GeometryCollection", () => {
     it("should parse valid GEOMETRYCOLLECTION WKT", async () => {
       const context = createMockContext({
-        wkt: "GEOMETRYCOLLECTION(POINT(-122.4194 37.7749), LINESTRING(-122.4194 37.7749, -122.4094 37.7849))"
+        wkt: "GEOMETRYCOLLECTION(POINT(-122 37), LINESTRING(-122 37, -120 35))"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("GeometryCollection");
       expect(result.outputs?.geojson?.geometries).toHaveLength(2);
     });
   });
@@ -182,29 +188,29 @@ describe("WktGeometryNode", () => {
   describe("Case insensitivity and whitespace handling", () => {
     it("should handle lowercase WKT", async () => {
       const context = createMockContext({
-        wkt: "point(-122.4194 37.7749)"
+        wkt: "point(-122 37)"
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("Point");
+      expect(result.outputs?.geojson?.type).toBe("Point");
     });
 
     it("should handle leading and trailing whitespace", async () => {
       const context = createMockContext({
-        wkt: "  POINT(-122.4194 37.7749)  "
+        wkt: "  POINT(-122 37)  "
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("Point");
+      expect(result.outputs?.geojson?.type).toBe("Point");
     });
 
     it("should fail with extra spaces in coordinates", async () => {
       const context = createMockContext({
-        wkt: "POINT ( -122.4194   37.7749 )"
+        wkt: "POINT ( -122   37 )"
       });
 
       const result = await node.execute(context);
@@ -270,7 +276,7 @@ describe("WktGeometryNode", () => {
 
     it("should handle malformed POINT WKT", async () => {
       const context = createMockContext({
-        wkt: "POINT(-122.4194)"
+        wkt: "POINT(-122)"
       });
 
       const result = await node.execute(context);
@@ -292,14 +298,14 @@ describe("WktGeometryNode", () => {
 
     it("should handle unclosed POLYGON", async () => {
       const context = createMockContext({
-        wkt: "POLYGON((-122.4194 37.7749, -122.4094 37.7749, -122.4094 37.7849, -122.4194 37.7849))"
+        wkt: "POLYGON((-122 37, -120 37, -120 35, -122 35))"
       });
 
       const result = await node.execute(context);
 
       // The wellknown library is lenient and accepts unclosed polygons
       expect(result.status).toBe("completed");
-      expect(result.outputs?.geometryType).toBe("Polygon");
+      expect(result.outputs?.geojson?.type).toBe("Polygon");
     });
   });
 }); 
