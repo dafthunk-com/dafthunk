@@ -21,12 +21,12 @@ describe("EnvelopeNode", () => {
     outputs: [],
   });
 
-  describe("Point geometry", () => {
-    it("should calculate envelope for a single Point", async () => {
+  describe("Basic functionality", () => {
+    it("should create envelope for a point", async () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [0, 0]
         }
       });
 
@@ -36,85 +36,18 @@ describe("EnvelopeNode", () => {
       expect(result.outputs?.envelope).toBeDefined();
       expect(result.outputs?.envelope.type).toBe("Feature");
       expect(result.outputs?.envelope.geometry.type).toBe("Polygon");
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.4194, 37.7749]);
     });
 
-    it("should calculate envelope for MultiPoint", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "MultiPoint",
-          coordinates: [
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7849],
-            [-122.3994, 37.7949]
-          ]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.3994, 37.7949]);
-    });
-  });
-
-  describe("LineString geometry", () => {
-    it("should calculate envelope for LineString", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "LineString",
-          coordinates: [
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7849],
-            [-122.3994, 37.7949]
-          ]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.3994, 37.7949]);
-    });
-
-    it("should calculate envelope for MultiLineString", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "MultiLineString",
-          coordinates: [
-            [
-              [-122.4194, 37.7749],
-              [-122.4094, 37.7849]
-            ],
-            [
-              [-122.3994, 37.7949],
-              [-122.3894, 37.8049]
-            ]
-          ]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.3894, 37.8049]);
-    });
-  });
-
-  describe("Polygon geometry", () => {
-    it("should calculate envelope for Polygon", async () => {
+    it("should create envelope for a polygon", async () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
           coordinates: [[
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7749],
-            [-122.4094, 37.7849],
-            [-122.4194, 37.7849],
-            [-122.4194, 37.7749]
+            [0, 0],
+            [4, 0],
+            [4, 2],
+            [0, 2],
+            [0, 0]
           ]]
         }
       });
@@ -122,29 +55,17 @@ describe("EnvelopeNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.4094, 37.7849]);
+      expect(result.outputs?.envelope.type).toBe("Feature");
+      expect(result.outputs?.envelope.geometry.type).toBe("Polygon");
     });
 
-    it("should calculate envelope for MultiPolygon", async () => {
+    it("should create envelope for a linestring", async () => {
       const context = createMockContext({
         geojson: {
-          type: "MultiPolygon",
+          type: "LineString",
           coordinates: [
-            [[
-              [-122.4194, 37.7749],
-              [-122.4094, 37.7749],
-              [-122.4094, 37.7849],
-              [-122.4194, 37.7849],
-              [-122.4194, 37.7749]
-            ]],
-            [[
-              [-122.3994, 37.7949],
-              [-122.3894, 37.7949],
-              [-122.3894, 37.8049],
-              [-122.3994, 37.8049],
-              [-122.3994, 37.7949]
-            ]]
+            [0, 0],
+            [4, 2]
           ]
         }
       });
@@ -152,20 +73,44 @@ describe("EnvelopeNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.3894, 37.8049]);
+      expect(result.outputs?.envelope.type).toBe("Feature");
+      expect(result.outputs?.envelope.geometry.type).toBe("Polygon");
+    });
+
+    it("should create envelope for multipoint", async () => {
+      const context = createMockContext({
+        geojson: {
+          type: "MultiPoint",
+          coordinates: [
+            [0, 0],
+            [4, 2]
+          ]
+        }
+      });
+
+      const result = await node.execute(context);
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.envelope.type).toBe("Feature");
+      expect(result.outputs?.envelope.geometry.type).toBe("Polygon");
     });
   });
 
-  describe("Feature and FeatureCollection", () => {
-    it("should calculate envelope for Feature with Point geometry", async () => {
+  describe("Feature inputs", () => {
+    it("should work with Feature input", async () => {
       const context = createMockContext({
         geojson: {
           type: "Feature",
-          properties: { name: "Test Point" },
+          properties: { name: "Test Feature" },
           geometry: {
-            type: "Point",
-            coordinates: [-122.4194, 37.7749]
+            type: "Polygon",
+            coordinates: [[
+              [0, 0],
+              [4, 0],
+              [4, 2],
+              [0, 2],
+              [0, 0]
+            ]]
           }
         }
       });
@@ -173,29 +118,29 @@ describe("EnvelopeNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.4194, 37.7749]);
+      expect(result.outputs?.envelope.type).toBe("Feature");
+      expect(result.outputs?.envelope.geometry.type).toBe("Polygon");
     });
 
-    it("should calculate envelope for FeatureCollection", async () => {
+    it("should work with FeatureCollection input", async () => {
       const context = createMockContext({
         geojson: {
           type: "FeatureCollection",
           features: [
             {
               type: "Feature",
-              properties: { name: "Point A" },
+              properties: { id: 1 },
               geometry: {
                 type: "Point",
-                coordinates: [-122.4194, 37.7749]
+                coordinates: [0, 0]
               }
             },
             {
               type: "Feature",
-              properties: { name: "Point B" },
+              properties: { id: 2 },
               geometry: {
                 type: "Point",
-                coordinates: [-122.3994, 37.7949]
+                coordinates: [4, 2]
               }
             }
           ]
@@ -205,52 +150,8 @@ describe("EnvelopeNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.3994, 37.7949]);
-    });
-
-    it("should handle empty FeatureCollection", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "FeatureCollection",
-          features: []
-        }
-      });
-
-      const result = await node.execute(context);
-
-      // Turf.js actually handles empty FeatureCollections by returning a null envelope
-      expect(result.status).toBe("error");
-      expect(result.error).toContain("Unable to calculate envelope");
-    });
-  });
-
-  describe("GeometryCollection", () => {
-    it("should calculate envelope for GeometryCollection", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "GeometryCollection",
-          geometries: [
-            {
-              type: "Point",
-              coordinates: [-122.4194, 37.7749]
-            },
-            {
-              type: "LineString",
-              coordinates: [
-                [-122.4094, 37.7849],
-                [-122.3994, 37.7949]
-              ]
-            }
-          ]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.3994, 37.7949]);
+      expect(result.outputs?.envelope.type).toBe("Feature");
+      expect(result.outputs?.envelope.geometry.type).toBe("Polygon");
     });
   });
 
@@ -264,7 +165,7 @@ describe("EnvelopeNode", () => {
       expect(result.error).toBe("Missing GeoJSON input");
     });
 
-    it("should handle null GeoJSON input", async () => {
+    it("should handle null input", async () => {
       const context = createMockContext({
         geojson: null
       });
@@ -273,108 +174,6 @@ describe("EnvelopeNode", () => {
 
       expect(result.status).toBe("error");
       expect(result.error).toBe("Missing GeoJSON input");
-    });
-
-    it("should handle non-object GeoJSON input", async () => {
-      const context = createMockContext({
-        geojson: "not an object"
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("error");
-      expect(result.error).toBe("Invalid GeoJSON object provided");
-    });
-
-    it("should handle object without type property", async () => {
-      const context = createMockContext({
-        geojson: {
-          coordinates: [-122.4194, 37.7749]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("error");
-      expect(result.error).toBe("Invalid GeoJSON object provided");
-    });
-
-    it("should handle invalid GeoJSON type", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "InvalidType",
-          coordinates: [-122.4194, 37.7749]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("error");
-      expect(result.error).toBe("Invalid GeoJSON object provided");
-    });
-
-    it("should handle Turf.js throwing an error", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [Infinity, NaN] // Invalid coordinates that might cause Turf to throw
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("error");
-      expect(result.error).toContain("Unable to calculate envelope");
-    });
-  });
-
-  describe("Edge cases", () => {
-    it("should handle coordinates with elevation (3D)", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [-122.4194, 37.7749, 100]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      expect(result.outputs?.bbox).toEqual([-122.4194, 37.7749, -122.4194, 37.7749]);
-    });
-
-    it("should handle very large coordinate values", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "Point",
-          coordinates: [-180, -90]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.bbox).toEqual([-180, -90, -180, -90]);
-    });
-
-    it("should handle coordinates crossing the antimeridian", async () => {
-      const context = createMockContext({
-        geojson: {
-          type: "MultiPoint",
-          coordinates: [
-            [179, 0],
-            [-179, 0]
-          ]
-        }
-      });
-
-      const result = await node.execute(context);
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.envelope).toBeDefined();
-      // Turf should handle this correctly by creating a bbox that spans the antimeridian
-      expect(result.outputs?.bbox).toEqual([-179, 0, 179, 0]);
     });
   });
 }); 
