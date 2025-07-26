@@ -264,6 +264,11 @@ vi.mock("@turf/turf", () => ({
     ]
   }),
   square: vi.fn().mockReturnValue([0, 0, 10, 10]),
+  cleanCoords: vi.fn().mockImplementation((geojson) => {
+    // Mock implementation that returns the input geojson
+    // This simulates the cleaning behavior without testing the actual algorithm
+    return geojson;
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
