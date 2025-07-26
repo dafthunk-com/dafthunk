@@ -263,6 +263,7 @@ vi.mock("@turf/turf", () => ({
       }
     ]
   }),
+  square: vi.fn().mockReturnValue([0, 0, 10, 10]),
 }));
 
 // Mock d3-geo to prevent module resolution issues
