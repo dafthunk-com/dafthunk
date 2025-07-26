@@ -241,6 +241,11 @@ vi.mock("@turf/turf", () => ({
     geometry: { type: "LineString", coordinates: [[0, 0], [1, 1]] },
     properties: {}
   }),
+  pointOnFeature: vi.fn().mockReturnValue({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [0.5, 0.5] },
+    properties: {}
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues

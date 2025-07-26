@@ -154,6 +154,7 @@ import { CenterOfMassNode } from "./geo/center-of-mass-node";
 import { DifferenceNode } from "./geo/difference-node";
 import { LineIntersectNode } from "./geo/line-intersect-node";
 import { GreatCircleNode } from "./geo/great-circle-node";
+import { PointOnFeatureNode } from "./geo/point-on-feature-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -326,6 +327,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(DifferenceNode);
     this.registerImplementation(LineIntersectNode);
     this.registerImplementation(GreatCircleNode);
+    this.registerImplementation(PointOnFeatureNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
