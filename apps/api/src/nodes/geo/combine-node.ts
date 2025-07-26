@@ -1,0 +1,46 @@
+import { NodeExecution, NodeType } from "@dafthunk/types";
+import { combine } from "@turf/turf";
+import { ExecutableNode } from "../types";
+import { NodeContext } from "../types";
+
+export class CombineNode extends ExecutableNode {
+  public static readonly nodeType: NodeType = {
+    id: "combine",
+    name: "Combine",
+    type: "combine",
+    description: "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
+    tags: ["Geo", "Turf", "Combine", "Multi", "Group", "Merge"],
+    icon: "layers",
+    inputs: [
+      {
+        name: "featureCollection",
+        type: "geojson",
+        description: "FeatureCollection of features to combine",
+        required: true,
+      },
+    ],
+    outputs: [
+      {
+        name: "combined",
+        type: "geojson",
+        description: "FeatureCollection with combined multigeometry features",
+      },
+    ],
+  };
+
+  public async execute(context: NodeContext): Promise<NodeExecution> {
+    try {
+      const { featureCollection } = context.inputs;
+      if (!featureCollection) {
+        return this.createErrorResult("Missing FeatureCollection input");
+      }
+      const combinedFeatures = combine(featureCollection);
+      return this.createSuccessResult({
+        combined: combinedFeatures,
+      });
+    } catch (err) {
+      const error = err as Error;
+      return this.createErrorResult(`Error combining features: ${error.message}`);
+    }
+  }
+} 
