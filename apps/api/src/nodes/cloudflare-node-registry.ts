@@ -150,6 +150,7 @@ import { TransformScaleNode } from "./geo/transform-scale-node";
 import { RhumbDestinationNode } from "./geo/rhumb-destination-node";
 import { BooleanOverlapNode } from "./geo/boolean-overlap-node";
 import { BooleanDisjointNode } from "./geo/boolean-disjoint-node";
+import { CenterOfMassNode } from "./geo/center-of-mass-node";
 import { DifferenceNode } from "./geo/difference-node";
 import { LineIntersectNode } from "./geo/line-intersect-node";
 
@@ -320,6 +321,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(RhumbDestinationNode);
     this.registerImplementation(BooleanOverlapNode);
     this.registerImplementation(BooleanDisjointNode);
+    this.registerImplementation(CenterOfMassNode);
     this.registerImplementation(DifferenceNode);
     this.registerImplementation(LineIntersectNode);
 

@@ -98,6 +98,11 @@ vi.mock("@turf/turf", () => ({
     geometry: { type: "Point", coordinates: [0.5, 0.5] },
     properties: {}
   }),
+  centerOfMass: vi.fn().mockReturnValue({
+    type: "Feature",
+    geometry: { type: "Point", coordinates: [0.5, 0.5] },
+    properties: {}
+  }),
   center: vi.fn().mockReturnValue({
     type: "Feature",
     geometry: { type: "Point", coordinates: [0.5, 0.5] },
