@@ -314,6 +314,11 @@ vi.mock("@turf/turf", () => ({
     // This simulates the offset behavior without testing the actual algorithm
     return line;
   }),
+  polygonSmooth: vi.fn().mockImplementation((polygon) => {
+    // Mock implementation that returns the input polygon
+    // This simulates the smoothing behavior without testing the actual algorithm
+    return polygon;
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
