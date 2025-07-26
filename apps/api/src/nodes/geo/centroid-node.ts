@@ -1,6 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { centroid } from "@turf/turf";
-import type { AllGeoJSON } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,20 +9,20 @@ export class CentroidNode extends ExecutableNode {
     id: "centroid",
     name: "Centroid",
     type: "centroid",
-    description: "Calculate the centroid point as the mean of all vertices within a GeoJSON object",
-    tags: ["Geo", "Turf", "Center"],
-    icon: "crosshairs",
+    description: "Computes the centroid as the mean of all vertices within the object.",
+    tags: ["Geo", "Turf", "Centroid", "Center", "Geometry", "Calculation"],
+    icon: "target",
     inputs: [
       {
         name: "geojson",
         type: "geojson",
-        description: "The GeoJSON object to calculate centroid for",
+        description: "GeoJSON to be centered",
         required: true,
       },
       {
         name: "properties",
         type: "json",
-        description: "Optional properties to attach to the centroid feature",
+        description: "Properties to assign to the centroid point feature",
         required: false,
       },
     ],
@@ -31,30 +30,10 @@ export class CentroidNode extends ExecutableNode {
       {
         name: "centroid",
         type: "geojson",
-        description: "A Point feature representing the centroid of the input",
+        description: "The centroid of the input object",
       },
     ],
   };
-
-  private isValidGeoJSON(geojson: any): geojson is AllGeoJSON {
-    if (!geojson || typeof geojson !== "object") {
-      return false;
-    }
-
-    // Check for required type property
-    if (!geojson.type) {
-      return false;
-    }
-
-    // Valid GeoJSON types
-    const validTypes = [
-      "Point", "MultiPoint", "LineString", "MultiLineString",
-      "Polygon", "MultiPolygon", "GeometryCollection",
-      "Feature", "FeatureCollection"
-    ];
-
-    return validTypes.includes(geojson.type);
-  }
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
@@ -64,22 +43,11 @@ export class CentroidNode extends ExecutableNode {
         return this.createErrorResult("Missing GeoJSON input");
       }
 
-      if (!this.isValidGeoJSON(geojson)) {
-        return this.createErrorResult("Invalid GeoJSON object provided");
-      }
+      // Prepare options object for Turf.js centroid function
+      const options = properties ? { properties } : {};
 
-      // Prepare options for centroid calculation
-      const options: { properties?: any } = {};
-      if (properties && typeof properties === "object") {
-        options.properties = properties;
-      }
-
-      // Calculate the centroid using Turf.js
+      // Delegate to Turf.js centroid function
       const centroidPoint = centroid(geojson, options);
-
-      if (!centroidPoint || !centroidPoint.geometry || !centroidPoint.geometry.coordinates) {
-        return this.createErrorResult("Unable to calculate centroid - GeoJSON may be empty or invalid");
-      }
 
       return this.createSuccessResult({
         centroid: centroidPoint,
