@@ -162,6 +162,7 @@ import { SquareNode } from "./geo/square-node";
 import { CleanCoordsNode } from "./geo/clean-coords-node";
 import { RewindNode } from "./geo/rewind-node";
 import { RoundNode } from "./geo/round-node";
+import { TruncateNode } from "./geo/truncate-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -342,6 +343,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(CleanCoordsNode);
     this.registerImplementation(RewindNode);
     this.registerImplementation(RoundNode);
+    this.registerImplementation(TruncateNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
