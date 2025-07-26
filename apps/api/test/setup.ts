@@ -274,6 +274,11 @@ vi.mock("@turf/turf", () => ({
     // This simulates the rewinding behavior without testing the actual algorithm
     return geojson;
   }),
+  round: vi.fn().mockImplementation((geojson) => {
+    // Mock implementation that returns the input geojson
+    // This simulates the rounding behavior without testing the actual algorithm
+    return geojson;
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
