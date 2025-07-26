@@ -309,6 +309,11 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  lineOffset: vi.fn().mockImplementation((line) => {
+    // Mock implementation that returns the input line
+    // This simulates the offset behavior without testing the actual algorithm
+    return line;
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
