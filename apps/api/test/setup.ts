@@ -289,6 +289,26 @@ vi.mock("@turf/turf", () => ({
     // This simulates the clipping behavior without testing the actual algorithm
     return geojson;
   }),
+  concave: vi.fn().mockImplementation((points) => {
+    // Mock implementation that returns a simple polygon
+    // This simulates the concave hull behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0]
+          ]
+        ]
+      }
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues

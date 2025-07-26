@@ -164,6 +164,7 @@ import { RewindNode } from "./geo/rewind-node";
 import { RoundNode } from "./geo/round-node";
 import { TruncateNode } from "./geo/truncate-node";
 import { BboxClipNode } from "./geo/bbox-clip-node";
+import { ConcaveNode } from "./geo/concave-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -346,6 +347,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(RoundNode);
     this.registerImplementation(TruncateNode);
     this.registerImplementation(BboxClipNode);
+    this.registerImplementation(ConcaveNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
