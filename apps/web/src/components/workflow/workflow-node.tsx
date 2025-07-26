@@ -114,6 +114,9 @@ const TypeBadge = ({
   // Determine if this is an input parameter
   const isInput = position === Position.Left;
 
+  // Check if this parameter accepts multiple connections
+  const repeated = parameter?.repeated || false;
+
   return (
     <div className="relative inline-flex items-center justify-center">
       <Handle
@@ -158,6 +161,12 @@ const TypeBadge = ({
       >
         {icon[type]}
       </span>
+      {/* Multiple connections indicator */}
+      {isInput && repeated && (
+        <span className="absolute -bottom-1 -right-1 text-[8px] text-neutral-500 dark:text-neutral-400 pointer-events-none">
+          ⋯
+        </span>
+      )}
     </div>
   );
 };
@@ -315,6 +324,11 @@ export const WorkflowNode = memo(
                     />
                     <p className="overflow-hidden text-ellipsis">
                       {input.name}
+                      {input.repeated && (
+                        <span className="text-neutral-500 dark:text-neutral-400 ml-1">
+                          *
+                        </span>
+                      )}
                     </p>
                   </div>
                 ))}

@@ -8,21 +8,16 @@ export class StringConcatNode extends ExecutableNode {
     id: "string-concat",
     name: "String Concat",
     type: "string-concat",
-    description: "Concatenate two strings together",
+    description: "Concatenate multiple strings together",
     tags: ["Text"],
     icon: "link",
     inputs: [
       {
-        name: "a",
+        name: "strings",
         type: "string",
-        description: "The first string to concatenate",
+        description: "String inputs to concatenate (supports multiple connections)",
         required: true,
-      },
-      {
-        name: "b",
-        type: "string",
-        description: "The second string to concatenate",
-        required: true,
+        repeated: true,
       },
     ],
     outputs: [
@@ -36,23 +31,39 @@ export class StringConcatNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { a, b } = context.inputs;
+      const { strings } = context.inputs;
 
-      // Handle invalid string1 input
-      if (a === null || a === undefined || typeof a !== "string") {
-        return this.createErrorResult("Invalid or missing first string");
+      // Handle missing input
+      if (strings === null || strings === undefined) {
+        return this.createErrorResult("No string inputs provided");
       }
 
-      // Handle invalid string2 input
-      if (b === null || b === undefined || typeof b !== "string") {
-        return this.createErrorResult("Invalid or missing second string");
+      // Handle single string input
+      if (typeof strings === "string") {
+        return this.createSuccessResult({
+          result: strings,
+        });
       }
 
-      const result = a + b;
+      // Handle array of strings (multiple connections)
+      if (Array.isArray(strings)) {
+        // Validate all inputs are strings
+        for (let i = 0; i < strings.length; i++) {
+          if (typeof strings[i] !== "string") {
+            return this.createErrorResult(
+              `Invalid input at position ${i}: expected string, got ${typeof strings[i]}`
+            );
+          }
+        }
 
-      return this.createSuccessResult({
-        result,
-      });
+        const result = strings.join("");
+
+        return this.createSuccessResult({
+          result,
+        });
+      }
+
+      return this.createErrorResult("Invalid input type: expected string or array of strings");
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(

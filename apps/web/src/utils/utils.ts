@@ -95,6 +95,7 @@ export function adaptDeploymentNodesToReactFlowNodes(
           required: param.required,
           description: param.description,
           hidden: param.hidden,
+          repeated: param.repeated,
         };
       }
     );
@@ -109,6 +110,7 @@ export function adaptDeploymentNodesToReactFlowNodes(
           required: param.required,
           description: param.description,
           hidden: param.hidden,
+          repeated: param.repeated,
         };
       }
     );

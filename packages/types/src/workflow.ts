@@ -196,6 +196,7 @@ export type Parameter = {
   description?: string;
   hidden?: boolean;
   required?: boolean;
+  repeated?: boolean; // Flag for parameters that can accept multiple connections
 } & ParameterType;
 
 /**

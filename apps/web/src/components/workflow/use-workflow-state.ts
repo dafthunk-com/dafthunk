@@ -431,10 +431,25 @@ export function useWorkflowState({
         sourceOutput.type === "any" ||
         targetInput.type === "any";
 
+      // Only check for existing connections if the input doesn't accept multiple connections
+      const acceptsMultipleConnections = targetInput.repeated || false;
+      
+      if (!acceptsMultipleConnections) {
+        const hasExistingConnection = edges.some(
+          (edge) =>
+            edge.target === connection.target &&
+            edge.targetHandle === connection.targetHandle
+        );
+        if (hasExistingConnection) {
+          setConnectionValidationState("invalid");
+          return false;
+        }
+      }
+
       setConnectionValidationState(typesMatch ? "valid" : "invalid");
-      return typesMatch && validateConnection(connection);
+      return typesMatch && (validateConnection ? validateConnection(connection) : true);
     },
-    [nodes, validateConnection, readonly]
+    [nodes, edges, validateConnection, readonly]
   );
 
   // Handle connection
@@ -444,9 +459,16 @@ export function useWorkflowState({
       if (!connection.source || !connection.target) return;
       if (!isValidConnection(connection)) return;
 
+      // Check if target input accepts multiple connections
+      const targetNode = nodes.find((node) => node.id === connection.target);
+      const targetInput = targetNode?.data.inputs.find(
+        (input) => input.id === connection.targetHandle
+      );
+      const acceptsMultipleConnections = targetInput?.repeated || false;
+
       const newEdge = {
         ...connection,
-        id: `${connection.source}-${connection.sourceHandle}-${connection.target}-${connection.targetHandle}`,
+        id: `${connection.source}-${connection.sourceHandle}-${connection.target}-${connection.targetHandle}-${Date.now()}`,
         type: "workflowEdge",
         data: {
           isValid: true,
@@ -459,14 +481,18 @@ export function useWorkflowState({
       };
 
       setEdges((eds) => {
-        // Remove existing edges with same target input
-        const filteredEdges = eds.filter(
-          (edge) =>
-            !(
-              edge.target === connection.target &&
-              edge.targetHandle === connection.targetHandle
-            )
-        );
+        let filteredEdges = eds;
+        
+        // Only remove existing edges if target input doesn't accept multiple connections
+        if (!acceptsMultipleConnections) {
+          filteredEdges = eds.filter(
+            (edge) =>
+              !(
+                edge.target === connection.target &&
+                edge.targetHandle === connection.targetHandle
+              )
+          );
+        }
 
         // Reset all z-indices and add new edge
         const updatedEdges = filteredEdges.map((edge) => ({
@@ -477,7 +503,7 @@ export function useWorkflowState({
         return addEdge(newEdge, updatedEdges);
       });
     },
-    [setEdges, isValidConnection, readonly, createObjectUrl]
+    [setEdges, isValidConnection, readonly, createObjectUrl, nodes]
   );
 
   // Node management

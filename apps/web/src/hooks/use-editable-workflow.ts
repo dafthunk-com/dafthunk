@@ -132,6 +132,7 @@ export function useEditableWorkflow({
                   description: input.name,
                   hidden: input.hidden,
                   required: input.required,
+                  repeated: input.repeated,
                 };
               if (!isConnected && typeof input.value !== "undefined") {
                 parameterBase.value = input.value;

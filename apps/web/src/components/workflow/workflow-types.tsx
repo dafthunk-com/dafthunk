@@ -21,6 +21,7 @@ export interface WorkflowParameter {
   isConnected?: boolean;
   hidden?: boolean;
   required?: boolean;
+  repeated?: boolean; // Flag for parameters that can accept multiple connections
 }
 
 export interface WorkflowNodeType extends Record<string, unknown> {

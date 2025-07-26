@@ -32,14 +32,17 @@ import {
 import { validateWorkflow } from "../utils/workflows";
 import { ObjectStore } from "./object-store";
 
-// Node output value type
-export type NodeOutputValue =
+// Basic node output value types
+export type BasicNodeOutputValue =
   | string
   | number
   | boolean
   | ObjectReference
   | JsonArray
   | JsonObject;
+
+// Node output value can be a single value or array of values (for repeated parameters)
+export type NodeOutputValue = BasicNodeOutputValue | BasicNodeOutputValue[];
 
 export type NodeOutputs = Record<string, NodeOutputValue>;
 export type NodeErrors = Map<string, string>;
@@ -518,20 +521,56 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       (edge): boolean => edge.target === nodeIdentifier
     );
 
+    // Group edges by target input to handle multiple connections
+    const edgesByInput = new Map<string, typeof inboundEdges>();
     for (const edge of inboundEdges) {
-      const sourceOutputs = runtimeState.nodeOutputs.get(edge.source);
-      if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
-        const value = sourceOutputs[edge.sourceOutput];
-        if (
-          typeof value === "string" ||
-          typeof value === "number" ||
-          typeof value === "boolean" ||
-          (typeof value === "object" && value !== null)
-        ) {
-          inputs[edge.targetInput] = value as NodeOutputValue;
+      const inputName = edge.targetInput;
+      if (!edgesByInput.has(inputName)) {
+        edgesByInput.set(inputName, []);
+      }
+      edgesByInput.get(inputName)!.push(edge);
+    }
+
+    // Process each input's connections
+    for (const [inputName, edges] of edgesByInput) {
+      const inputParam = node.inputs.find(input => input.name === inputName);
+      
+      // Get the node type definition to check repeated
+      const executable = this.nodeRegistry.createExecutableNode(node);
+      const nodeTypeDefinition = executable ? (executable.constructor as any).nodeType : null;
+      const nodeTypeInput = nodeTypeDefinition?.inputs?.find((input: any) => input.name === inputName);
+      
+      // Check repeated from node type definition (not workflow node)
+      const acceptsMultiple = nodeTypeInput?.repeated || false;
+
+      const values: BasicNodeOutputValue[] = [];
+      
+      for (const edge of edges) {
+        const sourceOutputs = runtimeState.nodeOutputs.get(edge.source);
+        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
+          const value = sourceOutputs[edge.sourceOutput];
+          if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean" ||
+            (typeof value === "object" && value !== null)
+          ) {
+            values.push(value as BasicNodeOutputValue);
+          }
+        }
+      }
+
+      if (values.length > 0) {
+        if (acceptsMultiple) {
+          // For parameters that accept multiple connections, provide an array
+          inputs[inputName] = values;
+        } else {
+          // For single connection parameters, use the last value (current behavior)
+          inputs[inputName] = values[values.length - 1];
         }
       }
     }
+    
     return inputs;
   }
 
@@ -562,16 +601,39 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       }
       if (value === undefined || value === null) continue;
 
-      // Ensure we're passing a valid ApiParameterValue type as defined in packages/types
-      const validValue = value as
-        | string
-        | number
-        | boolean
-        | ObjectReference
-        | JsonArray
-        | JsonObject;
+      // Check if this parameter accepts multiple connections
+      const executable = this.nodeRegistry.createExecutableNode(node);
+      const nodeTypeDefinition = executable ? (executable.constructor as any).nodeType : null;
+      const nodeTypeInput = nodeTypeDefinition?.inputs?.find((input: any) => input.name === name);
+      const acceptsMultiple = nodeTypeInput?.repeated || false;
 
-      processed[name] = await apiToNodeParameter(type, validValue, objectStore);
+      if (acceptsMultiple && Array.isArray(value)) {
+        // For parameters that accept multiple connections, process each value individually
+        const processedArray = [];
+        for (const singleValue of value) {
+          const validSingleValue = singleValue as
+            | string
+            | number
+            | boolean
+            | ObjectReference
+            | JsonArray
+            | JsonObject;
+          const processedSingleValue = await apiToNodeParameter(type, validSingleValue, objectStore);
+          processedArray.push(processedSingleValue);
+        }
+        processed[name] = processedArray;
+      } else {
+        // Single value processing (existing logic)
+        const validValue = value as
+          | string
+          | number
+          | boolean
+          | ObjectReference
+          | JsonArray
+          | JsonObject;
+        const processedValue = await apiToNodeParameter(type, validValue, objectStore);
+        processed[name] = processedValue;
+      }
     }
 
     return processed;

@@ -77,8 +77,8 @@ export function EditorPage() {
   const { createObjectUrl } = useObjectService();
 
   const nodeTemplates: NodeTemplate[] = useMemo(
-    () =>
-      nodeTypes?.map((type) => ({
+    () => {
+      const templates = nodeTypes?.map((type) => ({
         id: type.id,
         type: type.id,
         name: type.name,
@@ -89,14 +89,21 @@ export function EditorPage() {
           type: input.type,
           name: input.name,
           hidden: input.hidden,
+          required: input.required,
+          repeated: input.repeated,
         })),
         outputs: type.outputs.map((output) => ({
           id: output.name, // Assuming name is unique identifier for input/output handles
           type: output.type,
           name: output.name,
           hidden: output.hidden,
+          required: output.required,
+          repeated: output.repeated,
         })),
-      })) || [],
+      })) || [];
+      
+      return templates;
+    },
     [nodeTypes]
   );
 
@@ -219,6 +226,7 @@ export function EditorPage() {
         (node) => node.id === connection.target
       );
       if (!sourceNode || !targetNode) return false;
+      
       const sourceOutput = sourceNode.data.outputs.find(
         (output) => output.id === connection.sourceHandle
       );
@@ -226,11 +234,14 @@ export function EditorPage() {
         (input) => input.id === connection.targetHandle
       );
       if (!sourceOutput || !targetInput) return false;
-      return (
+      
+      const typesMatch = (
         sourceOutput.type === targetInput.type ||
         sourceOutput.type === "any" ||
         targetInput.type === "any"
       );
+      
+      return typesMatch;
     },
     [latestUiNodes]
   );
