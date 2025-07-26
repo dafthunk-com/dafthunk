@@ -157,6 +157,7 @@ import { GreatCircleNode } from "./geo/great-circle-node";
 import { PointOnFeatureNode } from "./geo/point-on-feature-node";
 import { PointToLineDistanceNode } from "./geo/point-to-line-distance-node";
 import { PointToPolygonDistanceNode } from "./geo/point-to-polygon-distance-node";
+import { PolygonTangentsNode } from "./geo/polygon-tangents-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -332,6 +333,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(PointOnFeatureNode);
     this.registerImplementation(PointToLineDistanceNode);
     this.registerImplementation(PointToPolygonDistanceNode);
+    this.registerImplementation(PolygonTangentsNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
