@@ -247,6 +247,7 @@ vi.mock("@turf/turf", () => ({
     properties: {}
   }),
   pointToLineDistance: vi.fn().mockReturnValue(1.414),
+  pointToPolygonDistance: vi.fn().mockReturnValue(1.0),
 }));
 
 // Mock d3-geo to prevent module resolution issues
