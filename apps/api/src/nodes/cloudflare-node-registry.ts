@@ -167,6 +167,11 @@ import { BboxClipNode } from "./geo/bbox-clip-node";
 import { ConcaveNode } from "./geo/concave-node";
 import { LineOffsetNode } from "./geo/line-offset-node";
 import { PolygonSmoothNode } from "./geo/polygon-smooth-node";
+import { AvgNode } from "./math/avg-node";
+import { MinNode } from "./math/min-node";
+import { MaxNode } from "./math/max-node";
+import { MedianNode } from "./math/median-node";
+import { SumNode } from "./math/sum-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -207,6 +212,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ExponentiationNode);
     this.registerImplementation(SquareRootNode);
     this.registerImplementation(AbsoluteValueNode);
+    this.registerImplementation(SumNode);
+    this.registerImplementation(MaxNode);
+    this.registerImplementation(MinNode);
+    this.registerImplementation(AvgNode);
+    this.registerImplementation(MedianNode);
     this.registerImplementation(TextAreaNode);
     this.registerImplementation(InputTextNode);
     this.registerImplementation(ToStringNode);
