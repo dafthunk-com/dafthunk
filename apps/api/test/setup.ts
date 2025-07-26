@@ -81,6 +81,12 @@ vi.mock("@turf/turf", () => ({
   }),
   area: vi.fn().mockReturnValue(100),
   bbox: vi.fn().mockReturnValue([0, 0, 1, 1]),
+  bboxPolygon: vi.fn().mockImplementation((bbox, options = {}) => ({
+    type: "Feature",
+    geometry: { type: "Polygon", coordinates: [[[bbox[0], bbox[1]], [bbox[0], bbox[3]], [bbox[2], bbox[3]], [bbox[2], bbox[1]], [bbox[0], bbox[1]]]] },
+    properties: options.properties || {},
+    ...(options.id && { id: options.id })
+  })),
   bearing: vi.fn().mockReturnValue(45),
   buffer: vi.fn().mockReturnValue({
     type: "Feature",

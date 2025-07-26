@@ -120,6 +120,7 @@ import { BufferNode } from "./geo/buffer-node";
 import { AlongNode } from "./geo/along-node";
 import { AreaNode } from "./geo/area-node";
 import { BboxNode } from "./geo/bbox-node";
+import { BboxPolygonNode } from "./geo/bbox-polygon-node";
 import { BearingNode } from "./geo/bearing-node";
 import { DistanceNode } from "./geo/distance-node";
 import { PointNode } from "./geo/point-node";
@@ -289,6 +290,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(AlongNode);
     this.registerImplementation(AreaNode);
     this.registerImplementation(BboxNode);
+    this.registerImplementation(BboxPolygonNode);
     this.registerImplementation(BearingNode);
     this.registerImplementation(DistanceNode);
     this.registerImplementation(PointNode);
