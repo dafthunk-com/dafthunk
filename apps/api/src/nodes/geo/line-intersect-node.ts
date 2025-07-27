@@ -6,23 +6,23 @@ import { NodeContext } from "../types";
 
 export class LineIntersectNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "lineIntersect",
+    id: "line-intersect",
     name: "Line Intersect",
-    type: "lineIntersect",
-    description: "Finds intersection points between two linestring or multilinestring features/geometries.",
+    type: "line-intersect",
+    description: "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
     tags: ["Geo"],
-    icon: "git-merge",
+    icon: "cross",
     inputs: [
       {
         name: "line1",
         type: "geojson",
-        description: "First linestring or multilinestring (Feature or geometry)",
+        description: "First LineString or Polygon feature",
         required: true,
       },
       {
         name: "line2",
         type: "geojson",
-        description: "Second linestring or multilinestring (Feature or geometry)",
+        description: "Second LineString or Polygon feature",
         required: true,
       },
     ],
@@ -30,7 +30,7 @@ export class LineIntersectNode extends ExecutableNode {
       {
         name: "intersections",
         type: "geojson",
-        description: "FeatureCollection of intersection points (may be empty)",
+        description: "FeatureCollection of Point features representing intersections",
       },
     ],
   };
@@ -38,17 +38,22 @@ export class LineIntersectNode extends ExecutableNode {
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
       const { line1, line2 } = context.inputs;
+
       if (!line1) {
         return this.createErrorResult("Missing line1 input");
       }
+
       if (!line2) {
         return this.createErrorResult("Missing line2 input");
       }
-      
-      const intersections = lineIntersect(line1, line2);
+
+      // Delegate everything to Turf.js lineIntersect function
+      const intersectionPoints = lineIntersect(line1 as any, line2 as any);
+
       return this.createSuccessResult({
-        intersections,
+        intersections: intersectionPoints,
       });
+
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error finding line intersections: ${error.message}`);

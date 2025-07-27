@@ -738,6 +738,43 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  lineChunk: vi.fn().mockImplementation((line, length, options = {}) => {
+    // Mock implementation that chunks a line into segments
+    // This simulates the lineChunk behavior without testing the actual algorithm
+    const chunks = [];
+    
+    // Get line coordinates
+    let coords;
+    if (line.type === "Feature") {
+      coords = line.geometry.coordinates;
+    } else {
+      coords = line.coordinates;
+    }
+    
+    // Simple chunking logic (not accurate but sufficient for testing)
+    const numChunks = Math.ceil(coords.length / 2);
+    for (let i = 0; i < numChunks; i++) {
+      const start = i * 2;
+      const end = Math.min(start + 2, coords.length);
+      
+      if (end > start) {
+        chunks.push({
+          type: "Feature",
+          properties: { ...line.properties },
+          geometry: {
+            type: "LineString",
+            coordinates: coords.slice(start, end)
+          }
+        });
+      }
+    }
+    
+    return {
+      type: "FeatureCollection",
+      features: chunks
+    };
+  }),
+
 }));
 
 // Mock d3-geo to prevent module resolution issues

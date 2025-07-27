@@ -175,6 +175,7 @@ import { PolygonToLineNode } from "./geo/polygon-to-line-node";
 import { PolygonizeNode } from "./geo/polygonize-node";
 import { KinksNode } from "./geo/kinks-node";
 import { LineArcNode } from "./geo/line-arc-node";
+import { LineChunkNode } from "./geo/line-chunk-node";
 import { AvgNode } from "./math/avg-node";
 import { MinNode } from "./math/min-node";
 import { MaxNode } from "./math/max-node";
@@ -378,6 +379,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(PolygonizeNode);
     this.registerImplementation(KinksNode);
     this.registerImplementation(LineArcNode);
+    this.registerImplementation(LineChunkNode);
+    this.registerImplementation(LineIntersectNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
