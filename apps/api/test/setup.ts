@@ -1137,6 +1137,34 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  unkinkPolygon: vi.fn().mockImplementation((polygon) => {
+    // Mock implementation that removes kinks from a polygon
+    // This simulates the unkinkPolygon behavior without testing the actual algorithm
+    let polygonCoords;
+    
+    // Get polygon coordinates
+    if (polygon.type === "Feature") {
+      polygonCoords = polygon.geometry.coordinates;
+    } else {
+      polygonCoords = polygon.coordinates;
+    }
+    
+    // Simple mock that returns a feature collection with the original polygon
+    // This simulates the unkinkPolygon behavior without testing the actual algorithm
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: polygon.properties || {},
+          geometry: {
+            type: "Polygon",
+            coordinates: polygonCoords
+          }
+        }
+      ]
+    };
+  }),
 
 }));
 
