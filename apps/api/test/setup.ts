@@ -1030,6 +1030,29 @@ vi.mock("@turf/turf", () => ({
       features: splitLines
     };
   }),
+  mask: vi.fn().mockImplementation((polygon, maskInput, options = {}) => {
+    // Mock implementation that creates a masked polygon
+    // This simulates the mask behavior without testing the actual algorithm
+    let polygonCoords;
+    
+    // Get polygon coordinates
+    if (polygon.type === "Feature") {
+      polygonCoords = polygon.geometry.coordinates;
+    } else {
+      polygonCoords = polygon.coordinates;
+    }
+    
+    // Simple mock that always returns a valid masked polygon
+    // This simulates the mask behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: polygonCoords
+      }
+    };
+  }),
 
 }));
 
