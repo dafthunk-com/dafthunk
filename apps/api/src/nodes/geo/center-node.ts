@@ -10,7 +10,7 @@ export class CenterNode extends ExecutableNode {
     name: "Center",
     type: "center",
     description: "Calculates the center point of any GeoJSON feature.",
-    tags: ["Geo", "Turf", "Center", "Point", "Geometry"],
+    tags: ["Geo"],
     icon: "target",
     inputs: [
       {

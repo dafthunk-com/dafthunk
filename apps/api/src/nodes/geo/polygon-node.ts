@@ -10,7 +10,7 @@ export class PolygonNode extends ExecutableNode {
     name: "Polygon",
     type: "polygon",
     description: "Creates a Polygon feature from an array of coordinate rings (exterior ring and optional holes).",
-    tags: ["Geo", "Turf", "Polygon", "Feature", "Create"],
+    tags: ["Geo"],
     icon: "square",
     inputs: [
       {

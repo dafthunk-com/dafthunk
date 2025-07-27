@@ -9,7 +9,7 @@ export class ConvexNode extends ExecutableNode {
     name: "Convex Hull",
     type: "convex",
     description: "Creates a convex hull polygon that encompasses all input points.",
-    tags: ["Geo", "Turf", "Convex", "Hull", "Polygon", "Analysis"],
+    tags: ["Geo"],
     icon: "hexagon",
     inputs: [
       {

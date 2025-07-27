@@ -10,7 +10,7 @@ export class BooleanCrossesNode extends ExecutableNode {
     name: "Boolean Crosses",
     type: "booleanCrosses",
     description: "Tests whether two geometries cross each other (intersect but do not contain each other).",
-    tags: ["Geo", "Turf", "Boolean", "Crosses", "Spatial", "Query"],
+    tags: ["Geo"],
     icon: "x",
     inputs: [
       {
@@ -19,7 +19,7 @@ export class BooleanCrossesNode extends ExecutableNode {
         description: "First geometry (Feature or geometry)",
         required: true,
       },
-      {
+      { 
         name: "feature2",
         type: "geojson",
         description: "Second geometry (Feature or geometry)",

@@ -10,7 +10,7 @@ export class BboxPolygonNode extends ExecutableNode {
     name: "Bbox Polygon",
     type: "bboxPolygon",
     description: "Takes a bbox and returns an equivalent polygon.",
-    tags: ["Geo", "Turf", "Bbox", "Polygon", "Convert"],
+    tags: ["Geo"],
     icon: "square",
     inputs: [
       {

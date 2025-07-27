@@ -10,7 +10,7 @@ export class CircleNode extends ExecutableNode {
     name: "Circle",
     type: "circle",
     description: "Creates a circular polygon given a center point and radius.",
-    tags: ["Geo", "Turf", "Circle", "Polygon", "Create"],
+    tags: ["Geo"],
     icon: "circle",
     inputs: [
       {

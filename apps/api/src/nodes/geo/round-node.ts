@@ -10,7 +10,7 @@ export class RoundNode extends ExecutableNode {
     name: "Round",
     type: "round",
     description: "Rounds the precision of a coordinate to a specified number of decimal places.",
-    tags: ["Geo", "Turf", "Coordinates", "Precision", "Round"],
+    tags: ["Geo"],
     icon: "hash",
     inputs: [
       {

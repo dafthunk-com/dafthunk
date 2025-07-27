@@ -10,7 +10,7 @@ export class AlongNode extends ExecutableNode {
     name: "Along",
     type: "along",
     description: "Takes a LineString and returns a Point at a specified distance along the line.",
-    tags: ["Geo", "Turf", "Along", "LineString", "Point"],
+    tags: ["Geo"],
     icon: "map-pin",
     inputs: [
       {

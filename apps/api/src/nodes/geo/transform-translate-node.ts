@@ -10,7 +10,7 @@ export class TransformTranslateNode extends ExecutableNode {
     name: "Transform Translate",
     type: "transformTranslate",
     description: "Moves any GeoJSON geometry by a specified distance and direction.",
-    tags: ["Geo", "Turf", "Transform", "Translate", "Move", "Offset"],
+    tags: ["Geo"],
     icon: "move",
     inputs: [
       {

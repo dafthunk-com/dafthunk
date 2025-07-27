@@ -9,7 +9,7 @@ export class CombineNode extends ExecutableNode {
     name: "Combine",
     type: "combine",
     description: "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
-    tags: ["Geo", "Turf", "Combine", "Multi", "Group", "Merge"],
+    tags: ["Geo"],
     icon: "layers",
     inputs: [
       {

@@ -10,7 +10,7 @@ export class FlipNode extends ExecutableNode {
     name: "Flip Coordinates",
     type: "flip",
     description: "Flips the coordinate order of GeoJSON features (longitude/latitude ↔ latitude/longitude).",
-    tags: ["Geo", "Turf", "Flip", "Coordinates", "Transform", "Order"],
+    tags: ["Geo"],
     icon: "flip-horizontal",
     inputs: [
       {

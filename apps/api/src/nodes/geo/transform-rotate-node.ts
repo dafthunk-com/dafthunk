@@ -10,7 +10,7 @@ export class TransformRotateNode extends ExecutableNode {
     name: "Transform Rotate",
     type: "transformRotate",
     description: "Rotates any GeoJSON geometry around a pivot point by a specified angle.",
-    tags: ["Geo", "Turf", "Transform", "Rotate", "Geometry", "Angle"],
+    tags: ["Geo"],
     icon: "rotate-cw",
     inputs: [
       {

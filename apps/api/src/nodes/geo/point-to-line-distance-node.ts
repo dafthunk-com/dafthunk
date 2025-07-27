@@ -10,7 +10,7 @@ export class PointToLineDistanceNode extends ExecutableNode {
     name: "Point To Line Distance",
     type: "point-to-line-distance",
     description: "Calculates the distance between a given point and the nearest point on a line. Sometimes referred to as the cross track distance.",
-    tags: ["Geo", "Turf", "Distance", "Point", "LineString", "Measurement"],
+    tags: ["Geo"],
     icon: "ruler",
     inputs: [
       {

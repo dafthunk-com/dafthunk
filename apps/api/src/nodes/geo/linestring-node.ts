@@ -10,7 +10,7 @@ export class LineStringNode extends ExecutableNode {
     name: "LineString",
     type: "lineString",
     description: "Creates a LineString feature from an array of coordinate pairs.",
-    tags: ["Geo", "Turf", "LineString", "Feature", "Create"],
+    tags: ["Geo"],
     icon: "route",
     inputs: [
       {

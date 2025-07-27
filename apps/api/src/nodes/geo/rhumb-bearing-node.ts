@@ -10,7 +10,7 @@ export class RhumbBearingNode extends ExecutableNode {
     name: "Rhumb Bearing",
     type: "rhumbBearing",
     description: "Calculates the rhumb line bearing (constant bearing) between two points.",
-    tags: ["Geo", "Turf", "Rhumb", "Bearing", "Navigation", "Direction"],
+    tags: ["Geo"],
     icon: "navigation",
     inputs: [
       {

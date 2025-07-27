@@ -14,7 +14,7 @@ export class WktGeometryNode extends ExecutableNode {
     name: "WKT Geometry",
     type: "wkt-geometry",
     description: "Parse a Well-Known Text (WKT) geometry string and convert to GeoJSON",
-    tags: ["Geo", "WKT", "Parser"],
+    tags: ["Geo"],
     icon: "map",
     inputs: [
       {

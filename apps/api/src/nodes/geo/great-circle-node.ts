@@ -10,7 +10,7 @@ export class GreatCircleNode extends ExecutableNode {
     name: "Great Circle",
     type: "greatCircle",
     description: "Calculate great circles routes as LineString or MultiLineString between two points.",
-    tags: ["Geo", "Turf", "Great Circle", "LineString", "MultiLineString", "Navigation"],
+    tags: ["Geo"],
     icon: "globe",
     inputs: [
       {

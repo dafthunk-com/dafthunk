@@ -8,7 +8,7 @@ export class IntersectNode extends ExecutableNode {
     name: "Intersect",
     type: "intersect",
     description: "Finds the intersection of two polygons.",
-    tags: ["Geo", "Turf", "Intersect", "Polygon", "Spatial", "Boolean"],
+    tags: ["Geo"],
     icon: "intersect",
     inputs: [
       {

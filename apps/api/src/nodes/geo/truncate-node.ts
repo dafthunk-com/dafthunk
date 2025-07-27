@@ -10,7 +10,7 @@ export class TruncateNode extends ExecutableNode {
     name: "Truncate",
     type: "truncate",
     description: "Truncates the precision of a coordinate to a specified number of decimal places.",
-    tags: ["Geo", "Turf", "Coordinates", "Precision", "Truncate"],
+    tags: ["Geo"],
     icon: "scissors",
     inputs: [
       {

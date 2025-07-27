@@ -13,7 +13,7 @@ export class FeatureCollectionNode extends ExecutableNode {
     name: "Feature Collection",
     type: "feature-collection",
     description: "Aggregates multiple GeoJSON Features into a FeatureCollection",
-    tags: ["Geo", "Turf", "FeatureCollection", "Aggregate", "Group"],
+    tags: ["Geo"],
     icon: "layers",
     inputs: [
       { 

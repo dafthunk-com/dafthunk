@@ -11,7 +11,7 @@ export class BufferNode extends ExecutableNode {
     name: "Buffer",
     type: "buffer",
     description: "Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.",
-    tags: ["Geo", "Turf", "Buffer", "Polygon", "Distance"],
+    tags: ["Geo"],
     icon: "circle",
     inputs: [
       {

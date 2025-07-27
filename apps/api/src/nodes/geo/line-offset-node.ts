@@ -10,7 +10,7 @@ export class LineOffsetNode extends ExecutableNode {
     name: "Line Offset",
     type: "line-offset",
     description: "Takes a line and returns a line at offset by the specified distance.",
-    tags: ["Geo", "Turf", "Line", "Offset", "Geometry"],
+    tags: ["Geo"],
     icon: "move",
     inputs: [
       {

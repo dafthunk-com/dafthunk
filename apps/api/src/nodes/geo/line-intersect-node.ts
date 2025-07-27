@@ -10,7 +10,7 @@ export class LineIntersectNode extends ExecutableNode {
     name: "Line Intersect",
     type: "lineIntersect",
     description: "Finds intersection points between two linestring or multilinestring features/geometries.",
-    tags: ["Geo", "Turf", "Intersect", "Line", "Point", "Spatial"],
+    tags: ["Geo"],
     icon: "git-merge",
     inputs: [
       {

@@ -10,7 +10,7 @@ export class BooleanContainsNode extends ExecutableNode {
     name: "Boolean Contains",
     type: "booleanContains",
     description: "Tests whether one geometry completely contains another geometry.",
-    tags: ["Geo", "Turf", "Boolean", "Contains", "Spatial", "Query"],
+    tags: ["Geo"],
     icon: "box",
     inputs: [
       {

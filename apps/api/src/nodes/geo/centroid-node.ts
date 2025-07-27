@@ -10,7 +10,7 @@ export class CentroidNode extends ExecutableNode {
     name: "Centroid",
     type: "centroid",
     description: "Computes the centroid as the mean of all vertices within the object.",
-    tags: ["Geo", "Turf", "Centroid", "Center", "Geometry", "Calculation"],
+    tags: ["Geo"],
     icon: "target",
     inputs: [
       {

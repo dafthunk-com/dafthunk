@@ -10,7 +10,7 @@ export class AngleNode extends ExecutableNode {
     name: "Angle",
     type: "angle",
     description: "Calculates the angle between three points, with the middle point as the vertex.",
-    tags: ["Geo", "Turf", "Angle", "Geometry", "Analysis"],
+    tags: ["Geo"],
     icon: "triangle",
     inputs: [
       {

@@ -19,7 +19,7 @@ export class GeoJsonGeometryNode extends ExecutableNode {
     name: "GeoJSON Geometry",
     type: "geojson-geometry",
     description: "Parse a GeoJSON geometry object from JSON input",
-    tags: ["Geo", "JSON"],
+    tags: ["Geo"],
     icon: "map",
     inputs: [
       {

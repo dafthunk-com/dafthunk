@@ -10,7 +10,7 @@ export class EnvelopeNode extends ExecutableNode {
     name: "Envelope",
     type: "envelope",
     description: "Creates a bounding rectangle (envelope) around any GeoJSON geometry.",
-    tags: ["Geo", "Turf", "Envelope", "Bounding", "Rectangle", "Box"],
+    tags: ["Geo"],
     icon: "square",
     inputs: [
       {

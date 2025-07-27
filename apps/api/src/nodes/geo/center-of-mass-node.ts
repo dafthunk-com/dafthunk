@@ -10,7 +10,7 @@ export class CenterOfMassNode extends ExecutableNode {
     name: "Center of Mass",
     type: "centerOfMass",
     description: "Takes any Feature or FeatureCollection and returns its center of mass using the centroid of polygon formula.",
-    tags: ["Geo", "Turf", "CenterOfMass", "Centroid", "Geometry", "Calculation"],
+    tags: ["Geo"],
     icon: "target",
     inputs: [
       {

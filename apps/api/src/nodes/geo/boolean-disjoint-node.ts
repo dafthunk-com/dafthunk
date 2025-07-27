@@ -10,7 +10,7 @@ export class BooleanDisjointNode extends ExecutableNode {
     name: "Boolean Disjoint",
     type: "booleanDisjoint",
     description: "Returns true if the intersection of the two geometries is an empty set.",
-    tags: ["Geo", "Turf", "Boolean", "Disjoint", "Spatial", "Query"],
+    tags: ["Geo"],
     icon: "slash",
     inputs: [
       {
