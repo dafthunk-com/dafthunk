@@ -1106,6 +1106,37 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  shortestPath: vi.fn().mockImplementation((start, end, options = {}) => {
+    // Mock implementation that finds the shortest path between two points
+    // This simulates the shortestPath behavior without testing the actual algorithm
+    let startCoords;
+    let endCoords;
+    
+    // Get start coordinates
+    if (start.type === "Feature") {
+      startCoords = start.geometry.coordinates;
+    } else {
+      startCoords = start.coordinates;
+    }
+    
+    // Get end coordinates
+    if (end.type === "Feature") {
+      endCoords = end.geometry.coordinates;
+    } else {
+      endCoords = end.coordinates;
+    }
+    
+    // Simple mock that returns a path between the points
+    // This simulates the shortestPath behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: [startCoords, endCoords]
+      }
+    };
+  }),
 
 }));
 

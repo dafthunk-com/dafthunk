@@ -162,6 +162,7 @@ import { LineSplitNode } from "./geo/line-split-node";
 import { MaskNode } from "./geo/mask-node";
 import { NearestPointOnLineNode } from "./geo/nearest-point-on-line-node";
 import { SectorNode } from "./geo/sector-node";
+import { ShortestPathNode } from "./geo/shortest-path-node";
 import { GreatCircleNode } from "./geo/great-circle-node";
 import { PointOnFeatureNode } from "./geo/point-on-feature-node";
 import { PointToLineDistanceNode } from "./geo/point-to-line-distance-node";
@@ -397,6 +398,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(MaskNode);
     this.registerImplementation(NearestPointOnLineNode);
     this.registerImplementation(SectorNode);
+    this.registerImplementation(ShortestPathNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
