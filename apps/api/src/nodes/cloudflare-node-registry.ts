@@ -127,6 +127,7 @@ import { BooleanClockwiseNode } from "./geo/boolean-clockwise-node";
 import { BooleanConcaveNode } from "./geo/boolean-concave-node";
 import { BooleanEqualNode } from "./geo/boolean-equal-node";
 import { BooleanIntersectsNode } from "./geo/boolean-intersects-node";
+import { BooleanParallelNode } from "./geo/boolean-parallel-node";
 import { AreaNode } from "./geo/area-node";
 import { BboxNode } from "./geo/bbox-node";
 import { BboxPolygonNode } from "./geo/bbox-polygon-node";
@@ -350,6 +351,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(BooleanConcaveNode);
     this.registerImplementation(BooleanEqualNode);
     this.registerImplementation(BooleanIntersectsNode);
+    this.registerImplementation(BooleanParallelNode);
     this.registerImplementation(AreaNode);
     this.registerImplementation(BboxNode);
     this.registerImplementation(BboxPolygonNode);
