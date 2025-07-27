@@ -1227,6 +1227,20 @@ vi.mock("@turf/turf", () => ({
       ...(options.id && { id: options.id })
     };
   }),
+  multiPolygon: vi.fn().mockImplementation((coordinates, properties, options = {}) => {
+    // Mock implementation that creates a MultiPolygon Feature from coordinates
+    // This simulates the multiPolygon behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: properties || {},
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: coordinates
+      },
+      ...(options.bbox && { bbox: options.bbox }),
+      ...(options.id && { id: options.id })
+    };
+  }),
 
 }));
 
