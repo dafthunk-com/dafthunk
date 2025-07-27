@@ -774,6 +774,58 @@ vi.mock("@turf/turf", () => ({
       features: chunks
     };
   }),
+  lineOverlap: vi.fn().mockImplementation((line1, line2, options = {}) => {
+    // Mock implementation that finds overlapping line segments
+    // This simulates the lineOverlap behavior without testing the actual algorithm
+    const overlaps = [];
+    
+    // Get coordinates from both lines
+    let coords1, coords2;
+    
+    if (line1.type === "Feature") {
+      coords1 = line1.geometry.coordinates;
+    } else {
+      coords1 = line1.coordinates;
+    }
+    
+    if (line2.type === "Feature") {
+      coords2 = line2.geometry.coordinates;
+    } else {
+      coords2 = line2.coordinates;
+    }
+    
+    // Simple overlap logic for testing
+    // Check if lines have overlapping segments (simplified)
+    if (coords1.length >= 2 && coords2.length >= 2) {
+      // For overlapping horizontal lines
+      if (coords1[0][1] === 0 && coords1[1][1] === 0 && coords2[0][1] === 0 && coords2[1][1] === 0) {
+        // Check if there's an overlap in x-coordinates
+        const min1 = Math.min(coords1[0][0], coords1[1][0]);
+        const max1 = Math.max(coords1[0][0], coords1[1][0]);
+        const min2 = Math.min(coords2[0][0], coords2[1][0]);
+        const max2 = Math.max(coords2[0][0], coords2[1][0]);
+        
+        if (max1 >= min2 && max2 >= min1) {
+          const overlapStart = Math.max(min1, min2);
+          const overlapEnd = Math.min(max1, max2);
+          
+          overlaps.push({
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: [[overlapStart, 0], [overlapEnd, 0]]
+            }
+          });
+        }
+      }
+    }
+    
+    return {
+      type: "FeatureCollection",
+      features: overlaps
+    };
+  }),
 
 }));
 
