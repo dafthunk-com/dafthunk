@@ -897,6 +897,65 @@ vi.mock("@turf/turf", () => ({
       features: segments
     };
   }),
+  lineSlice: vi.fn().mockImplementation((startPt, stopPt, line) => {
+    // Mock implementation that slices a line between two points
+    // This simulates the lineSlice behavior without testing the actual algorithm
+    let startCoords, stopCoords, lineCoords;
+    
+    // Get start point coordinates
+    if (startPt.type === "Feature") {
+      startCoords = startPt.geometry.coordinates;
+    } else {
+      startCoords = startPt.coordinates;
+    }
+    
+    // Get stop point coordinates
+    if (stopPt.type === "Feature") {
+      stopCoords = stopPt.geometry.coordinates;
+    } else {
+      stopCoords = stopPt.coordinates;
+    }
+    
+    // Get line coordinates
+    if (line.type === "Feature") {
+      lineCoords = line.geometry.coordinates;
+    } else {
+      lineCoords = line.coordinates;
+    }
+    
+    // Simple slicing logic for testing
+    // Find the closest points on the line to start and stop points
+    let startIndex = 0;
+    let stopIndex = lineCoords.length - 1;
+    
+    // For horizontal lines, find closest x-coordinate
+    if (lineCoords[0][1] === lineCoords[1][1]) {
+      for (let i = 0; i < lineCoords.length; i++) {
+        if (lineCoords[i][0] >= startCoords[0]) {
+          startIndex = i;
+          break;
+        }
+      }
+      for (let i = lineCoords.length - 1; i >= 0; i--) {
+        if (lineCoords[i][0] <= stopCoords[0]) {
+          stopIndex = i;
+          break;
+        }
+      }
+    }
+    
+    // Extract the sliced portion
+    const slicedCoords = lineCoords.slice(startIndex, stopIndex + 1);
+    
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: slicedCoords
+      }
+    };
+  }),
 
 }));
 
