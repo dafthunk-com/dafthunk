@@ -403,6 +403,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ShortestPathNode);
     this.registerImplementation(UnkinkPolygonNode);
     this.registerImplementation(FeatureNode);
+    this.registerImplementation(FeatureCollectionNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {

@@ -1175,6 +1175,16 @@ vi.mock("@turf/turf", () => ({
       ...(options.id && { id: options.id })
     };
   }),
+  featureCollection: vi.fn().mockImplementation((features, options = {}) => {
+    // Mock implementation that creates a FeatureCollection from features
+    // This simulates the featureCollection behavior without testing the actual algorithm
+    return {
+      type: "FeatureCollection",
+      features: features,
+      ...(options.bbox && { bbox: options.bbox }),
+      ...(options.id && { id: options.id })
+    };
+  }),
 
 }));
 

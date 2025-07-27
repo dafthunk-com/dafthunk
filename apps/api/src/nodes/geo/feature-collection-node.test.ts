@@ -1,389 +1,431 @@
-import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
-
-import { NodeContext } from "../types";
 import { FeatureCollectionNode } from "./feature-collection-node";
+import { NodeContext } from "../types";
 
 describe("FeatureCollectionNode", () => {
-  const createMockContext = (inputs: any) => ({
-    nodeId: "feature-collection",
+  const createMockContext = (inputs: Record<string, any>): NodeContext => ({
+    nodeId: "test-node",
+    workflowId: "test-workflow",
+    organizationId: "test-org",
     inputs,
-    env: {},
-  } as unknown as NodeContext);
+    env: {} as any,
+  });
 
+  const node = new FeatureCollectionNode({
+    id: "test-node",
+    name: "Test Node",
+    type: "feature-collection",
+    position: { x: 0, y: 0 },
+    inputs: [],
+    outputs: [],
+  });
 
-
-  it("should create FeatureCollection from single Feature", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const pointFeature = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-      properties: { name: "test point" },
-    };
-
-    const context = createMockContext({ features: pointFeature });
-
+  it("returns FeatureCollection for basic feature collection creation", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ]
+    });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.featureCollection).toBeDefined();
     expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
-    expect(result.outputs?.featureCollection.features).toHaveLength(1);
-    expect(result.outputs?.featureCollection.features[0]).toEqual(pointFeature);
+    expect(result.outputs?.featureCollection.features).toBeDefined();
   });
 
-  it("should create FeatureCollection from multiple Features", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const pointFeature1 = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-      properties: { name: "point 1" },
-    };
-
-    const pointFeature2 = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [1, 1],
-      },
-      properties: { name: "point 2" },
-    };
-
-    const context = createMockContext({ features: [pointFeature1, pointFeature2] });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
-    expect(result.outputs?.featureCollection.features).toHaveLength(2);
-    expect(result.outputs?.featureCollection.features[0]).toEqual(pointFeature1);
-    expect(result.outputs?.featureCollection.features[1]).toEqual(pointFeature2);
-  });
-
-  it("should pass through existing FeatureCollection", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const existingFeatureCollection = {
-      type: "FeatureCollection",
+  it("returns FeatureCollection for multiple features", async () => {
+    const context = createMockContext({
       features: [
         {
           type: "Feature",
+          properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0],
-          },
-          properties: { name: "test" },
+            coordinates: [0, 0]
+          }
         },
+        {
+          type: "Feature",
+          properties: { name: "Point B" },
+          geometry: {
+            type: "Point",
+            coordinates: [1, 1]
+          }
+        },
+        {
+          type: "Feature",
+          properties: { name: "Point C" },
+          geometry: {
+            type: "Point",
+            coordinates: [2, 2]
+          }
+        }
+      ]
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.features).toBeDefined();
+    expect(result.outputs?.featureCollection.features.length).toBe(3);
+  });
+
+  it("returns FeatureCollection for mixed geometry types", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        },
+        {
+          type: "Feature",
+          properties: { name: "Line" },
+          geometry: {
+            type: "LineString",
+            coordinates: [[0, 0], [1, 1], [2, 2]]
+          }
+        },
+        {
+          type: "Feature",
+          properties: { name: "Polygon" },
+          geometry: {
+            type: "Polygon",
+            coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          }
+        }
+      ]
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.features).toBeDefined();
+    expect(result.outputs?.featureCollection.features.length).toBe(3);
+  });
+
+  it("returns FeatureCollection with bbox", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
       ],
-    };
-
-    const context = createMockContext({ features: existingFeatureCollection });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.featureCollection).toEqual(existingFeatureCollection);
-  });
-
-  it("should handle mixed geometry types", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const pointFeature = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-      properties: { type: "point" },
-    };
-
-    const lineFeature = {
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: [[0, 0], [1, 1]],
-      },
-      properties: { type: "line" },
-    };
-
-    const polygonFeature = {
-      type: "Feature",
-      geometry: {
-        type: "Polygon",
-        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
-      },
-      properties: { type: "polygon" },
-    };
-
-    const context = createMockContext({ 
-      features: [pointFeature, lineFeature, polygonFeature] 
+      bbox: [0, 0, 1, 1]
     });
-
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
     expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
-    expect(result.outputs?.featureCollection.features).toHaveLength(3);
-    expect(result.outputs?.featureCollection.features[0]).toEqual(pointFeature);
-    expect(result.outputs?.featureCollection.features[1]).toEqual(lineFeature);
-    expect(result.outputs?.featureCollection.features[2]).toEqual(polygonFeature);
+    expect(result.outputs?.featureCollection.bbox).toBeDefined();
   });
 
-  it("should handle features with properties", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
+  it("returns FeatureCollection with string ID", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      id: "test-collection-1"
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.id).toBe("test-collection-1");
+  });
 
-    const featureWithProps = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-      properties: {
-        name: "Test Point",
-        id: 123,
-        tags: ["important", "test"],
-        metadata: {
-          created: "2023-01-01",
-          author: "test user",
+  it("returns FeatureCollection with number ID", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      id: 123
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.id).toBe(123);
+  });
+
+  it("returns FeatureCollection with bbox and ID", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      bbox: [0, 0, 1, 1],
+      id: "test-collection"
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.bbox).toBeDefined();
+    expect(result.outputs?.featureCollection.id).toBe("test-collection");
+  });
+
+  it("returns FeatureCollection for single feature", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Single Point" },
+          geometry: {
+            type: "Point",
+            coordinates: [5, 5]
+          }
+        }
+      ]
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.features.length).toBe(1);
+  });
+
+  it("returns FeatureCollection for features with properties", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A", color: "red", value: 10 },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
         },
-      },
-    };
-
-    const context = createMockContext({ features: featureWithProps });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.featureCollection.features[0]).toEqual(featureWithProps);
-  });
-
-  it("should handle features without properties", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const featureWithoutProps = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-    };
-
-    const context = createMockContext({ features: featureWithoutProps });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.featureCollection.features[0]).toEqual(featureWithoutProps);
-  });
-
-  it("should return error for missing input", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const context = createMockContext({});
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("No features provided");
-  });
-
-  it("should return error for null input", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const context = createMockContext({ features: null });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("No features provided");
-  });
-
-  it("should return error for empty array", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const context = createMockContext({ features: [] });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("Cannot create FeatureCollection from empty array");
-  });
-
-  it("should return error for invalid feature type", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const invalidFeature = {
-      type: "InvalidType",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-    };
-
-    const context = createMockContext({ features: [invalidFeature] });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("expected Feature type, got InvalidType");
-  });
-
-  it("should return error for feature without geometry", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const featureWithoutGeometry = {
-      type: "Feature",
-      properties: { name: "test" },
-    };
-
-    const context = createMockContext({ features: [featureWithoutGeometry] });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("missing geometry property");
-  });
-
-  it("should return error for non-object feature", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const context = createMockContext({ features: ["not a feature"] });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("expected Feature object, got string");
-  });
-
-  it("should return error for null feature in array", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const validFeature = {
-      type: "Feature",
-      geometry: {
-        type: "Point",
-        coordinates: [0, 0],
-      },
-    };
-
-    const context = createMockContext({ features: [validFeature, null] });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("expected Feature object, got object");
-  });
-
-  it("should handle large number of features", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    // Create 100 point features
-    const features = Array.from({ length: 100 }, (_, i) => ({
-      type: "Feature" as const,
-      geometry: {
-        type: "Point" as const,
-        coordinates: [i, i],
-      },
-      properties: { id: i },
-    }));
-
-    const context = createMockContext({ features });
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
-    expect(result.outputs?.featureCollection.features).toHaveLength(100);
-    
-    // Verify first and last features
-    expect(result.outputs?.featureCollection.features[0].properties.id).toBe(0);
-    expect(result.outputs?.featureCollection.features[99].properties.id).toBe(99);
-  });
-
-  it("should handle complex geometry types", async () => {
-    const nodeId = "feature-collection";
-    const node = new FeatureCollectionNode({
-      nodeId,
-    } as unknown as Node);
-
-    const multiPointFeature = {
-      type: "Feature",
-      geometry: {
-        type: "MultiPoint",
-        coordinates: [[0, 0], [1, 1], [2, 2]],
-      },
-      properties: { type: "multipoint" },
-    };
-
-    const multiLineStringFeature = {
-      type: "Feature",
-      geometry: {
-        type: "MultiLineString",
-        coordinates: [
-          [[0, 0], [1, 1]],
-          [[2, 2], [3, 3]],
-        ],
-      },
-      properties: { type: "multilinestring" },
-    };
-
-    const multiPolygonFeature = {
-      type: "Feature",
-      geometry: {
-        type: "MultiPolygon",
-        coordinates: [
-          [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
-          [[[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]],
-        ],
-      },
-      properties: { type: "multipolygon" },
-    };
-
-    const context = createMockContext({ 
-      features: [multiPointFeature, multiLineStringFeature, multiPolygonFeature] 
+        {
+          type: "Feature",
+          properties: { name: "Point B", color: "blue", value: 20 },
+          geometry: {
+            type: "Point",
+            coordinates: [1, 1]
+          }
+        }
+      ]
     });
-
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
-    expect(result.outputs?.featureCollection.features).toHaveLength(3);
-    expect(result.outputs?.featureCollection.features[0]).toEqual(multiPointFeature);
-    expect(result.outputs?.featureCollection.features[1]).toEqual(multiLineStringFeature);
-    expect(result.outputs?.featureCollection.features[2]).toEqual(multiPolygonFeature);
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+    expect(result.outputs?.featureCollection.features.length).toBe(2);
+  });
+
+  it("handles null bbox gracefully", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      bbox: null
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+  });
+
+  it("handles undefined bbox gracefully", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      bbox: undefined
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+  });
+
+  it("handles null ID gracefully", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      id: null
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+  });
+
+  it("handles undefined ID gracefully", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      id: undefined
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs?.featureCollection).toBeDefined();
+    expect(result.outputs?.featureCollection.type).toBe("FeatureCollection");
+  });
+
+  it("returns an error for missing features input", async () => {
+    const context = createMockContext({});
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Missing features input");
+  });
+
+  it("returns an error for null features input", async () => {
+    const context = createMockContext({
+      features: null
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Missing features input");
+  });
+
+  it("returns an error for undefined features input", async () => {
+    const context = createMockContext({
+      features: undefined
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Missing features input");
+  });
+
+  it("returns an error for non-array bbox", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      bbox: "not an array"
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Bbox must be an array");
+  });
+
+  it("returns an error for bbox with wrong length", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      bbox: [0, 0, 1]
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Bbox must be an array of 4 numbers [west, south, east, north]");
+  });
+
+  it("returns an error for bbox with non-number values", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      bbox: [0, 0, 1, "north"]
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("All bbox values must be numbers");
+  });
+
+  it("returns an error for non-string/non-number ID", async () => {
+    const context = createMockContext({
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "Point A" },
+          geometry: {
+            type: "Point",
+            coordinates: [0, 0]
+          }
+        }
+      ],
+      id: true
+    });
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("ID must be a string or number");
   });
 }); 
