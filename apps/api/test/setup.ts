@@ -344,6 +344,41 @@ vi.mock("@turf/turf", () => ({
       features
     };
   }),
+  flatten: vi.fn().mockImplementation((geojson) => {
+    // Mock implementation that returns a FeatureCollection
+    // This simulates the flatten behavior without testing the actual algorithm
+    if (geojson.type === "FeatureCollection") {
+      return geojson;
+    }
+    
+    if (geojson.type === "Feature") {
+      return {
+        type: "FeatureCollection",
+        features: [geojson]
+      };
+    }
+    
+    if (geojson.type === "GeometryCollection") {
+      return {
+        type: "FeatureCollection",
+        features: geojson.geometries.map((geom: any) => ({
+          type: "Feature",
+          properties: {},
+          geometry: geom
+        }))
+      };
+    }
+    
+    // For other geometry types, wrap in a Feature
+    return {
+      type: "FeatureCollection",
+      features: [{
+        type: "Feature",
+        properties: {},
+        geometry: geojson
+      }]
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
