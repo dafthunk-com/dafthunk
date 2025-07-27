@@ -1185,6 +1185,20 @@ vi.mock("@turf/turf", () => ({
       ...(options.id && { id: options.id })
     };
   }),
+  geometryCollection: vi.fn().mockImplementation((geometries, properties, options = {}) => {
+    // Mock implementation that creates a GeometryCollection Feature from geometries
+    // This simulates the geometryCollection behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: properties || {},
+      geometry: {
+        type: "GeometryCollection",
+        geometries: geometries
+      },
+      ...(options.bbox && { bbox: options.bbox }),
+      ...(options.id && { id: options.id })
+    };
+  }),
 
 }));
 
