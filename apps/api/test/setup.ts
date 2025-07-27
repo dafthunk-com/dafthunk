@@ -1053,6 +1053,34 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  nearestPointOnLine: vi.fn().mockImplementation((lines, pt, options = {}) => {
+    // Mock implementation that finds the nearest point on a line
+    // This simulates the nearestPointOnLine behavior without testing the actual algorithm
+    let lineCoords;
+    
+    // Get line coordinates
+    if (lines.type === "Feature") {
+      lineCoords = lines.geometry.coordinates;
+    } else {
+      lineCoords = lines.coordinates;
+    }
+    
+    // Simple mock that returns a point on the line
+    // This simulates the nearestPointOnLine behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: {
+        index: 0,
+        multiFeatureIndex: 0,
+        dist: 1.0,
+        location: 0.5
+      },
+      geometry: {
+        type: "Point",
+        coordinates: lineCoords[0]
+      }
+    };
+  }),
 
 }));
 
