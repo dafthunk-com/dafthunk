@@ -826,6 +826,77 @@ vi.mock("@turf/turf", () => ({
       features: overlaps
     };
   }),
+  lineSegment: vi.fn().mockImplementation((geojson) => {
+    // Mock implementation that creates 2-vertex line segments
+    // This simulates the lineSegment behavior without testing the actual algorithm
+    const segments = [];
+    
+    // Get coordinates from the input
+    let coords;
+    if (geojson.type === "Feature") {
+      coords = geojson.geometry.coordinates;
+    } else {
+      coords = geojson.coordinates;
+    }
+    
+    // Simple segmentation logic for testing
+    if (geojson.type === "Feature" && geojson.geometry.type === "LineString") {
+      // For LineString, create segments between consecutive points
+      for (let i = 0; i < coords.length - 1; i++) {
+        segments.push({
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [coords[i], coords[i + 1]]
+          }
+        });
+      }
+    } else if (geojson.type === "Feature" && geojson.geometry.type === "Polygon") {
+      // For Polygon, create segments from the ring
+      const ring = coords[0];
+      for (let i = 0; i < ring.length - 1; i++) {
+        segments.push({
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [ring[i], ring[i + 1]]
+          }
+        });
+      }
+    } else if (geojson.type === "LineString") {
+      // For LineString geometry
+      for (let i = 0; i < coords.length - 1; i++) {
+        segments.push({
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [coords[i], coords[i + 1]]
+          }
+        });
+      }
+    } else if (geojson.type === "Polygon") {
+      // For Polygon geometry
+      const ring = coords[0];
+      for (let i = 0; i < ring.length - 1; i++) {
+        segments.push({
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [ring[i], ring[i + 1]]
+          }
+        });
+      }
+    }
+    
+    return {
+      type: "FeatureCollection",
+      features: segments
+    };
+  }),
 
 }));
 
