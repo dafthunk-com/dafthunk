@@ -129,6 +129,7 @@ import { BooleanEqualNode } from "./geo/boolean-equal-node";
 import { BooleanIntersectsNode } from "./geo/boolean-intersects-node";
 import { BooleanParallelNode } from "./geo/boolean-parallel-node";
 import { BooleanPointOnLineNode } from "./geo/boolean-point-on-line-node";
+import { BooleanTouchesNode } from "./geo/boolean-touches-node";
 import { AreaNode } from "./geo/area-node";
 import { BboxNode } from "./geo/bbox-node";
 import { BboxPolygonNode } from "./geo/bbox-polygon-node";
@@ -354,6 +355,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(BooleanIntersectsNode);
     this.registerImplementation(BooleanParallelNode);
     this.registerImplementation(BooleanPointOnLineNode);
+    this.registerImplementation(BooleanTouchesNode);
     this.registerImplementation(AreaNode);
     this.registerImplementation(BboxNode);
     this.registerImplementation(BboxPolygonNode);
