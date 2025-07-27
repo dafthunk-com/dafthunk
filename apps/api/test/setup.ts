@@ -607,6 +607,101 @@ vi.mock("@turf/turf", () => ({
       features: []
     };
   }),
+  kinks: vi.fn().mockImplementation((line) => {
+    // Mock implementation that finds self-intersection points
+    // This simulates the kinks behavior without testing the actual algorithm
+    const kinkPoints = [];
+    
+    if (line.type === "Feature") {
+      if (line.geometry.type === "LineString") {
+        const coords = line.geometry.coordinates;
+        // Simple mock: check for obvious self-intersections
+        if (coords.length > 3) {
+          // Check if the line crosses itself (simplified logic)
+          for (let i = 0; i < coords.length - 1; i++) {
+            for (let j = i + 2; j < coords.length - 1; j++) {
+              // Simple intersection check for demo purposes
+              if (coords[i][0] === coords[j][0] && coords[i][1] === coords[j][1]) {
+                kinkPoints.push({
+                  type: "Feature",
+                  properties: { ...line.properties },
+                  geometry: {
+                    type: "Point",
+                    coordinates: coords[i]
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+      if (line.geometry.type === "Polygon") {
+        const coords = line.geometry.coordinates[0];
+        // Similar logic for polygon rings
+        if (coords.length > 3) {
+          for (let i = 0; i < coords.length - 1; i++) {
+            for (let j = i + 2; j < coords.length - 1; j++) {
+              if (coords[i][0] === coords[j][0] && coords[i][1] === coords[j][1]) {
+                kinkPoints.push({
+                  type: "Feature",
+                  properties: { ...line.properties },
+                  geometry: {
+                    type: "Point",
+                    coordinates: coords[i]
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    if (line.type === "LineString") {
+      const coords = line.coordinates;
+      if (coords.length > 3) {
+        for (let i = 0; i < coords.length - 1; i++) {
+          for (let j = i + 2; j < coords.length - 1; j++) {
+            if (coords[i][0] === coords[j][0] && coords[i][1] === coords[j][1]) {
+              kinkPoints.push({
+                type: "Feature",
+                properties: {},
+                geometry: {
+                  type: "Point",
+                  coordinates: coords[i]
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    if (line.type === "Polygon") {
+      const coords = line.coordinates[0];
+      if (coords.length > 3) {
+        for (let i = 0; i < coords.length - 1; i++) {
+          for (let j = i + 2; j < coords.length - 1; j++) {
+            if (coords[i][0] === coords[j][0] && coords[i][1] === coords[j][1]) {
+              kinkPoints.push({
+                type: "Feature",
+                properties: {},
+                geometry: {
+                  type: "Point",
+                  coordinates: coords[i]
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    return {
+      type: "FeatureCollection",
+      features: kinkPoints
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
