@@ -702,6 +702,42 @@ vi.mock("@turf/turf", () => ({
       features: kinkPoints
     };
   }),
+  lineArc: vi.fn().mockImplementation((center, radius, bearing1, bearing2, options = {}) => {
+    // Mock implementation that creates a circular arc
+    // This simulates the lineArc behavior without testing the actual algorithm
+    const steps = options.steps || 64;
+    const coordinates = [];
+    
+    // Get center coordinates
+    let centerCoords;
+    if (center.type === "Feature") {
+      centerCoords = center.geometry.coordinates;
+    } else {
+      centerCoords = center.coordinates;
+    }
+    
+    // Generate arc coordinates (simplified)
+    for (let i = 0; i <= steps; i++) {
+      const fraction = i / steps;
+      const bearing = bearing1 + (bearing2 - bearing1) * fraction;
+      const angle = (bearing * Math.PI) / 180;
+      
+      // Simple arc calculation (not accurate but sufficient for testing)
+      const lat = centerCoords[1] + (radius / 111) * Math.sin(angle);
+      const lng = centerCoords[0] + (radius / (111 * Math.cos(centerCoords[1] * Math.PI / 180))) * Math.cos(angle);
+      
+      coordinates.push([lng, lat]);
+    }
+    
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates
+      }
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
