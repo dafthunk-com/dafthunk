@@ -1081,6 +1081,31 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  sector: vi.fn().mockImplementation((center, radius, bearing1, bearing2, options = {}) => {
+    // Mock implementation that creates a sector polygon
+    // This simulates the sector behavior without testing the actual algorithm
+    let centerCoords;
+    
+    // Get center coordinates
+    if (center.type === "Feature") {
+      centerCoords = center.geometry.coordinates;
+    } else {
+      centerCoords = center.coordinates;
+    }
+    
+    // Simple mock that returns a sector polygon
+    // This simulates the sector behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: options.properties || {},
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [centerCoords, [centerCoords[0] + 1, centerCoords[1]], [centerCoords[0] + 1, centerCoords[1] + 1], centerCoords]
+        ]
+      }
+    };
+  }),
 
 }));
 
