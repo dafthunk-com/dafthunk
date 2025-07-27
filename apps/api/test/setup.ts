@@ -1486,6 +1486,55 @@ vi.mock("@turf/turf", () => ({
     
     return false; // Default to convex
   }),
+  booleanEqual: vi.fn().mockImplementation((feature1, feature2) => {
+    // Mock implementation that determines if two geometries are equal
+    // This simulates the booleanEqual behavior without testing the actual algorithm
+    
+    // Extract coordinates from both features
+    let coords1, coords2;
+    let type1, type2;
+    
+    // Extract from feature1
+    if (feature1.type === "Feature") {
+      coords1 = feature1.geometry.coordinates;
+      type1 = feature1.geometry.type;
+    } else {
+      coords1 = feature1.coordinates;
+      type1 = feature1.type;
+    }
+    
+    // Extract from feature2
+    if (feature2.type === "Feature") {
+      coords2 = feature2.geometry.coordinates;
+      type2 = feature2.geometry.type;
+    } else {
+      coords2 = feature2.coordinates;
+      type2 = feature2.type;
+    }
+    
+    // Different geometry types are never equal
+    if (type1 !== type2) {
+      return false;
+    }
+    
+    // Deep comparison of coordinates
+    const compareCoordinates = (c1: any, c2: any): boolean => {
+      if (Array.isArray(c1) && Array.isArray(c2)) {
+        if (c1.length !== c2.length) {
+          return false;
+        }
+        for (let i = 0; i < c1.length; i++) {
+          if (!compareCoordinates(c1[i], c2[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return c1 === c2;
+    };
+    
+    return compareCoordinates(coords1, coords2);
+  }),
 
 }));
 
