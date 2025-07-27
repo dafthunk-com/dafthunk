@@ -123,6 +123,7 @@ import { GeometryCollectionNode } from "./geo/geometry-collection-node";
 import { MultiLineStringNode } from "./geo/multilinestring-node";
 import { MultiPointNode } from "./geo/multipoint-node";
 import { MultiPolygonNode } from "./geo/multipolygon-node";
+import { BooleanClockwiseNode } from "./geo/boolean-clockwise-node";
 import { AreaNode } from "./geo/area-node";
 import { BboxNode } from "./geo/bbox-node";
 import { BboxPolygonNode } from "./geo/bbox-polygon-node";
@@ -342,6 +343,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(MultiLineStringNode);
     this.registerImplementation(MultiPointNode);
     this.registerImplementation(MultiPolygonNode);
+    this.registerImplementation(BooleanClockwiseNode);
     this.registerImplementation(AreaNode);
     this.registerImplementation(BboxNode);
     this.registerImplementation(BboxPolygonNode);
