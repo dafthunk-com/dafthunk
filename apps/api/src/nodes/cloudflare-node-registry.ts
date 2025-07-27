@@ -157,6 +157,7 @@ import { LineIntersectNode } from "./geo/line-intersect-node";
 import { LineOverlapNode } from "./geo/line-overlap-node";
 import { LineSegmentNode } from "./geo/line-segment-node";
 import { LineSliceNode } from "./geo/line-slice-node";
+import { LineSliceAlongNode } from "./geo/line-slice-along-node";
 import { GreatCircleNode } from "./geo/great-circle-node";
 import { PointOnFeatureNode } from "./geo/point-on-feature-node";
 import { PointToLineDistanceNode } from "./geo/point-to-line-distance-node";
@@ -387,6 +388,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(LineOverlapNode);
     this.registerImplementation(LineSegmentNode);
     this.registerImplementation(LineSliceNode);
+    this.registerImplementation(LineSliceAlongNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {

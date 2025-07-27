@@ -956,6 +956,50 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  lineSliceAlong: vi.fn().mockImplementation((line, startDist, stopDist, options = {}) => {
+    // Mock implementation that slices a line along specified distances
+    // This simulates the lineSliceAlong behavior without testing the actual algorithm
+    let lineCoords;
+    
+    // Get line coordinates
+    if (line.type === "Feature") {
+      lineCoords = line.geometry.coordinates;
+    } else {
+      lineCoords = line.coordinates;
+    }
+    
+    // Simple slicing logic for testing
+    // For horizontal lines, calculate approximate indices based on distance
+    let startIndex = 0;
+    let stopIndex = lineCoords.length - 1;
+    
+    if (lineCoords[0][1] === lineCoords[1][1]) {
+      // For horizontal lines, use distance as approximate x-coordinate
+      startIndex = Math.floor(startDist);
+      stopIndex = Math.floor(stopDist);
+      
+      // Ensure indices are within bounds
+      startIndex = Math.max(0, Math.min(startIndex, lineCoords.length - 1));
+      stopIndex = Math.max(0, Math.min(stopIndex, lineCoords.length - 1));
+      
+      // Ensure start is before stop
+      if (startIndex > stopIndex) {
+        [startIndex, stopIndex] = [stopIndex, startIndex];
+      }
+    }
+    
+    // Extract the sliced portion
+    const slicedCoords = lineCoords.slice(startIndex, stopIndex + 1);
+    
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "LineString",
+        coordinates: slicedCoords
+      }
+    };
+  }),
 
 }));
 
