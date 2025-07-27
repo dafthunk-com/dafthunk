@@ -379,6 +379,146 @@ vi.mock("@turf/turf", () => ({
       }]
     };
   }),
+  lineToPolygon: vi.fn().mockImplementation((line, properties = {}) => {
+    // Mock implementation that converts LineString to Polygon
+    // This simulates the lineToPolygon behavior without testing the actual algorithm
+    if (line.type === "Feature") {
+      if (line.geometry.type === "LineString") {
+        return {
+          type: "Feature",
+          properties: { ...line.properties, ...properties },
+          geometry: {
+            type: "Polygon",
+            coordinates: [line.geometry.coordinates]
+          }
+        };
+      }
+      if (line.geometry.type === "MultiLineString") {
+        return {
+          type: "Feature",
+          properties: { ...line.properties, ...properties },
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: line.geometry.coordinates.map((lineString: any) => [lineString])
+          }
+        };
+      }
+    }
+    
+    if (line.type === "LineString") {
+      return {
+        type: "Feature",
+        properties,
+        geometry: {
+          type: "Polygon",
+          coordinates: [line.coordinates]
+        }
+      };
+    }
+    
+    if (line.type === "MultiLineString") {
+      return {
+        type: "Feature",
+        properties,
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: line.coordinates.map((lineString: any) => [lineString])
+        }
+      };
+    }
+    
+    // Default fallback
+    return {
+      type: "Feature",
+      properties,
+      geometry: {
+        type: "Polygon",
+        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+      }
+    };
+  }),
+  polygonToLine: vi.fn().mockImplementation((polygon, properties = {}) => {
+    // Mock implementation that converts Polygon to LineString
+    // This simulates the polygonToLine behavior without testing the actual algorithm
+    if (polygon.type === "Feature") {
+      if (polygon.geometry.type === "Polygon") {
+        // If polygon has holes, return MultiLineString
+        if (polygon.geometry.coordinates.length > 1) {
+          return {
+            type: "Feature",
+            properties: { ...polygon.properties, ...properties },
+            geometry: {
+              type: "MultiLineString",
+              coordinates: polygon.geometry.coordinates
+            }
+          };
+        }
+        // Otherwise return LineString
+        return {
+          type: "Feature",
+          properties: { ...polygon.properties, ...properties },
+          geometry: {
+            type: "LineString",
+            coordinates: polygon.geometry.coordinates[0]
+          }
+        };
+      }
+      if (polygon.geometry.type === "MultiPolygon") {
+        return {
+          type: "Feature",
+          properties: { ...polygon.properties, ...properties },
+          geometry: {
+            type: "MultiLineString",
+            coordinates: polygon.geometry.coordinates.map((polygonCoords: any) => polygonCoords[0])
+          }
+        };
+      }
+    }
+    
+    if (polygon.type === "Polygon") {
+      // If polygon has holes, return MultiLineString
+      if (polygon.coordinates.length > 1) {
+        return {
+          type: "Feature",
+          properties,
+          geometry: {
+            type: "MultiLineString",
+            coordinates: polygon.coordinates
+          }
+        };
+      }
+      // Otherwise return LineString
+      return {
+        type: "Feature",
+        properties,
+        geometry: {
+          type: "LineString",
+          coordinates: polygon.coordinates[0]
+        }
+      };
+    }
+    
+    if (polygon.type === "MultiPolygon") {
+      return {
+        type: "Feature",
+        properties,
+        geometry: {
+          type: "MultiLineString",
+          coordinates: polygon.coordinates.map((polygonCoords: any) => polygonCoords[0])
+        }
+      };
+    }
+    
+    // Default fallback
+    return {
+      type: "Feature",
+      properties,
+      geometry: {
+        type: "LineString",
+        coordinates: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+      }
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
