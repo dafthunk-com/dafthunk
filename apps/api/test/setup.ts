@@ -519,6 +519,94 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  polygonize: vi.fn().mockImplementation((lines) => {
+    // Mock implementation that converts lines to polygons
+    // This simulates the polygonize behavior without testing the actual algorithm
+    if (lines.type === "Feature") {
+      // For a single line feature, check if it forms a closed polygon
+      if (lines.geometry.type === "LineString") {
+        const coords = lines.geometry.coordinates;
+        if (coords.length >= 4 && coords[0][0] === coords[coords.length - 1][0] && coords[0][1] === coords[coords.length - 1][1]) {
+          return {
+            type: "FeatureCollection",
+            features: [{
+              type: "Feature",
+              properties: { ...lines.properties },
+              geometry: {
+                type: "Polygon",
+                coordinates: [coords]
+              }
+            }]
+          };
+        }
+      }
+      if (lines.geometry.type === "MultiLineString") {
+        const polygons = [];
+        for (const lineString of lines.geometry.coordinates) {
+          if (lineString.length >= 4 && lineString[0][0] === lineString[lineString.length - 1][0] && lineString[0][1] === lineString[lineString.length - 1][1]) {
+            polygons.push({
+              type: "Feature",
+              properties: { ...lines.properties },
+              geometry: {
+                type: "Polygon",
+                coordinates: [lineString]
+              }
+            });
+          }
+        }
+        return {
+          type: "FeatureCollection",
+          features: polygons
+        };
+      }
+    }
+    
+    if (lines.type === "FeatureCollection") {
+      const polygons = [];
+      for (const feature of lines.features) {
+        if (feature.geometry.type === "LineString") {
+          const coords = feature.geometry.coordinates;
+          if (coords.length >= 4 && coords[0][0] === coords[coords.length - 1][0] && coords[0][1] === coords[coords.length - 1][1]) {
+            polygons.push({
+              type: "Feature",
+              properties: { ...feature.properties },
+              geometry: {
+                type: "Polygon",
+                coordinates: [coords]
+              }
+            });
+          }
+        }
+      }
+      return {
+        type: "FeatureCollection",
+        features: polygons
+      };
+    }
+    
+    if (lines.type === "LineString") {
+      const coords = lines.coordinates;
+      if (coords.length >= 4 && coords[0][0] === coords[coords.length - 1][0] && coords[0][1] === coords[coords.length - 1][1]) {
+        return {
+          type: "FeatureCollection",
+          features: [{
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "Polygon",
+              coordinates: [coords]
+            }
+          }]
+        };
+      }
+    }
+    
+    // Default fallback - return empty FeatureCollection
+    return {
+      type: "FeatureCollection",
+      features: []
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues
