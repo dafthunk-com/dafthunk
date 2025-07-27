@@ -1213,6 +1213,20 @@ vi.mock("@turf/turf", () => ({
       ...(options.id && { id: options.id })
     };
   }),
+  multiPoint: vi.fn().mockImplementation((coordinates, properties, options = {}) => {
+    // Mock implementation that creates a MultiPoint Feature from coordinates
+    // This simulates the multiPoint behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: properties || {},
+      geometry: {
+        type: "MultiPoint",
+        coordinates: coordinates
+      },
+      ...(options.bbox && { bbox: options.bbox }),
+      ...(options.id && { id: options.id })
+    };
+  }),
 
 }));
 
