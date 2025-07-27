@@ -1165,6 +1165,16 @@ vi.mock("@turf/turf", () => ({
       ]
     };
   }),
+  feature: vi.fn().mockImplementation((geometry, properties, options = {}) => {
+    // Mock implementation that wraps a geometry in a Feature
+    // This simulates the feature behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: properties || {},
+      geometry: geometry,
+      ...(options.id && { id: options.id })
+    };
+  }),
 
 }));
 
