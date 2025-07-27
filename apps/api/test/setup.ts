@@ -1000,6 +1000,36 @@ vi.mock("@turf/turf", () => ({
       }
     };
   }),
+  lineSplit: vi.fn().mockImplementation((line, splitter) => {
+    // Mock implementation that splits a line by another feature
+    // This simulates the lineSplit behavior without testing the actual algorithm
+    let lineCoords;
+    
+    // Get line coordinates
+    if (line.type === "Feature") {
+      lineCoords = line.geometry.coordinates;
+    } else {
+      lineCoords = line.coordinates;
+    }
+    
+    // Simple mock that always returns a valid FeatureCollection
+    // This simulates the lineSplit behavior without testing the actual algorithm
+    const splitLines = [
+      {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates: lineCoords
+        }
+      }
+    ];
+    
+    return {
+      type: "FeatureCollection",
+      features: splitLines
+    };
+  }),
 
 }));
 
