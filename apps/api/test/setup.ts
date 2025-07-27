@@ -319,6 +319,31 @@ vi.mock("@turf/turf", () => ({
     // This simulates the smoothing behavior without testing the actual algorithm
     return polygon;
   }),
+  voronoi: vi.fn().mockImplementation((points, options = {}) => {
+    // Mock implementation that returns a FeatureCollection of polygons
+    // This simulates the Voronoi behavior without testing the actual algorithm
+    const features = points.features.map((point: any, index: number) => ({
+      type: "Feature",
+      properties: { ...point.properties, index },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [point.geometry.coordinates[0] - 0.5, point.geometry.coordinates[1] - 0.5],
+            [point.geometry.coordinates[0] + 0.5, point.geometry.coordinates[1] - 0.5],
+            [point.geometry.coordinates[0] + 0.5, point.geometry.coordinates[1] + 0.5],
+            [point.geometry.coordinates[0] - 0.5, point.geometry.coordinates[1] + 0.5],
+            [point.geometry.coordinates[0] - 0.5, point.geometry.coordinates[1] - 0.5]
+          ]
+        ]
+      }
+    }));
+    
+    return {
+      type: "FeatureCollection",
+      features
+    };
+  }),
 }));
 
 // Mock d3-geo to prevent module resolution issues

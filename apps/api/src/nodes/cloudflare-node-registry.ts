@@ -168,6 +168,7 @@ import { BboxClipNode } from "./geo/bbox-clip-node";
 import { ConcaveNode } from "./geo/concave-node";
 import { LineOffsetNode } from "./geo/line-offset-node";
 import { PolygonSmoothNode } from "./geo/polygon-smooth-node";
+import { VoronoiNode } from "./geo/voronoi-node";
 import { AvgNode } from "./math/avg-node";
 import { MinNode } from "./math/min-node";
 import { MaxNode } from "./math/max-node";
@@ -364,6 +365,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ConcaveNode);
     this.registerImplementation(LineOffsetNode);
     this.registerImplementation(PolygonSmoothNode);
+    this.registerImplementation(VoronoiNode);
 
     // Conditional registrations based on environment
     if (hasCloudflare) {
