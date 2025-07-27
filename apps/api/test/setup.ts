@@ -1199,6 +1199,20 @@ vi.mock("@turf/turf", () => ({
       ...(options.id && { id: options.id })
     };
   }),
+  multiLineString: vi.fn().mockImplementation((coordinates, properties, options = {}) => {
+    // Mock implementation that creates a MultiLineString Feature from coordinates
+    // This simulates the multiLineString behavior without testing the actual algorithm
+    return {
+      type: "Feature",
+      properties: properties || {},
+      geometry: {
+        type: "MultiLineString",
+        coordinates: coordinates
+      },
+      ...(options.bbox && { bbox: options.bbox }),
+      ...(options.id && { id: options.id })
+    };
+  }),
 
 }));
 
