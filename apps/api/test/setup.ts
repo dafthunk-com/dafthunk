@@ -2845,6 +2845,87 @@ vi.mock("@turf/turf", () => ({
       return coords;
     }
   }),
+  centerMedian: vi.fn().mockImplementation((features, options) => {
+    // Mock implementation that calculates the median center of features
+    // This simulates the centerMedian behavior without testing the actual algorithm
+    
+    // Extract coordinates from features
+    let allCoords: number[][] = [];
+    
+    if (features.type === "Feature") {
+      // Single feature
+      allCoords = extractCoordinates(features.geometry);
+    } else if (features.type === "FeatureCollection") {
+      // Feature collection
+      for (const feature of features.features) {
+        allCoords = allCoords.concat(extractCoordinates(feature.geometry));
+      }
+    } else {
+      // Geometry object
+      allCoords = extractCoordinates(features);
+    }
+    
+    // Calculate median center
+    if (allCoords.length === 0) {
+      return {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0]
+        }
+      };
+    }
+    
+    // Sort coordinates by x and y separately to find medians
+    const xCoords = allCoords.map(coord => coord[0]).sort((a, b) => a - b);
+    const yCoords = allCoords.map(coord => coord[1]).sort((a, b) => a - b);
+    
+    const medianX = xCoords[Math.floor(xCoords.length / 2)];
+    const medianY = yCoords[Math.floor(yCoords.length / 2)];
+    
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Point",
+        coordinates: [medianX, medianY]
+      }
+    };
+    
+    // Helper function to extract all coordinates from a geometry
+    function extractCoordinates(geometry: any) {
+      const coords: number[][] = [];
+      
+      if (geometry.type === "Point") {
+        coords.push(geometry.coordinates);
+      } else if (geometry.type === "LineString") {
+        coords.push(...geometry.coordinates);
+      } else if (geometry.type === "Polygon") {
+        for (const ring of geometry.coordinates) {
+          // Exclude the last point if it's the same as the first (closing vertex)
+          const ringCoords = ring.slice(0, -1);
+          coords.push(...ringCoords);
+        }
+      } else if (geometry.type === "MultiPoint") {
+        coords.push(...geometry.coordinates);
+      } else if (geometry.type === "MultiLineString") {
+        for (const line of geometry.coordinates) {
+          coords.push(...line);
+        }
+      } else if (geometry.type === "MultiPolygon") {
+        for (const polygon of geometry.coordinates) {
+          for (const ring of polygon) {
+            // Exclude the last point if it's the same as the first (closing vertex)
+            const ringCoords = ring.slice(0, -1);
+            coords.push(...ringCoords);
+          }
+        }
+      }
+      
+      return coords;
+    }
+  }),
 
 }));
 
