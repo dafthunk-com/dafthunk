@@ -48,7 +48,6 @@ export type NodeOutputs = Record<string, NodeOutputValue>;
 export type NodeErrors = Map<string, string>;
 export type WorkflowOutputs = Map<string, NodeOutputs>;
 export type ExecutedNodeSet = Set<string>;
-export type SortedNodeList = string[];
 
 // Inline execution types
 export type InlineGroup = {
@@ -224,7 +223,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         } else if (executionUnit.type === "inline") {
           // Execute inline group - all nodes in a single step
           const groupDescription = `inline group [${executionUnit.nodeIds.join(", ")}]`;
-          
+
           runtimeState = await step.do(
             `run ${groupDescription}`,
             Runtime.defaultStepConfig,
@@ -243,10 +242,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
         // Persist progress after each execution unit if monitoring is enabled
         if (monitorProgress) {
-          const unitDescription = executionUnit.type === "individual" 
-            ? executionUnit.nodeId 
-            : `inline group [${executionUnit.nodeIds.join(", ")}]`;
-          
+          const unitDescription =
+            executionUnit.type === "individual"
+              ? executionUnit.nodeId
+              : `inline group [${executionUnit.nodeIds.join(", ")}]`;
+
           executionRecord = await step.do(
             `persist after ${unitDescription}`,
             Runtime.defaultStepConfig,
@@ -366,93 +366,174 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   /**
    * Creates an execution plan that groups consecutive inlinable nodes together.
+   * Enhanced version that can handle branching patterns within groups.
+   *
+   * Examples of patterns that can now be inlined:
+   *
+   * Fan-out pattern:
+   *   A → B
+   *   A → C     [A, B, C] can be grouped together
+   *
+   * Fan-in pattern:
+   *   A → C
+   *   B → C     [A, B, C] can be grouped together
+   *
+   * Tree pattern:
+   *   A → B → D
+   *   A → C → D  [A, B, C, D] can be grouped together
+   *
+   * The old linear approach would have executed these as separate steps,
+   * but now they execute in a single Cloudflare workflow step.
    */
-  private createExecutionPlan(workflow: Workflow, orderedNodes: string[]): ExecutionPlan {
+  private createExecutionPlan(
+    workflow: Workflow,
+    orderedNodes: string[]
+  ): ExecutionPlan {
     const plan: ExecutionPlan = [];
-    let currentInlineGroup: string[] = [];
+    const processedNodes = new Set<string>();
+    let totalInlineGroups = 0;
+    let totalInlinedNodes = 0;
 
-    for (const nodeId of orderedNodes) {
-      const node = workflow.nodes.find(n => n.id === nodeId);
+    for (let i = 0; i < orderedNodes.length; i++) {
+      const nodeId = orderedNodes[i];
+
+      if (processedNodes.has(nodeId)) {
+        continue; // Already processed in a group
+      }
+
+      const node = workflow.nodes.find((n) => n.id === nodeId);
       if (!node) continue;
 
       const nodeType = this.nodeRegistry.getNodeType(node.type);
       const isInlinable = nodeType.inlinable ?? false;
 
-      if (isInlinable && this.canAddToInlineGroup(workflow, nodeId, currentInlineGroup)) {
-        // Add to current inline group
-        currentInlineGroup.push(nodeId);
-      } else {
-        // Finalize current inline group if it has nodes
-        if (currentInlineGroup.length > 0) {
-          if (currentInlineGroup.length === 1) {
-            // Single node - add as individual
-            plan.push({ type: "individual", nodeId: currentInlineGroup[0] });
-          } else {
-            // Multiple nodes - add as inline group
-            plan.push({ type: "inline", nodeIds: [...currentInlineGroup] });
-          }
-          currentInlineGroup = [];
+      if (isInlinable) {
+        // Look ahead to find a group of connected inlinable nodes
+        const inlineGroup = this.findConnectedInlinableGroup(
+          workflow,
+          nodeId,
+          orderedNodes,
+          i,
+          processedNodes
+        );
+
+        if (inlineGroup.length === 1) {
+          // Single node - add as individual
+          plan.push({ type: "individual", nodeId: inlineGroup[0] });
+        } else {
+          // Multiple nodes - add as inline group
+          plan.push({ type: "inline", nodeIds: [...inlineGroup] });
+          totalInlineGroups++;
+          totalInlinedNodes += inlineGroup.length;
         }
 
-        // Add current node
-        if (isInlinable) {
-          currentInlineGroup.push(nodeId);
-        } else {
-          plan.push({ type: "individual", nodeId });
-        }
+        // Mark all nodes in the group as processed
+        inlineGroup.forEach((id) => processedNodes.add(id));
+      } else {
+        // Non-inlinable node - add as individual
+        plan.push({ type: "individual", nodeId });
+        processedNodes.add(nodeId);
       }
     }
 
-    // Handle remaining inline group
-    if (currentInlineGroup.length > 0) {
-      if (currentInlineGroup.length === 1) {
-        plan.push({ type: "individual", nodeId: currentInlineGroup[0] });
-      } else {
-        plan.push({ type: "inline", nodeIds: [...currentInlineGroup] });
-      }
+    // Log metrics for performance analysis
+    if (totalInlineGroups > 0) {
+      const totalInlinableNodes = orderedNodes.filter((nodeId) => {
+        const node = workflow.nodes.find((n) => n.id === nodeId);
+        if (!node) return false;
+        const nodeType = this.nodeRegistry.getNodeType(node.type);
+        return nodeType.inlinable ?? false;
+      }).length;
+
+      const inliningEfficiency =
+        (totalInlinedNodes / totalInlinableNodes) * 100;
+      console.log(
+        `Execution plan optimized: ${totalInlineGroups} inline groups containing ${totalInlinedNodes}/${totalInlinableNodes} inlinable nodes (${inliningEfficiency.toFixed(1)}% efficiency)`
+      );
+
+      // Log individual group sizes for analysis
+      const groupSizes = plan
+        .filter((unit) => unit.type === "inline")
+        .map((unit) => (unit.type === "inline" ? unit.nodeIds.length : 0));
+
+      console.log(`Group sizes: [${groupSizes.join(", ")}]`);
     }
 
     return plan;
   }
 
   /**
-   * Checks if a node can be added to the current inline group.
-   * Nodes can only be grouped if they form a linear chain without branching.
+   * Finds a connected group of inlinable nodes starting from a given node.
+   * Uses a simple algorithm: expand the group as long as all dependencies are satisfied.
    */
-  private canAddToInlineGroup(workflow: Workflow, nodeId: string, currentGroup: string[]): boolean {
-    if (currentGroup.length === 0) {
-      return true; // First node in group
+  private findConnectedInlinableGroup(
+    workflow: Workflow,
+    startNodeId: string,
+    orderedNodes: string[],
+    startIndex: number,
+    alreadyProcessed: Set<string>
+  ): string[] {
+    const group = [startNodeId];
+    const groupSet = new Set([startNodeId]);
+
+    // Look ahead in the topological order for nodes that can be added to this group
+    for (let i = startIndex + 1; i < orderedNodes.length; i++) {
+      const candidateId = orderedNodes[i];
+
+      // Skip if already processed or not inlinable
+      if (alreadyProcessed.has(candidateId)) continue;
+
+      const candidateNode = workflow.nodes.find((n) => n.id === candidateId);
+      if (!candidateNode) continue;
+
+      const candidateNodeType = this.nodeRegistry.getNodeType(
+        candidateNode.type
+      );
+      if (!(candidateNodeType.inlinable ?? false)) continue;
+
+      // Check if this candidate can be safely added to the group
+      if (
+        this.canSafelyAddToGroup(
+          workflow,
+          candidateId,
+          groupSet,
+          orderedNodes,
+          startIndex
+        )
+      ) {
+        group.push(candidateId);
+        groupSet.add(candidateId);
+      }
     }
 
-    const lastNodeInGroup = currentGroup[currentGroup.length - 1];
-    
-    // Check if current node directly depends on the last node in the group
-    const hasDirectConnection = workflow.edges.some(edge => 
-      edge.source === lastNodeInGroup && edge.target === nodeId
-    );
+    return group;
+  }
 
-    if (!hasDirectConnection) {
-      return false; // No direct connection
-    }
+  /**
+   * Simplified check: a node can be added to a group if all its dependencies
+   * are either already executed or in the current group.
+   */
+  private canSafelyAddToGroup(
+    workflow: Workflow,
+    nodeId: string,
+    currentGroupSet: Set<string>,
+    orderedNodes: string[],
+    groupStartIndex: number
+  ): boolean {
+    // Get all dependencies of this node
+    const dependencies = workflow.edges
+      .filter((edge) => edge.target === nodeId)
+      .map((edge) => edge.source);
 
-    // Check if current node has dependencies outside the current group
-    const externalDependencies = workflow.edges.filter(edge => 
-      edge.target === nodeId && !currentGroup.includes(edge.source)
-    );
+    // Check each dependency
+    for (const depId of dependencies) {
+      const isInGroup = currentGroupSet.has(depId);
+      const depIndex = orderedNodes.indexOf(depId);
+      const isAlreadyExecuted = depIndex < groupStartIndex;
 
-    if (externalDependencies.length > 0) {
-      return false; // Has dependencies outside the group
-    }
-
-    // Check if any node in the current group has outputs going elsewhere
-    const hasExternalOutputs = workflow.edges.some(edge =>
-      currentGroup.includes(edge.source) && 
-      edge.target !== nodeId && 
-      !currentGroup.includes(edge.target)
-    );
-
-    if (hasExternalOutputs) {
-      return false; // Group has outputs to other nodes
+      if (!isInGroup && !isAlreadyExecuted) {
+        return false; // Has unmet dependency
+      }
     }
 
     return true;
@@ -471,6 +552,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     emailMessage?: EmailMessage
   ): Promise<RuntimeState> {
     let currentState = runtimeState;
+    const groupStartTime = Date.now();
+    const executedNodesInGroup: string[] = [];
+
+    console.log(`Starting inline group execution: [${nodeIds.join(", ")}]`);
 
     // Execute each node in the group sequentially
     for (const nodeId of nodeIds) {
@@ -479,10 +564,15 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         currentState.nodeErrors.has(nodeId) ||
         currentState.skippedNodes.has(nodeId)
       ) {
+        console.log(
+          `Skipping node ${nodeId} in inline group (already failed/skipped)`
+        );
         continue;
       }
 
       try {
+        const nodeStartTime = Date.now();
+
         currentState = await this.executeNode(
           currentState,
           workflowId,
@@ -493,18 +583,36 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           emailMessage
         );
 
+        const nodeExecutionTime = Date.now() - nodeStartTime;
+
         // If execution failed, break the inline group execution
         if (currentState.nodeErrors.has(nodeId)) {
+          console.log(
+            `Node ${nodeId} failed in inline group after ${nodeExecutionTime}ms, stopping group execution`
+          );
           break;
         }
+
+        executedNodesInGroup.push(nodeId);
+        console.log(
+          `Node ${nodeId} completed in inline group (${nodeExecutionTime}ms)`
+        );
       } catch (error) {
         // Handle errors at the group level
         const message = error instanceof Error ? error.message : String(error);
         currentState.nodeErrors.set(nodeId, message);
         currentState.status = "error";
+        console.log(
+          `Fatal error in node ${nodeId} within inline group: ${message}`
+        );
         break;
       }
     }
+
+    const totalGroupTime = Date.now() - groupStartTime;
+    console.log(
+      `Inline group completed: executed ${executedNodesInGroup.length}/${nodeIds.length} nodes in ${totalGroupTime}ms`
+    );
 
     return currentState;
   }
@@ -634,13 +742,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       // Determine final workflow status.
       if (runtimeState.status !== "error") {
-        const allNodesVisited = runtimeState.executionPlan.every(
-          (unit) =>
-            unit.type === "individual"
-              ? runtimeState.executedNodes.has(unit.nodeId) ||
-                runtimeState.skippedNodes.has(unit.nodeId) ||
-                runtimeState.nodeErrors.has(unit.nodeId)
-              : unit.type === "inline"
+        const allNodesVisited = runtimeState.executionPlan.every((unit) =>
+          unit.type === "individual"
+            ? runtimeState.executedNodes.has(unit.nodeId) ||
+              runtimeState.skippedNodes.has(unit.nodeId) ||
+              runtimeState.nodeErrors.has(unit.nodeId)
+            : unit.type === "inline"
               ? unit.nodeIds.every(
                   (id: string) =>
                     runtimeState.executedNodes.has(id) ||
@@ -665,13 +772,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
         // Determine final workflow status.
         if (runtimeState.status !== "error") {
-          const allNodesVisited = runtimeState.executionPlan.every(
-            (unit) =>
-              unit.type === "individual"
-                ? runtimeState.executedNodes.has(unit.nodeId) ||
-                  runtimeState.skippedNodes.has(unit.nodeId) ||
-                  runtimeState.nodeErrors.has(unit.nodeId)
-                : unit.type === "inline"
+          const allNodesVisited = runtimeState.executionPlan.every((unit) =>
+            unit.type === "individual"
+              ? runtimeState.executedNodes.has(unit.nodeId) ||
+                runtimeState.skippedNodes.has(unit.nodeId) ||
+                runtimeState.nodeErrors.has(unit.nodeId)
+              : unit.type === "inline"
                 ? unit.nodeIds.every(
                     (id: string) =>
                       runtimeState.executedNodes.has(id) ||
