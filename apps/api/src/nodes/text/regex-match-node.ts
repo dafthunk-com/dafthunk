@@ -11,6 +11,7 @@ export class RegexMatchNode extends ExecutableNode {
     description: "Test if a string matches a regular expression pattern.",
     tags: ["Text"],
     icon: "search",
+    inlinable: true,
     inputs: [
       {
         name: "string",

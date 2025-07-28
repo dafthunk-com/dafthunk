@@ -11,6 +11,7 @@ export class StringLastIndexOfNode extends ExecutableNode {
     description: "Find the last index of a substring within a string",
     tags: ["Text"],
     icon: "search",
+    inlinable: true,
     inputs: [
       {
         name: "haystack",

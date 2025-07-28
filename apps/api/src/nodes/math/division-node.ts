@@ -14,6 +14,7 @@ export class DivisionNode extends ExecutableNode {
     description: "Divides one number by another",
     tags: ["Math"],
     icon: "divide",
+    inlinable: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

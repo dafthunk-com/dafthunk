@@ -13,6 +13,7 @@ export class MultiPointNode extends ExecutableNode {
       "Creates a Feature<MultiPoint> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "map-pin",
+    inlinable: true,
     inputs: [
       {
         name: "coordinates",

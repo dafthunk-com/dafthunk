@@ -11,6 +11,7 @@ export class FormDataNumberNode extends ExecutableNode {
     tags: ["Parameter"],
     icon: "calculator",
     compatibility: ["http_request"],
+    inlinable: true,
     inputs: [
       {
         name: "name",

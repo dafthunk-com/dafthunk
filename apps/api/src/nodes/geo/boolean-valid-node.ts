@@ -13,6 +13,7 @@ export class BooleanValidNode extends ExecutableNode {
       "Checks if the geometry is valid according to the OGC Simple Feature Specification.",
     tags: ["Geo"],
     icon: "valid",
+    inlinable: true,
     inputs: [
       {
         name: "feature",

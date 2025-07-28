@@ -14,6 +14,7 @@ export class MaxNode extends ExecutableNode {
     description: "Returns the maximum value from multiple numbers",
     tags: ["Math"],
     icon: "arrow-up",
+    inlinable: true,
     inputs: [
       {
         name: "numbers",

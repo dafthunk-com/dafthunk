@@ -14,6 +14,7 @@ export class PhotonFlipImageNode extends ExecutableNode {
     description: "Flips an image horizontally or vertically using Photon.",
     tags: ["Image"],
     icon: "repeat", // General icon for transformations like flip/rotate
+    inlinable: true,
     inputs: [
       {
         name: "image",

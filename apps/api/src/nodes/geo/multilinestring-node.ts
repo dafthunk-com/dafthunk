@@ -13,6 +13,7 @@ export class MultiLineStringNode extends ExecutableNode {
       "Creates a Feature<MultiLineString> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "route",
+    inlinable: true,
     inputs: [
       {
         name: "coordinates",

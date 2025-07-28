@@ -13,6 +13,7 @@ export class BooleanParallelNode extends ExecutableNode {
       "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
     tags: ["Geo"],
     icon: "parallel",
+    inlinable: true,
     inputs: [
       {
         name: "line1",

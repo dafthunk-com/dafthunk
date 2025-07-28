@@ -20,6 +20,7 @@ export class PhotonThresholdNode extends ExecutableNode {
       "Converts an image to black and white based on a threshold value (0-255). Often best applied to a grayscale image.",
     tags: ["Image"],
     icon: "aperture", // Icon suggesting a binary on/off type effect
+    inlinable: true,
     inputs: [
       {
         name: "image",

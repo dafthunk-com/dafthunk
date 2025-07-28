@@ -13,6 +13,7 @@ export class VoronoiNode extends ExecutableNode {
       "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons.",
     tags: ["Geo"],
     icon: "hexagon",
+    inlinable: true,
     inputs: [
       {
         name: "points",

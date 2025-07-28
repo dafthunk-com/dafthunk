@@ -12,6 +12,7 @@ export class LineSplitNode extends ExecutableNode {
     description: "Split a LineString by another GeoJSON Feature.",
     tags: ["Geo"],
     icon: "git-merge",
+    inlinable: true,
     inputs: [
       {
         name: "line",

@@ -12,6 +12,7 @@ export class JsonNumberExtractorNode extends ExecutableNode {
     description: "Extract a numeric value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "hash",
+    inlinable: true,
     inputs: [
       {
         name: "json",

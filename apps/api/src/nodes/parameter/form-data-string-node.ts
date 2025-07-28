@@ -11,6 +11,7 @@ export class FormDataStringNode extends ExecutableNode {
     tags: ["Parameter"],
     icon: "text",
     compatibility: ["http_request"],
+    inlinable: true,
     inputs: [
       {
         name: "name",

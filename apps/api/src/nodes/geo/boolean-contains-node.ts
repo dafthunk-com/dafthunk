@@ -13,6 +13,7 @@ export class BooleanContainsNode extends ExecutableNode {
       "Tests whether one geometry completely contains another geometry.",
     tags: ["Geo"],
     icon: "box",
+    inlinable: true,
     inputs: [
       {
         name: "feature1",

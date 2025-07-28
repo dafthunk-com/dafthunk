@@ -13,6 +13,7 @@ export class BooleanEqualNode extends ExecutableNode {
       "Determines whether two geometries of the same type have identical X,Y coordinate values.",
     tags: ["Geo"],
     icon: "equal",
+    inlinable: true,
     inputs: [
       {
         name: "feature1",

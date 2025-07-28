@@ -13,6 +13,7 @@ export class ConvexNode extends ExecutableNode {
       "Creates a convex hull polygon that encompasses all input points.",
     tags: ["Geo"],
     icon: "hexagon",
+    inlinable: true,
     inputs: [
       {
         name: "geojson",

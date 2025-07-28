@@ -13,6 +13,7 @@ export class AdditionNode extends ExecutableNode {
     description: "Adds two numbers together",
     tags: ["Math"],
     icon: "plus",
+    inlinable: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

@@ -11,6 +11,7 @@ export class RegexSplitNode extends ExecutableNode {
     description: "Split a string by a regular expression pattern.",
     tags: ["Text"],
     icon: "divide",
+    inlinable: true,
     inputs: [
       {
         name: "string",

@@ -13,6 +13,7 @@ export class FlattenNode extends ExecutableNode {
       "Flattens any GeoJSON to a FeatureCollection of Point, LineString, or Polygon features.",
     tags: ["Geo"],
     icon: "layers",
+    inlinable: true,
     inputs: [
       {
         name: "geojson",

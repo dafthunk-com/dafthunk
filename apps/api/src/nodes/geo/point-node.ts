@@ -13,6 +13,7 @@ export class PointNode extends ExecutableNode {
       "Creates a Point feature from x, y coordinates with optional z.",
     tags: ["Geo"],
     icon: "map-pin",
+    inlinable: true,
     inputs: [
       {
         name: "x",

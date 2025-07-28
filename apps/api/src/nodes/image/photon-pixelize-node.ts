@@ -14,6 +14,7 @@ export class PhotonPixelizeNode extends ExecutableNode {
     description: "Applies a pixelization effect to an image using Photon.",
     tags: ["Image"],
     icon: "grid", // Icon representing pixels or a grid
+    inlinable: true,
     inputs: [
       {
         name: "image",

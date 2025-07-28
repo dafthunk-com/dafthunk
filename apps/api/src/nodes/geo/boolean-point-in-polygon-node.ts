@@ -12,6 +12,7 @@ export class BooleanPointInPolygonNode extends ExecutableNode {
     description: "Tests whether a point is inside a polygon.",
     tags: ["Geo"],
     icon: "locate",
+    inlinable: true,
     inputs: [
       {
         name: "point",

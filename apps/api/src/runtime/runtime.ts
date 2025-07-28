@@ -50,6 +50,20 @@ export type WorkflowOutputs = Map<string, NodeOutputs>;
 export type ExecutedNodeSet = Set<string>;
 export type SortedNodeList = string[];
 
+// Inline execution types
+export type InlineGroup = {
+  type: "inline";
+  nodeIds: string[];
+};
+
+export type IndividualNode = {
+  type: "individual";
+  nodeId: string;
+};
+
+export type ExecutionUnit = InlineGroup | IndividualNode;
+export type ExecutionPlan = ExecutionUnit[];
+
 export type RuntimeParams = {
   workflow: Workflow;
   userId: string;
@@ -67,7 +81,7 @@ export type RuntimeState = {
   executedNodes: ExecutedNodeSet;
   skippedNodes: ExecutedNodeSet;
   nodeErrors: NodeErrors;
-  sortedNodes: SortedNodeList;
+  executionPlan: ExecutionPlan;
   status: WorkflowExecutionStatus;
 };
 
@@ -116,7 +130,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      sortedNodes: [],
+      executionPlan: [],
       status: "submitted",
     };
 
@@ -183,33 +197,58 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
 
       // Execute nodes sequentially.
-      for (const nodeIdentifier of runtimeState.sortedNodes) {
-        if (
-          runtimeState.nodeErrors.has(nodeIdentifier) ||
-          runtimeState.skippedNodes.has(nodeIdentifier)
-        ) {
-          continue; // Skip nodes that were already marked as failed.
+      for (const executionUnit of runtimeState.executionPlan) {
+        if (executionUnit.type === "individual") {
+          const nodeIdentifier = executionUnit.nodeId;
+          if (
+            runtimeState.nodeErrors.has(nodeIdentifier) ||
+            runtimeState.skippedNodes.has(nodeIdentifier)
+          ) {
+            continue; // Skip nodes that were already marked as failed.
+          }
+
+          runtimeState = await step.do(
+            `run node ${nodeIdentifier}`,
+            Runtime.defaultStepConfig,
+            async () =>
+              this.executeNode(
+                runtimeState,
+                workflow.id,
+                nodeIdentifier,
+                organizationId,
+                instanceId,
+                httpRequest,
+                emailMessage
+              )
+          );
+        } else if (executionUnit.type === "inline") {
+          // Execute inline group - all nodes in a single step
+          const groupDescription = `inline group [${executionUnit.nodeIds.join(", ")}]`;
+          
+          runtimeState = await step.do(
+            `run ${groupDescription}`,
+            Runtime.defaultStepConfig,
+            async () =>
+              this.executeInlineGroup(
+                runtimeState,
+                workflow.id,
+                executionUnit.nodeIds,
+                organizationId,
+                instanceId,
+                httpRequest,
+                emailMessage
+              )
+          );
         }
 
-        runtimeState = await step.do(
-          `run node ${nodeIdentifier}`,
-          Runtime.defaultStepConfig,
-          async () =>
-            this.executeNode(
-              runtimeState,
-              workflow.id,
-              nodeIdentifier,
-              organizationId,
-              instanceId,
-              httpRequest,
-              emailMessage
-            )
-        );
-
-        // Persist progress after each node if monitoring is enabled
+        // Persist progress after each execution unit if monitoring is enabled
         if (monitorProgress) {
+          const unitDescription = executionUnit.type === "individual" 
+            ? executionUnit.nodeId 
+            : `inline group [${executionUnit.nodeIds.join(", ")}]`;
+          
           executionRecord = await step.do(
-            `persist after ${nodeIdentifier}`,
+            `persist after ${unitDescription}`,
             Runtime.defaultStepConfig,
             async () =>
               this.saveExecutionState(
@@ -292,7 +331,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
-   * Validates the workflow and creates a sequential execution order.
+   * Validates the workflow and creates a sequential execution order with inline groups.
    */
   private async initialiseWorkflow(workflow: Workflow): Promise<RuntimeState> {
     const validationErrors = validateWorkflow(workflow);
@@ -311,15 +350,163 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
     }
 
+    // Create execution plan with inline groups
+    const executionPlan = this.createExecutionPlan(workflow, orderedNodes);
+
     return {
       workflow,
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      sortedNodes: orderedNodes,
+      executionPlan,
       status: "executing",
     };
+  }
+
+  /**
+   * Creates an execution plan that groups consecutive inlinable nodes together.
+   */
+  private createExecutionPlan(workflow: Workflow, orderedNodes: string[]): ExecutionPlan {
+    const plan: ExecutionPlan = [];
+    let currentInlineGroup: string[] = [];
+
+    for (const nodeId of orderedNodes) {
+      const node = workflow.nodes.find(n => n.id === nodeId);
+      if (!node) continue;
+
+      const nodeType = this.nodeRegistry.getNodeType(node.type);
+      const isInlinable = nodeType.inlinable ?? false;
+
+      if (isInlinable && this.canAddToInlineGroup(workflow, nodeId, currentInlineGroup)) {
+        // Add to current inline group
+        currentInlineGroup.push(nodeId);
+      } else {
+        // Finalize current inline group if it has nodes
+        if (currentInlineGroup.length > 0) {
+          if (currentInlineGroup.length === 1) {
+            // Single node - add as individual
+            plan.push({ type: "individual", nodeId: currentInlineGroup[0] });
+          } else {
+            // Multiple nodes - add as inline group
+            plan.push({ type: "inline", nodeIds: [...currentInlineGroup] });
+          }
+          currentInlineGroup = [];
+        }
+
+        // Add current node
+        if (isInlinable) {
+          currentInlineGroup.push(nodeId);
+        } else {
+          plan.push({ type: "individual", nodeId });
+        }
+      }
+    }
+
+    // Handle remaining inline group
+    if (currentInlineGroup.length > 0) {
+      if (currentInlineGroup.length === 1) {
+        plan.push({ type: "individual", nodeId: currentInlineGroup[0] });
+      } else {
+        plan.push({ type: "inline", nodeIds: [...currentInlineGroup] });
+      }
+    }
+
+    return plan;
+  }
+
+  /**
+   * Checks if a node can be added to the current inline group.
+   * Nodes can only be grouped if they form a linear chain without branching.
+   */
+  private canAddToInlineGroup(workflow: Workflow, nodeId: string, currentGroup: string[]): boolean {
+    if (currentGroup.length === 0) {
+      return true; // First node in group
+    }
+
+    const lastNodeInGroup = currentGroup[currentGroup.length - 1];
+    
+    // Check if current node directly depends on the last node in the group
+    const hasDirectConnection = workflow.edges.some(edge => 
+      edge.source === lastNodeInGroup && edge.target === nodeId
+    );
+
+    if (!hasDirectConnection) {
+      return false; // No direct connection
+    }
+
+    // Check if current node has dependencies outside the current group
+    const externalDependencies = workflow.edges.filter(edge => 
+      edge.target === nodeId && !currentGroup.includes(edge.source)
+    );
+
+    if (externalDependencies.length > 0) {
+      return false; // Has dependencies outside the group
+    }
+
+    // Check if any node in the current group has outputs going elsewhere
+    const hasExternalOutputs = workflow.edges.some(edge =>
+      currentGroup.includes(edge.source) && 
+      edge.target !== nodeId && 
+      !currentGroup.includes(edge.target)
+    );
+
+    if (hasExternalOutputs) {
+      return false; // Group has outputs to other nodes
+    }
+
+    return true;
+  }
+
+  /**
+   * Executes a group of inlinable nodes sequentially in a single step.
+   */
+  private async executeInlineGroup(
+    runtimeState: RuntimeState,
+    workflowId: string,
+    nodeIds: string[],
+    organizationId: string,
+    executionId: string,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage
+  ): Promise<RuntimeState> {
+    let currentState = runtimeState;
+
+    // Execute each node in the group sequentially
+    for (const nodeId of nodeIds) {
+      // Skip nodes that were already marked as failed or skipped
+      if (
+        currentState.nodeErrors.has(nodeId) ||
+        currentState.skippedNodes.has(nodeId)
+      ) {
+        continue;
+      }
+
+      try {
+        currentState = await this.executeNode(
+          currentState,
+          workflowId,
+          nodeId,
+          organizationId,
+          executionId,
+          httpRequest,
+          emailMessage
+        );
+
+        // If execution failed, break the inline group execution
+        if (currentState.nodeErrors.has(nodeId)) {
+          break;
+        }
+      } catch (error) {
+        // Handle errors at the group level
+        const message = error instanceof Error ? error.message : String(error);
+        currentState.nodeErrors.set(nodeId, message);
+        currentState.status = "error";
+        break;
+      }
+    }
+
+    return currentState;
   }
 
   /**
@@ -447,11 +634,20 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       // Determine final workflow status.
       if (runtimeState.status !== "error") {
-        const allNodesVisited = runtimeState.sortedNodes.every(
-          (id: string) =>
-            runtimeState.executedNodes.has(id) ||
-            runtimeState.skippedNodes.has(id) ||
-            runtimeState.nodeErrors.has(id)
+        const allNodesVisited = runtimeState.executionPlan.every(
+          (unit) =>
+            unit.type === "individual"
+              ? runtimeState.executedNodes.has(unit.nodeId) ||
+                runtimeState.skippedNodes.has(unit.nodeId) ||
+                runtimeState.nodeErrors.has(unit.nodeId)
+              : unit.type === "inline"
+              ? unit.nodeIds.every(
+                  (id: string) =>
+                    runtimeState.executedNodes.has(id) ||
+                    runtimeState.skippedNodes.has(id) ||
+                    runtimeState.nodeErrors.has(id)
+                )
+              : false
         );
         runtimeState.status =
           allNodesVisited && runtimeState.nodeErrors.size === 0
@@ -469,11 +665,20 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
         // Determine final workflow status.
         if (runtimeState.status !== "error") {
-          const allNodesVisited = runtimeState.sortedNodes.every(
-            (id: string) =>
-              runtimeState.executedNodes.has(id) ||
-              runtimeState.skippedNodes.has(id) ||
-              runtimeState.nodeErrors.has(id)
+          const allNodesVisited = runtimeState.executionPlan.every(
+            (unit) =>
+              unit.type === "individual"
+                ? runtimeState.executedNodes.has(unit.nodeId) ||
+                  runtimeState.skippedNodes.has(unit.nodeId) ||
+                  runtimeState.nodeErrors.has(unit.nodeId)
+                : unit.type === "inline"
+                ? unit.nodeIds.every(
+                    (id: string) =>
+                      runtimeState.executedNodes.has(id) ||
+                      runtimeState.skippedNodes.has(id) ||
+                      runtimeState.nodeErrors.has(id)
+                  )
+                : false
           );
           runtimeState.status =
             allNodesVisited && runtimeState.nodeErrors.size === 0

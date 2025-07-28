@@ -13,6 +13,7 @@ export class LineOverlapNode extends ExecutableNode {
       "Takes any LineString or Polygon and returns the overlapping lines between both features.",
     tags: ["Geo"],
     icon: "layers",
+    inlinable: true,
     inputs: [
       {
         name: "line1",

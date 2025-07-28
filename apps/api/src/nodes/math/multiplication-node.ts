@@ -14,6 +14,7 @@ export class MultiplicationNode extends ExecutableNode {
     description: "Multiplies two numbers",
     tags: ["Math"],
     icon: "x",
+    inlinable: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

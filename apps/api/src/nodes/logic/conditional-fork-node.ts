@@ -18,6 +18,7 @@ export class ConditionalForkNode extends ExecutableNode {
       "Splits the workflow into two branches based on a boolean condition. The 'true' output is taken if the condition is true, 'false' if false.",
     tags: ["Logic"],
     icon: "git-branch",
+    inlinable: true,
     inputs: [
       {
         name: "condition",

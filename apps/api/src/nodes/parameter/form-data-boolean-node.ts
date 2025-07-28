@@ -12,6 +12,7 @@ export class FormDataBooleanNode extends ExecutableNode {
     tags: ["Parameter"],
     icon: "toggle",
     compatibility: ["http_request"],
+    inlinable: true,
     inputs: [
       {
         name: "name",

@@ -12,6 +12,7 @@ export class PolygonTangentsNode extends ExecutableNode {
     description: "Finds the tangents of a (Multi)Polygon from a Point.",
     tags: ["Geo"],
     icon: "compass",
+    inlinable: true,
     inputs: [
       {
         name: "point",

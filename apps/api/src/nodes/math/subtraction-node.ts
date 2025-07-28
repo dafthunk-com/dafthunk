@@ -14,6 +14,7 @@ export class SubtractionNode extends ExecutableNode {
     description: "Subtracts one number from another",
     tags: ["Math"],
     icon: "minus",
+    inlinable: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

@@ -13,6 +13,7 @@ export class CenterMedianNode extends ExecutableNode {
       "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature.",
     tags: ["Geo"],
     icon: "center",
+    inlinable: true,
     inputs: [
       {
         name: "features",

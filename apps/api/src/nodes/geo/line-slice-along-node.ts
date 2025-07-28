@@ -14,6 +14,7 @@ export class LineSliceAlongNode extends ExecutableNode {
       "Takes a line, a specified distance along the line to a start Point, and a specified distance along the line to a stop point and returns a subsection of the line in-between those points.",
     tags: ["Geo"],
     icon: "ruler",
+    inlinable: true,
     inputs: [
       {
         name: "line",

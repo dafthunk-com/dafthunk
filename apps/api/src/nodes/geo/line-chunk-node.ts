@@ -12,6 +12,7 @@ export class LineChunkNode extends ExecutableNode {
     description: "Breaks a LineString into chunks of a specified length.",
     tags: ["Geo"],
     icon: "scissors",
+    inlinable: true,
     inputs: [
       {
         name: "line",

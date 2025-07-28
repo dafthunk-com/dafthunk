@@ -11,6 +11,7 @@ export class StringIndexOfNode extends ExecutableNode {
     description: "Find the index of a substring within a string",
     tags: ["Text"],
     icon: "search",
+    inlinable: true,
     inputs: [
       {
         name: "haystack",

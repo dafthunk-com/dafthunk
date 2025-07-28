@@ -13,6 +13,7 @@ export class RoundNode extends ExecutableNode {
       "Rounds the precision of a coordinate to a specified number of decimal places.",
     tags: ["Geo"],
     icon: "hash",
+    inlinable: true,
     inputs: [
       {
         name: "geojson",

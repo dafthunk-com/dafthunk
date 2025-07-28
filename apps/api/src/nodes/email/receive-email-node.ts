@@ -12,6 +12,7 @@ export class ReceiveEmailNode extends ExecutableNode {
     tags: ["Email"],
     icon: "mail",
     compatibility: ["email_message"],
+    inlinable: true,
     inputs: [],
     outputs: [
       {

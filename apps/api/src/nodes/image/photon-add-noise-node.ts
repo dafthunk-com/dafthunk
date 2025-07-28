@@ -15,6 +15,7 @@ export class PhotonAddNoiseNode extends ExecutableNode {
     description: "Adds randomized Gaussian noise to an image.",
     tags: ["Image"],
     icon: "sparkles", // Icon suggesting noise or a scattered effect
+    inlinable: true,
     inputs: [
       {
         name: "image",

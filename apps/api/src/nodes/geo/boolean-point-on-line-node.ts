@@ -13,6 +13,7 @@ export class BooleanPointOnLineNode extends ExecutableNode {
       "Returns true if a point is on a line. Accepts optional parameters to ignore start/end vertices and set epsilon tolerance.",
     tags: ["Geo"],
     icon: "point-on-line",
+    inlinable: true,
     inputs: [
       {
         name: "pt",

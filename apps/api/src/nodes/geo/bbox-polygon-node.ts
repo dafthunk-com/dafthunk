@@ -12,6 +12,7 @@ export class BboxPolygonNode extends ExecutableNode {
     description: "Takes a bbox and returns an equivalent polygon.",
     tags: ["Geo"],
     icon: "square",
+    inlinable: true,
     inputs: [
       {
         name: "bbox",

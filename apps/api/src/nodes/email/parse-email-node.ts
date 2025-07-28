@@ -32,6 +32,7 @@ export class ParseEmailNode extends ExecutableNode {
     tags: ["Email"],
     icon: "mail",
     compatibility: ["email_message"],
+    inlinable: true,
     inputs: [
       {
         name: "raw",

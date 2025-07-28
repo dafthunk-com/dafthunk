@@ -21,6 +21,7 @@ export class GeoJsonGeometryNode extends ExecutableNode {
     description: "Parse a GeoJSON geometry object from JSON input",
     tags: ["Geo"],
     icon: "map",
+    inlinable: true,
     inputs: [
       {
         name: "json",

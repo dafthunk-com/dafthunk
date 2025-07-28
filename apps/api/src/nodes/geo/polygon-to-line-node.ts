@@ -13,6 +13,7 @@ export class PolygonToLineNode extends ExecutableNode {
       "Converts a Polygon or MultiPolygon to a LineString or MultiLineString.",
     tags: ["Geo"],
     icon: "route",
+    inlinable: true,
     inputs: [
       {
         name: "polygon",

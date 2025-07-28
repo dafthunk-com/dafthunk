@@ -13,6 +13,7 @@ export class UnionNode extends ExecutableNode {
       "Takes a collection of input polygons and returns a combined polygon. If the input polygons are not contiguous, this function returns a multi-polygon feature.",
     tags: ["Geo"],
     icon: "plus-circle",
+    inlinable: true,
     inputs: [
       {
         name: "features",

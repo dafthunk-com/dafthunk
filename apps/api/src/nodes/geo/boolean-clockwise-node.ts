@@ -13,6 +13,7 @@ export class BooleanClockwiseNode extends ExecutableNode {
       "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise.",
     tags: ["Geo"],
     icon: "rotate-cw",
+    inlinable: true,
     inputs: [
       {
         name: "line",

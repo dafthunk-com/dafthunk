@@ -11,6 +11,7 @@ export class StringIncludesNode extends ExecutableNode {
     description: "Check if one string includes another string",
     tags: ["Text"],
     icon: "search",
+    inlinable: true,
     inputs: [
       {
         name: "haystack",

@@ -11,6 +11,7 @@ export class StringTrimNode extends ExecutableNode {
     description: "Remove whitespace from both ends of a string",
     tags: ["Text"],
     icon: "scissors",
+    inlinable: true,
     inputs: [
       {
         name: "string",

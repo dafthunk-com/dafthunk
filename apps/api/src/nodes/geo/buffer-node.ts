@@ -13,6 +13,7 @@ export class BufferNode extends ExecutableNode {
       "Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.",
     tags: ["Geo"],
     icon: "circle",
+    inlinable: true,
     inputs: [
       {
         name: "geojson",

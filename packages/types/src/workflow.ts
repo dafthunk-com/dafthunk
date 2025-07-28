@@ -209,7 +209,8 @@ export interface NodeType {
   description?: string;
   tags: string[];
   icon: string;
-  computeCost?: number;
+  computeCost?: number; // The cost of running this node in compute credits
+  inlinable?: boolean; // Flag to indicate if this node can be inlined with others
   inputs: Parameter[];
   outputs: Parameter[];
   compatibility?: WorkflowType[]; // Optional array of workflow types this node is compatible with

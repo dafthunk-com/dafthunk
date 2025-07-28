@@ -13,6 +13,7 @@ export class MaskNode extends ExecutableNode {
       "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes.",
     tags: ["Geo"],
     icon: "eye-off",
+    inlinable: true,
     inputs: [
       {
         name: "polygon",

@@ -13,6 +13,7 @@ export class MultiPolygonNode extends ExecutableNode {
       "Creates a Feature<MultiPolygon> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "layers",
+    inlinable: true,
     inputs: [
       {
         name: "coordinates",

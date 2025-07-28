@@ -13,6 +13,7 @@ export class UnkinkPolygonNode extends ExecutableNode {
       "Takes a kinked polygon and returns a feature collection of polygons that have no kinks.",
     tags: ["Geo"],
     icon: "scissors",
+    inlinable: true,
     inputs: [
       {
         name: "polygon",

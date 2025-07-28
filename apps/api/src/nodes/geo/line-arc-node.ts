@@ -13,6 +13,7 @@ export class LineArcNode extends ExecutableNode {
       "Creates a circular arc, of a circle of the given radius and center point, between bearing1 and bearing2.",
     tags: ["Geo"],
     icon: "circle",
+    inlinable: true,
     inputs: [
       {
         name: "center",

@@ -12,6 +12,7 @@ export class RegexReplaceNode extends ExecutableNode {
       "Replace all matches of a regular expression pattern in a string.",
     tags: ["Text"],
     icon: "edit",
+    inlinable: true,
     inputs: [
       {
         name: "string",

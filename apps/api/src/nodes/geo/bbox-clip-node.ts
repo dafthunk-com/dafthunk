@@ -13,6 +13,7 @@ export class BboxClipNode extends ExecutableNode {
       "Takes a Feature and a bbox and clips the feature to the bbox using lineclip. Polygon features are clipped to polygon intersection with bbox, LineString features are clipped to segments that intersect the bbox, and Point features are clipped if they fall within the bbox.",
     tags: ["Geo"],
     icon: "scissors",
+    inlinable: true,
     inputs: [
       {
         name: "geojson",
