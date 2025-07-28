@@ -2768,6 +2768,83 @@ vi.mock("@turf/turf", () => ({
     // Default fallback for unknown types
     return false;
   }),
+  centerMean: vi.fn().mockImplementation((features, options) => {
+    // Mock implementation that calculates the mean center of features
+    // This simulates the centerMean behavior without testing the actual algorithm
+    
+    // Extract coordinates from features
+    let allCoords: number[][] = [];
+    
+    if (features.type === "Feature") {
+      // Single feature
+      allCoords = extractCoordinates(features.geometry);
+    } else if (features.type === "FeatureCollection") {
+      // Feature collection
+      for (const feature of features.features) {
+        allCoords = allCoords.concat(extractCoordinates(feature.geometry));
+      }
+    } else {
+      // Geometry object
+      allCoords = extractCoordinates(features);
+    }
+    
+    // Calculate mean center
+    if (allCoords.length === 0) {
+      return {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "Point",
+          coordinates: [0, 0]
+        }
+      };
+    }
+    
+    const sumX = allCoords.reduce((sum, coord) => sum + coord[0], 0);
+    const sumY = allCoords.reduce((sum, coord) => sum + coord[1], 0);
+    const meanX = sumX / allCoords.length;
+    const meanY = sumY / allCoords.length;
+    
+    return {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Point",
+        coordinates: [meanX, meanY]
+      }
+    };
+    
+    // Helper function to extract all coordinates from a geometry
+    function extractCoordinates(geometry: any) {
+      const coords: number[][] = [];
+      
+      if (geometry.type === "Point") {
+        coords.push(geometry.coordinates);
+      } else if (geometry.type === "LineString") {
+        coords.push(...geometry.coordinates);
+      } else if (geometry.type === "Polygon") {
+        for (const ring of geometry.coordinates) {
+          // Exclude the last point if it's the same as the first (closing vertex)
+          const ringCoords = ring.slice(0, -1);
+          coords.push(...ringCoords);
+        }
+      } else if (geometry.type === "MultiPoint") {
+        coords.push(...geometry.coordinates);
+      } else if (geometry.type === "MultiLineString") {
+        for (const line of geometry.coordinates) {
+          coords.push(...line);
+        }
+      } else if (geometry.type === "MultiPolygon") {
+        for (const polygon of geometry.coordinates) {
+          for (const ring of polygon) {
+            coords.push(...ring);
+          }
+        }
+      }
+      
+      return coords;
+    }
+  }),
 
 }));
 

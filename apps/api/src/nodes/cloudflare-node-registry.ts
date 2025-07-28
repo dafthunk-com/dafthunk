@@ -132,6 +132,7 @@ import { BooleanPointOnLineNode } from "./geo/boolean-point-on-line-node";
 import { BooleanTouchesNode } from "./geo/boolean-touches-node";
 import { BooleanWithinNode } from "./geo/boolean-within-node";
 import { BooleanValidNode } from "./geo/boolean-valid-node";
+import { CenterMeanNode } from "./geo/center-mean-node";
 import { AreaNode } from "./geo/area-node";
 import { BboxNode } from "./geo/bbox-node";
 import { BboxPolygonNode } from "./geo/bbox-polygon-node";
@@ -360,6 +361,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(BooleanTouchesNode);
     this.registerImplementation(BooleanWithinNode);
     this.registerImplementation(BooleanValidNode);
+    this.registerImplementation(CenterMeanNode);
     this.registerImplementation(AreaNode);
     this.registerImplementation(BboxNode);
     this.registerImplementation(BboxPolygonNode);
