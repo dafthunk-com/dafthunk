@@ -15,10 +15,11 @@ export class MinNode extends ExecutableNode {
     tags: ["Math"],
     icon: "arrow-down",
     inputs: [
-      { 
-        name: "numbers", 
-        type: "number", 
-        description: "Numbers to find minimum from (supports multiple connections)",
+      {
+        name: "numbers",
+        type: "number",
+        description:
+          "Numbers to find minimum from (supports multiple connections)",
         required: true,
         repeated: true,
       },
@@ -60,18 +61,20 @@ export class MinNode extends ExecutableNode {
         }
 
         // Find minimum value
-        const result = Math.min(...numbers.map(num => Number(num)));
+        const result = Math.min(...numbers.map((num) => Number(num)));
 
         return this.createSuccessResult({
           result,
         });
       }
 
-      return this.createErrorResult("Invalid input type: expected number or array of numbers");
+      return this.createErrorResult(
+        "Invalid input type: expected number or array of numbers"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-} 
+}

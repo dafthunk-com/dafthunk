@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { RoundNode } from "./round-node";
 import { NodeContext } from "../types";
+import { RoundNode } from "./round-node";
 
 describe("RoundNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,9 +29,9 @@ describe("RoundNode", () => {
           properties: { name: "Test Feature" },
           geometry: {
             type: "Point",
-            coordinates: [1.23456789, 2.34567890]
-          }
-        }
+            coordinates: [1.23456789, 2.3456789],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -46,8 +46,8 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
-        }
+          coordinates: [1.23456789, 2.3456789],
+        },
       });
 
       const result = await node.execute(context);
@@ -62,10 +62,10 @@ describe("RoundNode", () => {
         geojson: {
           type: "LineString",
           coordinates: [
-            [1.23456789, 2.34567890],
-            [3.45678901, 4.56789012]
-          ]
-        }
+            [1.23456789, 2.3456789],
+            [3.45678901, 4.56789012],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -81,14 +81,14 @@ describe("RoundNode", () => {
           type: "Polygon",
           coordinates: [
             [
-              [1.23456789, 2.34567890],
-              [3.45678901, 2.34567890],
+              [1.23456789, 2.3456789],
+              [3.45678901, 2.3456789],
               [3.45678901, 4.56789012],
               [1.23456789, 4.56789012],
-              [1.23456789, 2.34567890]
-            ]
-          ]
-        }
+              [1.23456789, 2.3456789],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -102,8 +102,8 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
-        }
+          coordinates: [1, 2],
+        },
       });
 
       const result = await node.execute(context);
@@ -117,9 +117,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: 2
+        precision: 2,
       });
 
       const result = await node.execute(context);
@@ -133,9 +133,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: 0
+        precision: 0,
       });
 
       const result = await node.execute(context);
@@ -149,9 +149,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: 10
+        precision: 10,
       });
 
       const result = await node.execute(context);
@@ -166,10 +166,10 @@ describe("RoundNode", () => {
         geojson: {
           type: "MultiPoint",
           coordinates: [
-            [1.23456789, 2.34567890],
-            [3.45678901, 4.56789012]
-          ]
-        }
+            [1.23456789, 2.3456789],
+            [3.45678901, 4.56789012],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -185,15 +185,15 @@ describe("RoundNode", () => {
           type: "MultiLineString",
           coordinates: [
             [
-              [1.23456789, 2.34567890],
-              [3.45678901, 4.56789012]
+              [1.23456789, 2.3456789],
+              [3.45678901, 4.56789012],
             ],
             [
               [5.67890123, 6.78901234],
-              [7.89012345, 8.90123456]
-            ]
-          ]
-        }
+              [7.89012345, 8.90123456],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -210,15 +210,15 @@ describe("RoundNode", () => {
           coordinates: [
             [
               [
-                [1.23456789, 2.34567890],
-                [3.45678901, 2.34567890],
+                [1.23456789, 2.3456789],
+                [3.45678901, 2.3456789],
                 [3.45678901, 4.56789012],
                 [1.23456789, 4.56789012],
-                [1.23456789, 2.34567890]
-              ]
-            ]
-          ]
-        }
+                [1.23456789, 2.3456789],
+              ],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -241,7 +241,7 @@ describe("RoundNode", () => {
 
     it("should handle null geojson input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -252,7 +252,7 @@ describe("RoundNode", () => {
 
     it("should handle undefined geojson input", async () => {
       const context = createMockContext({
-        geojson: undefined
+        geojson: undefined,
       });
 
       const result = await node.execute(context);
@@ -265,9 +265,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: "not a number"
+        precision: "not a number",
       });
 
       const result = await node.execute(context);
@@ -280,9 +280,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: true
+        precision: true,
       });
 
       const result = await node.execute(context);
@@ -295,9 +295,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: -1
+        precision: -1,
       });
 
       const result = await node.execute(context);
@@ -310,9 +310,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        mutate: "not a boolean"
+        mutate: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -325,9 +325,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        mutate: 1
+        mutate: 1,
       });
 
       const result = await node.execute(context);
@@ -342,9 +342,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: null
+        precision: null,
       });
 
       const result = await node.execute(context);
@@ -358,9 +358,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        precision: undefined
+        precision: undefined,
       });
 
       const result = await node.execute(context);
@@ -374,9 +374,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        mutate: null
+        mutate: null,
       });
 
       const result = await node.execute(context);
@@ -390,9 +390,9 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
+          coordinates: [1.23456789, 2.3456789],
         },
-        mutate: undefined
+        mutate: undefined,
       });
 
       const result = await node.execute(context);
@@ -406,8 +406,8 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [123456789.123456789, 987654321.987654321]
-        }
+          coordinates: [123456789.1234567, 987654321.9876543],
+        },
       });
 
       const result = await node.execute(context);
@@ -421,8 +421,8 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0.000000001, 0.000000002]
-        }
+          coordinates: [0.000000001, 0.000000002],
+        },
       });
 
       const result = await node.execute(context);
@@ -436,8 +436,8 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [-1.23456789, -2.34567890]
-        }
+          coordinates: [-1.23456789, -2.3456789],
+        },
       });
 
       const result = await node.execute(context);
@@ -451,8 +451,8 @@ describe("RoundNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -462,4 +462,4 @@ describe("RoundNode", () => {
       expect(result.outputs?.rounded.type).toBe("Point");
     });
   });
-}); 
+});

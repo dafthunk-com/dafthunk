@@ -9,7 +9,8 @@ export class CenterMeanNode extends ExecutableNode {
     id: "center-mean",
     name: "Center Mean",
     type: "center-mean",
-    description: "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature.",
+    description:
+      "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature.",
     tags: ["Geo"],
     icon: "center",
     inputs: [
@@ -49,10 +50,11 @@ export class CenterMeanNode extends ExecutableNode {
       return this.createSuccessResult({
         center,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating mean center: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating mean center: ${error.message}`
+      );
     }
   }
-} 
+}

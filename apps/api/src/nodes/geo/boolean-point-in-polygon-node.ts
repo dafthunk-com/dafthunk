@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { booleanPointInPolygon } from "@turf/turf";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -21,13 +22,15 @@ export class BooleanPointInPolygonNode extends ExecutableNode {
       {
         name: "polygon",
         type: "geojson",
-        description: "Polygon to test against (Polygon or MultiPolygon feature)",
+        description:
+          "Polygon to test against (Polygon or MultiPolygon feature)",
         required: true,
       },
       {
         name: "ignoreBoundary",
         type: "boolean",
-        description: "Whether to ignore if point is on polygon boundary (default: false)",
+        description:
+          "Whether to ignore if point is on polygon boundary (default: false)",
         required: false,
       },
     ],
@@ -50,11 +53,15 @@ export class BooleanPointInPolygonNode extends ExecutableNode {
         return this.createErrorResult("Missing polygon input");
       }
       // Directly delegate to turf.booleanPointInPolygon
-      const isInside = booleanPointInPolygon(point, polygon, { ignoreBoundary });
+      const isInside = booleanPointInPolygon(point, polygon, {
+        ignoreBoundary,
+      });
       return this.createSuccessResult({ inside: isInside });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error testing point in polygon: ${error.message}`);
+      return this.createErrorResult(
+        `Error testing point in polygon: ${error.message}`
+      );
     }
   }
-} 
+}

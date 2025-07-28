@@ -9,7 +9,8 @@ export class RhumbDistanceNode extends ExecutableNode {
     id: "rhumbDistance",
     name: "Rhumb Distance",
     type: "rhumbDistance",
-    description: "Calculates the rhumb line distance (constant bearing distance) between two points.",
+    description:
+      "Calculates the rhumb line distance (constant bearing distance) between two points.",
     tags: ["Geo"],
     icon: "ruler",
     inputs: [
@@ -28,7 +29,8 @@ export class RhumbDistanceNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units for distance calculation (kilometers, miles, meters, degrees, radians)",
+        description:
+          "Units for distance calculation (kilometers, miles, meters, degrees, radians)",
         required: false,
       },
     ],
@@ -59,10 +61,11 @@ export class RhumbDistanceNode extends ExecutableNode {
       return this.createSuccessResult({
         distance: distance,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating rhumb distance: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating rhumb distance: ${error.message}`
+      );
     }
   }
-} 
+}

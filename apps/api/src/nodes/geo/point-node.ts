@@ -9,7 +9,8 @@ export class PointNode extends ExecutableNode {
     id: "point",
     name: "Point",
     type: "point",
-    description: "Creates a Point feature from x, y coordinates with optional z.",
+    description:
+      "Creates a Point feature from x, y coordinates with optional z.",
     tags: ["Geo"],
     icon: "map-pin",
     inputs: [
@@ -54,10 +55,9 @@ export class PointNode extends ExecutableNode {
       return this.createSuccessResult({
         point: pointFeature,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error creating point: ${error.message}`);
     }
   }
-} 
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineSegmentNode } from "./line-segment-node";
+
 import { NodeContext } from "../types";
+import { LineSegmentNode } from "./line-segment-node";
 
 describe("LineSegmentNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,9 +28,14 @@ describe("LineSegmentNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -41,8 +47,13 @@ describe("LineSegmentNode", () => {
     const context = createMockContext({
       geojson: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 0], [2, 0], [3, 0]]
-      }
+        coordinates: [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [3, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -57,9 +68,17 @@ describe("LineSegmentNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -71,8 +90,16 @@ describe("LineSegmentNode", () => {
     const context = createMockContext({
       geojson: {
         type: "Polygon",
-        coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-      }
+        coordinates: [
+          [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -88,11 +115,19 @@ describe("LineSegmentNode", () => {
         geometry: {
           type: "MultiLineString",
           coordinates: [
-            [[0, 0], [1, 0], [2, 0]],
-            [[0, 1], [1, 1], [2, 1]]
-          ]
-        }
-      }
+            [
+              [0, 0],
+              [1, 0],
+              [2, 0],
+            ],
+            [
+              [0, 1],
+              [1, 1],
+              [2, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -108,11 +143,27 @@ describe("LineSegmentNode", () => {
         geometry: {
           type: "MultiPolygon",
           coordinates: [
-            [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]],
-            [[[3, 3], [5, 3], [5, 5], [3, 5], [3, 3]]]
-          ]
-        }
-      }
+            [
+              [
+                [0, 0],
+                [2, 0],
+                [2, 2],
+                [0, 2],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [3, 3],
+                [5, 3],
+                [5, 5],
+                [3, 5],
+                [3, 3],
+              ],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -127,9 +178,14 @@ describe("LineSegmentNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0], [8, 0], [12, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+            [8, 0],
+            [12, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -144,9 +200,17 @@ describe("LineSegmentNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -161,9 +225,14 @@ describe("LineSegmentNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1], [2, 2], [3, 3]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 2],
+            [3, 3],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -178,9 +247,12 @@ describe("LineSegmentNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -196,11 +268,23 @@ describe("LineSegmentNode", () => {
         geometry: {
           type: "Polygon",
           coordinates: [
-            [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]],
-            [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]
-          ]
-        }
-      }
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -214,4 +298,4 @@ describe("LineSegmentNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing geojson input");
   });
-}); 
+});

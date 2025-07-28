@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ExplodeNode } from "./explode-node";
 import { NodeContext } from "../types";
+import { ExplodeNode } from "./explode-node";
 
 describe("ExplodeNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +26,8 @@ describe("ExplodeNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [10, 20]
-        }
+          coordinates: [10, 20],
+        },
       });
 
       const result = await node.execute(context);
@@ -45,9 +45,9 @@ describe("ExplodeNode", () => {
           coordinates: [
             [10, 20],
             [30, 40],
-            [50, 60]
-          ]
-        }
+            [50, 60],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -62,14 +62,16 @@ describe("ExplodeNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [10, 20],
-            [30, 20],
-            [30, 40],
-            [10, 40],
-            [10, 20]
-          ]]
-        }
+          coordinates: [
+            [
+              [10, 20],
+              [30, 20],
+              [30, 40],
+              [10, 40],
+              [10, 20],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -89,9 +91,9 @@ describe("ExplodeNode", () => {
           properties: { name: "Test Point" },
           geometry: {
             type: "Point",
-            coordinates: [10, 20]
-          }
-        }
+            coordinates: [10, 20],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -111,10 +113,10 @@ describe("ExplodeNode", () => {
             type: "LineString",
             coordinates: [
               [10, 20],
-              [30, 40]
-            ]
-          }
-        }
+              [30, 40],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -137,8 +139,8 @@ describe("ExplodeNode", () => {
               properties: { id: 1 },
               geometry: {
                 type: "Point",
-                coordinates: [10, 20]
-              }
+                coordinates: [10, 20],
+              },
             },
             {
               type: "Feature",
@@ -147,12 +149,12 @@ describe("ExplodeNode", () => {
                 type: "LineString",
                 coordinates: [
                   [30, 40],
-                  [50, 60]
-                ]
-              }
-            }
-          ]
-        }
+                  [50, 60],
+                ],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -176,7 +178,7 @@ describe("ExplodeNode", () => {
 
     it("should handle null GeoJSON input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -185,4 +187,4 @@ describe("ExplodeNode", () => {
       expect(result.error).toBe("Missing GeoJSON input");
     });
   });
-}); 
+});

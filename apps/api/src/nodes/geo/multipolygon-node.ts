@@ -9,7 +9,8 @@ export class MultiPolygonNode extends ExecutableNode {
     id: "multipolygon",
     name: "Multi Polygon",
     type: "multipolygon",
-    description: "Creates a Feature<MultiPolygon> based on a coordinate array. Properties can be added optionally.",
+    description:
+      "Creates a Feature<MultiPolygon> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "layers",
     inputs: [
@@ -28,7 +29,8 @@ export class MultiPolygonNode extends ExecutableNode {
       {
         name: "bbox",
         type: "json",
-        description: "Bounding Box Array [west, south, east, north] associated with the Feature",
+        description:
+          "Bounding Box Array [west, south, east, north] associated with the Feature",
         required: false,
       },
       {
@@ -64,7 +66,9 @@ export class MultiPolygonNode extends ExecutableNode {
         }
 
         if (bbox.length !== 4) {
-          return this.createErrorResult("Bbox must be an array of 4 numbers [west, south, east, north]");
+          return this.createErrorResult(
+            "Bbox must be an array of 4 numbers [west, south, east, north]"
+          );
         }
 
         for (let i = 0; i < bbox.length; i++) {
@@ -84,15 +88,20 @@ export class MultiPolygonNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js multiPolygon function
-      const multiPolygonResult = multiPolygon(coordinates as any, properties as any, options as any);
+      const multiPolygonResult = multiPolygon(
+        coordinates as any,
+        properties as any,
+        options as any
+      );
 
       return this.createSuccessResult({
         multiPolygon: multiPolygonResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating multi polygon: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating multi polygon: ${error.message}`
+      );
     }
   }
-} 
+}

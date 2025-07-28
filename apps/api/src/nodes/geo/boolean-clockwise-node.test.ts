@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanClockwiseNode } from "./boolean-clockwise-node";
+
 import { NodeContext } from "../types";
+import { BooleanClockwiseNode } from "./boolean-clockwise-node";
 
 describe("BooleanClockwiseNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -31,10 +32,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -52,10 +53,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [1, 0],
             [1, 1],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -70,9 +71,9 @@ describe("BooleanClockwiseNode", () => {
           [0, 0],
           [2, 2],
           [2, 0],
-          [0, 0]
-        ]
-      }
+          [0, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -87,9 +88,9 @@ describe("BooleanClockwiseNode", () => {
           [0, 0],
           [2, 0],
           [2, 2],
-          [0, 0]
-        ]
-      }
+          [0, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -102,8 +103,8 @@ describe("BooleanClockwiseNode", () => {
         [0, 0],
         [3, 3],
         [3, 0],
-        [0, 0]
-      ]
+        [0, 0],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -116,8 +117,8 @@ describe("BooleanClockwiseNode", () => {
         [0, 0],
         [3, 0],
         [3, 3],
-        [0, 0]
-      ]
+        [0, 0],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -135,10 +136,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [10, 10],
             [10, 0],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -156,10 +157,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [10, 0],
             [10, 10],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -179,10 +180,10 @@ describe("BooleanClockwiseNode", () => {
             [10, 5],
             [10, 0],
             [5, -5],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -202,10 +203,10 @@ describe("BooleanClockwiseNode", () => {
             [10, 0],
             [10, 5],
             [5, 5],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -224,10 +225,10 @@ describe("BooleanClockwiseNode", () => {
             [4, 0],
             [4, 4],
             [0, 4],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -246,10 +247,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 4],
             [4, 4],
             [4, 0],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -267,10 +268,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [6, 0],
             [3, 6],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -288,10 +289,10 @@ describe("BooleanClockwiseNode", () => {
             [0, 0],
             [3, 6],
             [6, 0],
-            [0, 0]
-          ]
-        }
-      }
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -307,7 +308,7 @@ describe("BooleanClockwiseNode", () => {
 
   it("returns an error for null line input", async () => {
     const context = createMockContext({
-      line: null
+      line: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -316,10 +317,10 @@ describe("BooleanClockwiseNode", () => {
 
   it("returns an error for undefined line input", async () => {
     const context = createMockContext({
-      line: undefined
+      line: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing line input");
   });
-}); 
+});

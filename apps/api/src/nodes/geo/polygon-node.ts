@@ -9,14 +9,16 @@ export class PolygonNode extends ExecutableNode {
     id: "polygon",
     name: "Polygon",
     type: "polygon",
-    description: "Creates a Polygon feature from an array of coordinate rings (exterior ring and optional holes).",
+    description:
+      "Creates a Polygon feature from an array of coordinate rings (exterior ring and optional holes).",
     tags: ["Geo"],
     icon: "square",
     inputs: [
       {
         name: "coordinates",
         type: "json",
-        description: "Array of rings, where first ring is exterior and rest are holes [[[lon1, lat1], [lon2, lat2], ...]]",
+        description:
+          "Array of rings, where first ring is exterior and rest are holes [[[lon1, lat1], [lon2, lat2], ...]]",
         required: true,
       },
       {
@@ -58,10 +60,9 @@ export class PolygonNode extends ExecutableNode {
       return this.createSuccessResult({
         polygon: polygonFeature,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error creating Polygon: ${error.message}`);
     }
   }
-} 
+}

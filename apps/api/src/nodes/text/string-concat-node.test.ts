@@ -97,7 +97,8 @@ describe("StringConcatNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input at position 1: expected string, got number");
+    expect(result.error).toContain(
+      "Invalid input at position 1: expected string, got number"
+    );
   });
-
 });

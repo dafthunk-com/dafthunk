@@ -9,7 +9,8 @@ export class FlipNode extends ExecutableNode {
     id: "flip",
     name: "Flip Coordinates",
     type: "flip",
-    description: "Flips the coordinate order of GeoJSON features (longitude/latitude ↔ latitude/longitude).",
+    description:
+      "Flips the coordinate order of GeoJSON features (longitude/latitude ↔ latitude/longitude).",
     tags: ["Geo"],
     icon: "flip-horizontal",
     inputs: [
@@ -43,10 +44,11 @@ export class FlipNode extends ExecutableNode {
       return this.createSuccessResult({
         flipped: flippedGeometry,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error flipping coordinates: ${error.message}`);
+      return this.createErrorResult(
+        `Error flipping coordinates: ${error.message}`
+      );
     }
   }
-} 
+}

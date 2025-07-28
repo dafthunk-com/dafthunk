@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineSliceAlongNode } from "./line-slice-along-node";
+
 import { NodeContext } from "../types";
+import { LineSliceAlongNode } from "./line-slice-along-node";
 
 describe("LineSliceAlongNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,11 +28,17 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
-      stopDist: 3
+      stopDist: 3,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -44,10 +51,16 @@ describe("LineSliceAlongNode", () => {
     const context = createMockContext({
       line: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
+        coordinates: [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [3, 0],
+          [4, 0],
+        ],
       },
       startDist: 1,
-      stopDist: 3
+      stopDist: 3,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -63,12 +76,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: "miles"
+      units: "miles",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -84,12 +103,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: "degrees"
+      units: "degrees",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -105,12 +130,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: "radians"
+      units: "radians",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -126,12 +157,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: "kilometers"
+      units: "kilometers",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -147,11 +184,17 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0], [6, 0], [8, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+            [6, 0],
+            [8, 0],
+          ],
+        },
       },
       startDist: 2,
-      stopDist: 6
+      stopDist: 6,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -167,11 +210,17 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 2,
-      stopDist: 2
+      stopDist: 2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -187,11 +236,17 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 0,
-      stopDist: 4
+      stopDist: 4,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -207,11 +262,14 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
       startDist: 0,
-      stopDist: 1
+      stopDist: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -223,7 +281,7 @@ describe("LineSliceAlongNode", () => {
   it("returns an error for missing line input", async () => {
     const context = createMockContext({
       startDist: 1,
-      stopDist: 3
+      stopDist: 3,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -237,10 +295,16 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      stopDist: 3
+      stopDist: 3,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -254,10 +318,16 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      startDist: 1
+      startDist: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -271,11 +341,17 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: "not a number",
-      stopDist: 3
+      stopDist: 3,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -289,11 +365,17 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
-      stopDist: "not a number"
+      stopDist: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -307,12 +389,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: 123
+      units: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -326,16 +414,24 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: "invalid"
+      units: "invalid",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Units must be one of: degrees, radians, miles, kilometers");
+    expect(result.error).toBe(
+      "Units must be one of: degrees, radians, miles, kilometers"
+    );
   });
 
   it("handles null units gracefully", async () => {
@@ -345,12 +441,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: null
+      units: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -366,12 +468,18 @@ describe("LineSliceAlongNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       startDist: 1,
       stopDist: 3,
-      units: undefined
+      units: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -379,4 +487,4 @@ describe("LineSliceAlongNode", () => {
     expect(result.outputs?.sliced.type).toBe("Feature");
     expect(result.outputs?.sliced.geometry.type).toBe("LineString");
   });
-}); 
+});

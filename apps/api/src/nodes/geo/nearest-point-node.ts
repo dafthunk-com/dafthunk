@@ -9,7 +9,8 @@ export class NearestPointNode extends ExecutableNode {
     id: "nearestPoint",
     name: "Nearest Point",
     type: "nearestPoint",
-    description: "Finds the nearest point from a collection of points to a target point.",
+    description:
+      "Finds the nearest point from a collection of points to a target point.",
     tags: ["Geo"],
     icon: "target",
     inputs: [
@@ -22,7 +23,8 @@ export class NearestPointNode extends ExecutableNode {
       {
         name: "points",
         type: "geojson",
-        description: "Collection of points to search (FeatureCollection of Point features)",
+        description:
+          "Collection of points to search (FeatureCollection of Point features)",
         required: true,
       },
     ],
@@ -53,10 +55,11 @@ export class NearestPointNode extends ExecutableNode {
       return this.createSuccessResult({
         nearestPoint: nearest,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error finding nearest point: ${error.message}`);
+      return this.createErrorResult(
+        `Error finding nearest point: ${error.message}`
+      );
     }
   }
-} 
+}

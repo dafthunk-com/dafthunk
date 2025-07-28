@@ -9,7 +9,8 @@ export class SquareNode extends ExecutableNode {
     id: "square",
     name: "Square",
     type: "square",
-    description: "Takes a bounding box and calculates the minimum square bounding box that would contain the input.",
+    description:
+      "Takes a bounding box and calculates the minimum square bounding box that would contain the input.",
     tags: ["Geo"],
     icon: "square",
     inputs: [
@@ -42,13 +43,17 @@ export class SquareNode extends ExecutableNode {
       }
 
       if (bbox.length !== 4) {
-        return this.createErrorResult("Bbox must have exactly 4 elements [west, south, east, north]");
+        return this.createErrorResult(
+          "Bbox must have exactly 4 elements [west, south, east, north]"
+        );
       }
 
       // Validate that all elements are numbers
       for (let i = 0; i < bbox.length; i++) {
         if (typeof bbox[i] !== "number") {
-          return this.createErrorResult(`Bbox element at index ${i} must be a number`);
+          return this.createErrorResult(
+            `Bbox element at index ${i} must be a number`
+          );
         }
       }
 
@@ -58,10 +63,11 @@ export class SquareNode extends ExecutableNode {
       return this.createSuccessResult({
         square: squareBbox,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating square bounding box: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating square bounding box: ${error.message}`
+      );
     }
   }
-} 
+}

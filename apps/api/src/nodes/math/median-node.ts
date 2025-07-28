@@ -11,14 +11,16 @@ export class MedianNode extends ExecutableNode {
     id: "median",
     name: "Median",
     type: "median",
-    description: "Returns the median value from multiple numbers (middle value when sorted)",
+    description:
+      "Returns the median value from multiple numbers (middle value when sorted)",
     tags: ["Math"],
     icon: "bar-chart-3",
     inputs: [
-      { 
-        name: "numbers", 
-        type: "number", 
-        description: "Numbers to calculate median from (supports multiple connections)",
+      {
+        name: "numbers",
+        type: "number",
+        description:
+          "Numbers to calculate median from (supports multiple connections)",
         required: true,
         repeated: true,
       },
@@ -46,7 +48,9 @@ export class MedianNode extends ExecutableNode {
       if (Array.isArray(numbers)) {
         // Handle empty array
         if (numbers.length === 0) {
-          return this.createErrorResult("Cannot calculate median of empty array");
+          return this.createErrorResult(
+            "Cannot calculate median of empty array"
+          );
         }
 
         // Validate all inputs are numbers
@@ -60,12 +64,14 @@ export class MedianNode extends ExecutableNode {
         }
 
         // Convert all inputs to numbers and sort them
-        const sortedNumbers = numbers.map(num => Number(num)).sort((a, b) => a - b);
-        
+        const sortedNumbers = numbers
+          .map((num) => Number(num))
+          .sort((a, b) => a - b);
+
         // Calculate median
         let result: number;
         const length = sortedNumbers.length;
-        
+
         if (length % 2 === 0) {
           // Even number of elements: median is average of two middle values
           const mid1 = sortedNumbers[length / 2 - 1];
@@ -81,11 +87,13 @@ export class MedianNode extends ExecutableNode {
         });
       }
 
-      return this.createErrorResult("Invalid input type: expected number or array of numbers");
+      return this.createErrorResult(
+        "Invalid input type: expected number or array of numbers"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-} 
+}

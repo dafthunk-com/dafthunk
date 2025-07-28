@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { EnvelopeNode } from "./envelope-node";
 import { NodeContext } from "../types";
+import { EnvelopeNode } from "./envelope-node";
 
 describe("EnvelopeNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +26,8 @@ describe("EnvelopeNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -42,14 +42,16 @@ describe("EnvelopeNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [4, 0],
-            [4, 2],
-            [0, 2],
-            [0, 0]
-          ]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -65,9 +67,9 @@ describe("EnvelopeNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [4, 2]
-          ]
-        }
+            [4, 2],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -83,9 +85,9 @@ describe("EnvelopeNode", () => {
           type: "MultiPoint",
           coordinates: [
             [0, 0],
-            [4, 2]
-          ]
-        }
+            [4, 2],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -104,15 +106,17 @@ describe("EnvelopeNode", () => {
           properties: { name: "Test Feature" },
           geometry: {
             type: "Polygon",
-            coordinates: [[
-              [0, 0],
-              [4, 0],
-              [4, 2],
-              [0, 2],
-              [0, 0]
-            ]]
-          }
-        }
+            coordinates: [
+              [
+                [0, 0],
+                [4, 0],
+                [4, 2],
+                [0, 2],
+                [0, 0],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -132,19 +136,19 @@ describe("EnvelopeNode", () => {
               properties: { id: 1 },
               geometry: {
                 type: "Point",
-                coordinates: [0, 0]
-              }
+                coordinates: [0, 0],
+              },
             },
             {
               type: "Feature",
               properties: { id: 2 },
               geometry: {
                 type: "Point",
-                coordinates: [4, 2]
-              }
-            }
-          ]
-        }
+                coordinates: [4, 2],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -167,7 +171,7 @@ describe("EnvelopeNode", () => {
 
     it("should handle null input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -176,4 +180,4 @@ describe("EnvelopeNode", () => {
       expect(result.error).toBe("Missing GeoJSON input");
     });
   });
-}); 
+});

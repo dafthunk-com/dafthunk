@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { DifferenceNode } from "./difference-node";
+
 import { NodeContext } from "../types";
+import { DifferenceNode } from "./difference-node";
 
 describe("DifferenceNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,10 +26,40 @@ describe("DifferenceNode", () => {
       featureCollection: {
         type: "FeatureCollection",
         features: [
-          { type: "Feature", geometry: { type: "Polygon", coordinates: [[[0,0],[0,2],[2,2],[2,0],[0,0]]] }, properties: {} },
-          { type: "Feature", geometry: { type: "Polygon", coordinates: [[[1,1],[1,3],[3,3],[3,1],[1,1]]] }, properties: {} }
-        ]
-      }
+          {
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [0, 0],
+                  [0, 2],
+                  [2, 2],
+                  [2, 0],
+                  [0, 0],
+                ],
+              ],
+            },
+            properties: {},
+          },
+          {
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [1, 1],
+                  [1, 3],
+                  [3, 3],
+                  [3, 1],
+                  [1, 1],
+                ],
+              ],
+            },
+            properties: {},
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -54,12 +85,27 @@ describe("DifferenceNode", () => {
       featureCollection: {
         type: "FeatureCollection",
         features: [
-          { type: "Feature", geometry: { type: "Polygon", coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] }, properties: {} }
-        ]
-      }
+          {
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [0, 0],
+                  [0, 1],
+                  [1, 1],
+                  [1, 0],
+                  [0, 0],
+                ],
+              ],
+            },
+            properties: {},
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toMatch(/featureCollection/);
   });
-}); 
+});

@@ -1,6 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { BooleanDisjointNode } from "./boolean-disjoint-node";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { NodeContext } from "../types";
+import { BooleanDisjointNode } from "./boolean-disjoint-node";
 
 // Mock the Turf.js booleanDisjoint function
 vi.mock("@turf/turf", () => ({
@@ -35,52 +36,58 @@ describe("BooleanDisjointNode", () => {
     const mockFeature1 = { type: "Point", coordinates: [0, 0] };
     const mockFeature2 = { type: "Point", coordinates: [1, 1] };
     const mockResult = true;
-    
+
     vi.mocked(booleanDisjoint).mockReturnValue(mockResult);
-    
+
     const context = createMockContext({
       feature1: mockFeature1,
       feature2: mockFeature2,
     });
-    
+
     const result = await node.execute(context);
-    
+
     expect(booleanDisjoint).toHaveBeenCalledWith(mockFeature1, mockFeature2);
     expect(result.status).toBe("completed");
     expect(result.outputs?.disjoint).toBe(mockResult);
   });
 
   it("returns error for missing feature1", async () => {
-    const context = createMockContext({ 
-      feature2: { type: "Point", coordinates: [0, 0] } 
+    const context = createMockContext({
+      feature2: { type: "Point", coordinates: [0, 0] },
     });
-    
+
     const result = await node.execute(context);
-    
+
     expect(result.status).toBe("error");
-    expect(result.error).toMatch(/Both feature1 and feature2 inputs are required/);
+    expect(result.error).toMatch(
+      /Both feature1 and feature2 inputs are required/
+    );
     expect(booleanDisjoint).not.toHaveBeenCalled();
   });
 
   it("returns error for missing feature2", async () => {
-    const context = createMockContext({ 
-      feature1: { type: "Point", coordinates: [0, 0] } 
+    const context = createMockContext({
+      feature1: { type: "Point", coordinates: [0, 0] },
     });
-    
+
     const result = await node.execute(context);
-    
+
     expect(result.status).toBe("error");
-    expect(result.error).toMatch(/Both feature1 and feature2 inputs are required/);
+    expect(result.error).toMatch(
+      /Both feature1 and feature2 inputs are required/
+    );
     expect(booleanDisjoint).not.toHaveBeenCalled();
   });
 
   it("returns error for missing both inputs", async () => {
     const context = createMockContext({});
-    
+
     const result = await node.execute(context);
-    
+
     expect(result.status).toBe("error");
-    expect(result.error).toMatch(/Both feature1 and feature2 inputs are required/);
+    expect(result.error).toMatch(
+      /Both feature1 and feature2 inputs are required/
+    );
     expect(booleanDisjoint).not.toHaveBeenCalled();
   });
 
@@ -89,29 +96,31 @@ describe("BooleanDisjointNode", () => {
     vi.mocked(booleanDisjoint).mockImplementation(() => {
       throw mockError;
     });
-    
+
     const context = createMockContext({
       feature1: { type: "Point", coordinates: [0, 0] },
       feature2: { type: "Point", coordinates: [1, 1] },
     });
-    
+
     const result = await node.execute(context);
-    
+
     expect(result.status).toBe("error");
-    expect(result.error).toMatch(/Error testing disjoint relationship: Turf\.js error/);
+    expect(result.error).toMatch(
+      /Error testing disjoint relationship: Turf\.js error/
+    );
   });
 
   it("returns correct output format", async () => {
     vi.mocked(booleanDisjoint).mockReturnValue(false);
-    
+
     const context = createMockContext({
       feature1: { type: "Point", coordinates: [0, 0] },
       feature2: { type: "Point", coordinates: [0, 0] },
     });
-    
+
     const result = await node.execute(context);
-    
+
     expect(result.status).toBe("completed");
     expect(result.outputs).toEqual({ disjoint: false });
   });
-}); 
+});

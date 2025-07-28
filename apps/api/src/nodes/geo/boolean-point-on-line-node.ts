@@ -9,7 +9,8 @@ export class BooleanPointOnLineNode extends ExecutableNode {
     id: "boolean-point-on-line",
     name: "Boolean Point On Line",
     type: "boolean-point-on-line",
-    description: "Returns true if a point is on a line. Accepts optional parameters to ignore start/end vertices and set epsilon tolerance.",
+    description:
+      "Returns true if a point is on a line. Accepts optional parameters to ignore start/end vertices and set epsilon tolerance.",
     tags: ["Geo"],
     icon: "point-on-line",
     inputs: [
@@ -28,13 +29,15 @@ export class BooleanPointOnLineNode extends ExecutableNode {
       {
         name: "ignoreEndVertices",
         type: "boolean",
-        description: "Whether to ignore the start and end vertices (default: false)",
+        description:
+          "Whether to ignore the start and end vertices (default: false)",
         required: false,
       },
       {
         name: "epsilon",
         type: "number",
-        description: "Fractional number to compare with cross product result for floating point precision (default: 0)",
+        description:
+          "Fractional number to compare with cross product result for floating point precision (default: 0)",
         required: false,
       },
     ],
@@ -61,11 +64,11 @@ export class BooleanPointOnLineNode extends ExecutableNode {
 
       // Build options object for Turf.js
       const options: any = {};
-      
+
       if (ignoreEndVertices !== undefined) {
         options.ignoreEndVertices = ignoreEndVertices;
       }
-      
+
       if (epsilon !== undefined) {
         options.epsilon = epsilon;
       }
@@ -76,10 +79,11 @@ export class BooleanPointOnLineNode extends ExecutableNode {
       return this.createSuccessResult({
         isOnLine,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking if point is on line: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking if point is on line: ${error.message}`
+      );
     }
   }
-} 
+}

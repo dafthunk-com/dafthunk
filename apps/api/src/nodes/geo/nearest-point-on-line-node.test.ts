@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { NearestPointOnLineNode } from "./nearest-point-on-line-node";
+
 import { NodeContext } from "../types";
+import { NearestPointOnLineNode } from "./nearest-point-on-line-node";
 
 describe("NearestPointOnLineNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,17 +28,20 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
-      }
+          coordinates: [2, 2],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -50,12 +54,15 @@ describe("NearestPointOnLineNode", () => {
     const context = createMockContext({
       lines: {
         type: "LineString",
-        coordinates: [[0, 0], [4, 0]]
+        coordinates: [
+          [0, 0],
+          [4, 0],
+        ],
       },
       pt: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -72,19 +79,25 @@ describe("NearestPointOnLineNode", () => {
         geometry: {
           type: "MultiLineString",
           coordinates: [
-            [[0, 0], [2, 0]],
-            [[4, 0], [6, 0]]
-          ]
-        }
+            [
+              [0, 0],
+              [2, 0],
+            ],
+            [
+              [4, 0],
+              [6, 0],
+            ],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [3, 2]
-        }
-      }
+          coordinates: [3, 2],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -100,18 +113,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: "miles"
+      units: "miles",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -127,18 +143,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: "degrees"
+      units: "degrees",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -154,18 +173,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: "radians"
+      units: "radians",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -181,18 +203,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: "kilometers"
+      units: "kilometers",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -208,17 +233,20 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [8, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [8, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 3]
-        }
-      }
+          coordinates: [4, 3],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -234,17 +262,20 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 0]
-        }
-      }
+          coordinates: [2, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -260,17 +291,20 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 4]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 4],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 1]
-        }
-      }
+          coordinates: [2, 1],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -286,17 +320,20 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0.5, 2]
-        }
-      }
+          coordinates: [0.5, 2],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -312,17 +349,20 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [5, 0]
-        }
-      }
+          coordinates: [5, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -338,18 +378,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: null
+      units: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -365,18 +408,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: undefined
+      units: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -392,9 +438,9 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
-      }
+          coordinates: [2, 2],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -408,9 +454,12 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -424,18 +473,21 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: 123
+      units: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -449,21 +501,26 @@ describe("NearestPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       pt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
-      units: "invalid"
+      units: "invalid",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Units must be one of: degrees, radians, miles, kilometers");
+    expect(result.error).toBe(
+      "Units must be one of: degrees, radians, miles, kilometers"
+    );
   });
-}); 
+});

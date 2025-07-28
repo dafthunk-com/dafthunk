@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PolygonNode } from "./polygon-node";
 import { NodeContext } from "../types";
+import { PolygonNode } from "./polygon-node";
 
 describe("PolygonNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -24,13 +24,15 @@ describe("PolygonNode", () => {
   describe("Basic functionality", () => {
     it("should create polygon with coordinates", async () => {
       const context = createMockContext({
-        coordinates: [[
-          [0, 0],
-          [10, 0],
-          [10, 10],
-          [0, 10],
-          [0, 0]
-        ]]
+        coordinates: [
+          [
+            [0, 0],
+            [10, 0],
+            [10, 10],
+            [0, 10],
+            [0, 0],
+          ],
+        ],
       });
 
       const result = await node.execute(context);
@@ -43,17 +45,19 @@ describe("PolygonNode", () => {
 
     it("should handle properties input", async () => {
       const context = createMockContext({
-        coordinates: [[
-          [0, 0],
-          [10, 0],
-          [10, 10],
-          [0, 10],
-          [0, 0]
-        ]],
+        coordinates: [
+          [
+            [0, 0],
+            [10, 0],
+            [10, 10],
+            [0, 10],
+            [0, 0],
+          ],
+        ],
         properties: {
           name: "Test Area",
-          type: "boundary"
-        }
+          type: "boundary",
+        },
       });
 
       const result = await node.execute(context);
@@ -75,7 +79,7 @@ describe("PolygonNode", () => {
 
     it("should handle null coordinates", async () => {
       const context = createMockContext({
-        coordinates: null
+        coordinates: null,
       });
 
       const result = await node.execute(context);
@@ -86,14 +90,16 @@ describe("PolygonNode", () => {
 
     it("should handle invalid properties type", async () => {
       const context = createMockContext({
-        coordinates: [[
-          [0, 0],
-          [10, 0],
-          [10, 10],
-          [0, 10],
-          [0, 0]
-        ]],
-        properties: "not an object"
+        coordinates: [
+          [
+            [0, 0],
+            [10, 0],
+            [10, 10],
+            [0, 10],
+            [0, 0],
+          ],
+        ],
+        properties: "not an object",
       });
 
       const result = await node.execute(context);
@@ -102,4 +108,4 @@ describe("PolygonNode", () => {
       expect(result.error).toBe("Properties must be an object");
     });
   });
-}); 
+});

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PolygonSmoothNode } from "./polygon-smooth-node";
 import { NodeContext } from "../types";
+import { PolygonSmoothNode } from "./polygon-smooth-node";
 
 describe("PolygonSmoothNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -35,11 +35,11 @@ describe("PolygonSmoothNode", () => {
                 [2, 0],
                 [2, 2],
                 [0, 2],
-                [0, 0]
-              ]
-            ]
-          }
-        }
+                [0, 0],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -60,10 +60,10 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -83,10 +83,10 @@ describe("PolygonSmoothNode", () => {
               [3, 0],
               [3, 3],
               [0, 3],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -106,11 +106,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: 2
+        iterations: 2,
       });
 
       const result = await node.execute(context);
@@ -130,11 +130,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        highQuality: true
+        highQuality: true,
       });
 
       const result = await node.execute(context);
@@ -154,11 +154,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        highQuality: false
+        highQuality: false,
       });
 
       const result = await node.execute(context);
@@ -178,12 +178,12 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
         iterations: 3,
-        highQuality: true
+        highQuality: true,
       });
 
       const result = await node.execute(context);
@@ -203,11 +203,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: 0
+        iterations: 0,
       });
 
       const result = await node.execute(context);
@@ -227,11 +227,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: 10
+        iterations: 10,
       });
 
       const result = await node.execute(context);
@@ -251,17 +251,17 @@ describe("PolygonSmoothNode", () => {
               [4, 0],
               [4, 4],
               [0, 4],
-              [0, 0]
+              [0, 0],
             ],
             [
               [1, 1],
               [3, 1],
               [3, 3],
               [1, 3],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -282,8 +282,8 @@ describe("PolygonSmoothNode", () => {
                 [2, 0],
                 [2, 2],
                 [0, 2],
-                [0, 0]
-              ]
+                [0, 0],
+              ],
             ],
             [
               [
@@ -291,11 +291,11 @@ describe("PolygonSmoothNode", () => {
                 [6, 4],
                 [6, 6],
                 [4, 6],
-                [4, 4]
-              ]
-            ]
-          ]
-        }
+                [4, 4],
+              ],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -314,10 +314,10 @@ describe("PolygonSmoothNode", () => {
               [0, 0],
               [2, 0],
               [1, 2],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -338,10 +338,10 @@ describe("PolygonSmoothNode", () => {
               [2, 1],
               [1, 2],
               [0, 1],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -361,10 +361,10 @@ describe("PolygonSmoothNode", () => {
               [2.5, 0.5],
               [2.5, 2.5],
               [0.5, 2.5],
-              [0.5, 0.5]
-            ]
-          ]
-        }
+              [0.5, 0.5],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -384,10 +384,10 @@ describe("PolygonSmoothNode", () => {
               [2, -2],
               [2, 2],
               [-2, 2],
-              [-2, -2]
-            ]
-          ]
-        }
+              [-2, -2],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -407,10 +407,10 @@ describe("PolygonSmoothNode", () => {
               [2000000, 1000000],
               [2000000, 2000000],
               [1000000, 2000000],
-              [1000000, 1000000]
-            ]
-          ]
-        }
+              [1000000, 1000000],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -430,10 +430,10 @@ describe("PolygonSmoothNode", () => {
               [0.000002, 0.000001],
               [0.000002, 0.000002],
               [0.000001, 0.000002],
-              [0.000001, 0.000001]
-            ]
-          ]
-        }
+              [0.000001, 0.000001],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -456,7 +456,7 @@ describe("PolygonSmoothNode", () => {
 
     it("should handle null polygon input", async () => {
       const context = createMockContext({
-        polygon: null
+        polygon: null,
       });
 
       const result = await node.execute(context);
@@ -467,7 +467,7 @@ describe("PolygonSmoothNode", () => {
 
     it("should handle undefined polygon input", async () => {
       const context = createMockContext({
-        polygon: undefined
+        polygon: undefined,
       });
 
       const result = await node.execute(context);
@@ -486,11 +486,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: "not a number"
+        iterations: "not a number",
       });
 
       const result = await node.execute(context);
@@ -509,11 +509,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: true
+        iterations: true,
       });
 
       const result = await node.execute(context);
@@ -532,11 +532,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: -1
+        iterations: -1,
       });
 
       const result = await node.execute(context);
@@ -555,11 +555,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        highQuality: "not a boolean"
+        highQuality: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -578,11 +578,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        highQuality: 1
+        highQuality: 1,
       });
 
       const result = await node.execute(context);
@@ -603,11 +603,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: null
+        iterations: null,
       });
 
       const result = await node.execute(context);
@@ -627,11 +627,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        iterations: undefined
+        iterations: undefined,
       });
 
       const result = await node.execute(context);
@@ -651,11 +651,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        highQuality: null
+        highQuality: null,
       });
 
       const result = await node.execute(context);
@@ -675,11 +675,11 @@ describe("PolygonSmoothNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        highQuality: undefined
+        highQuality: undefined,
       });
 
       const result = await node.execute(context);
@@ -700,8 +700,8 @@ describe("PolygonSmoothNode", () => {
       const context = createMockContext({
         polygon: {
           type: "Polygon",
-          coordinates: [coordinates]
-        }
+          coordinates: [coordinates],
+        },
       });
 
       const result = await node.execute(context);
@@ -721,10 +721,10 @@ describe("PolygonSmoothNode", () => {
               [0.000001, 0],
               [0.000001, 0.000001],
               [0, 0.000001],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -746,10 +746,10 @@ describe("PolygonSmoothNode", () => {
               [2, 1],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -770,10 +770,10 @@ describe("PolygonSmoothNode", () => {
               [1, 0], // Duplicate point
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -783,4 +783,4 @@ describe("PolygonSmoothNode", () => {
       expect(result.outputs?.smoothed.type).toBe("Polygon");
     });
   });
-}); 
+});

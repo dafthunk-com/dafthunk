@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { CenterMedianNode } from "./center-median-node";
+
 import { NodeContext } from "../types";
+import { CenterMedianNode } from "./center-median-node";
 
 describe("CenterMedianNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,12 +27,12 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
-    
+
     const context = createMockContext({
-      features: point
+      features: point,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -40,8 +41,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     });
   });
 
@@ -57,14 +58,14 @@ describe("CenterMedianNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      features: polygon
+      features: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -73,8 +74,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -86,13 +87,13 @@ describe("CenterMedianNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      features: line
+      features: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -101,8 +102,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -115,22 +116,22 @@ describe("CenterMedianNode", () => {
           properties: {},
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         {
           type: "Feature",
           properties: {},
           geometry: {
             type: "Point",
-            coordinates: [2, 2]
-          }
-        }
-      ]
+            coordinates: [2, 2],
+          },
+        },
+      ],
     };
-    
+
     const context = createMockContext({
-      features: featureCollection
+      features: featureCollection,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -139,8 +140,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -159,10 +160,10 @@ describe("CenterMedianNode", () => {
                 [0, 1],
                 [1, 1],
                 [1, 0],
-                [0, 0]
-              ]
-            ]
-          }
+                [0, 0],
+              ],
+            ],
+          },
         },
         {
           type: "Feature",
@@ -175,16 +176,16 @@ describe("CenterMedianNode", () => {
                 [2, 3],
                 [3, 3],
                 [3, 2],
-                [2, 2]
-              ]
-            ]
-          }
-        }
-      ]
+                [2, 2],
+              ],
+            ],
+          },
+        },
+      ],
     };
-    
+
     const context = createMockContext({
-      features: featureCollection
+      features: featureCollection,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -193,8 +194,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -207,8 +208,8 @@ describe("CenterMedianNode", () => {
           properties: {},
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         {
           type: "Feature",
@@ -217,9 +218,9 @@ describe("CenterMedianNode", () => {
             type: "LineString",
             coordinates: [
               [2, 0],
-              [2, 2]
-            ]
-          }
+              [2, 2],
+            ],
+          },
         },
         {
           type: "Feature",
@@ -232,16 +233,16 @@ describe("CenterMedianNode", () => {
                 [4, 1],
                 [5, 1],
                 [5, 0],
-                [4, 0]
-              ]
-            ]
-          }
-        }
-      ]
+                [4, 0],
+              ],
+            ],
+          },
+        },
+      ],
     };
-    
+
     const context = createMockContext({
-      features: featureCollection
+      features: featureCollection,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -250,8 +251,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [4, 0]
-      }
+        coordinates: [4, 0],
+      },
     });
   });
 
@@ -264,13 +265,13 @@ describe("CenterMedianNode", () => {
           [0, 2],
           [2, 2],
           [2, 0],
-          [0, 0]
-        ]
-      ]
+          [0, 0],
+        ],
+      ],
     };
-    
+
     const context = createMockContext({
-      features: polygon
+      features: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -279,8 +280,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -296,14 +297,14 @@ describe("CenterMedianNode", () => {
             [100, 200],
             [200, 200],
             [200, 100],
-            [100, 100]
-          ]
-        ]
-      }
+            [100, 100],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      features: polygon
+      features: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -312,8 +313,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [200, 200]
-      }
+        coordinates: [200, 200],
+      },
     });
   });
 
@@ -329,21 +330,21 @@ describe("CenterMedianNode", () => {
             [0, 3],
             [3, 3],
             [3, 0],
-            [0, 0]
+            [0, 0],
           ],
           [
             [1, 1],
             [1, 2],
             [2, 2],
             [2, 1],
-            [1, 1]
-          ]
-        ]
-      }
+            [1, 1],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      features: polygon
+      features: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -352,8 +353,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -370,8 +371,8 @@ describe("CenterMedianNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
+              [0, 0],
+            ],
           ],
           [
             [
@@ -379,15 +380,15 @@ describe("CenterMedianNode", () => {
               [2, 3],
               [3, 3],
               [3, 2],
-              [2, 2]
-            ]
-          ]
-        ]
-      }
+              [2, 2],
+            ],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      features: multiPolygon
+      features: multiPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -396,8 +397,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -407,15 +408,15 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
-    
+
     const context = createMockContext({
       features: point,
       options: {
-        weight: "weight"
-      }
+        weight: "weight",
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -424,8 +425,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     });
   });
 
@@ -435,12 +436,12 @@ describe("CenterMedianNode", () => {
       properties: { name: "test" },
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
-    
+
     const context = createMockContext({
-      features: point
+      features: point,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -449,8 +450,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     });
   });
 
@@ -463,22 +464,22 @@ describe("CenterMedianNode", () => {
           properties: { name: "point1" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         {
           type: "Feature",
           properties: { name: "point2" },
           geometry: {
             type: "Point",
-            coordinates: [2, 2]
-          }
-        }
-      ]
+            coordinates: [2, 2],
+          },
+        },
+      ],
     };
-    
+
     const context = createMockContext({
-      features: featureCollection
+      features: featureCollection,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -487,8 +488,8 @@ describe("CenterMedianNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     });
   });
 
@@ -501,7 +502,7 @@ describe("CenterMedianNode", () => {
 
   it("returns an error for null features input", async () => {
     const context = createMockContext({
-      features: null
+      features: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -510,10 +511,10 @@ describe("CenterMedianNode", () => {
 
   it("returns an error for undefined features input", async () => {
     const context = createMockContext({
-      features: undefined
+      features: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing features input");
   });
-}); 
+});

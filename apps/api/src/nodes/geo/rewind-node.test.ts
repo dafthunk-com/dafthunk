@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { RewindNode } from "./rewind-node";
 import { NodeContext } from "../types";
+import { RewindNode } from "./rewind-node";
 
 describe("RewindNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -35,11 +35,11 @@ describe("RewindNode", () => {
                 [1, 0],
                 [1, 1],
                 [0, 1],
-                [0, 0]
-              ]
-            ]
-          }
-        }
+                [0, 0],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -60,10 +60,10 @@ describe("RewindNode", () => {
               [1, 0],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -80,9 +80,9 @@ describe("RewindNode", () => {
           coordinates: [
             [0, 0],
             [1, 1],
-            [2, 0]
-          ]
-        }
+            [2, 0],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -103,11 +103,11 @@ describe("RewindNode", () => {
                 [1, 0],
                 [1, 1],
                 [0, 1],
-                [0, 0]
-              ]
-            ]
-          ]
-        }
+                [0, 0],
+              ],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -124,14 +124,14 @@ describe("RewindNode", () => {
           coordinates: [
             [
               [0, 0],
-              [1, 1]
+              [1, 1],
             ],
             [
               [2, 2],
-              [3, 3]
-            ]
-          ]
-        }
+              [3, 3],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -151,10 +151,10 @@ describe("RewindNode", () => {
               [10, 0],
               [10, 10],
               [0, 10],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -174,11 +174,11 @@ describe("RewindNode", () => {
               [1, 0],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        reverse: true
+        reverse: true,
       });
 
       const result = await node.execute(context);
@@ -198,11 +198,11 @@ describe("RewindNode", () => {
               [1, 0],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        reverse: false
+        reverse: false,
       });
 
       const result = await node.execute(context);
@@ -222,11 +222,11 @@ describe("RewindNode", () => {
               [1, 0],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
-        mutate: true
+        mutate: true,
       });
 
       const result = await node.execute(context);
@@ -246,12 +246,12 @@ describe("RewindNode", () => {
               [1, 0],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
+              [0, 0],
+            ],
+          ],
         },
         reverse: true,
-        mutate: false
+        mutate: false,
       });
 
       const result = await node.execute(context);
@@ -274,7 +274,7 @@ describe("RewindNode", () => {
 
     it("should handle null geojson input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -285,7 +285,7 @@ describe("RewindNode", () => {
 
     it("should handle undefined geojson input", async () => {
       const context = createMockContext({
-        geojson: undefined
+        geojson: undefined,
       });
 
       const result = await node.execute(context);
@@ -298,9 +298,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        reverse: "not a boolean"
+        reverse: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -313,9 +321,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        reverse: 1
+        reverse: 1,
       });
 
       const result = await node.execute(context);
@@ -328,9 +344,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        mutate: "not a boolean"
+        mutate: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -343,9 +367,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        mutate: 1
+        mutate: 1,
       });
 
       const result = await node.execute(context);
@@ -360,9 +392,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        reverse: null
+        reverse: null,
       });
 
       const result = await node.execute(context);
@@ -376,9 +416,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        reverse: undefined
+        reverse: undefined,
       });
 
       const result = await node.execute(context);
@@ -392,9 +440,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        mutate: null
+        mutate: null,
       });
 
       const result = await node.execute(context);
@@ -408,9 +464,17 @@ describe("RewindNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        mutate: undefined
+        mutate: undefined,
       });
 
       const result = await node.execute(context);
@@ -430,17 +494,17 @@ describe("RewindNode", () => {
               [10, 0],
               [10, 10],
               [0, 10],
-              [0, 0]
+              [0, 0],
             ],
             [
               [2, 2],
               [8, 2],
               [8, 8],
               [2, 8],
-              [2, 2]
-            ]
-          ]
-        }
+              [2, 2],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -460,10 +524,10 @@ describe("RewindNode", () => {
               [2000, 1000],
               [2000, 2000],
               [1000, 2000],
-              [1000, 1000]
-            ]
-          ]
-        }
+              [1000, 1000],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -483,10 +547,10 @@ describe("RewindNode", () => {
               [10, -10],
               [10, 10],
               [-10, 10],
-              [-10, -10]
-            ]
-          ]
-        }
+              [-10, -10],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -496,4 +560,4 @@ describe("RewindNode", () => {
       expect(result.outputs?.rewound.type).toBe("Polygon");
     });
   });
-}); 
+});

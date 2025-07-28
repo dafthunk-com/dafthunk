@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { RhumbDistanceNode } from "./rhumb-distance-node";
 import { NodeContext } from "../types";
+import { RhumbDistanceNode } from "./rhumb-distance-node";
 
 describe("RhumbDistanceNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,12 +26,12 @@ describe("RhumbDistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -45,12 +45,12 @@ describe("RhumbDistanceNode", () => {
     it("should work with identical points", async () => {
       const samePoint = {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       };
 
       const context = createMockContext({
         from: samePoint,
-        to: samePoint
+        to: samePoint,
       });
 
       const result = await node.execute(context);
@@ -64,13 +64,13 @@ describe("RhumbDistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         to: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -87,17 +87,17 @@ describe("RhumbDistanceNode", () => {
           properties: { name: "Start Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         to: {
           type: "Feature",
           properties: { name: "End Point" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -113,8 +113,8 @@ describe("RhumbDistanceNode", () => {
       const context = createMockContext({
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -127,8 +127,8 @@ describe("RhumbDistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -142,8 +142,8 @@ describe("RhumbDistanceNode", () => {
         from: null,
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -152,4 +152,4 @@ describe("RhumbDistanceNode", () => {
       expect(result.error).toBe("Missing from point input");
     });
   });
-}); 
+});

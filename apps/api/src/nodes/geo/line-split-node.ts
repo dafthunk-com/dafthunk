@@ -53,10 +53,9 @@ export class LineSplitNode extends ExecutableNode {
       return this.createSuccessResult({
         split: splitLines,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error splitting line: ${error.message}`);
     }
   }
-} 
+}

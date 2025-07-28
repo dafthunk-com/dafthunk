@@ -53,10 +53,11 @@ export class MidpointNode extends ExecutableNode {
       return this.createSuccessResult({
         midpoint: midpointResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating midpoint: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating midpoint: ${error.message}`
+      );
     }
   }
-} 
+}

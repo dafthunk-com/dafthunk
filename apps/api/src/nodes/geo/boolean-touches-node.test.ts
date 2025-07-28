@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanTouchesNode } from "./boolean-touches-node";
+
 import { NodeContext } from "../types";
+import { BooleanTouchesNode } from "./boolean-touches-node";
 
 describe("BooleanTouchesNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +27,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const line = {
       type: "Feature",
@@ -38,14 +39,14 @@ describe("BooleanTouchesNode", () => {
           [1, 1],
           [1, 2],
           [1, 3],
-          [1, 4]
-        ]
-      }
+          [1, 4],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -58,8 +59,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 4]
-      }
+        coordinates: [1, 4],
+      },
     };
     const line = {
       type: "Feature",
@@ -70,14 +71,14 @@ describe("BooleanTouchesNode", () => {
           [1, 1],
           [1, 2],
           [1, 3],
-          [1, 4]
-        ]
-      }
+          [1, 4],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -90,8 +91,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 2]
-      }
+        coordinates: [1, 2],
+      },
     };
     const line = {
       type: "Feature",
@@ -102,14 +103,14 @@ describe("BooleanTouchesNode", () => {
           [1, 1],
           [1, 2],
           [1, 3],
-          [1, 4]
-        ]
-      }
+          [1, 4],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -128,10 +129,10 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -144,15 +145,15 @@ describe("BooleanTouchesNode", () => {
             [1, 1],
             [2, 1],
             [2, 0],
-            [1, 0]
-          ]
-        ]
-      }
+            [1, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -171,10 +172,10 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -187,15 +188,15 @@ describe("BooleanTouchesNode", () => {
             [1, 2],
             [2, 2],
             [2, 1],
-            [1, 1]
-          ]
-        ]
-      }
+            [1, 1],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -208,8 +209,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     };
     const line = {
       type: "Feature",
@@ -220,14 +221,14 @@ describe("BooleanTouchesNode", () => {
           [1, 1],
           [1, 2],
           [1, 3],
-          [1, 4]
-        ]
-      }
+          [1, 4],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -240,8 +241,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1.5]
-      }
+        coordinates: [1, 1.5],
+      },
     };
     const line = {
       type: "Feature",
@@ -250,14 +251,14 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [1, 1],
-          [1, 2]
-        ]
-      }
+          [1, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -276,10 +277,10 @@ describe("BooleanTouchesNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -292,15 +293,15 @@ describe("BooleanTouchesNode", () => {
             [1, 3],
             [3, 3],
             [3, 1],
-            [1, 1]
-          ]
-        ]
-      }
+            [1, 1],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -319,10 +320,10 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -335,15 +336,15 @@ describe("BooleanTouchesNode", () => {
             [3, 4],
             [4, 4],
             [4, 3],
-            [3, 3]
-          ]
-        ]
-      }
+            [3, 3],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -358,9 +359,9 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [0, 2]
-        ]
-      }
+          [0, 2],
+        ],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -373,15 +374,15 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -396,9 +397,9 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [0.5, 0],
-          [0.5, 2]
-        ]
-      }
+          [0.5, 2],
+        ],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -411,15 +412,15 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -434,9 +435,9 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -445,14 +446,14 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [1, 1],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line1,
-      feature2: line2
+      feature2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -467,9 +468,9 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -478,14 +479,14 @@ describe("BooleanTouchesNode", () => {
         type: "LineString",
         coordinates: [
           [0, 2],
-          [2, 0]
-        ]
-      }
+          [2, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line1,
-      feature2: line2
+      feature2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -498,21 +499,21 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const point2 = {
       type: "Feature",
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point1,
-      feature2: point2
+      feature2: point2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -525,21 +526,21 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const point2 = {
       type: "Feature",
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point1,
-      feature2: point2
+      feature2: point2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -549,7 +550,7 @@ describe("BooleanTouchesNode", () => {
   it("returns true for geometry objects", async () => {
     const point = {
       type: "Point",
-      coordinates: [1, 1]
+      coordinates: [1, 1],
     };
     const line = {
       type: "LineString",
@@ -557,13 +558,13 @@ describe("BooleanTouchesNode", () => {
         [1, 1],
         [1, 2],
         [1, 3],
-        [1, 4]
-      ]
+        [1, 4],
+      ],
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -576,8 +577,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -590,15 +591,15 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -611,8 +612,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0.5]
-      }
+        coordinates: [0.5, 0.5],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -625,15 +626,15 @@ describe("BooleanTouchesNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -646,8 +647,8 @@ describe("BooleanTouchesNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [100, 100]
-      }
+        coordinates: [100, 100],
+      },
     };
     const line = {
       type: "Feature",
@@ -657,14 +658,14 @@ describe("BooleanTouchesNode", () => {
         coordinates: [
           [100, 100],
           [100, 200],
-          [100, 300]
-        ]
-      }
+          [100, 300],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -678,9 +679,9 @@ describe("BooleanTouchesNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
-      }
+          coordinates: [1, 1],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -694,9 +695,9 @@ describe("BooleanTouchesNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
-      }
+          coordinates: [1, 1],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -711,9 +712,9 @@ describe("BooleanTouchesNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
-      }
+          coordinates: [1, 1],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -727,10 +728,10 @@ describe("BooleanTouchesNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       },
-      feature2: null
+      feature2: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -745,9 +746,9 @@ describe("BooleanTouchesNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
-      }
+          coordinates: [1, 1],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -761,13 +762,13 @@ describe("BooleanTouchesNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       },
-      feature2: undefined
+      feature2: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing feature2 input");
   });
-}); 
+});

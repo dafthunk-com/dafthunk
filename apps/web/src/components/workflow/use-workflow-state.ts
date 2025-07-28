@@ -433,7 +433,7 @@ export function useWorkflowState({
 
       // Only check for existing connections if the input doesn't accept multiple connections
       const acceptsMultipleConnections = targetInput.repeated || false;
-      
+
       if (!acceptsMultipleConnections) {
         const hasExistingConnection = edges.some(
           (edge) =>
@@ -447,7 +447,10 @@ export function useWorkflowState({
       }
 
       setConnectionValidationState(typesMatch ? "valid" : "invalid");
-      return typesMatch && (validateConnection ? validateConnection(connection) : true);
+      return (
+        typesMatch &&
+        (validateConnection ? validateConnection(connection) : true)
+      );
     },
     [nodes, edges, validateConnection, readonly]
   );
@@ -482,7 +485,7 @@ export function useWorkflowState({
 
       setEdges((eds) => {
         let filteredEdges = eds;
-        
+
         // Only remove existing edges if target input doesn't accept multiple connections
         if (!acceptsMultipleConnections) {
           filteredEdges = eds.filter(

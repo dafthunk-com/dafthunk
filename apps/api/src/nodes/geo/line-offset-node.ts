@@ -9,7 +9,8 @@ export class LineOffsetNode extends ExecutableNode {
     id: "line-offset",
     name: "Line Offset",
     type: "line-offset",
-    description: "Takes a line and returns a line at offset by the specified distance.",
+    description:
+      "Takes a line and returns a line at offset by the specified distance.",
     tags: ["Geo"],
     icon: "move",
     inputs: [
@@ -28,7 +29,8 @@ export class LineOffsetNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units of the distance e.g. 'kilometers', 'miles', 'meters' (default: kilometers)",
+        description:
+          "Units of the distance e.g. 'kilometers', 'miles', 'meters' (default: kilometers)",
         required: false,
       },
     ],
@@ -59,7 +61,7 @@ export class LineOffsetNode extends ExecutableNode {
 
       // Prepare options for lineOffset
       const options: { units?: string } = {};
-      
+
       if (units !== undefined && units !== null) {
         if (typeof units !== "string") {
           return this.createErrorResult("Units must be a string");
@@ -73,10 +75,11 @@ export class LineOffsetNode extends ExecutableNode {
       return this.createSuccessResult({
         offset: offsetLine,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating line offset: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating line offset: ${error.message}`
+      );
     }
   }
-} 
+}

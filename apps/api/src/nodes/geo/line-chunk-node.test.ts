@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineChunkNode } from "./line-chunk-node";
+
 import { NodeContext } from "../types";
+import { LineChunkNode } from "./line-chunk-node";
 
 describe("LineChunkNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,10 +28,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      length: 1
+      length: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -45,10 +52,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      length: 2
+      length: 2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -60,9 +73,15 @@ describe("LineChunkNode", () => {
     const context = createMockContext({
       line: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
+        coordinates: [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [3, 0],
+          [4, 0],
+        ],
       },
-      length: 1
+      length: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -77,11 +96,17 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       length: 1,
-      reverse: true
+      reverse: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -96,11 +121,17 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       length: 1,
-      reverse: false
+      reverse: false,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -115,10 +146,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0], [6, 0], [8, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+            [6, 0],
+            [8, 0],
+          ],
+        },
       },
-      length: 2
+      length: 2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -133,10 +170,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 2],
+            [3, 3],
+            [4, 4],
+          ],
+        },
       },
-      length: 1
+      length: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -151,10 +194,13 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
-      length: 1
+      length: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -164,7 +210,7 @@ describe("LineChunkNode", () => {
 
   it("returns an error for missing line input", async () => {
     const context = createMockContext({
-      length: 1
+      length: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -178,9 +224,15 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -194,10 +246,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      length: "not a number"
+      length: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -211,10 +269,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      length: 0
+      length: 0,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -228,10 +292,16 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
-      length: -1
+      length: -1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -245,11 +315,17 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       length: 1,
-      reverse: "not a boolean"
+      reverse: "not a boolean",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -263,11 +339,17 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       length: 1,
-      reverse: null
+      reverse: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -282,15 +364,21 @@ describe("LineChunkNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
       },
       length: 1,
-      reverse: undefined
+      reverse: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.chunks).toBeDefined();
     expect(result.outputs?.chunks.type).toBe("FeatureCollection");
   });
-}); 
+});

@@ -9,7 +9,8 @@ export class BooleanDisjointNode extends ExecutableNode {
     id: "booleanDisjoint",
     name: "Boolean Disjoint",
     type: "booleanDisjoint",
-    description: "Returns true if the intersection of the two geometries is an empty set.",
+    description:
+      "Returns true if the intersection of the two geometries is an empty set.",
     tags: ["Geo"],
     icon: "slash",
     inputs: [
@@ -30,7 +31,8 @@ export class BooleanDisjointNode extends ExecutableNode {
       {
         name: "disjoint",
         type: "boolean",
-        description: "True if the intersection is an empty set, false otherwise",
+        description:
+          "True if the intersection is an empty set, false otherwise",
       },
     ],
   };
@@ -40,7 +42,9 @@ export class BooleanDisjointNode extends ExecutableNode {
       const { feature1, feature2 } = context.inputs;
 
       if (!feature1 || !feature2) {
-        return this.createErrorResult("Both feature1 and feature2 inputs are required");
+        return this.createErrorResult(
+          "Both feature1 and feature2 inputs are required"
+        );
       }
 
       const result = booleanDisjoint(feature1, feature2);
@@ -49,7 +53,9 @@ export class BooleanDisjointNode extends ExecutableNode {
       });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error testing disjoint relationship: ${error.message}`);
+      return this.createErrorResult(
+        `Error testing disjoint relationship: ${error.message}`
+      );
     }
   }
-} 
+}

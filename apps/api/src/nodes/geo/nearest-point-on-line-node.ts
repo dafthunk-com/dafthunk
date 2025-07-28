@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { nearestPointOnLine } from "@turf/turf";
 import { Units } from "@turf/helpers";
+import { nearestPointOnLine } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -29,7 +29,8 @@ export class NearestPointOnLineNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units for distance (degrees, radians, miles, or kilometers)",
+        description:
+          "Units for distance (degrees, radians, miles, or kilometers)",
         required: false,
       },
     ],
@@ -62,9 +63,16 @@ export class NearestPointOnLineNode extends ExecutableNode {
           return this.createErrorResult("Units must be a string");
         }
 
-        const validUnits: Units[] = ["degrees", "radians", "miles", "kilometers"];
+        const validUnits: Units[] = [
+          "degrees",
+          "radians",
+          "miles",
+          "kilometers",
+        ];
         if (!validUnits.includes(units as Units)) {
-          return this.createErrorResult("Units must be one of: degrees, radians, miles, kilometers");
+          return this.createErrorResult(
+            "Units must be one of: degrees, radians, miles, kilometers"
+          );
         }
 
         options.units = units as Units;
@@ -76,10 +84,11 @@ export class NearestPointOnLineNode extends ExecutableNode {
       return this.createSuccessResult({
         nearest: nearestPoint,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error finding nearest point on line: ${error.message}`);
+      return this.createErrorResult(
+        `Error finding nearest point on line: ${error.message}`
+      );
     }
   }
-} 
+}

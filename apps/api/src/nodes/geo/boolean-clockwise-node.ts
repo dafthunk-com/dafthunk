@@ -9,14 +9,16 @@ export class BooleanClockwiseNode extends ExecutableNode {
     id: "boolean-clockwise",
     name: "Boolean Clockwise",
     type: "boolean-clockwise",
-    description: "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise.",
+    description:
+      "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise.",
     tags: ["Geo"],
     icon: "rotate-cw",
     inputs: [
       {
         name: "line",
         type: "geojson",
-        description: "LineString Feature, LineString geometry, or coordinate array to be evaluated",
+        description:
+          "LineString Feature, LineString geometry, or coordinate array to be evaluated",
         required: true,
       },
     ],
@@ -24,7 +26,8 @@ export class BooleanClockwiseNode extends ExecutableNode {
       {
         name: "isClockwise",
         type: "boolean",
-        description: "True if the ring is clockwise, false if counter-clockwise",
+        description:
+          "True if the ring is clockwise, false if counter-clockwise",
       },
     ],
   };
@@ -43,10 +46,11 @@ export class BooleanClockwiseNode extends ExecutableNode {
       return this.createSuccessResult({
         isClockwise,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking clockwise direction: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking clockwise direction: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -9,7 +9,8 @@ export class VoronoiNode extends ExecutableNode {
     id: "voronoi",
     name: "Voronoi",
     type: "voronoi",
-    description: "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons.",
+    description:
+      "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons.",
     tags: ["Geo"],
     icon: "hexagon",
     inputs: [
@@ -22,7 +23,8 @@ export class VoronoiNode extends ExecutableNode {
       {
         name: "bbox",
         type: "json",
-        description: "Clipping rectangle, in [minX, minY, maxX, maxY] order (default: [-180,-85,180,85])",
+        description:
+          "Clipping rectangle, in [minX, minY, maxX, maxY] order (default: [-180,-85,180,85])",
         required: false,
       },
     ],
@@ -45,23 +47,27 @@ export class VoronoiNode extends ExecutableNode {
 
       // Prepare options for voronoi calculation
       const options: { bbox?: [number, number, number, number] } = {};
-      
+
       if (bbox !== undefined && bbox !== null) {
         if (!Array.isArray(bbox)) {
           return this.createErrorResult("Bbox must be an array");
         }
-        
+
         if (bbox.length !== 4) {
-          return this.createErrorResult("Bbox must have exactly 4 elements [minX, minY, maxX, maxY]");
+          return this.createErrorResult(
+            "Bbox must have exactly 4 elements [minX, minY, maxX, maxY]"
+          );
         }
-        
+
         // Validate that all elements are numbers
         for (let i = 0; i < bbox.length; i++) {
           if (typeof bbox[i] !== "number") {
-            return this.createErrorResult(`Bbox element at index ${i} must be a number`);
+            return this.createErrorResult(
+              `Bbox element at index ${i} must be a number`
+            );
           }
         }
-        
+
         options.bbox = bbox as [number, number, number, number];
       }
 
@@ -71,10 +77,11 @@ export class VoronoiNode extends ExecutableNode {
       return this.createSuccessResult({
         voronoi: voronoiPolygons,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating Voronoi polygons: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating Voronoi polygons: ${error.message}`
+      );
     }
   }
-} 
+}

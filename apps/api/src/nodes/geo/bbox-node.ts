@@ -9,7 +9,8 @@ export class BboxNode extends ExecutableNode {
     id: "bbox",
     name: "Bounding Box",
     type: "bbox",
-    description: "Calculates the bounding box of any GeoJSON feature in [minX, minY, maxX, maxY] format.",
+    description:
+      "Calculates the bounding box of any GeoJSON feature in [minX, minY, maxX, maxY] format.",
     tags: ["Geo"],
     icon: "square-dashed",
     inputs: [
@@ -22,7 +23,8 @@ export class BboxNode extends ExecutableNode {
       {
         name: "recompute",
         type: "boolean",
-        description: "Whether to ignore an existing bbox property on geojson (default: false)",
+        description:
+          "Whether to ignore an existing bbox property on geojson (default: false)",
         required: false,
       },
     ],
@@ -45,10 +47,12 @@ export class BboxNode extends ExecutableNode {
 
       // Prepare options for bbox calculation
       const options: { recompute?: boolean } = {};
-      
+
       if (recompute !== undefined && recompute !== null) {
         if (typeof recompute !== "boolean") {
-          return this.createErrorResult("Recompute parameter must be a boolean");
+          return this.createErrorResult(
+            "Recompute parameter must be a boolean"
+          );
         }
         options.recompute = recompute;
       }
@@ -59,10 +63,11 @@ export class BboxNode extends ExecutableNode {
       return this.createSuccessResult({
         bbox: boundingBox,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating bounding box: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating bounding box: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -9,7 +9,8 @@ export class ExplodeNode extends ExecutableNode {
     id: "explode",
     name: "Explode",
     type: "explode",
-    description: "Extracts all vertices from geometries as individual Point features.",
+    description:
+      "Extracts all vertices from geometries as individual Point features.",
     tags: ["Geo"],
     icon: "scatter-chart",
     inputs: [
@@ -24,7 +25,8 @@ export class ExplodeNode extends ExecutableNode {
       {
         name: "points",
         type: "geojson",
-        description: "FeatureCollection of Point features representing all vertices",
+        description:
+          "FeatureCollection of Point features representing all vertices",
       },
     ],
   };
@@ -43,10 +45,11 @@ export class ExplodeNode extends ExecutableNode {
       return this.createSuccessResult({
         points: explodedPoints,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error exploding geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error exploding geometry: ${error.message}`
+      );
     }
   }
-} 
+}

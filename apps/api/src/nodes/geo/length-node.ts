@@ -1,6 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { length } from "@turf/turf";
-import type { AllGeoJSON } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,7 +9,8 @@ export class LengthNode extends ExecutableNode {
     id: "length",
     name: "Length",
     type: "length",
-    description: "Calculates the length of LineString or MultiLineString features.",
+    description:
+      "Calculates the length of LineString or MultiLineString features.",
     tags: ["Geo"],
     icon: "ruler",
     inputs: [
@@ -49,7 +49,9 @@ export class LengthNode extends ExecutableNode {
       });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating length: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating length: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { FlattenNode } from "./flatten-node";
+
 import { NodeContext } from "../types";
+import { FlattenNode } from "./flatten-node";
 
 describe("FlattenNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,9 +28,9 @@ describe("FlattenNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -44,9 +45,13 @@ describe("FlattenNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1], [2, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -61,9 +66,17 @@ describe("FlattenNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -78,9 +91,13 @@ describe("FlattenNode", () => {
         properties: {},
         geometry: {
           type: "MultiPoint",
-          coordinates: [[0, 0], [1, 1], [2, 2]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 2],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -96,11 +113,17 @@ describe("FlattenNode", () => {
         geometry: {
           type: "MultiLineString",
           coordinates: [
-            [[0, 0], [1, 1]],
-            [[2, 2], [3, 3]]
-          ]
-        }
-      }
+            [
+              [0, 0],
+              [1, 1],
+            ],
+            [
+              [2, 2],
+              [3, 3],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -116,11 +139,27 @@ describe("FlattenNode", () => {
         geometry: {
           type: "MultiPolygon",
           coordinates: [
-            [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
-            [[[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]]
-          ]
-        }
-      }
+            [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [2, 2],
+                [3, 2],
+                [3, 3],
+                [2, 3],
+                [2, 2],
+              ],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -138,19 +177,22 @@ describe("FlattenNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
+              coordinates: [0, 0],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[1, 1], [2, 2]]
-            }
-          }
-        ]
-      }
+              coordinates: [
+                [1, 1],
+                [2, 2],
+              ],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -165,14 +207,17 @@ describe("FlattenNode", () => {
         geometries: [
           {
             type: "Point",
-            coordinates: [0, 0]
+            coordinates: [0, 0],
           },
           {
             type: "LineString",
-            coordinates: [[1, 1], [2, 2]]
-          }
-        ]
-      }
+            coordinates: [
+              [1, 1],
+              [2, 2],
+            ],
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -186,4 +231,4 @@ describe("FlattenNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing GeoJSON input");
   });
-}); 
+});

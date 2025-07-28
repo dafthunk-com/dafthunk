@@ -53,7 +53,7 @@ export function GeoJSONCanvasRenderer({
   // Extract coordinates from any geometry
   const extractCoordinates = (geometry: any): number[][] => {
     const coords: number[][] = [];
-    
+
     const addCoordinate = (coord: number[]) => {
       if (coord.length >= 2) {
         coords.push([coord[0], coord[1]]);
@@ -126,7 +126,7 @@ export function GeoJSONCanvasRenderer({
     }
     if (bboxHeight === 0) {
       bboxHeight = minDimension;
-      // Center the point vertically  
+      // Center the point vertically
       minY = minY - bboxHeight / 2;
       maxY = minY + bboxHeight;
     }
@@ -153,27 +153,27 @@ export function GeoJSONCanvasRenderer({
     // Calculate the dimensions of the bounding box
     const bboxWidth = bbox.maxX - bbox.minX;
     const bboxHeight = bbox.maxY - bbox.minY;
-    
+
     // Calculate scales for both axes
     const scaleX = canvasWidth / bboxWidth;
     const scaleY = canvasHeight / bboxHeight;
-    
+
     // Use the smaller scale to maintain proportions
     const scale = Math.min(scaleX, scaleY);
-    
+
     // Calculate the scaled dimensions
     const scaledWidth = bboxWidth * scale;
     const scaledHeight = bboxHeight * scale;
-    
+
     // Calculate centering offsets
     const offsetX = (canvasWidth - scaledWidth) / 2;
     const offsetY = (canvasHeight - scaledHeight) / 2;
-    
+
     // Transform coordinates with proper scaling and centering
-    const x = ((coord[0] - bbox.minX) * scale) + offsetX;
+    const x = (coord[0] - bbox.minX) * scale + offsetX;
     // Flip Y coordinate (canvas Y grows downward, but geographic Y grows upward)
-    const y = canvasHeight - (((coord[1] - bbox.minY) * scale) + offsetY);
-    
+    const y = canvasHeight - ((coord[1] - bbox.minY) * scale + offsetY);
+
     return [x, y];
   };
 
@@ -182,17 +182,17 @@ export function GeoJSONCanvasRenderer({
     const originalStroke = ctx.strokeStyle;
     const originalFill = ctx.fillStyle;
     const originalLineWidth = ctx.lineWidth;
-    
+
     // Make vertices more visible with higher contrast colors
     ctx.strokeStyle = "#1f2937"; // gray-800 - much darker
     ctx.fillStyle = "#fbbf24"; // amber-400 - bright yellow for visibility
     ctx.lineWidth = 2;
-    
+
     ctx.beginPath();
     ctx.arc(x, y, 3, 0, 2 * Math.PI); // Larger radius for better visibility
     ctx.fill();
     ctx.stroke();
-    
+
     // Restore original styles
     ctx.strokeStyle = originalStroke;
     ctx.fillStyle = originalFill;
@@ -211,55 +211,72 @@ export function GeoJSONCanvasRenderer({
     ctx.lineWidth = style.lineWidth;
 
     switch (geometry.type) {
-      case "Point":
+      case "Point": {
         // Use special point styling for better visibility
         ctx.strokeStyle = pointStyle.strokeColor;
         ctx.fillStyle = pointStyle.fillColor;
         ctx.lineWidth = pointStyle.lineWidth;
-        
-        const [px, py] = transformCoordinate(geometry.coordinates, bbox, canvasWidth, canvasHeight);
-        
+
+        const [px, py] = transformCoordinate(
+          geometry.coordinates,
+          bbox,
+          canvasWidth,
+          canvasHeight
+        );
+
         ctx.beginPath();
         ctx.arc(px, py, pointStyle.pointRadius, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
-        
+
         // Also draw vertex dot at the center
         drawVertex(ctx, px, py);
-        
+
         // Reset styles for other geometries
         ctx.strokeStyle = style.strokeColor;
         ctx.fillStyle = style.fillColor;
         ctx.lineWidth = style.lineWidth;
         break;
+      }
 
-      case "MultiPoint":
+      case "MultiPoint": {
         // Use special point styling for better visibility
         ctx.strokeStyle = pointStyle.strokeColor;
         ctx.fillStyle = pointStyle.fillColor;
         ctx.lineWidth = pointStyle.lineWidth;
-        
+
         geometry.coordinates.forEach((coord: number[]) => {
-          const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+          const [x, y] = transformCoordinate(
+            coord,
+            bbox,
+            canvasWidth,
+            canvasHeight
+          );
           ctx.beginPath();
           ctx.arc(x, y, pointStyle.pointRadius, 0, 2 * Math.PI);
           ctx.fill();
           ctx.stroke();
-          
+
           // Also draw vertex dot at the center
           drawVertex(ctx, x, y);
         });
-        
+
         // Reset styles for other geometries
         ctx.strokeStyle = style.strokeColor;
         ctx.fillStyle = style.fillColor;
         ctx.lineWidth = style.lineWidth;
         break;
+      }
 
-      case "LineString":
+      case "LineString": {
         ctx.beginPath();
         geometry.coordinates.forEach((coord: number[], index: number) => {
-          const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+          const [x, y] = transformCoordinate(
+            coord,
+            bbox,
+            canvasWidth,
+            canvasHeight
+          );
           if (index === 0) {
             ctx.moveTo(x, y);
           } else {
@@ -267,19 +284,30 @@ export function GeoJSONCanvasRenderer({
           }
         });
         ctx.stroke();
-        
+
         // Draw vertices as small points
         geometry.coordinates.forEach((coord: number[]) => {
-          const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+          const [x, y] = transformCoordinate(
+            coord,
+            bbox,
+            canvasWidth,
+            canvasHeight
+          );
           drawVertex(ctx, x, y);
         });
         break;
+      }
 
-      case "MultiLineString":
+      case "MultiLineString": {
         geometry.coordinates.forEach((line: number[][]) => {
           ctx.beginPath();
           line.forEach((coord: number[], index: number) => {
-            const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+            const [x, y] = transformCoordinate(
+              coord,
+              bbox,
+              canvasWidth,
+              canvasHeight
+            );
             if (index === 0) {
               ctx.moveTo(x, y);
             } else {
@@ -287,20 +315,33 @@ export function GeoJSONCanvasRenderer({
             }
           });
           ctx.stroke();
-          
-          // Draw vertices as small points
+        });
+
+        // Draw vertices as small points
+        geometry.coordinates.forEach((line: number[][]) => {
           line.forEach((coord: number[]) => {
-            const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+            const [x, y] = transformCoordinate(
+              coord,
+              bbox,
+              canvasWidth,
+              canvasHeight
+            );
             drawVertex(ctx, x, y);
           });
         });
         break;
+      }
 
-      case "Polygon":
+      case "Polygon": {
         geometry.coordinates.forEach((ring: number[][], ringIndex: number) => {
           ctx.beginPath();
           ring.forEach((coord: number[], index: number) => {
-            const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+            const [x, y] = transformCoordinate(
+              coord,
+              bbox,
+              canvasWidth,
+              canvasHeight
+            );
             if (index === 0) {
               ctx.moveTo(x, y);
             } else {
@@ -309,24 +350,41 @@ export function GeoJSONCanvasRenderer({
           });
           ctx.closePath();
           if (ringIndex === 0) {
+            // Outer ring - fill and stroke
             ctx.fill();
+            ctx.stroke();
+          } else {
+            // Inner rings (holes) - only stroke
+            ctx.stroke();
           }
-          ctx.stroke();
-          
-          // Draw vertices as small points (excluding the last coordinate which is the same as the first)
-          ring.slice(0, -1).forEach((coord: number[]) => {
-            const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+        });
+
+        // Draw vertices as small points
+        geometry.coordinates.forEach((ring: number[][]) => {
+          ring.forEach((coord: number[]) => {
+            const [x, y] = transformCoordinate(
+              coord,
+              bbox,
+              canvasWidth,
+              canvasHeight
+            );
             drawVertex(ctx, x, y);
           });
         });
         break;
+      }
 
-      case "MultiPolygon":
+      case "MultiPolygon": {
         geometry.coordinates.forEach((polygon: number[][][]) => {
           polygon.forEach((ring: number[][], ringIndex: number) => {
             ctx.beginPath();
             ring.forEach((coord: number[], index: number) => {
-              const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+              const [x, y] = transformCoordinate(
+                coord,
+                bbox,
+                canvasWidth,
+                canvasHeight
+              );
               if (index === 0) {
                 ctx.moveTo(x, y);
               } else {
@@ -335,23 +393,42 @@ export function GeoJSONCanvasRenderer({
             });
             ctx.closePath();
             if (ringIndex === 0) {
+              // Outer ring - fill and stroke
               ctx.fill();
+              ctx.stroke();
+            } else {
+              // Inner rings (holes) - only stroke
+              ctx.stroke();
             }
-            ctx.stroke();
-            
-            // Draw vertices as small points (excluding the last coordinate which is the same as the first)
-            ring.slice(0, -1).forEach((coord: number[]) => {
-              const [x, y] = transformCoordinate(coord, bbox, canvasWidth, canvasHeight);
+          });
+        });
+
+        // Draw vertices as small points
+        geometry.coordinates.forEach((polygon: number[][][]) => {
+          polygon.forEach((ring: number[][]) => {
+            ring.forEach((coord: number[]) => {
+              const [x, y] = transformCoordinate(
+                coord,
+                bbox,
+                canvasWidth,
+                canvasHeight
+              );
               drawVertex(ctx, x, y);
             });
           });
         });
         break;
+      }
 
-      case "GeometryCollection":
+      case "GeometryCollection": {
         geometry.geometries?.forEach((geom: any) => {
           drawGeometry(ctx, geom, bbox, style);
         });
+        break;
+      }
+
+      default:
+        console.warn(`Unsupported geometry type: ${geometry.type}`);
         break;
     }
   };
@@ -376,7 +453,10 @@ export function GeoJSONCanvasRenderer({
 
       // Extract geometries based on GeoJSON type
       if (geojson.type === "FeatureCollection") {
-        geometries = geojson.features?.map((feature: any) => feature.geometry).filter(Boolean) || [];
+        geometries =
+          geojson.features
+            ?.map((feature: any) => feature.geometry)
+            .filter(Boolean) || [];
       } else if (geojson.type === "Feature") {
         if (geojson.geometry) {
           geometries = [geojson.geometry];
@@ -385,14 +465,16 @@ export function GeoJSONCanvasRenderer({
         geometries = [geojson];
       }
 
-
-
       if (geometries.length === 0) {
         // Draw "no data" message
         ctx.fillStyle = "#64748b"; // slate-500
         ctx.font = "14px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("No geometries to display", canvasWidth / 2, canvasHeight / 2);
+        ctx.fillText(
+          "No geometries to display",
+          canvasWidth / 2,
+          canvasHeight / 2
+        );
         return;
       }
 
@@ -408,13 +490,19 @@ export function GeoJSONCanvasRenderer({
       setError(null);
     } catch (err) {
       console.error("Error drawing GeoJSON:", err);
-      setError(`Error rendering GeoJSON: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setError(
+        `Error rendering GeoJSON: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
 
       // Draw error message on canvas
       ctx.fillStyle = "#ef4444"; // red-500
       ctx.font = "12px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Error rendering GeoJSON", canvasWidth / 2, canvasHeight / 2);
+      ctx.fillText(
+        "Error rendering GeoJSON",
+        canvasWidth / 2,
+        canvasHeight / 2
+      );
     }
   };
 

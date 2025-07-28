@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanPointOnLineNode } from "./boolean-point-on-line-node";
+
 import { NodeContext } from "../types";
+import { BooleanPointOnLineNode } from "./boolean-point-on-line-node";
 
 describe("BooleanPointOnLineNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +27,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -36,14 +37,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [-1, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -56,8 +57,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -66,14 +67,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, -1],
-          [0, 1]
-        ]
-      }
+          [0, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -86,8 +87,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -96,14 +97,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [-1, -1],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -116,8 +117,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -128,14 +129,14 @@ describe("BooleanPointOnLineNode", () => {
           [-1, -1],
           [0, 0],
           [1, 1],
-          [1.5, 2.2]
-        ]
-      }
+          [1.5, 2.2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -148,8 +149,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 1]
-      }
+        coordinates: [0, 1],
+      },
     };
     const line = {
       type: "Feature",
@@ -158,14 +159,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [-1, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -178,8 +179,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [5, 5]
-      }
+        coordinates: [5, 5],
+      },
     };
     const line = {
       type: "Feature",
@@ -188,14 +189,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -208,8 +209,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -218,14 +219,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -238,8 +239,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const line = {
       type: "Feature",
@@ -248,14 +249,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -268,8 +269,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -278,15 +279,15 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
       line: line,
-      ignoreEndVertices: true
+      ignoreEndVertices: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -299,8 +300,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const line = {
       type: "Feature",
@@ -309,15 +310,15 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
       line: line,
-      ignoreEndVertices: true
+      ignoreEndVertices: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -330,8 +331,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0.5]
-      }
+        coordinates: [0.5, 0.5],
+      },
     };
     const line = {
       type: "Feature",
@@ -341,15 +342,15 @@ describe("BooleanPointOnLineNode", () => {
         coordinates: [
           [0, 0],
           [0.5, 0.5],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
       line: line,
-      ignoreEndVertices: true
+      ignoreEndVertices: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -362,8 +363,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.1, 0.1]
-      }
+        coordinates: [0.1, 0.1],
+      },
     };
     const line = {
       type: "Feature",
@@ -372,15 +373,15 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
       line: line,
-      epsilon: 0.2
+      epsilon: 0.2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -393,8 +394,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0.5]
-      }
+        coordinates: [0.5, 0.5],
+      },
     };
     const line = {
       type: "Feature",
@@ -403,15 +404,15 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
       line: line,
-      epsilon: 0.1
+      epsilon: 0.1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -424,8 +425,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const line = {
       type: "Feature",
@@ -436,14 +437,14 @@ describe("BooleanPointOnLineNode", () => {
           [0, 0],
           [1, 1],
           [2, 0],
-          [3, 1]
-        ]
-      }
+          [3, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -456,8 +457,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.1, 0.2]
-      }
+        coordinates: [0.1, 0.2],
+      },
     };
     const line = {
       type: "Feature",
@@ -466,14 +467,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -486,8 +487,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [100, 100]
-      }
+        coordinates: [100, 100],
+      },
     };
     const line = {
       type: "Feature",
@@ -497,14 +498,14 @@ describe("BooleanPointOnLineNode", () => {
         coordinates: [
           [0, 0],
           [100, 100],
-          [200, 200]
-        ]
-      }
+          [200, 200],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -514,19 +515,19 @@ describe("BooleanPointOnLineNode", () => {
   it("returns true for geometry objects", async () => {
     const pt = {
       type: "Point",
-      coordinates: [0, 0]
+      coordinates: [0, 0],
     };
     const line = {
       type: "LineString",
       coordinates: [
         [-1, 0],
-        [1, 0]
-      ]
+        [1, 0],
+      ],
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -539,8 +540,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0]
-      }
+        coordinates: [0.5, 0],
+      },
     };
     const line = {
       type: "Feature",
@@ -549,14 +550,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -569,8 +570,8 @@ describe("BooleanPointOnLineNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0.5]
-      }
+        coordinates: [0, 0.5],
+      },
     };
     const line = {
       type: "Feature",
@@ -579,14 +580,14 @@ describe("BooleanPointOnLineNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [0, 1]
-        ]
-      }
+          [0, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       pt: pt,
-      line: line
+      line: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -602,10 +603,10 @@ describe("BooleanPointOnLineNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -619,9 +620,9 @@ describe("BooleanPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -638,10 +639,10 @@ describe("BooleanPointOnLineNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -655,10 +656,10 @@ describe("BooleanPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
-      line: null
+      line: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -675,10 +676,10 @@ describe("BooleanPointOnLineNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -692,13 +693,13 @@ describe("BooleanPointOnLineNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
-      line: undefined
+      line: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing line input");
   });
-}); 
+});

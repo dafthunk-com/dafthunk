@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanPointInPolygonNode } from "./boolean-point-in-polygon-node";
+
 import { NodeContext } from "../types";
+import { BooleanPointInPolygonNode } from "./boolean-point-in-polygon-node";
 
 describe("BooleanPointInPolygonNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -22,19 +23,21 @@ describe("BooleanPointInPolygonNode", () => {
 
   const testPolygon = {
     type: "Polygon",
-    coordinates: [[
-      [0, 0],
-      [0, 1],
-      [1, 1],
-      [1, 0],
-      [0, 0]
-    ]]
+    coordinates: [
+      [
+        [0, 0],
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [0, 0],
+      ],
+    ],
   };
 
   it("returns true for point inside polygon", async () => {
     const context = createMockContext({
       point: { type: "Point", coordinates: [0.5, 0.5] },
-      polygon: testPolygon
+      polygon: testPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -44,7 +47,7 @@ describe("BooleanPointInPolygonNode", () => {
   it("returns false for point outside polygon", async () => {
     const context = createMockContext({
       point: { type: "Point", coordinates: [-1, -1] },
-      polygon: testPolygon
+      polygon: testPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -55,7 +58,7 @@ describe("BooleanPointInPolygonNode", () => {
     const context = createMockContext({
       point: { type: "Point", coordinates: [0, 0.5] },
       polygon: testPolygon,
-      ignoreBoundary: true
+      ignoreBoundary: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -69,8 +72,10 @@ describe("BooleanPointInPolygonNode", () => {
   });
 
   it("returns error if polygon is missing", async () => {
-    const context = createMockContext({ point: { type: "Point", coordinates: [0.5, 0.5] } });
+    const context = createMockContext({
+      point: { type: "Point", coordinates: [0.5, 0.5] },
+    });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
   });
-}); 
+});

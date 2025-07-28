@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { UnkinkPolygonNode } from "./unkink-polygon-node";
+
 import { NodeContext } from "../types";
+import { UnkinkPolygonNode } from "./unkink-polygon-node";
 
 describe("UnkinkPolygonNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,9 +28,17 @@ describe("UnkinkPolygonNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -42,8 +51,16 @@ describe("UnkinkPolygonNode", () => {
     const context = createMockContext({
       polygon: {
         type: "Polygon",
-        coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-      }
+        coordinates: [
+          [
+            [0, 0],
+            [4, 0],
+            [4, 4],
+            [0, 4],
+            [0, 0],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -60,11 +77,27 @@ describe("UnkinkPolygonNode", () => {
         geometry: {
           type: "MultiPolygon",
           coordinates: [
-            [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]],
-            [[[3, 3], [5, 3], [5, 5], [3, 5], [3, 3]]]
-          ]
-        }
-      }
+            [
+              [
+                [0, 0],
+                [2, 0],
+                [2, 2],
+                [0, 2],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [3, 3],
+                [5, 3],
+                [5, 5],
+                [3, 5],
+                [3, 3],
+              ],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -80,9 +113,17 @@ describe("UnkinkPolygonNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [5, 1], [5, 5], [1, 5], [1, 1]]]
-        }
-      }
+          coordinates: [
+            [
+              [1, 1],
+              [5, 1],
+              [5, 5],
+              [1, 5],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -98,9 +139,17 @@ describe("UnkinkPolygonNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -116,9 +165,17 @@ describe("UnkinkPolygonNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -135,11 +192,23 @@ describe("UnkinkPolygonNode", () => {
         geometry: {
           type: "Polygon",
           coordinates: [
-            [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]],
-            [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]
-          ]
-        }
-      }
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -155,9 +224,19 @@ describe("UnkinkPolygonNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [2, 2], [4, 2], [4, 4], [0, 4], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [4, 2],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -173,9 +252,17 @@ describe("UnkinkPolygonNode", () => {
         properties: { name: "test-polygon", color: "blue" },
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -191,9 +278,17 @@ describe("UnkinkPolygonNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [3, 1], [2, 3], [1, 2], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [3, 1],
+              [2, 3],
+              [1, 2],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -211,7 +306,7 @@ describe("UnkinkPolygonNode", () => {
 
   it("returns an error for null polygon input", async () => {
     const context = createMockContext({
-      polygon: null
+      polygon: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -220,10 +315,10 @@ describe("UnkinkPolygonNode", () => {
 
   it("returns an error for undefined polygon input", async () => {
     const context = createMockContext({
-      polygon: undefined
+      polygon: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing polygon input");
   });
-}); 
+});

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { GreatCircleNode } from "./great-circle-node";
 import { NodeContext } from "../types";
+import { GreatCircleNode } from "./great-circle-node";
 
 describe("GreatCircleNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,7 +25,7 @@ describe("GreatCircleNode", () => {
     it("should return a line when given valid start and end points", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -33,7 +33,9 @@ describe("GreatCircleNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.line).toBeDefined();
       expect(result.outputs?.line.type).toBe("Feature");
-      expect(["LineString", "MultiLineString"]).toContain(result.outputs?.line.geometry.type);
+      expect(["LineString", "MultiLineString"]).toContain(
+        result.outputs?.line.geometry.type
+      );
     });
 
     it("should work with Point features", async () => {
@@ -43,17 +45,17 @@ describe("GreatCircleNode", () => {
           properties: { name: "Start" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         end: {
           type: "Feature",
           properties: { name: "End" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -67,7 +69,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        properties: { name: "Test Route", distance: "short" }
+        properties: { name: "Test Route", distance: "short" },
       });
 
       const result = await node.execute(context);
@@ -81,7 +83,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: 50
+        npoints: 50,
       });
 
       const result = await node.execute(context);
@@ -94,7 +96,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        offset: 5
+        offset: 5,
       });
 
       const result = await node.execute(context);
@@ -109,7 +111,7 @@ describe("GreatCircleNode", () => {
         end: [1, 1],
         properties: { name: "Complete Route" },
         npoints: 75,
-        offset: 15
+        offset: 15,
       });
 
       const result = await node.execute(context);
@@ -122,7 +124,7 @@ describe("GreatCircleNode", () => {
   describe("Input validation", () => {
     it("should handle missing start input", async () => {
       const context = createMockContext({
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -133,7 +135,7 @@ describe("GreatCircleNode", () => {
 
     it("should handle missing end input", async () => {
       const context = createMockContext({
-        start: [0, 0]
+        start: [0, 0],
       });
 
       const result = await node.execute(context);
@@ -145,7 +147,7 @@ describe("GreatCircleNode", () => {
     it("should handle null start input", async () => {
       const context = createMockContext({
         start: null,
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -157,7 +159,7 @@ describe("GreatCircleNode", () => {
     it("should handle null end input", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: null
+        end: null,
       });
 
       const result = await node.execute(context);
@@ -170,7 +172,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        properties: ["invalid", "array"]
+        properties: ["invalid", "array"],
       });
 
       const result = await node.execute(context);
@@ -183,7 +185,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        properties: "invalid"
+        properties: "invalid",
       });
 
       const result = await node.execute(context);
@@ -196,7 +198,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: "invalid"
+        npoints: "invalid",
       });
 
       const result = await node.execute(context);
@@ -209,7 +211,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: NaN
+        npoints: NaN,
       });
 
       const result = await node.execute(context);
@@ -222,7 +224,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: Infinity
+        npoints: Infinity,
       });
 
       const result = await node.execute(context);
@@ -235,7 +237,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: 0
+        npoints: 0,
       });
 
       const result = await node.execute(context);
@@ -248,7 +250,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: -1
+        npoints: -1,
       });
 
       const result = await node.execute(context);
@@ -261,7 +263,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        offset: "invalid"
+        offset: "invalid",
       });
 
       const result = await node.execute(context);
@@ -274,7 +276,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        offset: NaN
+        offset: NaN,
       });
 
       const result = await node.execute(context);
@@ -287,7 +289,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        offset: Infinity
+        offset: Infinity,
       });
 
       const result = await node.execute(context);
@@ -302,7 +304,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        properties: null
+        properties: null,
       });
 
       const result = await node.execute(context);
@@ -315,7 +317,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        npoints: null
+        npoints: null,
       });
 
       const result = await node.execute(context);
@@ -328,7 +330,7 @@ describe("GreatCircleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        offset: null
+        offset: null,
       });
 
       const result = await node.execute(context);
@@ -340,7 +342,7 @@ describe("GreatCircleNode", () => {
     it("should handle same start and end points", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [0, 0]
+        end: [0, 0],
       });
 
       const result = await node.execute(context);
@@ -352,7 +354,7 @@ describe("GreatCircleNode", () => {
     it("should handle large coordinate values", async () => {
       const context = createMockContext({
         start: [180, 90],
-        end: [-180, -90]
+        end: [-180, -90],
       });
 
       const result = await node.execute(context);
@@ -364,7 +366,7 @@ describe("GreatCircleNode", () => {
     it("should handle small coordinate values", async () => {
       const context = createMockContext({
         start: [0.001, 0.001],
-        end: [0.002, 0.002]
+        end: [0.002, 0.002],
       });
 
       const result = await node.execute(context);
@@ -373,4 +375,4 @@ describe("GreatCircleNode", () => {
       expect(result.outputs?.line).toBeDefined();
     });
   });
-}); 
+});

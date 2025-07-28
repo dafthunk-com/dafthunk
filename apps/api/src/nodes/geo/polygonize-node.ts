@@ -9,7 +9,8 @@ export class PolygonizeNode extends ExecutableNode {
     id: "polygonize",
     name: "Polygonize",
     type: "polygonize",
-    description: "Takes a set of line features and returns a set of polygon features constructed from the lines.",
+    description:
+      "Takes a set of line features and returns a set of polygon features constructed from the lines.",
     tags: ["Geo"],
     icon: "square",
     inputs: [
@@ -43,10 +44,11 @@ export class PolygonizeNode extends ExecutableNode {
       return this.createSuccessResult({
         polygons: polygonFeatures,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error polygonizing lines: ${error.message}`);
+      return this.createErrorResult(
+        `Error polygonizing lines: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -9,7 +9,8 @@ export class GreatCircleNode extends ExecutableNode {
     id: "greatCircle",
     name: "Great Circle",
     type: "greatCircle",
-    description: "Calculate great circles routes as LineString or MultiLineString between two points.",
+    description:
+      "Calculate great circles routes as LineString or MultiLineString between two points.",
     tags: ["Geo"],
     icon: "globe",
     inputs: [
@@ -40,7 +41,8 @@ export class GreatCircleNode extends ExecutableNode {
       {
         name: "offset",
         type: "number",
-        description: "Offset controls the likelihood that lines will be split which cross the dateline (default: 10)",
+        description:
+          "Offset controls the likelihood that lines will be split which cross the dateline (default: 10)",
         required: false,
       },
     ],
@@ -48,7 +50,8 @@ export class GreatCircleNode extends ExecutableNode {
       {
         name: "line",
         type: "geojson",
-        description: "Great circle line feature (LineString or MultiLineString)",
+        description:
+          "Great circle line feature (LineString or MultiLineString)",
       },
     ],
   };
@@ -71,7 +74,7 @@ export class GreatCircleNode extends ExecutableNode {
         npoints?: number;
         offset?: number;
       } = {};
-      
+
       if (properties !== undefined && properties !== null) {
         if (typeof properties !== "object" || Array.isArray(properties)) {
           return this.createErrorResult("Properties must be an object");
@@ -94,15 +97,20 @@ export class GreatCircleNode extends ExecutableNode {
       }
 
       // Delegate to Turf.js greatCircle function
-      const greatCircleLine = greatCircle(start as any, end as any, options as any);
+      const greatCircleLine = greatCircle(
+        start as any,
+        end as any,
+        options as any
+      );
 
       return this.createSuccessResult({
         line: greatCircleLine,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating great circle: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating great circle: ${error.message}`
+      );
     }
   }
-} 
+}

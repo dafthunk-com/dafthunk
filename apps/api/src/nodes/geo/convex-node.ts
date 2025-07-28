@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { convex } from "@turf/turf";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -8,14 +9,16 @@ export class ConvexNode extends ExecutableNode {
     id: "convex",
     name: "Convex Hull",
     type: "convex",
-    description: "Creates a convex hull polygon that encompasses all input points.",
+    description:
+      "Creates a convex hull polygon that encompasses all input points.",
     tags: ["Geo"],
     icon: "hexagon",
     inputs: [
       {
         name: "geojson",
         type: "geojson",
-        description: "Points, MultiPoint, or FeatureCollection of points to create convex hull from",
+        description:
+          "Points, MultiPoint, or FeatureCollection of points to create convex hull from",
         required: true,
       },
       {
@@ -29,7 +32,8 @@ export class ConvexNode extends ExecutableNode {
       {
         name: "convexHull",
         type: "geojson",
-        description: "Convex hull as a Polygon feature, or null if insufficient points",
+        description:
+          "Convex hull as a Polygon feature, or null if insufficient points",
       },
     ],
   };
@@ -39,7 +43,11 @@ export class ConvexNode extends ExecutableNode {
     if (!geojson) {
       return this.createErrorResult("Missing GeoJSON input");
     }
-    if (properties !== undefined && properties !== null && typeof properties !== "object") {
+    if (
+      properties !== undefined &&
+      properties !== null &&
+      typeof properties !== "object"
+    ) {
       return this.createErrorResult("Properties must be an object");
     }
     try {
@@ -48,7 +56,9 @@ export class ConvexNode extends ExecutableNode {
       return this.createSuccessResult({ convexHull: convexHull ?? null });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating convex hull: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating convex hull: ${error.message}`
+      );
     }
   }
-} 
+}

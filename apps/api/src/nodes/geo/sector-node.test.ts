@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { SectorNode } from "./sector-node";
+
 import { NodeContext } from "../types";
+import { SectorNode } from "./sector-node";
 
 describe("SectorNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,12 +28,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -45,11 +46,11 @@ describe("SectorNode", () => {
     const context = createMockContext({
       center: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
       radius: 5,
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -65,13 +66,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: "miles"
+      units: "miles",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -87,13 +88,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: "degrees"
+      units: "degrees",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -109,13 +110,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: "radians"
+      units: "radians",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -131,13 +132,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: "kilometers"
+      units: "kilometers",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -153,13 +154,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      steps: 32
+      steps: 32,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -175,13 +176,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      properties: { name: "test-sector", color: "red" }
+      properties: { name: "test-sector", color: "red" },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -197,12 +198,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
       radius: 10,
       bearing1: 45,
-      bearing2: 135
+      bearing2: 135,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -218,12 +219,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
-      bearing2: 30
+      bearing2: 30,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -239,12 +240,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 100,
       bearing1: 0,
-      bearing2: 270
+      bearing2: 270,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -260,12 +261,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
-      bearing2: 360
+      bearing2: 360,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -281,13 +282,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: null
+      units: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -303,13 +304,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: undefined
+      units: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -325,13 +326,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      steps: null
+      steps: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -347,13 +348,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      steps: undefined
+      steps: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -369,13 +370,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      properties: null
+      properties: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -391,13 +392,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      properties: undefined
+      properties: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -410,7 +411,7 @@ describe("SectorNode", () => {
     const context = createMockContext({
       radius: 5,
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -424,11 +425,11 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -442,11 +443,11 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -460,11 +461,11 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
-      bearing1: 0
+      bearing1: 0,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -478,12 +479,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: "not a number",
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -497,12 +498,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: "not a number",
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -516,12 +517,12 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
-      bearing2: "not a number"
+      bearing2: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -535,13 +536,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: 123
+      units: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -555,17 +556,19 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      units: "invalid"
+      units: "invalid",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Units must be one of: miles, kilometers, degrees, radians");
+    expect(result.error).toBe(
+      "Units must be one of: miles, kilometers, degrees, radians"
+    );
   });
 
   it("returns an error for non-number steps", async () => {
@@ -575,13 +578,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      steps: "not a number"
+      steps: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -595,13 +598,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      steps: 0
+      steps: 0,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -615,13 +618,13 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      steps: -1
+      steps: -1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -635,16 +638,16 @@ describe("SectorNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 5,
       bearing1: 0,
       bearing2: 90,
-      properties: "not an object"
+      properties: "not an object",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Properties must be an object");
   });
-}); 
+});

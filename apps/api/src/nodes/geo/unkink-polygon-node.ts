@@ -9,7 +9,8 @@ export class UnkinkPolygonNode extends ExecutableNode {
     id: "unkink-polygon",
     name: "Unkink Polygon",
     type: "unkink-polygon",
-    description: "Takes a kinked polygon and returns a feature collection of polygons that have no kinks.",
+    description:
+      "Takes a kinked polygon and returns a feature collection of polygons that have no kinks.",
     tags: ["Geo"],
     icon: "scissors",
     inputs: [
@@ -43,10 +44,11 @@ export class UnkinkPolygonNode extends ExecutableNode {
       return this.createSuccessResult({
         unkinked: unkinkedPolygons,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error unkinking polygon: ${error.message}`);
+      return this.createErrorResult(
+        `Error unkinking polygon: ${error.message}`
+      );
     }
   }
-} 
+}

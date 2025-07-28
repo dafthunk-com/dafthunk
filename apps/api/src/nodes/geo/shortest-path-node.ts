@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { shortestPath } from "@turf/turf";
 import { Units } from "@turf/helpers";
+import { shortestPath } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,7 +10,8 @@ export class ShortestPathNode extends ExecutableNode {
     id: "shortest-path",
     name: "Shortest Path",
     type: "shortest-path",
-    description: "Returns the shortest path from start to end without colliding with any Feature in obstacles FeatureCollection<Polygon>",
+    description:
+      "Returns the shortest path from start to end without colliding with any Feature in obstacles FeatureCollection<Polygon>",
     tags: ["Geo"],
     icon: "route",
     inputs: [
@@ -35,13 +36,15 @@ export class ShortestPathNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units for resolution and minimum distance (degrees, radians, miles, kilometers, etc.)",
+        description:
+          "Units for resolution and minimum distance (degrees, radians, miles, kilometers, etc.)",
         required: false,
       },
       {
         name: "resolution",
         type: "number",
-        description: "Distance between matrix points on which the path will be calculated",
+        description:
+          "Distance between matrix points on which the path will be calculated",
         required: false,
       },
     ],
@@ -67,7 +70,8 @@ export class ShortestPathNode extends ExecutableNode {
       }
 
       // Prepare options for shortestPath function
-      const options: { obstacles?: any; units?: Units; resolution?: number } = {};
+      const options: { obstacles?: any; units?: Units; resolution?: number } =
+        {};
 
       if (obstacles !== undefined && obstacles !== null) {
         options.obstacles = obstacles;
@@ -78,9 +82,16 @@ export class ShortestPathNode extends ExecutableNode {
           return this.createErrorResult("Units must be a string");
         }
 
-        const validUnits: Units[] = ["degrees", "radians", "miles", "kilometers"];
+        const validUnits: Units[] = [
+          "degrees",
+          "radians",
+          "miles",
+          "kilometers",
+        ];
         if (!validUnits.includes(units as Units)) {
-          return this.createErrorResult("Units must be one of: degrees, radians, miles, kilometers");
+          return this.createErrorResult(
+            "Units must be one of: degrees, radians, miles, kilometers"
+          );
         }
 
         options.units = units as Units;
@@ -104,10 +115,11 @@ export class ShortestPathNode extends ExecutableNode {
       return this.createSuccessResult({
         path: path,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating shortest path: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating shortest path: ${error.message}`
+      );
     }
   }
-} 
+}

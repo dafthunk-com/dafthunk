@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { TruncateNode } from "./truncate-node";
 import { NodeContext } from "../types";
+import { TruncateNode } from "./truncate-node";
 
 describe("TruncateNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,9 +29,9 @@ describe("TruncateNode", () => {
           properties: { name: "Test Feature" },
           geometry: {
             type: "Point",
-            coordinates: [1.23456789, 2.34567890, 3.45678901]
-          }
-        }
+            coordinates: [1.23456789, 2.3456789, 3.45678901],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -46,8 +46,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
-        }
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
+        },
       });
 
       const result = await node.execute(context);
@@ -62,10 +62,10 @@ describe("TruncateNode", () => {
         geojson: {
           type: "LineString",
           coordinates: [
-            [1.23456789, 2.34567890, 3.45678901],
-            [4.56789012, 5.67890123, 6.78901234]
-          ]
-        }
+            [1.23456789, 2.3456789, 3.45678901],
+            [4.56789012, 5.67890123, 6.78901234],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -81,14 +81,14 @@ describe("TruncateNode", () => {
           type: "Polygon",
           coordinates: [
             [
-              [1.23456789, 2.34567890, 3.45678901],
-              [4.56789012, 2.34567890, 3.45678901],
+              [1.23456789, 2.3456789, 3.45678901],
+              [4.56789012, 2.3456789, 3.45678901],
               [4.56789012, 5.67890123, 3.45678901],
               [1.23456789, 5.67890123, 3.45678901],
-              [1.23456789, 2.34567890, 3.45678901]
-            ]
-          ]
-        }
+              [1.23456789, 2.3456789, 3.45678901],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -102,8 +102,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2, 3]
-        }
+          coordinates: [1, 2, 3],
+        },
       });
 
       const result = await node.execute(context);
@@ -117,9 +117,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: 2
+        precision: 2,
       });
 
       const result = await node.execute(context);
@@ -133,9 +133,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: 2
+        coordinates: 2,
       });
 
       const result = await node.execute(context);
@@ -149,9 +149,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: 3
+        coordinates: 3,
       });
 
       const result = await node.execute(context);
@@ -165,9 +165,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: 0
+        precision: 0,
       });
 
       const result = await node.execute(context);
@@ -181,9 +181,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: 10
+        precision: 10,
       });
 
       const result = await node.execute(context);
@@ -197,10 +197,10 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
         precision: 2,
-        coordinates: 3
+        coordinates: 3,
       });
 
       const result = await node.execute(context);
@@ -215,10 +215,10 @@ describe("TruncateNode", () => {
         geojson: {
           type: "MultiPoint",
           coordinates: [
-            [1.23456789, 2.34567890, 3.45678901],
-            [4.56789012, 5.67890123, 6.78901234]
-          ]
-        }
+            [1.23456789, 2.3456789, 3.45678901],
+            [4.56789012, 5.67890123, 6.78901234],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -234,15 +234,15 @@ describe("TruncateNode", () => {
           type: "MultiLineString",
           coordinates: [
             [
-              [1.23456789, 2.34567890, 3.45678901],
-              [4.56789012, 5.67890123, 6.78901234]
+              [1.23456789, 2.3456789, 3.45678901],
+              [4.56789012, 5.67890123, 6.78901234],
             ],
             [
               [7.89012345, 8.90123456, 9.01234567],
-              [10.12345678, 11.23456789, 12.34567890]
-            ]
-          ]
-        }
+              [10.12345678, 11.23456789, 12.3456789],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -259,15 +259,15 @@ describe("TruncateNode", () => {
           coordinates: [
             [
               [
-                [1.23456789, 2.34567890, 3.45678901],
-                [4.56789012, 2.34567890, 3.45678901],
+                [1.23456789, 2.3456789, 3.45678901],
+                [4.56789012, 2.3456789, 3.45678901],
                 [4.56789012, 5.67890123, 3.45678901],
                 [1.23456789, 5.67890123, 3.45678901],
-                [1.23456789, 2.34567890, 3.45678901]
-              ]
-            ]
-          ]
-        }
+                [1.23456789, 2.3456789, 3.45678901],
+              ],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -290,7 +290,7 @@ describe("TruncateNode", () => {
 
     it("should handle null geojson input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -301,7 +301,7 @@ describe("TruncateNode", () => {
 
     it("should handle undefined geojson input", async () => {
       const context = createMockContext({
-        geojson: undefined
+        geojson: undefined,
       });
 
       const result = await node.execute(context);
@@ -314,9 +314,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: "not a number"
+        precision: "not a number",
       });
 
       const result = await node.execute(context);
@@ -329,9 +329,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: true
+        precision: true,
       });
 
       const result = await node.execute(context);
@@ -344,9 +344,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: -1
+        precision: -1,
       });
 
       const result = await node.execute(context);
@@ -359,9 +359,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: "not a number"
+        coordinates: "not a number",
       });
 
       const result = await node.execute(context);
@@ -374,9 +374,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: true
+        coordinates: true,
       });
 
       const result = await node.execute(context);
@@ -389,9 +389,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: 1
+        coordinates: 1,
       });
 
       const result = await node.execute(context);
@@ -404,9 +404,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: 0
+        coordinates: 0,
       });
 
       const result = await node.execute(context);
@@ -419,9 +419,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        mutate: "not a boolean"
+        mutate: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -434,9 +434,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        mutate: 1
+        mutate: 1,
       });
 
       const result = await node.execute(context);
@@ -451,9 +451,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: null
+        precision: null,
       });
 
       const result = await node.execute(context);
@@ -467,9 +467,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        precision: undefined
+        precision: undefined,
       });
 
       const result = await node.execute(context);
@@ -483,9 +483,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: null
+        coordinates: null,
       });
 
       const result = await node.execute(context);
@@ -499,9 +499,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        coordinates: undefined
+        coordinates: undefined,
       });
 
       const result = await node.execute(context);
@@ -515,9 +515,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        mutate: null
+        mutate: null,
       });
 
       const result = await node.execute(context);
@@ -531,9 +531,9 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890, 3.45678901]
+          coordinates: [1.23456789, 2.3456789, 3.45678901],
         },
-        mutate: undefined
+        mutate: undefined,
       });
 
       const result = await node.execute(context);
@@ -547,8 +547,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [123456789.123456789, 987654321.987654321, 555666777.888999000]
-        }
+          coordinates: [123456789.1234567, 987654321.9876543, 555666777.888999],
+        },
       });
 
       const result = await node.execute(context);
@@ -562,8 +562,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0.000000001, 0.000000002, 0.000000003]
-        }
+          coordinates: [0.000000001, 0.000000002, 0.000000003],
+        },
       });
 
       const result = await node.execute(context);
@@ -577,8 +577,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [-1.23456789, -2.34567890, -3.45678901]
-        }
+          coordinates: [-1.23456789, -2.3456789, -3.45678901],
+        },
       });
 
       const result = await node.execute(context);
@@ -592,8 +592,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0, 0]
-        }
+          coordinates: [0, 0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -607,8 +607,8 @@ describe("TruncateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1.23456789, 2.34567890]
-        }
+          coordinates: [1.23456789, 2.3456789],
+        },
       });
 
       const result = await node.execute(context);
@@ -618,4 +618,4 @@ describe("TruncateNode", () => {
       expect(result.outputs?.truncated.type).toBe("Point");
     });
   });
-}); 
+});

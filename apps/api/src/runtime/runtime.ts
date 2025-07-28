@@ -533,18 +533,20 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // Process each input's connections
     for (const [inputName, edges] of edgesByInput) {
-      const inputParam = node.inputs.find(input => input.name === inputName);
-      
       // Get the node type definition to check repeated
       const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeTypeDefinition = executable ? (executable.constructor as any).nodeType : null;
-      const nodeTypeInput = nodeTypeDefinition?.inputs?.find((input: any) => input.name === inputName);
-      
+      const nodeTypeDefinition = executable
+        ? (executable.constructor as any).nodeType
+        : null;
+      const nodeTypeInput = nodeTypeDefinition?.inputs?.find(
+        (input: any) => input.name === inputName
+      );
+
       // Check repeated from node type definition (not workflow node)
       const acceptsMultiple = nodeTypeInput?.repeated || false;
 
       const values: BasicNodeOutputValue[] = [];
-      
+
       for (const edge of edges) {
         const sourceOutputs = runtimeState.nodeOutputs.get(edge.source);
         if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
@@ -570,7 +572,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         }
       }
     }
-    
+
     return inputs;
   }
 
@@ -603,8 +605,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       // Check if this parameter accepts multiple connections
       const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeTypeDefinition = executable ? (executable.constructor as any).nodeType : null;
-      const nodeTypeInput = nodeTypeDefinition?.inputs?.find((input: any) => input.name === name);
+      const nodeTypeDefinition = executable
+        ? (executable.constructor as any).nodeType
+        : null;
+      const nodeTypeInput = nodeTypeDefinition?.inputs?.find(
+        (input: any) => input.name === name
+      );
       const acceptsMultiple = nodeTypeInput?.repeated || false;
 
       if (acceptsMultiple && Array.isArray(value)) {
@@ -618,7 +624,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             | ObjectReference
             | JsonArray
             | JsonObject;
-          const processedSingleValue = await apiToNodeParameter(type, validSingleValue, objectStore);
+          const processedSingleValue = await apiToNodeParameter(
+            type,
+            validSingleValue,
+            objectStore
+          );
           processedArray.push(processedSingleValue);
         }
         processed[name] = processedArray;
@@ -631,7 +641,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           | ObjectReference
           | JsonArray
           | JsonObject;
-        const processedValue = await apiToNodeParameter(type, validValue, objectStore);
+        const processedValue = await apiToNodeParameter(
+          type,
+          validValue,
+          objectStore
+        );
         processed[name] = processedValue;
       }
     }

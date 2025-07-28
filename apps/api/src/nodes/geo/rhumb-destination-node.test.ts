@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { RhumbDestinationNode } from "./rhumb-destination-node";
 import { NodeContext } from "../types";
+import { RhumbDestinationNode } from "./rhumb-destination-node";
 
 describe("RhumbDestinationNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,10 +26,10 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -45,11 +45,11 @@ describe("RhumbDestinationNode", () => {
           properties: { name: "Origin Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         distance: 10,
-        bearing: 45
+        bearing: 45,
       });
 
       const result = await node.execute(context);
@@ -62,11 +62,11 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
         bearing: 0,
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -79,14 +79,14 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
         bearing: 0,
         properties: {
           name: "Destination Point",
-          type: "waypoint"
-        }
+          type: "waypoint",
+        },
       });
 
       const result = await node.execute(context);
@@ -100,7 +100,7 @@ describe("RhumbDestinationNode", () => {
     it("should handle missing origin point input", async () => {
       const context = createMockContext({
         distance: 10,
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -113,9 +113,9 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -128,14 +128,14 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        distance: 10
+        distance: 10,
       });
 
       const result = await node.execute(context);
 
-      expect(result.status).toBe("error");  
+      expect(result.status).toBe("error");
       expect(result.error).toBe("Missing bearing input");
     });
 
@@ -143,7 +143,7 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: null,
         distance: 10,
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -158,10 +158,10 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 0,
-        bearing: 90
+        bearing: 90,
       });
 
       const result = await node.execute(context);
@@ -174,10 +174,10 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: -10,
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -190,10 +190,10 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
-        bearing: -90
+        bearing: -90,
       });
 
       const result = await node.execute(context);
@@ -206,10 +206,10 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
-        bearing: 450
+        bearing: 450,
       });
 
       const result = await node.execute(context);
@@ -222,11 +222,11 @@ describe("RhumbDestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
         bearing: 0,
-        properties: null
+        properties: null,
       });
 
       const result = await node.execute(context);
@@ -235,4 +235,4 @@ describe("RhumbDestinationNode", () => {
       expect(result.outputs?.destination).toBeDefined();
     });
   });
-}); 
+});

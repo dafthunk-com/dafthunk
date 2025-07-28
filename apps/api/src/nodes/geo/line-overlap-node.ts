@@ -9,7 +9,8 @@ export class LineOverlapNode extends ExecutableNode {
     id: "line-overlap",
     name: "Line Overlap",
     type: "line-overlap",
-    description: "Takes any LineString or Polygon and returns the overlapping lines between both features.",
+    description:
+      "Takes any LineString or Polygon and returns the overlapping lines between both features.",
     tags: ["Geo"],
     icon: "layers",
     inputs: [
@@ -28,7 +29,8 @@ export class LineOverlapNode extends ExecutableNode {
       {
         name: "tolerance",
         type: "number",
-        description: "Tolerance distance to match overlapping line segments in kilometers (default: 0)",
+        description:
+          "Tolerance distance to match overlapping line segments in kilometers (default: 0)",
         required: false,
       },
     ],
@@ -36,7 +38,8 @@ export class LineOverlapNode extends ExecutableNode {
       {
         name: "overlaps",
         type: "geojson",
-        description: "FeatureCollection of LineString features representing overlapping segments",
+        description:
+          "FeatureCollection of LineString features representing overlapping segments",
       },
     ],
   };
@@ -55,14 +58,16 @@ export class LineOverlapNode extends ExecutableNode {
 
       // Prepare options for lineOverlap
       const options: { tolerance?: number } = {};
-      
+
       if (tolerance !== undefined && tolerance !== null) {
         if (typeof tolerance !== "number") {
           return this.createErrorResult("Tolerance must be a number");
         }
 
         if (tolerance < 0) {
-          return this.createErrorResult("Tolerance must be a non-negative number");
+          return this.createErrorResult(
+            "Tolerance must be a non-negative number"
+          );
         }
 
         options.tolerance = tolerance;
@@ -74,10 +79,11 @@ export class LineOverlapNode extends ExecutableNode {
       return this.createSuccessResult({
         overlaps: overlapFeatures,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error finding line overlaps: ${error.message}`);
+      return this.createErrorResult(
+        `Error finding line overlaps: ${error.message}`
+      );
     }
   }
-} 
+}

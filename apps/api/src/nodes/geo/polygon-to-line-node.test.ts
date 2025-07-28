@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { PolygonToLineNode } from "./polygon-to-line-node";
+
 import { NodeContext } from "../types";
+import { PolygonToLineNode } from "./polygon-to-line-node";
 
 describe("PolygonToLineNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,9 +28,17 @@ describe("PolygonToLineNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -46,11 +55,27 @@ describe("PolygonToLineNode", () => {
         geometry: {
           type: "MultiPolygon",
           coordinates: [
-            [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
-            [[[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]]
-          ]
-        }
-      }
+            [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [2, 2],
+                [3, 2],
+                [3, 3],
+                [2, 3],
+                [2, 2],
+              ],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -66,13 +91,21 @@ describe("PolygonToLineNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
       },
       properties: {
         name: "Test Line",
-        length: 4
-      }
+        length: 4,
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -90,9 +123,17 @@ describe("PolygonToLineNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -105,8 +146,16 @@ describe("PolygonToLineNode", () => {
     const context = createMockContext({
       polygon: {
         type: "Polygon",
-        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-      }
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -123,11 +172,23 @@ describe("PolygonToLineNode", () => {
         geometry: {
           type: "Polygon",
           coordinates: [
-            [[0, 0], [3, 0], [3, 3], [0, 3], [0, 0]],
-            [[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]
-          ]
-        }
-      }
+            [
+              [0, 0],
+              [3, 0],
+              [3, 3],
+              [0, 3],
+              [0, 0],
+            ],
+            [
+              [1, 1],
+              [2, 1],
+              [2, 2],
+              [1, 2],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -150,10 +211,18 @@ describe("PolygonToLineNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      properties: "not an object"
+      properties: "not an object",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -167,10 +236,18 @@ describe("PolygonToLineNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      properties: null
+      properties: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -186,10 +263,18 @@ describe("PolygonToLineNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      properties: undefined
+      properties: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -197,4 +282,4 @@ describe("PolygonToLineNode", () => {
     expect(result.outputs?.line.type).toBe("Feature");
     expect(result.outputs?.line.geometry.type).toBe("LineString");
   });
-}); 
+});

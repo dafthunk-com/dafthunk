@@ -9,7 +9,8 @@ export class BboxClipNode extends ExecutableNode {
     id: "bbox-clip",
     name: "BBox Clip",
     type: "bbox-clip",
-    description: "Takes a Feature and a bbox and clips the feature to the bbox using lineclip. Polygon features are clipped to polygon intersection with bbox, LineString features are clipped to segments that intersect the bbox, and Point features are clipped if they fall within the bbox.",
+    description:
+      "Takes a Feature and a bbox and clips the feature to the bbox using lineclip. Polygon features are clipped to polygon intersection with bbox, LineString features are clipped to segments that intersect the bbox, and Point features are clipped if they fall within the bbox.",
     tags: ["Geo"],
     icon: "scissors",
     inputs: [
@@ -52,25 +53,33 @@ export class BboxClipNode extends ExecutableNode {
       }
 
       if (bbox.length !== 4) {
-        return this.createErrorResult("Bbox must have exactly 4 elements [west, south, east, north]");
+        return this.createErrorResult(
+          "Bbox must have exactly 4 elements [west, south, east, north]"
+        );
       }
 
       for (let i = 0; i < bbox.length; i++) {
         if (typeof bbox[i] !== "number") {
-          return this.createErrorResult(`Bbox element at index ${i} must be a number`);
+          return this.createErrorResult(
+            `Bbox element at index ${i} must be a number`
+          );
         }
       }
 
       // Delegate to Turf.js bboxClip function
-      const clipped = bboxClip(geojson as any, bbox as [number, number, number, number]);
+      const clipped = bboxClip(
+        geojson as any,
+        bbox as [number, number, number, number]
+      );
 
       return this.createSuccessResult({
         clipped,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error clipping geometry to bbox: ${error.message}`);
+      return this.createErrorResult(
+        `Error clipping geometry to bbox: ${error.message}`
+      );
     }
   }
-} 
+}

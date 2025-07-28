@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { AreaNode } from "./area-node";
+
 import { NodeContext } from "../types";
+import { AreaNode } from "./area-node";
 
 describe("AreaNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -24,14 +25,16 @@ describe("AreaNode", () => {
     const context = createMockContext({
       geojson: {
         type: "Polygon",
-        coordinates: [[
-          [-122.4194, 37.7749],
-          [-122.4094, 37.7749],
-          [-122.4094, 37.7849],
-          [-122.4194, 37.7849],
-          [-122.4194, 37.7749]
-        ]]
-      }
+        coordinates: [
+          [
+            [-122.4194, 37.7749],
+            [-122.4094, 37.7749],
+            [-122.4094, 37.7849],
+            [-122.4194, 37.7849],
+            [-122.4194, 37.7749],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -45,15 +48,17 @@ describe("AreaNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7749],
-            [-122.4094, 37.7849],
-            [-122.4194, 37.7849],
-            [-122.4194, 37.7749]
-          ]]
-        }
-      }
+          coordinates: [
+            [
+              [-122.4194, 37.7749],
+              [-122.4094, 37.7749],
+              [-122.4094, 37.7849],
+              [-122.4194, 37.7849],
+              [-122.4194, 37.7749],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -70,17 +75,19 @@ describe("AreaNode", () => {
             properties: {},
             geometry: {
               type: "Polygon",
-              coordinates: [[
-                [-122.4194, 37.7749],
-                [-122.4094, 37.7749],
-                [-122.4094, 37.7849],
-                [-122.4194, 37.7849],
-                [-122.4194, 37.7749]
-              ]]
-            }
-          }
-        ]
-      }
+              coordinates: [
+                [
+                  [-122.4194, 37.7749],
+                  [-122.4094, 37.7749],
+                  [-122.4094, 37.7849],
+                  [-122.4194, 37.7849],
+                  [-122.4194, 37.7749],
+                ],
+              ],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -96,7 +103,7 @@ describe("AreaNode", () => {
 
   it("returns an error for invalid input type", async () => {
     const context = createMockContext({
-      geojson: { type: "Point", coordinates: [-122.4194, 37.7749] }
+      geojson: { type: "Point", coordinates: [-122.4194, 37.7749] },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -109,4 +116,4 @@ describe("AreaNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toContain("Invalid GeoJSON provided");
   });
-}); 
+});

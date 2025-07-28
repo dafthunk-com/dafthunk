@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { FeatureCollectionNode } from "./feature-collection-node";
+
 import { NodeContext } from "../types";
+import { FeatureCollectionNode } from "./feature-collection-node";
 
 describe("FeatureCollectionNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -28,10 +29,10 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
-      ]
+            coordinates: [0, 0],
+          },
+        },
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -48,26 +49,26 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         {
           type: "Feature",
           properties: { name: "Point B" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
+            coordinates: [1, 1],
+          },
         },
         {
           type: "Feature",
           properties: { name: "Point C" },
           geometry: {
             type: "Point",
-            coordinates: [2, 2]
-          }
-        }
-      ]
+            coordinates: [2, 2],
+          },
+        },
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -85,26 +86,38 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         {
           type: "Feature",
           properties: { name: "Line" },
           geometry: {
             type: "LineString",
-            coordinates: [[0, 0], [1, 1], [2, 2]]
-          }
+            coordinates: [
+              [0, 0],
+              [1, 1],
+              [2, 2],
+            ],
+          },
         },
         {
           type: "Feature",
           properties: { name: "Polygon" },
           geometry: {
             type: "Polygon",
-            coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-          }
-        }
-      ]
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+          },
+        },
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -122,11 +135,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      bbox: [0, 0, 1, 1]
+      bbox: [0, 0, 1, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -143,11 +156,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      id: "test-collection-1"
+      id: "test-collection-1",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -164,11 +177,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      id: 123
+      id: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -185,12 +198,12 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
       bbox: [0, 0, 1, 1],
-      id: "test-collection"
+      id: "test-collection",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -208,10 +221,10 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Single Point" },
           geometry: {
             type: "Point",
-            coordinates: [5, 5]
-          }
-        }
-      ]
+            coordinates: [5, 5],
+          },
+        },
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -228,18 +241,18 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A", color: "red", value: 10 },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         {
           type: "Feature",
           properties: { name: "Point B", color: "blue", value: 20 },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
-      ]
+            coordinates: [1, 1],
+          },
+        },
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -256,11 +269,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      bbox: null
+      bbox: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -276,11 +289,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      bbox: undefined
+      bbox: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -296,11 +309,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      id: null
+      id: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -316,11 +329,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      id: undefined
+      id: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -337,7 +350,7 @@ describe("FeatureCollectionNode", () => {
 
   it("returns an error for null features input", async () => {
     const context = createMockContext({
-      features: null
+      features: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -346,7 +359,7 @@ describe("FeatureCollectionNode", () => {
 
   it("returns an error for undefined features input", async () => {
     const context = createMockContext({
-      features: undefined
+      features: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -361,11 +374,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      bbox: "not an array"
+      bbox: "not an array",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -380,15 +393,17 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      bbox: [0, 0, 1]
+      bbox: [0, 0, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Bbox must be an array of 4 numbers [west, south, east, north]");
+    expect(result.error).toBe(
+      "Bbox must be an array of 4 numbers [west, south, east, north]"
+    );
   });
 
   it("returns an error for bbox with non-number values", async () => {
@@ -399,11 +414,11 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      bbox: [0, 0, 1, "north"]
+      bbox: [0, 0, 1, "north"],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -418,14 +433,14 @@ describe("FeatureCollectionNode", () => {
           properties: { name: "Point A" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       ],
-      id: true
+      id: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("ID must be a string or number");
   });
-}); 
+});

@@ -9,7 +9,8 @@ export class BooleanConcaveNode extends ExecutableNode {
     id: "boolean-concave",
     name: "Boolean Concave",
     type: "boolean-concave",
-    description: "Takes a polygon and returns true or false as to whether it is concave or not.",
+    description:
+      "Takes a polygon and returns true or false as to whether it is concave or not.",
     tags: ["Geo"],
     icon: "polygon",
     inputs: [
@@ -43,10 +44,11 @@ export class BooleanConcaveNode extends ExecutableNode {
       return this.createSuccessResult({
         isConcave,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking concave property: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking concave property: ${error.message}`
+      );
     }
   }
-} 
+}

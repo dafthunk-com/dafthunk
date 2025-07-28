@@ -9,7 +9,8 @@ export class BooleanTouchesNode extends ExecutableNode {
     id: "boolean-touches",
     name: "Boolean Touches",
     type: "boolean-touches",
-    description: "Returns true if none of the points common to both geometries intersect the interiors of both geometries.",
+    description:
+      "Returns true if none of the points common to both geometries intersect the interiors of both geometries.",
     tags: ["Geo"],
     icon: "touch",
     inputs: [
@@ -53,10 +54,11 @@ export class BooleanTouchesNode extends ExecutableNode {
       return this.createSuccessResult({
         touches,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking if geometries touch: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking if geometries touch: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { LineOffsetNode } from "./line-offset-node";
 import { NodeContext } from "../types";
+import { LineOffsetNode } from "./line-offset-node";
 
 describe("LineOffsetNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -31,11 +31,11 @@ describe("LineOffsetNode", () => {
             type: "LineString",
             coordinates: [
               [0, 0],
-              [1, 1]
-            ]
-          }
+              [1, 1],
+            ],
+          },
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -52,10 +52,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -71,10 +71,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [2, 2]
-          ]
+            [2, 2],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -90,10 +90,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 5
+        distance: 5,
       });
 
       const result = await node.execute(context);
@@ -109,10 +109,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: -3
+        distance: -3,
       });
 
       const result = await node.execute(context);
@@ -128,10 +128,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 0
+        distance: 0,
       });
 
       const result = await node.execute(context);
@@ -147,11 +147,11 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: "kilometers"
+        units: "kilometers",
       });
 
       const result = await node.execute(context);
@@ -163,18 +163,18 @@ describe("LineOffsetNode", () => {
 
     it("should work with various unit strings", async () => {
       const units = ["kilometers", "miles", "meters", "feet", "inches"];
-      
+
       for (const unit of units) {
         const context = createMockContext({
           line: {
             type: "LineString",
             coordinates: [
               [0, 0],
-              [1, 1]
-            ]
+              [1, 1],
+            ],
           },
           distance: 1,
-          units: unit
+          units: unit,
         });
 
         const result = await node.execute(context);
@@ -191,10 +191,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [5, 0]
-          ]
+            [5, 0],
+          ],
         },
-        distance: 2
+        distance: 2,
       });
 
       const result = await node.execute(context);
@@ -210,10 +210,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [0, 5]
-          ]
+            [0, 5],
+          ],
         },
-        distance: 2
+        distance: 2,
       });
 
       const result = await node.execute(context);
@@ -231,10 +231,10 @@ describe("LineOffsetNode", () => {
             [0, 0],
             [1, 1],
             [2, 0],
-            [3, 1]
-          ]
+            [3, 1],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -250,10 +250,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0.5, 0.5],
-            [1.5, 1.5]
-          ]
+            [1.5, 1.5],
+          ],
         },
-        distance: 0.5
+        distance: 0.5,
       });
 
       const result = await node.execute(context);
@@ -269,10 +269,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [-1, -1],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 2
+        distance: 2,
       });
 
       const result = await node.execute(context);
@@ -288,10 +288,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 0.000001
+        distance: 0.000001,
       });
 
       const result = await node.execute(context);
@@ -307,10 +307,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 1000000
+        distance: 1000000,
       });
 
       const result = await node.execute(context);
@@ -327,15 +327,15 @@ describe("LineOffsetNode", () => {
           coordinates: [
             [
               [0, 0],
-              [1, 1]
+              [1, 1],
             ],
             [
               [2, 2],
-              [3, 3]
-            ]
-          ]
+              [3, 3],
+            ],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -349,7 +349,7 @@ describe("LineOffsetNode", () => {
   describe("Input validation", () => {
     it("should handle missing line input", async () => {
       const context = createMockContext({
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -361,7 +361,7 @@ describe("LineOffsetNode", () => {
     it("should handle null line input", async () => {
       const context = createMockContext({
         line: null,
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -373,7 +373,7 @@ describe("LineOffsetNode", () => {
     it("should handle undefined line input", async () => {
       const context = createMockContext({
         line: undefined,
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -388,9 +388,9 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
-        }
+            [1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -405,10 +405,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: null
+        distance: null,
       });
 
       const result = await node.execute(context);
@@ -423,10 +423,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: undefined
+        distance: undefined,
       });
 
       const result = await node.execute(context);
@@ -441,10 +441,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: "not a number"
+        distance: "not a number",
       });
 
       const result = await node.execute(context);
@@ -459,10 +459,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: true
+        distance: true,
       });
 
       const result = await node.execute(context);
@@ -477,11 +477,11 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: 123
+        units: 123,
       });
 
       const result = await node.execute(context);
@@ -496,11 +496,11 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: true
+        units: true,
       });
 
       const result = await node.execute(context);
@@ -517,11 +517,11 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: null
+        units: null,
       });
 
       const result = await node.execute(context);
@@ -537,11 +537,11 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: undefined
+        units: undefined,
       });
 
       const result = await node.execute(context);
@@ -557,10 +557,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [0, 0]
-          ]
+            [0, 0],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -576,10 +576,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [0.000001, 0.000001]
-          ]
+            [0.000001, 0.000001],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -595,10 +595,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1000000, 1000000]
-          ]
+            [1000000, 1000000],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -617,9 +617,9 @@ describe("LineOffsetNode", () => {
       const context = createMockContext({
         line: {
           type: "LineString",
-          coordinates
+          coordinates,
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -635,10 +635,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [1000000, 1000000],
-            [2000000, 2000000]
-          ]
+            [2000000, 2000000],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -654,10 +654,10 @@ describe("LineOffsetNode", () => {
           type: "LineString",
           coordinates: [
             [0.000001, 0.000001],
-            [0.000002, 0.000002]
-          ]
+            [0.000002, 0.000002],
+          ],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -667,4 +667,4 @@ describe("LineOffsetNode", () => {
       expect(result.outputs?.offset.type).toBe("LineString");
     });
   });
-}); 
+});

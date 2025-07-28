@@ -1,6 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { buffer } from "@turf/turf";
-import type { AllGeoJSON } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,7 +9,8 @@ export class BufferNode extends ExecutableNode {
     id: "buffer",
     name: "Buffer",
     type: "buffer",
-    description: "Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.",
+    description:
+      "Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.",
     tags: ["Geo"],
     icon: "circle",
     inputs: [
@@ -23,7 +23,8 @@ export class BufferNode extends ExecutableNode {
       {
         name: "radius",
         type: "number",
-        description: "Distance to draw the buffer (negative values are allowed)",
+        description:
+          "Distance to draw the buffer (negative values are allowed)",
         required: true,
       },
       {
@@ -75,7 +76,9 @@ export class BufferNode extends ExecutableNode {
       });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error buffering geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error buffering geometry: ${error.message}`
+      );
     }
   }
-} 
+}

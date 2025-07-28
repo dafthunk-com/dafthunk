@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PolygonTangentsNode } from "./polygon-tangents-node";
 import { NodeContext } from "../types";
+import { PolygonTangentsNode } from "./polygon-tangents-node";
 
 describe("PolygonTangentsNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,8 +29,8 @@ describe("PolygonTangentsNode", () => {
           properties: { name: "Test Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         polygon: {
           type: "Feature",
@@ -43,11 +43,11 @@ describe("PolygonTangentsNode", () => {
                 [1, -1],
                 [-1, -1],
                 [-1, 1],
-                [1, 1]
-              ]
-            ]
-          }
-        }
+                [1, 1],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -63,7 +63,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -73,10 +73,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -92,7 +92,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -102,10 +102,10 @@ describe("PolygonTangentsNode", () => {
               [10, -10],
               [-10, -10],
               [-10, 10],
-              [10, 10]
-            ]
-          ]
-        }
+              [10, 10],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -121,7 +121,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
         polygon: {
           type: "Polygon",
@@ -131,10 +131,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -150,7 +150,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [100, 100]
+          coordinates: [100, 100],
         },
         polygon: {
           type: "Polygon",
@@ -160,10 +160,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -187,10 +187,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -203,8 +203,8 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -224,10 +224,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -240,9 +240,9 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        polygon: null
+        polygon: null,
       });
 
       const result = await node.execute(context);
@@ -257,7 +257,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [1.1, 0]
+          coordinates: [1.1, 0],
         },
         polygon: {
           type: "Polygon",
@@ -267,10 +267,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -286,7 +286,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
         polygon: {
           type: "Polygon",
@@ -296,10 +296,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -315,7 +315,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -325,10 +325,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -344,7 +344,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -354,10 +354,10 @@ describe("PolygonTangentsNode", () => {
               [1000, -1000],
               [-1000, -1000],
               [-1000, 1000],
-              [1000, 1000]
-            ]
-          ]
-        }
+              [1000, 1000],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -373,7 +373,7 @@ describe("PolygonTangentsNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [1000, 1000]
+          coordinates: [1000, 1000],
         },
         polygon: {
           type: "Polygon",
@@ -383,10 +383,10 @@ describe("PolygonTangentsNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -398,4 +398,4 @@ describe("PolygonTangentsNode", () => {
       expect(result.outputs?.tangents.features.length).toBe(2);
     });
   });
-}); 
+});

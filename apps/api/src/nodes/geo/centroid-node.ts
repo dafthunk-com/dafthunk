@@ -9,7 +9,8 @@ export class CentroidNode extends ExecutableNode {
     id: "centroid",
     name: "Centroid",
     type: "centroid",
-    description: "Computes the centroid as the mean of all vertices within the object.",
+    description:
+      "Computes the centroid as the mean of all vertices within the object.",
     tags: ["Geo"],
     icon: "target",
     inputs: [
@@ -52,10 +53,11 @@ export class CentroidNode extends ExecutableNode {
       return this.createSuccessResult({
         centroid: centroidPoint,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating centroid: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating centroid: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MultiPolygonNode } from "./multipolygon-node";
+
 import { NodeContext } from "../types";
+import { MultiPolygonNode } from "./multipolygon-node";
 
 describe("MultiPolygonNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,10 +30,10 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
-      ]
+            [0, 0],
+          ],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -51,8 +52,8 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
+            [0, 0],
+          ],
         ],
         [
           [
@@ -60,10 +61,10 @@ describe("MultiPolygonNode", () => {
             [3, 2],
             [3, 3],
             [2, 3],
-            [2, 2]
-          ]
-        ]
-      ]
+            [2, 2],
+          ],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -83,22 +84,24 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
       properties: {
         name: "Test MultiPolygon",
         color: "blue",
-        value: 42
-      }
+        value: 42,
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.multiPolygon).toBeDefined();
     expect(result.outputs?.multiPolygon.type).toBe("Feature");
     expect(result.outputs?.multiPolygon.properties).toBeDefined();
-    expect(result.outputs?.multiPolygon.properties.name).toBe("Test MultiPolygon");
+    expect(result.outputs?.multiPolygon.properties.name).toBe(
+      "Test MultiPolygon"
+    );
     expect(result.outputs?.multiPolygon.properties.color).toBe("blue");
     expect(result.outputs?.multiPolygon.properties.value).toBe(42);
   });
@@ -112,11 +115,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      bbox: [0, 0, 1, 1]
+      bbox: [0, 0, 1, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -134,11 +137,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      id: "test-multipolygon-1"
+      id: "test-multipolygon-1",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -156,11 +159,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      id: 456
+      id: 456,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -178,13 +181,13 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
       properties: { name: "Test" },
       bbox: [0, 0, 1, 1],
-      id: "test-multipolygon"
+      id: "test-multipolygon",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -204,10 +207,10 @@ describe("MultiPolygonNode", () => {
             [6, 5],
             [6, 6],
             [5, 6],
-            [5, 5]
-          ]
-        ]
-      ]
+            [5, 5],
+          ],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -225,8 +228,8 @@ describe("MultiPolygonNode", () => {
             [10, 0],
             [10, 10],
             [0, 10],
-            [0, 0]
-          ]
+            [0, 0],
+          ],
         ],
         [
           [
@@ -234,10 +237,10 @@ describe("MultiPolygonNode", () => {
             [30, 20],
             [30, 30],
             [20, 30],
-            [20, 20]
-          ]
-        ]
-      ]
+            [20, 20],
+          ],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -256,17 +259,17 @@ describe("MultiPolygonNode", () => {
             [10, 0],
             [10, 10],
             [0, 10],
-            [0, 0]
+            [0, 0],
           ],
           [
             [2, 2],
             [8, 2],
             [8, 8],
             [2, 8],
-            [2, 2]
-          ]
-        ]
-      ]
+            [2, 2],
+          ],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -285,11 +288,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      properties: null
+      properties: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -306,11 +309,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      properties: undefined
+      properties: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -327,11 +330,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      bbox: null
+      bbox: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -348,11 +351,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      bbox: undefined
+      bbox: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -369,11 +372,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      id: null
+      id: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -390,11 +393,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      id: undefined
+      id: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -411,7 +414,7 @@ describe("MultiPolygonNode", () => {
 
   it("returns an error for null coordinates input", async () => {
     const context = createMockContext({
-      coordinates: null
+      coordinates: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -420,7 +423,7 @@ describe("MultiPolygonNode", () => {
 
   it("returns an error for undefined coordinates input", async () => {
     const context = createMockContext({
-      coordinates: undefined
+      coordinates: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -436,11 +439,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      bbox: "not an array"
+      bbox: "not an array",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -456,15 +459,17 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      bbox: [0, 0, 1]
+      bbox: [0, 0, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Bbox must be an array of 4 numbers [west, south, east, north]");
+    expect(result.error).toBe(
+      "Bbox must be an array of 4 numbers [west, south, east, north]"
+    );
   });
 
   it("returns an error for bbox with non-number values", async () => {
@@ -476,11 +481,11 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      bbox: [0, 0, 1, "north"]
+      bbox: [0, 0, 1, "north"],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -496,14 +501,14 @@ describe("MultiPolygonNode", () => {
             [1, 0],
             [1, 1],
             [0, 1],
-            [0, 0]
-          ]
-        ]
+            [0, 0],
+          ],
+        ],
       ],
-      id: true
+      id: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("ID must be a string or number");
   });
-}); 
+});

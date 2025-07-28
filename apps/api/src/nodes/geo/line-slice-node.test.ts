@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineSliceNode } from "./line-slice-node";
+
 import { NodeContext } from "../types";
+import { LineSliceNode } from "./line-slice-node";
 
 describe("LineSliceNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,25 +28,31 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 0]
-        }
+          coordinates: [1, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [3, 0]
-        }
+          coordinates: [3, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -58,16 +65,22 @@ describe("LineSliceNode", () => {
     const context = createMockContext({
       startPt: {
         type: "Point",
-        coordinates: [1, 0]
+        coordinates: [1, 0],
       },
       stopPt: {
         type: "Point",
-        coordinates: [3, 0]
+        coordinates: [3, 0],
       },
       line: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-      }
+        coordinates: [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [3, 0],
+          [4, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -83,25 +96,31 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [3, 3]
-        }
+          coordinates: [3, 3],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 2],
+            [3, 3],
+            [4, 4],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -117,25 +136,31 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 0]
-        }
+          coordinates: [2, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [6, 0]
-        }
+          coordinates: [6, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0], [6, 0], [8, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+            [6, 0],
+            [8, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -151,25 +176,29 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 0]
-        }
+          coordinates: [2, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 0]
-        }
+          coordinates: [2, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -185,25 +214,31 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -219,25 +254,31 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1.5, 0]
-        }
+          coordinates: [1.5, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2.5, 0]
-        }
+          coordinates: [2.5, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -253,25 +294,28 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 0]
-        }
+          coordinates: [1, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -287,17 +331,23 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [3, 0]
-        }
+          coordinates: [3, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -311,17 +361,23 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 0]
-        }
+          coordinates: [1, 0],
+        },
       },
       line: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -335,20 +391,20 @@ describe("LineSliceNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 0]
-        }
+          coordinates: [1, 0],
+        },
       },
       stopPt: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [3, 0]
-        }
-      }
+          coordinates: [3, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing line input");
   });
-}); 
+});

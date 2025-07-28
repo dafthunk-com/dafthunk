@@ -15,10 +15,11 @@ export class AvgNode extends ExecutableNode {
     tags: ["Math"],
     icon: "bar-chart",
     inputs: [
-      { 
-        name: "numbers", 
-        type: "number", 
-        description: "Numbers to calculate average from (supports multiple connections)",
+      {
+        name: "numbers",
+        type: "number",
+        description:
+          "Numbers to calculate average from (supports multiple connections)",
         required: true,
         repeated: true,
       },
@@ -46,7 +47,9 @@ export class AvgNode extends ExecutableNode {
       if (Array.isArray(numbers)) {
         // Handle empty array
         if (numbers.length === 0) {
-          return this.createErrorResult("Cannot calculate average of empty array");
+          return this.createErrorResult(
+            "Cannot calculate average of empty array"
+          );
         }
 
         // Validate all inputs are numbers
@@ -68,11 +71,13 @@ export class AvgNode extends ExecutableNode {
         });
       }
 
-      return this.createErrorResult("Invalid input type: expected number or array of numbers");
+      return this.createErrorResult(
+        "Invalid input type: expected number or array of numbers"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-} 
+}

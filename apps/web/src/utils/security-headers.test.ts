@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { generateNonce, injectNonceIntoHTML, addSecurityHeaders } from "./security-headers";
+import {
+  addSecurityHeaders,
+  generateNonce,
+  injectNonceIntoHTML,
+} from "./security-headers";
 
 describe("Security headers functionality", () => {
   describe("generateNonce", () => {
@@ -167,9 +171,13 @@ window.$RefreshSig$ = () => (type) => type;</script>
       expect(cspHeader).toContain("'nonce-test-nonce'");
       expect(cspHeader).toContain("blob:");
       expect(cspHeader).toContain("style-src");
-      expect(cspHeader).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain(
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+      );
       expect(cspHeader).toContain("worker-src");
-      expect(cspHeader).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain(
+        "worker-src 'self' blob: https://cdn.jsdelivr.net"
+      );
     });
 
     it("should include jsdelivr CDN even without nonce", () => {
@@ -189,9 +197,13 @@ window.$RefreshSig$ = () => (type) => type;</script>
       expect(cspHeader).toContain("https://static.cloudflareinsights.com");
       expect(cspHeader).toContain("blob:");
       expect(cspHeader).toContain("style-src");
-      expect(cspHeader).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain(
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+      );
       expect(cspHeader).toContain("worker-src");
-      expect(cspHeader).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain(
+        "worker-src 'self' blob: https://cdn.jsdelivr.net"
+      );
     });
 
     it("should not apply security headers to non-HTML responses", () => {
@@ -219,12 +231,20 @@ window.$RefreshSig$ = () => (type) => type;</script>
 
       const cspHeader = securedResponse.headers.get("Content-Security-Policy");
       expect(cspHeader).toBeTruthy();
-      
+
       // Check that all Monaco Editor requirements are met
-      expect(cspHeader).toContain("script-src 'self' 'nonce-monaco-test-nonce' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:");
-      expect(cspHeader).toContain("worker-src 'self' blob: https://cdn.jsdelivr.net");
-      expect(cspHeader).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
-      expect(cspHeader).toContain("font-src 'self' data: https://cdn.jsdelivr.net");
+      expect(cspHeader).toContain(
+        "script-src 'self' 'nonce-monaco-test-nonce' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:"
+      );
+      expect(cspHeader).toContain(
+        "worker-src 'self' blob: https://cdn.jsdelivr.net"
+      );
+      expect(cspHeader).toContain(
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+      );
+      expect(cspHeader).toContain(
+        "font-src 'self' data: https://cdn.jsdelivr.net"
+      );
     });
   });
 });

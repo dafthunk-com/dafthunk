@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { MidpointNode } from "./midpoint-node";
 import { NodeContext } from "../types";
+import { MidpointNode } from "./midpoint-node";
 
 describe("MidpointNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,12 +26,12 @@ describe("MidpointNode", () => {
       const context = createMockContext({
         point1: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         point2: {
           type: "Point",
-          coordinates: [10, 10]
-        }
+          coordinates: [10, 10],
+        },
       });
 
       const result = await node.execute(context);
@@ -40,7 +40,9 @@ describe("MidpointNode", () => {
       expect(result.outputs?.midpoint).toBeDefined();
       expect(result.outputs?.midpoint.type).toBe("Feature");
       expect(result.outputs?.midpoint.geometry.type).toBe("Point");
-      expect(Array.isArray(result.outputs?.midpoint.geometry.coordinates)).toBe(true);
+      expect(Array.isArray(result.outputs?.midpoint.geometry.coordinates)).toBe(
+        true
+      );
       expect(result.outputs?.midpoint.geometry.coordinates).toHaveLength(2);
     });
 
@@ -51,17 +53,17 @@ describe("MidpointNode", () => {
           properties: { name: "Point 1" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         point2: {
           type: "Feature",
           properties: { name: "Point 2" },
           geometry: {
             type: "Point",
-            coordinates: [10, 10]
-          }
-        }
+            coordinates: [10, 10],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -78,8 +80,8 @@ describe("MidpointNode", () => {
       const context = createMockContext({
         point2: {
           type: "Point",
-          coordinates: [10, 10]
-        }
+          coordinates: [10, 10],
+        },
       });
 
       const result = await node.execute(context);
@@ -92,8 +94,8 @@ describe("MidpointNode", () => {
       const context = createMockContext({
         point1: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -107,8 +109,8 @@ describe("MidpointNode", () => {
         point1: null,
         point2: {
           type: "Point",
-          coordinates: [10, 10]
-        }
+          coordinates: [10, 10],
+        },
       });
 
       const result = await node.execute(context);
@@ -117,4 +119,4 @@ describe("MidpointNode", () => {
       expect(result.error).toBe("Missing point1 input");
     });
   });
-}); 
+});

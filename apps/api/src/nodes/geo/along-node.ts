@@ -9,7 +9,8 @@ export class AlongNode extends ExecutableNode {
     id: "along",
     name: "Along",
     type: "along",
-    description: "Takes a LineString and returns a Point at a specified distance along the line.",
+    description:
+      "Takes a LineString and returns a Point at a specified distance along the line.",
     tags: ["Geo"],
     icon: "map-pin",
     inputs: [
@@ -59,7 +60,7 @@ export class AlongNode extends ExecutableNode {
 
       // Prepare options for along calculation
       const options: { units?: string } = {};
-      
+
       if (units !== undefined && units !== null) {
         if (typeof units !== "string") {
           return this.createErrorResult("Units must be a string");
@@ -73,10 +74,11 @@ export class AlongNode extends ExecutableNode {
       return this.createSuccessResult({
         point: pointAlong,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating point along line: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating point along line: ${error.message}`
+      );
     }
   }
-} 
+}

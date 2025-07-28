@@ -9,7 +9,8 @@ export class TransformTranslateNode extends ExecutableNode {
     id: "transformTranslate",
     name: "Transform Translate",
     type: "transformTranslate",
-    description: "Moves any GeoJSON geometry by a specified distance and direction.",
+    description:
+      "Moves any GeoJSON geometry by a specified distance and direction.",
     tags: ["Geo"],
     icon: "move",
     inputs: [
@@ -34,7 +35,8 @@ export class TransformTranslateNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units for distance (kilometers, miles, meters, degrees, radians)",
+        description:
+          "Units for distance (kilometers, miles, meters, degrees, radians)",
         required: false,
       },
       {
@@ -58,18 +60,24 @@ export class TransformTranslateNode extends ExecutableNode {
       const { geojson, distance, direction, units, mutate } = context.inputs;
 
       // Delegate to Turf.js transformTranslate function
-      const translatedGeometry = transformTranslate(geojson, distance, direction, {
-        units,
-        mutate,
-      });
+      const translatedGeometry = transformTranslate(
+        geojson,
+        distance,
+        direction,
+        {
+          units,
+          mutate,
+        }
+      );
 
       return this.createSuccessResult({
         translated: translatedGeometry,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error translating geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error translating geometry: ${error.message}`
+      );
     }
   }
-} 
+}

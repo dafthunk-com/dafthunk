@@ -9,7 +9,8 @@ export class BooleanContainsNode extends ExecutableNode {
     id: "booleanContains",
     name: "Boolean Contains",
     type: "booleanContains",
-    description: "Tests whether one geometry completely contains another geometry.",
+    description:
+      "Tests whether one geometry completely contains another geometry.",
     tags: ["Geo"],
     icon: "box",
     inputs: [
@@ -30,7 +31,8 @@ export class BooleanContainsNode extends ExecutableNode {
       {
         name: "contains",
         type: "boolean",
-        description: "True if feature1 completely contains feature2, false otherwise",
+        description:
+          "True if feature1 completely contains feature2, false otherwise",
       },
     ],
   };
@@ -53,10 +55,11 @@ export class BooleanContainsNode extends ExecutableNode {
       return this.createSuccessResult({
         contains: containsResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error testing contains relationship: ${error.message}`);
+      return this.createErrorResult(
+        `Error testing contains relationship: ${error.message}`
+      );
     }
   }
-} 
+}

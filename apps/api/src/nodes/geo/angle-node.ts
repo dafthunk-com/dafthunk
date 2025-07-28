@@ -9,7 +9,8 @@ export class AngleNode extends ExecutableNode {
     id: "angle",
     name: "Angle",
     type: "angle",
-    description: "Calculates the angle between three points, with the middle point as the vertex.",
+    description:
+      "Calculates the angle between three points, with the middle point as the vertex.",
     tags: ["Geo"],
     icon: "triangle",
     inputs: [
@@ -34,13 +35,15 @@ export class AngleNode extends ExecutableNode {
       {
         name: "explementary",
         type: "boolean",
-        description: "Whether to calculate the explementary angle (default: false)",
+        description:
+          "Whether to calculate the explementary angle (default: false)",
         required: false,
       },
       {
         name: "mercator",
         type: "boolean",
-        description: "Whether to use Mercator projection calculations (default: false)",
+        description:
+          "Whether to use Mercator projection calculations (default: false)",
         required: false,
       },
     ],
@@ -48,7 +51,8 @@ export class AngleNode extends ExecutableNode {
       {
         name: "angle",
         type: "number",
-        description: "Angle in degrees (0-180 for normal, 180-360 for explementary)",
+        description:
+          "Angle in degrees (0-180 for normal, 180-360 for explementary)",
       },
     ],
   };
@@ -71,14 +75,16 @@ export class AngleNode extends ExecutableNode {
 
       // Prepare options for angle calculation
       const options: { explementary?: boolean; mercator?: boolean } = {};
-      
+
       if (explementary !== undefined && explementary !== null) {
         if (typeof explementary !== "boolean") {
-          return this.createErrorResult("Explementary parameter must be a boolean");
+          return this.createErrorResult(
+            "Explementary parameter must be a boolean"
+          );
         }
         options.explementary = explementary;
       }
-      
+
       if (mercator !== undefined && mercator !== null) {
         if (typeof mercator !== "boolean") {
           return this.createErrorResult("Mercator parameter must be a boolean");
@@ -92,10 +98,11 @@ export class AngleNode extends ExecutableNode {
       return this.createSuccessResult({
         angle: calculatedAngle,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating angle: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating angle: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -9,7 +9,8 @@ export class BooleanEqualNode extends ExecutableNode {
     id: "boolean-equal",
     name: "Boolean Equal",
     type: "boolean-equal",
-    description: "Determines whether two geometries of the same type have identical X,Y coordinate values.",
+    description:
+      "Determines whether two geometries of the same type have identical X,Y coordinate values.",
     tags: ["Geo"],
     icon: "equal",
     inputs: [
@@ -53,10 +54,11 @@ export class BooleanEqualNode extends ExecutableNode {
       return this.createSuccessResult({
         isEqual,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking equality: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking equality: ${error.message}`
+      );
     }
   }
-} 
+}

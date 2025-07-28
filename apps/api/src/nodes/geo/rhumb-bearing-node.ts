@@ -9,7 +9,8 @@ export class RhumbBearingNode extends ExecutableNode {
     id: "rhumbBearing",
     name: "Rhumb Bearing",
     type: "rhumbBearing",
-    description: "Calculates the rhumb line bearing (constant bearing) between two points.",
+    description:
+      "Calculates the rhumb line bearing (constant bearing) between two points.",
     tags: ["Geo"],
     icon: "navigation",
     inputs: [
@@ -28,7 +29,8 @@ export class RhumbBearingNode extends ExecutableNode {
       {
         name: "final",
         type: "boolean",
-        description: "Calculate final bearing instead of initial bearing (default: false)",
+        description:
+          "Calculate final bearing instead of initial bearing (default: false)",
         required: false,
       },
     ],
@@ -68,10 +70,11 @@ export class RhumbBearingNode extends ExecutableNode {
       return this.createSuccessResult({
         bearing: bearing,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating rhumb bearing: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating rhumb bearing: ${error.message}`
+      );
     }
   }
-} 
+}

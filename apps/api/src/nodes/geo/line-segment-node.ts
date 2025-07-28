@@ -9,7 +9,8 @@ export class LineSegmentNode extends ExecutableNode {
     id: "line-segment",
     name: "Line Segment",
     type: "line-segment",
-    description: "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon.",
+    description:
+      "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon.",
     tags: ["Geo"],
     icon: "git-branch",
     inputs: [
@@ -43,10 +44,11 @@ export class LineSegmentNode extends ExecutableNode {
       return this.createSuccessResult({
         segments: segmentFeatures,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating line segments: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating line segments: ${error.message}`
+      );
     }
   }
-} 
+}

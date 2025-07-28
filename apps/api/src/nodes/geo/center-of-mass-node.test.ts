@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { CenterOfMassNode } from "./center-of-mass-node";
 import { NodeContext } from "../types";
+import { CenterOfMassNode } from "./center-of-mass-node";
 
 describe("CenterOfMassNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,14 +26,16 @@ describe("CenterOfMassNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [2, 0],
-            [2, 2],
-            [0, 2],
-            [0, 0]
-          ]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -48,11 +50,11 @@ describe("CenterOfMassNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
         properties: {
-          name: "Test Center of Mass"
-        }
+          name: "Test Center of Mass",
+        },
       });
 
       const result = await node.execute(context);
@@ -75,7 +77,7 @@ describe("CenterOfMassNode", () => {
 
     it("should handle null input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -84,4 +86,4 @@ describe("CenterOfMassNode", () => {
       expect(result.error).toBe("Missing GeoJSON input");
     });
   });
-}); 
+});

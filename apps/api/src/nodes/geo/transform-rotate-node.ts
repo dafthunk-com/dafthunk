@@ -9,7 +9,8 @@ export class TransformRotateNode extends ExecutableNode {
     id: "transformRotate",
     name: "Transform Rotate",
     type: "transformRotate",
-    description: "Rotates any GeoJSON geometry around a pivot point by a specified angle.",
+    description:
+      "Rotates any GeoJSON geometry around a pivot point by a specified angle.",
     tags: ["Geo"],
     icon: "rotate-cw",
     inputs: [
@@ -28,7 +29,8 @@ export class TransformRotateNode extends ExecutableNode {
       {
         name: "pivot",
         type: "geojson",
-        description: "Point around which to rotate (default: centroid of geometry)",
+        description:
+          "Point around which to rotate (default: centroid of geometry)",
         required: false,
       },
     ],
@@ -69,10 +71,11 @@ export class TransformRotateNode extends ExecutableNode {
       return this.createSuccessResult({
         rotated: rotatedGeometry,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error rotating geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error rotating geometry: ${error.message}`
+      );
     }
   }
-} 
+}

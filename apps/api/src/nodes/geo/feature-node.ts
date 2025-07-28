@@ -67,15 +67,18 @@ export class FeatureNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js feature function
-      const featureResult = feature(geometry as any, options.properties, options);
+      const featureResult = feature(
+        geometry as any,
+        options.properties,
+        options
+      );
 
       return this.createSuccessResult({
         feature: featureResult,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error creating feature: ${error.message}`);
     }
   }
-} 
+}

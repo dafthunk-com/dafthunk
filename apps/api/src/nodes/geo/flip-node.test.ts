@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { FlipNode } from "./flip-node";
 import { NodeContext } from "../types";
+import { FlipNode } from "./flip-node";
 
 describe("FlipNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +26,8 @@ describe("FlipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [-122, 37]
-        }
+          coordinates: [-122, 37],
+        },
       });
 
       const result = await node.execute(context);
@@ -45,9 +45,9 @@ describe("FlipNode", () => {
           coordinates: [
             [-122, 37],
             [-121, 38],
-            [-120, 39]
-          ]
-        }
+            [-120, 39],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -62,14 +62,16 @@ describe("FlipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [-122, 37],
-            [-121, 37],
-            [-121, 38],
-            [-122, 38],
-            [-122, 37]
-          ]]
-        }
+          coordinates: [
+            [
+              [-122, 37],
+              [-121, 37],
+              [-121, 38],
+              [-122, 38],
+              [-122, 37],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -89,9 +91,9 @@ describe("FlipNode", () => {
           properties: { name: "Test Point", id: 1 },
           geometry: {
             type: "Point",
-            coordinates: [-122, 37]
-          }
-        }
+            coordinates: [-122, 37],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -102,7 +104,7 @@ describe("FlipNode", () => {
       expect(result.outputs?.flipped.geometry).toBeDefined();
       expect(result.outputs?.flipped.properties).toEqual({
         name: "Test Point",
-        id: 1
+        id: 1,
       });
     });
 
@@ -116,8 +118,8 @@ describe("FlipNode", () => {
               properties: { id: 1 },
               geometry: {
                 type: "Point",
-                coordinates: [-122, 37]
-              }
+                coordinates: [-122, 37],
+              },
             },
             {
               type: "Feature",
@@ -126,12 +128,12 @@ describe("FlipNode", () => {
                 type: "LineString",
                 coordinates: [
                   [-121, 38],
-                  [-120, 39]
-                ]
-              }
-            }
-          ]
-        }
+                  [-120, 39],
+                ],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -155,7 +157,7 @@ describe("FlipNode", () => {
 
     it("should handle null GeoJSON input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -164,4 +166,4 @@ describe("FlipNode", () => {
       expect(result.error).toBe("Missing GeoJSON input");
     });
   });
-}); 
+});

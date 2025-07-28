@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanWithinNode } from "./boolean-within-node";
+
 import { NodeContext } from "../types";
+import { BooleanWithinNode } from "./boolean-within-node";
 
 describe("BooleanWithinNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +27,8 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0.5]
-      }
+        coordinates: [0.5, 0.5],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -40,15 +41,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -61,8 +62,8 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0.5]
-      }
+        coordinates: [0.5, 0.5],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -75,15 +76,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -96,8 +97,8 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [2, 2]
-      }
+        coordinates: [2, 2],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -110,15 +111,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -131,8 +132,8 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -145,15 +146,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -172,10 +173,10 @@ describe("BooleanWithinNode", () => {
             [0.25, 0.75],
             [0.75, 0.75],
             [0.75, 0.25],
-            [0.25, 0.25]
-          ]
-        ]
-      }
+            [0.25, 0.25],
+          ],
+        ],
+      },
     };
     const outerPolygon = {
       type: "Feature",
@@ -188,15 +189,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: innerPolygon,
-      feature2: outerPolygon
+      feature2: outerPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -215,10 +216,10 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -231,15 +232,15 @@ describe("BooleanWithinNode", () => {
             [0.5, 1.5],
             [1.5, 1.5],
             [1.5, 0.5],
-            [0.5, 0.5]
-          ]
-        ]
-      }
+            [0.5, 0.5],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -258,10 +259,10 @@ describe("BooleanWithinNode", () => {
             [0.25, 0.75],
             [0.75, 0.75],
             [0.75, 0.25],
-            [0.25, 0.25]
-          ]
-        ]
-      }
+            [0.25, 0.25],
+          ],
+        ],
+      },
     };
     const outerPolygon = {
       type: "Feature",
@@ -274,15 +275,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: outerPolygon,
-      feature2: innerPolygon
+      feature2: innerPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -297,9 +298,9 @@ describe("BooleanWithinNode", () => {
         type: "LineString",
         coordinates: [
           [0.25, 0.25],
-          [0.75, 0.75]
-        ]
-      }
+          [0.75, 0.75],
+        ],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -312,15 +313,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -335,9 +336,9 @@ describe("BooleanWithinNode", () => {
         type: "LineString",
         coordinates: [
           [-0.5, 0.5],
-          [1.5, 0.5]
-        ]
-      }
+          [1.5, 0.5],
+        ],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -350,15 +351,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -377,15 +378,15 @@ describe("BooleanWithinNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -398,13 +399,13 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0.5, 0.5]
-      }
+        coordinates: [0.5, 0.5],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: point
+      feature2: point,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -417,21 +418,21 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     };
     const point2 = {
       type: "Feature",
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point1,
-      feature2: point2
+      feature2: point2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -441,7 +442,7 @@ describe("BooleanWithinNode", () => {
   it("returns true for geometry objects", async () => {
     const point = {
       type: "Point",
-      coordinates: [0.5, 0.5]
+      coordinates: [0.5, 0.5],
     };
     const polygon = {
       type: "Polygon",
@@ -451,14 +452,14 @@ describe("BooleanWithinNode", () => {
           [0, 1],
           [1, 1],
           [1, 0],
-          [0, 0]
-        ]
-      ]
+          [0, 0],
+        ],
+      ],
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -471,8 +472,8 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [50, 50]
-      }
+        coordinates: [50, 50],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -485,15 +486,15 @@ describe("BooleanWithinNode", () => {
             [0, 100],
             [100, 100],
             [100, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -506,8 +507,8 @@ describe("BooleanWithinNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [150, 150]
-      }
+        coordinates: [150, 150],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -520,15 +521,15 @@ describe("BooleanWithinNode", () => {
             [0, 100],
             [100, 100],
             [100, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -547,10 +548,10 @@ describe("BooleanWithinNode", () => {
             [25, 75],
             [75, 75],
             [75, 25],
-            [25, 25]
-          ]
-        ]
-      }
+            [25, 25],
+          ],
+        ],
+      },
     };
     const largePolygon = {
       type: "Feature",
@@ -563,15 +564,15 @@ describe("BooleanWithinNode", () => {
             [0, 100],
             [100, 100],
             [100, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: smallPolygon,
-      feature2: largePolygon
+      feature2: largePolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -590,10 +591,10 @@ describe("BooleanWithinNode", () => {
             [75, 125],
             [125, 125],
             [125, 75],
-            [75, 75]
-          ]
-        ]
-      }
+            [75, 75],
+          ],
+        ],
+      },
     };
     const largePolygon = {
       type: "Feature",
@@ -606,15 +607,15 @@ describe("BooleanWithinNode", () => {
             [0, 100],
             [100, 100],
             [100, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: smallPolygon,
-      feature2: largePolygon
+      feature2: largePolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -634,11 +635,11 @@ describe("BooleanWithinNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -652,9 +653,9 @@ describe("BooleanWithinNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0.5, 0.5]
-        }
-      }
+          coordinates: [0.5, 0.5],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -675,11 +676,11 @@ describe("BooleanWithinNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -693,10 +694,10 @@ describe("BooleanWithinNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0.5, 0.5]
-        }
+          coordinates: [0.5, 0.5],
+        },
       },
-      feature2: null
+      feature2: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -717,11 +718,11 @@ describe("BooleanWithinNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -735,13 +736,13 @@ describe("BooleanWithinNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0.5, 0.5]
-        }
+          coordinates: [0.5, 0.5],
+        },
       },
-      feature2: undefined
+      feature2: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing feature2 input");
   });
-}); 
+});

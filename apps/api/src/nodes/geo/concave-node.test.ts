@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ConcaveNode } from "./concave-node";
 import { NodeContext } from "../types";
+import { ConcaveNode } from "./concave-node";
 
 describe("ConcaveNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -32,27 +32,27 @@ describe("ConcaveNode", () => {
               properties: { name: "Point 1" },
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: { name: "Point 2" },
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
+                coordinates: [3, 4],
+              },
             },
             {
               type: "Feature",
               properties: { name: "Point 3" },
               geometry: {
                 type: "Point",
-                coordinates: [5, 6]
-              }
-            }
-          ]
-        }
+                coordinates: [5, 6],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -73,19 +73,19 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
-            }
-          ]
-        }
+                coordinates: [3, 4],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -106,27 +106,27 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 0]
-              }
+                coordinates: [0, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 0]
-              }
+                coordinates: [1, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 1]
-              }
-            }
-          ]
-        }
+                coordinates: [0, 1],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -147,28 +147,28 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
+                coordinates: [3, 4],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [5, 6]
-              }
-            }
-          ]
+                coordinates: [5, 6],
+              },
+            },
+          ],
         },
-        maxEdge: 10
+        maxEdge: 10,
       });
 
       const result = await node.execute(context);
@@ -189,28 +189,28 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
+                coordinates: [3, 4],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [5, 6]
-              }
-            }
-          ]
+                coordinates: [5, 6],
+              },
+            },
+          ],
         },
-        units: "kilometers"
+        units: "kilometers",
       });
 
       const result = await node.execute(context);
@@ -231,29 +231,29 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
+                coordinates: [3, 4],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [5, 6]
-              }
-            }
-          ]
+                coordinates: [5, 6],
+              },
+            },
+          ],
         },
         maxEdge: 5,
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -272,16 +272,16 @@ describe("ConcaveNode", () => {
           properties: { id: i },
           geometry: {
             type: "Point",
-            coordinates: [i, i * 2]
-          }
+            coordinates: [i, i * 2],
+          },
         });
       }
 
       const context = createMockContext({
         points: {
           type: "FeatureCollection",
-          features
-        }
+          features,
+        },
       });
 
       const result = await node.execute(context);
@@ -302,35 +302,35 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 0]
-              }
+                coordinates: [0, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [2, 0]
-              }
+                coordinates: [2, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [2, 2]
-              }
+                coordinates: [2, 2],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 2]
-              }
-            }
-          ]
-        }
+                coordinates: [0, 2],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -351,27 +351,27 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 0]
-              }
+                coordinates: [0, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [2, 0]
-              }
+                coordinates: [2, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
-        }
+                coordinates: [1, 2],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -392,27 +392,27 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 0]
-              }
+                coordinates: [0, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 0]
-              }
+                coordinates: [1, 0],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [2, 0]
-              }
-            }
-          ]
-        }
+                coordinates: [2, 0],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -433,27 +433,27 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [-1, -1]
-              }
+                coordinates: [-1, -1],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, -1]
-              }
+                coordinates: [1, -1],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0, 1]
-              }
-            }
-          ]
-        }
+                coordinates: [0, 1],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -474,27 +474,27 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [0.5, 0.5]
-              }
+                coordinates: [0.5, 0.5],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1.5, 0.5]
-              }
+                coordinates: [1.5, 0.5],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1.0, 1.5]
-              }
-            }
-          ]
-        }
+                coordinates: [1.0, 1.5],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -518,7 +518,7 @@ describe("ConcaveNode", () => {
 
     it("should handle null points input", async () => {
       const context = createMockContext({
-        points: null
+        points: null,
       });
 
       const result = await node.execute(context);
@@ -529,7 +529,7 @@ describe("ConcaveNode", () => {
 
     it("should handle undefined points input", async () => {
       const context = createMockContext({
-        points: undefined
+        points: undefined,
       });
 
       const result = await node.execute(context);
@@ -548,12 +548,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: "not a number"
+        maxEdge: "not a number",
       });
 
       const result = await node.execute(context);
@@ -572,12 +572,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: true
+        maxEdge: true,
       });
 
       const result = await node.execute(context);
@@ -596,12 +596,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: 0
+        maxEdge: 0,
       });
 
       const result = await node.execute(context);
@@ -620,12 +620,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: -5
+        maxEdge: -5,
       });
 
       const result = await node.execute(context);
@@ -644,12 +644,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        units: 123
+        units: 123,
       });
 
       const result = await node.execute(context);
@@ -668,12 +668,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        units: true
+        units: true,
       });
 
       const result = await node.execute(context);
@@ -694,12 +694,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: null
+        maxEdge: null,
       });
 
       const result = await node.execute(context);
@@ -720,12 +720,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: undefined
+        maxEdge: undefined,
       });
 
       const result = await node.execute(context);
@@ -746,12 +746,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        units: null
+        units: null,
       });
 
       const result = await node.execute(context);
@@ -772,12 +772,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        units: undefined
+        units: undefined,
       });
 
       const result = await node.execute(context);
@@ -798,12 +798,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: 0.000001
+        maxEdge: 0.000001,
       });
 
       const result = await node.execute(context);
@@ -824,12 +824,12 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
+                coordinates: [1, 2],
+              },
+            },
+          ],
         },
-        maxEdge: 1000000
+        maxEdge: 1000000,
       });
 
       const result = await node.execute(context);
@@ -842,7 +842,7 @@ describe("ConcaveNode", () => {
 
     it("should handle various unit strings", async () => {
       const units = ["kilometers", "miles", "meters", "feet", "inches"];
-      
+
       for (const unit of units) {
         const context = createMockContext({
           points: {
@@ -853,12 +853,12 @@ describe("ConcaveNode", () => {
                 properties: {},
                 geometry: {
                   type: "Point",
-                  coordinates: [1, 2]
-                }
-              }
-            ]
+                  coordinates: [1, 2],
+                },
+              },
+            ],
           },
-          units: unit
+          units: unit,
         });
 
         const result = await node.execute(context);
@@ -880,11 +880,11 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
-            }
-          ]
-        }
+                coordinates: [1, 2],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -905,19 +905,19 @@ describe("ConcaveNode", () => {
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: {},
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
-            }
-          ]
-        }
+                coordinates: [3, 4],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -928,4 +928,4 @@ describe("ConcaveNode", () => {
       expect(result.outputs?.concave.geometry.type).toBe("Polygon");
     });
   });
-}); 
+});

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineOverlapNode } from "./line-overlap-node";
+
 import { NodeContext } from "../types";
+import { LineOverlapNode } from "./line-overlap-node";
 
 describe("LineOverlapNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,17 +28,25 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0], [5, 0]]
-        }
-      }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+            [5, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -52,17 +61,23 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, 0], [3, 0]]
-        }
-      }
+          coordinates: [
+            [2, 0],
+            [3, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -74,12 +89,20 @@ describe("LineOverlapNode", () => {
     const context = createMockContext({
       line1: {
         type: "LineString",
-        coordinates: [[0, 0], [2, 0], [4, 0]]
+        coordinates: [
+          [0, 0],
+          [2, 0],
+          [4, 0],
+        ],
       },
       line2: {
         type: "LineString",
-        coordinates: [[1, 0], [3, 0], [5, 0]]
-      }
+        coordinates: [
+          [1, 0],
+          [3, 0],
+          [5, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -94,17 +117,29 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, -1], [4, -1], [4, 1], [0, 1], [0, -1]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, -1],
+              [4, -1],
+              [4, 1],
+              [0, 1],
+              [0, -1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -119,17 +154,33 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
-      }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -144,18 +195,26 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0.1], [3, 0.1], [5, 0.1]]
-        }
+          coordinates: [
+            [1, 0.1],
+            [3, 0.1],
+            [5, 0.1],
+          ],
+        },
       },
-      tolerance: 1
+      tolerance: 1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -170,17 +229,25 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0], [8, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+            [8, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, 0], [6, 0], [10, 0]]
-        }
-      }
+          coordinates: [
+            [2, 0],
+            [6, 0],
+            [10, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -195,17 +262,23 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 1], [2, 1]]
-        }
-      }
+          coordinates: [
+            [0, 1],
+            [2, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -220,17 +293,23 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0]]
-        }
-      }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -245,17 +324,23 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [2, 0]]
-        }
-      }
+          coordinates: [
+            [1, 0],
+            [2, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -270,9 +355,12 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -286,9 +374,12 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -302,18 +393,24 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0]]
-        }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+          ],
+        },
       },
-      tolerance: "not a number"
+      tolerance: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -327,18 +424,24 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0]]
-        }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+          ],
+        },
       },
-      tolerance: -1
+      tolerance: -1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -352,18 +455,24 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0]]
-        }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+          ],
+        },
       },
-      tolerance: null
+      tolerance: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -378,22 +487,28 @@ describe("LineOverlapNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0]]
-        }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+          ],
+        },
       },
-      tolerance: undefined
+      tolerance: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.overlaps).toBeDefined();
     expect(result.outputs?.overlaps.type).toBe("FeatureCollection");
   });
-}); 
+});

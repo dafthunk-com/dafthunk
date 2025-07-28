@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineIntersectNode } from "./line-intersect-node";
+
 import { NodeContext } from "../types";
+import { LineIntersectNode } from "./line-intersect-node";
 
 describe("LineIntersectNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,17 +28,23 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 2]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 2],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 2], [2, 0]]
-        }
-      }
+          coordinates: [
+            [0, 2],
+            [2, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -52,17 +59,23 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, 2], [3, 3]]
-        }
-      }
+          coordinates: [
+            [2, 2],
+            [3, 3],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -74,12 +87,18 @@ describe("LineIntersectNode", () => {
     const context = createMockContext({
       line1: {
         type: "LineString",
-        coordinates: [[0, 0], [2, 2]]
+        coordinates: [
+          [0, 0],
+          [2, 2],
+        ],
       },
       line2: {
         type: "LineString",
-        coordinates: [[0, 2], [2, 0]]
-      }
+        coordinates: [
+          [0, 2],
+          [2, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -94,17 +113,28 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 2]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 2],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -119,17 +149,33 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
-      }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -144,17 +190,23 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 4]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 4],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 4], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 4],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -169,17 +221,23 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 1], [2, 1]]
-        }
-      }
+          coordinates: [
+            [0, 1],
+            [2, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -194,17 +252,23 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [3, 0]]
-        }
-      }
+          coordinates: [
+            [1, 0],
+            [3, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -219,17 +283,23 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
       line2: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, 0], [2, 0]]
-        }
-      }
+          coordinates: [
+            [1, 0],
+            [2, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -244,9 +314,12 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -260,12 +333,15 @@ describe("LineIntersectNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing line2 input");
   });
-}); 
+});

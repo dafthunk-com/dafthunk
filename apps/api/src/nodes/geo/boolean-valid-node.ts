@@ -9,7 +9,8 @@ export class BooleanValidNode extends ExecutableNode {
     id: "boolean-valid",
     name: "Boolean Valid",
     type: "boolean-valid",
-    description: "Checks if the geometry is valid according to the OGC Simple Feature Specification.",
+    description:
+      "Checks if the geometry is valid according to the OGC Simple Feature Specification.",
     tags: ["Geo"],
     icon: "valid",
     inputs: [
@@ -40,10 +41,11 @@ export class BooleanValidNode extends ExecutableNode {
       return this.createSuccessResult({
         valid,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error validating geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error validating geometry: ${error.message}`
+      );
     }
   }
-} 
+}

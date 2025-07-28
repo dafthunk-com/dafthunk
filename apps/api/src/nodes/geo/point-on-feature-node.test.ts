@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PointOnFeatureNode } from "./point-on-feature-node";
 import { NodeContext } from "../types";
+import { PointOnFeatureNode } from "./point-on-feature-node";
 
 describe("PointOnFeatureNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -35,11 +35,11 @@ describe("PointOnFeatureNode", () => {
                 [1, 0],
                 [1, 1],
                 [0, 1],
-                [0, 0]
-              ]
-            ]
-          }
-        }
+                [0, 0],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -60,10 +60,10 @@ describe("PointOnFeatureNode", () => {
             coordinates: [
               [0, 0],
               [1, 1],
-              [2, 2]
-            ]
-          }
-        }
+              [2, 2],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -81,9 +81,9 @@ describe("PointOnFeatureNode", () => {
           properties: { name: "Test Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
-        }
+            coordinates: [0, 0],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -104,10 +104,10 @@ describe("PointOnFeatureNode", () => {
               [2, 0],
               [2, 2],
               [0, 2],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -124,9 +124,9 @@ describe("PointOnFeatureNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
-        }
+            [1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -141,8 +141,8 @@ describe("PointOnFeatureNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -166,7 +166,7 @@ describe("PointOnFeatureNode", () => {
 
     it("should handle null geojson input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -177,7 +177,7 @@ describe("PointOnFeatureNode", () => {
 
     it("should handle undefined geojson input", async () => {
       const context = createMockContext({
-        geojson: undefined
+        geojson: undefined,
       });
 
       const result = await node.execute(context);
@@ -198,10 +198,10 @@ describe("PointOnFeatureNode", () => {
               [10, 0],
               [10, 10],
               [0, 10],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -219,9 +219,9 @@ describe("PointOnFeatureNode", () => {
           coordinates: [
             [0, 0],
             [5, 5],
-            [10, 10]
-          ]
-        }
+            [10, 10],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -236,8 +236,8 @@ describe("PointOnFeatureNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
-        }
+          coordinates: [5, 5],
+        },
       });
 
       const result = await node.execute(context);
@@ -248,4 +248,4 @@ describe("PointOnFeatureNode", () => {
       expect(result.outputs?.point.geometry.type).toBe("Point");
     });
   });
-}); 
+});

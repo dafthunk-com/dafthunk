@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { combine } from "@turf/turf";
-import { CombineNode } from "./combine-node";
+import { describe, expect, it } from "vitest";
+
 import { NodeContext } from "../types";
+import { CombineNode } from "./combine-node";
 
 describe("CombineNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -56,4 +57,4 @@ describe("CombineNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.combined).toEqual(expected);
   });
-}); 
+});

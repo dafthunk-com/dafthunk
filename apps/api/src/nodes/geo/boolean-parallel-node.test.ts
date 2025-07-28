@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanParallelNode } from "./boolean-parallel-node";
+
 import { NodeContext } from "../types";
+import { BooleanParallelNode } from "./boolean-parallel-node";
 
 describe("BooleanParallelNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -28,9 +29,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [0, 1]
-        ]
-      }
+          [0, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -39,14 +40,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [1, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -61,9 +62,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -72,14 +73,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 1],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -94,9 +95,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -105,14 +106,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 1],
-          [1, 2]
-        ]
-      }
+          [1, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -127,9 +128,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -138,14 +139,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [0, 1]
-        ]
-      }
+          [0, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -160,9 +161,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -171,14 +172,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 2],
-          [2, 0]
-        ]
-      }
+          [2, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -193,9 +194,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 1]
-        ]
-      }
+          [2, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -204,14 +205,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 1],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -226,9 +227,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 1]
-        ]
-      }
+          [2, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -237,14 +238,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 2]
-        ]
-      }
+          [1, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -260,9 +261,9 @@ describe("BooleanParallelNode", () => {
         coordinates: [
           [0, 0],
           [1, 0],
-          [2, 0]
-        ]
-      }
+          [2, 0],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -272,14 +273,14 @@ describe("BooleanParallelNode", () => {
         coordinates: [
           [0, 1],
           [1, 1],
-          [2, 1]
-        ]
-      }
+          [2, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -295,9 +296,9 @@ describe("BooleanParallelNode", () => {
         coordinates: [
           [0, 0],
           [1, 0],
-          [2, 0]
-        ]
-      }
+          [2, 0],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -307,14 +308,14 @@ describe("BooleanParallelNode", () => {
         coordinates: [
           [0, 0],
           [0, 1],
-          [0, 2]
-        ]
-      }
+          [0, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -329,9 +330,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [100, 0]
-        ]
-      }
+          [100, 0],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -340,14 +341,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 50],
-          [100, 50]
-        ]
-      }
+          [100, 50],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -362,9 +363,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [100, 100]
-        ]
-      }
+          [100, 100],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -373,14 +374,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 50],
-          [100, 150]
-        ]
-      }
+          [100, 150],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -395,9 +396,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -406,14 +407,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 1],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -425,20 +426,20 @@ describe("BooleanParallelNode", () => {
       type: "LineString",
       coordinates: [
         [0, 0],
-        [0, 1]
-      ]
+        [0, 1],
+      ],
     };
     const line2 = {
       type: "LineString",
       coordinates: [
         [1, 0],
-        [1, 1]
-      ]
+        [1, 1],
+      ],
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -453,14 +454,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line,
-      line2: line
+      line2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -475,9 +476,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 0]
-        ]
-      }
+          [1, 0],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -486,14 +487,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 1],
-          [3, 1]
-        ]
-      }
+          [3, 1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -508,9 +509,9 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 1]
-        ]
-      }
+          [2, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -519,14 +520,14 @@ describe("BooleanParallelNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 1.1]
-        ]
-      }
+          [2, 1.1],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       line1: line1,
-      line2: line2
+      line2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -542,10 +543,10 @@ describe("BooleanParallelNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -561,10 +562,10 @@ describe("BooleanParallelNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -581,10 +582,10 @@ describe("BooleanParallelNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -600,11 +601,11 @@ describe("BooleanParallelNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
+            [1, 0],
+          ],
+        },
       },
-      line2: null
+      line2: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -621,10 +622,10 @@ describe("BooleanParallelNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
-      }
+            [1, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -640,14 +641,14 @@ describe("BooleanParallelNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 0]
-          ]
-        }
+            [1, 0],
+          ],
+        },
       },
-      line2: undefined
+      line2: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing line2 input");
   });
-}); 
+});

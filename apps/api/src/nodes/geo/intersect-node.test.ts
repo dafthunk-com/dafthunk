@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { IntersectNode } from "./intersect-node";
+
 import { NodeContext } from "../types";
+import { IntersectNode } from "./intersect-node";
 
 describe("IntersectNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -22,24 +23,28 @@ describe("IntersectNode", () => {
 
   const polygon1 = {
     type: "Polygon",
-    coordinates: [[
-      [0, 0],
-      [0, 10],
-      [10, 10],
-      [10, 0],
-      [0, 0]
-    ]]
+    coordinates: [
+      [
+        [0, 0],
+        [0, 10],
+        [10, 10],
+        [10, 0],
+        [0, 0],
+      ],
+    ],
   };
 
   const polygon2 = {
     type: "Polygon",
-    coordinates: [[
-      [5, 5],
-      [5, 15],
-      [15, 15],
-      [15, 5],
-      [5, 5]
-    ]]
+    coordinates: [
+      [
+        [5, 5],
+        [5, 15],
+        [15, 15],
+        [15, 5],
+        [5, 5],
+      ],
+    ],
   };
 
   it("returns intersection for valid polygons", async () => {
@@ -74,8 +79,12 @@ describe("IntersectNode", () => {
   });
 
   it("returns error if properties is not an object", async () => {
-    const context = createMockContext({ polygon1, polygon2, properties: "not an object" });
+    const context = createMockContext({
+      polygon1,
+      polygon2,
+      properties: "not an object",
+    });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
   });
-}); 
+});

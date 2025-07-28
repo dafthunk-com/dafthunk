@@ -15,7 +15,8 @@ export class StringConcatNode extends ExecutableNode {
       {
         name: "strings",
         type: "string",
-        description: "String inputs to concatenate (supports multiple connections)",
+        description:
+          "String inputs to concatenate (supports multiple connections)",
         required: true,
         repeated: true,
       },
@@ -63,7 +64,9 @@ export class StringConcatNode extends ExecutableNode {
         });
       }
 
-      return this.createErrorResult("Invalid input type: expected string or array of strings");
+      return this.createErrorResult(
+        "Invalid input type: expected string or array of strings"
+      );
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(

@@ -53,10 +53,11 @@ export class PolygonTangentsNode extends ExecutableNode {
       return this.createSuccessResult({
         tangents,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating polygon tangents: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating polygon tangents: ${error.message}`
+      );
     }
   }
-} 
+}

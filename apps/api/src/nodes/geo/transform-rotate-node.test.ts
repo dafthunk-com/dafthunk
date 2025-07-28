@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { TransformRotateNode } from "./transform-rotate-node";
 import { NodeContext } from "../types";
+import { TransformRotateNode } from "./transform-rotate-node";
 
 describe("TransformRotateNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -24,7 +24,7 @@ describe("TransformRotateNode", () => {
   describe("Input validation", () => {
     it("should handle missing GeoJSON input", async () => {
       const context = createMockContext({
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -37,8 +37,8 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
-        }
+          coordinates: [1, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -51,9 +51,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: null
+        angle: null,
       });
 
       const result = await node.execute(context);
@@ -66,9 +66,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: "not a number"
+        angle: "not a number",
       });
 
       const result = await node.execute(context);
@@ -81,9 +81,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: Infinity
+        angle: Infinity,
       });
 
       const result = await node.execute(context);
@@ -96,9 +96,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: NaN
+        angle: NaN,
       });
 
       const result = await node.execute(context);
@@ -110,7 +110,7 @@ describe("TransformRotateNode", () => {
     it("should handle null inputs", async () => {
       const context = createMockContext({
         geojson: null,
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -125,9 +125,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -142,13 +142,13 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [2, 1]
+          coordinates: [2, 1],
         },
         angle: 90,
         pivot: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -165,10 +165,10 @@ describe("TransformRotateNode", () => {
           coordinates: [
             [0, 0],
             [1, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -183,15 +183,17 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [1, 0],
-            [1, 1],
-            [0, 1],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
-        angle: 45
+        angle: 45,
       });
 
       const result = await node.execute(context);
@@ -206,16 +208,16 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Feature",
-          properties: { 
+          properties: {
             name: "Test Feature",
-            id: 123
+            id: 123,
           },
           geometry: {
             type: "Point",
-            coordinates: [1, 0]
-          }
+            coordinates: [1, 0],
+          },
         },
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -224,7 +226,7 @@ describe("TransformRotateNode", () => {
       expect(result.outputs?.rotated.type).toBe("Feature");
       expect(result.outputs?.rotated.properties).toEqual({
         name: "Test Feature",
-        id: 123
+        id: 123,
       });
     });
 
@@ -238,8 +240,8 @@ describe("TransformRotateNode", () => {
               properties: { id: 1 },
               geometry: {
                 type: "Point",
-                coordinates: [1, 0]
-              }
+                coordinates: [1, 0],
+              },
             },
             {
               type: "Feature",
@@ -248,13 +250,13 @@ describe("TransformRotateNode", () => {
                 type: "LineString",
                 coordinates: [
                   [0, 1],
-                  [1, 1]
-                ]
-              }
-            }
-          ]
+                  [1, 1],
+                ],
+              },
+            },
+          ],
         },
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -270,9 +272,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: -90
+        angle: -90,
       });
 
       const result = await node.execute(context);
@@ -285,9 +287,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [3, 4]
+          coordinates: [3, 4],
         },
-        angle: 0
+        angle: 0,
       });
 
       const result = await node.execute(context);
@@ -300,9 +302,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
-        angle: 450
+        angle: 450,
       });
 
       const result = await node.execute(context);
@@ -315,7 +317,7 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [2, 1]
+          coordinates: [2, 1],
         },
         angle: 90,
         pivot: {
@@ -323,9 +325,9 @@ describe("TransformRotateNode", () => {
           properties: { name: "Pivot" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -341,10 +343,10 @@ describe("TransformRotateNode", () => {
           coordinates: [
             [1, 0],
             [0, 1],
-            [-1, 0]
-          ]
+            [-1, 0],
+          ],
         },
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -358,9 +360,9 @@ describe("TransformRotateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 0, 100]
+          coordinates: [1, 0, 100],
         },
-        angle: 90
+        angle: 90,
       });
 
       const result = await node.execute(context);
@@ -369,4 +371,4 @@ describe("TransformRotateNode", () => {
       expect(result.outputs?.rotated.coordinates).toHaveLength(3);
     });
   });
-}); 
+});

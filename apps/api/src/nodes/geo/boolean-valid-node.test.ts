@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanValidNode } from "./boolean-valid-node";
+
 import { NodeContext } from "../types";
+import { BooleanValidNode } from "./boolean-valid-node";
 
 describe("BooleanValidNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,12 +27,12 @@ describe("BooleanValidNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: point
+      feature: point,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -48,13 +49,13 @@ describe("BooleanValidNode", () => {
           [1, 1],
           [1, 2],
           [1, 3],
-          [1, 4]
-        ]
-      }
+          [1, 4],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: line
+      feature: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -73,14 +74,14 @@ describe("BooleanValidNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: polygon
+      feature: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -96,13 +97,13 @@ describe("BooleanValidNode", () => {
         coordinates: [
           [1, 1],
           [2, 2],
-          [3, 3]
-        ]
-      }
+          [3, 3],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: multiPoint
+      feature: multiPoint,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -118,18 +119,18 @@ describe("BooleanValidNode", () => {
         coordinates: [
           [
             [1, 1],
-            [1, 2]
+            [1, 2],
           ],
           [
             [2, 1],
-            [2, 2]
-          ]
-        ]
-      }
+            [2, 2],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: multiLineString
+      feature: multiLineString,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -149,8 +150,8 @@ describe("BooleanValidNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
+              [0, 0],
+            ],
           ],
           [
             [
@@ -158,15 +159,15 @@ describe("BooleanValidNode", () => {
               [2, 3],
               [3, 3],
               [3, 2],
-              [2, 2]
-            ]
-          ]
-        ]
-      }
+              [2, 2],
+            ],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: multiPolygon
+      feature: multiPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -182,21 +183,21 @@ describe("BooleanValidNode", () => {
         geometries: [
           {
             type: "Point",
-            coordinates: [1, 1]
+            coordinates: [1, 1],
           },
           {
             type: "LineString",
             coordinates: [
               [1, 1],
-              [1, 2]
-            ]
-          }
-        ]
-      }
+              [1, 2],
+            ],
+          },
+        ],
+      },
     };
-    
+
     const context = createMockContext({
-      feature: geometryCollection
+      feature: geometryCollection,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -206,11 +207,11 @@ describe("BooleanValidNode", () => {
   it("returns true for valid geometry object", async () => {
     const point = {
       type: "Point",
-      coordinates: [1, 1]
+      coordinates: [1, 1],
     };
-    
+
     const context = createMockContext({
-      feature: point
+      feature: point,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -219,11 +220,11 @@ describe("BooleanValidNode", () => {
 
   it("returns false for invalid object", async () => {
     const invalidObject = {
-      foo: "bar"
+      foo: "bar",
     };
-    
+
     const context = createMockContext({
-      feature: invalidObject
+      feature: invalidObject,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -232,11 +233,11 @@ describe("BooleanValidNode", () => {
 
   it("returns false for object without type", async () => {
     const invalidObject = {
-      coordinates: [1, 1]
+      coordinates: [1, 1],
     };
-    
+
     const context = createMockContext({
-      feature: invalidObject
+      feature: invalidObject,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -246,11 +247,11 @@ describe("BooleanValidNode", () => {
   it("returns false for invalid geometry type", async () => {
     const invalidGeometry = {
       type: "InvalidType",
-      coordinates: [1, 1]
+      coordinates: [1, 1],
     };
-    
+
     const context = createMockContext({
-      feature: invalidGeometry
+      feature: invalidGeometry,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -259,11 +260,11 @@ describe("BooleanValidNode", () => {
 
   it("returns false for point with missing coordinates", async () => {
     const invalidPoint = {
-      type: "Point"
+      type: "Point",
     };
-    
+
     const context = createMockContext({
-      feature: invalidPoint
+      feature: invalidPoint,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -273,13 +274,11 @@ describe("BooleanValidNode", () => {
   it("returns false for line string with insufficient points", async () => {
     const invalidLine = {
       type: "LineString",
-      coordinates: [
-        [1, 1]
-      ]
+      coordinates: [[1, 1]],
     };
-    
+
     const context = createMockContext({
-      feature: invalidLine
+      feature: invalidLine,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -294,13 +293,13 @@ describe("BooleanValidNode", () => {
           [0, 0],
           [0, 1],
           [1, 1],
-          [1, 0]
-        ]
-      ]
+          [1, 0],
+        ],
+      ],
     };
-    
+
     const context = createMockContext({
-      feature: invalidPolygon
+      feature: invalidPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -314,13 +313,13 @@ describe("BooleanValidNode", () => {
         [
           [0, 0],
           [0, 1],
-          [0, 0]
-        ]
-      ]
+          [0, 0],
+        ],
+      ],
     };
-    
+
     const context = createMockContext({
-      feature: invalidPolygon
+      feature: invalidPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -330,11 +329,11 @@ describe("BooleanValidNode", () => {
   it("returns false for multi point with empty array", async () => {
     const invalidMultiPoint = {
       type: "MultiPoint",
-      coordinates: []
+      coordinates: [],
     };
-    
+
     const context = createMockContext({
-      feature: invalidMultiPoint
+      feature: invalidMultiPoint,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -344,11 +343,11 @@ describe("BooleanValidNode", () => {
   it("returns false for multi line string with empty array", async () => {
     const invalidMultiLineString = {
       type: "MultiLineString",
-      coordinates: []
+      coordinates: [],
     };
-    
+
     const context = createMockContext({
-      feature: invalidMultiLineString
+      feature: invalidMultiLineString,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -358,11 +357,11 @@ describe("BooleanValidNode", () => {
   it("returns false for multi polygon with empty array", async () => {
     const invalidMultiPolygon = {
       type: "MultiPolygon",
-      coordinates: []
+      coordinates: [],
     };
-    
+
     const context = createMockContext({
-      feature: invalidMultiPolygon
+      feature: invalidMultiPolygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -372,11 +371,11 @@ describe("BooleanValidNode", () => {
   it("returns false for geometry collection with empty geometries", async () => {
     const invalidGeometryCollection = {
       type: "GeometryCollection",
-      geometries: []
+      geometries: [],
     };
-    
+
     const context = createMockContext({
-      feature: invalidGeometryCollection
+      feature: invalidGeometryCollection,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -385,7 +384,7 @@ describe("BooleanValidNode", () => {
 
   it("returns false for null feature", async () => {
     const context = createMockContext({
-      feature: null
+      feature: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -394,7 +393,7 @@ describe("BooleanValidNode", () => {
 
   it("returns false for undefined feature", async () => {
     const context = createMockContext({
-      feature: undefined
+      feature: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -403,7 +402,7 @@ describe("BooleanValidNode", () => {
 
   it("returns false for empty string", async () => {
     const context = createMockContext({
-      feature: ""
+      feature: "",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -412,7 +411,7 @@ describe("BooleanValidNode", () => {
 
   it("returns false for number", async () => {
     const context = createMockContext({
-      feature: 123
+      feature: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -421,7 +420,7 @@ describe("BooleanValidNode", () => {
 
   it("returns false for boolean", async () => {
     const context = createMockContext({
-      feature: true
+      feature: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -434,4 +433,4 @@ describe("BooleanValidNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.valid).toBe(false);
   });
-}); 
+});

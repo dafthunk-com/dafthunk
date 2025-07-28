@@ -9,7 +9,8 @@ export class RoundNode extends ExecutableNode {
     id: "round",
     name: "Round",
     type: "round",
-    description: "Rounds the precision of a coordinate to a specified number of decimal places.",
+    description:
+      "Rounds the precision of a coordinate to a specified number of decimal places.",
     tags: ["Geo"],
     icon: "hash",
     inputs: [
@@ -56,18 +57,18 @@ export class RoundNode extends ExecutableNode {
           return this.createErrorResult("Precision must be a number");
         }
         if (precision < 0) {
-          return this.createErrorResult("Precision must be a non-negative number");
+          return this.createErrorResult(
+            "Precision must be a non-negative number"
+          );
         }
         precisionValue = precision;
       }
 
       // Validate mutate parameter
-      let mutateValue = false; // default value
       if (mutate !== undefined && mutate !== null) {
         if (typeof mutate !== "boolean") {
           return this.createErrorResult("Mutate must be a boolean");
         }
-        mutateValue = mutate;
       }
 
       // Delegate to Turf.js round function
@@ -76,10 +77,11 @@ export class RoundNode extends ExecutableNode {
       return this.createSuccessResult({
         rounded,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error rounding coordinates: ${error.message}`);
+      return this.createErrorResult(
+        `Error rounding coordinates: ${error.message}`
+      );
     }
   }
-} 
+}

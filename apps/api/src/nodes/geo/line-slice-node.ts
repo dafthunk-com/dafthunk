@@ -9,7 +9,8 @@ export class LineSliceNode extends ExecutableNode {
     id: "line-slice",
     name: "Line Slice",
     type: "line-slice",
-    description: "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points.",
+    description:
+      "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points.",
     tags: ["Geo"],
     icon: "scissors",
     inputs: [
@@ -63,10 +64,9 @@ export class LineSliceNode extends ExecutableNode {
       return this.createSuccessResult({
         sliced: slicedLine,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error slicing line: ${error.message}`);
     }
   }
-} 
+}

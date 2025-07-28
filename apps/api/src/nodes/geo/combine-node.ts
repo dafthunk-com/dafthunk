@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { combine } from "@turf/turf";
+
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
@@ -8,7 +9,8 @@ export class CombineNode extends ExecutableNode {
     id: "combine",
     name: "Combine",
     type: "combine",
-    description: "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
+    description:
+      "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
     tags: ["Geo"],
     icon: "layers",
     inputs: [
@@ -40,7 +42,9 @@ export class CombineNode extends ExecutableNode {
       });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error combining features: ${error.message}`);
+      return this.createErrorResult(
+        `Error combining features: ${error.message}`
+      );
     }
   }
-} 
+}

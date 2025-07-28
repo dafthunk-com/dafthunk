@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { GeoJsonGeometryNode } from "./geojson-geometry-node";
 import { NodeContext } from "../types";
+import { GeoJsonGeometryNode } from "./geojson-geometry-node";
 
 describe("GeoJsonGeometryNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +26,8 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
-        }
+          coordinates: [-122.4194, 37.7749],
+        },
       });
 
       const result = await node.execute(context);
@@ -35,7 +35,7 @@ describe("GeoJsonGeometryNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.geojson).toEqual({
         type: "Point",
-        coordinates: [-122.4194, 37.7749]
+        coordinates: [-122.4194, 37.7749],
       });
       expect(result.outputs?.geometryType).toBe("Point");
     });
@@ -44,8 +44,8 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749, 100]
-        }
+          coordinates: [-122.4194, 37.7749, 100],
+        },
       });
 
       const result = await node.execute(context);
@@ -53,7 +53,7 @@ describe("GeoJsonGeometryNode", () => {
       expect(result.status).toBe("completed");
       expect(result.outputs?.geojson).toEqual({
         type: "Point",
-        coordinates: [-122.4194, 37.7749, 100]
+        coordinates: [-122.4194, 37.7749, 100],
       });
     });
 
@@ -61,8 +61,8 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Point",
-          coordinates: [-122.4194] // Missing latitude
-        }
+          coordinates: [-122.4194], // Missing latitude
+        },
       });
 
       const result = await node.execute(context);
@@ -79,9 +79,9 @@ describe("GeoJsonGeometryNode", () => {
           type: "MultiPoint",
           coordinates: [
             [-122.4194, 37.7749],
-            [-122.4094, 37.7849]
-          ]
-        }
+            [-122.4094, 37.7849],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -99,9 +99,9 @@ describe("GeoJsonGeometryNode", () => {
           coordinates: [
             [-122.4194, 37.7749],
             [-122.4094, 37.7849],
-            [-122.3994, 37.7949]
-          ]
-        }
+            [-122.3994, 37.7949],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -115,9 +115,9 @@ describe("GeoJsonGeometryNode", () => {
         json: {
           type: "LineString",
           coordinates: [
-            [-122.4194, 37.7749] // Only one point, need at least 2
-          ]
-        }
+            [-122.4194, 37.7749], // Only one point, need at least 2
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -132,14 +132,16 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Polygon",
-          coordinates: [[
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7749],
-            [-122.4094, 37.7849],
-            [-122.4194, 37.7849],
-            [-122.4194, 37.7749] // Closing coordinate
-          ]]
-        }
+          coordinates: [
+            [
+              [-122.4194, 37.7749],
+              [-122.4094, 37.7749],
+              [-122.4094, 37.7849],
+              [-122.4194, 37.7849],
+              [-122.4194, 37.7749], // Closing coordinate
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -152,12 +154,14 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Polygon",
-          coordinates: [[
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7749],
-            [-122.4094, 37.7849] // Only 3 points, need at least 4 to close
-          ]]
-        }
+          coordinates: [
+            [
+              [-122.4194, 37.7749],
+              [-122.4094, 37.7749],
+              [-122.4094, 37.7849], // Only 3 points, need at least 4 to close
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -175,17 +179,17 @@ describe("GeoJsonGeometryNode", () => {
           geometries: [
             {
               type: "Point",
-              coordinates: [-122.4194, 37.7749]
+              coordinates: [-122.4194, 37.7749],
             },
             {
               type: "LineString",
               coordinates: [
                 [-122.4194, 37.7749],
-                [-122.4094, 37.7849]
-              ]
-            }
-          ]
-        }
+                [-122.4094, 37.7849],
+              ],
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -201,10 +205,10 @@ describe("GeoJsonGeometryNode", () => {
           geometries: [
             {
               type: "Point",
-              coordinates: [-122.4194] // Invalid Point
-            }
-          ]
-        }
+              coordinates: [-122.4194], // Invalid Point
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -225,7 +229,7 @@ describe("GeoJsonGeometryNode", () => {
 
     it("should handle non-object JSON input", async () => {
       const context = createMockContext({
-        json: "not an object"
+        json: "not an object",
       });
 
       const result = await node.execute(context);
@@ -237,8 +241,8 @@ describe("GeoJsonGeometryNode", () => {
     it("should handle missing type property", async () => {
       const context = createMockContext({
         json: {
-          coordinates: [-122.4194, 37.7749]
-        }
+          coordinates: [-122.4194, 37.7749],
+        },
       });
 
       const result = await node.execute(context);
@@ -250,22 +254,24 @@ describe("GeoJsonGeometryNode", () => {
     it("should handle missing coordinates property", async () => {
       const context = createMockContext({
         json: {
-          type: "Point"
-        }
+          type: "Point",
+        },
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Missing 'coordinates' property in GeoJSON geometry");
+      expect(result.error).toBe(
+        "Missing 'coordinates' property in GeoJSON geometry"
+      );
     });
 
     it("should handle invalid geometry type", async () => {
       const context = createMockContext({
         json: {
           type: "InvalidType",
-          coordinates: [-122.4194, 37.7749]
-        }
+          coordinates: [-122.4194, 37.7749],
+        },
       });
 
       const result = await node.execute(context);
@@ -278,8 +284,8 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Point",
-          coordinates: [NaN, 37.7749]
-        }
+          coordinates: [NaN, 37.7749],
+        },
       });
 
       const result = await node.execute(context);
@@ -292,8 +298,8 @@ describe("GeoJsonGeometryNode", () => {
       const context = createMockContext({
         json: {
           type: "Point",
-          coordinates: ["invalid", 37.7749]
-        }
+          coordinates: ["invalid", 37.7749],
+        },
       });
 
       const result = await node.execute(context);
@@ -302,4 +308,4 @@ describe("GeoJsonGeometryNode", () => {
       expect(result.error).toContain("coordinates structure is malformed");
     });
   });
-}); 
+});

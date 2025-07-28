@@ -9,7 +9,8 @@ export class BooleanCrossesNode extends ExecutableNode {
     id: "booleanCrosses",
     name: "Boolean Crosses",
     type: "booleanCrosses",
-    description: "Tests whether two geometries cross each other (intersect but do not contain each other).",
+    description:
+      "Tests whether two geometries cross each other (intersect but do not contain each other).",
     tags: ["Geo"],
     icon: "x",
     inputs: [
@@ -19,7 +20,7 @@ export class BooleanCrossesNode extends ExecutableNode {
         description: "First geometry (Feature or geometry)",
         required: true,
       },
-      { 
+      {
         name: "feature2",
         type: "geojson",
         description: "Second geometry (Feature or geometry)",
@@ -53,10 +54,11 @@ export class BooleanCrossesNode extends ExecutableNode {
       return this.createSuccessResult({
         crosses: crossesResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error testing crosses relationship: ${error.message}`);
+      return this.createErrorResult(
+        `Error testing crosses relationship: ${error.message}`
+      );
     }
   }
-} 
+}

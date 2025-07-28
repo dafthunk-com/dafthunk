@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ConvexNode } from "./convex-node";
+
 import { NodeContext } from "../types";
+import { ConvexNode } from "./convex-node";
 
 describe("ConvexNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,9 +26,21 @@ describe("ConvexNode", () => {
       geojson: {
         type: "FeatureCollection",
         features: [
-          { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [0, 0] } },
-          { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [1, 0] } },
-          { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [0, 1] } },
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: [0, 0] },
+          },
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: [1, 0] },
+          },
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: [0, 1] },
+          },
         ],
       },
     });
@@ -48,9 +61,21 @@ describe("ConvexNode", () => {
       geojson: {
         type: "FeatureCollection",
         features: [
-          { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [0, 0] } },
-          { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [1, 0] } },
-          { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [0, 1] } },
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: [0, 0] },
+          },
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: [1, 0] },
+          },
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: [0, 1] },
+          },
         ],
       },
       properties: "not an object",
@@ -59,4 +84,4 @@ describe("ConvexNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Properties must be an object");
   });
-}); 
+});

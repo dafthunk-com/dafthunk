@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { LengthNode } from "./length-node";
 import { NodeContext } from "../types";
+import { LengthNode } from "./length-node";
 
 describe("LengthNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -42,4 +42,4 @@ describe("LengthNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing GeoJSON input");
   });
-}); 
+});

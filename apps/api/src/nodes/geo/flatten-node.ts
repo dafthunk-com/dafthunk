@@ -9,7 +9,8 @@ export class FlattenNode extends ExecutableNode {
     id: "flatten",
     name: "Flatten",
     type: "flatten",
-    description: "Flattens any GeoJSON to a FeatureCollection of Point, LineString, or Polygon features.",
+    description:
+      "Flattens any GeoJSON to a FeatureCollection of Point, LineString, or Polygon features.",
     tags: ["Geo"],
     icon: "layers",
     inputs: [
@@ -43,10 +44,11 @@ export class FlattenNode extends ExecutableNode {
       return this.createSuccessResult({
         flattened: flattenedFeatures,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error flattening GeoJSON: ${error.message}`);
+      return this.createErrorResult(
+        `Error flattening GeoJSON: ${error.message}`
+      );
     }
   }
-} 
+}

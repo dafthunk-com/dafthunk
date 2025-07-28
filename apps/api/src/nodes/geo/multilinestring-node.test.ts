@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MultiLineStringNode } from "./multilinestring-node";
+
 import { NodeContext } from "../types";
+import { MultiLineStringNode } from "./multilinestring-node";
 
 describe("MultiLineStringNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -23,30 +24,50 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString for basic multi line string creation", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
-      ]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.multiLineString).toBeDefined();
     expect(result.outputs?.multiLineString.type).toBe("Feature");
-    expect(result.outputs?.multiLineString.geometry.type).toBe("MultiLineString");
+    expect(result.outputs?.multiLineString.geometry.type).toBe(
+      "MultiLineString"
+    );
     expect(result.outputs?.multiLineString.geometry.coordinates).toBeDefined();
   });
 
   it("returns MultiLineString for multiple line strings", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]],
-        [[3, 3], [4, 4], [5, 5]],
-        [[6, 6], [7, 7], [8, 8]]
-      ]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
+        [
+          [3, 3],
+          [4, 4],
+          [5, 5],
+        ],
+        [
+          [6, 6],
+          [7, 7],
+          [8, 8],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.multiLineString).toBeDefined();
     expect(result.outputs?.multiLineString.type).toBe("Feature");
-    expect(result.outputs?.multiLineString.geometry.type).toBe("MultiLineString");
+    expect(result.outputs?.multiLineString.geometry.type).toBe(
+      "MultiLineString"
+    );
     expect(result.outputs?.multiLineString.geometry.coordinates).toBeDefined();
     expect(result.outputs?.multiLineString.geometry.coordinates.length).toBe(3);
   });
@@ -54,20 +75,26 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString with properties", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
       properties: {
         name: "Test MultiLineString",
         color: "blue",
-        value: 15
-      }
+        value: 15,
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.multiLineString).toBeDefined();
     expect(result.outputs?.multiLineString.type).toBe("Feature");
     expect(result.outputs?.multiLineString.properties).toBeDefined();
-    expect(result.outputs?.multiLineString.properties.name).toBe("Test MultiLineString");
+    expect(result.outputs?.multiLineString.properties.name).toBe(
+      "Test MultiLineString"
+    );
     expect(result.outputs?.multiLineString.properties.color).toBe("blue");
     expect(result.outputs?.multiLineString.properties.value).toBe(15);
   });
@@ -75,9 +102,13 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString with bbox", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      bbox: [0, 0, 2, 2]
+      bbox: [0, 0, 2, 2],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -89,9 +120,13 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString with string ID", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      id: "test-multilinestring-1"
+      id: "test-multilinestring-1",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -103,9 +138,13 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString with number ID", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      id: 456
+      id: 456,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -117,11 +156,15 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString with properties, bbox, and ID", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
       properties: { name: "Test" },
       bbox: [0, 0, 2, 2],
-      id: "test-multilinestring"
+      id: "test-multilinestring",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -135,8 +178,12 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString for single line string", async () => {
     const context = createMockContext({
       coordinates: [
-        [[5, 5], [6, 6], [7, 7]]
-      ]
+        [
+          [5, 5],
+          [6, 6],
+          [7, 7],
+        ],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -148,25 +195,39 @@ describe("MultiLineStringNode", () => {
   it("returns MultiLineString for line strings with different lengths", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1]],
-        [[2, 2], [3, 3], [4, 4], [5, 5]],
-        [[6, 6]]
-      ]
+        [
+          [0, 0],
+          [1, 1],
+        ],
+        [
+          [2, 2],
+          [3, 3],
+          [4, 4],
+          [5, 5],
+        ],
+        [[6, 6]],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.multiLineString).toBeDefined();
     expect(result.outputs?.multiLineString.type).toBe("Feature");
-    expect(result.outputs?.multiLineString.geometry.type).toBe("MultiLineString");
+    expect(result.outputs?.multiLineString.geometry.type).toBe(
+      "MultiLineString"
+    );
     expect(result.outputs?.multiLineString.geometry.coordinates.length).toBe(3);
   });
 
   it("handles null properties gracefully", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      properties: null
+      properties: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -177,9 +238,13 @@ describe("MultiLineStringNode", () => {
   it("handles undefined properties gracefully", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      properties: undefined
+      properties: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -190,9 +255,13 @@ describe("MultiLineStringNode", () => {
   it("handles null bbox gracefully", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      bbox: null
+      bbox: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -203,9 +272,13 @@ describe("MultiLineStringNode", () => {
   it("handles undefined bbox gracefully", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      bbox: undefined
+      bbox: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -216,9 +289,13 @@ describe("MultiLineStringNode", () => {
   it("handles null ID gracefully", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      id: null
+      id: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -229,9 +306,13 @@ describe("MultiLineStringNode", () => {
   it("handles undefined ID gracefully", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      id: undefined
+      id: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -248,7 +329,7 @@ describe("MultiLineStringNode", () => {
 
   it("returns an error for null coordinates input", async () => {
     const context = createMockContext({
-      coordinates: null
+      coordinates: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -257,7 +338,7 @@ describe("MultiLineStringNode", () => {
 
   it("returns an error for undefined coordinates input", async () => {
     const context = createMockContext({
-      coordinates: undefined
+      coordinates: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -267,9 +348,13 @@ describe("MultiLineStringNode", () => {
   it("returns an error for non-array bbox", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      bbox: "not an array"
+      bbox: "not an array",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -279,21 +364,31 @@ describe("MultiLineStringNode", () => {
   it("returns an error for bbox with wrong length", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      bbox: [0, 0, 1]
+      bbox: [0, 0, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Bbox must be an array of 4 numbers [west, south, east, north]");
+    expect(result.error).toBe(
+      "Bbox must be an array of 4 numbers [west, south, east, north]"
+    );
   });
 
   it("returns an error for bbox with non-number values", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      bbox: [0, 0, 1, "north"]
+      bbox: [0, 0, 1, "north"],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -303,12 +398,16 @@ describe("MultiLineStringNode", () => {
   it("returns an error for non-string/non-number ID", async () => {
     const context = createMockContext({
       coordinates: [
-        [[0, 0], [1, 1], [2, 2]]
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
       ],
-      id: true
+      id: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("ID must be a string or number");
   });
-}); 
+});

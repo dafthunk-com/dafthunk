@@ -9,7 +9,8 @@ export class ConcaveNode extends ExecutableNode {
     id: "concave",
     name: "Concave",
     type: "concave",
-    description: "Takes a set of points and returns a concave hull polygon. Internally, this uses turf-tin to generate geometries.",
+    description:
+      "Takes a set of points and returns a concave hull polygon. Internally, this uses turf-tin to generate geometries.",
     tags: ["Geo"],
     icon: "polygon",
     inputs: [
@@ -22,13 +23,15 @@ export class ConcaveNode extends ExecutableNode {
       {
         name: "maxEdge",
         type: "number",
-        description: "The length (in 'units') of an edge necessary for part of the hull to become concave (default: Infinity)",
+        description:
+          "The length (in 'units') of an edge necessary for part of the hull to become concave (default: Infinity)",
         required: false,
       },
       {
         name: "units",
         type: "string",
-        description: "Units of the result e.g. 'kilometers', 'miles', 'meters' (default: kilometers)",
+        description:
+          "Units of the result e.g. 'kilometers', 'miles', 'meters' (default: kilometers)",
         required: false,
       },
     ],
@@ -51,7 +54,7 @@ export class ConcaveNode extends ExecutableNode {
 
       // Prepare options for concave
       const options: { maxEdge?: number; units?: string } = {};
-      
+
       if (maxEdge !== undefined && maxEdge !== null) {
         if (typeof maxEdge !== "number") {
           return this.createErrorResult("MaxEdge must be a number");
@@ -75,10 +78,11 @@ export class ConcaveNode extends ExecutableNode {
       return this.createSuccessResult({
         concave: concaveHull,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating concave hull: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating concave hull: ${error.message}`
+      );
     }
   }
-} 
+}

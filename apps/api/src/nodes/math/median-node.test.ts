@@ -350,7 +350,9 @@ describe("MedianNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input at position 1: expected number, got string");
+    expect(result.error).toContain(
+      "Invalid input at position 1: expected number, got string"
+    );
   });
 
   it("should handle precision correctly", async () => {
@@ -391,4 +393,4 @@ describe("MedianNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.result).toBe(42);
   });
-}); 
+});

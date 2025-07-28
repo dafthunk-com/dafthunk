@@ -57,16 +57,20 @@ export class CenterNode extends ExecutableNode {
 
       // Set properties if provided
       if (Object.keys(centerProperties).length > 0) {
-        centerPoint.properties = { ...centerPoint.properties, ...centerProperties };
+        centerPoint.properties = {
+          ...centerPoint.properties,
+          ...centerProperties,
+        };
       }
 
       return this.createSuccessResult({
         center: centerPoint,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating center: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating center: ${error.message}`
+      );
     }
   }
-} 
+}

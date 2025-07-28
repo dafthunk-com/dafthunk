@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { LineStringNode } from "./linestring-node";
 import { NodeContext } from "../types";
+import { LineStringNode } from "./linestring-node";
 
 describe("LineStringNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -33,13 +33,13 @@ describe("LineStringNode", () => {
     it("should have correct inputs", () => {
       const inputs = LineStringNode.nodeType.inputs;
       expect(inputs).toHaveLength(2);
-      
-      const coordinatesInput = inputs.find(i => i.name === "coordinates");
+
+      const coordinatesInput = inputs.find((i) => i.name === "coordinates");
       expect(coordinatesInput).toBeDefined();
       expect(coordinatesInput?.type).toBe("json");
       expect(coordinatesInput?.required).toBe(true);
-      
-      const propertiesInput = inputs.find(i => i.name === "properties");
+
+      const propertiesInput = inputs.find((i) => i.name === "properties");
       expect(propertiesInput).toBeDefined();
       expect(propertiesInput?.type).toBe("json");
       expect(propertiesInput?.required).toBe(false);
@@ -48,8 +48,8 @@ describe("LineStringNode", () => {
     it("should have correct outputs", () => {
       const outputs = LineStringNode.nodeType.outputs;
       expect(outputs).toHaveLength(1);
-      
-      const lineStringOutput = outputs.find(o => o.name === "lineString");
+
+      const lineStringOutput = outputs.find((o) => o.name === "lineString");
       expect(lineStringOutput).toBeDefined();
       expect(lineStringOutput?.type).toBe("geojson");
     });
@@ -67,7 +67,7 @@ describe("LineStringNode", () => {
 
     it("should handle invalid coordinates", async () => {
       const context = createMockContext({
-        coordinates: "not an array"
+        coordinates: "not an array",
       });
 
       const result = await node.execute(context);
@@ -76,4 +76,4 @@ describe("LineStringNode", () => {
       expect(result.error).toContain("Error creating LineString");
     });
   });
-}); 
+});

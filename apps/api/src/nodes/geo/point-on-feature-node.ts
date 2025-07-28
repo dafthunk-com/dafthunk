@@ -9,7 +9,8 @@ export class PointOnFeatureNode extends ExecutableNode {
     id: "point-on-feature",
     name: "Point On Feature",
     type: "point-on-feature",
-    description: "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature.",
+    description:
+      "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature.",
     tags: ["Geo"],
     icon: "map-pin",
     inputs: [
@@ -43,10 +44,11 @@ export class PointOnFeatureNode extends ExecutableNode {
       return this.createSuccessResult({
         point: pointOnSurface,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating point on feature: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating point on feature: ${error.message}`
+      );
     }
   }
-} 
+}

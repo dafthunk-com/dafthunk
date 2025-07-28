@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { booleanCrosses } from "@turf/turf";
+import { describe, expect, it } from "vitest";
 
-import { BooleanCrossesNode } from "./boolean-crosses-node";
 import { NodeContext } from "../types";
+import { BooleanCrossesNode } from "./boolean-crosses-node";
 
 describe("BooleanCrossesNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,21 +26,23 @@ describe("BooleanCrossesNode", () => {
     it("should test booleanCrosses directly", () => {
       const polygon = {
         type: "Polygon" as const,
-        coordinates: [[
-          [0, 0],
-          [2, 0],
-          [2, 2],
-          [0, 2],
-          [0, 0]
-        ]]
+        coordinates: [
+          [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        ],
       };
 
       const line = {
         type: "LineString" as const,
         coordinates: [
           [1, -1],
-          [1, 3]
-        ]
+          [1, 3],
+        ],
       };
 
       const result = booleanCrosses(polygon, line);
@@ -53,26 +55,28 @@ describe("BooleanCrossesNode", () => {
     it("should return a boolean result when line crosses polygon boundary", async () => {
       const polygon = {
         type: "Polygon" as const,
-        coordinates: [[
-          [0, 0],
-          [2, 0],
-          [2, 2],
-          [0, 2],
-          [0, 0]
-        ]]
+        coordinates: [
+          [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        ],
       };
 
       const line = {
         type: "LineString" as const,
         coordinates: [
           [1, -1],
-          [1, 3]
-        ]
+          [1, 3],
+        ],
       };
 
       const context = createMockContext({
         feature1: polygon,
-        feature2: line
+        feature2: line,
       });
 
       const result = await node.execute(context);
@@ -86,21 +90,21 @@ describe("BooleanCrossesNode", () => {
         type: "LineString" as const,
         coordinates: [
           [0, 0],
-          [2, 0]
-        ]
+          [2, 0],
+        ],
       };
 
       const line2 = {
         type: "LineString" as const,
         coordinates: [
           [0, 2],
-          [2, 2]
-        ]
+          [2, 2],
+        ],
       };
 
       const context = createMockContext({
         feature1: line1,
-        feature2: line2
+        feature2: line2,
       });
 
       const result = await node.execute(context);
@@ -112,23 +116,25 @@ describe("BooleanCrossesNode", () => {
     it("should return false when polygon contains point", async () => {
       const polygon = {
         type: "Polygon" as const,
-        coordinates: [[
-          [0, 0],
-          [2, 0],
-          [2, 2],
-          [0, 2],
-          [0, 0]
-        ]]
+        coordinates: [
+          [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        ],
       };
 
       const point = {
         type: "Point" as const,
-        coordinates: [1, 1]
+        coordinates: [1, 1],
       };
 
       const context = createMockContext({
         feature1: polygon,
-        feature2: point
+        feature2: point,
       });
 
       const result = await node.execute(context);
@@ -142,21 +148,21 @@ describe("BooleanCrossesNode", () => {
         type: "LineString" as const,
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
+          [2, 2],
+        ],
       };
 
       const line2 = {
         type: "LineString" as const,
         coordinates: [
           [0, 2],
-          [2, 0]
-        ]
+          [2, 0],
+        ],
       };
 
       const context = createMockContext({
         feature1: line1,
-        feature2: line2
+        feature2: line2,
       });
 
       const result = await node.execute(context);
@@ -171,8 +177,8 @@ describe("BooleanCrossesNode", () => {
       const context = createMockContext({
         feature2: {
           type: "Point" as const,
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -185,8 +191,8 @@ describe("BooleanCrossesNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Point" as const,
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -200,8 +206,8 @@ describe("BooleanCrossesNode", () => {
         feature1: null,
         feature2: {
           type: "Point" as const,
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -214,9 +220,9 @@ describe("BooleanCrossesNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Point" as const,
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        feature2: null
+        feature2: null,
       });
 
       const result = await node.execute(context);
@@ -232,8 +238,8 @@ describe("BooleanCrossesNode", () => {
         feature1: undefined,
         feature2: {
           type: "Point" as const,
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -247,8 +253,8 @@ describe("BooleanCrossesNode", () => {
         feature1: {},
         feature2: {
           type: "Point" as const,
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -272,12 +278,12 @@ describe("BooleanCrossesNode", () => {
     it("should have correct input definitions", () => {
       const inputs = BooleanCrossesNode.nodeType.inputs;
       expect(inputs).toHaveLength(2);
-      
-      const feature1Input = inputs.find(input => input.name === "feature1");
+
+      const feature1Input = inputs.find((input) => input.name === "feature1");
       expect(feature1Input?.type).toBe("geojson");
       expect(feature1Input?.required).toBe(true);
-      
-      const feature2Input = inputs.find(input => input.name === "feature2");
+
+      const feature2Input = inputs.find((input) => input.name === "feature2");
       expect(feature2Input?.type).toBe("geojson");
       expect(feature2Input?.required).toBe(true);
     });
@@ -285,9 +291,9 @@ describe("BooleanCrossesNode", () => {
     it("should have correct output definitions", () => {
       const outputs = BooleanCrossesNode.nodeType.outputs;
       expect(outputs).toHaveLength(1);
-      
-      const crossesOutput = outputs.find(output => output.name === "crosses");
+
+      const crossesOutput = outputs.find((output) => output.name === "crosses");
       expect(crossesOutput?.type).toBe("boolean");
     });
   });
-}); 
+});

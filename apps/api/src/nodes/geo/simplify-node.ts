@@ -9,7 +9,8 @@ export class SimplifyNode extends ExecutableNode {
     id: "simplify",
     name: "Simplify",
     type: "simplify",
-    description: "Simplifies a geometry by reducing the number of vertices while preserving its general shape.",
+    description:
+      "Simplifies a geometry by reducing the number of vertices while preserving its general shape.",
     tags: ["Geo"],
     icon: "minimize",
     inputs: [
@@ -28,7 +29,8 @@ export class SimplifyNode extends ExecutableNode {
       {
         name: "highQuality",
         type: "boolean",
-        description: "Whether to use high quality simplification (default: false)",
+        description:
+          "Whether to use high quality simplification (default: false)",
         required: false,
       },
     ],
@@ -51,11 +53,11 @@ export class SimplifyNode extends ExecutableNode {
 
       // Prepare options for simplification
       const options: { tolerance?: number; highQuality?: boolean } = {};
-      
+
       if (tolerance !== undefined && tolerance !== null) {
         options.tolerance = tolerance;
       }
-      
+
       if (highQuality !== undefined && highQuality !== null) {
         options.highQuality = highQuality;
       }
@@ -66,10 +68,11 @@ export class SimplifyNode extends ExecutableNode {
       return this.createSuccessResult({
         simplified: simplifiedGeometry,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error simplifying geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error simplifying geometry: ${error.message}`
+      );
     }
   }
-} 
+}

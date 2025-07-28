@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { CleanCoordsNode } from "./clean-coords-node";
 import { NodeContext } from "../types";
+import { CleanCoordsNode } from "./clean-coords-node";
 
 describe("CleanCoordsNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -35,10 +35,10 @@ describe("CleanCoordsNode", () => {
               [0, 5],
               [0, 8],
               [0, 8],
-              [0, 10]
-            ]
-          }
-        }
+              [0, 10],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -58,9 +58,9 @@ describe("CleanCoordsNode", () => {
             [0, 0],
             [2, 2],
             [2, 2],
-            [4, 4]
-          ]
-        }
+            [4, 4],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -79,9 +79,9 @@ describe("CleanCoordsNode", () => {
             [0, 0],
             [2, 2],
             [2, 2],
-            [4, 4]
-          ]
-        }
+            [4, 4],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -103,10 +103,10 @@ describe("CleanCoordsNode", () => {
               [1, 1],
               [1, 1],
               [0, 1],
-              [0, 0]
-            ]
-          ]
-        }
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -125,9 +125,9 @@ describe("CleanCoordsNode", () => {
             [0, 0],
             [10, 10],
             [10, 10],
-            [20, 20]
-          ]
-        }
+            [20, 20],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -144,10 +144,10 @@ describe("CleanCoordsNode", () => {
           coordinates: [
             [0, 0],
             [0, 0],
-            [2, 2]
-          ]
+            [2, 2],
+          ],
         },
-        mutate: true
+        mutate: true,
       });
 
       const result = await node.execute(context);
@@ -164,10 +164,10 @@ describe("CleanCoordsNode", () => {
           coordinates: [
             [0, 0],
             [0, 0],
-            [2, 2]
-          ]
+            [2, 2],
+          ],
         },
-        mutate: false
+        mutate: false,
       });
 
       const result = await node.execute(context);
@@ -190,7 +190,7 @@ describe("CleanCoordsNode", () => {
 
     it("should handle null geojson input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -201,7 +201,7 @@ describe("CleanCoordsNode", () => {
 
     it("should handle undefined geojson input", async () => {
       const context = createMockContext({
-        geojson: undefined
+        geojson: undefined,
       });
 
       const result = await node.execute(context);
@@ -214,9 +214,12 @@ describe("CleanCoordsNode", () => {
       const context = createMockContext({
         geojson: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
         },
-        mutate: "not a boolean"
+        mutate: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -229,9 +232,12 @@ describe("CleanCoordsNode", () => {
       const context = createMockContext({
         geojson: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
         },
-        mutate: 1
+        mutate: 1,
       });
 
       const result = await node.execute(context);
@@ -244,9 +250,12 @@ describe("CleanCoordsNode", () => {
       const context = createMockContext({
         geojson: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
         },
-        mutate: { value: true }
+        mutate: { value: true },
       });
 
       const result = await node.execute(context);
@@ -261,9 +270,12 @@ describe("CleanCoordsNode", () => {
       const context = createMockContext({
         geojson: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
         },
-        mutate: null
+        mutate: null,
       });
 
       const result = await node.execute(context);
@@ -277,9 +289,12 @@ describe("CleanCoordsNode", () => {
       const context = createMockContext({
         geojson: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
         },
-        mutate: undefined
+        mutate: undefined,
       });
 
       const result = await node.execute(context);
@@ -296,9 +311,9 @@ describe("CleanCoordsNode", () => {
           coordinates: [
             [0, 0],
             [1, 1],
-            [2, 2]
-          ]
-        }
+            [2, 2],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -316,9 +331,9 @@ describe("CleanCoordsNode", () => {
             [0, 0],
             [0, 0],
             [0, 0],
-            [0, 0]
-          ]
-        }
+            [0, 0],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -332,8 +347,8 @@ describe("CleanCoordsNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -351,15 +366,15 @@ describe("CleanCoordsNode", () => {
             [
               [0, 0],
               [0, 0],
-              [1, 1]
+              [1, 1],
             ],
             [
               [2, 2],
               [2, 2],
-              [3, 3]
-            ]
-          ]
-        }
+              [3, 3],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -381,11 +396,11 @@ describe("CleanCoordsNode", () => {
                 [1, 0],
                 [1, 1],
                 [0, 1],
-                [0, 0]
-              ]
-            ]
-          ]
-        }
+                [0, 0],
+              ],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -395,4 +410,4 @@ describe("CleanCoordsNode", () => {
       expect(result.outputs?.cleaned.type).toBe("MultiPolygon");
     });
   });
-}); 
+});

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { TransformTranslateNode } from "./transform-translate-node";
 import { NodeContext } from "../types";
+import { TransformTranslateNode } from "./transform-translate-node";
 
 describe("TransformTranslateNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,10 +26,10 @@ describe("TransformTranslateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
-        direction: 0
+        direction: 0,
       });
 
       const result = await node.execute(context);
@@ -45,23 +45,39 @@ describe("TransformTranslateNode", () => {
       const geometries = [
         {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1], [2, 2]]
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 2],
+          ],
         },
         {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
         },
         {
           type: "MultiPoint",
-          coordinates: [[0, 0], [1, 1], [2, 2]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+            [2, 2],
+          ],
+        },
       ];
 
       for (const geometry of geometries) {
         const context = createMockContext({
           geojson: geometry,
           distance: 5,
-          direction: 45
+          direction: 45,
         });
 
         const result = await node.execute(context);
@@ -76,8 +92,8 @@ describe("TransformTranslateNode", () => {
         properties: { name: "Test" },
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       };
 
       const featureCollection = {
@@ -88,25 +104,25 @@ describe("TransformTranslateNode", () => {
             properties: { id: 1 },
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
+              coordinates: [0, 0],
+            },
           },
           {
             type: "Feature",
             properties: { id: 2 },
             geometry: {
               type: "Point",
-              coordinates: [1, 1]
-            }
-          }
-        ]
+              coordinates: [1, 1],
+            },
+          },
+        ],
       };
 
       // Test Feature
       const featureContext = createMockContext({
         geojson: feature,
         distance: 10,
-        direction: 0
+        direction: 0,
       });
       const featureResult = await node.execute(featureContext);
       expect(featureResult.status).toBe("completed");
@@ -116,11 +132,13 @@ describe("TransformTranslateNode", () => {
       const collectionContext = createMockContext({
         geojson: featureCollection,
         distance: 10,
-        direction: 0
+        direction: 0,
       });
       const collectionResult = await node.execute(collectionContext);
       expect(collectionResult.status).toBe("completed");
-      expect(collectionResult.outputs?.translated.type).toBe("FeatureCollection");
+      expect(collectionResult.outputs?.translated.type).toBe(
+        "FeatureCollection"
+      );
     });
   });
 
@@ -129,11 +147,11 @@ describe("TransformTranslateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
         direction: 0,
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -145,11 +163,11 @@ describe("TransformTranslateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
         direction: 0,
-        mutate: true
+        mutate: true,
       });
 
       const result = await node.execute(context);
@@ -161,10 +179,10 @@ describe("TransformTranslateNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         distance: 10,
-        direction: 0
+        direction: 0,
       });
 
       const result = await node.execute(context);
@@ -172,4 +190,4 @@ describe("TransformTranslateNode", () => {
       expect(result.outputs?.translated).toBeDefined();
     });
   });
-}); 
+});

@@ -1,8 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import {
-  Geometry,
-  GeometryCollection,
-} from "@dafthunk/types";
+import { Geometry, GeometryCollection } from "@dafthunk/types";
 import wellknown from "wellknown";
 
 import { ExecutableNode } from "../types";
@@ -13,7 +10,8 @@ export class WktGeometryNode extends ExecutableNode {
     id: "wkt-geometry",
     name: "WKT Geometry",
     type: "wkt-geometry",
-    description: "Parse a Well-Known Text (WKT) geometry string and convert to GeoJSON",
+    description:
+      "Parse a Well-Known Text (WKT) geometry string and convert to GeoJSON",
     tags: ["Geo"],
     icon: "map",
     inputs: [
@@ -39,8 +37,13 @@ export class WktGeometryNode extends ExecutableNode {
     }
 
     const validTypes = [
-      "Point", "MultiPoint", "LineString", "MultiLineString", 
-      "Polygon", "MultiPolygon", "GeometryCollection"
+      "Point",
+      "MultiPoint",
+      "LineString",
+      "MultiLineString",
+      "Polygon",
+      "MultiPolygon",
+      "GeometryCollection",
     ];
 
     return validTypes.includes(geom.type);
@@ -56,7 +59,7 @@ export class WktGeometryNode extends ExecutableNode {
 
       // Trim whitespace from the WKT string
       const trimmedWkt = wkt.trim();
-      
+
       if (trimmedWkt.length === 0) {
         return this.createErrorResult("Empty WKT string provided");
       }
@@ -65,21 +68,26 @@ export class WktGeometryNode extends ExecutableNode {
       const parsedGeometry = wellknown.parse(trimmedWkt);
 
       if (!parsedGeometry) {
-        return this.createErrorResult("Failed to parse WKT string: invalid or unsupported WKT format");
+        return this.createErrorResult(
+          "Failed to parse WKT string: invalid or unsupported WKT format"
+        );
       }
 
       // Validate the parsed geometry
       if (!this.isValidGeometry(parsedGeometry)) {
-        return this.createErrorResult("Parsed WKT resulted in invalid geometry");
+        return this.createErrorResult(
+          "Parsed WKT resulted in invalid geometry"
+        );
       }
 
       return this.createSuccessResult({
         geojson: parsedGeometry,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error parsing WKT geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error parsing WKT geometry: ${error.message}`
+      );
     }
   }
-} 
+}

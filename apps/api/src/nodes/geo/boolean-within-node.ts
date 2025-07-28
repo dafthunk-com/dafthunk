@@ -9,14 +9,16 @@ export class BooleanWithinNode extends ExecutableNode {
     id: "boolean-within",
     name: "Boolean Within",
     type: "boolean-within",
-    description: "Returns true if the first geometry is completely within the second geometry.",
+    description:
+      "Returns true if the first geometry is completely within the second geometry.",
     tags: ["Geo"],
     icon: "within",
     inputs: [
       {
         name: "feature1",
         type: "geojson",
-        description: "First GeoJSON Feature or Geometry (the one to check if it's within)",
+        description:
+          "First GeoJSON Feature or Geometry (the one to check if it's within)",
         required: true,
       },
       {
@@ -30,7 +32,8 @@ export class BooleanWithinNode extends ExecutableNode {
       {
         name: "within",
         type: "boolean",
-        description: "True if feature1 is completely within feature2, false otherwise",
+        description:
+          "True if feature1 is completely within feature2, false otherwise",
       },
     ],
   };
@@ -53,10 +56,11 @@ export class BooleanWithinNode extends ExecutableNode {
       return this.createSuccessResult({
         within,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking if feature is within: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking if feature is within: ${error.message}`
+      );
     }
   }
-} 
+}

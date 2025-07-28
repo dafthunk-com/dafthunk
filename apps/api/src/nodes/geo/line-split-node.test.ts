@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineSplitNode } from "./line-split-node";
+
 import { NodeContext } from "../types";
+import { LineSplitNode } from "./line-split-node";
 
 describe("LineSplitNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,17 +28,23 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, -1], [2, 1]]
-        }
-      }
+          coordinates: [
+            [2, -1],
+            [2, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -49,12 +56,18 @@ describe("LineSplitNode", () => {
     const context = createMockContext({
       line: {
         type: "LineString",
-        coordinates: [[0, 0], [4, 0]]
+        coordinates: [
+          [0, 0],
+          [4, 0],
+        ],
       },
       splitter: {
         type: "LineString",
-        coordinates: [[2, -1], [2, 1]]
-      }
+        coordinates: [
+          [2, -1],
+          [2, 1],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -69,17 +82,20 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 0]
-        }
-      }
+          coordinates: [2, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -94,17 +110,28 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, -1], [3, -1], [3, 1], [1, 1], [1, -1]]]
-        }
-      }
+          coordinates: [
+            [
+              [1, -1],
+              [3, -1],
+              [3, 1],
+              [1, 1],
+              [1, -1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -119,17 +146,23 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 4]]
-        }
+          coordinates: [
+            [0, 0],
+            [4, 4],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, 0], [2, 4]]
-        }
-      }
+          coordinates: [
+            [2, 0],
+            [2, 4],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -144,17 +177,23 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [8, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [8, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[4, -2], [4, 2]]
-        }
-      }
+          coordinates: [
+            [4, -2],
+            [4, 2],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -169,17 +208,23 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[4, 0], [6, 0]]
-        }
-      }
+          coordinates: [
+            [4, 0],
+            [6, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -194,17 +239,23 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [2, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -219,17 +270,23 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0.5, -1], [0.5, 1]]
-        }
-      }
+          coordinates: [
+            [0.5, -1],
+            [0.5, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -244,17 +301,29 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [4, 0], [6, 0]]
-        }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [4, 0],
+            [6, 0],
+          ],
+        },
       },
       splitter: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[1, -1], [1, 1], [3, 1], [3, -1], [5, -1], [5, 1]]
-        }
-      }
+          coordinates: [
+            [1, -1],
+            [1, 1],
+            [3, 1],
+            [3, -1],
+            [5, -1],
+            [5, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -269,9 +338,12 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[2, -1], [2, 1]]
-        }
-      }
+          coordinates: [
+            [2, -1],
+            [2, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -285,12 +357,15 @@ describe("LineSplitNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [4, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [4, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing splitter input");
   });
-}); 
+});

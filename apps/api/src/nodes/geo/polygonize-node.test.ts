@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { PolygonizeNode } from "./polygonize-node";
+
 import { NodeContext } from "../types";
+import { PolygonizeNode } from "./polygonize-node";
 
 describe("PolygonizeNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,9 +28,15 @@ describe("PolygonizeNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -47,19 +54,31 @@ describe("PolygonizeNode", () => {
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
-            }
+              coordinates: [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]
-            }
-          }
-        ]
-      }
+              coordinates: [
+                [2, 2],
+                [3, 2],
+                [3, 3],
+                [2, 3],
+                [2, 2],
+              ],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -75,11 +94,23 @@ describe("PolygonizeNode", () => {
         geometry: {
           type: "MultiLineString",
           coordinates: [
-            [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]],
-            [[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]
-          ]
-        }
-      }
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+            [
+              [2, 2],
+              [3, 2],
+              [3, 3],
+              [2, 3],
+              [2, 2],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -94,9 +125,15 @@ describe("PolygonizeNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -108,8 +145,14 @@ describe("PolygonizeNode", () => {
     const context = createMockContext({
       lines: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
-      }
+        coordinates: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -127,35 +170,47 @@ describe("PolygonizeNode", () => {
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[0, 0], [2, 0]]
-            }
+              coordinates: [
+                [0, 0],
+                [2, 0],
+              ],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[2, 0], [2, 2]]
-            }
+              coordinates: [
+                [2, 0],
+                [2, 2],
+              ],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[2, 2], [0, 2]]
-            }
+              coordinates: [
+                [2, 2],
+                [0, 2],
+              ],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "LineString",
-              coordinates: [[0, 2], [0, 0]]
-            }
-          }
-        ]
-      }
+              coordinates: [
+                [0, 2],
+                [0, 0],
+              ],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -170,9 +225,12 @@ describe("PolygonizeNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -186,4 +244,4 @@ describe("PolygonizeNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing lines input");
   });
-}); 
+});

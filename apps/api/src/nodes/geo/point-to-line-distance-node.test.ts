@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PointToLineDistanceNode } from "./point-to-line-distance-node";
 import { NodeContext } from "../types";
+import { PointToLineDistanceNode } from "./point-to-line-distance-node";
 
 describe("PointToLineDistanceNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,8 +29,8 @@ describe("PointToLineDistanceNode", () => {
           properties: { name: "Test Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         line: {
           type: "Feature",
@@ -39,10 +39,10 @@ describe("PointToLineDistanceNode", () => {
             type: "LineString",
             coordinates: [
               [1, 1],
-              [-1, 1]
-            ]
-          }
-        }
+              [-1, 1],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -56,15 +56,15 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
-        }
+            [-1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -78,16 +78,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -101,16 +101,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        method: "planar"
+        method: "planar",
       });
 
       const result = await node.execute(context);
@@ -124,17 +124,17 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
         units: "kilometers",
-        method: "geodesic"
+        method: "geodesic",
       });
 
       const result = await node.execute(context);
@@ -152,9 +152,9 @@ describe("PointToLineDistanceNode", () => {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
-        }
+            [-1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -167,8 +167,8 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -184,9 +184,9 @@ describe("PointToLineDistanceNode", () => {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
-        }
+            [-1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -199,9 +199,9 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        line: null
+        line: null,
       });
 
       const result = await node.execute(context);
@@ -214,16 +214,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        units: 123
+        units: 123,
       });
 
       const result = await node.execute(context);
@@ -236,16 +236,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        method: 123
+        method: 123,
       });
 
       const result = await node.execute(context);
@@ -258,16 +258,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        method: "invalid"
+        method: "invalid",
       });
 
       const result = await node.execute(context);
@@ -282,15 +282,15 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 1]
+          coordinates: [0, 1],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
-        }
+            [-1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -304,15 +304,15 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
-        }
+            [-1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -326,16 +326,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        units: null
+        units: null,
       });
 
       const result = await node.execute(context);
@@ -349,16 +349,16 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [-1, 1]
-          ]
+            [-1, 1],
+          ],
         },
-        method: null
+        method: null,
       });
 
       const result = await node.execute(context);
@@ -372,15 +372,15 @@ describe("PointToLineDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         line: {
           type: "LineString",
           coordinates: [
             [10, 10],
-            [-10, 10]
-          ]
-        }
+            [-10, 10],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -390,4 +390,4 @@ describe("PointToLineDistanceNode", () => {
       expect(typeof result.outputs?.distance).toBe("number");
     });
   });
-}); 
+});

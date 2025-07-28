@@ -9,7 +9,8 @@ export class LineIntersectNode extends ExecutableNode {
     id: "line-intersect",
     name: "Line Intersect",
     type: "line-intersect",
-    description: "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
+    description:
+      "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
     tags: ["Geo"],
     icon: "cross",
     inputs: [
@@ -30,7 +31,8 @@ export class LineIntersectNode extends ExecutableNode {
       {
         name: "intersections",
         type: "geojson",
-        description: "FeatureCollection of Point features representing intersections",
+        description:
+          "FeatureCollection of Point features representing intersections",
       },
     ],
   };
@@ -53,10 +55,11 @@ export class LineIntersectNode extends ExecutableNode {
       return this.createSuccessResult({
         intersections: intersectionPoints,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error finding line intersections: ${error.message}`);
+      return this.createErrorResult(
+        `Error finding line intersections: ${error.message}`
+      );
     }
   }
-} 
+}

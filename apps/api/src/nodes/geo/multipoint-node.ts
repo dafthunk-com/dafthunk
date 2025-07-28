@@ -9,7 +9,8 @@ export class MultiPointNode extends ExecutableNode {
     id: "multipoint",
     name: "Multi Point",
     type: "multipoint",
-    description: "Creates a Feature<MultiPoint> based on a coordinate array. Properties can be added optionally.",
+    description:
+      "Creates a Feature<MultiPoint> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "map-pin",
     inputs: [
@@ -28,7 +29,8 @@ export class MultiPointNode extends ExecutableNode {
       {
         name: "bbox",
         type: "json",
-        description: "Bounding Box Array [west, south, east, north] associated with the Feature",
+        description:
+          "Bounding Box Array [west, south, east, north] associated with the Feature",
         required: false,
       },
       {
@@ -64,7 +66,9 @@ export class MultiPointNode extends ExecutableNode {
         }
 
         if (bbox.length !== 4) {
-          return this.createErrorResult("Bbox must be an array of 4 numbers [west, south, east, north]");
+          return this.createErrorResult(
+            "Bbox must be an array of 4 numbers [west, south, east, north]"
+          );
         }
 
         for (let i = 0; i < bbox.length; i++) {
@@ -84,15 +88,20 @@ export class MultiPointNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js multiPoint function
-      const multiPointResult = multiPoint(coordinates as any, properties as any, options as any);
+      const multiPointResult = multiPoint(
+        coordinates as any,
+        properties as any,
+        options as any
+      );
 
       return this.createSuccessResult({
         multiPoint: multiPointResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating multi point: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating multi point: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -9,7 +9,8 @@ export class BooleanParallelNode extends ExecutableNode {
     id: "boolean-parallel",
     name: "Boolean Parallel",
     type: "boolean-parallel",
-    description: "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
+    description:
+      "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
     tags: ["Geo"],
     icon: "parallel",
     inputs: [
@@ -53,10 +54,11 @@ export class BooleanParallelNode extends ExecutableNode {
       return this.createSuccessResult({
         isParallel,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking parallel lines: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking parallel lines: ${error.message}`
+      );
     }
   }
-} 
+}

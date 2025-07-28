@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ShortestPathNode } from "./shortest-path-node";
+
 import { NodeContext } from "../types";
+import { ShortestPathNode } from "./shortest-path-node";
 
 describe("ShortestPathNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,17 +28,17 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
-      }
+          coordinates: [4, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -50,12 +51,12 @@ describe("ShortestPathNode", () => {
     const context = createMockContext({
       start: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
       end: {
         type: "Point",
-        coordinates: [4, 0]
-      }
+        coordinates: [4, 0],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -71,16 +72,16 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
       obstacles: {
         type: "FeatureCollection",
@@ -90,11 +91,19 @@ describe("ShortestPathNode", () => {
             properties: {},
             geometry: {
               type: "Polygon",
-              coordinates: [[[1, -1], [3, -1], [3, 1], [1, 1], [1, -1]]]
-            }
-          }
-        ]
-      }
+              coordinates: [
+                [
+                  [1, -1],
+                  [3, -1],
+                  [3, 1],
+                  [1, 1],
+                  [1, -1],
+                ],
+              ],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -110,18 +119,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: "miles"
+      units: "miles",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -137,18 +146,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: "degrees"
+      units: "degrees",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -164,18 +173,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: "radians"
+      units: "radians",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -191,18 +200,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: "kilometers"
+      units: "kilometers",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -218,18 +227,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      resolution: 50
+      resolution: 50,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -245,17 +254,17 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [2, 2]
-        }
+          coordinates: [2, 2],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [8, 8]
-        }
-      }
+          coordinates: [8, 8],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -271,17 +280,17 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 4]
-        }
-      }
+          coordinates: [4, 4],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -297,17 +306,17 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [1, 0]
-        }
-      }
+          coordinates: [1, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -323,16 +332,16 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [8, 0]
-        }
+          coordinates: [8, 0],
+        },
       },
       obstacles: {
         type: "FeatureCollection",
@@ -342,19 +351,35 @@ describe("ShortestPathNode", () => {
             properties: {},
             geometry: {
               type: "Polygon",
-              coordinates: [[[2, -1], [4, -1], [4, 1], [2, 1], [2, -1]]]
-            }
+              coordinates: [
+                [
+                  [2, -1],
+                  [4, -1],
+                  [4, 1],
+                  [2, 1],
+                  [2, -1],
+                ],
+              ],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "Polygon",
-              coordinates: [[[5, -1], [7, -1], [7, 1], [5, 1], [5, -1]]]
-            }
-          }
-        ]
-      }
+              coordinates: [
+                [
+                  [5, -1],
+                  [7, -1],
+                  [7, 1],
+                  [5, 1],
+                  [5, -1],
+                ],
+              ],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -370,18 +395,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      obstacles: null
+      obstacles: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -397,18 +422,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      obstacles: undefined
+      obstacles: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -424,18 +449,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: null
+      units: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -451,18 +476,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: undefined
+      units: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -478,18 +503,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      resolution: null
+      resolution: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -505,18 +530,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      resolution: undefined
+      resolution: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -532,9 +557,9 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
-      }
+          coordinates: [4, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -548,9 +573,9 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -564,18 +589,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: 123
+      units: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -589,22 +614,24 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      units: "invalid"
+      units: "invalid",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Units must be one of: degrees, radians, miles, kilometers");
+    expect(result.error).toBe(
+      "Units must be one of: degrees, radians, miles, kilometers"
+    );
   });
 
   it("returns an error for non-number resolution", async () => {
@@ -614,18 +641,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      resolution: "not a number"
+      resolution: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -639,18 +666,18 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      resolution: 0
+      resolution: 0,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -664,21 +691,21 @@ describe("ShortestPathNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       end: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [4, 0]
-        }
+          coordinates: [4, 0],
+        },
       },
-      resolution: -1
+      resolution: -1,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Resolution must be a positive number");
   });
-}); 
+});

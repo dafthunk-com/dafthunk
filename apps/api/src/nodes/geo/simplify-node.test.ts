@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { SimplifyNode } from "./simplify-node";
 import { NodeContext } from "../types";
+import { SimplifyNode } from "./simplify-node";
 
 describe("SimplifyNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -31,10 +31,10 @@ describe("SimplifyNode", () => {
             [1, 1],
             [2, 2],
             [3, 3],
-            [4, 4]
-          ]
+            [4, 4],
+          ],
         },
-        tolerance: 1
+        tolerance: 1,
       });
 
       const result = await node.execute(context);
@@ -47,17 +47,19 @@ describe("SimplifyNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [1, 0],
-            [2, 1],
-            [3, 2],
-            [4, 2],
-            [4, 0],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [2, 1],
+              [3, 2],
+              [4, 2],
+              [4, 0],
+              [0, 0],
+            ],
+          ],
         },
-        tolerance: 1
+        tolerance: 1,
       });
 
       const result = await node.execute(context);
@@ -76,11 +78,11 @@ describe("SimplifyNode", () => {
             coordinates: [
               [0, 0],
               [1, 1],
-              [2, 2]
-            ]
-          }
+              [2, 2],
+            ],
+          },
         },
-        tolerance: 1
+        tolerance: 1,
       });
 
       const result = await node.execute(context);
@@ -98,9 +100,9 @@ describe("SimplifyNode", () => {
           coordinates: [
             [0, 0],
             [1, 1],
-            [2, 2]
-          ]
-        }
+            [2, 2],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -116,9 +118,9 @@ describe("SimplifyNode", () => {
           coordinates: [
             [0, 0],
             [1, 1],
-            [2, 2]
-          ]
-        }
+            [2, 2],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -134,11 +136,11 @@ describe("SimplifyNode", () => {
           coordinates: [
             [0, 0],
             [1, 1],
-            [2, 2]
-          ]
+            [2, 2],
+          ],
         },
         tolerance: 2,
-        highQuality: true
+        highQuality: true,
       });
 
       const result = await node.execute(context);
@@ -151,7 +153,7 @@ describe("SimplifyNode", () => {
   describe("Error handling", () => {
     it("should handle missing GeoJSON input", async () => {
       const context = createMockContext({
-        tolerance: 1
+        tolerance: 1,
       });
 
       const result = await node.execute(context);
@@ -162,7 +164,7 @@ describe("SimplifyNode", () => {
 
     it("should handle null GeoJSON input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -177,8 +179,8 @@ describe("SimplifyNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -193,9 +195,9 @@ describe("SimplifyNode", () => {
           type: "MultiPoint",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
-        }
+            [1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -212,15 +214,15 @@ describe("SimplifyNode", () => {
             [
               [0, 0],
               [1, 1],
-              [2, 2]
+              [2, 2],
             ],
             [
               [3, 3],
               [4, 4],
-              [5, 5]
-            ]
-          ]
-        }
+              [5, 5],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -234,22 +236,26 @@ describe("SimplifyNode", () => {
         geojson: {
           type: "MultiPolygon",
           coordinates: [
-            [[
-              [0, 0],
-              [1, 0],
-              [1, 1],
-              [0, 1],
-              [0, 0]
-            ]],
-            [[
-              [2, 2],
-              [3, 2],
-              [3, 3],
-              [2, 3],
-              [2, 2]
-            ]]
-          ]
-        }
+            [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [2, 2],
+                [3, 2],
+                [3, 3],
+                [2, 3],
+                [2, 2],
+              ],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -271,12 +277,12 @@ describe("SimplifyNode", () => {
                 coordinates: [
                   [0, 0],
                   [1, 1],
-                  [2, 2]
-                ]
-              }
-            }
-          ]
-        }
+                  [2, 2],
+                ],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -285,4 +291,4 @@ describe("SimplifyNode", () => {
       expect(result.outputs?.simplified).toBeDefined();
     });
   });
-}); 
+});

@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { area } from "@turf/turf";
 import type { AllGeoJSON } from "@turf/turf";
+import { area } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,7 +10,8 @@ export class AreaNode extends ExecutableNode {
     id: "area",
     name: "Area",
     type: "area",
-    description: "Calculates the area of polygons or feature collections in square meters.",
+    description:
+      "Calculates the area of polygons or feature collections in square meters.",
     tags: ["Geo"],
     icon: "square",
     inputs: [
@@ -35,7 +36,12 @@ export class AreaNode extends ExecutableNode {
       return false;
     }
 
-    const validTypes = ["Feature", "FeatureCollection", "Polygon", "MultiPolygon"];
+    const validTypes = [
+      "Feature",
+      "FeatureCollection",
+      "Polygon",
+      "MultiPolygon",
+    ];
     return validTypes.includes(geojson.type);
   }
 
@@ -48,7 +54,9 @@ export class AreaNode extends ExecutableNode {
       }
 
       if (!this.isValidGeoJSON(geojson)) {
-        return this.createErrorResult("Invalid GeoJSON provided - must be a Polygon, MultiPolygon, Feature, or FeatureCollection");
+        return this.createErrorResult(
+          "Invalid GeoJSON provided - must be a Polygon, MultiPolygon, Feature, or FeatureCollection"
+        );
       }
 
       // Calculate the area using Turf.js
@@ -57,10 +65,9 @@ export class AreaNode extends ExecutableNode {
       return this.createSuccessResult({
         area: calculatedArea,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error calculating area: ${error.message}`);
     }
   }
-} 
+}

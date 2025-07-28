@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { lineSliceAlong } from "@turf/turf";
 import { Units } from "@turf/helpers";
+import { lineSliceAlong } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,7 +10,8 @@ export class LineSliceAlongNode extends ExecutableNode {
     id: "line-slice-along",
     name: "Line Slice Along",
     type: "line-slice-along",
-    description: "Takes a line, a specified distance along the line to a start Point, and a specified distance along the line to a stop point and returns a subsection of the line in-between those points.",
+    description:
+      "Takes a line, a specified distance along the line to a start Point, and a specified distance along the line to a stop point and returns a subsection of the line in-between those points.",
     tags: ["Geo"],
     icon: "ruler",
     inputs: [
@@ -35,7 +36,8 @@ export class LineSliceAlongNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units for distance (degrees, radians, miles, or kilometers)",
+        description:
+          "Units for distance (degrees, radians, miles, or kilometers)",
         required: false,
       },
     ],
@@ -74,30 +76,43 @@ export class LineSliceAlongNode extends ExecutableNode {
 
       // Prepare options for lineSliceAlong
       const options: { units?: Units } = {};
-      
+
       if (units !== undefined && units !== null) {
         if (typeof units !== "string") {
           return this.createErrorResult("Units must be a string");
         }
 
-        const validUnits: Units[] = ["degrees", "radians", "miles", "kilometers"];
+        const validUnits: Units[] = [
+          "degrees",
+          "radians",
+          "miles",
+          "kilometers",
+        ];
         if (!validUnits.includes(units as Units)) {
-          return this.createErrorResult("Units must be one of: degrees, radians, miles, kilometers");
+          return this.createErrorResult(
+            "Units must be one of: degrees, radians, miles, kilometers"
+          );
         }
 
         options.units = units as Units;
       }
 
       // Delegate everything to Turf.js lineSliceAlong function
-      const slicedLine = lineSliceAlong(line as any, startDist, stopDist, options);
+      const slicedLine = lineSliceAlong(
+        line as any,
+        startDist,
+        stopDist,
+        options
+      );
 
       return this.createSuccessResult({
         sliced: slicedLine,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error slicing line along: ${error.message}`);
+      return this.createErrorResult(
+        `Error slicing line along: ${error.message}`
+      );
     }
   }
-} 
+}

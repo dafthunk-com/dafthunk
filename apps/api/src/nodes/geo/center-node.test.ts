@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { CenterNode } from "./center-node";
 import { NodeContext } from "../types";
+import { CenterNode } from "./center-node";
 
 describe("CenterNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,8 +26,8 @@ describe("CenterNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -42,17 +42,20 @@ describe("CenterNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         properties: {
-          name: "test center"
-        }
+          name: "test center",
+        },
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.center.properties).toHaveProperty("name", "test center");
+      expect(result.outputs?.center.properties).toHaveProperty(
+        "name",
+        "test center"
+      );
     });
   });
 
@@ -78,7 +81,7 @@ describe("CenterNode", () => {
     it("should handle invalid properties type", async () => {
       const context = createMockContext({
         geojson: { type: "Point", coordinates: [0, 0] },
-        properties: "not an object"
+        properties: "not an object",
       });
 
       const result = await node.execute(context);

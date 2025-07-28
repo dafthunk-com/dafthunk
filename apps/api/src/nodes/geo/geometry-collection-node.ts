@@ -9,14 +9,16 @@ export class GeometryCollectionNode extends ExecutableNode {
     id: "geometry-collection",
     name: "Geometry Collection",
     type: "geometry-collection",
-    description: "Creates a Feature<GeometryCollection> based on a coordinate array. Properties can be added optionally.",
+    description:
+      "Creates a Feature<GeometryCollection> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "layers",
     inputs: [
       {
         name: "geometries",
         type: "geojson",
-        description: "Array of GeoJSON Geometries to combine into a GeometryCollection",
+        description:
+          "Array of GeoJSON Geometries to combine into a GeometryCollection",
         required: true,
       },
       {
@@ -28,7 +30,8 @@ export class GeometryCollectionNode extends ExecutableNode {
       {
         name: "bbox",
         type: "json",
-        description: "Bounding Box Array [west, south, east, north] associated with the Feature",
+        description:
+          "Bounding Box Array [west, south, east, north] associated with the Feature",
         required: false,
       },
       {
@@ -64,7 +67,9 @@ export class GeometryCollectionNode extends ExecutableNode {
         }
 
         if (bbox.length !== 4) {
-          return this.createErrorResult("Bbox must be an array of 4 numbers [west, south, east, north]");
+          return this.createErrorResult(
+            "Bbox must be an array of 4 numbers [west, south, east, north]"
+          );
         }
 
         for (let i = 0; i < bbox.length; i++) {
@@ -84,15 +89,20 @@ export class GeometryCollectionNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js geometryCollection function
-      const geometryCollectionResult = geometryCollection(geometries as any, properties as any, options as any);
+      const geometryCollectionResult = geometryCollection(
+        geometries as any,
+        properties as any,
+        options as any
+      );
 
       return this.createSuccessResult({
         geometryCollection: geometryCollectionResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating geometry collection: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating geometry collection: ${error.message}`
+      );
     }
   }
-} 
+}

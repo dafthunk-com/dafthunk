@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { TransformScaleNode } from "./transform-scale-node";
 import { NodeContext } from "../types";
+import { TransformScaleNode } from "./transform-scale-node";
 
 describe("TransformScaleNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,15 +26,17 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [10, 0],
-            [10, 10],
-            [0, 10],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
         },
-        factor: 2
+        factor: 2,
       });
 
       const result = await node.execute(context);
@@ -48,9 +50,9 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
-        factor: 2
+        factor: 2,
       });
 
       const result = await node.execute(context);
@@ -67,10 +69,10 @@ describe("TransformScaleNode", () => {
           coordinates: [
             [0, 0],
             [10, 10],
-            [20, 0]
-          ]
+            [20, 0],
+          ],
         },
-        factor: 1.5
+        factor: 1.5,
       });
 
       const result = await node.execute(context);
@@ -84,15 +86,17 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [10, 0],
-            [10, 10],
-            [0, 10],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
         },
-        factor: 1
+        factor: 1,
       });
 
       const result = await node.execute(context);
@@ -105,7 +109,7 @@ describe("TransformScaleNode", () => {
   describe("Input validation", () => {
     it("should handle missing GeoJSON input", async () => {
       const context = createMockContext({
-        factor: 2
+        factor: 2,
       });
 
       const result = await node.execute(context);
@@ -118,8 +122,8 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
-        }
+          coordinates: [5, 5],
+        },
       });
 
       const result = await node.execute(context);
@@ -132,9 +136,9 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
-        factor: null
+        factor: null,
       });
 
       const result = await node.execute(context);
@@ -147,9 +151,9 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
-        factor: "not a number"
+        factor: "not a number",
       });
 
       const result = await node.execute(context);
@@ -162,9 +166,9 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
-        factor: Infinity
+        factor: Infinity,
       });
 
       const result = await node.execute(context);
@@ -179,19 +183,21 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [10, 0],
-            [10, 10],
-            [0, 10],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
         },
         factor: 2,
         origin: {
           type: "Point",
-          coordinates: [5, 5]
-        }
+          coordinates: [5, 5],
+        },
       });
 
       const result = await node.execute(context);
@@ -204,13 +210,15 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [10, 0],
-            [10, 10],
-            [0, 10],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
         },
         factor: 2,
         origin: {
@@ -218,9 +226,9 @@ describe("TransformScaleNode", () => {
           properties: { name: "Origin" },
           geometry: {
             type: "Point",
-            coordinates: [5, 5]
-          }
-        }
+            coordinates: [5, 5],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -233,16 +241,18 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [10, 0],
-            [10, 10],
-            [0, 10],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
         },
         factor: 2,
-        origin: null
+        origin: null,
       });
 
       const result = await node.execute(context);
@@ -260,10 +270,10 @@ describe("TransformScaleNode", () => {
           coordinates: [
             [0, 0],
             [10, 10],
-            [20, 0]
-          ]
+            [20, 0],
+          ],
         },
-        factor: 2
+        factor: 2,
       });
 
       const result = await node.execute(context);
@@ -280,15 +290,15 @@ describe("TransformScaleNode", () => {
           coordinates: [
             [
               [0, 0],
-              [10, 10]
+              [10, 10],
             ],
             [
               [20, 0],
-              [30, 10]
-            ]
-          ]
+              [30, 10],
+            ],
+          ],
         },
-        factor: 1.5
+        factor: 1.5,
       });
 
       const result = await node.execute(context);
@@ -303,23 +313,27 @@ describe("TransformScaleNode", () => {
         geojson: {
           type: "MultiPolygon",
           coordinates: [
-            [[
-              [0, 0],
-              [10, 0],
-              [10, 10],
-              [0, 10],
-              [0, 0]
-            ]],
-            [[
-              [20, 20],
-              [30, 20],
-              [30, 30],
-              [20, 30],
-              [20, 20]
-            ]]
-          ]
+            [
+              [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [0, 10],
+                [0, 0],
+              ],
+            ],
+            [
+              [
+                [20, 20],
+                [30, 20],
+                [30, 30],
+                [20, 30],
+                [20, 20],
+              ],
+            ],
+          ],
         },
-        factor: 0.8
+        factor: 0.8,
       });
 
       const result = await node.execute(context);
@@ -336,20 +350,22 @@ describe("TransformScaleNode", () => {
           properties: {
             name: "Test Polygon",
             area: 100,
-            category: "building"
+            category: "building",
           },
           geometry: {
             type: "Polygon",
-            coordinates: [[
-              [0, 0],
-              [10, 0],
-              [10, 10],
-              [0, 10],
-              [0, 0]
-            ]]
-          }
+            coordinates: [
+              [
+                [0, 0],
+                [10, 0],
+                [10, 10],
+                [0, 10],
+                [0, 0],
+              ],
+            ],
+          },
         },
-        factor: 3
+        factor: 3,
       });
 
       const result = await node.execute(context);
@@ -359,7 +375,7 @@ describe("TransformScaleNode", () => {
       expect(result.outputs?.scaled.properties).toEqual({
         name: "Test Polygon",
         area: 100,
-        category: "building"
+        category: "building",
       });
       expect(result.outputs?.scaled.geometry.type).toBe("Polygon");
     });
@@ -374,26 +390,28 @@ describe("TransformScaleNode", () => {
               properties: { id: 1 },
               geometry: {
                 type: "Polygon",
-                coordinates: [[
-                  [0, 0],
-                  [10, 0],
-                  [10, 10],
-                  [0, 10],
-                  [0, 0]
-                ]]
-              }
+                coordinates: [
+                  [
+                    [0, 0],
+                    [10, 0],
+                    [10, 10],
+                    [0, 10],
+                    [0, 0],
+                  ],
+                ],
+              },
             },
             {
               type: "Feature",
               properties: { id: 2 },
               geometry: {
                 type: "Point",
-                coordinates: [20, 20]
-              }
-            }
-          ]
+                coordinates: [20, 20],
+              },
+            },
+          ],
         },
-        factor: 2.5
+        factor: 2.5,
       });
 
       const result = await node.execute(context);
@@ -410,7 +428,7 @@ describe("TransformScaleNode", () => {
     it("should handle null inputs", async () => {
       const context = createMockContext({
         geojson: null,
-        factor: 2
+        factor: 2,
       });
 
       const result = await node.execute(context);
@@ -422,7 +440,7 @@ describe("TransformScaleNode", () => {
     it("should handle undefined inputs", async () => {
       const context = createMockContext({
         geojson: undefined,
-        factor: 2
+        factor: 2,
       });
 
       const result = await node.execute(context);
@@ -435,9 +453,9 @@ describe("TransformScaleNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
-        factor: undefined
+        factor: undefined,
       });
 
       const result = await node.execute(context);
@@ -446,4 +464,4 @@ describe("TransformScaleNode", () => {
       expect(result.error).toBe("Missing factor input");
     });
   });
-}); 
+});

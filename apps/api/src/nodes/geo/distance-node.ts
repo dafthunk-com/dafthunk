@@ -55,7 +55,7 @@ export class DistanceNode extends ExecutableNode {
 
       // Prepare options for distance calculation
       const options: any = {};
-      
+
       if (units !== undefined && units !== null) {
         options.units = units;
       }
@@ -66,10 +66,11 @@ export class DistanceNode extends ExecutableNode {
       return this.createSuccessResult({
         distance: calculatedDistance,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating distance: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating distance: ${error.message}`
+      );
     }
   }
-} 
+}

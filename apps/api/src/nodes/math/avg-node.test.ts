@@ -211,7 +211,9 @@ describe("AvgNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input at position 1: expected number, got string");
+    expect(result.error).toContain(
+      "Invalid input at position 1: expected number, got string"
+    );
   });
 
   it("should handle string numbers by converting them", async () => {
@@ -293,4 +295,4 @@ describe("AvgNode", () => {
     // Use toBeCloseTo for floating point comparison to handle precision issues
     expect(result.outputs?.result).toBeCloseTo(2.2, 10); // (1.1+2.2+3.3)/3 = 2.2
   });
-}); 
+});

@@ -9,7 +9,8 @@ export class RhumbDestinationNode extends ExecutableNode {
     id: "rhumbDestination",
     name: "Rhumb Destination",
     type: "rhumbDestination",
-    description: "Calculates the destination point along a rhumb line (constant bearing) from an origin point.",
+    description:
+      "Calculates the destination point along a rhumb line (constant bearing) from an origin point.",
     tags: ["Geo"],
     icon: "map-pin",
     inputs: [
@@ -34,7 +35,8 @@ export class RhumbDestinationNode extends ExecutableNode {
       {
         name: "units",
         type: "string",
-        description: "Units for distance (kilometers, miles, meters, degrees, radians)",
+        description:
+          "Units for distance (kilometers, miles, meters, degrees, radians)",
         required: false,
       },
       {
@@ -71,7 +73,7 @@ export class RhumbDestinationNode extends ExecutableNode {
 
       // Prepare options for rhumb destination calculation
       const options: { units?: string; properties?: any } = {};
-      
+
       if (units !== undefined && units !== null) {
         options.units = units;
       }
@@ -81,15 +83,21 @@ export class RhumbDestinationNode extends ExecutableNode {
       }
 
       // Calculate the rhumb destination using Turf.js
-      const destinationPoint = rhumbDestination(origin as any, distance, bearing, options as any);
+      const destinationPoint = rhumbDestination(
+        origin as any,
+        distance,
+        bearing,
+        options as any
+      );
 
       return this.createSuccessResult({
         destination: destinationPoint,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating rhumb destination: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating rhumb destination: ${error.message}`
+      );
     }
   }
-} 
+}

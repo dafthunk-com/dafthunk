@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { NearestPointNode } from "./nearest-point-node";
 import { NodeContext } from "../types";
+import { NearestPointNode } from "./nearest-point-node";
 
 describe("NearestPointNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,7 +25,7 @@ describe("NearestPointNode", () => {
     const context = createMockContext({
       targetPoint: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
       points: {
         type: "FeatureCollection",
@@ -35,19 +35,19 @@ describe("NearestPointNode", () => {
             properties: { id: 1 },
             geometry: {
               type: "Point",
-              coordinates: [1, 1]
-            }
+              coordinates: [1, 1],
+            },
           },
           {
             type: "Feature",
             properties: { id: 2 },
             geometry: {
               type: "Point",
-              coordinates: [2, 2]
-            }
-          }
-        ]
-      }
+              coordinates: [2, 2],
+            },
+          },
+        ],
+      },
     });
 
     const result = await node.execute(context);
@@ -67,11 +67,11 @@ describe("NearestPointNode", () => {
             properties: { id: 1 },
             geometry: {
               type: "Point",
-              coordinates: [1, 1]
-            }
-          }
-        ]
-      }
+              coordinates: [1, 1],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -82,11 +82,11 @@ describe("NearestPointNode", () => {
     const context = createMockContext({
       targetPoint: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing points input");
   });
-}); 
+});

@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
 import { angle } from "@turf/turf";
+import { describe, expect, it } from "vitest";
 
-import { AngleNode } from "./angle-node";
 import { NodeContext } from "../types";
+import { AngleNode } from "./angle-node";
 
 describe("AngleNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,7 +27,7 @@ describe("AngleNode", () => {
       const context = createMockContext({
         start: [0, 0],
         vertex: [1, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -41,16 +41,16 @@ describe("AngleNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         vertex: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -67,25 +67,25 @@ describe("AngleNode", () => {
           properties: { name: "Start Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         vertex: {
           type: "Feature",
           properties: { name: "Vertex Point" },
           geometry: {
             type: "Point",
-            coordinates: [1, 0]
-          }
+            coordinates: [1, 0],
+          },
         },
         end: {
           type: "Feature",
           properties: { name: "End Point" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -102,7 +102,7 @@ describe("AngleNode", () => {
         start: [0, 0],
         vertex: [1, 0],
         end: [1, 1],
-        explementary: true
+        explementary: true,
       });
 
       const result = await node.execute(context);
@@ -117,7 +117,7 @@ describe("AngleNode", () => {
         start: [0, 0],
         vertex: [1, 0],
         end: [1, 1],
-        mercator: true
+        mercator: true,
       });
 
       const result = await node.execute(context);
@@ -133,7 +133,7 @@ describe("AngleNode", () => {
         vertex: [1, 0],
         end: [1, 1],
         explementary: true,
-        mercator: true
+        mercator: true,
       });
 
       const result = await node.execute(context);
@@ -148,7 +148,7 @@ describe("AngleNode", () => {
     it("should handle missing start point input", async () => {
       const context = createMockContext({
         vertex: [1, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -160,7 +160,7 @@ describe("AngleNode", () => {
     it("should handle missing vertex point input", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -172,7 +172,7 @@ describe("AngleNode", () => {
     it("should handle missing end point input", async () => {
       const context = createMockContext({
         start: [0, 0],
-        vertex: [1, 0]
+        vertex: [1, 0],
       });
 
       const result = await node.execute(context);
@@ -186,7 +186,7 @@ describe("AngleNode", () => {
         start: [0, 0],
         vertex: [1, 0],
         end: [1, 1],
-        explementary: "not a boolean"
+        explementary: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -200,7 +200,7 @@ describe("AngleNode", () => {
         start: [0, 0],
         vertex: [1, 0],
         end: [1, 1],
-        mercator: "not a boolean"
+        mercator: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -223,7 +223,7 @@ describe("AngleNode", () => {
       const context = createMockContext({
         start,
         vertex,
-        end
+        end,
       });
 
       const result = await node.execute(context);
@@ -245,7 +245,7 @@ describe("AngleNode", () => {
         start,
         vertex,
         end,
-        explementary: true
+        explementary: true,
       });
 
       const result = await node.execute(context);
@@ -267,7 +267,7 @@ describe("AngleNode", () => {
         start,
         vertex,
         end,
-        mercator: true
+        mercator: true,
       });
 
       const result = await node.execute(context);
@@ -276,4 +276,4 @@ describe("AngleNode", () => {
       expect(result.outputs?.angle).toBe(turfAngle);
     });
   });
-}); 
+});

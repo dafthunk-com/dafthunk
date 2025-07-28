@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanIntersectsNode } from "./boolean-intersects-node";
+
 import { NodeContext } from "../types";
+import { BooleanIntersectsNode } from "./boolean-intersects-node";
 
 describe("BooleanIntersectsNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -28,9 +29,9 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -39,14 +40,14 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [0, 2],
-          [2, 0]
-        ]
-      }
+          [2, 0],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line1,
-      feature2: line2
+      feature2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -61,9 +62,9 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [1, 1]
-        ]
-      }
+          [1, 1],
+        ],
+      },
     };
     const line2 = {
       type: "Feature",
@@ -72,14 +73,14 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [3, 3],
-          [4, 4]
-        ]
-      }
+          [4, 4],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line1,
-      feature2: line2
+      feature2: line2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -98,10 +99,10 @@ describe("BooleanIntersectsNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -114,15 +115,15 @@ describe("BooleanIntersectsNode", () => {
             [1, 3],
             [3, 3],
             [3, 1],
-            [1, 1]
-          ]
-        ]
-      }
+            [1, 1],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -141,10 +142,10 @@ describe("BooleanIntersectsNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -157,15 +158,15 @@ describe("BooleanIntersectsNode", () => {
             [3, 4],
             [4, 4],
             [4, 3],
-            [3, 3]
-          ]
-        ]
-      }
+            [3, 3],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -178,8 +179,8 @@ describe("BooleanIntersectsNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -192,15 +193,15 @@ describe("BooleanIntersectsNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -213,8 +214,8 @@ describe("BooleanIntersectsNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [5, 5]
-      }
+        coordinates: [5, 5],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -227,15 +228,15 @@ describe("BooleanIntersectsNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -250,9 +251,9 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [0, 1],
-          [3, 1]
-        ]
-      }
+          [3, 1],
+        ],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -265,15 +266,15 @@ describe("BooleanIntersectsNode", () => {
             [1, 2],
             [2, 2],
             [2, 0],
-            [1, 0]
-          ]
-        ]
-      }
+            [1, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -288,9 +289,9 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [5, 5],
-          [6, 6]
-        ]
-      }
+          [6, 6],
+        ],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -303,15 +304,15 @@ describe("BooleanIntersectsNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: line,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -330,10 +331,10 @@ describe("BooleanIntersectsNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -346,15 +347,15 @@ describe("BooleanIntersectsNode", () => {
             [1, 1],
             [2, 1],
             [2, 0],
-            [1, 0]
-          ]
-        ]
-      }
+            [1, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -373,10 +374,10 @@ describe("BooleanIntersectsNode", () => {
             [0, 2],
             [2, 2],
             [2, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
     const polygon2 = {
       type: "Feature",
@@ -389,15 +390,15 @@ describe("BooleanIntersectsNode", () => {
             [1, 3],
             [3, 3],
             [3, 1],
-            [1, 1]
-          ]
-        ]
-      }
+            [1, 1],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon1,
-      feature2: polygon2
+      feature2: polygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -416,15 +417,15 @@ describe("BooleanIntersectsNode", () => {
             [0, 1],
             [1, 1],
             [1, 0],
-            [0, 0]
-          ]
-        ]
-      }
+            [0, 0],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: polygon,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -437,8 +438,8 @@ describe("BooleanIntersectsNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 1]
-      }
+        coordinates: [1, 1],
+      },
     };
     const line = {
       type: "Feature",
@@ -447,14 +448,14 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -467,8 +468,8 @@ describe("BooleanIntersectsNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1, 2]
-      }
+        coordinates: [1, 2],
+      },
     };
     const line = {
       type: "Feature",
@@ -477,14 +478,14 @@ describe("BooleanIntersectsNode", () => {
         type: "LineString",
         coordinates: [
           [0, 0],
-          [2, 2]
-        ]
-      }
+          [2, 2],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: line
+      feature2: line,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -504,8 +505,8 @@ describe("BooleanIntersectsNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
+              [0, 0],
+            ],
           ],
           [
             [
@@ -513,11 +514,11 @@ describe("BooleanIntersectsNode", () => {
               [2, 3],
               [3, 3],
               [3, 2],
-              [2, 2]
-            ]
-          ]
-        ]
-      }
+              [2, 2],
+            ],
+          ],
+        ],
+      },
     };
     const multiPolygon2 = {
       type: "Feature",
@@ -531,16 +532,16 @@ describe("BooleanIntersectsNode", () => {
               [0.5, 1.5],
               [1.5, 1.5],
               [1.5, 0.5],
-              [0.5, 0.5]
-            ]
-          ]
-        ]
-      }
+              [0.5, 0.5],
+            ],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: multiPolygon1,
-      feature2: multiPolygon2
+      feature2: multiPolygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -560,11 +561,11 @@ describe("BooleanIntersectsNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
-          ]
-        ]
-      }
+              [0, 0],
+            ],
+          ],
+        ],
+      },
     };
     const multiPolygon2 = {
       type: "Feature",
@@ -578,16 +579,16 @@ describe("BooleanIntersectsNode", () => {
               [5, 6],
               [6, 6],
               [6, 5],
-              [5, 5]
-            ]
-          ]
-        ]
-      }
+              [5, 5],
+            ],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: multiPolygon1,
-      feature2: multiPolygon2
+      feature2: multiPolygon2,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -597,7 +598,7 @@ describe("BooleanIntersectsNode", () => {
   it("returns true for geometry objects", async () => {
     const point = {
       type: "Point",
-      coordinates: [1, 1]
+      coordinates: [1, 1],
     };
     const polygon = {
       type: "Polygon",
@@ -607,14 +608,14 @@ describe("BooleanIntersectsNode", () => {
           [0, 2],
           [2, 2],
           [2, 0],
-          [0, 0]
-        ]
-      ]
+          [0, 0],
+        ],
+      ],
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -627,8 +628,8 @@ describe("BooleanIntersectsNode", () => {
       properties: {},
       geometry: {
         type: "Point",
-        coordinates: [1000, 1000]
-      }
+        coordinates: [1000, 1000],
+      },
     };
     const polygon = {
       type: "Feature",
@@ -641,15 +642,15 @@ describe("BooleanIntersectsNode", () => {
             [999, 1001],
             [1001, 1001],
             [1001, 999],
-            [999, 999]
-          ]
-        ]
-      }
+            [999, 999],
+          ],
+        ],
+      },
     };
-    
+
     const context = createMockContext({
       feature1: point,
-      feature2: polygon
+      feature2: polygon,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -663,9 +664,9 @@ describe("BooleanIntersectsNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -679,9 +680,9 @@ describe("BooleanIntersectsNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -696,9 +697,9 @@ describe("BooleanIntersectsNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -712,10 +713,10 @@ describe("BooleanIntersectsNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
-      feature2: null
+      feature2: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -730,9 +731,9 @@ describe("BooleanIntersectsNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
-      }
+          coordinates: [0, 0],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -746,13 +747,13 @@ describe("BooleanIntersectsNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
-      feature2: undefined
+      feature2: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing feature2 input");
   });
-}); 
+});

@@ -9,7 +9,8 @@ export class RewindNode extends ExecutableNode {
     id: "rewind",
     name: "Rewind",
     type: "rewind",
-    description: "Rewind (Multi)LineString or (Multi)Polygon outer ring counterclockwise and inner rings clockwise (Uses Shoelace Formula).",
+    description:
+      "Rewind (Multi)LineString or (Multi)Polygon outer ring counterclockwise and inner rings clockwise (Uses Shoelace Formula).",
     tags: ["Geo"],
     icon: "rotate-ccw",
     inputs: [
@@ -28,7 +29,8 @@ export class RewindNode extends ExecutableNode {
       {
         name: "mutate",
         type: "boolean",
-        description: "Allows GeoJSON input to be mutated (significant performance increase if true) (default: false)",
+        description:
+          "Allows GeoJSON input to be mutated (significant performance increase if true) (default: false)",
         required: false,
       },
     ],
@@ -51,7 +53,7 @@ export class RewindNode extends ExecutableNode {
 
       // Prepare options for rewind
       const options: { reverse?: boolean; mutate?: boolean } = {};
-      
+
       if (reverse !== undefined && reverse !== null) {
         if (typeof reverse !== "boolean") {
           return this.createErrorResult("Reverse must be a boolean");
@@ -72,10 +74,11 @@ export class RewindNode extends ExecutableNode {
       return this.createSuccessResult({
         rewound,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error rewinding geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error rewinding geometry: ${error.message}`
+      );
     }
   }
-} 
+}

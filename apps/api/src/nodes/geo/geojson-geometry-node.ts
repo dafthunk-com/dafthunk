@@ -44,7 +44,9 @@ export class GeoJsonGeometryNode extends ExecutableNode {
     ],
   };
 
-  private isValidCoordinate(coord: any): coord is [number, number] | [number, number, number] {
+  private isValidCoordinate(
+    coord: any
+  ): coord is [number, number] | [number, number, number] {
     return (
       Array.isArray(coord) &&
       (coord.length === 2 || coord.length === 3) &&
@@ -53,10 +55,7 @@ export class GeoJsonGeometryNode extends ExecutableNode {
   }
 
   private isValidPoint(geom: any): geom is Point {
-    return (
-      geom?.type === "Point" &&
-      this.isValidCoordinate(geom.coordinates)
-    );
+    return geom?.type === "Point" && this.isValidCoordinate(geom.coordinates);
   }
 
   private isValidMultiPoint(geom: any): geom is MultiPoint {
@@ -80,10 +79,11 @@ export class GeoJsonGeometryNode extends ExecutableNode {
     return (
       geom?.type === "MultiLineString" &&
       Array.isArray(geom.coordinates) &&
-      geom.coordinates.every((line: any) => 
-        Array.isArray(line) &&
-        line.length >= 2 &&
-        line.every((coord: any) => this.isValidCoordinate(coord))
+      geom.coordinates.every(
+        (line: any) =>
+          Array.isArray(line) &&
+          line.length >= 2 &&
+          line.every((coord: any) => this.isValidCoordinate(coord))
       )
     );
   }
@@ -93,10 +93,11 @@ export class GeoJsonGeometryNode extends ExecutableNode {
       geom?.type === "Polygon" &&
       Array.isArray(geom.coordinates) &&
       geom.coordinates.length >= 1 &&
-      geom.coordinates.every((ring: any) => 
-        Array.isArray(ring) &&
-        ring.length >= 4 && // minimum 4 points to close a ring
-        ring.every((coord: any) => this.isValidCoordinate(coord))
+      geom.coordinates.every(
+        (ring: any) =>
+          Array.isArray(ring) &&
+          ring.length >= 4 && // minimum 4 points to close a ring
+          ring.every((coord: any) => this.isValidCoordinate(coord))
       )
     );
   }
@@ -105,14 +106,16 @@ export class GeoJsonGeometryNode extends ExecutableNode {
     return (
       geom?.type === "MultiPolygon" &&
       Array.isArray(geom.coordinates) &&
-      geom.coordinates.every((polygon: any) => 
-        Array.isArray(polygon) &&
-        polygon.length >= 1 &&
-        polygon.every((ring: any) => 
-          Array.isArray(ring) &&
-          ring.length >= 4 &&
-          ring.every((coord: any) => this.isValidCoordinate(coord))
-        )
+      geom.coordinates.every(
+        (polygon: any) =>
+          Array.isArray(polygon) &&
+          polygon.length >= 1 &&
+          polygon.every(
+            (ring: any) =>
+              Array.isArray(ring) &&
+              ring.length >= 4 &&
+              ring.every((coord: any) => this.isValidCoordinate(coord))
+          )
       )
     );
   }
@@ -161,18 +164,27 @@ export class GeoJsonGeometryNode extends ExecutableNode {
 
       // Provide specific error messages based on what's wrong
       if (!json.type) {
-        return this.createErrorResult("Missing 'type' property in GeoJSON geometry");
+        return this.createErrorResult(
+          "Missing 'type' property in GeoJSON geometry"
+        );
       }
 
       if (!json.coordinates && json.type !== "GeometryCollection") {
-        return this.createErrorResult("Missing 'coordinates' property in GeoJSON geometry");
+        return this.createErrorResult(
+          "Missing 'coordinates' property in GeoJSON geometry"
+        );
       }
 
       const validTypes = [
-        "Point", "MultiPoint", "LineString", "MultiLineString", 
-        "Polygon", "MultiPolygon", "GeometryCollection"
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "MultiLineString",
+        "Polygon",
+        "MultiPolygon",
+        "GeometryCollection",
       ];
-      
+
       if (!validTypes.includes(json.type)) {
         return this.createErrorResult(
           `Invalid geometry type '${json.type}'. Must be one of: ${validTypes.join(", ")}`
@@ -182,10 +194,11 @@ export class GeoJsonGeometryNode extends ExecutableNode {
       return this.createErrorResult(
         `Invalid GeoJSON ${json.type} geometry: coordinates structure is malformed`
       );
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error parsing GeoJSON geometry: ${error.message}`);
+      return this.createErrorResult(
+        `Error parsing GeoJSON geometry: ${error.message}`
+      );
     }
   }
-} 
+}

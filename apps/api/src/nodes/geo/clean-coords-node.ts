@@ -45,7 +45,7 @@ export class CleanCoordsNode extends ExecutableNode {
 
       // Prepare options for cleanCoords
       const options: { mutate?: boolean } = {};
-      
+
       if (mutate !== undefined && mutate !== null) {
         if (typeof mutate !== "boolean") {
           return this.createErrorResult("Mutate must be a boolean");
@@ -59,10 +59,11 @@ export class CleanCoordsNode extends ExecutableNode {
       return this.createSuccessResult({
         cleaned,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error cleaning coordinates: ${error.message}`);
+      return this.createErrorResult(
+        `Error cleaning coordinates: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MaskNode } from "./mask-node";
+
 import { NodeContext } from "../types";
+import { MaskNode } from "./mask-node";
 
 describe("MaskNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,17 +28,33 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -50,12 +67,28 @@ describe("MaskNode", () => {
     const context = createMockContext({
       polygon: {
         type: "Polygon",
-        coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
+        coordinates: [
+          [
+            [1, 1],
+            [3, 1],
+            [3, 3],
+            [1, 3],
+            [1, 1],
+          ],
+        ],
       },
       mask: {
         type: "Polygon",
-        coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-      }
+        coordinates: [
+          [
+            [0, 0],
+            [4, 0],
+            [4, 4],
+            [0, 4],
+            [0, 0],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -71,9 +104,17 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
-      }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -89,18 +130,34 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      mutate: true
+      mutate: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -116,18 +173,34 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      mutate: false
+      mutate: false,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -144,19 +217,43 @@ describe("MaskNode", () => {
         geometry: {
           type: "MultiPolygon",
           coordinates: [
-            [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]],
-            [[[5, 5], [7, 5], [7, 7], [5, 7], [5, 5]]]
-          ]
-        }
+            [
+              [
+                [1, 1],
+                [3, 1],
+                [3, 3],
+                [1, 3],
+                [1, 1],
+              ],
+            ],
+            [
+              [
+                [5, 5],
+                [7, 5],
+                [7, 7],
+                [5, 7],
+                [5, 5],
+              ],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [8, 0], [8, 8], [0, 8], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [8, 0],
+              [8, 8],
+              [0, 8],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -172,17 +269,33 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[2, 2], [6, 2], [6, 6], [2, 6], [2, 2]]]
-        }
+          coordinates: [
+            [
+              [2, 2],
+              [6, 2],
+              [6, 6],
+              [2, 6],
+              [2, 2],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [8, 0], [8, 8], [0, 8], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [8, 0],
+              [8, 8],
+              [0, 8],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -198,17 +311,33 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [2, 1],
+              [2, 2],
+              [1, 2],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [3, 0], [3, 3], [0, 3], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [3, 0],
+              [3, 3],
+              [0, 3],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -225,19 +354,39 @@ describe("MaskNode", () => {
         geometry: {
           type: "Polygon",
           coordinates: [
-            [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]],
-            [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]
-          ]
-        }
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[-1, -1], [5, -1], [5, 5], [-1, 5], [-1, -1]]]
-        }
-      }
+          coordinates: [
+            [
+              [-1, -1],
+              [5, -1],
+              [5, 5],
+              [-1, 5],
+              [-1, -1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -253,10 +402,18 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
-      mask: null
+      mask: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -272,10 +429,18 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
-      mask: undefined
+      mask: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -291,18 +456,34 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      mutate: null
+      mutate: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -318,18 +499,34 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      mutate: undefined
+      mutate: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -345,9 +542,17 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -361,21 +566,37 @@ describe("MaskNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [3, 1],
+              [3, 3],
+              [1, 3],
+              [1, 1],
+            ],
+          ],
+        },
       },
       mask: {
         type: "Feature",
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [4, 0],
+              [4, 4],
+              [0, 4],
+              [0, 0],
+            ],
+          ],
+        },
       },
-      mutate: "not a boolean"
+      mutate: "not a boolean",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Mutate must be a boolean");
   });
-}); 
+});

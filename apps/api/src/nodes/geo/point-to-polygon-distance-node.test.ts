@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PointToPolygonDistanceNode } from "./point-to-polygon-distance-node";
 import { NodeContext } from "../types";
+import { PointToPolygonDistanceNode } from "./point-to-polygon-distance-node";
 
 describe("PointToPolygonDistanceNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,8 +29,8 @@ describe("PointToPolygonDistanceNode", () => {
           properties: { name: "Test Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         polygon: {
           type: "Feature",
@@ -43,11 +43,11 @@ describe("PointToPolygonDistanceNode", () => {
                 [1, -1],
                 [-1, -1],
                 [-1, 1],
-                [1, 1]
-              ]
-            ]
-          }
-        }
+                [1, 1],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -61,7 +61,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -71,10 +71,10 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -88,7 +88,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -98,11 +98,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        units: "kilometers"
+        units: "kilometers",
       });
 
       const result = await node.execute(context);
@@ -116,7 +116,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -126,11 +126,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        method: "planar"
+        method: "planar",
       });
 
       const result = await node.execute(context);
@@ -144,7 +144,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -154,12 +154,12 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
         units: "miles",
-        method: "geodesic"
+        method: "geodesic",
       });
 
       const result = await node.execute(context);
@@ -181,10 +181,10 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -197,8 +197,8 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -218,10 +218,10 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -234,9 +234,9 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        polygon: null
+        polygon: null,
       });
 
       const result = await node.execute(context);
@@ -249,7 +249,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -259,11 +259,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        units: 123
+        units: 123,
       });
 
       const result = await node.execute(context);
@@ -276,7 +276,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -286,11 +286,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        method: 123
+        method: 123,
       });
 
       const result = await node.execute(context);
@@ -303,7 +303,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -313,11 +313,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        method: "invalid"
+        method: "invalid",
       });
 
       const result = await node.execute(context);
@@ -332,7 +332,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -342,10 +342,10 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -359,7 +359,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [1, 0]
+          coordinates: [1, 0],
         },
         polygon: {
           type: "Polygon",
@@ -369,10 +369,10 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -386,7 +386,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [2, 2]
+          coordinates: [2, 2],
         },
         polygon: {
           type: "Polygon",
@@ -396,10 +396,10 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
-        }
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -413,7 +413,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -423,11 +423,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        units: null
+        units: null,
       });
 
       const result = await node.execute(context);
@@ -441,7 +441,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -451,11 +451,11 @@ describe("PointToPolygonDistanceNode", () => {
               [1, -1],
               [-1, -1],
               [-1, 1],
-              [1, 1]
-            ]
-          ]
+              [1, 1],
+            ],
+          ],
         },
-        method: null
+        method: null,
       });
 
       const result = await node.execute(context);
@@ -469,7 +469,7 @@ describe("PointToPolygonDistanceNode", () => {
       const context = createMockContext({
         point: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         polygon: {
           type: "Polygon",
@@ -479,10 +479,10 @@ describe("PointToPolygonDistanceNode", () => {
               [10, -10],
               [-10, -10],
               [-10, 10],
-              [10, 10]
-            ]
-          ]
-        }
+              [10, 10],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -492,4 +492,4 @@ describe("PointToPolygonDistanceNode", () => {
       expect(typeof result.outputs?.distance).toBe("number");
     });
   });
-}); 
+});

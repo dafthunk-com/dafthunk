@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { AlongNode } from "./along-node";
 import { NodeContext } from "../types";
+import { AlongNode } from "./along-node";
 
 describe("AlongNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -28,10 +28,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 0.5
+        distance: 0.5,
       });
 
       const result = await node.execute(context);
@@ -52,11 +52,11 @@ describe("AlongNode", () => {
             coordinates: [
               [0, 0],
               [1, 1],
-              [2, 2]
-            ]
-          }
+              [2, 2],
+            ],
+          },
         },
-        distance: 1.0
+        distance: 1.0,
       });
 
       const result = await node.execute(context);
@@ -73,11 +73,11 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 0.1,
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -90,7 +90,7 @@ describe("AlongNode", () => {
   describe("Input validation", () => {
     it("should handle missing line input", async () => {
       const context = createMockContext({
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -105,9 +105,9 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
-        }
+            [1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -122,10 +122,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: null
+        distance: null,
       });
 
       const result = await node.execute(context);
@@ -140,10 +140,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: "invalid"
+        distance: "invalid",
       });
 
       const result = await node.execute(context);
@@ -158,10 +158,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: NaN
+        distance: NaN,
       });
 
       const result = await node.execute(context);
@@ -176,10 +176,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: Infinity
+        distance: Infinity,
       });
 
       const result = await node.execute(context);
@@ -194,11 +194,11 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: 123
+        units: 123,
       });
 
       const result = await node.execute(context);
@@ -215,10 +215,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 0
+        distance: 0,
       });
 
       const result = await node.execute(context);
@@ -233,10 +233,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: -1
+        distance: -1,
       });
 
       const result = await node.execute(context);
@@ -251,10 +251,10 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
-        distance: 1000
+        distance: 1000,
       });
 
       const result = await node.execute(context);
@@ -269,11 +269,11 @@ describe("AlongNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [1, 1]
-          ]
+            [1, 1],
+          ],
         },
         distance: 1,
-        units: null
+        units: null,
       });
 
       const result = await node.execute(context);
@@ -282,4 +282,4 @@ describe("AlongNode", () => {
       expect(result.outputs?.point).toBeDefined();
     });
   });
-}); 
+});

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { KinksNode } from "./kinks-node";
+
 import { NodeContext } from "../types";
+import { KinksNode } from "./kinks-node";
 
 describe("KinksNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,9 +28,15 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [1, 1], [1, -1], [0, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [1, 1],
+            [1, -1],
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -44,9 +51,15 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -61,9 +74,17 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [2, 0], [1, 1], [1, -1], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [1, 1],
+              [1, -1],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -78,9 +99,17 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "Polygon",
-          coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-        }
-      }
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -95,9 +124,15 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 2],
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -109,8 +144,14 @@ describe("KinksNode", () => {
     const context = createMockContext({
       line: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
-      }
+        coordinates: [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -122,8 +163,16 @@ describe("KinksNode", () => {
     const context = createMockContext({
       line: {
         type: "Polygon",
-        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-      }
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -138,9 +187,16 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [3, 0], [1, 2], [1, -2], [3, 0], [0, 0]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [3, 0],
+            [1, 2],
+            [1, -2],
+            [3, 0],
+            [0, 0],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -155,9 +211,12 @@ describe("KinksNode", () => {
         properties: {},
         geometry: {
           type: "LineString",
-          coordinates: [[0, 0], [1, 1]]
-        }
-      }
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -171,4 +230,4 @@ describe("KinksNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing line input");
   });
-}); 
+});

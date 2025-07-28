@@ -9,14 +9,16 @@ export class PolygonSmoothNode extends ExecutableNode {
     id: "polygon-smooth",
     name: "Polygon Smooth",
     type: "polygon-smooth",
-    description: "Smooths a Polygon or MultiPolygon. Based on Chaikin's algorithm. Warning: may create degenerate polygons.",
+    description:
+      "Smooths a Polygon or MultiPolygon. Based on Chaikin's algorithm. Warning: may create degenerate polygons.",
     tags: ["Geo"],
     icon: "circle",
     inputs: [
       {
         name: "polygon",
         type: "geojson",
-        description: "Input polygon or multipolygon (Feature or Polygon/MultiPolygon geometry)",
+        description:
+          "Input polygon or multipolygon (Feature or Polygon/MultiPolygon geometry)",
         required: true,
       },
       {
@@ -28,7 +30,8 @@ export class PolygonSmoothNode extends ExecutableNode {
       {
         name: "highQuality",
         type: "boolean",
-        description: "Whether or not to include extra points in the resulting polygon (default: false)",
+        description:
+          "Whether or not to include extra points in the resulting polygon (default: false)",
         required: false,
       },
     ],
@@ -51,13 +54,15 @@ export class PolygonSmoothNode extends ExecutableNode {
 
       // Prepare options for polygonSmooth
       const options: { iterations?: number; highQuality?: boolean } = {};
-      
+
       if (iterations !== undefined && iterations !== null) {
         if (typeof iterations !== "number") {
           return this.createErrorResult("Iterations must be a number");
         }
         if (iterations < 0) {
-          return this.createErrorResult("Iterations must be a non-negative number");
+          return this.createErrorResult(
+            "Iterations must be a non-negative number"
+          );
         }
         options.iterations = iterations;
       }
@@ -75,10 +80,11 @@ export class PolygonSmoothNode extends ExecutableNode {
       return this.createSuccessResult({
         smoothed: smoothedPolygon,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error smoothing polygon: ${error.message}`);
+      return this.createErrorResult(
+        `Error smoothing polygon: ${error.message}`
+      );
     }
   }
-} 
+}

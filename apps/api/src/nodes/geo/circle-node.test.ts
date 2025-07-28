@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { CircleNode } from "./circle-node";
 import { NodeContext } from "../types";
+import { CircleNode } from "./circle-node";
 
 describe("CircleNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,9 +26,9 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        radius: 1
+        radius: 1,
       });
 
       const result = await node.execute(context);
@@ -46,10 +46,10 @@ describe("CircleNode", () => {
           properties: { name: "Center Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
-        radius: 1
+        radius: 1,
       });
 
       const result = await node.execute(context);
@@ -65,10 +65,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        steps: 8
+        steps: 8,
       });
 
       const result = await node.execute(context);
@@ -81,10 +81,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        steps: 3
+        steps: 3,
       });
 
       const result = await node.execute(context);
@@ -97,10 +97,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        steps: 2
+        steps: 2,
       });
 
       const result = await node.execute(context);
@@ -115,10 +115,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        units: "kilometers"
+        units: "kilometers",
       });
 
       const result = await node.execute(context);
@@ -131,10 +131,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1000,
-        units: "meters"
+        units: "meters",
       });
 
       const result = await node.execute(context);
@@ -147,10 +147,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -163,10 +163,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        units: 123
+        units: 123,
       });
 
       const result = await node.execute(context);
@@ -181,13 +181,13 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
         properties: {
           name: "Test Circle",
-          type: "buffer"
-        }
+          type: "buffer",
+        },
       });
 
       const result = await node.execute(context);
@@ -196,7 +196,7 @@ describe("CircleNode", () => {
       expect(result.outputs?.circle).toBeDefined();
       expect(result.outputs?.circle.properties).toEqual({
         name: "Test Circle",
-        type: "buffer"
+        type: "buffer",
       });
     });
 
@@ -204,10 +204,10 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         radius: 1,
-        properties: "not an object"
+        properties: "not an object",
       });
 
       const result = await node.execute(context);
@@ -220,7 +220,7 @@ describe("CircleNode", () => {
   describe("Error handling", () => {
     it("should handle missing center input", async () => {
       const context = createMockContext({
-        radius: 1
+        radius: 1,
       });
 
       const result = await node.execute(context);
@@ -233,8 +233,8 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -247,9 +247,9 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        radius: "not a number"
+        radius: "not a number",
       });
 
       const result = await node.execute(context);
@@ -262,9 +262,9 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        radius: 0
+        radius: 0,
       });
 
       const result = await node.execute(context);
@@ -277,9 +277,9 @@ describe("CircleNode", () => {
       const context = createMockContext({
         center: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        radius: -1
+        radius: -1,
       });
 
       const result = await node.execute(context);
@@ -291,7 +291,7 @@ describe("CircleNode", () => {
     it("should handle null inputs", async () => {
       const context = createMockContext({
         center: null,
-        radius: 1
+        radius: 1,
       });
 
       const result = await node.execute(context);

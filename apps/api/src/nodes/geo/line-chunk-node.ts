@@ -28,7 +28,8 @@ export class LineChunkNode extends ExecutableNode {
       {
         name: "reverse",
         type: "boolean",
-        description: "Reverse coordinates to start the first chunked segment at the end (default: false)",
+        description:
+          "Reverse coordinates to start the first chunked segment at the end (default: false)",
         required: false,
       },
     ],
@@ -63,7 +64,7 @@ export class LineChunkNode extends ExecutableNode {
 
       // Prepare options for lineChunk
       const options: { reverse?: boolean } = {};
-      
+
       if (reverse !== undefined && reverse !== null) {
         if (typeof reverse !== "boolean") {
           return this.createErrorResult("Reverse must be a boolean");
@@ -77,10 +78,9 @@ export class LineChunkNode extends ExecutableNode {
       return this.createSuccessResult({
         chunks: chunkFeatures,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error chunking line: ${error.message}`);
     }
   }
-} 
+}

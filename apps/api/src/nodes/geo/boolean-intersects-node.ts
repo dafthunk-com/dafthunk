@@ -9,7 +9,8 @@ export class BooleanIntersectsNode extends ExecutableNode {
     id: "boolean-intersects",
     name: "Boolean Intersects",
     type: "boolean-intersects",
-    description: "Returns true if the intersection results in a geometry whose dimension is equal to the maximum dimension of the two source geometries.",
+    description:
+      "Returns true if the intersection results in a geometry whose dimension is equal to the maximum dimension of the two source geometries.",
     tags: ["Geo"],
     icon: "intersect",
     inputs: [
@@ -53,10 +54,11 @@ export class BooleanIntersectsNode extends ExecutableNode {
       return this.createSuccessResult({
         intersects,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error checking intersection: ${error.message}`);
+      return this.createErrorResult(
+        `Error checking intersection: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -9,7 +9,8 @@ export class CenterMedianNode extends ExecutableNode {
     id: "center-median",
     name: "Center Median",
     type: "center-median",
-    description: "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature.",
+    description:
+      "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature.",
     tags: ["Geo"],
     icon: "center",
     inputs: [
@@ -30,7 +31,8 @@ export class CenterMedianNode extends ExecutableNode {
       {
         name: "center",
         type: "geojson",
-        description: "A Point feature at the median center of the input features",
+        description:
+          "A Point feature at the median center of the input features",
       },
     ],
   };
@@ -49,10 +51,11 @@ export class CenterMedianNode extends ExecutableNode {
       return this.createSuccessResult({
         center,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating median center: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating median center: ${error.message}`
+      );
     }
   }
-} 
+}

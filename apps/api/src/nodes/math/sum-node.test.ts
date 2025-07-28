@@ -135,7 +135,9 @@ describe("SumNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input at position 1: expected number, got string");
+    expect(result.error).toContain(
+      "Invalid input at position 1: expected number, got string"
+    );
   });
 
   it("should handle string numbers by converting them", async () => {
@@ -178,4 +180,4 @@ describe("SumNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.result).toBe(5050); // Sum of 1 to 100
   });
-}); 
+});

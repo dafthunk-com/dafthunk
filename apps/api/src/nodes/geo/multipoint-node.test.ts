@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MultiPointNode } from "./multipoint-node";
+
 import { NodeContext } from "../types";
+import { MultiPointNode } from "./multipoint-node";
 
 describe("MultiPointNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,8 +26,8 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
-      ]
+        [2, 2],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -43,8 +44,8 @@ describe("MultiPointNode", () => {
         [1, 1],
         [2, 2],
         [3, 3],
-        [4, 4]
-      ]
+        [4, 4],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -60,13 +61,13 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
       properties: {
         name: "Test MultiPoint",
         color: "green",
-        value: 25
-      }
+        value: 25,
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -83,9 +84,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      bbox: [0, 0, 2, 2]
+      bbox: [0, 0, 2, 2],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -99,9 +100,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      id: "test-multipoint-1"
+      id: "test-multipoint-1",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -115,9 +116,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      id: 789
+      id: 789,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -131,11 +132,11 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
       properties: { name: "Test" },
       bbox: [0, 0, 2, 2],
-      id: "test-multipoint"
+      id: "test-multipoint",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -148,9 +149,7 @@ describe("MultiPointNode", () => {
 
   it("returns MultiPoint for single point", async () => {
     const context = createMockContext({
-      coordinates: [
-        [5, 5]
-      ]
+      coordinates: [[5, 5]],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -165,8 +164,8 @@ describe("MultiPointNode", () => {
         [0, 0],
         [10, 20],
         [100, 200],
-        [1000, 2000]
-      ]
+        [1000, 2000],
+      ],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -181,9 +180,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      properties: null
+      properties: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -196,9 +195,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      properties: undefined
+      properties: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -211,9 +210,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      bbox: null
+      bbox: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -226,9 +225,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      bbox: undefined
+      bbox: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -241,9 +240,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      id: null
+      id: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -256,9 +255,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      id: undefined
+      id: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -275,7 +274,7 @@ describe("MultiPointNode", () => {
 
   it("returns an error for null coordinates input", async () => {
     const context = createMockContext({
-      coordinates: null
+      coordinates: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -284,7 +283,7 @@ describe("MultiPointNode", () => {
 
   it("returns an error for undefined coordinates input", async () => {
     const context = createMockContext({
-      coordinates: undefined
+      coordinates: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -296,9 +295,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      bbox: "not an array"
+      bbox: "not an array",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -310,13 +309,15 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      bbox: [0, 0, 1]
+      bbox: [0, 0, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Bbox must be an array of 4 numbers [west, south, east, north]");
+    expect(result.error).toBe(
+      "Bbox must be an array of 4 numbers [west, south, east, north]"
+    );
   });
 
   it("returns an error for bbox with non-number values", async () => {
@@ -324,9 +325,9 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      bbox: [0, 0, 1, "north"]
+      bbox: [0, 0, 1, "north"],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -338,12 +339,12 @@ describe("MultiPointNode", () => {
       coordinates: [
         [0, 0],
         [1, 1],
-        [2, 2]
+        [2, 2],
       ],
-      id: true
+      id: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("ID must be a string or number");
   });
-}); 
+});

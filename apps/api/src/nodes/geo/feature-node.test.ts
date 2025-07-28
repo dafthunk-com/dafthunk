@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { FeatureNode } from "./feature-node";
+
 import { NodeContext } from "../types";
+import { FeatureNode } from "./feature-node";
 
 describe("FeatureNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -24,8 +25,8 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
-      }
+        coordinates: [0, 0],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -38,8 +39,8 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [2, 3]
-      }
+        coordinates: [2, 3],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -52,8 +53,12 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "LineString",
-        coordinates: [[0, 0], [1, 1], [2, 2]]
-      }
+        coordinates: [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -66,8 +71,16 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Polygon",
-        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-      }
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
+            [0, 0],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -80,9 +93,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      properties: { name: "test-point", color: "red" }
+      properties: { name: "test-point", color: "red" },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -97,9 +110,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      id: "test-feature-1"
+      id: "test-feature-1",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -112,9 +125,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      id: 123
+      id: 123,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -127,10 +140,10 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
       properties: { name: "test-point" },
-      id: "test-id"
+      id: "test-id",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -144,8 +157,12 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "MultiPoint",
-        coordinates: [[0, 0], [1, 1], [2, 2]]
-      }
+        coordinates: [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -159,10 +176,16 @@ describe("FeatureNode", () => {
       geometry: {
         type: "MultiLineString",
         coordinates: [
-          [[0, 0], [1, 1]],
-          [[2, 2], [3, 3]]
-        ]
-      }
+          [
+            [0, 0],
+            [1, 1],
+          ],
+          [
+            [2, 2],
+            [3, 3],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -176,10 +199,26 @@ describe("FeatureNode", () => {
       geometry: {
         type: "MultiPolygon",
         coordinates: [
-          [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
-          [[[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]]]
-        ]
-      }
+          [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+          [
+            [
+              [2, 2],
+              [3, 2],
+              [3, 3],
+              [2, 3],
+              [2, 2],
+            ],
+          ],
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -195,14 +234,17 @@ describe("FeatureNode", () => {
         geometries: [
           {
             type: "Point",
-            coordinates: [0, 0]
+            coordinates: [0, 0],
           },
           {
             type: "LineString",
-            coordinates: [[1, 1], [2, 2]]
-          }
-        ]
-      }
+            coordinates: [
+              [1, 1],
+              [2, 2],
+            ],
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -215,9 +257,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      properties: null
+      properties: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -229,9 +271,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      properties: undefined
+      properties: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -243,9 +285,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      id: null
+      id: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -257,9 +299,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      id: undefined
+      id: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -276,7 +318,7 @@ describe("FeatureNode", () => {
 
   it("returns an error for null geometry input", async () => {
     const context = createMockContext({
-      geometry: null
+      geometry: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -285,7 +327,7 @@ describe("FeatureNode", () => {
 
   it("returns an error for undefined geometry input", async () => {
     const context = createMockContext({
-      geometry: undefined
+      geometry: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -296,9 +338,9 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      properties: "not an object"
+      properties: "not an object",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -309,12 +351,12 @@ describe("FeatureNode", () => {
     const context = createMockContext({
       geometry: {
         type: "Point",
-        coordinates: [0, 0]
+        coordinates: [0, 0],
       },
-      id: true
+      id: true,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("ID must be a string or number");
   });
-}); 
+});

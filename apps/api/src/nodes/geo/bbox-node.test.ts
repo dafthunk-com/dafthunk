@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { BboxNode } from "./bbox-node";
 import { NodeContext } from "../types";
+import { BboxNode } from "./bbox-node";
 
 describe("BboxNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -33,13 +33,13 @@ describe("BboxNode", () => {
     it("should have correct inputs", () => {
       const inputs = BboxNode.nodeType.inputs;
       expect(inputs).toHaveLength(2);
-      
-      const geojsonInput = inputs.find(i => i.name === "geojson");
+
+      const geojsonInput = inputs.find((i) => i.name === "geojson");
       expect(geojsonInput).toBeDefined();
       expect(geojsonInput?.type).toBe("geojson");
       expect(geojsonInput?.required).toBe(true);
-      
-      const recomputeInput = inputs.find(i => i.name === "recompute");
+
+      const recomputeInput = inputs.find((i) => i.name === "recompute");
       expect(recomputeInput).toBeDefined();
       expect(recomputeInput?.type).toBe("boolean");
       expect(recomputeInput?.required).toBe(false);
@@ -48,7 +48,7 @@ describe("BboxNode", () => {
     it("should have correct outputs", () => {
       const outputs = BboxNode.nodeType.outputs;
       expect(outputs).toHaveLength(1);
-      
+
       const bboxOutput = outputs[0];
       expect(bboxOutput.name).toBe("bbox");
       expect(bboxOutput.type).toBe("json");
@@ -67,7 +67,7 @@ describe("BboxNode", () => {
 
     it("should handle null GeoJSON input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -78,7 +78,7 @@ describe("BboxNode", () => {
 
     it("should handle undefined GeoJSON input", async () => {
       const context = createMockContext({
-        geojson: undefined
+        geojson: undefined,
       });
 
       const result = await node.execute(context);
@@ -90,7 +90,7 @@ describe("BboxNode", () => {
     it("should validate recompute parameter type", async () => {
       const context = createMockContext({
         geojson: { type: "Point", coordinates: [0, 0] },
-        recompute: "not a boolean"
+        recompute: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -103,7 +103,7 @@ describe("BboxNode", () => {
   describe("Successful execution", () => {
     it("should return bbox array with correct structure", async () => {
       const context = createMockContext({
-        geojson: { type: "Point", coordinates: [0, 0] }
+        geojson: { type: "Point", coordinates: [0, 0] },
       });
 
       const result = await node.execute(context);
@@ -118,7 +118,7 @@ describe("BboxNode", () => {
     it("should handle valid GeoJSON with recompute option", async () => {
       const context = createMockContext({
         geojson: { type: "Point", coordinates: [0, 0] },
-        recompute: true
+        recompute: true,
       });
 
       const result = await node.execute(context);
@@ -132,7 +132,7 @@ describe("BboxNode", () => {
     it("should handle valid GeoJSON with recompute false", async () => {
       const context = createMockContext({
         geojson: { type: "Point", coordinates: [0, 0] },
-        recompute: false
+        recompute: false,
       });
 
       const result = await node.execute(context);
@@ -145,7 +145,7 @@ describe("BboxNode", () => {
 
     it("should handle valid GeoJSON without recompute option", async () => {
       const context = createMockContext({
-        geojson: { type: "Point", coordinates: [0, 0] }
+        geojson: { type: "Point", coordinates: [0, 0] },
       });
 
       const result = await node.execute(context);
@@ -160,7 +160,7 @@ describe("BboxNode", () => {
   describe("Different GeoJSON types", () => {
     it("should handle Point geometry", async () => {
       const context = createMockContext({
-        geojson: { type: "Point", coordinates: [0, 0] }
+        geojson: { type: "Point", coordinates: [0, 0] },
       });
 
       const result = await node.execute(context);
@@ -171,10 +171,13 @@ describe("BboxNode", () => {
 
     it("should handle LineString geometry", async () => {
       const context = createMockContext({
-        geojson: { 
-          type: "LineString", 
-          coordinates: [[0, 0], [1, 1]] 
-        }
+        geojson: {
+          type: "LineString",
+          coordinates: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -185,10 +188,18 @@ describe("BboxNode", () => {
 
     it("should handle Polygon geometry", async () => {
       const context = createMockContext({
-        geojson: { 
-          type: "Polygon", 
-          coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] 
-        }
+        geojson: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [0, 0],
+              [0, 1],
+              [1, 1],
+              [1, 0],
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -202,8 +213,8 @@ describe("BboxNode", () => {
         geojson: {
           type: "Feature",
           properties: { name: "test" },
-          geometry: { type: "Point", coordinates: [0, 0] }
-        }
+          geometry: { type: "Point", coordinates: [0, 0] },
+        },
       });
 
       const result = await node.execute(context);
@@ -220,10 +231,10 @@ describe("BboxNode", () => {
             {
               type: "Feature",
               properties: {},
-              geometry: { type: "Point", coordinates: [0, 0] }
-            }
-          ]
-        }
+              geometry: { type: "Point", coordinates: [0, 0] },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -239,18 +250,18 @@ describe("BboxNode", () => {
       // We can't easily trigger a real Turf.js error in tests due to mocking,
       // but we can verify the error handling structure is in place
       const context = createMockContext({
-        geojson: { type: "Point", coordinates: [0, 0] }
+        geojson: { type: "Point", coordinates: [0, 0] },
       });
 
       const result = await node.execute(context);
 
       // The node should either complete successfully or return an error
       expect(["completed", "error"]).toContain(result.status);
-      
+
       if (result.status === "error") {
         expect(result.error).toBeDefined();
         expect(typeof result.error).toBe("string");
       }
     });
   });
-}); 
+});

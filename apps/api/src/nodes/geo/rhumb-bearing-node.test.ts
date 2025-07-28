@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { RhumbBearingNode } from "./rhumb-bearing-node";
 import { NodeContext } from "../types";
+import { RhumbBearingNode } from "./rhumb-bearing-node";
 
 describe("RhumbBearingNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,12 +26,12 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -48,17 +48,17 @@ describe("RhumbBearingNode", () => {
           properties: { name: "Start Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         end: {
           type: "Feature",
           properties: { name: "End Point" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -74,12 +74,12 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -92,13 +92,13 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        final: true
+        final: true,
       });
 
       const result = await node.execute(context);
@@ -111,13 +111,13 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        final: false
+        final: false,
       });
 
       const result = await node.execute(context);
@@ -132,8 +132,8 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -146,8 +146,8 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -160,13 +160,13 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        final: "not a boolean"
+        final: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -180,8 +180,8 @@ describe("RhumbBearingNode", () => {
         start: null,
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -196,12 +196,12 @@ describe("RhumbBearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -211,4 +211,4 @@ describe("RhumbBearingNode", () => {
       expect(result.outputs?.bearing).toBeLessThanOrEqual(180);
     });
   });
-}); 
+});

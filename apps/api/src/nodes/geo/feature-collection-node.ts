@@ -16,13 +16,15 @@ export class FeatureCollectionNode extends ExecutableNode {
       {
         name: "features",
         type: "geojson",
-        description: "Array of GeoJSON Features to combine into a FeatureCollection",
+        description:
+          "Array of GeoJSON Features to combine into a FeatureCollection",
         required: true,
       },
       {
         name: "bbox",
         type: "json",
-        description: "Bounding Box Array [west, south, east, north] associated with the FeatureCollection",
+        description:
+          "Bounding Box Array [west, south, east, north] associated with the FeatureCollection",
         required: false,
       },
       {
@@ -58,7 +60,9 @@ export class FeatureCollectionNode extends ExecutableNode {
         }
 
         if (bbox.length !== 4) {
-          return this.createErrorResult("Bbox must be an array of 4 numbers [west, south, east, north]");
+          return this.createErrorResult(
+            "Bbox must be an array of 4 numbers [west, south, east, north]"
+          );
         }
 
         for (let i = 0; i < bbox.length; i++) {
@@ -78,15 +82,19 @@ export class FeatureCollectionNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js featureCollection function
-      const featureCollectionResult = featureCollection(features as any, options as any);
+      const featureCollectionResult = featureCollection(
+        features as any,
+        options as any
+      );
 
       return this.createSuccessResult({
         featureCollection: featureCollectionResult,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating feature collection: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating feature collection: ${error.message}`
+      );
     }
   }
-} 
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { BooleanConcaveNode } from "./boolean-concave-node";
+
 import { NodeContext } from "../types";
+import { BooleanConcaveNode } from "./boolean-concave-node";
 
 describe("BooleanConcaveNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -33,11 +34,11 @@ describe("BooleanConcaveNode", () => {
               [0, 1],
               [1, 1],
               [1, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -57,11 +58,11 @@ describe("BooleanConcaveNode", () => {
               [0, 2],
               [3, 2],
               [3, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -80,11 +81,11 @@ describe("BooleanConcaveNode", () => {
               [0, 0],
               [2, 0],
               [1, 2],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -108,11 +109,11 @@ describe("BooleanConcaveNode", () => {
               [-2, 6],
               [0, 4],
               [-2, 2],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -134,11 +135,11 @@ describe("BooleanConcaveNode", () => {
               [1, 1],
               [3, 1],
               [3, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -162,11 +163,11 @@ describe("BooleanConcaveNode", () => {
               [3, 4],
               [4, 4],
               [4, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -188,11 +189,11 @@ describe("BooleanConcaveNode", () => {
               [4, 2],
               [3, 4],
               [1, 4],
-              [0, 2]
-            ]
-          ]
-        }
-      }
+              [0, 2],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -216,11 +217,11 @@ describe("BooleanConcaveNode", () => {
               [3, 4],
               [2, 3],
               [1, 4],
-              [0, 2]
-            ]
-          ]
-        }
-      }
+              [0, 2],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -241,11 +242,11 @@ describe("BooleanConcaveNode", () => {
               [3, 0],
               [4, 2],
               [2, 4],
-              [0, 2]
-            ]
-          ]
-        }
-      }
+              [0, 2],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -273,11 +274,11 @@ describe("BooleanConcaveNode", () => {
               [0, 2],
               [0, 1],
               [1, 1],
-              [1, 0]
-            ]
-          ]
-        }
-      }
+              [1, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -303,11 +304,11 @@ describe("BooleanConcaveNode", () => {
               [4, 4],
               [2, 4],
               [1, 3],
-              [0, 2]
-            ]
-          ]
-        }
-      }
+              [0, 2],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -330,11 +331,11 @@ describe("BooleanConcaveNode", () => {
               [4, 2],
               [2, 2],
               [2, 3],
-              [0, 1]
-            ]
-          ]
-        }
-      }
+              [0, 1],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -354,11 +355,11 @@ describe("BooleanConcaveNode", () => {
               [0, 10],
               [20, 10],
               [20, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -386,11 +387,11 @@ describe("BooleanConcaveNode", () => {
               [4, 2],
               [2, 2],
               [2, 0],
-              [0, 0]
-            ]
-          ]
-        }
-      }
+              [0, 0],
+            ],
+          ],
+        },
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -406,7 +407,7 @@ describe("BooleanConcaveNode", () => {
 
   it("returns an error for null polygon input", async () => {
     const context = createMockContext({
-      polygon: null
+      polygon: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -415,10 +416,10 @@ describe("BooleanConcaveNode", () => {
 
   it("returns an error for undefined polygon input", async () => {
     const context = createMockContext({
-      polygon: undefined
+      polygon: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Missing polygon input");
   });
-}); 
+});

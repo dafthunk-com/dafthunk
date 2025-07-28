@@ -9,7 +9,8 @@ export class DestinationNode extends ExecutableNode {
     id: "destination",
     name: "Destination",
     type: "destination",
-    description: "Calculates a destination point given an origin point, distance, and bearing.",
+    description:
+      "Calculates a destination point given an origin point, distance, and bearing.",
     tags: ["Geo"],
     icon: "navigation",
     inputs: [
@@ -72,7 +73,7 @@ export class DestinationNode extends ExecutableNode {
 
       // Prepare options for destination calculation
       const options: any = {};
-      
+
       if (units !== undefined && units !== null) {
         options.units = units;
       }
@@ -87,10 +88,11 @@ export class DestinationNode extends ExecutableNode {
       return this.createSuccessResult({
         destination: destinationPoint,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating destination: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating destination: ${error.message}`
+      );
     }
   }
-} 
+}

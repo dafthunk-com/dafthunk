@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { BufferNode } from "./buffer-node";
 import { NodeContext } from "../types";
+import { BufferNode } from "./buffer-node";
 
 describe("BufferNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -74,16 +74,18 @@ describe("BufferNode", () => {
     });
 
     it("should error on missing radius", async () => {
-      const context = createMockContext({ geojson: { type: "Point", coordinates: [0, 0] } });
+      const context = createMockContext({
+        geojson: { type: "Point", coordinates: [0, 0] },
+      });
       const result = await node.execute(context);
       expect(result.status).toBe("error");
       expect(result.error).toMatch(/Missing radius input/);
     });
 
     it("should handle null radius", async () => {
-      const context = createMockContext({ 
+      const context = createMockContext({
         geojson: { type: "Point", coordinates: [0, 0] },
-        radius: null 
+        radius: null,
       });
       const result = await node.execute(context);
       expect(result.status).toBe("error");
@@ -121,4 +123,4 @@ describe("BufferNode", () => {
       expect(result.status).toBe("completed");
     });
   });
-}); 
+});

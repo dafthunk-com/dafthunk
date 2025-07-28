@@ -76,9 +76,9 @@ export function EditorPage() {
 
   const { createObjectUrl } = useObjectService();
 
-  const nodeTemplates: NodeTemplate[] = useMemo(
-    () => {
-      const templates = nodeTypes?.map((type) => ({
+  const nodeTemplates: NodeTemplate[] = useMemo(() => {
+    const templates =
+      nodeTypes?.map((type) => ({
         id: type.id,
         type: type.id,
         name: type.name,
@@ -101,11 +101,9 @@ export function EditorPage() {
           repeated: output.repeated,
         })),
       })) || [];
-      
-      return templates;
-    },
-    [nodeTypes]
-  );
+
+    return templates;
+  }, [nodeTypes]);
 
   const deploymentVersions = useMemo(
     () => deploymentHistory.map((d) => d.version).sort((a, b) => b - a),
@@ -226,7 +224,7 @@ export function EditorPage() {
         (node) => node.id === connection.target
       );
       if (!sourceNode || !targetNode) return false;
-      
+
       const sourceOutput = sourceNode.data.outputs.find(
         (output) => output.id === connection.sourceHandle
       );
@@ -234,13 +232,12 @@ export function EditorPage() {
         (input) => input.id === connection.targetHandle
       );
       if (!sourceOutput || !targetInput) return false;
-      
-      const typesMatch = (
+
+      const typesMatch =
         sourceOutput.type === targetInput.type ||
         sourceOutput.type === "any" ||
-        targetInput.type === "any"
-      );
-      
+        targetInput.type === "any";
+
       return typesMatch;
     },
     [latestUiNodes]

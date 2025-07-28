@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { BooleanOverlapNode } from "./boolean-overlap-node";
 import { NodeContext } from "../types";
+import { BooleanOverlapNode } from "./boolean-overlap-node";
 
 describe("BooleanOverlapNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,24 +26,28 @@ describe("BooleanOverlapNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [0, 5],
-            [5, 5],
-            [5, 0],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [0, 5],
+              [5, 5],
+              [5, 0],
+              [0, 0],
+            ],
+          ],
         },
         feature2: {
           type: "Polygon",
-          coordinates: [[
-            [1, 1],
-            [1, 6],
-            [6, 6],
-            [6, 1],
-            [1, 1]
-          ]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [1, 6],
+              [6, 6],
+              [6, 1],
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -57,24 +61,28 @@ describe("BooleanOverlapNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [0, 5],
-            [5, 5],
-            [5, 0],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [0, 5],
+              [5, 5],
+              [5, 0],
+              [0, 0],
+            ],
+          ],
         },
         feature2: {
           type: "Polygon",
-          coordinates: [[
-            [1, 1],
-            [1, 6],
-            [6, 6],
-            [6, 1],
-            [1, 1]
-          ]]
-        }
+          coordinates: [
+            [
+              [1, 1],
+              [1, 6],
+              [6, 6],
+              [6, 1],
+              [1, 1],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -87,24 +95,28 @@ describe("BooleanOverlapNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [0, 5],
-            [5, 5],
-            [5, 0],
-            [0, 0]
-          ]]
+          coordinates: [
+            [
+              [0, 0],
+              [0, 5],
+              [5, 5],
+              [5, 0],
+              [0, 0],
+            ],
+          ],
         },
         feature2: {
           type: "Polygon",
-          coordinates: [[
-            [20, 20],
-            [20, 25],
-            [25, 25],
-            [25, 20],
-            [20, 20]
-          ]]
-        }
+          coordinates: [
+            [
+              [20, 20],
+              [20, 25],
+              [25, 25],
+              [25, 20],
+              [20, 20],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -119,16 +131,16 @@ describe("BooleanOverlapNode", () => {
           type: "LineString",
           coordinates: [
             [0, 0],
-            [5, 5]
-          ]
+            [5, 5],
+          ],
         },
         feature2: {
           type: "LineString",
           coordinates: [
             [1, 1],
-            [6, 6]
-          ]
-        }
+            [6, 6],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -144,29 +156,33 @@ describe("BooleanOverlapNode", () => {
           properties: { name: "Feature 1" },
           geometry: {
             type: "Polygon",
-            coordinates: [[
-              [0, 0],
-              [0, 5],
-              [5, 5],
-              [5, 0],
-              [0, 0]
-            ]]
-          }
+            coordinates: [
+              [
+                [0, 0],
+                [0, 5],
+                [5, 5],
+                [5, 0],
+                [0, 0],
+              ],
+            ],
+          },
         },
         feature2: {
           type: "Feature",
           properties: { name: "Feature 2" },
           geometry: {
             type: "Polygon",
-            coordinates: [[
-              [1, 1],
-              [1, 6],
-              [6, 6],
-              [6, 1],
-              [1, 1]
-            ]]
-          }
-        }
+            coordinates: [
+              [
+                [1, 1],
+                [1, 6],
+                [6, 6],
+                [6, 1],
+                [1, 1],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -181,8 +197,8 @@ describe("BooleanOverlapNode", () => {
       const context = createMockContext({
         feature2: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -195,8 +211,8 @@ describe("BooleanOverlapNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -213,7 +229,9 @@ describe("BooleanOverlapNode", () => {
       expect(nodeType.id).toBe("booleanOverlap");
       expect(nodeType.name).toBe("Boolean Overlap");
       expect(nodeType.type).toBe("booleanOverlap");
-      expect(nodeType.description).toContain("Compares two geometries of the same dimension");
+      expect(nodeType.description).toContain(
+        "Compares two geometries of the same dimension"
+      );
       expect(nodeType.tags).toContain("Geo");
       expect(nodeType.tags).toContain("Turf");
       expect(nodeType.tags).toContain("Boolean");
@@ -238,7 +256,9 @@ describe("BooleanOverlapNode", () => {
       expect(outputs).toHaveLength(1);
       expect(outputs[0].name).toBe("result");
       expect(outputs[0].type).toBe("boolean");
-      expect(outputs[0].description).toBe("True if geometries overlap, false otherwise");
+      expect(outputs[0].description).toBe(
+        "True if geometries overlap, false otherwise"
+      );
     });
   });
-}); 
+});

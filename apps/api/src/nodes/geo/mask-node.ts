@@ -9,7 +9,8 @@ export class MaskNode extends ExecutableNode {
     id: "mask",
     name: "Mask",
     type: "mask",
-    description: "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes.",
+    description:
+      "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes.",
     tags: ["Geo"],
     icon: "eye-off",
     inputs: [
@@ -22,13 +23,15 @@ export class MaskNode extends ExecutableNode {
       {
         name: "mask",
         type: "geojson",
-        description: "GeoJSON polygon used as the exterior ring (if undefined, the world extent is used)",
+        description:
+          "GeoJSON polygon used as the exterior ring (if undefined, the world extent is used)",
         required: false,
       },
       {
         name: "mutate",
         type: "boolean",
-        description: "Allows the mask GeoJSON input to be mutated (performance improvement if true)",
+        description:
+          "Allows the mask GeoJSON input to be mutated (performance improvement if true)",
         required: false,
       },
     ],
@@ -51,7 +54,7 @@ export class MaskNode extends ExecutableNode {
 
       // Prepare options for mask function
       const options: { mutate?: boolean } = {};
-      
+
       if (mutate !== undefined && mutate !== null) {
         if (typeof mutate !== "boolean") {
           return this.createErrorResult("Mutate must be a boolean");
@@ -65,10 +68,9 @@ export class MaskNode extends ExecutableNode {
       return this.createSuccessResult({
         masked: maskedPolygon,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error creating mask: ${error.message}`);
     }
   }
-} 
+}

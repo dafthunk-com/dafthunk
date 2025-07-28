@@ -15,9 +15,9 @@ export class SumNode extends ExecutableNode {
     tags: ["Math"],
     icon: "plus",
     inputs: [
-      { 
-        name: "numbers", 
-        type: "number", 
+      {
+        name: "numbers",
+        type: "number",
         description: "Numbers to sum (supports multiple connections)",
         required: true,
         repeated: true,
@@ -62,11 +62,13 @@ export class SumNode extends ExecutableNode {
         });
       }
 
-      return this.createErrorResult("Invalid input type: expected number or array of numbers");
+      return this.createErrorResult(
+        "Invalid input type: expected number or array of numbers"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-} 
+}

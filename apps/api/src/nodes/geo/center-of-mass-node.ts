@@ -9,7 +9,8 @@ export class CenterOfMassNode extends ExecutableNode {
     id: "centerOfMass",
     name: "Center of Mass",
     type: "centerOfMass",
-    description: "Takes any Feature or FeatureCollection and returns its center of mass using the centroid of polygon formula.",
+    description:
+      "Takes any Feature or FeatureCollection and returns its center of mass using the centroid of polygon formula.",
     tags: ["Geo"],
     icon: "target",
     inputs: [
@@ -52,10 +53,11 @@ export class CenterOfMassNode extends ExecutableNode {
       return this.createSuccessResult({
         centerOfMass: centerOfMassPoint,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating center of mass: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating center of mass: ${error.message}`
+      );
     }
   }
-} 
+}

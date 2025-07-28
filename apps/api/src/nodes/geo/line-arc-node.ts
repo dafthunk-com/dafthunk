@@ -9,7 +9,8 @@ export class LineArcNode extends ExecutableNode {
     id: "line-arc",
     name: "Line Arc",
     type: "line-arc",
-    description: "Creates a circular arc, of a circle of the given radius and center point, between bearing1 and bearing2.",
+    description:
+      "Creates a circular arc, of a circle of the given radius and center point, between bearing1 and bearing2.",
     tags: ["Geo"],
     icon: "circle",
     inputs: [
@@ -87,29 +88,36 @@ export class LineArcNode extends ExecutableNode {
 
       // Prepare options for lineArc
       const options: { steps?: number } = {};
-      
+
       if (steps !== undefined && steps !== null) {
         if (typeof steps !== "number") {
           return this.createErrorResult("Steps must be a number");
         }
-        
+
         if (steps <= 0) {
           return this.createErrorResult("Steps must be a positive number");
         }
-        
+
         options.steps = steps;
       }
 
       // Delegate everything to Turf.js lineArc function
-      const arcFeature = lineArc(center as any, radius, bearing1, bearing2, options);
+      const arcFeature = lineArc(
+        center as any,
+        radius,
+        bearing1,
+        bearing2,
+        options
+      );
 
       return this.createSuccessResult({
         arc: arcFeature,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating line arc: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating line arc: ${error.message}`
+      );
     }
   }
-} 
+}

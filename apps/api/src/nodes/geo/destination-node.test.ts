@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { DestinationNode } from "./destination-node";
 import { NodeContext } from "../types";
+import { DestinationNode } from "./destination-node";
 
 describe("DestinationNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,7 +25,7 @@ describe("DestinationNode", () => {
     it("should handle missing origin input", async () => {
       const context = createMockContext({
         distance: 1,
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -38,9 +38,9 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -53,9 +53,9 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
-        distance: 1
+        distance: 1,
       });
 
       const result = await node.execute(context);
@@ -70,10 +70,10 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
         distance: 1,
-        bearing: 0
+        bearing: 0,
       });
 
       const result = await node.execute(context);
@@ -82,7 +82,9 @@ describe("DestinationNode", () => {
       expect(result.outputs?.destination).toBeDefined();
       expect(result.outputs?.destination.type).toBe("Feature");
       expect(result.outputs?.destination.geometry.type).toBe("Point");
-      expect(Array.isArray(result.outputs?.destination.geometry.coordinates)).toBe(true);
+      expect(
+        Array.isArray(result.outputs?.destination.geometry.coordinates)
+      ).toBe(true);
       expect(result.outputs?.destination.geometry.coordinates).toHaveLength(2);
     });
 
@@ -93,11 +95,11 @@ describe("DestinationNode", () => {
           properties: { name: "Start Point" },
           geometry: {
             type: "Point",
-            coordinates: [-122.4194, 37.7749]
-          }
+            coordinates: [-122.4194, 37.7749],
+          },
         },
         distance: 1,
-        bearing: 45
+        bearing: 45,
       });
 
       const result = await node.execute(context);
@@ -111,11 +113,11 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
         distance: 1,
         bearing: 0,
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -129,14 +131,14 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
         distance: 1,
         bearing: 0,
         properties: {
           name: "Destination Point",
-          type: "calculated"
-        }
+          type: "calculated",
+        },
       });
 
       const result = await node.execute(context);
@@ -151,10 +153,10 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
         distance: 0,
-        bearing: 90
+        bearing: 90,
       });
 
       const result = await node.execute(context);
@@ -168,10 +170,10 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
         distance: 1,
-        bearing: -45
+        bearing: -45,
       });
 
       const result = await node.execute(context);
@@ -185,10 +187,10 @@ describe("DestinationNode", () => {
       const context = createMockContext({
         origin: {
           type: "Point",
-          coordinates: [-122.4194, 37.7749]
+          coordinates: [-122.4194, 37.7749],
         },
         distance: 1,
-        bearing: 180
+        bearing: 180,
       });
 
       const result = await node.execute(context);
@@ -198,4 +200,4 @@ describe("DestinationNode", () => {
       expect(result.outputs?.destination.geometry.type).toBe("Point");
     });
   });
-}); 
+});

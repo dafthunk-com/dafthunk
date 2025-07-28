@@ -1,5 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
 import { intersect } from "@turf/turf";
+
 import { ExecutableNode, NodeContext } from "../types";
 
 export class IntersectNode extends ExecutableNode {
@@ -34,7 +35,8 @@ export class IntersectNode extends ExecutableNode {
       {
         name: "intersection",
         type: "geojson",
-        description: "Intersection result as a Polygon or MultiPolygon feature, or null if no intersection",
+        description:
+          "Intersection result as a Polygon or MultiPolygon feature, or null if no intersection",
       },
     ],
   };
@@ -47,7 +49,11 @@ export class IntersectNode extends ExecutableNode {
     if (!polygon2) {
       return this.createErrorResult("Missing polygon2 input");
     }
-    if (properties !== undefined && properties !== null && typeof properties !== "object") {
+    if (
+      properties !== undefined &&
+      properties !== null &&
+      typeof properties !== "object"
+    ) {
       return this.createErrorResult("Properties must be an object");
     }
     try {
@@ -60,4 +66,4 @@ export class IntersectNode extends ExecutableNode {
       return this.createErrorResult((err as Error).message);
     }
   }
-} 
+}

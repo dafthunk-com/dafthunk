@@ -2,6 +2,7 @@
 import {
   Feature,
   FeatureCollection,
+  GeoJSON,
   Geometry,
   GeometryCollection,
   LineString,
@@ -13,7 +14,6 @@ import {
   NodeType,
   Point,
   Polygon,
-  GeoJSON,
 } from "@dafthunk/types";
 
 export type ImageParameter = {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { DistanceNode } from "./distance-node";
 import { NodeContext } from "../types";
+import { DistanceNode } from "./distance-node";
 
 describe("DistanceNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,12 +26,12 @@ describe("DistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -45,12 +45,12 @@ describe("DistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         to: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -67,17 +67,17 @@ describe("DistanceNode", () => {
           properties: { name: "Start Point" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         to: {
           type: "Feature",
           properties: { name: "End Point" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -93,12 +93,12 @@ describe("DistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -112,13 +112,13 @@ describe("DistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         to: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        units: "miles"
+        units: "miles",
       });
 
       const result = await node.execute(context);
@@ -134,8 +134,8 @@ describe("DistanceNode", () => {
       const context = createMockContext({
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -148,8 +148,8 @@ describe("DistanceNode", () => {
       const context = createMockContext({
         from: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       });
 
       const result = await node.execute(context);
@@ -163,8 +163,8 @@ describe("DistanceNode", () => {
         from: null,
         to: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -173,4 +173,4 @@ describe("DistanceNode", () => {
       expect(result.error).toBe("Missing from point input");
     });
   });
-}); 
+});

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LineArcNode } from "./line-arc-node";
+
 import { NodeContext } from "../types";
+import { LineArcNode } from "./line-arc-node";
 
 describe("LineArcNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -27,12 +28,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -48,13 +49,13 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 2,
       bearing1: 45,
       bearing2: 135,
-      steps: 32
+      steps: 32,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -67,11 +68,11 @@ describe("LineArcNode", () => {
     const context = createMockContext({
       center: {
         type: "Point",
-        coordinates: [1, 1]
+        coordinates: [1, 1],
       },
       radius: 1,
       bearing1: 0,
-      bearing2: 180
+      bearing2: 180,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -87,12 +88,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
-      bearing2: 360
+      bearing2: 360,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -108,12 +109,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: -90,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -129,12 +130,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 100,
       bearing1: 0,
-      bearing2: 45
+      bearing2: 45,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -147,7 +148,7 @@ describe("LineArcNode", () => {
     const context = createMockContext({
       radius: 1,
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -161,11 +162,11 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -179,12 +180,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: "not a number",
       bearing1: 0,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -198,11 +199,11 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -216,12 +217,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: "not a number",
-      bearing2: 90
+      bearing2: 90,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -235,11 +236,11 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
-      bearing1: 0
+      bearing1: 0,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -253,12 +254,12 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
-      bearing2: "not a number"
+      bearing2: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -272,13 +273,13 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
       bearing2: 90,
-      steps: "not a number"
+      steps: "not a number",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -292,13 +293,13 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
       bearing2: 90,
-      steps: 0
+      steps: 0,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -312,13 +313,13 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
       bearing2: 90,
-      steps: null
+      steps: null,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -334,13 +335,13 @@ describe("LineArcNode", () => {
         properties: {},
         geometry: {
           type: "Point",
-          coordinates: [0, 0]
-        }
+          coordinates: [0, 0],
+        },
       },
       radius: 1,
       bearing1: 0,
       bearing2: 90,
-      steps: undefined
+      steps: undefined,
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -348,4 +349,4 @@ describe("LineArcNode", () => {
     expect(result.outputs?.arc.type).toBe("Feature");
     expect(result.outputs?.arc.geometry.type).toBe("LineString");
   });
-}); 
+});

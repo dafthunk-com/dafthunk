@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { BearingNode } from "./bearing-node";
 import { NodeContext } from "../types";
+import { BearingNode } from "./bearing-node";
 
 describe("BearingNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -24,7 +24,7 @@ describe("BearingNode", () => {
   describe("Input validation", () => {
     it("should handle missing start point input", async () => {
       const context = createMockContext({
-        end: [0, 0]
+        end: [0, 0],
       });
 
       const result = await node.execute(context);
@@ -35,7 +35,7 @@ describe("BearingNode", () => {
 
     it("should handle missing end point input", async () => {
       const context = createMockContext({
-        start: [0, 0]
+        start: [0, 0],
       });
 
       const result = await node.execute(context);
@@ -47,32 +47,36 @@ describe("BearingNode", () => {
     it("should handle invalid start point format", async () => {
       const context = createMockContext({
         start: "invalid",
-        end: [0, 0]
+        end: [0, 0],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Invalid start point - must be coordinates [lng, lat] or Point geometry");
+      expect(result.error).toBe(
+        "Invalid start point - must be coordinates [lng, lat] or Point geometry"
+      );
     });
 
     it("should handle invalid end point format", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: "invalid"
+        end: "invalid",
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Invalid end point - must be coordinates [lng, lat] or Point geometry");
+      expect(result.error).toBe(
+        "Invalid end point - must be coordinates [lng, lat] or Point geometry"
+      );
     });
 
     it("should handle invalid final parameter type", async () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        final: "not a boolean"
+        final: "not a boolean",
       });
 
       const result = await node.execute(context);
@@ -86,7 +90,7 @@ describe("BearingNode", () => {
     it("should accept coordinate arrays directly", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -100,12 +104,12 @@ describe("BearingNode", () => {
       const context = createMockContext({
         start: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
         end: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -122,17 +126,17 @@ describe("BearingNode", () => {
           properties: { name: "Start" },
           geometry: {
             type: "Point",
-            coordinates: [0, 0]
-          }
+            coordinates: [0, 0],
+          },
         },
         end: {
           type: "Feature",
           properties: { name: "End" },
           geometry: {
             type: "Point",
-            coordinates: [1, 1]
-          }
-        }
+            coordinates: [1, 1],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -147,7 +151,7 @@ describe("BearingNode", () => {
     it("should use final=false by default", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -160,7 +164,7 @@ describe("BearingNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        final: true
+        final: true,
       });
 
       const result = await node.execute(context);
@@ -173,7 +177,7 @@ describe("BearingNode", () => {
       const context = createMockContext({
         start: [0, 0],
         end: [1, 1],
-        final: false
+        final: false,
       });
 
       const result = await node.execute(context);
@@ -187,7 +191,7 @@ describe("BearingNode", () => {
     it("should return a number between -180 and 180", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [1, 1]
+        end: [1, 1],
       });
 
       const result = await node.execute(context);
@@ -200,7 +204,7 @@ describe("BearingNode", () => {
     it("should handle same start and end points", async () => {
       const context = createMockContext({
         start: [0, 0],
-        end: [0, 0]
+        end: [0, 0],
       });
 
       const result = await node.execute(context);
@@ -210,4 +214,4 @@ describe("BearingNode", () => {
       expect(typeof result.outputs?.bearing).toBe("number");
     });
   });
-}); 
+});

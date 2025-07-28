@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { CentroidNode } from "./centroid-node";
 import { NodeContext } from "../types";
+import { CentroidNode } from "./centroid-node";
 
 describe("CentroidNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -26,14 +26,16 @@ describe("CentroidNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Polygon",
-          coordinates: [[
-            [0, 0],
-            [2, 0],
-            [2, 2],
-            [0, 2],
-            [0, 0]
-          ]]
-        }
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -51,15 +53,17 @@ describe("CentroidNode", () => {
           properties: { name: "Test Polygon" },
           geometry: {
             type: "Polygon",
-            coordinates: [[
-              [0, 0],
-              [2, 0],
-              [2, 2],
-              [0, 2],
-              [0, 0]
-            ]]
-          }
-        }
+            coordinates: [
+              [
+                [0, 0],
+                [2, 0],
+                [2, 2],
+                [0, 2],
+                [0, 0],
+              ],
+            ],
+          },
+        },
       });
 
       const result = await node.execute(context);
@@ -79,19 +83,19 @@ describe("CentroidNode", () => {
               properties: { id: 1 },
               geometry: {
                 type: "Point",
-                coordinates: [0, 0]
-              }
+                coordinates: [0, 0],
+              },
             },
             {
               type: "Feature",
               properties: { id: 2 },
               geometry: {
                 type: "Point",
-                coordinates: [2, 2]
-              }
-            }
-          ]
-        }
+                coordinates: [2, 2],
+              },
+            },
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -107,12 +111,12 @@ describe("CentroidNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
         properties: {
           name: "Test Centroid",
-          id: 123
-        }
+          id: 123,
+        },
       });
 
       const result = await node.execute(context);
@@ -126,9 +130,9 @@ describe("CentroidNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        properties: {}
+        properties: {},
       });
 
       const result = await node.execute(context);
@@ -141,8 +145,8 @@ describe("CentroidNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 1]
-        }
+          coordinates: [1, 1],
+        },
       });
 
       const result = await node.execute(context);
@@ -155,9 +159,9 @@ describe("CentroidNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 1]
+          coordinates: [1, 1],
         },
-        properties: null
+        properties: null,
       });
 
       const result = await node.execute(context);
@@ -179,7 +183,7 @@ describe("CentroidNode", () => {
 
     it("should handle null input", async () => {
       const context = createMockContext({
-        geojson: null
+        geojson: null,
       });
 
       const result = await node.execute(context);
@@ -188,4 +192,4 @@ describe("CentroidNode", () => {
       expect(result.error).toBe("Missing GeoJSON input");
     });
   });
-}); 
+});

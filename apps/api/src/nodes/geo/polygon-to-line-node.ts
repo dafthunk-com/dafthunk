@@ -9,7 +9,8 @@ export class PolygonToLineNode extends ExecutableNode {
     id: "polygon-to-line",
     name: "Polygon To Line",
     type: "polygon-to-line",
-    description: "Converts a Polygon or MultiPolygon to a LineString or MultiLineString.",
+    description:
+      "Converts a Polygon or MultiPolygon to a LineString or MultiLineString.",
     tags: ["Geo"],
     icon: "route",
     inputs: [
@@ -58,10 +59,11 @@ export class PolygonToLineNode extends ExecutableNode {
       return this.createSuccessResult({
         line: lineFeature,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error converting polygon to line: ${error.message}`);
+      return this.createErrorResult(
+        `Error converting polygon to line: ${error.message}`
+      );
     }
   }
-} 
+}

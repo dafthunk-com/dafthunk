@@ -15,10 +15,11 @@ export class MaxNode extends ExecutableNode {
     tags: ["Math"],
     icon: "arrow-up",
     inputs: [
-      { 
-        name: "numbers", 
-        type: "number", 
-        description: "Numbers to find maximum from (supports multiple connections)",
+      {
+        name: "numbers",
+        type: "number",
+        description:
+          "Numbers to find maximum from (supports multiple connections)",
         required: true,
         repeated: true,
       },
@@ -60,18 +61,20 @@ export class MaxNode extends ExecutableNode {
         }
 
         // Find maximum value
-        const result = Math.max(...numbers.map(num => Number(num)));
+        const result = Math.max(...numbers.map((num) => Number(num)));
 
         return this.createSuccessResult({
           result,
         });
       }
 
-      return this.createErrorResult("Invalid input type: expected number or array of numbers");
+      return this.createErrorResult(
+        "Invalid input type: expected number or array of numbers"
+      );
     } catch (error) {
       return this.createErrorResult(
         error instanceof Error ? error.message : "Unknown error"
       );
     }
   }
-} 
+}

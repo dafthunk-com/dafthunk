@@ -173,7 +173,9 @@ describe("MaxNode", () => {
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input at position 1: expected number, got string");
+    expect(result.error).toContain(
+      "Invalid input at position 1: expected number, got string"
+    );
   });
 
   it("should handle string numbers by converting them", async () => {
@@ -235,4 +237,4 @@ describe("MaxNode", () => {
     expect(result.status).toBe("completed");
     expect(result.outputs?.result).toBe(10);
   });
-}); 
+});

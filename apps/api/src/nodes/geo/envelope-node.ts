@@ -9,7 +9,8 @@ export class EnvelopeNode extends ExecutableNode {
     id: "envelope",
     name: "Envelope",
     type: "envelope",
-    description: "Creates a bounding rectangle (envelope) around any GeoJSON geometry.",
+    description:
+      "Creates a bounding rectangle (envelope) around any GeoJSON geometry.",
     tags: ["Geo"],
     icon: "square",
     inputs: [
@@ -43,10 +44,11 @@ export class EnvelopeNode extends ExecutableNode {
       return this.createSuccessResult({
         envelope: envelopePolygon,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating envelope: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating envelope: ${error.message}`
+      );
     }
   }
-} 
+}

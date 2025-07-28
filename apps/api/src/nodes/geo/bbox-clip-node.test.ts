@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { BboxClipNode } from "./bbox-clip-node";
 import { NodeContext } from "../types";
+import { BboxClipNode } from "./bbox-clip-node";
 
 describe("BboxClipNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -29,10 +29,10 @@ describe("BboxClipNode", () => {
           properties: { name: "Test Feature" },
           geometry: {
             type: "Point",
-            coordinates: [1, 2]
-          }
+            coordinates: [1, 2],
+          },
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -47,9 +47,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -65,10 +65,10 @@ describe("BboxClipNode", () => {
           type: "LineString",
           coordinates: [
             [1, 2],
-            [3, 4]
-          ]
+            [3, 4],
+          ],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -88,11 +88,11 @@ describe("BboxClipNode", () => {
               [3, 2],
               [3, 4],
               [1, 4],
-              [1, 2]
-            ]
-          ]
+              [1, 2],
+            ],
+          ],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -106,9 +106,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -122,9 +122,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0.5, 0.5, 5.5, 5.5]
+        bbox: [0.5, 0.5, 5.5, 5.5],
       });
 
       const result = await node.execute(context);
@@ -138,9 +138,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [-5, -5, 5, 5]
+        bbox: [-5, -5, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -156,10 +156,10 @@ describe("BboxClipNode", () => {
           type: "MultiPoint",
           coordinates: [
             [1, 2],
-            [3, 4]
-          ]
+            [3, 4],
+          ],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -176,15 +176,15 @@ describe("BboxClipNode", () => {
           coordinates: [
             [
               [1, 2],
-              [3, 4]
+              [3, 4],
             ],
             [
               [5, 6],
-              [7, 8]
-            ]
-          ]
+              [7, 8],
+            ],
+          ],
         },
-        bbox: [0, 0, 10, 10]
+        bbox: [0, 0, 10, 10],
       });
 
       const result = await node.execute(context);
@@ -205,12 +205,12 @@ describe("BboxClipNode", () => {
                 [3, 2],
                 [3, 4],
                 [1, 4],
-                [1, 2]
-              ]
-            ]
-          ]
+                [1, 2],
+              ],
+            ],
+          ],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -230,20 +230,20 @@ describe("BboxClipNode", () => {
               properties: { name: "Point 1" },
               geometry: {
                 type: "Point",
-                coordinates: [1, 2]
-              }
+                coordinates: [1, 2],
+              },
             },
             {
               type: "Feature",
               properties: { name: "Point 2" },
               geometry: {
                 type: "Point",
-                coordinates: [3, 4]
-              }
-            }
-          ]
+                coordinates: [3, 4],
+              },
+            },
+          ],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -257,9 +257,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0.9, 1.9, 1.1, 2.1]
+        bbox: [0.9, 1.9, 1.1, 2.1],
       });
 
       const result = await node.execute(context);
@@ -273,9 +273,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [-1000, -1000, 1000, 1000]
+        bbox: [-1000, -1000, 1000, 1000],
       });
 
       const result = await node.execute(context);
@@ -289,9 +289,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [1, 2, 1, 2]
+        bbox: [1, 2, 1, 2],
       });
 
       const result = await node.execute(context);
@@ -305,7 +305,7 @@ describe("BboxClipNode", () => {
   describe("Input validation", () => {
     it("should handle missing geojson input", async () => {
       const context = createMockContext({
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -317,7 +317,7 @@ describe("BboxClipNode", () => {
     it("should handle null geojson input", async () => {
       const context = createMockContext({
         geojson: null,
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -329,7 +329,7 @@ describe("BboxClipNode", () => {
     it("should handle undefined geojson input", async () => {
       const context = createMockContext({
         geojson: undefined,
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -342,8 +342,8 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
-        }
+          coordinates: [1, 2],
+        },
       });
 
       const result = await node.execute(context);
@@ -356,9 +356,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: null
+        bbox: null,
       });
 
       const result = await node.execute(context);
@@ -371,9 +371,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: undefined
+        bbox: undefined,
       });
 
       const result = await node.execute(context);
@@ -386,9 +386,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: "not an array"
+        bbox: "not an array",
       });
 
       const result = await node.execute(context);
@@ -401,9 +401,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: 123
+        bbox: 123,
       });
 
       const result = await node.execute(context);
@@ -416,9 +416,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: true
+        bbox: true,
       });
 
       const result = await node.execute(context);
@@ -431,54 +431,60 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, 5]
+        bbox: [0, 0, 5],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Bbox must have exactly 4 elements [west, south, east, north]");
+      expect(result.error).toBe(
+        "Bbox must have exactly 4 elements [west, south, east, north]"
+      );
     });
 
     it("should handle bbox with wrong number of elements (5)", async () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, 5, 5, 10]
+        bbox: [0, 0, 5, 5, 10],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Bbox must have exactly 4 elements [west, south, east, north]");
+      expect(result.error).toBe(
+        "Bbox must have exactly 4 elements [west, south, east, north]"
+      );
     });
 
     it("should handle bbox with empty array", async () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: []
+        bbox: [],
       });
 
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toBe("Bbox must have exactly 4 elements [west, south, east, north]");
+      expect(result.error).toBe(
+        "Bbox must have exactly 4 elements [west, south, east, north]"
+      );
     });
 
     it("should handle bbox with non-number elements (string)", async () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, "5", 5]
+        bbox: [0, 0, "5", 5],
       });
 
       const result = await node.execute(context);
@@ -491,9 +497,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, 5, true]
+        bbox: [0, 0, 5, true],
       });
 
       const result = await node.execute(context);
@@ -506,9 +512,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, null, 5, 5]
+        bbox: [0, null, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -521,9 +527,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [undefined, 0, 5, 5]
+        bbox: [undefined, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -538,9 +544,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 0, 0, 0]
+        bbox: [0, 0, 0, 0],
       });
 
       const result = await node.execute(context);
@@ -554,9 +560,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [-5, -5, -1, -1]
+        bbox: [-5, -5, -1, -1],
       });
 
       const result = await node.execute(context);
@@ -570,9 +576,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [1000000, 1000000, 2000000, 2000000]
+        bbox: [1000000, 1000000, 2000000, 2000000],
       });
 
       const result = await node.execute(context);
@@ -586,9 +592,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0.000001, 0.000001, 0.000002, 0.000002]
+        bbox: [0.000001, 0.000001, 0.000002, 0.000002],
       });
 
       const result = await node.execute(context);
@@ -602,9 +608,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [-5, -5, 5, 5]
+        bbox: [-5, -5, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -618,9 +624,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [5, 0, 0, 5]
+        bbox: [5, 0, 0, 5],
       });
 
       const result = await node.execute(context);
@@ -634,9 +640,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [1, 2]
+          coordinates: [1, 2],
         },
-        bbox: [0, 5, 5, 0]
+        bbox: [0, 5, 5, 0],
       });
 
       const result = await node.execute(context);
@@ -650,9 +656,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [10, 10]
+          coordinates: [10, 10],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -666,9 +672,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [0, 0]
+          coordinates: [0, 0],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -682,9 +688,9 @@ describe("BboxClipNode", () => {
       const context = createMockContext({
         geojson: {
           type: "Point",
-          coordinates: [5, 5]
+          coordinates: [5, 5],
         },
-        bbox: [0, 0, 5, 5]
+        bbox: [0, 0, 5, 5],
       });
 
       const result = await node.execute(context);
@@ -694,4 +700,4 @@ describe("BboxClipNode", () => {
       expect(result.outputs?.clipped.type).toBe("Point");
     });
   });
-}); 
+});

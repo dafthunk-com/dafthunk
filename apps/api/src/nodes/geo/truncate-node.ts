@@ -9,7 +9,8 @@ export class TruncateNode extends ExecutableNode {
     id: "truncate",
     name: "Truncate",
     type: "truncate",
-    description: "Truncates the precision of a coordinate to a specified number of decimal places.",
+    description:
+      "Truncates the precision of a coordinate to a specified number of decimal places.",
     tags: ["Geo"],
     icon: "scissors",
     inputs: [
@@ -56,14 +57,20 @@ export class TruncateNode extends ExecutableNode {
       }
 
       // Prepare options for truncate
-      const options: { precision?: number; coordinates?: number; mutate?: boolean } = {};
-      
+      const options: {
+        precision?: number;
+        coordinates?: number;
+        mutate?: boolean;
+      } = {};
+
       if (precision !== undefined && precision !== null) {
         if (typeof precision !== "number") {
           return this.createErrorResult("Precision must be a number");
         }
         if (precision < 0) {
-          return this.createErrorResult("Precision must be a non-negative number");
+          return this.createErrorResult(
+            "Precision must be a non-negative number"
+          );
         }
         options.precision = precision;
       }
@@ -91,10 +98,11 @@ export class TruncateNode extends ExecutableNode {
       return this.createSuccessResult({
         truncated,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error truncating coordinates: ${error.message}`);
+      return this.createErrorResult(
+        `Error truncating coordinates: ${error.message}`
+      );
     }
   }
-} 
+}

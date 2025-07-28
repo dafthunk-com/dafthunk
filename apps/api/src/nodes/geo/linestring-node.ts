@@ -9,14 +9,16 @@ export class LineStringNode extends ExecutableNode {
     id: "lineString",
     name: "LineString",
     type: "lineString",
-    description: "Creates a LineString feature from an array of coordinate pairs.",
+    description:
+      "Creates a LineString feature from an array of coordinate pairs.",
     tags: ["Geo"],
     icon: "route",
     inputs: [
       {
         name: "coordinates",
         type: "json",
-        description: "Array of coordinate pairs [[lon1, lat1], [lon2, lat2], ...]",
+        description:
+          "Array of coordinate pairs [[lon1, lat1], [lon2, lat2], ...]",
         required: true,
       },
       {
@@ -45,10 +47,11 @@ export class LineStringNode extends ExecutableNode {
       return this.createSuccessResult({
         lineString: lineStringFeature,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating LineString: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating LineString: ${error.message}`
+      );
     }
   }
-} 
+}

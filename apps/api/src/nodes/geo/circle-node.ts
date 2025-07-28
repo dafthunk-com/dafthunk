@@ -71,14 +71,14 @@ export class CircleNode extends ExecutableNode {
 
       // Prepare options for circle creation
       const options: { steps?: number; units?: string; properties?: any } = {};
-      
+
       if (steps !== undefined && steps !== null) {
         if (typeof steps !== "number" || !isFinite(steps) || steps < 3) {
           return this.createErrorResult("Steps must be a valid number >= 3");
         }
         options.steps = Math.floor(steps);
       }
-      
+
       if (units !== undefined && units !== null) {
         if (typeof units !== "string") {
           return this.createErrorResult("Units must be a string");
@@ -100,10 +100,9 @@ export class CircleNode extends ExecutableNode {
       return this.createSuccessResult({
         circle: circlePolygon,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error creating circle: ${error.message}`);
     }
   }
-} 
+}

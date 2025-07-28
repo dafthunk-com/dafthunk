@@ -50,26 +50,30 @@ export class BboxPolygonNode extends ExecutableNode {
       }
 
       if (!Array.isArray(bbox) || bbox.length !== 4) {
-        return this.createErrorResult("Bbox must be an array with exactly 4 elements [minX, minY, maxX, maxY]");
+        return this.createErrorResult(
+          "Bbox must be an array with exactly 4 elements [minX, minY, maxX, maxY]"
+        );
       }
 
       // Validate bbox coordinates are numbers
       for (let i = 0; i < bbox.length; i++) {
         if (typeof bbox[i] !== "number" || !isFinite(bbox[i])) {
-          return this.createErrorResult(`Bbox coordinate at index ${i} must be a valid number`);
+          return this.createErrorResult(
+            `Bbox coordinate at index ${i} must be a valid number`
+          );
         }
       }
 
       // Prepare options object for Turf.js bboxPolygon function
       const options: { properties?: any; id?: string | number } = {};
-      
+
       if (properties !== undefined && properties !== null) {
         if (typeof properties !== "object") {
           return this.createErrorResult("Properties must be an object");
         }
         options.properties = properties;
       }
-      
+
       if (id !== undefined && id !== null) {
         if (typeof id !== "string" && typeof id !== "number") {
           return this.createErrorResult("Id must be a string or number");
@@ -83,10 +87,11 @@ export class BboxPolygonNode extends ExecutableNode {
       return this.createSuccessResult({
         polygon,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error creating bbox polygon: ${error.message}`);
+      return this.createErrorResult(
+        `Error creating bbox polygon: ${error.message}`
+      );
     }
   }
-} 
+}

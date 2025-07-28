@@ -1,6 +1,6 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { sector } from "@turf/turf";
 import { Units } from "@turf/helpers";
+import { sector } from "@turf/turf";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -10,7 +10,8 @@ export class SectorNode extends ExecutableNode {
     id: "sector",
     name: "Sector",
     type: "sector",
-    description: "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise.",
+    description:
+      "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise.",
     tags: ["Geo"],
     icon: "pie-chart",
     inputs: [
@@ -29,19 +30,22 @@ export class SectorNode extends ExecutableNode {
       {
         name: "bearing1",
         type: "number",
-        description: "Angle, in decimal degrees, of the first radius of the sector",
+        description:
+          "Angle, in decimal degrees, of the first radius of the sector",
         required: true,
       },
       {
         name: "bearing2",
         type: "number",
-        description: "Angle, in decimal degrees, of the second radius of the sector",
+        description:
+          "Angle, in decimal degrees, of the second radius of the sector",
         required: true,
       },
       {
         name: "units",
         type: "string",
-        description: "Units for radius (miles, kilometers, degrees, or radians)",
+        description:
+          "Units for radius (miles, kilometers, degrees, or radians)",
         required: false,
       },
       {
@@ -68,7 +72,8 @@ export class SectorNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { center, radius, bearing1, bearing2, units, steps, properties } = context.inputs;
+      const { center, radius, bearing1, bearing2, units, steps, properties } =
+        context.inputs;
 
       if (!center) {
         return this.createErrorResult("Missing center input");
@@ -106,9 +111,16 @@ export class SectorNode extends ExecutableNode {
           return this.createErrorResult("Units must be a string");
         }
 
-        const validUnits: Units[] = ["miles", "kilometers", "degrees", "radians"];
+        const validUnits: Units[] = [
+          "miles",
+          "kilometers",
+          "degrees",
+          "radians",
+        ];
         if (!validUnits.includes(units as Units)) {
-          return this.createErrorResult("Units must be one of: miles, kilometers, degrees, radians");
+          return this.createErrorResult(
+            "Units must be one of: miles, kilometers, degrees, radians"
+          );
         }
 
         options.units = units as Units;
@@ -135,15 +147,20 @@ export class SectorNode extends ExecutableNode {
       }
 
       // Delegate everything to Turf.js sector function
-      const sectorPolygon = sector(center as any, radius, bearing1, bearing2, options);
+      const sectorPolygon = sector(
+        center as any,
+        radius,
+        bearing1,
+        bearing2,
+        options
+      );
 
       return this.createSuccessResult({
         sector: sectorPolygon,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error creating sector: ${error.message}`);
     }
   }
-} 
+}

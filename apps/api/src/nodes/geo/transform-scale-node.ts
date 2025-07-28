@@ -9,7 +9,8 @@ export class TransformScaleNode extends ExecutableNode {
     id: "transformScale",
     name: "Transform Scale",
     type: "transformScale",
-    description: "Scales any GeoJSON geometry by a factor around an origin point.",
+    description:
+      "Scales any GeoJSON geometry by a factor around an origin point.",
     tags: ["Geo"],
     icon: "resize",
     inputs: [
@@ -22,13 +23,15 @@ export class TransformScaleNode extends ExecutableNode {
       {
         name: "factor",
         type: "number",
-        description: "Scale factor (1 = no change, 2 = double size, 0.5 = half size)",
+        description:
+          "Scale factor (1 = no change, 2 = double size, 0.5 = half size)",
         required: true,
       },
       {
         name: "origin",
         type: "geojson",
-        description: "Point around which to scale (default: centroid of geometry)",
+        description:
+          "Point around which to scale (default: centroid of geometry)",
         required: false,
       },
     ],
@@ -59,21 +62,24 @@ export class TransformScaleNode extends ExecutableNode {
 
       // Prepare options for scaling
       const options: { origin?: any } = {};
-      
+
       if (origin !== undefined && origin !== null) {
         options.origin = origin;
       }
 
       // Delegate to Turf.js transformScale function
-      const scaledGeometry = transformScale(geojson as any, factor, options as any);
+      const scaledGeometry = transformScale(
+        geojson as any,
+        factor,
+        options as any
+      );
 
       return this.createSuccessResult({
         scaled: scaledGeometry,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error scaling geometry: ${error.message}`);
     }
   }
-} 
+}

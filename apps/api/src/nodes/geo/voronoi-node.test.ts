@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { VoronoiNode } from "./voronoi-node";
+
 import { NodeContext } from "../types";
+import { VoronoiNode } from "./voronoi-node";
 
 describe("VoronoiNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -30,19 +31,19 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
+              coordinates: [0, 0],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [1, 1]
-            }
-          }
-        ]
-      }
+              coordinates: [1, 1],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -60,20 +61,20 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
+              coordinates: [0, 0],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [1, 1]
-            }
-          }
-        ]
+              coordinates: [1, 1],
+            },
+          },
+        ],
       },
-      bbox: [-1, -1, 2, 2]
+      bbox: [-1, -1, 2, 2],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -98,12 +99,12 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
-          }
-        ]
+              coordinates: [0, 0],
+            },
+          },
+        ],
       },
-      bbox: "not an array"
+      bbox: "not an array",
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -120,16 +121,18 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
-          }
-        ]
+              coordinates: [0, 0],
+            },
+          },
+        ],
       },
-      bbox: [0, 0, 1]
+      bbox: [0, 0, 1],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
-    expect(result.error).toBe("Bbox must have exactly 4 elements [minX, minY, maxX, maxY]");
+    expect(result.error).toBe(
+      "Bbox must have exactly 4 elements [minX, minY, maxX, maxY]"
+    );
   });
 
   it("returns an error for bbox with non-number elements", async () => {
@@ -142,12 +145,12 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
-          }
-        ]
+              coordinates: [0, 0],
+            },
+          },
+        ],
       },
-      bbox: [0, 0, 1, "not a number"]
+      bbox: [0, 0, 1, "not a number"],
     });
     const result = await node.execute(context);
     expect(result.status).toBe("error");
@@ -164,11 +167,11 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
-          }
-        ]
-      }
+              coordinates: [0, 0],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -186,27 +189,27 @@ describe("VoronoiNode", () => {
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [0, 0]
-            }
+              coordinates: [0, 0],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [2, 0]
-            }
+              coordinates: [2, 0],
+            },
           },
           {
             type: "Feature",
             properties: {},
             geometry: {
               type: "Point",
-              coordinates: [1, 2]
-            }
-          }
-        ]
-      }
+              coordinates: [1, 2],
+            },
+          },
+        ],
+      },
     });
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
@@ -214,4 +217,4 @@ describe("VoronoiNode", () => {
     expect(result.outputs?.voronoi.type).toBe("FeatureCollection");
     expect(result.outputs?.voronoi.features).toHaveLength(3);
   });
-}); 
+});

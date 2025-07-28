@@ -9,7 +9,8 @@ export class KinksNode extends ExecutableNode {
     id: "kinks",
     name: "Kinks",
     type: "kinks",
-    description: "Takes a LineString or Polygon and returns the points at all self-intersections.",
+    description:
+      "Takes a LineString or Polygon and returns the points at all self-intersections.",
     tags: ["Geo"],
     icon: "zap",
     inputs: [
@@ -43,10 +44,9 @@ export class KinksNode extends ExecutableNode {
       return this.createSuccessResult({
         kinks: kinkPoints,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(`Error finding kinks: ${error.message}`);
     }
   }
-} 
+}

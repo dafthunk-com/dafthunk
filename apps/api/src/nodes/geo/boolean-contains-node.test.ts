@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { BooleanContainsNode } from "./boolean-contains-node";
 import { NodeContext } from "../types";
+import { BooleanContainsNode } from "./boolean-contains-node";
 
 describe("BooleanContainsNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -25,23 +25,25 @@ describe("BooleanContainsNode", () => {
     it("should return true when polygon contains point", async () => {
       const polygon = {
         type: "Polygon",
-        coordinates: [[
-          [-122.4194, 37.7749],
-          [-122.4094, 37.7749],
-          [-122.4094, 37.7849],
-          [-122.4194, 37.7849],
-          [-122.4194, 37.7749]
-        ]]
+        coordinates: [
+          [
+            [-122.4194, 37.7749],
+            [-122.4094, 37.7749],
+            [-122.4094, 37.7849],
+            [-122.4194, 37.7849],
+            [-122.4194, 37.7749],
+          ],
+        ],
       };
 
       const pointInside = {
         type: "Point",
-        coordinates: [-122.4144, 37.7799]
+        coordinates: [-122.4144, 37.7799],
       };
 
       const context = createMockContext({
         feature1: polygon,
-        feature2: pointInside
+        feature2: pointInside,
       });
 
       const result = await node.execute(context);
@@ -53,23 +55,25 @@ describe("BooleanContainsNode", () => {
     it("should return true when point is on polygon boundary", async () => {
       const polygon = {
         type: "Polygon",
-        coordinates: [[
-          [-122.4194, 37.7749],
-          [-122.4094, 37.7749],
-          [-122.4094, 37.7849],
-          [-122.4194, 37.7849],
-          [-122.4194, 37.7749]
-        ]]
+        coordinates: [
+          [
+            [-122.4194, 37.7749],
+            [-122.4094, 37.7749],
+            [-122.4094, 37.7849],
+            [-122.4194, 37.7849],
+            [-122.4194, 37.7749],
+          ],
+        ],
       };
 
       const pointOnBoundary = {
         type: "Point",
-        coordinates: [-122.4144, 37.7749] // On the polygon edge
+        coordinates: [-122.4144, 37.7749], // On the polygon edge
       };
 
       const context = createMockContext({
         feature1: polygon,
-        feature2: pointOnBoundary
+        feature2: pointOnBoundary,
       });
 
       const result = await node.execute(context);
@@ -84,8 +88,8 @@ describe("BooleanContainsNode", () => {
       const context = createMockContext({
         feature2: {
           type: "Point",
-          coordinates: [-122.4144, 37.7799]
-        }
+          coordinates: [-122.4144, 37.7799],
+        },
       });
 
       const result = await node.execute(context);
@@ -98,14 +102,16 @@ describe("BooleanContainsNode", () => {
       const context = createMockContext({
         feature1: {
           type: "Polygon",
-          coordinates: [[
-            [-122.4194, 37.7749],
-            [-122.4094, 37.7749],
-            [-122.4094, 37.7849],
-            [-122.4194, 37.7849],
-            [-122.4194, 37.7749]
-          ]]
-        }
+          coordinates: [
+            [
+              [-122.4194, 37.7749],
+              [-122.4094, 37.7749],
+              [-122.4094, 37.7849],
+              [-122.4194, 37.7849],
+              [-122.4194, 37.7749],
+            ],
+          ],
+        },
       });
 
       const result = await node.execute(context);
@@ -119,8 +125,8 @@ describe("BooleanContainsNode", () => {
         feature1: null,
         feature2: {
           type: "Point",
-          coordinates: [-122.4144, 37.7799]
-        }
+          coordinates: [-122.4144, 37.7799],
+        },
       });
 
       const result = await node.execute(context);
@@ -129,4 +135,4 @@ describe("BooleanContainsNode", () => {
       expect(result.error).toBe("Missing feature1 input");
     });
   });
-}); 
+});

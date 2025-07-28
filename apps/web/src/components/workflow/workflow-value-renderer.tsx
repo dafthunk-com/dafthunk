@@ -221,7 +221,7 @@ const GeoJSONRenderer = ({
           width={compact ? 300 : 400}
           height={compact ? 200 : 300}
         />
-        
+
         <div
           className={`${compact ? "max-h-[300px] overflow-y-auto nowheel" : ""}`}
         >
@@ -246,7 +246,7 @@ const GeoJSONRenderer = ({
           height={compact ? 200 : 300}
         />
       )}
-      
+
       <Textarea
         value={formattedValue}
         onChange={(e) => {

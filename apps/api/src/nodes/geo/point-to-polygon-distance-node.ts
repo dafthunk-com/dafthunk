@@ -9,7 +9,8 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
     id: "point-to-polygon-distance",
     name: "Point To Polygon Distance",
     type: "point-to-polygon-distance",
-    description: "Calculates the distance from a point to the edges of a polygon or multi-polygon. Returns negative values for points inside the polygon.",
+    description:
+      "Calculates the distance from a point to the edges of a polygon or multi-polygon. Returns negative values for points inside the polygon.",
     tags: ["Geo"],
     icon: "ruler",
     inputs: [
@@ -22,19 +23,22 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
       {
         name: "polygon",
         type: "geojson",
-        description: "Input polygon or multipolygon (Feature or Polygon/MultiPolygon geometry)",
+        description:
+          "Input polygon or multipolygon (Feature or Polygon/MultiPolygon geometry)",
         required: true,
       },
       {
         name: "units",
         type: "string",
-        description: "Units of the result e.g. 'kilometers', 'miles', 'meters' (default: meters)",
+        description:
+          "Units of the result e.g. 'kilometers', 'miles', 'meters' (default: meters)",
         required: false,
       },
       {
         name: "method",
         type: "string",
-        description: "Method of the result: 'geodesic' or 'planar' (default: geodesic)",
+        description:
+          "Method of the result: 'geodesic' or 'planar' (default: geodesic)",
         required: false,
       },
     ],
@@ -42,7 +46,8 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
       {
         name: "distance",
         type: "number",
-        description: "Distance in specified units (negative values for points inside the polygon)",
+        description:
+          "Distance in specified units (negative values for points inside the polygon)",
       },
     ],
   };
@@ -61,7 +66,7 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
 
       // Prepare options for pointToPolygonDistance calculation
       const options: { units?: string; method?: string } = {};
-      
+
       if (units !== undefined && units !== null) {
         if (typeof units !== "string") {
           return this.createErrorResult("Units must be a string");
@@ -74,21 +79,28 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
           return this.createErrorResult("Method must be a string");
         }
         if (method !== "geodesic" && method !== "planar") {
-          return this.createErrorResult("Method must be 'geodesic' or 'planar'");
+          return this.createErrorResult(
+            "Method must be 'geodesic' or 'planar'"
+          );
         }
         options.method = method;
       }
 
       // Delegate to Turf.js pointToPolygonDistance function
-      const distance = pointToPolygonDistance(point as any, polygon as any, options as any);
+      const distance = pointToPolygonDistance(
+        point as any,
+        polygon as any,
+        options as any
+      );
 
       return this.createSuccessResult({
         distance,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating point to polygon distance: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating point to polygon distance: ${error.message}`
+      );
     }
   }
-} 
+}

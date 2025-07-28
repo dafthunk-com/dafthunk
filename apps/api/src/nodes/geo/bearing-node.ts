@@ -58,11 +58,15 @@ export class BearingNode extends ExecutableNode {
       const endCoords = this.extractCoordinates(end);
 
       if (!startCoords) {
-        return this.createErrorResult("Invalid start point - must be coordinates [lng, lat] or Point geometry");
+        return this.createErrorResult(
+          "Invalid start point - must be coordinates [lng, lat] or Point geometry"
+        );
       }
 
       if (!endCoords) {
-        return this.createErrorResult("Invalid end point - must be coordinates [lng, lat] or Point geometry");
+        return this.createErrorResult(
+          "Invalid end point - must be coordinates [lng, lat] or Point geometry"
+        );
       }
 
       // Validate final parameter
@@ -76,10 +80,11 @@ export class BearingNode extends ExecutableNode {
       return this.createSuccessResult({
         bearing: calculatedBearing,
       });
-
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error calculating bearing: ${error.message}`);
+      return this.createErrorResult(
+        `Error calculating bearing: ${error.message}`
+      );
     }
   }
 
@@ -101,4 +106,4 @@ export class BearingNode extends ExecutableNode {
 
     return null;
   }
-} 
+}
