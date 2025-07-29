@@ -1,10 +1,10 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
 import { runWithTools } from "@cloudflare/ai-utils";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { ToolCallTracker } from "../base-tool-registry";
+import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { ToolReference } from "../tool-types";
-import { ToolCallTracker } from "../base-tool-registry";
 
 /**
  * Llama 4 Scout 17B 16E Instruct Node implementation with function calling support
@@ -19,6 +19,8 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
+    asTool: true,
+    functionCalling: true,
     inputs: [
       {
         name: "prompt",

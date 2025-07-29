@@ -13,6 +13,7 @@ export class JsonNumberExtractorNode extends ExecutableNode {
     tags: ["JSON"],
     icon: "hash",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "json",

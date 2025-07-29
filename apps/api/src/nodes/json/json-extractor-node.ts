@@ -13,6 +13,7 @@ export class JsonExtractorNode extends ExecutableNode {
     tags: ["JSON"],
     icon: "braces",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "json",

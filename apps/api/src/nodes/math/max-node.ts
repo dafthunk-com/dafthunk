@@ -15,6 +15,7 @@ export class MaxNode extends ExecutableNode {
     tags: ["Math"],
     icon: "arrow-up",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "numbers",

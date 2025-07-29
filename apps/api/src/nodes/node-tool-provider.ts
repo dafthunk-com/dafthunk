@@ -1,4 +1,5 @@
 import { NodeType, Parameter } from "@dafthunk/types";
+
 import { BaseNodeRegistry } from "./base-node-registry";
 import {
   JSONSchema,
@@ -328,7 +329,7 @@ export class NodeToolProvider implements ToolProvider {
   private async getNodeTypeByIdentifier(identifier: string): Promise<NodeType> {
     try {
       return this.nodeRegistry.getNodeType(identifier);
-    } catch (error) {
+    } catch (_) {
       // If not found by type, try to find by ID
       const allNodeTypes = this.nodeRegistry.getNodeTypes();
       const matchingNodeType = allNodeTypes.find(

@@ -15,6 +15,7 @@ export class MinNode extends ExecutableNode {
     tags: ["Math"],
     icon: "arrow-down",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "numbers",

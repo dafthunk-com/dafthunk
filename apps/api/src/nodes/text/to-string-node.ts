@@ -16,6 +16,7 @@ export class ToStringNode extends ExecutableNode {
     tags: ["Text"],
     icon: "text",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "value",

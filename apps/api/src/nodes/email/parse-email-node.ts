@@ -31,6 +31,7 @@ export class ParseEmailNode extends ExecutableNode {
       "Parses raw email content and extracts key fields like subject, body, sender, recipients, and attachments.",
     tags: ["Email"],
     icon: "mail",
+    asTool: true,
     compatibility: ["email_message"],
     inlinable: true,
     inputs: [

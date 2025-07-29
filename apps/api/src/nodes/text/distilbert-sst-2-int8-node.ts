@@ -16,6 +16,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
     tags: ["Text"],
     icon: "mood",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "text",

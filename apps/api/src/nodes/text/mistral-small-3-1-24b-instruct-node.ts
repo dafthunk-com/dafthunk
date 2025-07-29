@@ -1,10 +1,10 @@
+import { runWithTools } from "@cloudflare/ai-utils";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { ToolCallTracker } from "../base-tool-registry";
+import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { ToolReference } from "../tool-types";
-import { ToolCallTracker } from "../base-tool-registry";
-import { runWithTools } from "@cloudflare/ai-utils";
 
 /**
  * Mistral Small 3.1 24B Instruct Node implementation with function calling support
@@ -19,6 +19,8 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
+    asTool: true,
+    functionCalling: true,
     inputs: [
       {
         name: "prompt",

@@ -21,6 +21,7 @@ export class SliderNode extends ExecutableNode {
     tags: ["Math"],
     icon: "sliders-horizontal",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "min",

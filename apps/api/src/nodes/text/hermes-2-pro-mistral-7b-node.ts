@@ -1,10 +1,10 @@
-import { NodeExecution, NodeType } from "@dafthunk/types";
 import { runWithTools } from "@cloudflare/ai-utils";
+import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { ToolCallTracker } from "../base-tool-registry";
+import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
-import { ToolReference } from "../tool-types";
-import { ToolCallTracker } from "../base-tool-registry";
 
 /**
  * Hermes 2 Pro Mistral 7B Node implementation with function calling support
@@ -19,6 +19,8 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
+    asTool: true,
+    functionCalling: true,
     inputs: [
       {
         name: "prompt",

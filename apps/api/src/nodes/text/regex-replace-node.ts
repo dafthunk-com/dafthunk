@@ -13,6 +13,7 @@ export class RegexReplaceNode extends ExecutableNode {
     tags: ["Text"],
     icon: "edit",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "string",

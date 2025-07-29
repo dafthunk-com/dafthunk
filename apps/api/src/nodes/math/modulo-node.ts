@@ -16,6 +16,7 @@ export class ModuloNode extends ExecutableNode {
     tags: ["Math"],
     icon: "percent",
     inlinable: true,
+    asTool: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

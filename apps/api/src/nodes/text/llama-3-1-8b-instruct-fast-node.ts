@@ -14,6 +14,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "prompt",

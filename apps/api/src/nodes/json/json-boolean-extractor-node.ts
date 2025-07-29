@@ -13,6 +13,7 @@ export class JsonBooleanExtractorNode extends ExecutableNode {
     tags: ["JSON"],
     icon: "toggle",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "json",

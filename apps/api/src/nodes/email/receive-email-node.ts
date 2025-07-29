@@ -11,6 +11,7 @@ export class ReceiveEmailNode extends ExecutableNode {
       "Extracts from, to, headers, and raw content from an incoming email.",
     tags: ["Email"],
     icon: "mail",
+    asTool: true,
     compatibility: ["email_message"],
     inlinable: true,
     inputs: [],

@@ -17,6 +17,7 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     tags: ["Browser"],
     icon: "markdown",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "url",

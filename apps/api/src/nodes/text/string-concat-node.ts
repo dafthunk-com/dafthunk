@@ -12,6 +12,7 @@ export class StringConcatNode extends ExecutableNode {
     tags: ["Text"],
     icon: "link",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "strings",

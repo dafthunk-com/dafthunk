@@ -15,6 +15,7 @@ export class ExponentiationNode extends ExecutableNode {
     tags: ["Math"],
     icon: "x-to-the-power-of-y",
     inlinable: true,
+    asTool: true,
     inputs: [
       { name: "base", type: "number", required: true },
       { name: "exponent", type: "number", required: true },

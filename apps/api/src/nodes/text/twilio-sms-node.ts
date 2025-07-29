@@ -12,6 +12,7 @@ export class TwilioSmsNode extends ExecutableNode {
     tags: ["Text"],
     icon: "message-square",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "to",

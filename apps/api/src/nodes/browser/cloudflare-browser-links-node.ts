@@ -17,6 +17,7 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     tags: ["Browser"],
     icon: "link",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "url",
