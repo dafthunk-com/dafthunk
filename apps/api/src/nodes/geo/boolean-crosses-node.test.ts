@@ -271,8 +271,7 @@ describe("BooleanCrossesNode", () => {
       expect(BooleanCrossesNode.nodeType.name).toBe("Boolean Crosses");
       expect(BooleanCrossesNode.nodeType.type).toBe("booleanCrosses");
       expect(BooleanCrossesNode.nodeType.tags).toContain("Geo");
-      expect(BooleanCrossesNode.nodeType.tags).toContain("Boolean");
-      expect(BooleanCrossesNode.nodeType.tags).toContain("Crosses");
+      expect(BooleanCrossesNode.nodeType.tags).toContain("Turf");
     });
 
     it("should have correct input definitions", () => {

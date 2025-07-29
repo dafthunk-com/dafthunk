@@ -234,8 +234,6 @@ describe("BooleanOverlapNode", () => {
       );
       expect(nodeType.tags).toContain("Geo");
       expect(nodeType.tags).toContain("Turf");
-      expect(nodeType.tags).toContain("Boolean");
-      expect(nodeType.tags).toContain("Overlap");
     });
 
     it("should have correct input definitions", () => {

@@ -129,7 +129,7 @@ export class ParseEmailNode extends ExecutableNode {
       const rawEmail = context.inputs?.raw as string | undefined;
 
       if (typeof rawEmail !== "string") {
-        throw new Error(
+        return this.createErrorResult(
           "Raw email content (string) is required but not provided in the input."
         );
       }
