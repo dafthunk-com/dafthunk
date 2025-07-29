@@ -7,14 +7,15 @@ import { ToolCallTracker } from "../base-tool-registry";
 import { runWithTools } from "@cloudflare/ai-utils";
 
 /**
- * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters
+ * Mistral Small 3.1 24B Instruct Node implementation with function calling support
  */
-export class Llama3370BInstructFastNode extends ExecutableNode {
+export class MistralSmall31_24BInstructNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "llama-3-3-70b-instruct-fp8-fast",
-    name: "llama-3.3-70b-instruct-fp8-fast",
-    type: "llama-3-3-70b-instruct-fp8-fast",
-    description: "Generates text using Llama 3.3 70B model with fp8 precision",
+    id: "mistral-small-3-1-24b-instruct",
+    name: "Mistral Small 3.1 24B Instruct",
+    type: "mistral-small-3-1-24b-instruct",
+    description:
+      "Generates text with function calling support using Mistral Small 3.1 24B Instruct model",
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
@@ -26,11 +27,24 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         required: true,
       },
       {
+        name: "messages",
+        type: "string",
+        description: "JSON string of conversation messages",
+        required: false,
+      },
+      {
+        name: "tools",
+        type: "json",
+        description: "Array of tool references for function calling",
+        hidden: true,
+        value: [] as any,
+      },
+      {
         name: "temperature",
         type: "number",
-        description: "Controls randomness in the output (0.0 to 5.0)",
+        description: "Controls randomness in the output (0.0 to 2.0)",
         hidden: true,
-        value: 0.6,
+        value: 0.7,
       },
       {
         name: "max_tokens",
@@ -42,7 +56,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       {
         name: "top_p",
         type: "number",
-        description: "Controls diversity via nucleus sampling (0.0 to 2.0)",
+        description: "Controls diversity via nucleus sampling (0.0 to 1.0)",
         hidden: true,
         value: 1.0,
       },
@@ -80,13 +94,6 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         hidden: true,
         value: 0.0,
       },
-      {
-        name: "tools",
-        type: "json",
-        description: "Array of tool references for function calling",
-        hidden: true,
-        value: [] as any,
-      },
     ],
     outputs: [
       {
@@ -107,7 +114,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     try {
       const {
         prompt,
-        messages, // Note: messages is declared but not used if params.stream is always false and no messages input handling
+        messages,
         tools,
         temperature,
         max_tokens,
@@ -123,7 +130,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         return this.createErrorResult("AI service is not available");
       }
 
-      const params: Ai_Cf_Meta_Llama_3_3_70B_Instruct_Fp8_Fast_Input = {
+      const params: Ai_Cf_Mistralai_Mistral_Small_3_1_24B_Instruct_Input = {
         messages: [],
         temperature,
         max_tokens,
@@ -142,7 +149,13 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
           params.messages = JSON.parse(messages);
         } catch (e) {
           console.error("Failed to parse messages JSON string:", e);
-          // Optionally, handle the error, e.g., by falling back to prompt or returning an error result
+          // Fall back to prompt
+          params.messages = [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ];
         }
       } else if (prompt) {
         params.messages = [
@@ -162,8 +175,9 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         tools as ToolReference[],
         context
       );
-
-      let result: AiTextGenerationOutput;
+      let result:
+        | Ai_Cf_Mistralai_Mistral_Small_3_1_24B_Instruct_Output
+        | AiTextGenerationOutput;
       let executedToolCalls: any[] = [];
 
       if (tools.length > 0) {
@@ -174,7 +188,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         result = await runWithTools(
           // @ts-ignore
           context.env.AI,
-          "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          "@cf/mistralai/mistral-small-3.1-24b-instruct",
           {
             messages: params.messages,
             tools: trackedToolDefinitions,
@@ -183,11 +197,11 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
 
         executedToolCalls = toolCallTracker.getToolCalls();
       } else {
-        result = (await context.env.AI.run(
-          "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        result = await context.env.AI.run(
+          "@cf/mistralai/mistral-small-3.1-24b-instruct",
           params,
           context.env.AI_OPTIONS
-        )) as AiTextGenerationOutput;
+        );
       }
 
       return this.createSuccessResult({

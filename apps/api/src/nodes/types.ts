@@ -15,6 +15,8 @@ import {
   Point,
   Polygon,
 } from "@dafthunk/types";
+import { BaseToolRegistry } from "./base-tool-registry";
+import { ToolReference } from "./tool-types";
 
 export type ImageParameter = {
   data: Uint8Array;
@@ -159,6 +161,7 @@ export interface NodeContext {
   onProgress?: (progress: number) => void;
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
+  toolRegistry?: BaseToolRegistry;
   env: {
     DB: D1Database;
     AI: Ai;
@@ -213,5 +216,56 @@ export abstract class ExecutableNode {
       status: "error",
       error,
     } as NodeExecution;
+  }
+
+  /**
+   * Convert tools input to tool definitions for LLM models
+   * Returns Cloudflare embedded tool definitions with executable functions
+   */
+  protected async convertFunctionCallsToToolDefinitions(
+    functionCalls: ToolReference[],
+    context: NodeContext
+  ): Promise<any[]> {
+    if (
+      !functionCalls ||
+      !Array.isArray(functionCalls) ||
+      functionCalls.length === 0
+    ) {
+      return [];
+    }
+
+    if (!context.toolRegistry) {
+      console.warn(
+        "Tool registry not available in context, cannot resolve tools"
+      );
+      return [];
+    }
+
+    try {
+      // Validate all items are proper ToolReference objects
+      for (const item of functionCalls) {
+        if (
+          !item ||
+          typeof item !== "object" ||
+          !item.type ||
+          !item.identifier
+        ) {
+          throw new Error(
+            `Invalid tool reference format. Expected ToolReference with type and identifier: ${JSON.stringify(item)}`
+          );
+        }
+      }
+
+      // Get tool definitions (now returns Cloudflare embedded format)
+      const toolDefinitions =
+        await context.toolRegistry.getToolDefinitions(functionCalls);
+      return toolDefinitions;
+    } catch (error) {
+      console.error(
+        "Failed to convert function calls to tool definitions:",
+        error
+      );
+      return [];
+    }
   }
 }

@@ -19,6 +19,7 @@ import { NonRetryableError } from "cloudflare:workflows";
 import { Bindings } from "../context";
 import { createDatabase, ExecutionStatusType, saveExecution } from "../db";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import {
   apiToNodeParameter,
   nodeToApiParameter,
@@ -101,10 +102,64 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   };
 
   private nodeRegistry: CloudflareNodeRegistry;
+  private toolRegistry: CloudflareToolRegistry;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
     this.nodeRegistry = new CloudflareNodeRegistry(env, true);
+    this.toolRegistry = new CloudflareToolRegistry(
+      this.nodeRegistry,
+      this.createNodeContextForTool.bind(this)
+    );
+  }
+
+  /**
+   * Create a NodeContext for tool execution
+   */
+  private createNodeContextForTool(
+    nodeId: string,
+    inputs: Record<string, any>
+  ): NodeContext {
+    // Configure AI Gateway options
+    const aiOptions: AiOptions = {};
+    const gatewayId = this.env.CLOUDFLARE_AI_GATEWAY_ID;
+    if (gatewayId) {
+      aiOptions.gateway = {
+        id: gatewayId,
+        skipCache: false,
+      };
+    }
+
+    return {
+      nodeId,
+      workflowId: `tool_execution_${Date.now()}`,
+      organizationId: "system", // Tool executions are system-level
+      inputs,
+      toolRegistry: this.toolRegistry,
+      env: {
+        DB: this.env.DB,
+        AI: this.env.AI,
+        AI_OPTIONS: aiOptions,
+        RESSOURCES: this.env.RESSOURCES,
+        DATASETS: this.env.DATASETS,
+        DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
+        CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
+        CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
+        CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,
+        TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
+        TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
+        TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,
+        SENDGRID_API_KEY: this.env.SENDGRID_API_KEY,
+        SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
+        RESEND_API_KEY: this.env.RESEND_API_KEY,
+        RESEND_DEFAULT_FROM: this.env.RESEND_DEFAULT_FROM,
+        AWS_ACCESS_KEY_ID: this.env.AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY: this.env.AWS_SECRET_ACCESS_KEY,
+        AWS_REGION: this.env.AWS_REGION,
+        SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
+        EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
+      },
+    };
   }
 
   /**
@@ -687,6 +742,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         httpRequest,
         emailMessage,
         onProgress: () => {},
+        toolRegistry: this.toolRegistry,
         env: {
           DB: this.env.DB,
           AI: this.env.AI,

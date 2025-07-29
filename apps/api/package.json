@@ -24,7 +24,7 @@
   "devDependencies": {
     "@cloudflare/puppeteer": "^1.0.2",
     "@cloudflare/vitest-pool-workers": "^0.8.56",
-    "@cloudflare/workers-types": "^4.20250724.0",
+    "@cloudflare/workers-types": "^4.20250726.0",
     "@eslint/js": "^9.26.0",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^22.15.3",
@@ -44,6 +44,7 @@
     "@aws-sdk/client-ses": "^3.812.0",
     "@cf-wasm/photon": "^0.1.31",
     "@cf-wasm/quickjs": "^0.0.6",
+    "@cloudflare/ai-utils": "^1.0.1",
     "@dafthunk/types": "workspace:*",
     "@hono-rate-limiter/cloudflare": "^0.2.2",
     "@hono/oauth-providers": "^0.7.1",
