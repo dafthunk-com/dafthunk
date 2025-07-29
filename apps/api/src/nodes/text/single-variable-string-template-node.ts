@@ -13,6 +13,7 @@ export class SingleVariableStringTemplateNode extends ExecutableNode {
     tags: ["Text"],
     icon: "quote",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "template",

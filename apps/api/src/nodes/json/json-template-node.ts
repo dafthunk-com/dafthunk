@@ -13,6 +13,7 @@ export class JsonTemplateNode extends ExecutableNode {
     tags: ["JSON"],
     icon: "code",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "template",

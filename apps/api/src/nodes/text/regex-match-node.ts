@@ -12,6 +12,7 @@ export class RegexMatchNode extends ExecutableNode {
     tags: ["Text"],
     icon: "search",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "string",

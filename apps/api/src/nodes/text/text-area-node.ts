@@ -19,6 +19,7 @@ export class TextAreaNode extends ExecutableNode {
     tags: ["Text"],
     icon: "text",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "value",

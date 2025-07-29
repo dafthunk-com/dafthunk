@@ -34,6 +34,7 @@ interface UseWorkflowStateProps {
   validateConnection?: (connection: Connection) => boolean;
   createObjectUrl: (objectReference: ObjectReference) => string;
   readonly?: boolean;
+  nodeTemplates?: NodeTemplate[];
 }
 
 type NodeExecutionUpdate = {
@@ -214,16 +215,39 @@ export function useWorkflowState({
   validateConnection = () => true,
   createObjectUrl,
   readonly = false,
+  nodeTemplates = [],
 }: UseWorkflowStateProps): UseWorkflowStateReturn {
   // State management
-  const [nodes, setNodes, onNodesChange] =
-    useNodesState<ReactFlowNode<WorkflowNodeType>>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<
+    ReactFlowNode<WorkflowNodeType>
+  >(
+    initialNodes.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        nodeTemplates,
+      },
+    }))
+  );
   const [edges, setEdges, onEdgesChange] =
     useEdgesState<ReactFlowEdge<WorkflowEdgeType>>(initialEdges);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
     ReactFlowNode<WorkflowNodeType>,
     ReactFlowEdge<WorkflowEdgeType>
   > | null>(null);
+
+  // Update nodes when nodeTemplates changes
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          nodeTemplates,
+        },
+      }))
+    );
+  }, [nodeTemplates, setNodes]);
   const [isNodeSelectorOpen, setIsNodeSelectorOpen] = useState(false);
   const [connectionValidationState, setConnectionValidationState] =
     useState<ConnectionValidationState>("default");
@@ -534,13 +558,16 @@ export function useWorkflowState({
           outputs: template.outputs,
           executionState: "idle" as NodeExecutionState,
           nodeType: template.type,
+          functionCalling: template.functionCalling,
+          asTool: template.asTool,
+          nodeTemplates,
           createObjectUrl,
         },
       };
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes, createObjectUrl]
+    [reactFlowInstance, setNodes, createObjectUrl, nodeTemplates]
   );
 
   // Unified function to update node execution data

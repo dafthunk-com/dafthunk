@@ -19,6 +19,7 @@ export class NumberInputNode extends ExecutableNode {
     tags: ["Math"],
     icon: "number",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "value",

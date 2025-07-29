@@ -22,6 +22,7 @@ import {
   StickyNoteIcon,
   TriangleIcon,
   TypeIcon,
+  WrenchIcon,
 } from "lucide-react";
 import { createElement, memo, useEffect, useState } from "react";
 
@@ -43,9 +44,11 @@ import { WebcamWidget } from "./widgets/webcam-widget";
 import { createWidgetConfig } from "./widgets/widget-factory";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
+import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
 import {
   InputOutputType,
   NodeExecutionState,
+  NodeTemplate,
   WorkflowParameter,
 } from "./workflow-types";
 
@@ -56,8 +59,11 @@ export interface WorkflowNodeType {
   error?: string | null;
   executionState: NodeExecutionState;
   nodeType?: string;
+  functionCalling?: boolean;
+  asTool?: boolean;
   dragHandle?: string;
   createObjectUrl: (objectReference: ObjectReference) => string;
+  nodeTemplates?: NodeTemplate[];
 }
 
 const TypeBadge = ({
@@ -184,6 +190,7 @@ export const WorkflowNode = memo(
     const { updateNodeData, readonly, expandedOutputs } = useWorkflow();
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(true);
+    const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
       hasVisibleOutputs &&
@@ -263,6 +270,35 @@ export const WorkflowNode = memo(
       setSelectedInput(null);
     };
 
+    const handleToolIconClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (readonly) return;
+      setIsToolSelectorOpen(true);
+    };
+
+    const handleToolSelectorClose = () => {
+      setIsToolSelectorOpen(false);
+    };
+
+    const handleToolsSelect = (tools: ToolReference[]) => {
+      if (readonly || !updateNodeData) return;
+
+      // Find the tools input parameter
+      const toolsInput = data.inputs.find((input) => input.id === "tools");
+      if (toolsInput) {
+        updateNodeInput(id, toolsInput.id, tools, data.inputs, updateNodeData);
+      }
+    };
+
+    // Get current selected tools from the tools input
+    const getCurrentSelectedTools = (): ToolReference[] => {
+      const toolsInput = data.inputs.find((input) => input.id === "tools");
+      if (toolsInput && Array.isArray(toolsInput.value)) {
+        return toolsInput.value as ToolReference[];
+      }
+      return [];
+    };
+
     return (
       <TooltipProvider>
         <div
@@ -281,11 +317,19 @@ export const WorkflowNode = memo(
           {/* Header */}
           <div
             className={cn(
-              "px-1 py-1 flex justify-center items-center border-b hover:cursor-grab active:cursor-grabbing",
+              "px-1 py-1 flex justify-between items-center border-b hover:cursor-grab active:cursor-grabbing",
               "workflow-node-drag-handle"
             )}
           >
-            <h3 className="text-xs font-medium truncate">{data.name}</h3>
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              {data.functionCalling && (
+                <WrenchIcon
+                  className="h-3 w-3 text-blue-600 shrink-0 cursor-pointer hover:text-blue-700 transition-colors"
+                  onClick={handleToolIconClick}
+                />
+              )}
+              <h3 className="text-xs font-medium truncate">{data.name}</h3>
+            </div>
           </div>
 
           {/* Widget */}
@@ -436,6 +480,16 @@ export const WorkflowNode = memo(
           onClose={handleDialogClose}
           readonly={readonly}
         />
+
+        {data.functionCalling && (
+          <WorkflowToolSelector
+            open={isToolSelectorOpen}
+            onClose={handleToolSelectorClose}
+            onSelect={handleToolsSelect}
+            templates={data.nodeTemplates || []}
+            selectedTools={getCurrentSelectedTools()}
+          />
+        )}
       </TooltipProvider>
     );
   }

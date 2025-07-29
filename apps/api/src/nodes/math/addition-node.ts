@@ -14,6 +14,7 @@ export class AdditionNode extends ExecutableNode {
     tags: ["Math"],
     icon: "plus",
     inlinable: true,
+    asTool: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

@@ -13,6 +13,7 @@ export class RegexExtractNode extends ExecutableNode {
     tags: ["Text"],
     icon: "search",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "string",

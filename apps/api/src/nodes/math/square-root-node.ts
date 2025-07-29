@@ -15,6 +15,7 @@ export class SquareRootNode extends ExecutableNode {
     tags: ["Math"],
     icon: "square-root",
     inlinable: true,
+    asTool: true,
     inputs: [{ name: "value", type: "number", required: true }],
     outputs: [{ name: "result", type: "number" }],
   };

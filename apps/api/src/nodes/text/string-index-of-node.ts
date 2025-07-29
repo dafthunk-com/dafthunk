@@ -12,6 +12,7 @@ export class StringIndexOfNode extends ExecutableNode {
     tags: ["Text"],
     icon: "search",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "haystack",

@@ -14,6 +14,7 @@ export class BartLargeCnnNode extends ExecutableNode {
     tags: ["Text"],
     icon: "summarize",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "inputText",

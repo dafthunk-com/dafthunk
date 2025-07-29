@@ -15,6 +15,7 @@ export class SubtractionNode extends ExecutableNode {
     tags: ["Math"],
     icon: "minus",
     inlinable: true,
+    asTool: true,
     inputs: [
       { name: "a", type: "number", required: true },
       { name: "b", type: "number", required: true },

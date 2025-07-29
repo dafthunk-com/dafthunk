@@ -13,6 +13,7 @@ export class JsonJavascriptProcessorNode extends ExecutableNode {
     tags: ["JSON"],
     icon: "code",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "json",

@@ -1,17 +1,14 @@
+import { runWithTools } from "@cloudflare/ai-utils";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
+import { ToolCallTracker } from "../base-tool-registry";
+import { ToolReference } from "../tool-types";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
 /**
  * Llama 3.3 70B Instruct Fast Node implementation with comprehensive parameters
  */
-
-interface Llama3370BNonStreamedOutput {
-  response?: string;
-  usage?: any;
-}
-
 export class Llama3370BInstructFastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "llama-3-3-70b-instruct-fp8-fast",
@@ -21,6 +18,8 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
+    asTool: true,
+    functionCalling: true,
     inputs: [
       {
         name: "prompt",
@@ -83,12 +82,25 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         hidden: true,
         value: 0.0,
       },
+      {
+        name: "tools",
+        type: "json",
+        description: "Array of tool references for function calling",
+        hidden: true,
+        value: [] as any,
+      },
     ],
     outputs: [
       {
         name: "response",
         type: "string",
         description: "Generated text response",
+      },
+      {
+        name: "tool_calls",
+        type: "json",
+        description: "Function calls made by the model",
+        hidden: true,
       },
     ],
   };
@@ -98,6 +110,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       const {
         prompt,
         messages, // Note: messages is declared but not used if params.stream is always false and no messages input handling
+        tools,
         temperature,
         max_tokens,
         top_p,
@@ -122,7 +135,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         repetition_penalty,
         frequency_penalty,
         presence_penalty,
-        stream: false, // Assuming stream is always false for now, can be parameterized if needed
+        stream: false,
       };
 
       // If messages are provided, use them, otherwise use prompt
@@ -146,31 +159,45 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
         );
       }
 
-      const result = await context.env.AI.run(
-        "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-        params,
-        context.env.AI_OPTIONS
+      // Add tools/functions if tools array is provided
+      const toolsDefinitions = await this.convertFunctionCallsToToolDefinitions(
+        tools as ToolReference[],
+        context
       );
 
-      if (result instanceof ReadableStream) {
-        const reader = result.getReader();
-        const decoder = new TextDecoder();
-        let streamedResponse = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          streamedResponse += decoder.decode(value);
-        }
-        return this.createSuccessResult({
-          response: streamedResponse,
-          usage: "",
-        });
+      let result: AiTextGenerationOutput;
+      let executedToolCalls: any[] = [];
+
+      if (toolsDefinitions.length > 0) {
+        const toolCallTracker = new ToolCallTracker();
+        const trackedToolDefinitions =
+          toolCallTracker.wrapToolDefinitions(toolsDefinitions);
+
+        result = await runWithTools(
+          // @ts-ignore
+          context.env.AI,
+          "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          {
+            messages: params.messages,
+            tools: trackedToolDefinitions,
+          }
+        );
+
+        executedToolCalls = toolCallTracker.getToolCalls();
       } else {
-        const typedResult = result as Llama3370BNonStreamedOutput;
-        return this.createSuccessResult({
-          response: typedResult.response,
-        });
+        result = (await context.env.AI.run(
+          "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          params,
+          context.env.AI_OPTIONS
+        )) as AiTextGenerationOutput;
       }
+
+      return this.createSuccessResult({
+        response: result.response,
+        ...(executedToolCalls.length > 0
+          ? { tool_calls: executedToolCalls }
+          : {}),
+      });
     } catch (error) {
       console.error(error);
       return this.createErrorResult(

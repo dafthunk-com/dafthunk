@@ -16,6 +16,7 @@ export class MedianNode extends ExecutableNode {
     tags: ["Math"],
     icon: "bar-chart-3",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "numbers",

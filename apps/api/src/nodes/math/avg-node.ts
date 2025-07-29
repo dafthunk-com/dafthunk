@@ -15,6 +15,7 @@ export class AvgNode extends ExecutableNode {
     tags: ["Math"],
     icon: "bar-chart",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "numbers",

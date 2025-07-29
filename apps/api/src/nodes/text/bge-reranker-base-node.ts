@@ -16,6 +16,7 @@ export class BgeRerankerBaseNode extends ExecutableNode {
     tags: ["Text"],
     icon: "search",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "query",

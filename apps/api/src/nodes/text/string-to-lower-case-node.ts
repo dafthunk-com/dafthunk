@@ -12,6 +12,7 @@ export class StringToLowerCaseNode extends ExecutableNode {
     tags: ["Text"],
     icon: "text",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "string",

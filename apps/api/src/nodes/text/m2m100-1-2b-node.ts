@@ -14,6 +14,7 @@ export class M2m10012bNode extends ExecutableNode {
     tags: ["Text"],
     icon: "language",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "text",

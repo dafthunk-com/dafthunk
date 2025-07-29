@@ -31,6 +31,8 @@ export interface WorkflowNodeType extends Record<string, unknown> {
   error?: string | null;
   executionState: NodeExecutionState;
   nodeType?: string;
+  functionCalling?: boolean;
+  asTool?: boolean;
 }
 
 // Edge Types
@@ -50,6 +52,8 @@ export interface NodeTemplate {
   tags: string[];
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
+  functionCalling?: boolean;
+  asTool?: boolean;
 }
 
 // Canvas Types

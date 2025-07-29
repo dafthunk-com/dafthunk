@@ -12,6 +12,7 @@ export class SendEmailSendgridNode extends ExecutableNode {
     tags: ["Email"],
     icon: "mail",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "to",

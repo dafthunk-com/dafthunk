@@ -102,6 +102,7 @@ import { SectorNode } from "./geo/sector-node";
 import { ShortestPathNode } from "./geo/shortest-path-node";
 import { SimplifyNode } from "./geo/simplify-node";
 import { SquareNode } from "./geo/square-node";
+import { ToGeoJsonNode } from "./geo/to-geojson-node";
 import { TransformRotateNode } from "./geo/transform-rotate-node";
 import { TransformScaleNode } from "./geo/transform-scale-node";
 import { TransformTranslateNode } from "./geo/transform-translate-node";
@@ -186,10 +187,13 @@ import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
 import { DistilbertSst2Int8Node } from "./text/distilbert-sst-2-int8-node";
+import { Hermes2ProMistral7BNode } from "./text/hermes-2-pro-mistral-7b-node";
 import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
+import { Llama4Scout17B16EInstructNode } from "./text/llama-4-scout-17b-16e-instruct-node";
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
+import { MistralSmall31_24BInstructNode } from "./text/mistral-small-3-1-24b-instruct-node";
 import { MultiVariableStringTemplateNode } from "./text/multi-variable-string-template-node";
 import { RegexExtractNode } from "./text/regex-extract-node";
 import { RegexMatchNode } from "./text/regex-match-node";
@@ -206,6 +210,7 @@ import { StringToLowerCaseNode } from "./text/string-to-lower-case-node";
 import { StringToUpperCaseNode } from "./text/string-to-upper-case-node";
 import { StringTrimNode } from "./text/string-trim-node";
 import { TextAreaNode } from "./text/text-area-node";
+import { ToJsonNode } from "./text/to-json-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
 
@@ -261,6 +266,12 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(Llama318BInstructFastNode);
     this.registerImplementation(Llama3370BInstructFastNode);
     this.registerImplementation(DeepseekR1DistillQwen32BNode);
+    this.registerImplementation(Hermes2ProMistral7BNode);
+    this.registerImplementation(Llama4Scout17B16EInstructNode);
+    this.registerImplementation(MistralSmall31_24BInstructNode);
+    this.registerImplementation(Hermes2ProMistral7BNode);
+    this.registerImplementation(Llama4Scout17B16EInstructNode);
+    this.registerImplementation(MistralSmall31_24BInstructNode);
     this.registerImplementation(WhisperNode);
     this.registerImplementation(WhisperLargeV3TurboNode);
     this.registerImplementation(WhisperTinyEnNode);
@@ -308,6 +319,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(RegexExtractNode);
     this.registerImplementation(RegexReplaceNode);
     this.registerImplementation(RegexSplitNode);
+    this.registerImplementation(ToJsonNode);
     this.registerImplementation(ConditionalForkNode);
     this.registerImplementation(ConditionalJoinNode);
 
@@ -463,6 +475,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(ShortestPathNode);
       this.registerImplementation(SimplifyNode);
       this.registerImplementation(SquareNode);
+      this.registerImplementation(ToGeoJsonNode);
       this.registerImplementation(TransformRotateNode);
       this.registerImplementation(TransformScaleNode);
       this.registerImplementation(TransformTranslateNode);

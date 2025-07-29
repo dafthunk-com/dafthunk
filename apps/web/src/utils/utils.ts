@@ -82,7 +82,8 @@ export function extractDialogParametersFromNodes(
 
 // Helper function to convert backend nodes to ReactFlow nodes
 export function adaptDeploymentNodesToReactFlowNodes(
-  backendNodes: BackendNode[]
+  backendNodes: BackendNode[],
+  nodeTemplates: NodeTemplate[] = []
 ): Node<WorkflowNodeType>[] {
   return (backendNodes || []).map((depNode) => {
     const adaptedInputs: WorkflowParameter[] = (depNode.inputs || []).map(
@@ -123,9 +124,11 @@ export function adaptDeploymentNodesToReactFlowNodes(
         id: depNode.id,
         name: depNode.name,
         nodeType: depNode.type,
+        functionCalling: depNode.functionCalling,
         inputs: adaptedInputs,
         outputs: adaptedOutputs,
         executionState: "idle",
+        nodeTemplates,
       },
     } as Node<WorkflowNodeType>;
   });

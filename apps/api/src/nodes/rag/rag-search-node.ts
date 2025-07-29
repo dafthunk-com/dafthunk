@@ -19,6 +19,7 @@ export class RagSearchNode extends ExecutableNode {
     tags: ["AI"],
     icon: "search",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "query",

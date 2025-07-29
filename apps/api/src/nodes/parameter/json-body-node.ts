@@ -11,6 +11,7 @@ export class JsonBodyNode extends ExecutableNode {
     tags: ["Parameter"],
     icon: "braces",
     inlinable: true,
+    asTool: true,
     compatibility: ["http_request"],
     inputs: [
       {

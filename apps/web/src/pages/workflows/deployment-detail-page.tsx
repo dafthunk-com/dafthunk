@@ -191,17 +191,23 @@ export function DeploymentDetailPage() {
         name: type.name,
         description: type.description || "",
         tags: type.tags,
+        functionCalling: type.functionCalling,
+        asTool: type.asTool,
         inputs: type.inputs.map((input) => ({
           id: input.name, // Assuming name is unique identifier for input/output handles
           type: input.type,
           name: input.name,
           hidden: input.hidden,
+          required: input.required,
+          repeated: input.repeated,
         })),
         outputs: type.outputs.map((output) => ({
           id: output.name, // Assuming name is unique identifier for input/output handles
           type: output.type,
           name: output.name,
           hidden: output.hidden,
+          required: output.required,
+          repeated: output.repeated,
         })),
       })) || [],
     [nodeTypes]
@@ -269,7 +275,10 @@ export function DeploymentDetailPage() {
           );
         }
       },
-      adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes),
+      adaptDeploymentNodesToReactFlowNodes(
+        currentDeployment.nodes,
+        nodeTemplates
+      ),
       nodeTemplates,
       workflow.type
     );
@@ -471,7 +480,10 @@ export function DeploymentDetailPage() {
         <HttpIntegrationDialog
           isOpen={isIntegrationDialogOpen}
           onClose={setIsIntegrationDialogOpen}
-          nodes={adaptDeploymentNodesToReactFlowNodes(currentDeployment.nodes)}
+          nodes={adaptDeploymentNodesToReactFlowNodes(
+            currentDeployment.nodes,
+            nodeTemplates
+          )}
           nodeTemplates={nodeTemplates}
           orgHandle={orgHandle}
           workflowId={workflowId!}

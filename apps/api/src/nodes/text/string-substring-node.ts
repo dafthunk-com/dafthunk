@@ -13,6 +13,7 @@ export class StringSubstringNode extends ExecutableNode {
     tags: ["Text"],
     icon: "scissors",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "haystack",

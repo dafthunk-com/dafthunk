@@ -17,6 +17,7 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
     tags: ["Browser"],
     icon: "braces",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "url",

@@ -15,6 +15,7 @@ export class AbsoluteValueNode extends ExecutableNode {
     tags: ["Math"],
     icon: "absolute",
     inlinable: true,
+    asTool: true,
     inputs: [{ name: "value", type: "number", required: true }],
     outputs: [{ name: "result", type: "number" }],
   };

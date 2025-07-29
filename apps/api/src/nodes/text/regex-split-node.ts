@@ -12,6 +12,7 @@ export class RegexSplitNode extends ExecutableNode {
     tags: ["Text"],
     icon: "divide",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "string",

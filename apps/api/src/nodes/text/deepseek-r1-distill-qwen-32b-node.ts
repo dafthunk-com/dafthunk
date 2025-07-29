@@ -21,6 +21,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
+    asTool: true,
     inputs: [
       {
         name: "prompt",

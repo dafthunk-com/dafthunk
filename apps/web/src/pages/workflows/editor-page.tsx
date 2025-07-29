@@ -84,6 +84,8 @@ export function EditorPage() {
         name: type.name,
         description: type.description || "",
         tags: type.tags,
+        functionCalling: type.functionCalling,
+        asTool: type.asTool,
         inputs: type.inputs.map((input) => ({
           id: input.name, // Assuming name is unique identifier for input/output handles
           type: input.type,
@@ -160,6 +162,7 @@ export function EditorPage() {
     currentWorkflow,
     isWorkflowDetailsLoading,
     workflowDetailsError,
+    nodeTemplates,
   });
 
   useEffect(() => {

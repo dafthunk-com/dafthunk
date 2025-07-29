@@ -10,6 +10,7 @@ export class HttpRequestNode extends ExecutableNode {
     description: "Make a customizable HTTP request to a third-party service.",
     tags: ["Net"],
     icon: "globe",
+    asTool: true,
     inputs: [
       {
         name: "url",

@@ -14,6 +14,7 @@ export class SquareNode extends ExecutableNode {
     tags: ["Geo"],
     icon: "square",
     inlinable: true,
+    asTool: true,
     inputs: [
       {
         name: "bbox",
