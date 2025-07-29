@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
 import type {
+  NodeTemplate,
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types"; // Corrected import path
@@ -16,6 +17,7 @@ interface UseEditableWorkflowProps {
   currentWorkflow: Workflow | null | undefined;
   isWorkflowDetailsLoading: boolean;
   workflowDetailsError: Error | null;
+  nodeTemplates?: NodeTemplate[];
 }
 
 export function useEditableWorkflow({
@@ -23,6 +25,7 @@ export function useEditableWorkflow({
   currentWorkflow,
   isWorkflowDetailsLoading,
   workflowDetailsError,
+  nodeTemplates = [],
 }: UseEditableWorkflowProps) {
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
@@ -54,7 +57,8 @@ export function useEditableWorkflow({
 
     try {
       const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
-        currentWorkflow.nodes
+        currentWorkflow.nodes,
+        nodeTemplates
       );
       const reactFlowEdges = currentWorkflow.edges.map((edge, index) => ({
         id: `e${index}`,
@@ -85,7 +89,12 @@ export function useEditableWorkflow({
     } finally {
       setIsInitializing(false);
     }
-  }, [currentWorkflow, isWorkflowDetailsLoading, workflowDetailsError]);
+  }, [
+    currentWorkflow,
+    isWorkflowDetailsLoading,
+    workflowDetailsError,
+    nodeTemplates,
+  ]);
 
   const saveWorkflowInternal = useCallback(
     async (
@@ -121,6 +130,7 @@ export function useEditableWorkflow({
             name: node.data.name,
             type: node.data.nodeType || "default", // Ensure nodeType is present
             position: node.position,
+            functionCalling: node.data.functionCalling,
             inputs: node.data.inputs.map((input) => {
               const isConnected = incomingEdges.some(
                 (edge) => edge.targetHandle === input.id

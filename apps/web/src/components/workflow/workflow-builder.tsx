@@ -133,6 +133,7 @@ export function WorkflowBuilder({
     validateConnection,
     createObjectUrl,
     readonly,
+    nodeTemplates,
   });
 
   // Track input and output connections

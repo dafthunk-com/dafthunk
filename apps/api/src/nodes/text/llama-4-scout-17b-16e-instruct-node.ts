@@ -183,7 +183,7 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
         | AiTextGenerationOutput;
       let executedToolCalls: any[] = [];
 
-      if (tools.length > 0) {
+      if (toolsDefinitions.length > 0) {
         const toolCallTracker = new ToolCallTracker();
         const trackedToolDefinitions =
           toolCallTracker.wrapToolDefinitions(toolsDefinitions);

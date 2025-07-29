@@ -182,7 +182,7 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
         | AiTextGenerationOutput;
       let executedToolCalls: any[] = [];
 
-      if (tools.length > 0) {
+      if (toolsDefinitions.length > 0) {
         const toolCallTracker = new ToolCallTracker();
         const trackedToolDefinitions =
           toolCallTracker.wrapToolDefinitions(toolsDefinitions);

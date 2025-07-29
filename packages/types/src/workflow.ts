@@ -238,6 +238,7 @@ export interface Node {
   inputs: Parameter[];
   outputs: Parameter[];
   error?: string;
+  functionCalling?: boolean;
 }
 
 /**

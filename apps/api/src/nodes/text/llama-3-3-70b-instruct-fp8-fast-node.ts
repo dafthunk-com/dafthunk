@@ -168,7 +168,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       let result: AiTextGenerationOutput;
       let executedToolCalls: any[] = [];
 
-      if (tools.length > 0) {
+      if (toolsDefinitions.length > 0) {
         const toolCallTracker = new ToolCallTracker();
         const trackedToolDefinitions =
           toolCallTracker.wrapToolDefinitions(toolsDefinitions);

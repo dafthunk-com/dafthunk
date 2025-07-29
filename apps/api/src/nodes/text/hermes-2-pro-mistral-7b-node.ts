@@ -172,7 +172,7 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
       }
 
       // Check if we have function calls to enable embedded mode
-      const toolDefinitions = await this.convertFunctionCallsToToolDefinitions(
+      const toolsDefinitions = await this.convertFunctionCallsToToolDefinitions(
         tools as ToolReference[],
         context
       );
@@ -180,10 +180,10 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
       let result: AiTextGenerationOutput;
       let executedToolCalls: any[] = [];
 
-      if (tools.length > 0) {
+      if (toolsDefinitions.length > 0) {
         const toolCallTracker = new ToolCallTracker();
         const trackedToolDefinitions =
-          toolCallTracker.wrapToolDefinitions(toolDefinitions);
+          toolCallTracker.wrapToolDefinitions(toolsDefinitions);
 
         result = await runWithTools(
           // @ts-ignore

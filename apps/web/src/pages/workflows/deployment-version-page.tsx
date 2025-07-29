@@ -60,17 +60,23 @@ export function DeploymentVersionPage() {
         name: type.name,
         description: type.description || "",
         tags: type.tags,
+        functionCalling: type.functionCalling,
+        asTool: type.asTool,
         inputs: type.inputs.map((input) => ({
           id: input.name,
           type: input.type,
           name: input.name,
           hidden: input.hidden,
+          required: input.required,
+          repeated: input.repeated,
         })),
         outputs: type.outputs.map((output) => ({
           id: output.name,
           type: output.type,
           name: output.name,
           hidden: output.hidden,
+          required: output.required,
+          repeated: output.repeated,
         })),
       })) || [],
     [nodeTypes]
@@ -111,6 +117,7 @@ export function DeploymentVersionPage() {
               })),
               executionState: "idle" as const,
               nodeType: node.type,
+              functionCalling: node.functionCalling,
               createObjectUrl,
             },
           }));

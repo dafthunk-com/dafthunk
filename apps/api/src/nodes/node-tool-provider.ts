@@ -172,7 +172,12 @@ export class NodeToolProvider implements ToolProvider {
     const nodeTypes = this.nodeRegistry.getNodeTypes();
     const tools: ToolDefinition[] = [];
 
-    for (const nodeType of nodeTypes) {
+    // Filter to only include nodes that can be used as tools
+    const toolNodeTypes = nodeTypes.filter(
+      (nodeType) => nodeType.asTool === true
+    );
+
+    for (const nodeType of toolNodeTypes) {
       try {
         const tool = await this.getToolDefinition(nodeType.type);
         tools.push(tool);
