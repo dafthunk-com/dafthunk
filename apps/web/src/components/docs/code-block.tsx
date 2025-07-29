@@ -92,14 +92,14 @@ export function CodeBlock({ children, className, language }: CodeBlockProps) {
       <Button
         size="icon"
         variant="ghost"
-        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-transparent z-10"
+        className="absolute right-0 top-0 h-8 w-8 text-zinc-400 z-10"
         onClick={handleCopy}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
       <div
         className={cn(
-          "mb-4 mt-2 overflow-x-auto rounded-md text-sm [&_pre]:m-0 [&_pre]:p-4 [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre-wrap",
+          "overflow-y-auto overflow-x-auto nowheel mb-4 mt-2 text-sm [&_pre]:m-0 [&_pre]:p-4 [&_pre]:!bg-secondary [&_pre]:dark:!bg-neutral-900 [&_code]:whitespace-pre",
           className
         )}
         dangerouslySetInnerHTML={{ __html: highlightedCode }}

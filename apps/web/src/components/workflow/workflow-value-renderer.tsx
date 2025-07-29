@@ -221,17 +221,13 @@ const GeoJSONRenderer = ({
           width={compact ? 300 : 400}
           height={compact ? 200 : 300}
         />
-
-        <div
-          className={`${compact ? "max-h-[300px] overflow-y-auto nowheel" : ""}`}
-        >
-          <CodeBlock
-            language="json"
-            className="text-xs my-0 border [&_pre]:p-2"
-          >
-            {formattedValue}
-          </CodeBlock>
-        </div>
+        <CodeRenderer
+          value={formattedValue}
+          type="json"
+          compact={compact}
+          readonly={readonly}
+          onChange={onChange}
+        />
       </div>
     );
   }
@@ -312,11 +308,14 @@ const CodeRenderer = ({
   if (readonly) {
     return (
       <div
-        className={`${compact ? "mt-1 max-h-[300px] overflow-y-auto nowheel" : "mt-2"}`}
+        className={
+          "border rounded-md bg-muted overflow-auto " +
+          `${compact ? "mt-1 h-32" : "mt-2"}`
+        }
       >
         <CodeBlock
           language={getLanguage(type)}
-          className="text-xs my-0 border [&_pre]:p-2"
+          className="text-xs my-0 [&_pre]:p-2"
         >
           {value}
         </CodeBlock>
