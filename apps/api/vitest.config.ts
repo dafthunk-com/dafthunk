@@ -9,6 +9,7 @@ export default defineWorkersConfig({
         wrangler: {
           configPath: "./wrangler.test.jsonc",
         },
+        singleWorker: true,
       },
     },
   },

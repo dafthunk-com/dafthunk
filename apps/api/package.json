@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@cloudflare/puppeteer": "^1.0.2",
-    "@cloudflare/vitest-pool-workers": "^0.8.56",
+    "@cloudflare/vitest-pool-workers": "^0.8.58",
     "@cloudflare/workers-types": "^4.20250726.0",
     "@eslint/js": "^9.26.0",
     "@types/mailparser": "^3.4.6",
@@ -38,7 +38,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.1",
     "vitest": "^3.2.4",
-    "wrangler": "^4.20.0"
+    "wrangler": "^4.26.1"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.812.0",
