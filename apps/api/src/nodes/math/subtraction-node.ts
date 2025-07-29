@@ -17,10 +17,26 @@ export class SubtractionNode extends ExecutableNode {
     inlinable: true,
     asTool: true,
     inputs: [
-      { name: "a", type: "number", required: true },
-      { name: "b", type: "number", required: true },
+      {
+        name: "a",
+        type: "number",
+        description: "The number to subtract from (minuend)",
+        required: true
+      },
+      {
+        name: "b",
+        type: "number",
+        description: "The number to subtract (subtrahend)",
+        required: true
+      },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The difference between a and b (a - b)",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

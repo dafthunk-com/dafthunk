@@ -18,10 +18,26 @@ export class ModuloNode extends ExecutableNode {
     inlinable: true,
     asTool: true,
     inputs: [
-      { name: "a", type: "number", required: true },
-      { name: "b", type: "number", required: true },
+      {
+        name: "a", 
+        type: "number", 
+        description: "The dividend (number to be divided)",
+        required: true 
+      },
+      {
+        name: "b", 
+        type: "number", 
+        description: "The divisor (number to divide by)",
+        required: true 
+      },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [
+      {
+        name: "result", 
+        type: "number",
+        description: "The remainder after dividing a by b",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

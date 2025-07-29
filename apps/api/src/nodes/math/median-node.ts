@@ -27,7 +27,13 @@ export class MedianNode extends ExecutableNode {
         repeated: true,
       },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The median value of the input numbers (middle value when sorted)",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

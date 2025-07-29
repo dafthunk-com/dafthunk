@@ -17,10 +17,26 @@ export class ExponentiationNode extends ExecutableNode {
     inlinable: true,
     asTool: true,
     inputs: [
-      { name: "base", type: "number", required: true },
-      { name: "exponent", type: "number", required: true },
+      {
+        name: "base",
+        type: "number",
+        description: "The base number to be raised to a power",
+        required: true
+      },
+      {
+        name: "exponent",
+        type: "number",
+        description: "The power to raise the base to",
+        required: true
+      },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The result of base raised to the power of exponent",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

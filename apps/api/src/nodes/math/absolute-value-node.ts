@@ -16,8 +16,21 @@ export class AbsoluteValueNode extends ExecutableNode {
     icon: "absolute",
     inlinable: true,
     asTool: true,
-    inputs: [{ name: "value", type: "number", required: true }],
-    outputs: [{ name: "result", type: "number" }],
+    inputs: [
+      {
+        name: "value",
+        type: "number",
+        description: "The number to calculate the absolute value of",
+        required: true,
+      },
+    ],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The absolute value of the input number",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

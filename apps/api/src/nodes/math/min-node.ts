@@ -26,7 +26,13 @@ export class MinNode extends ExecutableNode {
         repeated: true,
       },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The minimum value from the input numbers",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

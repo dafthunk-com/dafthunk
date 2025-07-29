@@ -16,10 +16,26 @@ export class AdditionNode extends ExecutableNode {
     inlinable: true,
     asTool: true,
     inputs: [
-      { name: "a", type: "number", required: true },
-      { name: "b", type: "number", required: true },
+      {
+        name: "a",
+        type: "number",
+        description: "The first number to add",
+        required: true
+      },
+      {
+        name: "b",
+        type: "number",
+        description: "The second number to add",
+        required: true
+      },
     ],
-    outputs: [{ name: "result", type: "number" }],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The sum of the two input numbers",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {

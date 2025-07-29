@@ -16,8 +16,21 @@ export class SquareRootNode extends ExecutableNode {
     icon: "square-root",
     inlinable: true,
     asTool: true,
-    inputs: [{ name: "value", type: "number", required: true }],
-    outputs: [{ name: "result", type: "number" }],
+    inputs: [
+      {
+        name: "value",
+        type: "number",
+        description: "The number to calculate the square root of",
+        required: true,
+      },
+    ],
+    outputs: [
+      {
+        name: "result",
+        type: "number",
+        description: "The square root of the input number",
+      },
+    ],
   };
 
   async execute(context: NodeContext): Promise<NodeExecution> {
