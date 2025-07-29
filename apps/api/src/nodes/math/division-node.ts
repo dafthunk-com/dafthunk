@@ -21,13 +21,13 @@ export class DivisionNode extends ExecutableNode {
         name: "a",
         type: "number",
         description: "The dividend (number to be divided)",
-        required: true
+        required: true,
       },
       {
         name: "b",
         type: "number",
         description: "The divisor (number to divide by)",
-        required: true
+        required: true,
       },
     ],
     outputs: [

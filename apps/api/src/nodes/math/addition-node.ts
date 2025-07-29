@@ -20,13 +20,13 @@ export class AdditionNode extends ExecutableNode {
         name: "a",
         type: "number",
         description: "The first number to add",
-        required: true
+        required: true,
       },
       {
         name: "b",
         type: "number",
         description: "The second number to add",
-        required: true
+        required: true,
       },
     ],
     outputs: [

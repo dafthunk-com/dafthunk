@@ -19,21 +19,21 @@ export class ModuloNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
-        name: "a", 
-        type: "number", 
+        name: "a",
+        type: "number",
         description: "The dividend (number to be divided)",
-        required: true 
+        required: true,
       },
       {
-        name: "b", 
-        type: "number", 
+        name: "b",
+        type: "number",
         description: "The divisor (number to divide by)",
-        required: true 
+        required: true,
       },
     ],
     outputs: [
       {
-        name: "result", 
+        name: "result",
         type: "number",
         description: "The remainder after dividing a by b",
       },

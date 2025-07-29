@@ -21,13 +21,13 @@ export class SubtractionNode extends ExecutableNode {
         name: "a",
         type: "number",
         description: "The number to subtract from (minuend)",
-        required: true
+        required: true,
       },
       {
         name: "b",
         type: "number",
         description: "The number to subtract (subtrahend)",
-        required: true
+        required: true,
       },
     ],
     outputs: [

@@ -31,7 +31,8 @@ export class MedianNode extends ExecutableNode {
       {
         name: "result",
         type: "number",
-        description: "The median value of the input numbers (middle value when sorted)",
+        description:
+          "The median value of the input numbers (middle value when sorted)",
       },
     ],
   };

@@ -21,13 +21,13 @@ export class ExponentiationNode extends ExecutableNode {
         name: "base",
         type: "number",
         description: "The base number to be raised to a power",
-        required: true
+        required: true,
       },
       {
         name: "exponent",
         type: "number",
         description: "The power to raise the base to",
-        required: true
+        required: true,
       },
     ],
     outputs: [

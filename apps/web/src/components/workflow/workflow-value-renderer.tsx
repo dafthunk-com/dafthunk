@@ -418,7 +418,10 @@ export function WorkflowValueRenderer({
     }
   };
 
-  if ((parameter.value === null || parameter.value === undefined) && !onChange) {
+  if (
+    (parameter.value === null || parameter.value === undefined) &&
+    !onChange
+  ) {
     return (
       <div
         className={
