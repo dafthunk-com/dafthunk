@@ -12,7 +12,7 @@ export class Flux1SchnellNode extends ExecutableNode {
     type: "flux-1-schnell",
     description:
       "Generates images from text descriptions using the FLUX.1 schnell model",
-    tags: ["Image"],
+    tags: ["Image", "AI"],
     icon: "image",
     computeCost: 10,
     inputs: [

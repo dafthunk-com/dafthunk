@@ -16,7 +16,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     type: "llama-3-3-70b-instruct-fp8-fast",
     description:
       "Generates text using Llama 3.3 70B Instruct Fast model with fp8 precision",
-    tags: ["Text"],
+    tags: ["Text", "AI"],
     icon: "ai",
     computeCost: 10,
     asTool: true,

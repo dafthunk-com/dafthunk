@@ -16,7 +16,7 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
     type: "mistral-small-3-1-24b-instruct",
     description:
       "Generates text with function calling support using Mistral Small 3.1 24B Instruct model",
-    tags: ["Text"],
+    tags: ["Text", "AI"],
     icon: "ai",
     computeCost: 10,
     asTool: true,

@@ -12,7 +12,7 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
     type: "stable-diffusion-v1-5-inpainting",
     description:
       "Generates images by inpainting masked areas using Stable Diffusion v1.5",
-    tags: ["Image"],
+    tags: ["Image", "AI"],
     icon: "brush",
     computeCost: 10,
     inputs: [

@@ -16,7 +16,7 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
     type: "llama-4-scout-17b-16e-instruct",
     description:
       "Generates text with function calling support using Llama 4 Scout 17B 16E Instruct model",
-    tags: ["Text"],
+    tags: ["Text", "AI"],
     icon: "ai",
     computeCost: 10,
     asTool: true,
