@@ -233,7 +233,6 @@ describe("BooleanOverlapNode", () => {
         "Compares two geometries of the same dimension"
       );
       expect(nodeType.tags).toContain("Geo");
-      expect(nodeType.tags).toContain("Turf");
     });
 
     it("should have correct input definitions", () => {

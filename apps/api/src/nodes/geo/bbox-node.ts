@@ -11,7 +11,7 @@ export class BboxNode extends ExecutableNode {
     type: "bbox",
     description:
       "Calculates the bounding box of any GeoJSON feature in [minX, minY, maxX, maxY] format.",
-    tags: ["Geo", "Turf"],
+    tags: ["Geo"],
     icon: "square-dashed",
     inlinable: true,
     inputs: [

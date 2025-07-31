@@ -27,7 +27,6 @@ describe("BboxNode", () => {
       expect(BboxNode.nodeType.name).toBe("Bounding Box");
       expect(BboxNode.nodeType.type).toBe("bbox");
       expect(BboxNode.nodeType.tags).toContain("Geo");
-      expect(BboxNode.nodeType.tags).toContain("Turf");
     });
 
     it("should have correct inputs", () => {

@@ -27,7 +27,6 @@ describe("LineStringNode", () => {
       expect(LineStringNode.nodeType.name).toBe("LineString");
       expect(LineStringNode.nodeType.type).toBe("lineString");
       expect(LineStringNode.nodeType.tags).toContain("Geo");
-      expect(LineStringNode.nodeType.tags).toContain("Turf");
     });
 
     it("should have correct inputs", () => {

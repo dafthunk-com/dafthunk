@@ -74,7 +74,6 @@ describe("PointNode", () => {
       expect(PointNode.nodeType.name).toBe("Point");
       expect(PointNode.nodeType.type).toBe("point");
       expect(PointNode.nodeType.tags).toContain("Geo");
-      expect(PointNode.nodeType.tags).toContain("Turf");
     });
 
     it("should have correct inputs", () => {

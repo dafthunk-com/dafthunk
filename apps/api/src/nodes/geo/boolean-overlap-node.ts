@@ -11,7 +11,7 @@ export class BooleanOverlapNode extends ExecutableNode {
     type: "booleanOverlap",
     description:
       "Compares two geometries of the same dimension and returns true if their intersection set results in a geometry different from both but of the same dimension. Applies to Polygon/Polygon, LineString/LineString, Multipoint/Multipoint, MultiLineString/MultiLineString and MultiPolygon/MultiPolygon.",
-    tags: ["Geo", "Turf"],
+    tags: ["Geo"],
     icon: "intersect",
     inlinable: true,
     inputs: [
