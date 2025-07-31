@@ -10,7 +10,7 @@ import { ExecutableNode, NodeContext } from "../types";
 export class CloudflareBrowserLinksNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "cloudflare-browser-links",
-    name: "Cloudflare Browser Links",
+    name: "Browser Links",
     type: "cloudflare-browser-links",
     description:
       "Fetch all links from a rendered page using Cloudflare Browser Rendering.",

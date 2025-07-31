@@ -10,7 +10,7 @@ import { ExecutableNode, NodeContext } from "../types";
 export class CloudflareBrowserMarkdownNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "cloudflare-browser-markdown",
-    name: "Cloudflare Browser Markdown",
+    name: "Browser Markdown",
     type: "cloudflare-browser-markdown",
     description:
       "Fetch markdown from a rendered page using Cloudflare Browser Rendering.",

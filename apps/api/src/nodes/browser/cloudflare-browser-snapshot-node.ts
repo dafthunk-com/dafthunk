@@ -10,7 +10,7 @@ import { ExecutableNode, NodeContext } from "../types";
 export class CloudflareBrowserSnapshotNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "cloudflare-browser-snapshot",
-    name: "Cloudflare Browser Snapshot",
+    name: "Browser Snapshot",
     type: "cloudflare-browser-snapshot",
     description:
       "Get HTML content and screenshot from a rendered page using Cloudflare Browser Rendering.",

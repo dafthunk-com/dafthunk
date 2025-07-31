@@ -10,7 +10,7 @@ import { ExecutableNode, NodeContext } from "../types";
 export class CloudflareBrowserScrapeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "cloudflare-browser-scrape",
-    name: "Cloudflare Browser Scrape",
+    name: "Browser Scrape",
     type: "cloudflare-browser-scrape",
     description:
       "Scrape elements from a rendered page using Cloudflare Browser Rendering.",

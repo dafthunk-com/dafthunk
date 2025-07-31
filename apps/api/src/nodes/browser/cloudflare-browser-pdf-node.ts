@@ -10,7 +10,7 @@ import { ExecutableNode, NodeContext } from "../types";
 export class CloudflareBrowserPdfNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "cloudflare-browser-pdf",
-    name: "Cloudflare Browser PDF",
+    name: "Browser PDF",
     type: "cloudflare-browser-pdf",
     description:
       "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",

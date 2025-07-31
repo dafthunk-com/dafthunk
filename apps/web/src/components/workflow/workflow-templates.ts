@@ -130,7 +130,7 @@ export const workflowTemplates: WorkflowTemplate[] = [
       },
       {
         id: "browser-content-1",
-        name: "Cloudflare Browser Content",
+        name: "Browser Content",
         type: "cloudflare-browser-content",
         description: "Extract website content",
         position: { x: 500, y: 100 },

@@ -10,7 +10,7 @@ import { ExecutableNode, NodeContext } from "../types";
 export class CloudflareBrowserJsonNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "cloudflare-browser-json",
-    name: "Cloudflare Browser JSON",
+    name: "Browser JSON",
     type: "cloudflare-browser-json",
     description:
       "Fetch JSON from a rendered page using Cloudflare Browser Rendering.",
