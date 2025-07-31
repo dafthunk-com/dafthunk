@@ -17,7 +17,7 @@ export class NumberInputNode extends ExecutableNode {
     type: "number-input",
     description: "A number input widget for entering numeric values",
     tags: ["Math"],
-    icon: "number",
+    icon: "hash",
     inlinable: true,
     asTool: true,
     inputs: [

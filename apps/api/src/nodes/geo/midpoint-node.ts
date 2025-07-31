@@ -11,7 +11,7 @@ export class MidpointNode extends ExecutableNode {
     type: "midpoint",
     description: "Calculates the midpoint between two points.",
     tags: ["Geo"],
-    icon: "crosshairs",
+    icon: "crosshair",
     inlinable: true,
     inputs: [
       {

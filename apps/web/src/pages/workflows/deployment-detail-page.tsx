@@ -190,6 +190,7 @@ export function DeploymentDetailPage() {
         type: type.id,
         name: type.name,
         description: type.description || "",
+        icon: type.icon,
         tags: type.tags,
         functionCalling: type.functionCalling,
         asTool: type.asTool,

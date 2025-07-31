@@ -24,6 +24,8 @@ import {
   TypeIcon,
   WrenchIcon,
 } from "lucide-react";
+// @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
+import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { createElement, memo, useEffect, useState } from "react";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -59,6 +61,7 @@ export interface WorkflowNodeType {
   error?: string | null;
   executionState: NodeExecutionState;
   nodeType?: string;
+  icon: string;
   functionCalling?: boolean;
   asTool?: boolean;
   dragHandle?: string;
@@ -322,13 +325,17 @@ export const WorkflowNode = memo(
             )}
           >
             <div className="flex items-center gap-1 flex-1 min-w-0">
+              <DynamicIcon
+                name={data.icon as any}
+                className="mx-1 h-3 w-3 text-blue-600 shrink-0"
+              />
+              <h3 className="text-xs font-medium truncate">{data.name}</h3>
               {data.functionCalling && (
                 <WrenchIcon
                   className="h-3 w-3 text-blue-600 shrink-0 cursor-pointer hover:text-blue-700 transition-colors"
                   onClick={handleToolIconClick}
                 />
               )}
-              <h3 className="text-xs font-medium truncate">{data.name}</h3>
             </div>
           </div>
 

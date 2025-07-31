@@ -10,7 +10,7 @@ export class IntersectNode extends ExecutableNode {
     type: "intersect",
     description: "Finds the intersection of two polygons.",
     tags: ["Geo"],
-    icon: "intersect",
+    icon: "squares-intersect",
     inlinable: true,
     inputs: [
       {

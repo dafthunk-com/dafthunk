@@ -14,7 +14,7 @@ export class MedianNode extends ExecutableNode {
     description:
       "Returns the median value from multiple numbers (middle value when sorted)",
     tags: ["Math"],
-    icon: "bar-chart-3",
+    icon: "chart-bar-stacked",
     inlinable: true,
     asTool: true,
     inputs: [

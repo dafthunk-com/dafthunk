@@ -12,7 +12,7 @@ export class BooleanIntersectsNode extends ExecutableNode {
     description:
       "Returns true if the intersection results in a geometry whose dimension is equal to the maximum dimension of the two source geometries.",
     tags: ["Geo"],
-    icon: "intersect",
+    icon: "squares-intersect",
     inlinable: true,
     inputs: [
       {

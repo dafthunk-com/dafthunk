@@ -130,6 +130,7 @@ export function useEditableWorkflow({
             name: node.data.name,
             type: node.data.nodeType || "default", // Ensure nodeType is present
             position: node.position,
+            icon: node.data.icon,
             functionCalling: node.data.functionCalling,
             inputs: node.data.inputs.map((input) => {
               const isConnected = incomingEdges.some(

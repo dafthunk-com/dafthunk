@@ -14,7 +14,7 @@ export class PhotonGaussianBlurNode extends ExecutableNode {
     description:
       "Applies Gaussian blur to an image. Higher radius means more blur.",
     tags: ["Image"],
-    icon: "blur-on", // Or just "blur" if available, or a generic filter icon
+    icon: "scan-eye", // Icon for blur effect
     inlinable: true,
     inputs: [
       {

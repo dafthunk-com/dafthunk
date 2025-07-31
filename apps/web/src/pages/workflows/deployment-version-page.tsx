@@ -60,6 +60,7 @@ export function DeploymentVersionPage() {
         name: type.name,
         description: type.description || "",
         tags: type.tags,
+        icon: type.icon,
         functionCalling: type.functionCalling,
         asTool: type.asTool,
         inputs: type.inputs.map((input) => ({
@@ -117,6 +118,7 @@ export function DeploymentVersionPage() {
               })),
               executionState: "idle" as const,
               nodeType: node.type,
+              icon: node.icon,
               functionCalling: node.functionCalling,
               createObjectUrl,
             },

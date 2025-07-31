@@ -1,4 +1,6 @@
 import type { NodeType } from "@dafthunk/types";
+// @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
+import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -203,9 +205,6 @@ function NodeDetailsDialog({
 export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const inputCount = nodeType.inputs?.length || 0;
-  const outputCount = nodeType.outputs?.length || 0;
-
   if (variant === "list") {
     return (
       <>
@@ -217,6 +216,10 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
             <div className="flex items-center gap-4">
               {/* Name and Category */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
+                <DynamicIcon
+                  name={nodeType.icon as any}
+                  className="h-4 w-4 text-blue-600 shrink-0"
+                />
                 <CardTitle className="text-base font-semibold leading-tight truncate">
                   {nodeType.name}
                 </CardTitle>
@@ -232,39 +235,24 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
               </div>
 
               {/* Description */}
-              <div className="hidden md:block flex-1 min-w-0">
-                {nodeType.description && (
+              {nodeType.description && (
+                <div className="hidden md:block flex-1 min-w-0">
                   <p className="text-sm text-muted-foreground leading-relaxed truncate">
                     {nodeType.description}
                   </p>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Stats */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
-                {inputCount > 0 && (
+              {nodeType.compatibility && nodeType.compatibility.length > 0 && (
+                <div className="flex items-center gap-4 text-xs text-muted-foreground shrink-0">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                    <span className="font-medium">In:</span>
-                    <span>{inputCount}</span>
+                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <span className="font-medium">Types:</span>
+                    <span>{nodeType.compatibility.length}</span>
                   </div>
-                )}
-                {outputCount > 0 && (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span className="font-medium">Out:</span>
-                    <span>{outputCount}</span>
-                  </div>
-                )}
-                {nodeType.compatibility &&
-                  nodeType.compatibility.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                      <span className="font-medium">Types:</span>
-                      <span>{nodeType.compatibility.length}</span>
-                    </div>
-                  )}
-              </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -288,6 +276,10 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 min-w-0 flex-1">
+              <DynamicIcon
+                name={nodeType.icon as any}
+                className="h-4 w-4 text-blue-600 shrink-0"
+              />
               <CardTitle className="text-base font-semibold leading-tight truncate">
                 {nodeType.name}
               </CardTitle>
@@ -311,29 +303,15 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
               {nodeType.description}
             </p>
           )}
-          <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
-            {inputCount > 0 && (
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="font-medium">Inputs:</span>{" "}
-                <span>{inputCount}</span>
-              </div>
-            )}
-            {outputCount > 0 && (
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span className="font-medium">Outputs:</span>{" "}
-                <span>{outputCount}</span>
-              </div>
-            )}
-            {nodeType.compatibility && nodeType.compatibility.length > 0 && (
+          {nodeType.compatibility && nodeType.compatibility.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-orange-500"></div>
                 <span className="font-medium">Types:</span>{" "}
                 <span>{nodeType.compatibility.join(", ")}</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

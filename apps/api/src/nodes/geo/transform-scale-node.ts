@@ -12,7 +12,7 @@ export class TransformScaleNode extends ExecutableNode {
     description:
       "Scales any GeoJSON geometry by a factor around an origin point.",
     tags: ["Geo"],
-    icon: "resize",
+    icon: "maximize",
     inlinable: true,
     inputs: [
       {

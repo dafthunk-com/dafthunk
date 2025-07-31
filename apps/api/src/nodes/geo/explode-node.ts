@@ -12,7 +12,7 @@ export class ExplodeNode extends ExecutableNode {
     description:
       "Extracts all vertices from geometries as individual Point features.",
     tags: ["Geo"],
-    icon: "scatter-chart",
+    icon: "chart-scatter",
     inlinable: true,
     inputs: [
       {

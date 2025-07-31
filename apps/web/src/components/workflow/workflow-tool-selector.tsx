@@ -1,4 +1,6 @@
 import { Search } from "lucide-react";
+// @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
+import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -183,8 +185,6 @@ export function WorkflowToolSelector({
         <ScrollArea className="flex-1 px-4 pb-4">
           <div className="space-y-3">
             {filteredTemplates.map((template, index) => {
-              const inputCount = template.inputs?.length || 0;
-              const outputCount = template.outputs?.length || 0;
               const isSelected = localSelectedTools.has(template.id);
 
               return (
@@ -221,6 +221,10 @@ export function WorkflowToolSelector({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
+                        <DynamicIcon
+                          name={template.icon as any}
+                          className="h-4 w-4 text-blue-600 shrink-0"
+                        />
                         <h3 className="font-semibold text-base leading-tight truncate">
                           {template.name}
                         </h3>
@@ -237,26 +241,10 @@ export function WorkflowToolSelector({
                         </div>
                       </div>
                       {template.description && (
-                        <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           {template.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {inputCount > 0 && (
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span className="font-medium">Inputs:</span>
-                            <span>{inputCount}</span>
-                          </div>
-                        )}
-                        {outputCount > 0 && (
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            <span className="font-medium">Outputs:</span>
-                            <span>{outputCount}</span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>

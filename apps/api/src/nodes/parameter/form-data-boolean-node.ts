@@ -10,7 +10,7 @@ export class FormDataBooleanNode extends ExecutableNode {
     description:
       "Extracts a boolean parameter from the HTTP request form data.",
     tags: ["Parameter"],
-    icon: "toggle",
+    icon: "toggle-right",
     asTool: true,
     compatibility: ["http_request"],
     inlinable: true,

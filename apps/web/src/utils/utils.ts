@@ -116,6 +116,10 @@ export function adaptDeploymentNodesToReactFlowNodes(
       }
     );
 
+    // Find the icon from nodeTemplates by matching the node type
+    const template = nodeTemplates.find((t) => t.type === depNode.type);
+    const icon = template?.icon || "circle"; // fallback icon
+
     return {
       id: depNode.id,
       type: "workflowNode",
@@ -124,6 +128,7 @@ export function adaptDeploymentNodesToReactFlowNodes(
         id: depNode.id,
         name: depNode.name,
         nodeType: depNode.type,
+        icon: icon,
         functionCalling: depNode.functionCalling,
         inputs: adaptedInputs,
         outputs: adaptedOutputs,

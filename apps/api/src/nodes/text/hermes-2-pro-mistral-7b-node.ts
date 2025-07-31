@@ -17,7 +17,7 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
     description:
       "Generates text with function calling support using Hermes 2 Pro Mistral 7B model",
     tags: ["Text", "AI"],
-    icon: "ai",
+    icon: "sparkles",
     computeCost: 10,
     asTool: true,
     functionCalling: true,

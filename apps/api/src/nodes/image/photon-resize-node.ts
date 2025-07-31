@@ -14,7 +14,7 @@ export class PhotonResizeNode extends ExecutableNode {
     description:
       "Resizes an image to the specified width and height using Photon.",
     tags: ["Image"],
-    icon: "maximize-2",
+    icon: "maximize2",
     inlinable: true,
     inputs: [
       {

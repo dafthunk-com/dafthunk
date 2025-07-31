@@ -12,7 +12,7 @@ export class BooleanConcaveNode extends ExecutableNode {
     description:
       "Takes a polygon and returns true or false as to whether it is concave or not.",
     tags: ["Geo"],
-    icon: "polygon",
+    icon: "square",
     inlinable: true,
     inputs: [
       {

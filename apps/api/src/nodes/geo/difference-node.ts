@@ -12,7 +12,7 @@ export class DifferenceNode extends ExecutableNode {
     description:
       "Returns the difference between two (multi)polygon features as a new (multi)polygon feature.",
     tags: ["Geo"],
-    icon: "minus-square",
+    icon: "square-minus",
     inlinable: true,
     inputs: [
       {

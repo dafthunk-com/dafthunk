@@ -13,7 +13,7 @@ export class AvgNode extends ExecutableNode {
     type: "avg",
     description: "Returns the average (mean) value from multiple numbers",
     tags: ["Math"],
-    icon: "bar-chart",
+    icon: "chart-bar",
     inlinable: true,
     asTool: true,
     inputs: [

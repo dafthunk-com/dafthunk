@@ -12,7 +12,7 @@ export class BooleanWithinNode extends ExecutableNode {
     description:
       "Returns true if the first geometry is completely within the second geometry.",
     tags: ["Geo"],
-    icon: "within",
+    icon: "mouse-pointer-2",
     inlinable: true,
     inputs: [
       {

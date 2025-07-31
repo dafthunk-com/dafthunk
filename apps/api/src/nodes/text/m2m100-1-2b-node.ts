@@ -12,7 +12,7 @@ export class M2m10012bNode extends ExecutableNode {
     type: "m2m100-1-2b",
     description: "Translates text between languages using M2M100 1.2B model",
     tags: ["Text", "AI"],
-    icon: "language",
+    icon: "sparkles",
     computeCost: 10,
     asTool: true,
     inputs: [

@@ -12,7 +12,7 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     type: "llama-3-1-8b-instruct-fast",
     description: "Generates text using Llama 3.1 8B Instruct Fast model",
     tags: ["Text", "AI"],
-    icon: "ai",
+    icon: "sparkles",
     computeCost: 10,
     asTool: true,
     inputs: [

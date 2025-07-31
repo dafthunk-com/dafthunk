@@ -142,6 +142,7 @@ export function ExecutionDetailPage() {
           executionState: execMap.get(node.id)?.status || "idle",
           error: execMap.get(node.id)?.error,
           nodeType: node.type,
+          icon: node.icon,
         },
       }));
       setReactFlowNodes(rNodes);

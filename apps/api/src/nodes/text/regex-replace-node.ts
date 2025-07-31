@@ -11,7 +11,7 @@ export class RegexReplaceNode extends ExecutableNode {
     description:
       "Replace all matches of a regular expression pattern in a string.",
     tags: ["Text"],
-    icon: "edit",
+    icon: "pencil",
     inlinable: true,
     asTool: true,
     inputs: [

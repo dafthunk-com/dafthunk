@@ -558,6 +558,7 @@ export function useWorkflowState({
           outputs: template.outputs,
           executionState: "idle" as NodeExecutionState,
           nodeType: template.type,
+          icon: template.icon,
           functionCalling: template.functionCalling,
           asTool: template.asTool,
           nodeTemplates,

@@ -12,7 +12,7 @@ export class BooleanParallelNode extends ExecutableNode {
     description:
       "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
     tags: ["Geo"],
-    icon: "parallel",
+    icon: "git-compare",
     inlinable: true,
     inputs: [
       {

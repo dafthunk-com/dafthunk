@@ -234,6 +234,7 @@ export interface Node {
   name: string;
   type: string;
   description?: string;
+  icon?: string;
   position: Position;
   inputs: Parameter[];
   outputs: Parameter[];

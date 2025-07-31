@@ -33,6 +33,7 @@ export interface WorkflowNodeType extends Record<string, unknown> {
   nodeType?: string;
   functionCalling?: boolean;
   asTool?: boolean;
+  icon?: string;
 }
 
 // Edge Types
@@ -50,6 +51,7 @@ export interface NodeTemplate {
   name: string;
   description: string;
   tags: string[];
+  icon: string;
   inputs: WorkflowParameter[];
   outputs: WorkflowParameter[];
   functionCalling?: boolean;

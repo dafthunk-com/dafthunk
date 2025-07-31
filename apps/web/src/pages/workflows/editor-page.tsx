@@ -84,6 +84,7 @@ export function EditorPage() {
         name: type.name,
         description: type.description || "",
         tags: type.tags,
+        icon: type.icon,
         functionCalling: type.functionCalling,
         asTool: type.asTool,
         inputs: type.inputs.map((input) => ({
