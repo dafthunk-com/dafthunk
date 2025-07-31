@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CategoryFilterButtons } from "@/components/ui/category-filter-buttons";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -14,9 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useSearch } from "@/hooks/use-search";
-import { getCategoryColor } from "@/utils/category-colors";
+import { useTagCounts } from "@/hooks/use-tag-counts";
+import { getTagColor } from "@/utils/tag-colors";
 import { cn } from "@/utils/utils";
 
 import type { NodeTemplate } from "./workflow-types";
@@ -42,7 +43,7 @@ export function WorkflowToolSelector({
   selectedTools = [],
 }: WorkflowToolSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [localSelectedTools, setLocalSelectedTools] = useState<Set<string>>(
     new Set(selectedTools.map((tool) => tool.identifier))
   );
@@ -52,19 +53,8 @@ export function WorkflowToolSelector({
     return templates.filter((template) => template.asTool);
   }, [templates]);
 
-  // Get category counts (using first tag as primary category)
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    toolTemplates.forEach((template) => {
-      const category = template.tags[0]; // Use first tag as primary category
-      if (category) {
-        counts[category] = (counts[category] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, count]) => ({ category, count }));
-  }, [toolTemplates]);
+  // Get tag counts (using all tags, not just the first one)
+  const tagCounts = useTagCounts(toolTemplates);
 
   // Use the search hook with intelligent search
   const searchResults = useSearch({
@@ -77,11 +67,10 @@ export function WorkflowToolSelector({
     ],
   });
 
-  // Filter templates based on search results and selected category
+  // Filter templates based on search results and selected tag
   const filteredTemplates = searchResults.filter((template) => {
-    const matchesCategory =
-      !selectedCategory || template.tags.includes(selectedCategory);
-    return matchesCategory;
+    const matchesTag = !selectedTag || template.tags.includes(selectedTag);
+    return matchesTag;
   });
 
   // Use keyboard navigation hook
@@ -99,16 +88,16 @@ export function WorkflowToolSelector({
   } = useKeyboardNavigation({
     open,
     itemsCount: filteredTemplates.length,
-    categoriesCount: categoryCounts.length + 1, // +1 for "All" button
+    categoriesCount: tagCounts.length + 1, // +1 for "All" button
     onClose,
     onSelectItem: (index) => {
       const template = filteredTemplates[index];
       handleTemplateToggle(template.id);
     },
-    onCategoryChange: (category) => {
-      setSelectedCategory(category);
+    onCategoryChange: (tag) => {
+      setSelectedTag(tag);
     },
-    categories: categoryCounts,
+    categories: tagCounts,
   });
 
   const handleTemplateToggle = (templateId: string) => {
@@ -176,12 +165,12 @@ export function WorkflowToolSelector({
           />
         </div>
 
-        {categoryCounts.length > 0 && (
+        {tagCounts.length > 0 && (
           <div className="px-4">
-            <CategoryFilterButtons
-              categories={categoryCounts}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
+            <TagFilterButtons
+              categories={tagCounts}
+              selectedTag={selectedTag}
+              onTagChange={setSelectedTag}
               totalCount={toolTemplates.length}
               onKeyDown={handleCategoryKeyDown}
               setCategoryButtonRef={setCategoryButtonRef}
@@ -240,7 +229,7 @@ export function WorkflowToolSelector({
                             <Badge
                               key={tagIndex}
                               variant="secondary"
-                              className={`${getCategoryColor([tag])} text-xs`}
+                              className={`${getTagColor([tag])} text-xs`}
                             >
                               {tag}
                             </Badge>

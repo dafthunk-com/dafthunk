@@ -1,8 +1,7 @@
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { CategoryFilterButtons } from "@/components/ui/category-filter-buttons";
 import {
   Dialog,
   DialogContent,
@@ -11,9 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useSearch } from "@/hooks/use-search";
-import { getCategoryColor } from "@/utils/category-colors";
+import { useTagCounts } from "@/hooks/use-tag-counts";
+import { getTagColor } from "@/utils/tag-colors";
 import { cn } from "@/utils/utils";
 
 import type { NodeTemplate } from "./workflow-types";
@@ -32,21 +33,10 @@ export function WorkflowNodeSelector({
   templates = [],
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  // Get category counts (using first tag as primary category)
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    templates.forEach((template) => {
-      const category = template.tags[0]; // Use first tag as primary category
-      if (category) {
-        counts[category] = (counts[category] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, count]) => ({ category, count }));
-  }, [templates]);
+  // Get tag counts (using all tags, not just the first one)
+  const tagCounts = useTagCounts(templates);
 
   // Use the search hook with intelligent search
   const searchResults = useSearch({
@@ -59,11 +49,10 @@ export function WorkflowNodeSelector({
     ],
   });
 
-  // Filter templates based on search results and selected category
+  // Filter templates based on search results and selected tag
   const filteredTemplates = searchResults.filter((template) => {
-    const matchesCategory =
-      !selectedCategory || template.tags.includes(selectedCategory);
-    return matchesCategory;
+    const matchesTag = !selectedTag || template.tags.includes(selectedTag);
+    return matchesTag;
   });
 
   // Use keyboard navigation hook
@@ -81,16 +70,16 @@ export function WorkflowNodeSelector({
   } = useKeyboardNavigation({
     open,
     itemsCount: filteredTemplates.length,
-    categoriesCount: categoryCounts.length + 1, // +1 for "All" button
+    categoriesCount: tagCounts.length + 1, // +1 for "All" button
     onClose,
     onSelectItem: (index) => {
       onSelect(filteredTemplates[index]);
       onClose();
     },
-    onCategoryChange: (category) => {
-      setSelectedCategory(category);
+    onCategoryChange: (tag) => {
+      setSelectedTag(tag);
     },
-    categories: categoryCounts,
+    categories: tagCounts,
   });
 
   return (
@@ -119,12 +108,12 @@ export function WorkflowNodeSelector({
           />
         </div>
 
-        {categoryCounts.length > 0 && (
+        {tagCounts.length > 0 && (
           <div className="px-4">
-            <CategoryFilterButtons
-              categories={categoryCounts}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
+            <TagFilterButtons
+              categories={tagCounts}
+              selectedTag={selectedTag}
+              onTagChange={setSelectedTag}
               totalCount={templates.length}
               onKeyDown={handleCategoryKeyDown}
               setCategoryButtonRef={setCategoryButtonRef}
@@ -178,7 +167,7 @@ export function WorkflowNodeSelector({
                             <Badge
                               key={index}
                               variant="secondary"
-                              className={`${getCategoryColor([tag])} text-xs`}
+                              className={`${getTagColor([tag])} text-xs`}
                             >
                               {tag}
                             </Badge>

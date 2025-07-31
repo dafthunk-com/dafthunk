@@ -49,9 +49,9 @@ export function DocsNodesPage() {
             dictate how the node functions.
           </li>
           <li>
-            <strong>Category:</strong> Nodes are grouped into categories (e.g.,
-            AI & ML, Text, Data) based on their primary function, making them
-            easier to find and understand.
+            <strong>Tag:</strong> Nodes are grouped into tags (e.g., AI & ML,
+            Text, Data) based on their primary function, making them easier to
+            find and understand.
           </li>
           <li>
             <strong>Compatibility:</strong> Information detailing which types of
@@ -138,8 +138,8 @@ export function DocsNodesPage() {
         <h2 id="node-browser">Node Library</h2>
         <p>
           Explore and search through all available nodes using our interactive
-          browser. You can filter by category, name, and description in
-          real-time to quickly find the tools you need:
+          browser. You can filter by tag, name, and description in real-time to
+          quickly find the tools you need:
         </p>
 
         <NodesBrowser />

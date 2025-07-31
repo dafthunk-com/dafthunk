@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { getCategoryColor } from "@/utils/category-colors";
+import { getTagColor } from "@/utils/tag-colors";
 
 interface NodeCardProps {
   nodeType: NodeType;
@@ -42,7 +42,7 @@ function NodeDetailsDialog({
                   <Badge
                     key={index}
                     variant="secondary"
-                    className={getCategoryColor([tag])}
+                    className={getTagColor([tag])}
                   >
                     {tag}
                   </Badge>
@@ -224,7 +224,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                   <Badge
                     key={index}
                     variant="secondary"
-                    className={`${getCategoryColor([tag])} shrink-0 text-xs`}
+                    className={`${getTagColor([tag])} shrink-0 text-xs`}
                   >
                     {tag}
                   </Badge>
@@ -297,7 +297,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                 <Badge
                   key={index}
                   variant="secondary"
-                  className={`${getCategoryColor([tag])} text-xs`}
+                  className={`${getTagColor([tag])} text-xs`}
                 >
                   {tag}
                 </Badge>

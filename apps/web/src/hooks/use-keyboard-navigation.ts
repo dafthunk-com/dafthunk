@@ -1,5 +1,7 @@
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import { type TagCount } from "./use-tag-counts";
+
 type ActiveElement = "search" | "categories" | "items";
 
 export interface UseKeyboardNavigationProps {
@@ -9,7 +11,7 @@ export interface UseKeyboardNavigationProps {
   onClose: () => void;
   onSelectItem: (index: number) => void;
   onCategoryChange?: (category: string | null, index: number) => void;
-  categories?: Array<{ category: string; count: number }>;
+  categories?: TagCount[];
 }
 
 export function useKeyboardNavigation({
@@ -186,8 +188,7 @@ export function useKeyboardNavigation({
         case "Enter":
           e.preventDefault();
           if (onCategoryChange) {
-            const category =
-              index === 0 ? null : categories[index - 1]?.category;
+            const category = index === 0 ? null : categories[index - 1]?.tag;
             onCategoryChange(category, index);
           }
           break;

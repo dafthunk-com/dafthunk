@@ -7,11 +7,10 @@ import {
   Palette,
   Search,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CategoryFilterButtons } from "@/components/ui/category-filter-buttons";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
+import { useCategoryCounts } from "@/hooks/use-tag-counts";
 import { cn } from "@/utils/utils";
 
 import type { WorkflowTemplate } from "./workflow-templates";
@@ -60,16 +61,7 @@ export function ImportTemplateDialog({
   );
 
   // Get category counts
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    workflowTemplates.forEach((template) => {
-      const category = template.category;
-      counts[category] = (counts[category] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, count]) => ({ category, count }));
-  }, []);
+  const categoryCounts = useCategoryCounts(workflowTemplates);
 
   const filteredTemplates = workflowTemplates.filter((template) => {
     const matchesCategory =
@@ -225,17 +217,17 @@ export function ImportTemplateDialog({
         {/* Categories */}
         {categoryCounts.length > 0 && (
           <div className="px-6">
-            <CategoryFilterButtons
-              categories={categoryCounts.map(({ category, count }) => ({
-                category: categoryLabels[category] || category,
+            <TagFilterButtons
+              categories={categoryCounts.map(({ tag, count }) => ({
+                tag: categoryLabels[tag] || tag,
                 count,
               }))}
-              selectedCategory={
+              selectedTag={
                 selectedCategory
                   ? categoryLabels[selectedCategory] || selectedCategory
                   : null
               }
-              onCategoryChange={(categoryLabel) => {
+              onTagChange={(categoryLabel) => {
                 if (!categoryLabel) {
                   setSelectedCategory(null);
                   return;

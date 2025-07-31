@@ -2,10 +2,11 @@ import { Grid, List, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { CategoryFilterButtons } from "@/components/ui/category-filter-buttons";
 import { SearchInput } from "@/components/ui/search-input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useSearch } from "@/hooks/use-search";
+import { useTagCounts } from "@/hooks/use-tag-counts";
 import { useNodeTypes } from "@/services/type-service";
 
 import { NodeCard } from "./node-card";
@@ -15,7 +16,7 @@ type ViewMode = "card" | "list";
 export function NodesBrowser() {
   const { nodeTypes, isNodeTypesLoading, nodeTypesError } = useNodeTypes();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("card");
 
   // Use the search hook with intelligent search
@@ -30,33 +31,22 @@ export function NodesBrowser() {
     ],
   });
 
-  // Get unique categories and their counts (using first tag as primary category)
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    nodeTypes.forEach((nodeType) => {
-      const category = nodeType.tags[0]; // Use first tag as primary category
-      if (category) {
-        counts[category] = (counts[category] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([category, count]) => ({ category, count }));
-  }, [nodeTypes]);
+  // Get tag counts (using all tags, not just the first one)
+  const tagCounts = useTagCounts(nodeTypes);
 
-  // Filter nodes based on search results and selected category
+  // Filter nodes based on search results and selected tag
   const filteredNodes = useMemo(() => {
     let filtered = searchResults;
 
-    // Filter by category (check if any tag matches)
-    if (selectedCategory) {
+    // Filter by tag (check if any tag matches)
+    if (selectedTag) {
       filtered = filtered.filter((nodeType) =>
-        nodeType.tags.includes(selectedCategory)
+        nodeType.tags.includes(selectedTag)
       );
     }
 
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
-  }, [searchResults, selectedCategory]);
+  }, [searchResults, selectedTag]);
 
   if (nodeTypesError) {
     return (
@@ -75,7 +65,7 @@ export function NodesBrowser() {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex-1 min-w-0">
             <SearchInput
-              placeholder="Search nodes by name, description, or category..."
+              placeholder="Search nodes by name, description, or tag..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full max-w-lg"
@@ -101,11 +91,11 @@ export function NodesBrowser() {
           </Tabs>
         </div>
 
-        {/* Category Filter */}
-        <CategoryFilterButtons
-          categories={categoryCounts}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
+        {/* Tag Filter */}
+        <TagFilterButtons
+          categories={tagCounts}
+          selectedTag={selectedTag}
+          onTagChange={setSelectedTag}
           totalCount={nodeTypes.length}
         />
       </div>
@@ -140,7 +130,7 @@ export function NodesBrowser() {
                 className="mt-2"
                 onClick={() => {
                   setSearchQuery("");
-                  setSelectedCategory(null);
+                  setSelectedTag(null);
                 }}
               >
                 Clear filters
