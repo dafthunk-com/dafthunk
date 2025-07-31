@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonSharpenNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-sharpen",
-    name: "Photon Sharpen",
+    name: "Sharpen",
     type: "photon-sharpen",
     description: "Sharpens an image using Photon.",
     tags: ["Image"],

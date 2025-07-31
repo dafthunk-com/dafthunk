@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAdjustBrightnessNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-brightness",
-    name: "Photon Adjust Brightness",
+    name: "Adjust Brightness",
     type: "photon-adjust-brightness",
     description:
       "Adjusts image brightness. Positive values increase, negative values decrease.",

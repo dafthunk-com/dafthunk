@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringIncludesNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-includes",
-    name: "String Includes",
+    name: "Includes",
     type: "string-includes",
     description: "Check if one string includes another string",
     tags: ["Text"],

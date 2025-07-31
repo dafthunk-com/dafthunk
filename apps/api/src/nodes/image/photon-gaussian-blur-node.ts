@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonGaussianBlurNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-gaussian-blur",
-    name: "Photon Gaussian Blur",
+    name: "Gaussian Blur",
     type: "photon-gaussian-blur",
     description:
       "Applies Gaussian blur to an image. Higher radius means more blur.",

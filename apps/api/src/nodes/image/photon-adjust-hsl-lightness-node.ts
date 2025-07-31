@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAdjustHslLightnessNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-hsl-lightness",
-    name: "Photon Adjust Lightness (HSL)",
+    name: "Adjust Lightness (HSL)",
     type: "photon-adjust-hsl-lightness",
     description:
       "Adjusts image lightness using HSL. Amount from -1.0 (max darken) to 1.0 (max lighten).",

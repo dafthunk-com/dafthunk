@@ -9,7 +9,7 @@ import { NodeContext } from "../types";
 export class Resnet50Node extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "resnet-50",
-    name: "ResNet-50",
+    name: "Image Classification (ResNet)",
     type: "resnet-50",
     description:
       "Classifies images using the ResNet-50 model trained on ImageNet",

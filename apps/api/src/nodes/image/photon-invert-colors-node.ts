@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonInvertColorsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-invert-colors",
-    name: "Photon Invert Colors",
+    name: "Invert Colors",
     type: "photon-invert-colors",
     description: "Inverts the colors of an image using Photon.",
     tags: ["Image"],

@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringToLowerCaseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-to-lower-case",
-    name: "String To Lower Case",
+    name: "To Lower Case",
     type: "string-to-lower-case",
     description: "Convert a string to lowercase",
     tags: ["Text"],

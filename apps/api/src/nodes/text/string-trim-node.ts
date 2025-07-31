@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringTrimNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-trim",
-    name: "String Trim",
+    name: "Trim",
     type: "string-trim",
     description: "Remove whitespace from both ends of a string",
     tags: ["Text"],

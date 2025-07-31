@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringConcatNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-concat",
-    name: "String Concat",
+    name: "Concat",
     type: "string-concat",
     description: "Concatenate multiple strings together",
     tags: ["Text"],

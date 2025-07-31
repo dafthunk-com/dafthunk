@@ -13,7 +13,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonMixWithColorNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-mix-with-color",
-    name: "Photon Mix With Color",
+    name: "Mix With Color",
     type: "photon-mix-with-color",
     description:
       "Blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).",

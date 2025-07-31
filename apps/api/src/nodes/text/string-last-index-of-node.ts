@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringLastIndexOfNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-last-index-of",
-    name: "String Last Index Of",
+    name: "Last Index Of",
     type: "string-last-index-of",
     description: "Find the last index of a substring within a string",
     tags: ["Text"],

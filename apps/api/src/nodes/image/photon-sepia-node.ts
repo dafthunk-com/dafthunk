@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonSepiaNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-sepia",
-    name: "Photon Sepia Tone",
+    name: "Sepia Tone",
     type: "photon-sepia",
     description: "Applies a sepia tone to an image using Photon.",
     tags: ["Image"],

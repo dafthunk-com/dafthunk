@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonOilPaintingNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-oil-painting",
-    name: "Photon Oil Painting Effect",
+    name: "Oil Painting Effect",
     type: "photon-oil-painting",
     description: "Applies an oil painting effect to an image using Photon.",
     tags: ["Image"],

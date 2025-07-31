@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonPixelizeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-pixelize",
-    name: "Photon Pixelize Effect",
+    name: "Pixelize Effect",
     type: "photon-pixelize",
     description: "Applies a pixelization effect to an image using Photon.",
     tags: ["Image"],

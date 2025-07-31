@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringIndexOfNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-index-of",
-    name: "String Index Of",
+    name: "Index Of",
     type: "string-index-of",
     description: "Find the index of a substring within a string",
     tags: ["Text"],

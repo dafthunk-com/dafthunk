@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonWatermarkNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-watermark",
-    name: "Photon Watermark Image",
+    name: "Watermark Image",
     type: "photon-watermark",
     description:
       "Adds a watermark image onto a main image at specified x, y coordinates.",

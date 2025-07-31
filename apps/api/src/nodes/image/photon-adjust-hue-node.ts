@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAdjustHueNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-hue",
-    name: "Photon Adjust Hue (HSL)",
+    name: "Adjust Hue (HSL)",
     type: "photon-adjust-hue",
     description:
       "Adjusts image hue using HSL. Degrees from 0 to 360 for hue rotation.",

@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonBlendImagesNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-blend-images",
-    name: "Photon Blend Images",
+    name: "Blend Images",
     type: "photon-blend-images",
     description:
       "Blends two images using a specified blend mode (e.g., 'overlay', 'multiply', 'screen', 'lighten', 'darken').",

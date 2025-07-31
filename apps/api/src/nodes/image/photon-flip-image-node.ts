@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonFlipImageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-flip-image",
-    name: "Photon Flip Image",
+    name: "Flip Image",
     type: "photon-flip-image",
     description: "Flips an image horizontally or vertically using Photon.",
     tags: ["Image"],

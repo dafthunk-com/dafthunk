@@ -10,7 +10,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonImageInfoNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-image-info",
-    name: "Photon Image Info",
+    name: "Image Info",
     type: "photon-image-info",
     description:
       "Extracts width, height, mime type, and estimated filesize from an image. Also passes the original image through.",

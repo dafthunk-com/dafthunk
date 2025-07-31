@@ -9,7 +9,7 @@ import { ExecutableNode } from "../types";
 export class MelottsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "melotts",
-    name: "MeloTTS",
+    name: "Text to Speech (MeloTTS)",
     type: "melotts",
     description: "Converts text to natural-sounding speech using MeloTTS",
     tags: ["Audio"],

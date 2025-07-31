@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonCropNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-crop",
-    name: "Photon Image Crop",
+    name: "Image Crop",
     type: "photon-crop",
     description: "Crops an image to the specified rectangle using Photon.",
     tags: ["Image"],

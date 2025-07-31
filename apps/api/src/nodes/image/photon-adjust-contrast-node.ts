@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAdjustContrastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-contrast",
-    name: "Photon Adjust Contrast",
+    name: "Adjust Contrast",
     type: "photon-adjust-contrast",
     description:
       "Adjusts image contrast. Values typically range from -100 to 100.",

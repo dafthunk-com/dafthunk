@@ -8,7 +8,7 @@ import { NodeContext } from "../types";
 export class Flux1SchnellNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "flux-1-schnell",
-    name: "FLUX.1 Schnell",
+    name: "Image Generation (FLUX)",
     type: "flux-1-schnell",
     description:
       "Generates images from text descriptions using the FLUX.1 schnell model",

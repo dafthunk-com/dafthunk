@@ -14,7 +14,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonThresholdNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-threshold",
-    name: "Photon Threshold",
+    name: "Threshold",
     type: "photon-threshold",
     description:
       "Converts an image to black and white based on a threshold value (0-255). Often best applied to a grayscale image.",

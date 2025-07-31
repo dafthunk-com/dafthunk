@@ -15,7 +15,7 @@ interface DeepseekNonStreamedOutput {
 export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "deepseek-r1-distill-qwen-32b",
-    name: "deepseek-r1-distill-qwen-32b",
+    name: "DeepSeek R1 Distill Qwen 32B",
     type: "deepseek-r1-distill-qwen-32b",
     description: "Generates text using DeepSeek R1 Distill Qwen 32B model",
     tags: ["Text"],

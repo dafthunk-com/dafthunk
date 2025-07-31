@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonEmbossNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-emboss",
-    name: "Photon Emboss Effect",
+    name: "Emboss Effect",
     type: "photon-emboss",
     description:
       "Applies an emboss effect to an image, giving it a carved or stamped appearance.",

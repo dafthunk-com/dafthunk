@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonGrayscaleNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-grayscale",
-    name: "Photon Grayscale",
+    name: "Grayscale",
     type: "photon-grayscale",
     description:
       "Converts an image to grayscale using Photon (human-corrected algorithm).",

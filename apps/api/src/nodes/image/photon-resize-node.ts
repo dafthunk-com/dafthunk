@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonResizeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-resize",
-    name: "Photon Image Resize",
+    name: "Image Resize",
     type: "photon-resize",
     description:
       "Resizes an image to the specified width and height using Photon.",

@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringNormalizeNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-normalize",
-    name: "String Normalize",
+    name: "Normalize",
     type: "string-normalize",
     description: "Normalize a string using the Unicode Normalization forms",
     tags: ["Text"],

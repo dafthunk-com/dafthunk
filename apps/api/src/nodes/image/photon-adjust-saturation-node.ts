@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAdjustSaturationNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-adjust-saturation",
-    name: "Photon Adjust Saturation (HSL)",
+    name: "Adjust Saturation (HSL)",
     type: "photon-adjust-saturation",
     description:
       "Adjusts image saturation using HSL. Level from 0.0 (no change) to 1.0 (max saturation increase).",

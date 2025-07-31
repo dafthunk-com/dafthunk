@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAlterRGBChannelsNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-alter-rgb-channels",
-    name: "Photon Alter RGB Channels",
+    name: "Alter RGB Channels",
     type: "photon-alter-rgb-channels",
     description:
       "Adjusts the Red, Green, and Blue channels of an image by adding specified amounts (positive or negative).",

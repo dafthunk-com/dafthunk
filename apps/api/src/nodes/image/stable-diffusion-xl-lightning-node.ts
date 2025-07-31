@@ -9,7 +9,7 @@ import { ExecutableNode } from "../types";
 export class StableDiffusionXLLightningNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "stable-diffusion-xl-lightning",
-    name: "Stable Diffusion XL Lightning",
+    name: "Image Generation (SDXL Lightning)",
     type: "stable-diffusion-xl-lightning",
     description:
       "Generates images from text descriptions using Stable Diffusion XL Lightning",

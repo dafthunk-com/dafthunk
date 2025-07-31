@@ -12,7 +12,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonApplyFilterNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-apply-filter",
-    name: "Photon Apply Filter by Name",
+    name: "Apply Filter by Name",
     type: "photon-apply-filter",
     description:
       "Applies a named preset filter to an image (e.g., 'vintage', 'oceanic', 'lofi').",

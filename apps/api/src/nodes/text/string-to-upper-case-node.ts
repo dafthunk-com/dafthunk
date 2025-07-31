@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringToUpperCaseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-to-upper-case",
-    name: "String To Upper Case",
+    name: "To Upper Case",
     type: "string-to-upper-case",
     description: "Convert a string to uppercase",
     tags: ["Text"],

@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonRotateImageNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-rotate-image",
-    name: "Photon Rotate Image",
+    name: "Rotate Image",
     type: "photon-rotate-image",
     description:
       "Rotates an image by a specified angle (in degrees) using Photon.",

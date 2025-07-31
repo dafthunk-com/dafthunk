@@ -9,7 +9,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonEdgeDetectionNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-edge-detection",
-    name: "Photon Edge Detection",
+    name: "Edge Detection",
     type: "photon-edge-detection",
     description: "Highlights edges in an image using Photon.",
     tags: ["Image"],

@@ -9,7 +9,7 @@ import { ExecutableNode } from "../types";
 export class WhisperNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "whisper",
-    name: "Whisper",
+    name: "Speech Recognition (Whisper)",
     type: "whisper",
     description:
       "Transcribes speech from audio files using OpenAI's Whisper model",

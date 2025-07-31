@@ -10,7 +10,7 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 export class PhotonAddNoiseNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "photon-add-noise",
-    name: "Photon Add Noise",
+    name: "Add Noise",
     type: "photon-add-noise",
     description: "Adds randomized Gaussian noise to an image.",
     tags: ["Image"],

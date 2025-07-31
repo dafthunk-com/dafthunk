@@ -6,7 +6,7 @@ import { NodeContext } from "../types";
 export class StringSubstringNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "string-substring",
-    name: "String Substring",
+    name: "Substring",
     type: "string-substring",
     description:
       "Extract a substring from a string using start index (inclusive) and end index (exclusive)",

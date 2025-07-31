@@ -8,9 +8,9 @@ import { NodeContext } from "../types";
 export class Llama318BInstructFastNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
     id: "llama-3-1-8b-instruct-fast",
-    name: "llama-3.1-8b-instruct-fast",
+    name: "Llama 3.1 8B Instruct Fast",
     type: "llama-3-1-8b-instruct-fast",
-    description: "Generates text",
+    description: "Generates text using Llama 3.1 8B Instruct Fast model",
     tags: ["Text"],
     icon: "ai",
     computeCost: 10,
