@@ -54,7 +54,10 @@ function getSecurityHeaders(
       ? `'self' 'nonce-${nonce}' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:`
       : "'self' https://static.cloudflareinsights.com https://cdn.jsdelivr.net blob:", // React/Vite compatibility + Cloudflare Insights + Monaco Editor
     "style-src": "'self' 'unsafe-inline' https://cdn.jsdelivr.net", // Tailwind/CSS-in-JS support + Monaco Editor
-    "img-src": "'self' data: https:",
+    "img-src":
+      environment === "development"
+        ? "'self' data: https: http://localhost:*" // Allow localhost HTTP in dev
+        : "'self' data: https:",
     "font-src": "'self' data: https://cdn.jsdelivr.net",
     "connect-src":
       environment === "development"
