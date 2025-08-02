@@ -47,27 +47,13 @@ export class DetrResnet50Node extends ExecutableNode {
       }
 
       // Run the DETR-ResNet-50 model for object detection
-      const result = await context.env.AI.run(
+      const detections = await context.env.AI.run(
         "@cf/facebook/detr-resnet-50",
         {
           image: Array.from(image.data),
         },
         context.env.AI_OPTIONS
       );
-
-      // Transform the result to include proper bbox format
-      const detections = Array.isArray(result)
-        ? result.map((detection: any) => ({
-            label: detection.label,
-            score: detection.score,
-            bbox: detection.bbox || [
-              detection.x,
-              detection.y,
-              detection.width,
-              detection.height,
-            ],
-          }))
-        : result;
 
       return this.createSuccessResult({
         detections,
