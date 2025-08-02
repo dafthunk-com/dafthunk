@@ -44,6 +44,7 @@
     "@aws-sdk/client-ses": "^3.812.0",
     "@cf-wasm/photon": "^0.1.31",
     "@cf-wasm/quickjs": "^0.0.6",
+    "@cf-wasm/resvg": "^0.1.24",
     "@cloudflare/ai-utils": "^1.0.1",
     "@dafthunk/types": "workspace:*",
     "@hono-rate-limiter/cloudflare": "^0.2.2",

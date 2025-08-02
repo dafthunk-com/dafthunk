@@ -23,6 +23,9 @@ importers:
       '@cf-wasm/quickjs':
         specifier: ^0.0.6
         version: 0.0.6
+      '@cf-wasm/resvg':
+        specifier: ^0.1.24
+        version: 0.1.24
       '@cloudflare/ai-utils':
         specifier: ^1.0.1
         version: 1.0.1
@@ -624,6 +627,9 @@ packages:
 
   '@cf-wasm/quickjs@0.0.6':
     resolution: {integrity: sha512-nE4Lpkob4Dd/opvNOLg1xr+WuF/CcjIRRcM/FA/AqpuscHJE6TUyZKAnXjvzeJ5pSlQnUEbfczHYw8Pvidl3LQ==}
+
+  '@cf-wasm/resvg@0.1.24':
+    resolution: {integrity: sha512-UOlAz4xDbBSgoy/KvMxLaoqS6CeVajqBaKNZ0kMt0AeHVRbdm9FzdelrndKGs2j9CymlXGu5m8oy+tHOZOoSQA==}
 
   '@cloudflare/ai-utils@1.0.1':
     resolution: {integrity: sha512-gmn16AvVqtMLcaBYvPkwEWui39E4hlcFPqXuVamKbGleIDO6hVpvAy3KCvbnoPVT7KqRcfdLLpHRIBQDwI9tWQ==}
@@ -2010,6 +2016,14 @@ packages:
     peerDependencies:
       react: ^18.0 || ^19.0 || ^19.0.0-rc
       react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
+
+  '@resvg/resvg-wasm@2.4.1':
+    resolution: {integrity: sha512-yi6R0HyHtsoWTRA06Col4WoDs7SvlXU3DLMNP2bdAgs7HK18dTEVl1weXgxRzi8gwLteGUbIg29zulxIB3GSdg==}
+    engines: {node: '>= 10'}
+
+  '@resvg/resvg-wasm@2.6.2':
+    resolution: {integrity: sha512-FqALmHI8D4o6lk/LRWDnhw95z5eO+eAa6ORjVg09YRR7BkcM6oPHU9uyC0gtQG5vpFLvgpeU4+zEAz2H8APHNw==}
+    engines: {node: '>= 10'}
 
   '@rolldown/pluginutils@1.0.0-beta.11':
     resolution: {integrity: sha512-L/gAA/hyCSuzTF1ftlzUSI/IKr2POHsv1Dd78GfqkR83KMNuswWD61JxGV2L7nRwBBBSDr6R1gCkdTmoN7W4ag==}
@@ -6152,6 +6166,11 @@ snapshots:
       '@jitl/quickjs-wasmfile-release-sync': 0.31.0
       quickjs-emscripten-core: 0.31.0
 
+  '@cf-wasm/resvg@0.1.24':
+    dependencies:
+      '@resvg/resvg-wasm': 2.6.2
+      '@resvg/resvg-wasm-2.4.1': '@resvg/resvg-wasm@2.4.1'
+
   '@cloudflare/ai-utils@1.0.1':
     dependencies:
       yaml: 2.8.0
@@ -7294,6 +7313,10 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       react-promise-suspense: 0.3.4
+
+  '@resvg/resvg-wasm@2.4.1': {}
+
+  '@resvg/resvg-wasm@2.6.2': {}
 
   '@rolldown/pluginutils@1.0.0-beta.11': {}
 
