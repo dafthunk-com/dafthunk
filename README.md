@@ -124,6 +124,7 @@ A sensible monorepo organization using pnpm workspaces that we all pretend won't
   - `/src/hooks/` - Custom React hooks
   - `/functions/` - Cloudflare Pages functions
 - **`packages/types/`** - Shared TypeScript types
+- **`packages/utils/`** - Shared TypeScript utilities
 
 ### 🧑‍💻 Development Commands
 
