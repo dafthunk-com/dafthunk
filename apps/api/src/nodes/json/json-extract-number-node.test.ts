@@ -2,38 +2,38 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { JsonBooleanExtractorNode } from "./json-boolean-extractor-node";
+import { JsonExtractNumberNode } from "./json-extract-number-node";
 
-describe("JsonBooleanExtractorNode", () => {
-  it("should extract boolean value from simple path", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+describe("JsonExtractNumberNode", () => {
+  it("should extract number value from simple path", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
       name: "John",
-      active: true,
-      verified: false,
+      age: 30,
+      score: 95.5,
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.active",
+        path: "$.age",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.value).toBe(30);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should extract boolean value from nested path", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should extract float value from nested path", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -41,9 +41,9 @@ describe("JsonBooleanExtractorNode", () => {
       user: {
         profile: {
           name: "Jane",
-          settings: {
-            notifications: true,
-            emailVerified: false,
+          stats: {
+            height: 165.5,
+            weight: 60.2,
           },
         },
       },
@@ -52,75 +52,100 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.user.profile.settings.notifications",
+        path: "$.user.profile.stats.height",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.value).toBe(165.5);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should extract false boolean value", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should extract zero value", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
       settings: {
-        enabled: false,
-        debug: true,
+        count: 0,
+        limit: 100,
       },
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.settings.enabled",
+        path: "$.settings.count",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.value).toBe(0);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should extract boolean value from array path", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should extract negative number", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
-      flags: [
-        { name: "flag1", enabled: true },
-        { name: "flag2", enabled: false },
-        { name: "flag3", enabled: true },
+      balance: -150.75,
+      temperature: -5,
+    };
+    const context = {
+      nodeId,
+      inputs: {
+        json,
+        path: "$.balance",
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.value).toBe(-150.75);
+    expect(result.outputs?.found).toBe(true);
+  });
+
+  it("should extract number value from array path", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
+      nodeId,
+    } as unknown as Node);
+
+    const json = {
+      scores: [
+        { name: "Alice", score: 85 },
+        { name: "Bob", score: 92.5 },
+        { name: "Charlie", score: 78 },
       ],
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.flags[1].enabled",
+        path: "$.scores[1].score",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.value).toBe(92.5);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should return default value when boolean not found", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should return default value when number not found", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -132,21 +157,21 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.active",
-        defaultValue: true,
+        path: "$.score",
+        defaultValue: 100,
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.value).toBe(100);
     expect(result.outputs?.found).toBe(false);
   });
 
-  it("should return false as default when no default provided", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should return 0 as default when no default provided", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -158,29 +183,29 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.active",
+        path: "$.score",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.value).toBe(0);
     expect(result.outputs?.found).toBe(false);
   });
 
-  it("should find first boolean value in array", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should find first number value in array", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
       items: [
+        { type: "string", value: "hello" },
         { type: "number", value: 42 },
         { type: "boolean", value: true },
-        { type: "string", value: "hello" },
-        { type: "boolean", value: false },
+        { type: "number", value: 3.14 },
       ],
     };
     const context = {
@@ -194,13 +219,13 @@ describe("JsonBooleanExtractorNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.value).toBe(42);
     expect(result.outputs?.found).toBe(true);
   });
 
   it("should handle null JSON input", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -208,7 +233,7 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json: null,
-        path: "$.active",
+        path: "$.age",
       },
     } as unknown as NodeContext;
 
@@ -218,8 +243,8 @@ describe("JsonBooleanExtractorNode", () => {
   });
 
   it("should handle invalid JSON input", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -227,7 +252,7 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json: "not an object",
-        path: "$.active",
+        path: "$.age",
       },
     } as unknown as NodeContext;
 
@@ -237,12 +262,12 @@ describe("JsonBooleanExtractorNode", () => {
   });
 
   it("should handle missing path", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
-    const json = { active: true };
+    const json = { age: 30 };
     const context = {
       nodeId,
       inputs: {
@@ -257,12 +282,12 @@ describe("JsonBooleanExtractorNode", () => {
   });
 
   it("should handle null path", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
-    const json = { active: true };
+    const json = { age: 30 };
     const context = {
       nodeId,
       inputs: {
@@ -276,36 +301,60 @@ describe("JsonBooleanExtractorNode", () => {
     expect(result.error).toBeDefined();
   });
 
-  it("should not find boolean when path points to non-boolean value", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+  it("should not find number when path points to non-number value", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
       name: "John",
-      age: 30,
-      active: "yes", // string instead of boolean
+      age: "thirty", // string instead of number
+      active: true,
       settings: { theme: "dark" },
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.active",
+        path: "$.age",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.value).toBe(0);
+    expect(result.outputs?.found).toBe(false);
+  });
+
+  it("should handle NaN values", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
+      nodeId,
+    } as unknown as Node);
+
+    const json = {
+      values: [1, 2, NaN, 4, 5],
+    };
+    const context = {
+      nodeId,
+      inputs: {
+        json,
+        path: "$.values[2]",
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.value).toBe(0);
     expect(result.outputs?.found).toBe(false);
   });
 
   it("should handle complex nested structure", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -316,10 +365,10 @@ describe("JsonBooleanExtractorNode", () => {
             id: 1,
             profile: {
               name: "Alice",
-              settings: {
-                emailVerified: true,
-                notifications: false,
-                twoFactorEnabled: true,
+              stats: {
+                posts: 42,
+                followers: 1234,
+                engagement: 95.7,
               },
             },
           },
@@ -327,10 +376,10 @@ describe("JsonBooleanExtractorNode", () => {
             id: 2,
             profile: {
               name: "Bob",
-              settings: {
-                emailVerified: false,
-                notifications: true,
-                twoFactorEnabled: false,
+              stats: {
+                posts: 15,
+                followers: 567,
+                engagement: 87.3,
               },
             },
           },
@@ -341,20 +390,20 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.data.users[0].profile.settings.emailVerified",
+        path: "$.data.users[0].profile.stats.engagement",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.value).toBe(95.7);
     expect(result.outputs?.found).toBe(true);
   });
 
   it("should handle empty object", async () => {
-    const nodeId = "json-boolean-extractor";
-    const node = new JsonBooleanExtractorNode({
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
       nodeId,
     } as unknown as Node);
 
@@ -363,14 +412,38 @@ describe("JsonBooleanExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.active",
+        path: "$.age",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.value).toBe(0);
     expect(result.outputs?.found).toBe(false);
+  });
+
+  it("should handle Infinity values", async () => {
+    const nodeId = "json-extract-number";
+    const node = new JsonExtractNumberNode({
+      nodeId,
+    } as unknown as Node);
+
+    const json = {
+      values: [1, 2, Infinity, 4, 5],
+    };
+    const context = {
+      nodeId,
+      inputs: {
+        json,
+        path: "$.values[2]",
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.value).toBe(Infinity);
+    expect(result.outputs?.found).toBe(true);
   });
 });

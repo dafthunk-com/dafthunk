@@ -2,12 +2,12 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { JsonJavascriptProcessorNode } from "./json-javascript-processor-node";
+import { JsonExecuteJavascriptNode } from "./json-execute-javascript-node";
 
 describe("JsonJavascriptProcessorNode", () => {
   it("should execute simple JavaScript with JSON input", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -33,8 +33,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should execute JavaScript that returns an object", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -75,8 +75,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should execute JavaScript that returns an array", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -101,8 +101,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should execute JavaScript with mathematical operations", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -135,8 +135,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle missing JSON input", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -155,8 +155,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle undefined JSON input", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -175,8 +175,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle missing JavaScript input", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -195,8 +195,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle null JavaScript input", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -215,8 +215,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle undefined JavaScript input", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -235,8 +235,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript syntax errors", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -256,8 +256,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript runtime errors", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -277,8 +277,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle complex JavaScript with functions", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -316,8 +316,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript that returns null", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -339,8 +339,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript that returns undefined", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -362,8 +362,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript that returns a boolean", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -392,8 +392,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript that returns a number", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -417,8 +417,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript with string manipulation", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -453,8 +453,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript with date operations", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 
@@ -490,8 +490,8 @@ describe("JsonJavascriptProcessorNode", () => {
   });
 
   it("should handle JavaScript with array operations", async () => {
-    const nodeId = "json-javascript-processor";
-    const node = new JsonJavascriptProcessorNode({
+    const nodeId = "json-execute-javascript";
+    const node = new JsonExecuteJavascriptNode({
       nodeId,
     } as unknown as Node);
 

@@ -2,49 +2,49 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { JsonStringExtractorNode } from "./json-string-extractor-node";
+import { JsonExtractBooleanNode } from "./json-extract-boolean-node";
 
-describe("JsonStringExtractorNode", () => {
-  it("should extract string value from simple path", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+describe("JsonExtractBooleanNode", () => {
+  it("should extract boolean value from simple path", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
-      name: "John Doe",
-      age: 30,
-      email: "john@example.com",
+      name: "John",
+      active: true,
+      verified: false,
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.name",
+        path: "$.active",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("John Doe");
+    expect(result.outputs?.value).toBe(true);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should extract string value from nested path", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+  it("should extract boolean value from nested path", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
       user: {
         profile: {
-          name: "Jane Smith",
-          email: "jane@example.com",
-        },
-        settings: {
-          theme: "dark",
+          name: "Jane",
+          settings: {
+            notifications: true,
+            emailVerified: false,
+          },
         },
       },
     };
@@ -52,47 +52,75 @@ describe("JsonStringExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.user.profile.name",
+        path: "$.user.profile.settings.notifications",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("Jane Smith");
+    expect(result.outputs?.value).toBe(true);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should extract string value from array path", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+  it("should extract false boolean value", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
-      books: [
-        { title: "Book 1", author: "Author 1" },
-        { title: "Book 2", author: "Author 2" },
+      settings: {
+        enabled: false,
+        debug: true,
+      },
+    };
+    const context = {
+      nodeId,
+      inputs: {
+        json,
+        path: "$.settings.enabled",
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.found).toBe(true);
+  });
+
+  it("should extract boolean value from array path", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
+      nodeId,
+    } as unknown as Node);
+
+    const json = {
+      flags: [
+        { name: "flag1", enabled: true },
+        { name: "flag2", enabled: false },
+        { name: "flag3", enabled: true },
       ],
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.books[0].title",
+        path: "$.flags[1].enabled",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("Book 1");
+    expect(result.outputs?.value).toBe(false);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should return default value when string not found", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+  it("should return default value when boolean not found", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
@@ -104,21 +132,21 @@ describe("JsonStringExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.email",
-        defaultValue: "default@example.com",
+        path: "$.active",
+        defaultValue: true,
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("default@example.com");
+    expect(result.outputs?.value).toBe(true);
     expect(result.outputs?.found).toBe(false);
   });
 
-  it("should return empty string as default when no default provided", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+  it("should return false as default when no default provided", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
@@ -130,20 +158,49 @@ describe("JsonStringExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.email",
+        path: "$.active",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("");
+    expect(result.outputs?.value).toBe(false);
     expect(result.outputs?.found).toBe(false);
+  });
+
+  it("should find first boolean value in array", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
+      nodeId,
+    } as unknown as Node);
+
+    const json = {
+      items: [
+        { type: "number", value: 42 },
+        { type: "boolean", value: true },
+        { type: "string", value: "hello" },
+        { type: "boolean", value: false },
+      ],
+    };
+    const context = {
+      nodeId,
+      inputs: {
+        json,
+        path: "$.items[*].value",
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.value).toBe(true);
+    expect(result.outputs?.found).toBe(true);
   });
 
   it("should handle null JSON input", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
@@ -151,20 +208,18 @@ describe("JsonStringExtractorNode", () => {
       nodeId,
       inputs: {
         json: null,
-        path: "$.name",
+        path: "$.active",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("completed");
-    expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("");
-    expect(result.outputs?.found).toBe(false);
+    expect(result.status).toBe("error");
+    expect(result.error).toBeDefined();
   });
 
   it("should handle invalid JSON input", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
@@ -172,7 +227,7 @@ describe("JsonStringExtractorNode", () => {
       nodeId,
       inputs: {
         json: "not an object",
-        path: "$.name",
+        path: "$.active",
       },
     } as unknown as NodeContext;
 
@@ -182,12 +237,12 @@ describe("JsonStringExtractorNode", () => {
   });
 
   it("should handle missing path", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
-    const json = { name: "John" };
+    const json = { active: true };
     const context = {
       nodeId,
       inputs: {
@@ -202,12 +257,12 @@ describe("JsonStringExtractorNode", () => {
   });
 
   it("should handle null path", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
-    const json = { name: "John" };
+    const json = { active: true };
     const context = {
       nodeId,
       inputs: {
@@ -221,38 +276,36 @@ describe("JsonStringExtractorNode", () => {
     expect(result.error).toBeDefined();
   });
 
-  it("should find first string value in array", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+  it("should not find boolean when path points to non-boolean value", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
     const json = {
-      items: [
-        { type: "number", value: 42 },
-        { type: "string", value: "hello" },
-        { type: "boolean", value: true },
-        { type: "string", value: "world" },
-      ],
+      name: "John",
+      age: 30,
+      active: "yes", // string instead of boolean
+      settings: { theme: "dark" },
     };
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.items[*].value",
+        path: "$.active",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("hello");
-    expect(result.outputs?.found).toBe(true);
+    expect(result.outputs?.value).toBe(false);
+    expect(result.outputs?.found).toBe(false);
   });
 
   it("should handle complex nested structure", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
@@ -263,9 +316,10 @@ describe("JsonStringExtractorNode", () => {
             id: 1,
             profile: {
               name: "Alice",
-              contact: {
-                email: "alice@example.com",
-                phone: "123-456-7890",
+              settings: {
+                emailVerified: true,
+                notifications: false,
+                twoFactorEnabled: true,
               },
             },
           },
@@ -273,9 +327,10 @@ describe("JsonStringExtractorNode", () => {
             id: 2,
             profile: {
               name: "Bob",
-              contact: {
-                email: "bob@example.com",
-                phone: "098-765-4321",
+              settings: {
+                emailVerified: false,
+                notifications: true,
+                twoFactorEnabled: false,
               },
             },
           },
@@ -286,41 +341,36 @@ describe("JsonStringExtractorNode", () => {
       nodeId,
       inputs: {
         json,
-        path: "$.data.users[1].profile.contact.email",
+        path: "$.data.users[0].profile.settings.emailVerified",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("bob@example.com");
+    expect(result.outputs?.value).toBe(true);
     expect(result.outputs?.found).toBe(true);
   });
 
-  it("should not find string when path points to non-string value", async () => {
-    const nodeId = "json-string-extractor";
-    const node = new JsonStringExtractorNode({
+  it("should handle empty object", async () => {
+    const nodeId = "json-extract-boolean";
+    const node = new JsonExtractBooleanNode({
       nodeId,
     } as unknown as Node);
 
-    const json = {
-      name: "John",
-      age: 30,
-      active: true,
-      settings: { theme: "dark" },
-    };
+    const json = {};
     const context = {
       nodeId,
       inputs: {
         json,
-        path: "$.age",
+        path: "$.active",
       },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs).toBeDefined();
-    expect(result.outputs?.value).toBe("");
+    expect(result.outputs?.value).toBe(false);
     expect(result.outputs?.found).toBe(false);
   });
 });

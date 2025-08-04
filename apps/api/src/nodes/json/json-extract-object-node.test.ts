@@ -2,12 +2,12 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { JsonExtractorNode } from "./json-extractor-node";
+import { JsonExtractObjectNode } from "./json-extract-object-node";
 
-describe("JsonExtractorNode", () => {
+describe("JsonExtractObjectNode", () => {
   it("should extract object from simple path", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -45,8 +45,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should extract array from simple path", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -71,8 +71,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should extract nested object from complex path", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -124,8 +124,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should extract array of objects", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -156,8 +156,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should return default value when JSON value not found", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -182,8 +182,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should return empty object as default when no default provided", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -207,8 +207,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should find first JSON value in array", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -236,8 +236,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle null JSON input", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -255,8 +255,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle invalid JSON input", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -274,8 +274,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle missing path", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -294,8 +294,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle null path", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -314,8 +314,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should not find JSON value when path points to primitive value", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -341,8 +341,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle empty object", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -363,8 +363,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle empty array", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -391,8 +391,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle complex nested structure", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 
@@ -469,8 +469,8 @@ describe("JsonExtractorNode", () => {
   });
 
   it("should handle null values in arrays", async () => {
-    const nodeId = "json-extractor";
-    const node = new JsonExtractorNode({
+    const nodeId = "json-extract-object";
+    const node = new JsonExtractObjectNode({
       nodeId,
     } as unknown as Node);
 

@@ -4,59 +4,56 @@ import { JSONPath } from "jsonpath-plus";
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
 
-export class JsonExtractorNode extends ExecutableNode {
+export class JsonExtractNumberNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "json-extractor",
-    name: "JSON Extractor",
-    type: "json-extractor",
-    description: "Extract a JSON value from a JSON object using JSONPath",
+    id: "json-extract-number",
+    name: "JSON Extract Number",
+    type: "json-extract-number",
+    description: "Extract a numeric value from a JSON object using JSONPath",
     tags: ["JSON"],
-    icon: "braces",
+    icon: "hash",
     inlinable: true,
     asTool: true,
     inputs: [
       {
         name: "json",
         type: "json",
-        description: "The JSON object to extract from",
+        description: "The JSON object to extract the number from",
         required: true,
       },
       {
         name: "path",
         type: "string",
         description:
-          'The JSONPath expression (e.g., "$.user.profile" or "$.store.books[*]")',
+          'The JSONPath expression (e.g., "$.user.profile.age" or "$.product.price")',
         required: true,
       },
       {
         name: "defaultValue",
-        type: "json",
-        description: "Default value if no JSON value is found at the path",
+        type: "number",
+        description: "Default value if no numeric value is found at the path",
         hidden: true,
+        value: 0,
       },
     ],
     outputs: [
       {
         name: "value",
-        type: "json",
-        description: "The extracted JSON value",
+        type: "number",
+        description: "The extracted numeric value",
       },
       {
         name: "found",
         type: "boolean",
-        description: "Whether a JSON value was found at the specified path",
+        description: "Whether a numeric value was found at the specified path",
         hidden: true,
       },
     ],
   };
 
-  private isJsonValue(value: any): boolean {
-    return value !== null && typeof value === "object";
-  }
-
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { json, path, defaultValue = {} } = context.inputs;
+      const { json, path, defaultValue = 0 } = context.inputs;
 
       if (!json || typeof json !== "object") {
         return this.createErrorResult("Invalid or missing JSON input");
@@ -69,12 +66,14 @@ export class JsonExtractorNode extends ExecutableNode {
       try {
         const results = JSONPath({ path, json });
 
-        // Get the first result that is a JSON value
-        const jsonValue = results.find((value: any) => this.isJsonValue(value));
-        const found = this.isJsonValue(jsonValue);
+        // Get the first result that is a number (including integers and floats)
+        const numberValue = results.find(
+          (value: any) => typeof value === "number" && !isNaN(value)
+        );
+        const found = typeof numberValue === "number" && !isNaN(numberValue);
 
         return this.createSuccessResult({
-          value: found ? jsonValue : defaultValue,
+          value: found ? numberValue : defaultValue,
           found: found,
         });
       } catch (err) {
@@ -85,7 +84,9 @@ export class JsonExtractorNode extends ExecutableNode {
       }
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error extracting JSON: ${error.message}`);
+      return this.createErrorResult(
+        `Error extracting number: ${error.message}`
+      );
     }
   }
 }
