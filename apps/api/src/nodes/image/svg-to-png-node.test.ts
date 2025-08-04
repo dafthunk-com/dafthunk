@@ -2,21 +2,25 @@ import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
 import { NodeContext } from "../types";
-import { ResvgSvgToPngNode } from "./resvg-svg-to-png-node";
+import { SvgToPngNode } from "./svg-to-png-node";
 
-describe("ResvgSvgToPngNode", () => {
+describe("SvgToPngNode", () => {
   const simpleSvg = '<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="red"/></svg>';
+  const simpleSvgImage = {
+    data: new TextEncoder().encode(simpleSvg),
+    mimeType: "image/svg+xml",
+  };
 
   it("should render simple SVG to PNG", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
       },
       env: {},
     } as unknown as NodeContext;
@@ -31,15 +35,15 @@ describe("ResvgSvgToPngNode", () => {
   });
 
   it("should handle width and height parameters", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
         width: 200,
         height: 150,
       },
@@ -52,15 +56,15 @@ describe("ResvgSvgToPngNode", () => {
   });
 
   it("should handle scale parameter", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
         scale: 2.0,
       },
       env: {},
@@ -72,15 +76,15 @@ describe("ResvgSvgToPngNode", () => {
   });
 
   it("should handle background color parameter", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
         backgroundColor: "white",
       },
       env: {},
@@ -92,8 +96,8 @@ describe("ResvgSvgToPngNode", () => {
   });
 
   it("should fail with invalid SVG input", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
@@ -106,67 +110,91 @@ describe("ResvgSvgToPngNode", () => {
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("failed");
-    expect(result.error).toContain("SVG content is required");
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("SVG image input is required");
   });
 
   it("should fail with invalid width", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
         width: -10,
       },
       env: {},
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("error");
     expect(result.error).toContain("Width must be between 1 and 8192");
   });
 
   it("should fail with invalid height", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
         height: 10000,
       },
       env: {},
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("error");
     expect(result.error).toContain("Height must be between 1 and 8192");
   });
 
   it("should fail with invalid scale", async () => {
-    const nodeId = "resvg-svg-to-png";
-    const node = new ResvgSvgToPngNode({
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
       nodeId,
     } as unknown as Node);
 
     const context = {
       nodeId,
       inputs: {
-        svg: simpleSvg,
+        svg: simpleSvgImage,
         scale: 15,
       },
       env: {},
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("failed");
+    expect(result.status).toBe("error");
     expect(result.error).toContain("Scale must be between 0.1 and 10");
+  });
+
+  it("should fail with non-SVG image input", async () => {
+    const nodeId = "svg-to-png";
+    const node = new SvgToPngNode({
+      nodeId,
+    } as unknown as Node);
+
+    const nonSvgImage = {
+      data: new Uint8Array([0x89, 0x50, 0x4E, 0x47]), // PNG header
+      mimeType: "image/png",
+    };
+
+    const context = {
+      nodeId,
+      inputs: {
+        svg: nonSvgImage,
+      },
+      env: {},
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Input must be SVG content");
   });
 }); 

@@ -6,21 +6,21 @@ import { ExecutableNode, ImageParameter, NodeContext } from "../types";
 /**
  * This node renders SVG content to PNG using the Resvg library.
  */
-export class ResvgSvgToPngNode extends ExecutableNode {
+export class SvgToPngNode extends ExecutableNode {
   public static readonly nodeType: NodeType = {
-    id: "resvg-svg-to-png",
-    name: "Resvg SVG to PNG",
-    type: "resvg-svg-to-png",
+    id: "svg-to-png",
+    name: "SVG to PNG",
+    type: "svg-to-png",
     description:
-      "Renders SVG content to PNG format using the high-performance Resvg library.",
+      "Renders SVG content to PNG format using the Resvg library. Accepts SVG image input from GeoJSON to SVG node.",
     tags: ["Image"],
     icon: "file-image", // Icon suggesting image conversion
     inlinable: true,
     inputs: [
       {
         name: "svg",
-        type: "string",
-        description: "The SVG content as a string.",
+        type: "image",
+        description: "The SVG image to render.",
         required: true,
       },
       {
@@ -41,6 +41,7 @@ export class ResvgSvgToPngNode extends ExecutableNode {
         description: "Scale factor for rendering (default: 1.0).",
         required: false,
         value: 1.0,
+        hidden: true,
       },
       {
         name: "backgroundColor",
@@ -48,6 +49,7 @@ export class ResvgSvgToPngNode extends ExecutableNode {
         description: "Background color (e.g., 'white', 'transparent', '#FF0000').",
         required: false,
         value: "transparent",
+        hidden: true,
       },
     ],
     outputs: [
@@ -64,9 +66,20 @@ export class ResvgSvgToPngNode extends ExecutableNode {
 
     try {
       // Validate required input
-      const svg = inputs.svg as string;
-      if (!svg || typeof svg !== "string") {
-        return this.createErrorResult("SVG content is required and must be a string.");
+      const svgInput = inputs.svg as ImageParameter;
+      if (!svgInput || !svgInput.data) {
+        return this.createErrorResult("SVG image input is required.");
+      }
+
+      // Check if it's SVG content
+      if (svgInput.mimeType !== "image/svg+xml") {
+        return this.createErrorResult("Input must be SVG content (image/svg+xml).");
+      }
+
+      // Convert Uint8Array to string
+      const svg = new TextDecoder().decode(svgInput.data);
+      if (!svg) {
+        return this.createErrorResult("Failed to decode SVG content.");
       }
 
       // Validate and parse optional inputs
