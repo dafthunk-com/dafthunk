@@ -169,7 +169,6 @@ import { JsonInsertNode } from "./json/json-insert-node";
 import { JsonKeysNode } from "./json/json-keys-node";
 import { JsonMergeNode } from "./json/json-merge-node";
 import { JsonObjectAggNode } from "./json/json-object-agg-node";
-import { JsonObjectEntriesNode } from "./json/json-object-entries-node";
 import { JsonObjectKeysNode } from "./json/json-object-keys-node";
 import { JsonObjectValuesNode } from "./json/json-object-values-node";
 import { JsonRemoveNode } from "./json/json-remove-node";
@@ -324,7 +323,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(JsonKeysNode);
     this.registerImplementation(JsonMergeNode);
     this.registerImplementation(JsonObjectAggNode);
-    this.registerImplementation(JsonObjectEntriesNode);
     this.registerImplementation(JsonObjectKeysNode);
     this.registerImplementation(JsonObjectValuesNode);
     this.registerImplementation(JsonRemoveNode);
