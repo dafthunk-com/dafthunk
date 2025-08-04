@@ -11,8 +11,7 @@ export class SvgToPngNode extends ExecutableNode {
     id: "svg-to-png",
     name: "SVG to PNG",
     type: "svg-to-png",
-    description:
-      "Renders SVG content to PNG format using the Resvg library. Accepts SVG image input from GeoJSON to SVG node.",
+    description: "Renders SVG content to PNG format using the Resvg library.",
     tags: ["Image"],
     icon: "file-image", // Icon suggesting image conversion
     inlinable: true,
@@ -46,7 +45,8 @@ export class SvgToPngNode extends ExecutableNode {
       {
         name: "backgroundColor",
         type: "string",
-        description: "Background color (e.g., 'white', 'transparent', '#FF0000').",
+        description:
+          "Background color (e.g., 'white', 'transparent', '#FF0000').",
         required: false,
         value: "transparent",
         hidden: true,
@@ -73,7 +73,9 @@ export class SvgToPngNode extends ExecutableNode {
 
       // Check if it's SVG content
       if (svgInput.mimeType !== "image/svg+xml") {
-        return this.createErrorResult("Input must be SVG content (image/svg+xml).");
+        return this.createErrorResult(
+          "Input must be SVG content (image/svg+xml)."
+        );
       }
 
       // Convert Uint8Array to string
@@ -86,15 +88,20 @@ export class SvgToPngNode extends ExecutableNode {
       const width = inputs.width as number | undefined;
       const height = inputs.height as number | undefined;
       const scale = (inputs.scale as number) || 1.0;
-      const backgroundColor = (inputs.backgroundColor as string) || "transparent";
+      const backgroundColor =
+        (inputs.backgroundColor as string) || "transparent";
 
       // Validate numeric inputs
       if (width !== undefined && (width <= 0 || width > 8192)) {
-        return this.createErrorResult("Width must be between 1 and 8192 pixels.");
+        return this.createErrorResult(
+          "Width must be between 1 and 8192 pixels."
+        );
       }
 
       if (height !== undefined && (height <= 0 || height > 8192)) {
-        return this.createErrorResult("Height must be between 1 and 8192 pixels.");
+        return this.createErrorResult(
+          "Height must be between 1 and 8192 pixels."
+        );
       }
 
       if (scale <= 0 || scale > 10) {
@@ -145,7 +152,9 @@ export class SvgToPngNode extends ExecutableNode {
 
       return this.createSuccessResult({ image: imageParameter });
     } catch (error) {
-      return this.createErrorResult(`Failed to render SVG: ${error instanceof Error ? error.message : String(error)}`);
+      return this.createErrorResult(
+        `Failed to render SVG: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
-} 
+}

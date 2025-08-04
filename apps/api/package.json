@@ -51,7 +51,6 @@
     "@hono-rate-limiter/cloudflare": "^0.2.2",
     "@hono/oauth-providers": "^0.7.1",
     "@hono/zod-validator": "^0.5.0",
-    "@resvg/resvg-wasm": "^2.6.2",
     "@sendgrid/mail": "^8.1.5",
     "@turf/helpers": "^7.2.0",
     "@turf/turf": "^7.2.0",

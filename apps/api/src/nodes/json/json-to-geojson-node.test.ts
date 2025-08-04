@@ -1,13 +1,13 @@
-import { describe, expect, it } from "vitest";
 import { Node } from "@dafthunk/types";
+import { describe, expect, it } from "vitest";
 
-import { JsonToGeojsonNode } from "./json-to-geojson-node";
 import { NodeContext } from "../types";
+import { JsonToGeojsonNode } from "./json-to-geojson-node";
 
 describe("JsonToGeojsonNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
     nodeId: "test-node",
-    workflowId: "test-workflow", 
+    workflowId: "test-workflow",
     organizationId: "test-org",
     inputs,
     env: {} as any,
@@ -44,7 +44,11 @@ describe("JsonToGeojsonNode", () => {
       const node = createNode();
       const lineString = {
         type: "LineString",
-        coordinates: [[0, 0], [10, 10], [20, 0]],
+        coordinates: [
+          [0, 0],
+          [10, 10],
+          [20, 0],
+        ],
       };
 
       const context = createMockContext({ json: lineString });
@@ -58,7 +62,15 @@ describe("JsonToGeojsonNode", () => {
       const node = createNode();
       const polygon = {
         type: "Polygon",
-        coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+        coordinates: [
+          [
+            [0, 0],
+            [10, 0],
+            [10, 10],
+            [0, 10],
+            [0, 0],
+          ],
+        ],
       };
 
       const context = createMockContext({ json: polygon });
@@ -225,8 +237,8 @@ describe("JsonToGeojsonNode", () => {
 
     it("should return error for missing type property", async () => {
       const node = createNode();
-      const context = createMockContext({ 
-        json: { coordinates: [10, 20] } 
+      const context = createMockContext({
+        json: { coordinates: [10, 20] },
       });
 
       const result = await node.execute(context);
@@ -237,8 +249,8 @@ describe("JsonToGeojsonNode", () => {
 
     it("should return error for invalid GeoJSON type", async () => {
       const node = createNode();
-      const context = createMockContext({ 
-        json: { type: "InvalidType", coordinates: [10, 20] } 
+      const context = createMockContext({
+        json: { type: "InvalidType", coordinates: [10, 20] },
       });
 
       const result = await node.execute(context);
@@ -249,8 +261,8 @@ describe("JsonToGeojsonNode", () => {
 
     it("should return error for invalid geometry structure", async () => {
       const node = createNode();
-      const context = createMockContext({ 
-        json: { type: "Point", coordinates: "not an array" } 
+      const context = createMockContext({
+        json: { type: "Point", coordinates: "not an array" },
       });
 
       const result = await node.execute(context);

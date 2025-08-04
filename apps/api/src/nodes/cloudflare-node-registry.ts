@@ -94,7 +94,6 @@ import { PolygonSmoothNode } from "./geo/polygon-smooth-node";
 import { PolygonTangentsNode } from "./geo/polygon-tangents-node";
 import { PolygonToLineNode } from "./geo/polygon-to-line-node";
 import { PolygonizeNode } from "./geo/polygonize-node";
-import { SvgToPngNode } from "./image/svg-to-png-node";
 import { RewindNode } from "./geo/rewind-node";
 import { RhumbBearingNode } from "./geo/rhumb-bearing-node";
 import { RhumbDestinationNode } from "./geo/rhumb-destination-node";
@@ -150,6 +149,7 @@ import { StableDiffusionV15Img2ImgNode } from "./image/stable-diffusion-v1-5-img
 import { StableDiffusionV15InpaintingNode } from "./image/stable-diffusion-v1-5-inpainting-node";
 import { StableDiffusionXLBase10Node } from "./image/stable-diffusion-xl-base-1-0-node";
 import { StableDiffusionXLLightningNode } from "./image/stable-diffusion-xl-lightning-node";
+import { SvgToPngNode } from "./image/svg-to-png-node";
 import { UformGen2Qwen500mNode } from "./image/uform-gen2-qwen-500m-node";
 import { WebcamNode } from "./image/webcam-node";
 import { JavaScriptEditorNode } from "./javascript/javascript-editor-node";

@@ -1,5 +1,5 @@
 import { NodeExecution, NodeType } from "@dafthunk/types";
-import { geojsonToSvg, type GeoJSONSvgOptions } from "@dafthunk/utils";
+import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -9,7 +9,8 @@ export class GeoJsonToSvgNode extends ExecutableNode {
     id: "geojson-to-svg",
     name: "GeoJSON to SVG",
     type: "geojson-to-svg",
-    description: "Renders GeoJSON data into an SVG file using d3-geo with identity projection. Creates separate path elements for each geometry with appropriate styling.",
+    description:
+      "Renders GeoJSON data into an SVG file using d3-geo with identity projection. Creates separate path elements for each geometry with appropriate styling.",
     tags: ["Geo", "Image"],
     icon: "map",
     inputs: [
@@ -68,28 +69,32 @@ export class GeoJsonToSvgNode extends ExecutableNode {
       {
         name: "minX",
         type: "number",
-        description: "Minimum X coordinate (left boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
+        description:
+          "Minimum X coordinate (left boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
         required: false,
         hidden: true,
       },
       {
         name: "minY",
         type: "number",
-        description: "Minimum Y coordinate (bottom boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
+        description:
+          "Minimum Y coordinate (bottom boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
         required: false,
         hidden: true,
       },
       {
         name: "maxX",
         type: "number",
-        description: "Maximum X coordinate (right boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
+        description:
+          "Maximum X coordinate (right boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
         required: false,
         hidden: true,
       },
       {
         name: "maxY",
         type: "number",
-        description: "Maximum Y coordinate (top boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
+        description:
+          "Maximum Y coordinate (top boundary) of the viewport. If not provided, auto-fits to GeoJSON extent.",
         required: false,
         hidden: true,
       },
@@ -145,7 +150,9 @@ export class GeoJsonToSvgNode extends ExecutableNode {
       }
 
       if (result.paths.length === 0) {
-        return this.createErrorResult("Failed to generate SVG paths from GeoJSON");
+        return this.createErrorResult(
+          "Failed to generate SVG paths from GeoJSON"
+        );
       }
 
       // Convert SVG string to Uint8Array
@@ -159,7 +166,9 @@ export class GeoJsonToSvgNode extends ExecutableNode {
       });
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(`Error rendering GeoJSON to SVG: ${error.message}`);
+      return this.createErrorResult(
+        `Error rendering GeoJSON to SVG: ${error.message}`
+      );
     }
   }
-} 
+}

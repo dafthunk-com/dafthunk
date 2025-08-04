@@ -30,13 +30,12 @@ export class GeoJsonNode extends ExecutableNode {
       {
         name: "geojsonType",
         type: "string",
-        description: "The type of GeoJSON (Point, LineString, Feature, FeatureCollection, etc.)",
+        description:
+          "The type of GeoJSON (Point, LineString, Feature, FeatureCollection, etc.)",
         hidden: true,
       },
     ],
   };
-
-
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
@@ -59,9 +58,7 @@ export class GeoJsonNode extends ExecutableNode {
       return this.createErrorResult("Invalid GeoJSON");
     } catch (err) {
       const error = err as Error;
-      return this.createErrorResult(
-        `Error parsing GeoJSON: ${error.message}`
-      );
+      return this.createErrorResult(`Error parsing GeoJSON: ${error.message}`);
     }
   }
 
@@ -71,14 +68,14 @@ export class GeoJsonNode extends ExecutableNode {
       if (!Array.isArray(data.features)) {
         return false;
       }
-      
+
       // Validate each feature in the collection
       for (const feature of data.features) {
         if (!booleanValid(feature)) {
           return false;
         }
       }
-      
+
       return true;
     }
 

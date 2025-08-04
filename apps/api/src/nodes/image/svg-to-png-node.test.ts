@@ -5,7 +5,8 @@ import { NodeContext } from "../types";
 import { SvgToPngNode } from "./svg-to-png-node";
 
 describe("SvgToPngNode", () => {
-  const simpleSvg = '<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="red"/></svg>';
+  const simpleSvg =
+    '<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="red"/></svg>';
   const simpleSvgImage = {
     data: new TextEncoder().encode(simpleSvg),
     mimeType: "image/svg+xml",
@@ -181,7 +182,7 @@ describe("SvgToPngNode", () => {
     } as unknown as Node);
 
     const nonSvgImage = {
-      data: new Uint8Array([0x89, 0x50, 0x4E, 0x47]), // PNG header
+      data: new Uint8Array([0x89, 0x50, 0x4e, 0x47]), // PNG header
       mimeType: "image/png",
     };
 
@@ -197,4 +198,4 @@ describe("SvgToPngNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toContain("Input must be SVG content");
   });
-}); 
+});

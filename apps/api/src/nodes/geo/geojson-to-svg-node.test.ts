@@ -1,6 +1,7 @@
-import { beforeEach, describe, it, expect } from "vitest";
-import { GeoJsonToSvgNode } from "./geojson-to-svg-node";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import { NodeContext } from "../types";
+import { GeoJsonToSvgNode } from "./geojson-to-svg-node";
 
 describe("GeoJsonToSvgNode", () => {
   const createMockContext = (inputs: Record<string, any>): NodeContext => ({
@@ -28,8 +29,12 @@ describe("GeoJsonToSvgNode", () => {
     expect(GeoJsonToSvgNode.nodeType.id).toBe("geojson-to-svg");
     expect(GeoJsonToSvgNode.nodeType.name).toBe("GeoJSON to SVG");
     expect(GeoJsonToSvgNode.nodeType.type).toBe("geojson-to-svg");
-    expect(GeoJsonToSvgNode.nodeType.description).toContain("identity projection");
-    expect(GeoJsonToSvgNode.nodeType.description).toContain("separate path elements");
+    expect(GeoJsonToSvgNode.nodeType.description).toContain(
+      "identity projection"
+    );
+    expect(GeoJsonToSvgNode.nodeType.description).toContain(
+      "separate path elements"
+    );
     expect(GeoJsonToSvgNode.nodeType.tags).toContain("Geo");
     expect(GeoJsonToSvgNode.nodeType.tags).toContain("Image");
   });
@@ -99,19 +104,19 @@ describe("GeoJsonToSvgNode", () => {
     const minYInput = inputs.find((i) => i.name === "minY");
     const maxXInput = inputs.find((i) => i.name === "maxX");
     const maxYInput = inputs.find((i) => i.name === "maxY");
-    
+
     expect(minXInput).toBeDefined();
     expect(minXInput?.description).toContain("Minimum X coordinate");
     expect(minXInput?.description).toContain("left boundary");
-    
+
     expect(minYInput).toBeDefined();
     expect(minYInput?.description).toContain("Minimum Y coordinate");
     expect(minYInput?.description).toContain("bottom boundary");
-    
+
     expect(maxXInput).toBeDefined();
     expect(maxXInput?.description).toContain("Maximum X coordinate");
     expect(maxXInput?.description).toContain("right boundary");
-    
+
     expect(maxYInput).toBeDefined();
     expect(maxYInput?.description).toContain("Maximum Y coordinate");
     expect(maxYInput?.description).toContain("top boundary");
@@ -121,9 +126,9 @@ describe("GeoJsonToSvgNode", () => {
     const inputs = GeoJsonToSvgNode.nodeType.inputs;
     const minXInput = inputs.find((i) => i.name === "minX");
     const maxYInput = inputs.find((i) => i.name === "maxY");
-    
+
     // All viewport parameters are optional
     expect(minXInput?.required).toBe(false);
     expect(maxYInput?.required).toBe(false);
   });
-}); 
+});

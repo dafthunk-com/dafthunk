@@ -1,5 +1,5 @@
-import { geoPath, geoIdentity } from "d3-geo";
 import type { GeoPath } from "d3-geo";
+import { geoIdentity, geoPath } from "d3-geo";
 
 export interface GeoJSONSvgOptions {
   width?: number;
@@ -84,31 +84,41 @@ export function extractCoordinates(geojson: any): number[][] {
 /**
  * Sets up projection with proper fitting based on GeoJSON bounds
  */
-export function setupProjection(
-  geojson: any,
-  options: GeoJSONSvgOptions
-): any {
+export function setupProjection(geojson: any, options: GeoJSONSvgOptions): any {
   const { width = 400, height = 300, minX, minY, maxX, maxY } = options;
   const proj = geoIdentity();
 
   // If custom viewport bounds are provided, use them
-  if (minX !== undefined && minY !== undefined && maxX !== undefined && maxY !== undefined) {
+  if (
+    minX !== undefined &&
+    minY !== undefined &&
+    maxX !== undefined &&
+    maxY !== undefined
+  ) {
     const bboxFeature = {
       type: "Feature",
       geometry: {
         type: "Polygon",
-        coordinates: [[
-          [minX, minY],
-          [maxX, minY],
-          [maxX, maxY],
-          [minX, maxY],
-          [minX, minY]
-        ]]
+        coordinates: [
+          [
+            [minX, minY],
+            [maxX, minY],
+            [maxX, maxY],
+            [minX, maxY],
+            [minX, minY],
+          ],
+        ],
       },
-      properties: {}
+      properties: {},
     };
 
-    proj.fitExtent([[0, 0], [width, height]], bboxFeature as any);
+    proj.fitExtent(
+      [
+        [0, 0],
+        [width, height],
+      ],
+      bboxFeature as any
+    );
     return proj;
   }
 
@@ -120,18 +130,26 @@ export function setupProjection(
       type: "Feature",
       geometry: {
         type: "Polygon",
-        coordinates: [[
-          [-180, -90],
-          [180, -90],
-          [180, 90],
-          [-180, 90],
-          [-180, -90]
-        ]]
+        coordinates: [
+          [
+            [-180, -90],
+            [180, -90],
+            [180, 90],
+            [-180, 90],
+            [-180, -90],
+          ],
+        ],
       },
-      properties: {}
+      properties: {},
     };
 
-    proj.fitExtent([[0, 0], [width, height]], worldFeature as any);
+    proj.fitExtent(
+      [
+        [0, 0],
+        [width, height],
+      ],
+      worldFeature as any
+    );
     return proj;
   }
 
@@ -167,25 +185,36 @@ export function setupProjection(
     type: "Feature",
     geometry: {
       type: "Polygon",
-      coordinates: [[
-        [minXCoord, minYCoord],
-        [maxXCoord, minYCoord],
-        [maxXCoord, maxYCoord],
-        [minXCoord, maxYCoord],
-        [minXCoord, minYCoord]
-      ]]
+      coordinates: [
+        [
+          [minXCoord, minYCoord],
+          [maxXCoord, minYCoord],
+          [maxXCoord, maxYCoord],
+          [minXCoord, maxYCoord],
+          [minXCoord, minYCoord],
+        ],
+      ],
     },
-    properties: {}
+    properties: {},
   };
 
-  proj.fitExtent([[0, 0], [width, height]], bboxFeature as any);
+  proj.fitExtent(
+    [
+      [0, 0],
+      [width, height],
+    ],
+    bboxFeature as any
+  );
   return proj;
 }
 
 /**
  * Generates SVG paths using D3 for a given GeoJSON
  */
-export function generatePaths(geojson: any, path: GeoPath): { pathData: string; isPolygon: boolean }[] {
+export function generatePaths(
+  geojson: any,
+  path: GeoPath
+): { pathData: string; isPolygon: boolean }[] {
   const paths: { pathData: string; isPolygon: boolean }[] = [];
 
   const processGeometry = (geometry: any) => {
@@ -193,7 +222,8 @@ export function generatePaths(geojson: any, path: GeoPath): { pathData: string; 
 
     const pathData = path(geometry);
     if (pathData) {
-      const isPolygon = geometry.type === "Polygon" || geometry.type === "MultiPolygon";
+      const isPolygon =
+        geometry.type === "Polygon" || geometry.type === "MultiPolygon";
       paths.push({ pathData, isPolygon });
     }
   };
@@ -218,7 +248,10 @@ export function generatePaths(geojson: any, path: GeoPath): { pathData: string; 
 /**
  * Main function to convert GeoJSON to SVG
  */
-export function geojsonToSvg(geojson: any, options: GeoJSONSvgOptions = {}): GeoJSONSvgResult {
+export function geojsonToSvg(
+  geojson: any,
+  options: GeoJSONSvgOptions = {}
+): GeoJSONSvgResult {
   const {
     width = 400,
     height = 300,
@@ -232,14 +265,14 @@ export function geojsonToSvg(geojson: any, options: GeoJSONSvgOptions = {}): Geo
     return {
       svg: "",
       paths: [],
-      error: "No GeoJSON data provided"
+      error: "No GeoJSON data provided",
     };
   }
 
   try {
     // Set up projection
     const proj = setupProjection(geojson, options);
-    
+
     // Create path generator
     const path = geoPath().projection(proj);
 
@@ -250,32 +283,32 @@ export function geojsonToSvg(geojson: any, options: GeoJSONSvgOptions = {}): Geo
       return {
         svg: "",
         paths: [],
-        error: "No valid geometries found"
+        error: "No valid geometries found",
       };
     }
 
     // Generate SVG content
     const pathElements = paths.map(({ pathData, isPolygon }) => {
-      return `<path d="${pathData}" fill="${isPolygon ? fillColor : 'none'}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`;
+      return `<path d="${pathData}" fill="${isPolygon ? fillColor : "none"}" stroke="${strokeColor}" stroke-width="${strokeWidth}"/>`;
     });
 
     const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   <rect width="${width}" height="${height}" fill="${backgroundColor}"/>
-  ${pathElements.join('\n  ')}
+  ${pathElements.join("\n  ")}
 </svg>`;
 
     return {
       svg: svgContent,
-      paths: paths.map(p => p.pathData),
-      error: null
+      paths: paths.map((p) => p.pathData),
+      error: null,
     };
   } catch (err) {
     console.error("Error converting GeoJSON to SVG:", err);
     return {
       svg: "",
       paths: [],
-      error: `Error converting GeoJSON to SVG: ${err instanceof Error ? err.message : "Unknown error"}`
+      error: `Error converting GeoJSON to SVG: ${err instanceof Error ? err.message : "Unknown error"}`,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { NodeExecution, NodeType, GeoJSON } from "@dafthunk/types";
+import { GeoJSON, NodeExecution, NodeType } from "@dafthunk/types";
 import { booleanValid, cleanCoords } from "@turf/turf";
 
 import { ExecutableNode, NodeContext } from "../types";
@@ -11,8 +11,7 @@ export class JsonToGeojsonNode extends ExecutableNode {
     id: "json-to-geojson",
     name: "JSON to GeoJSON",
     type: "json-to-geojson",
-    description:
-      "Converts JSON data to valid GeoJSON format with validation.",
+    description: "Converts JSON data to valid GeoJSON format with validation.",
     tags: ["JSON", "GeoJSON", "Conversion"],
     icon: "convert",
     inlinable: true,
@@ -50,12 +49,16 @@ export class JsonToGeojsonNode extends ExecutableNode {
         try {
           parsedData = JSON.parse(input);
         } catch (parseError) {
-          return this.createErrorResult(`Invalid JSON string: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+          return this.createErrorResult(
+            `Invalid JSON string: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+          );
         }
       } else if (typeof input === "object") {
         parsedData = input;
       } else {
-        return this.createErrorResult(`Unsupported input type: ${typeof input}. Expected string or object.`);
+        return this.createErrorResult(
+          `Unsupported input type: ${typeof input}. Expected string or object.`
+        );
       }
 
       // Validate and clean the GeoJSON using Turf.js
@@ -63,7 +66,9 @@ export class JsonToGeojsonNode extends ExecutableNode {
 
       return this.createSuccessResult({ geojson });
     } catch (error) {
-      return this.createErrorResult(`Failed to convert JSON to GeoJSON: ${error instanceof Error ? error.message : String(error)}`);
+      return this.createErrorResult(
+        `Failed to convert JSON to GeoJSON: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -84,14 +89,14 @@ export class JsonToGeojsonNode extends ExecutableNode {
       if (!Array.isArray(cleaned.features)) {
         throw new Error("FeatureCollection must have a 'features' array");
       }
-      
+
       // Validate each feature in the collection
       for (const feature of cleaned.features) {
         if (!booleanValid(feature)) {
           throw new Error("Invalid GeoJSON format in FeatureCollection");
         }
       }
-      
+
       return cleaned as GeoJSON;
     }
 
