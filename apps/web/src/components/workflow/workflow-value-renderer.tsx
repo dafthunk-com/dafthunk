@@ -1,6 +1,6 @@
 import { ObjectReference } from "@dafthunk/types";
+import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
 import { useEffect, useRef, useState } from "react";
-import { geojsonToSvg, type GeoJSONSvgOptions } from "@dafthunk/utils";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Input } from "@/components/ui/input";
@@ -225,23 +225,26 @@ const GeoJSONRenderer = ({
       };
 
       const result = geojsonToSvg(geojson, options);
-      
+
       // Make SVG responsive with 100% width
       if (result.svg && !result.error) {
         const responsiveSvg = result.svg
           .replace(/width="[^"]*"/, 'width="100%"')
           .replace(/height="[^"]*"/, 'height="auto"')
-          .replace(/<svg([^>]*)>/, `<svg$1 viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">`);
-        
+          .replace(
+            /<svg([^>]*)>/,
+            `<svg$1 viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">`
+          );
+
         return { svg: responsiveSvg, error: result.error };
       }
-      
+
       return { svg: result.svg, error: result.error };
     } catch (err) {
       console.error("Error rendering GeoJSON:", err);
       return {
         svg: "",
-        error: `Error rendering GeoJSON: ${err instanceof Error ? err.message : "Unknown error"}`
+        error: `Error rendering GeoJSON: ${err instanceof Error ? err.message : "Unknown error"}`,
       };
     }
   };
@@ -251,7 +254,7 @@ const GeoJSONRenderer = ({
 
   if (readonly) {
     const result = renderGeoJSONSvg(parameter.value);
-    
+
     return (
       <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
         {result.error ? (
@@ -267,7 +270,9 @@ const GeoJSONRenderer = ({
           </div>
         ) : (
           <div className="border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
-            <span className="text-slate-500 dark:text-slate-400 text-sm">No geometries to display</span>
+            <span className="text-slate-500 dark:text-slate-400 text-sm">
+              No geometries to display
+            </span>
           </div>
         )}
         <CodeRenderer
@@ -283,34 +288,37 @@ const GeoJSONRenderer = ({
 
   return (
     <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
-      {parameter.value && (() => {
-        const result = renderGeoJSONSvg(parameter.value);
-        
-        if (result.error) {
+      {parameter.value &&
+        (() => {
+          const result = renderGeoJSONSvg(parameter.value);
+
+          if (result.error) {
+            return (
+              <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
+                {result.error}
+              </div>
+            );
+          }
+
+          if (result.svg) {
+            return (
+              <div className="border rounded-md bg-slate-50 dark:bg-slate-900">
+                <div
+                  className="w-full"
+                  dangerouslySetInnerHTML={{ __html: result.svg }}
+                />
+              </div>
+            );
+          }
+
           return (
-            <div className="text-sm text-red-500 p-2 bg-red-50 rounded-md dark:bg-red-900 dark:text-red-400 dark:border dark:border-red-800">
-              {result.error}
+            <div className="border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
+              <span className="text-slate-500 dark:text-slate-400 text-sm">
+                No geometries to display
+              </span>
             </div>
           );
-        }
-        
-        if (result.svg) {
-          return (
-            <div className="border rounded-md bg-slate-50 dark:bg-slate-900">
-              <div
-                className="w-full"
-                dangerouslySetInnerHTML={{ __html: result.svg }}
-              />
-            </div>
-          );
-        }
-        
-        return (
-          <div className="border rounded-md bg-slate-50 dark:bg-slate-900 p-4 text-center">
-            <span className="text-slate-500 dark:text-slate-400 text-sm">No geometries to display</span>
-          </div>
-        );
-      })()}
+        })()}
 
       <Textarea
         value={formattedValue}

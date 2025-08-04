@@ -12,7 +12,7 @@ import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   deleteDatasetFile,
   downloadDatasetFile,
-  uploadDatasetFile,
+  uploadDatasetFiles,
   useDataset,
   useDatasetFiles,
 } from "@/services/dataset-service";
@@ -55,15 +55,38 @@ export function DatasetDetailPage() {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
-    if (!file || !datasetId || !organization?.handle) return;
+    const files = event.target.files;
+    if (!files || !datasetId || !organization?.handle) return;
+
+    // Convert FileList to array
+    const fileArray = Array.from(files);
 
     try {
-      await uploadDatasetFile(datasetId, file, organization.handle);
-      toast.success("File uploaded successfully");
+      const result = await uploadDatasetFiles(
+        datasetId,
+        fileArray,
+        organization.handle
+      );
+
+      // Show success message for successful uploads
+      if (result.success.length > 0) {
+        if (result.success.length === 1) {
+          toast.success(`File "${result.success[0]}" uploaded successfully`);
+        } else {
+          toast.success(`${result.success.length} files uploaded successfully`);
+        }
+      }
+
+      // Show error messages for failed uploads
+      if (result.errors.length > 0) {
+        result.errors.forEach(({ file, error }) => {
+          toast.error(`Failed to upload "${file}": ${error}`);
+        });
+      }
+
       mutateFiles();
     } catch (error) {
-      toast.error("Failed to upload file");
+      toast.error("Failed to upload files");
       console.error("Upload error:", error);
     }
   };
@@ -153,19 +176,27 @@ export function DatasetDetailPage() {
 
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold leading-none tracking-tight">Files</h3>
+            <div>
+              <h3 className="font-semibold leading-none tracking-tight">
+                Files
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Select multiple files to upload at once
+              </p>
+            </div>
             <div className="flex gap-2">
               <input
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleFileUpload}
+                multiple
               />
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 variant="outline"
               >
-                Upload File
+                Upload Files
               </Button>
             </div>
           </div>
@@ -178,7 +209,10 @@ export function DatasetDetailPage() {
             </div>
           ) : files.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
-              No files uploaded yet
+              <p>No files uploaded yet</p>
+              <p className="text-xs mt-1">
+                You can select multiple files at once
+              </p>
             </div>
           ) : (
             <div className="space-y-2">

@@ -149,6 +149,62 @@ export const uploadDatasetFile = async (
 };
 
 /**
+ * Upload multiple files to a dataset
+ */
+export const uploadDatasetFiles = async (
+  datasetId: string,
+  files: File[],
+  orgHandle: string
+): Promise<{
+  success: string[];
+  errors: { file: string; error: string }[];
+}> => {
+  const results = await Promise.allSettled(
+    files.map(async (file) => {
+      try {
+        await uploadDatasetFile(datasetId, file, orgHandle);
+        return { success: true, filename: file.name } as const;
+      } catch (error) {
+        return {
+          success: false,
+          filename: file.name,
+          error:
+            error instanceof Error
+              ? error.message || "Unknown error"
+              : "Unknown error",
+        } as const;
+      }
+    })
+  );
+
+  const success: string[] = [];
+  const errors: { file: string; error: string }[] = [];
+
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      if (result.value.success) {
+        success.push(result.value.filename);
+      } else {
+        errors.push({
+          file: result.value.filename,
+          error: result.value.error,
+        });
+      }
+    } else {
+      errors.push({
+        file: "Unknown file",
+        error:
+          result.reason instanceof Error
+            ? result.reason.message || "Unknown error"
+            : "Unknown error",
+      });
+    }
+  });
+
+  return { success, errors };
+};
+
+/**
  * Hook to list files in a dataset
  */
 export const useDatasetFiles = (datasetId: string | null) => {
