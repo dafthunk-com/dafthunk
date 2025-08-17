@@ -211,6 +211,8 @@ import { Hermes2ProMistral7BNode } from "./text/hermes-2-pro-mistral-7b-node";
 import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
+import { GptOss120BNode } from "./text/gpt-oss-120b-node";
+import { GptOss20BNode } from "./text/gpt-oss-20b-node";
 import { Llama4Scout17B16EInstructNode } from "./text/llama-4-scout-17b-16e-instruct-node";
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
 import { MistralSmall31_24BInstructNode } from "./text/mistral-small-3-1-24b-instruct-node";
@@ -285,6 +287,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(SliderNode);
     this.registerImplementation(Llama318BInstructFastNode);
     this.registerImplementation(Llama3370BInstructFastNode);
+    this.registerImplementation(GptOss120BNode);
+    this.registerImplementation(GptOss20BNode);
     this.registerImplementation(DeepseekR1DistillQwen32BNode);
     this.registerImplementation(Hermes2ProMistral7BNode);
     this.registerImplementation(Llama4Scout17B16EInstructNode);
