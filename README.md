@@ -65,8 +65,8 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/heigvd-software-engineering/workflow.git
-   cd workflow
+   git clone https://github.com/dafthunk-com/dafthunk.git
+   cd dafthunk
    ```
 
 2. Install dependencies:
@@ -82,7 +82,30 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    # Edit with custom values
    ```
 
-4. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:
+   ```
+   WEB_HOST=http://localhost:3000
+   CLOUDFLARE_ENV=development
+
+   JWT_SECRET=your_32_character_secret_here
+   ```
+
+4. Configure authentication:
+
+   For example, using GitHub OAuth:
+   - Go to [GitHub Settings > Developer settings > OAuth Apps](https://github.com/settings/applications/new)
+   - Create new OAuth App with:
+     - Application Name: `Dafthunk Dev`
+     - Homepage URL: `http://localhost:3000`
+     - Authorization callback URL: `http://localhost:3001/auth/login/github`
+   - Copy the Client ID and generate a new client secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   GITHUB_CLIENT_ID=your_client_id_here
+   GITHUB_CLIENT_SECRET=your_client_secret_here
+   ```
+
+5. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:
 
    ```bash
    # Install Wrangler globally
@@ -95,13 +118,20 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    wrangler d1 create DB
    ```
 
-5. Start the development server and cross your fingers:
+6. Apply the database migration files
+
+   ```bash
+   cd apps/api
+   pnpm db:migrate
+   ```
+
+7. Start the development server and cross your fingers:
 
    ```bash
    pnpm dev
    ```
 
-6. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
+8. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
 
 ## 👨‍💻 Development
 
