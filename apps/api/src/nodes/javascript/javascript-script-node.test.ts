@@ -90,7 +90,9 @@ describe("JavascriptScriptNode", () => {
     const result = await node.execute(context);
     expect(result.status).toBe("completed");
     expect(result.outputs?.result).toEqual(["HELLO", "WORLD", "JAVASCRIPT"]);
-    expect(result.outputs?.stdout).toBe("Processing values: hello, world, javascript");
+    expect(result.outputs?.stdout).toBe(
+      "Processing values: hello, world, javascript"
+    );
     expect(result.outputs?.error).toBeNull();
   });
 

@@ -12,7 +12,8 @@ export class GptOss120BNode extends ExecutableNode {
     id: "gpt-oss-120b",
     name: "GPT-OSS-120B",
     type: "gpt-oss-120b",
-    description: "OpenAI's open-weight model for powerful reasoning and agentic tasks",
+    description:
+      "OpenAI's open-weight model for powerful reasoning and agentic tasks",
     tags: ["Text", "AI"],
     icon: "sparkles",
     computeCost: 35,
@@ -64,8 +65,11 @@ export class GptOss120BNode extends ExecutableNode {
 
       // Extract the response text from the output structure
       // The response is in output[1] (the message with type 'message' and role 'assistant')
-      const messageOutput = result.output?.find((output: any) => output.type === 'message' && output.role === 'assistant');
-      const responseText = messageOutput?.content?.[0]?.text || '';
+      const messageOutput = result.output?.find(
+        (output: any) =>
+          output.type === "message" && output.role === "assistant"
+      );
+      const responseText = messageOutput?.content?.[0]?.text || "";
 
       return this.createSuccessResult({
         response: responseText,

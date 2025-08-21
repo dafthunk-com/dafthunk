@@ -185,6 +185,7 @@ import { ConditionalJoinNode } from "./logic/conditional-join-node";
 import { AbsoluteValueNode } from "./math/absolute-value-node";
 import { AdditionNode } from "./math/addition-node";
 import { AvgNode } from "./math/avg-node";
+import { CalculatorNode } from "./math/calculator-node";
 import { DivisionNode } from "./math/division-node";
 import { ExponentiationNode } from "./math/exponentiation-node";
 import { MaxNode } from "./math/max-node";
@@ -276,6 +277,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ExponentiationNode);
     this.registerImplementation(SquareRootNode);
     this.registerImplementation(AbsoluteValueNode);
+    this.registerImplementation(CalculatorNode);
     this.registerImplementation(SumNode);
     this.registerImplementation(MaxNode);
     this.registerImplementation(MinNode);

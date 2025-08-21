@@ -24,7 +24,8 @@ export class JavascriptScriptNode extends ExecutableNode {
       {
         name: "args",
         type: "json",
-        description: "Command line arguments (array of strings) to pass to the script",
+        description:
+          "Command line arguments (array of strings) to pass to the script",
         required: false,
       },
       {
@@ -38,7 +39,8 @@ export class JavascriptScriptNode extends ExecutableNode {
       {
         name: "result",
         type: "json",
-        description: "The result of the script execution (return value or last expression)",
+        description:
+          "The result of the script execution (return value or last expression)",
       },
       {
         name: "stdout",
@@ -81,8 +83,8 @@ export class JavascriptScriptNode extends ExecutableNode {
       const stdout: string[] = [];
       const stderr: string[] = [];
 
-             // Create a bootstrap script that sets up the environment
-       const bootstrapScript = `
+      // Create a bootstrap script that sets up the environment
+      const bootstrapScript = `
          // Set up console object
          globalThis.console = {
            log: function(...args) {
@@ -146,13 +148,15 @@ export class JavascriptScriptNode extends ExecutableNode {
 
         // Execute the original script (either it didn't start with '{' or wrapping failed)
         const evalResult = vm!.evalCode(scriptToExecute);
-        
+
         if (evalResult.error) {
           const errorDump = vm!.dump(evalResult.error);
           evalResult.error.dispose();
-          throw new Error(`Script execution error: ${JSON.stringify(errorDump)}`);
+          throw new Error(
+            `Script execution error: ${JSON.stringify(errorDump)}`
+          );
         }
-        
+
         const resultOutput = vm!.dump(evalResult.value);
         evalResult.value.dispose();
         return resultOutput;
@@ -164,10 +168,14 @@ export class JavascriptScriptNode extends ExecutableNode {
       // Get captured output
       const stdoutResult = vm.evalCode("globalThis.__stdout__.join('\\n')");
       const stderrResult = vm.evalCode("globalThis.__stderr__.join('\\n')");
-      
-      const stdoutOutput = stdoutResult.error ? "" : vm.dump(stdoutResult.value);
-      const stderrOutput = stderrResult.error ? "" : vm.dump(stderrResult.value);
-      
+
+      const stdoutOutput = stdoutResult.error
+        ? ""
+        : vm.dump(stdoutResult.value);
+      const stderrOutput = stderrResult.error
+        ? ""
+        : vm.dump(stderrResult.value);
+
       if (!stdoutResult.error) stdoutResult.value.dispose();
       if (!stderrResult.error) stderrResult.value.dispose();
 
@@ -177,7 +185,6 @@ export class JavascriptScriptNode extends ExecutableNode {
         stderr: stderrOutput,
         error: null,
       });
-
     } catch (err) {
       const error = err as Error;
       return this.createErrorResult(

@@ -13,10 +13,11 @@ export class GptOss20BNode extends ExecutableNode {
     id: "gpt-oss-20b",
     name: "GPT-OSS-20B",
     type: "gpt-oss-20b",
-    description: "OpenAI's open-weight model for lower latency and specialized use cases",
+    description:
+      "OpenAI's open-weight model for lower latency and specialized use cases",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    computeCost: 20,    
+    computeCost: 20,
     asTool: true,
     inputs: [
       {
@@ -65,8 +66,11 @@ export class GptOss20BNode extends ExecutableNode {
 
       // Extract the response text from the output structure
       // The response is in output[1] (the message with type 'message' and role 'assistant')
-      const messageOutput = result.output?.find((output: any) => output.type === 'message' && output.role === 'assistant');
-      const responseText = messageOutput?.content?.[0]?.text || '';
+      const messageOutput = result.output?.find(
+        (output: any) =>
+          output.type === "message" && output.role === "assistant"
+      );
+      const responseText = messageOutput?.content?.[0]?.text || "";
 
       return this.createSuccessResult({
         response: responseText,
