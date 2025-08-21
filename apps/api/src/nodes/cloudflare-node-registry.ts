@@ -153,6 +153,7 @@ import { SvgToPngNode } from "./image/svg-to-png-node";
 import { UformGen2Qwen500mNode } from "./image/uform-gen2-qwen-500m-node";
 import { WebcamNode } from "./image/webcam-node";
 import { JavaScriptEditorNode } from "./javascript/javascript-editor-node";
+import { JavascriptScriptNode } from "./javascript/javascript-script-node";
 import { JsonAggNode } from "./json/json-agg-node";
 import { JsonArrayLengthNode } from "./json/json-array-length-node";
 import { JsonContainsNode } from "./json/json-contains-node";
@@ -339,6 +340,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(MultiVariableStringTemplateNode);
     this.registerImplementation(SingleVariableStringTemplateNode);
     this.registerImplementation(JavaScriptEditorNode);
+    this.registerImplementation(JavascriptScriptNode);
     this.registerImplementation(LLaVA157BHFNode);
     this.registerImplementation(CanvasDoodleNode);
     this.registerImplementation(StableDiffusionXLBase10Node);
