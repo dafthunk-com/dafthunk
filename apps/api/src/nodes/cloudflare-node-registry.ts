@@ -1,3 +1,4 @@
+import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
@@ -457,6 +458,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     if (this.developerMode) {
       this.registerImplementation(RagAiSearchNode);
       this.registerImplementation(RagSearchNode);
+    }
+
+    // 3D Tiles workflow nodes
+    if (this.developerMode) {
+      this.registerImplementation(GeoTiffMetadataReaderNode);
     }
 
     // Geo nodes
