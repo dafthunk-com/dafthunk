@@ -159,6 +159,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
         EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
         OPENAI_API_KEY: this.env.OPENAI_API_KEY,
+        ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
       },
     };
   }
@@ -767,6 +768,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
           EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
           OPENAI_API_KEY: this.env.OPENAI_API_KEY,
+          ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
         },
       };
 

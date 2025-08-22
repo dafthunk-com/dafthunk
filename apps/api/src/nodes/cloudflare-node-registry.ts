@@ -153,6 +153,7 @@ import { SvgToPngNode } from "./image/svg-to-png-node";
 import { UformGen2Qwen500mNode } from "./image/uform-gen2-qwen-500m-node";
 import { WebcamNode } from "./image/webcam-node";
 import { JavaScriptEditorNode } from "./javascript/javascript-editor-node";
+import { JavascriptScriptNode } from "./javascript/javascript-script-node";
 import { JsonAggNode } from "./json/json-agg-node";
 import { JsonArrayLengthNode } from "./json/json-array-length-node";
 import { JsonContainsNode } from "./json/json-contains-node";
@@ -184,6 +185,7 @@ import { ConditionalJoinNode } from "./logic/conditional-join-node";
 import { AbsoluteValueNode } from "./math/absolute-value-node";
 import { AdditionNode } from "./math/addition-node";
 import { AvgNode } from "./math/avg-node";
+import { CalculatorNode } from "./math/calculator-node";
 import { DivisionNode } from "./math/division-node";
 import { ExponentiationNode } from "./math/exponentiation-node";
 import { MaxNode } from "./math/max-node";
@@ -239,6 +241,13 @@ import { TextAreaNode } from "./text/text-area-node";
 import { ToJsonNode } from "./text/to-json-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
+import { ClaudeOpus41Node } from "./text/claude-opus-41-node";
+import { ClaudeOpus4Node } from "./text/claude-opus-4-node";
+import { ClaudeSonnet4Node } from "./text/claude-sonnet-4-node";
+import { Claude37SonnetNode } from "./text/claude-37-sonnet-node";
+import { Claude35SonnetNode } from "./text/claude-35-sonnet-node";
+import { Claude35HaikuNode } from "./text/claude-35-haiku-node";
+import { Claude3OpusNode } from "./text/claude-3-opus-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -263,11 +272,8 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.AWS_REGION &&
       this.env.SES_DEFAULT_FROM
     );
-<<<<<<< HEAD
-=======
-    const hasAnthropic = !!this.env.ANTHROPIC_API_KEY;
     const hasOpenAI = !!this.env.OPENAI_API_KEY;
->>>>>>> f7b42689 (feat(api): integrate OpenAI nodes into CloudflareNodeRegistry)
+    const hasAnthropic = !!this.env.ANTHROPIC_API_KEY;
 
     // Register all core nodes
     this.registerImplementation(FormDataStringNode);
@@ -284,6 +290,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ExponentiationNode);
     this.registerImplementation(SquareRootNode);
     this.registerImplementation(AbsoluteValueNode);
+    this.registerImplementation(CalculatorNode);
     this.registerImplementation(SumNode);
     this.registerImplementation(MaxNode);
     this.registerImplementation(MinNode);
@@ -348,6 +355,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(MultiVariableStringTemplateNode);
     this.registerImplementation(SingleVariableStringTemplateNode);
     this.registerImplementation(JavaScriptEditorNode);
+    this.registerImplementation(JavascriptScriptNode);
     this.registerImplementation(LLaVA157BHFNode);
     this.registerImplementation(CanvasDoodleNode);
     this.registerImplementation(StableDiffusionXLBase10Node);
@@ -545,6 +553,17 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(Gpt5Node);
       this.registerImplementation(Gpt5MiniNode);
       this.registerImplementation(Gpt5NanoNode);
+    }
+    
+    // Anthropic Claude nodes
+    if (hasAnthropic) {
+      this.registerImplementation(ClaudeOpus41Node);
+      this.registerImplementation(ClaudeOpus4Node);
+      this.registerImplementation(ClaudeSonnet4Node);
+      this.registerImplementation(Claude37SonnetNode);
+      this.registerImplementation(Claude35SonnetNode);
+      this.registerImplementation(Claude35HaikuNode);
+      this.registerImplementation(Claude3OpusNode);
     }
   }
 }
