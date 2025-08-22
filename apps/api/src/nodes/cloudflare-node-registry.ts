@@ -1,4 +1,6 @@
+import { BboxValidatorNode } from "./3d/bbox-validator-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
+import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
@@ -462,7 +464,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // 3D Tiles workflow nodes
     if (this.developerMode) {
+      this.registerImplementation(BboxValidatorNode);
       this.registerImplementation(GeoTiffMetadataReaderNode);
+      this.registerImplementation(GeoTiffQueryNode);
     }
 
     // Geo nodes

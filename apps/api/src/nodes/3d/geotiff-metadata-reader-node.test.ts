@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { Node } from "@dafthunk/types";
 
 import { GeoTiffMetadataReaderNode } from "./geotiff-metadata-reader-node";
 
@@ -10,10 +11,12 @@ vi.mock("geotiff", () => ({
 describe("GeoTiffMetadataReaderNode", () => {
   const node = new GeoTiffMetadataReaderNode({
     id: "test-node",
+    name: "Test Node",
     type: "geotiff-metadata-reader",
     position: { x: 0, y: 0 },
-    data: {},
-  });
+    inputs: [],
+    outputs: [],
+  } as unknown as Node);
 
   describe("execute", () => {
     it("should return error when URL is missing", async () => {
@@ -57,9 +60,7 @@ describe("GeoTiffMetadataReaderNode", () => {
 
     it("should handle geotiff processing errors gracefully", async () => {
       const { fromUrl } = await import("geotiff");
-      vi.mocked(fromUrl).mockRejectedValueOnce(
-        new Error("Invalid TIFF data")
-      );
+      vi.mocked(fromUrl).mockRejectedValueOnce(new Error("Invalid TIFF data"));
 
       const result = await node.execute({
         nodeId: "test-node",
