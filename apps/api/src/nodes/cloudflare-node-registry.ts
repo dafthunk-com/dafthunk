@@ -213,6 +213,10 @@ import { Hermes2ProMistral7BNode } from "./text/hermes-2-pro-mistral-7b-node";
 import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
+import { Gpt41Node } from "./text/gpt-41-node";
+import { Gpt5Node } from "./text/gpt-5-node";
+import { Gpt5MiniNode } from "./text/gpt-5-mini-node";
+import { Gpt5NanoNode } from "./text/gpt-5-nano-node";
 import { GptOss120BNode } from "./text/gpt-oss-120b-node";
 import { GptOss20BNode } from "./text/gpt-oss-20b-node";
 import { Llama4Scout17B16EInstructNode } from "./text/llama-4-scout-17b-16e-instruct-node";
@@ -268,6 +272,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.AWS_REGION &&
       this.env.SES_DEFAULT_FROM
     );
+    const hasOpenAI = !!this.env.OPENAI_API_KEY;
     const hasAnthropic = !!this.env.ANTHROPIC_API_KEY;
 
     // Register all core nodes
@@ -542,6 +547,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(WktGeometryNode);
     }
 
+    // OpenAI models
+    if (hasOpenAI) {
+      this.registerImplementation(Gpt41Node);
+      this.registerImplementation(Gpt5Node);
+      this.registerImplementation(Gpt5MiniNode);
+      this.registerImplementation(Gpt5NanoNode);
+    }
+    
     // Anthropic Claude nodes
     if (hasAnthropic) {
       this.registerImplementation(ClaudeOpus41Node);
