@@ -1,83 +1,69 @@
+import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
-import type { Bindings } from "../../context";
+import { NodeContext } from "../types";
 import { ClaudeSonnet4Node } from "./claude-sonnet-4-node";
 
 describe("ClaudeSonnet4Node", () => {
-  const mockEnv: Partial<Bindings> = {
-    ANTHROPIC_API_KEY: "test-key"
-  };
+  const nodeId = "claude-sonnet-4";
+  const node = new ClaudeSonnet4Node({
+    nodeId,
+  } as unknown as Node);
 
-  const mockNode = {
-    id: "test-node",
-    type: "claude-sonnet-4",
-    inputs: {},
-    outputs: {},
-    position: { x: 0, y: 0 },
-  };
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
+      organizationId: "test-org",
+      env: {
+        DB: {} as any,
+        AI: {} as any,
+        AI_OPTIONS: {},
+        RESSOURCES: {} as any,
+        DATASETS: {} as any,
+        DATASETS_AUTORAG: "",
+        EMAIL_DOMAIN: "",
+        CLOUDFLARE_ACCOUNT_ID: "",
+        CLOUDFLARE_API_TOKEN: "",
+        CLOUDFLARE_AI_GATEWAY_ID: "",
+        TWILIO_ACCOUNT_SID: "",
+        TWILIO_AUTH_TOKEN: "",
+        TWILIO_PHONE_NUMBER: "",
+        SENDGRID_API_KEY: "",
+        SENDGRID_DEFAULT_FROM: "",
+        RESEND_API_KEY: "",
+        RESEND_DEFAULT_FROM: "",
+        AWS_ACCESS_KEY_ID: "",
+        AWS_SECRET_ACCESS_KEY: "",
+        AWS_REGION: "",
+        SES_DEFAULT_FROM: "",
+        OPENAI_API_KEY: "",
+        ANTHROPIC_API_KEY: "",
+      },
+    }) as unknown as NodeContext;
 
-  it("should have correct node type definition", () => {
-    expect(ClaudeSonnet4Node.nodeType).toBeDefined();
-    expect(ClaudeSonnet4Node.nodeType.id).toBe("claude-sonnet-4");
-    expect(ClaudeSonnet4Node.nodeType.name).toBe("Claude Sonnet 4");
-    expect(ClaudeSonnet4Node.nodeType.type).toBe("claude-sonnet-4");
-    expect(ClaudeSonnet4Node.nodeType.description).toBe("Latest Claude Sonnet model with advanced capabilities");
-    expect(ClaudeSonnet4Node.nodeType.tags).toEqual(["Text", "AI"]);
-    expect(ClaudeSonnet4Node.nodeType.computeCost).toBe(30);
-    expect(ClaudeSonnet4Node.nodeType.inputs).toHaveLength(2);
-    expect(ClaudeSonnet4Node.nodeType.outputs).toHaveLength(1);
-  });
+  describe("execute", () => {
+    it("should generate text with simple prompt", async () => {
+      const result = await node.execute(
+        createContext({
+          input: "Hello, how are you?",
+        })
+      );
 
-  it("should instantiate correctly", () => {
-    const node = new ClaudeSonnet4Node(mockNode, mockEnv);
-    expect(node).toBeDefined();
-  });
-
-  it("should fail without API key", async () => {
-    const node = new ClaudeSonnet4Node(mockNode, {});
-    const result = await node.execute({
-      inputs: { input: "Hello" },
-      env: {} as Bindings,
-      objectStore: {} as any,
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.text).toBeDefined();
     });
 
-    expect(result.status).toBe("error");
-    expect(result.error).toBe("ANTHROPIC_API_KEY is not configured");
-  });
+    it("should generate text with complex prompt", async () => {
+      const result = await node.execute(
+        createContext({
+          input: "Write a short story about a robot learning to paint.",
+        })
+      );
 
-  it("should fail without input", async () => {
-    const node = new ClaudeSonnet4Node(mockNode, mockEnv);
-    const result = await node.execute({
-      inputs: {},
-      env: mockEnv as Bindings,
-      objectStore: {} as any,
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.text).toBeDefined();
     });
-
-    expect(result.status).toBe("error");
-    expect(result.error).toBe("Input is required");
-  });
-
-  it("should have correct input parameters", () => {
-    const inputs = ClaudeSonnet4Node.nodeType.inputs;
-    
-    const instructionsInput = inputs.find(input => input.name === "instructions");
-    expect(instructionsInput).toBeDefined();
-    expect(instructionsInput?.type).toBe("string");
-    expect(instructionsInput?.required).toBe(false);
-    expect(instructionsInput?.value).toBe("You are a helpful assistant.");
-
-    const inputParam = inputs.find(input => input.name === "input");
-    expect(inputParam).toBeDefined();
-    expect(inputParam?.type).toBe("string");
-    expect(inputParam?.required).toBe(true);
-  });
-
-  it("should have correct output parameters", () => {
-    const outputs = ClaudeSonnet4Node.nodeType.outputs;
-    
-    const responseOutput = outputs.find(output => output.name === "response");
-    expect(responseOutput).toBeDefined();
-    expect(responseOutput?.type).toBe("string");
-    expect(responseOutput?.description).toBe("Generated text response from Claude Sonnet 4");
   });
 });

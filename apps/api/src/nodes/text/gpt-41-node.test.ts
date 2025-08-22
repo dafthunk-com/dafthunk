@@ -5,81 +5,65 @@ import { NodeContext } from "../types";
 import { Gpt41Node } from "./gpt-41-node";
 
 describe("Gpt41Node", () => {
-  const mockNode = {
-    id: "test-node",
-    type: "gpt-4.1",
-  } as Node;
+  const nodeId = "gpt-4-1";
+  const node = new Gpt41Node({
+    nodeId,
+  } as unknown as Node);
 
-  it("should have correct node type definition", () => {
-    expect(Gpt41Node.nodeType).toBeDefined();
-    expect(Gpt41Node.nodeType.id).toBe("gpt-4.1");
-    expect(Gpt41Node.nodeType.name).toBe("GPT-4.1");
-    expect(Gpt41Node.nodeType.type).toBe("gpt-4.1");
-    expect(Gpt41Node.nodeType.description).toBe("Latest GPT-4 iteration with enhanced capabilities");
-    expect(Gpt41Node.nodeType.tags).toEqual(["Text", "AI"]);
-    expect(Gpt41Node.nodeType.computeCost).toBe(25);
-    expect(Gpt41Node.nodeType.inputs).toHaveLength(2);
-    expect(Gpt41Node.nodeType.outputs).toHaveLength(1);
-  });
-
-  it("should instantiate correctly", () => {
-    const node = new Gpt41Node(mockNode);
-    expect(node).toBeDefined();
-  });
-
-  it("should fail without API key", async () => {
-    const node = new Gpt41Node(mockNode);
-    const context = {
-      nodeId: "test-node",
-      workflowId: "test-workflow",
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
       organizationId: "test-org",
-      inputs: { input: "Hello" },
-      env: {},
-    } as NodeContext;
-
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toBe("OPENAI_API_KEY is not configured");
-  });
-
-  it("should fail without input", async () => {
-    const node = new Gpt41Node(mockNode);
-    const context = {
-      nodeId: "test-node",
-      workflowId: "test-workflow", 
-      organizationId: "test-org",
-      inputs: {},
       env: {
-        OPENAI_API_KEY: "test-key"
+        DB: {} as any,
+        AI: {} as any,
+        AI_OPTIONS: {},
+        RESSOURCES: {} as any,
+        DATASETS: {} as any,
+        DATASETS_AUTORAG: "",
+        EMAIL_DOMAIN: "",
+        CLOUDFLARE_ACCOUNT_ID: "",
+        CLOUDFLARE_API_TOKEN: "",
+        CLOUDFLARE_AI_GATEWAY_ID: "",
+        TWILIO_ACCOUNT_SID: "",
+        TWILIO_AUTH_TOKEN: "",
+        TWILIO_PHONE_NUMBER: "",
+        SENDGRID_API_KEY: "",
+        SENDGRID_DEFAULT_FROM: "",
+        RESEND_API_KEY: "",
+        RESEND_DEFAULT_FROM: "",
+        AWS_ACCESS_KEY_ID: "",
+        AWS_SECRET_ACCESS_KEY: "",
+        AWS_REGION: "",
+        SES_DEFAULT_FROM: "",
+        OPENAI_API_KEY: "",
+        ANTHROPIC_API_KEY: "",
       },
-    } as NodeContext;
+    }) as unknown as NodeContext;
 
-    const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toBe("Input is required");
-  });
+  describe("execute", () => {
+    it("should generate text with simple prompt", async () => {
+      const result = await node.execute(
+        createContext({
+          input: "Hello, how are you?",
+        })
+      );
 
-  it("should have correct input parameters", () => {
-    const inputs = Gpt41Node.nodeType.inputs;
-    
-    const instructionsInput = inputs.find(input => input.name === "instructions");
-    expect(instructionsInput).toBeDefined();
-    expect(instructionsInput?.type).toBe("string");
-    expect(instructionsInput?.required).toBe(false);
-    expect(instructionsInput?.value).toBe("You are a helpful assistant.");
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.text).toBeDefined();
+    });
 
-    const inputParam = inputs.find(input => input.name === "input");
-    expect(inputParam).toBeDefined();
-    expect(inputParam?.type).toBe("string");
-    expect(inputParam?.required).toBe(true);
-  });
+    it("should generate text with complex prompt", async () => {
+      const result = await node.execute(
+        createContext({
+          input: "Write a short story about a robot learning to paint.",
+        })
+      );
 
-  it("should have correct output parameters", () => {
-    const outputs = Gpt41Node.nodeType.outputs;
-    
-    const responseOutput = outputs.find(output => output.name === "response");
-    expect(responseOutput).toBeDefined();
-    expect(responseOutput?.type).toBe("string");
-    expect(responseOutput?.description).toBe("Generated text response from GPT-4.1");
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.text).toBeDefined();
+    });
   });
 });

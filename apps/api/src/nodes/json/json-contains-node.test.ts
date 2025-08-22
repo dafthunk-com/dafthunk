@@ -1,6 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
+import { NodeContext } from "../types";
 import { JsonContainsNode } from "./json-contains-node";
 
 describe("JsonContainsNode", () => {
@@ -9,13 +10,20 @@ describe("JsonContainsNode", () => {
     nodeId,
   } as unknown as Node);
 
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
+      organizationId: "test-org",
+      env: {},
+    }) as unknown as NodeContext;
+
   describe("execute", () => {
     it("should return false for null input", async () => {
-      const result = await node.execute({
-        inputs: { json: null, value: "test" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: null, value: "test" })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(false);
@@ -23,11 +31,9 @@ describe("JsonContainsNode", () => {
     });
 
     it("should return false for undefined input", async () => {
-      const result = await node.execute({
-        inputs: { json: undefined, value: "test" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: undefined, value: "test" })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(false);
@@ -35,11 +41,9 @@ describe("JsonContainsNode", () => {
     });
 
     it("should find string in array", async () => {
-      const result = await node.execute({
-        inputs: { json: ["apple", "banana", "cherry"], value: "banana" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: ["apple", "banana", "cherry"], value: "banana" })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(true);
@@ -47,11 +51,9 @@ describe("JsonContainsNode", () => {
     });
 
     it("should not find string in array", async () => {
-      const result = await node.execute({
-        inputs: { json: ["apple", "banana", "cherry"], value: "orange" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: ["apple", "banana", "cherry"], value: "orange" })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(false);
@@ -59,11 +61,9 @@ describe("JsonContainsNode", () => {
     });
 
     it("should find number in array", async () => {
-      const result = await node.execute({
-        inputs: { json: [1, 2, 3, 4, 5], value: 3 },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: [1, 2, 3, 4, 5], value: 3 })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(true);
@@ -71,17 +71,15 @@ describe("JsonContainsNode", () => {
     });
 
     it("should find object in array", async () => {
-      const result = await node.execute({
-        inputs: {
+      const result = await node.execute(
+        createContext({
           json: [
             { name: "John", age: 30 },
             { name: "Jane", age: 25 },
           ],
           value: { name: "Jane", age: 25 },
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(true);
@@ -89,15 +87,13 @@ describe("JsonContainsNode", () => {
     });
 
     it("should find value at specific path", async () => {
-      const result = await node.execute({
-        inputs: {
+      const result = await node.execute(
+        createContext({
           json: { items: ["apple", "banana", "cherry"] },
           value: "banana",
           path: "$.items",
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(true);
@@ -105,15 +101,13 @@ describe("JsonContainsNode", () => {
     });
 
     it("should not find value at non-existent path", async () => {
-      const result = await node.execute({
-        inputs: {
+      const result = await node.execute(
+        createContext({
           json: { items: ["apple", "banana", "cherry"] },
           value: "banana",
           path: "$.nonexistent",
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(false);
@@ -121,8 +115,8 @@ describe("JsonContainsNode", () => {
     });
 
     it("should find nested object", async () => {
-      const result = await node.execute({
-        inputs: {
+      const result = await node.execute(
+        createContext({
           json: {
             user: {
               profile: { name: "John", age: 30 },
@@ -130,10 +124,8 @@ describe("JsonContainsNode", () => {
           },
           value: { name: "John", age: 30 },
           path: "$.user.profile",
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(true);
@@ -141,8 +133,8 @@ describe("JsonContainsNode", () => {
     });
 
     it("should handle array index in path", async () => {
-      const result = await node.execute({
-        inputs: {
+      const result = await node.execute(
+        createContext({
           json: {
             items: [
               ["a", "b", "c"],
@@ -151,10 +143,8 @@ describe("JsonContainsNode", () => {
           },
           value: "e",
           path: "$.items[1]",
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(true);
@@ -162,11 +152,9 @@ describe("JsonContainsNode", () => {
     });
 
     it("should return false for null search value", async () => {
-      const result = await node.execute({
-        inputs: { json: ["apple", "banana", "cherry"], value: null },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: ["apple", "banana", "cherry"], value: null })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(false);
@@ -174,11 +162,9 @@ describe("JsonContainsNode", () => {
     });
 
     it("should return false for undefined search value", async () => {
-      const result = await node.execute({
-        inputs: { json: ["apple", "banana", "cherry"], value: undefined },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({ json: ["apple", "banana", "cherry"], value: undefined })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.contains).toBe(false);

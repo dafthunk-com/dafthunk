@@ -1,6 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
+import { NodeContext } from "../types";
 import { JsonValidNode } from "./json-valid-node";
 
 describe("JsonValidNode", () => {
@@ -9,332 +10,372 @@ describe("JsonValidNode", () => {
     nodeId,
   } as unknown as Node);
 
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
+      organizationId: "test-org",
+      env: {},
+    }) as unknown as NodeContext;
+
   describe("execute", () => {
-    it("should return true for valid JSON object", async () => {
-      const result = await node.execute({
-        inputs: { value: '{"key": "value"}' },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate simple object", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John", "age": 30}',
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toEqual({ key: "value" });
-      expect(result.outputs?.error).toBeNull();
+      expect(result.outputs?.parsed).toEqual({
+        name: "John",
+        age: 30,
+      });
     });
 
-    it("should return true for valid JSON array", async () => {
-      const result = await node.execute({
-        inputs: { value: "[1, 2, 3]" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate array", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '["apple", "banana", "cherry"]',
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toEqual([1, 2, 3]);
-      expect(result.outputs?.error).toBeNull();
+      expect(result.outputs?.parsed).toEqual(["apple", "banana", "cherry"]);
     });
 
-    it("should return true for valid JSON string", async () => {
-      const result = await node.execute({
-        inputs: { value: '"hello world"' },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate nested object", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"user": {"name": "John", "age": 30}}',
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toBe("hello world");
-      expect(result.outputs?.error).toBeNull();
+      expect(result.outputs?.parsed).toEqual({
+        user: {
+          name: "John",
+          age: 30,
+        },
+      });
     });
 
-    it("should return true for valid JSON number", async () => {
-      const result = await node.execute({
-        inputs: { value: "42" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate complex structure", async () => {
+      const result = await node.execute(
+        createContext({
+          value:
+            '{"users": [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]}',
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toBe(42);
-      expect(result.outputs?.error).toBeNull();
+      expect(result.outputs?.parsed).toEqual({
+        users: [
+          { name: "John", age: 30 },
+          { name: "Jane", age: 25 },
+        ],
+      });
     });
 
-    it("should return true for valid JSON boolean", async () => {
-      const result = await node.execute({
-        inputs: { value: "true" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate with different data types", async () => {
+      const result = await node.execute(
+        createContext({
+          value:
+            '{"string": "test", "number": 42, "boolean": true, "null": null, "array": [1, 2, 3]}',
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toBe(true);
-      expect(result.outputs?.error).toBeNull();
-    });
-
-    it("should return true for valid JSON null", async () => {
-      const result = await node.execute({
-        inputs: { value: "null" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBeNull();
-    });
-
-    it("should return true for complex valid JSON", async () => {
-      const complexJson = `{
-        "string": "hello",
-        "number": 42,
-        "boolean": true,
-        "null": null,
-        "array": [1, 2, 3],
-        "object": {"nested": "value"}
-      }`;
-
-      const result = await node.execute({
-        inputs: { value: complexJson },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toEqual({
-        string: "hello",
+      expect(result.outputs?.parsed).toEqual({
+        string: "test",
         number: 42,
         boolean: true,
         null: null,
         array: [1, 2, 3],
-        object: { nested: "value" },
       });
-      expect(result.outputs?.error).toBeNull();
     });
 
-    it("should return false for invalid JSON - missing closing brace", async () => {
-      const result = await node.execute({
-        inputs: { value: '{"key": "value"' },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toContain(
-        "Expected ',' or '}' after property value"
+    it("should validate empty object", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "{}",
+        })
       );
-    });
-
-    it("should return false for invalid JSON - missing closing bracket", async () => {
-      const result = await node.execute({
-        inputs: { value: "[1, 2, 3" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toContain(
-        "Expected ',' or ']' after array element"
-      );
-    });
-
-    it("should return false for invalid JSON - trailing comma", async () => {
-      const result = await node.execute({
-        inputs: { value: '{"key": "value",}' },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toContain(
-        "Expected double-quoted property name"
-      );
-    });
-
-    it("should return false for invalid JSON - unquoted key", async () => {
-      const result = await node.execute({
-        inputs: { value: '{key: "value"}' },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toContain("Expected property name or '}'");
-    });
-
-    it("should return false for invalid JSON - single quotes", async () => {
-      const result = await node.execute({
-        inputs: { value: "{'key': 'value'}" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toContain("Expected property name or '}'");
-    });
-
-    it("should return false for empty string", async () => {
-      const result = await node.execute({
-        inputs: { value: "" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Empty string is not valid JSON");
-    });
-
-    it("should return false for whitespace only string", async () => {
-      const result = await node.execute({
-        inputs: { value: "   " },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Empty string is not valid JSON");
-    });
-
-    it("should return false for null input", async () => {
-      const result = await node.execute({
-        inputs: { value: null },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Input value is required");
-    });
-
-    it("should return false for undefined input", async () => {
-      const result = await node.execute({
-        inputs: { value: undefined },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Input value is required");
-    });
-
-    it("should return false for non-string input", async () => {
-      const result = await node.execute({
-        inputs: { value: 42 },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Input must be a string");
-    });
-
-    it("should return false for object input", async () => {
-      const result = await node.execute({
-        inputs: { value: { key: "value" } },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Input must be a string");
-    });
-
-    it("should return false for array input", async () => {
-      const result = await node.execute({
-        inputs: { value: [1, 2, 3] },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Input must be a string");
-    });
-
-    it("should return false for boolean input", async () => {
-      const result = await node.execute({
-        inputs: { value: true },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.isValid).toBe(false);
-      expect(result.outputs?.parsedValue).toBeNull();
-      expect(result.outputs?.error).toBe("Input must be a string");
-    });
-
-    it("should handle JSON with escaped characters", async () => {
-      const result = await node.execute({
-        inputs: { value: '"Hello\\nWorld\\tTab"' },
-        nodeId: "test",
-        workflowId: "test",
-      });
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toBe("Hello\nWorld\tTab");
-      expect(result.outputs?.error).toBeNull();
+      expect(result.outputs?.parsed).toEqual({});
     });
 
-    it("should handle JSON with unicode characters", async () => {
-      const result = await node.execute({
-        inputs: { value: '"Hello \\u0041\\u0042\\u0043"' },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate empty array", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "[]",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toBe("Hello ABC");
-      expect(result.outputs?.error).toBeNull();
+      expect(result.outputs?.parsed).toEqual([]);
     });
 
-    it("should handle JSON with special characters in keys", async () => {
-      const result = await node.execute({
-        inputs: {
-          value:
-            '{"key-with-dashes": "value", "key_with_underscores": "value2"}',
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should validate with whitespace", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '  {  "name"  :  "John"  ,  "age"  :  30  }  ',
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.isValid).toBe(true);
-      expect(result.outputs?.parsedValue).toEqual({
-        "key-with-dashes": "value",
-        key_with_underscores: "value2",
+      expect(result.outputs?.parsed).toEqual({
+        name: "John",
+        age: 30,
       });
-      expect(result.outputs?.error).toBeNull();
+    });
+
+    it("should validate with escaped characters", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"message": "Hello\\nWorld", "path": "C:\\\\Users\\\\John"}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(true);
+      expect(result.outputs?.parsed).toEqual({
+        message: "Hello\nWorld",
+        path: "C:\\Users\\John",
+      });
+    });
+
+    it("should validate with unicode characters", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "José", "city": "São Paulo", "emoji": "🎉"}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(true);
+      expect(result.outputs?.parsed).toEqual({
+        name: "José",
+        city: "São Paulo",
+        emoji: "🎉",
+      });
+    });
+
+    it("should validate with scientific notation", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"large": 1.23e+10, "small": 1.23e-10}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(true);
+      expect(result.outputs?.parsed).toEqual({
+        large: 1.23e10,
+        small: 1.23e-10,
+      });
+    });
+
+    it("should reject invalid JSON - missing quote", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John, "age": 30}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - missing comma", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John" "age": 30}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - trailing comma", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John", "age": 30,}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - unclosed bracket", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John", "age": 30',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - undefined value", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John", "age": undefined}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - single quotes", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "{'name': 'John', 'age': 30}",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - comments", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '{"name": "John", // comment\n"age": 30}',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should reject invalid JSON - trailing comma in array", async () => {
+      const result = await node.execute(
+        createContext({
+          value: '["apple", "banana",]',
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle null input", async () => {
+      const result = await node.execute(
+        createContext({
+          value: null,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle undefined input", async () => {
+      const result = await node.execute(
+        createContext({
+          value: undefined,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle non-string input", async () => {
+      const result = await node.execute(
+        createContext({
+          value: 42,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle object input", async () => {
+      const result = await node.execute(
+        createContext({
+          value: { key: "value" },
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle array input", async () => {
+      const result = await node.execute(
+        createContext({
+          value: [1, 2, 3],
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle boolean input", async () => {
+      const result = await node.execute(
+        createContext({
+          value: true,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle empty string", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
+    });
+
+    it("should handle whitespace only string", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "   ",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.isValid).toBe(false);
+      expect(result.outputs?.error).toBeDefined();
     });
   });
 });

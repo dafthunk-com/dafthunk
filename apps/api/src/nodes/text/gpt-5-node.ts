@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
 import { NodeExecution, NodeType } from "@dafthunk/types";
+import OpenAI from "openai";
 
 import { ExecutableNode } from "../types";
 import { NodeContext } from "../types";
@@ -56,16 +56,18 @@ export class Gpt5Node extends ExecutableNode {
 
       const client = new OpenAI({
         apiKey: context.env.OPENAI_API_KEY,
-        timeout: 60000
+        timeout: 60000,
       });
 
       const completion = await client.chat.completions.create({
         model: "gpt-5",
         max_tokens: 1024,
         messages: [
-          ...(instructions ? [{ role: "system" as const, content: instructions }] : []),
-          { role: "user" as const, content: input }
-        ]
+          ...(instructions
+            ? [{ role: "system" as const, content: instructions }]
+            : []),
+          { role: "user" as const, content: input },
+        ],
       });
 
       const responseText = completion.choices[0]?.message?.content || "";

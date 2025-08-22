@@ -289,7 +289,7 @@ export class JsonReplaceNode extends ExecutableNode {
     }
 
     if (typeof obj === "object") {
-      const cloned = {};
+      const cloned: Record<string, any> = {};
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
           cloned[key] = this.deepClone(obj[key]);

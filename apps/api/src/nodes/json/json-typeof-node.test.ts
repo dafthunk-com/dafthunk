@@ -1,6 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
+import { NodeContext } from "../types";
 import { JsonTypeofNode } from "./json-typeof-node";
 
 describe("JsonTypeofNode", () => {
@@ -9,223 +10,230 @@ describe("JsonTypeofNode", () => {
     nodeId,
   } as unknown as Node);
 
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
+      organizationId: "test-org",
+      env: {},
+    }) as unknown as NodeContext;
+
   describe("execute", () => {
-    it("should return 'null' for null value", async () => {
-      const result = await node.execute({
-        inputs: { value: null },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'null' for null", async () => {
+      const result = await node.execute(
+        createContext({
+          value: null,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("null");
     });
 
-    it("should return 'undefined' for undefined value", async () => {
-      const result = await node.execute({
-        inputs: { value: undefined },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'undefined' for undefined", async () => {
+      const result = await node.execute(
+        createContext({
+          value: undefined,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("undefined");
     });
 
-    it("should return 'array' for array value", async () => {
-      const result = await node.execute({
-        inputs: { value: [1, 2, 3] },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'array' for array", async () => {
+      const result = await node.execute(
+        createContext({
+          value: [1, 2, 3],
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("array");
     });
 
-    it("should return 'object' for object value", async () => {
-      const result = await node.execute({
-        inputs: { value: { key: "value" } },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'object' for object", async () => {
+      const result = await node.execute(
+        createContext({
+          value: { key: "value" },
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("object");
     });
 
-    it("should return 'string' for string value", async () => {
-      const result = await node.execute({
-        inputs: { value: "hello world" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'string' for string", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "test",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("string");
     });
 
-    it("should return 'number' for number value", async () => {
-      const result = await node.execute({
-        inputs: { value: 42 },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'number' for integer", async () => {
+      const result = await node.execute(
+        createContext({
+          value: 42,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("number");
     });
 
-    it("should return 'number' for float value", async () => {
-      const result = await node.execute({
-        inputs: { value: 3.14 },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'number' for float", async () => {
+      const result = await node.execute(
+        createContext({
+          value: 3.14,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("number");
     });
 
-    it("should return 'boolean' for true value", async () => {
-      const result = await node.execute({
-        inputs: { value: true },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'boolean' for true", async () => {
+      const result = await node.execute(
+        createContext({
+          value: true,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("boolean");
     });
 
-    it("should return 'boolean' for false value", async () => {
-      const result = await node.execute({
-        inputs: { value: false },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'boolean' for false", async () => {
+      const result = await node.execute(
+        createContext({
+          value: false,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("boolean");
     });
 
-    it("should handle complex nested objects", async () => {
-      const complexObject = {
-        string: "hello",
-        number: 42,
-        boolean: true,
-        null: null,
-        array: [1, 2, 3],
-        object: { nested: "value" },
-      };
-
-      const result = await node.execute({
-        inputs: { value: complexObject },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'object' for complex object", async () => {
+      const result = await node.execute(
+        createContext({
+          value: {
+            string: "value",
+            number: 42,
+            boolean: true,
+            null: null,
+            array: [1, 2, 3],
+            object: { nested: "value" },
+          },
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("object");
     });
 
-    it("should handle empty array", async () => {
-      const result = await node.execute({
-        inputs: { value: [] },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'array' for empty array", async () => {
+      const result = await node.execute(
+        createContext({
+          value: [],
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("array");
     });
 
-    it("should handle empty object", async () => {
-      const result = await node.execute({
-        inputs: { value: {} },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'object' for empty object", async () => {
+      const result = await node.execute(
+        createContext({
+          value: {},
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("object");
     });
 
-    it("should handle empty string", async () => {
-      const result = await node.execute({
-        inputs: { value: "" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'string' for empty string", async () => {
+      const result = await node.execute(
+        createContext({
+          value: "",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("string");
     });
 
-    it("should handle zero", async () => {
-      const result = await node.execute({
-        inputs: { value: 0 },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'number' for zero", async () => {
+      const result = await node.execute(
+        createContext({
+          value: 0,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("number");
     });
 
-    it("should handle negative numbers", async () => {
-      const result = await node.execute({
-        inputs: { value: -42 },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'number' for negative number", async () => {
+      const result = await node.execute(
+        createContext({
+          value: -42,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("number");
     });
 
-    it("should handle NaN", async () => {
-      const result = await node.execute({
-        inputs: { value: NaN },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'number' for Infinity", async () => {
+      const result = await node.execute(
+        createContext({
+          value: Infinity,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("number");
     });
 
-    it("should handle Infinity", async () => {
-      const result = await node.execute({
-        inputs: { value: Infinity },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'number' for NaN", async () => {
+      const result = await node.execute(
+        createContext({
+          value: NaN,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("number");
     });
 
-    it("should handle Date objects", async () => {
-      const result = await node.execute({
-        inputs: { value: new Date() },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'object' for Date", async () => {
+      const result = await node.execute(
+        createContext({
+          value: new Date(),
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.type).toBe("object");
     });
 
-    it("should handle functions", async () => {
-      const result = await node.execute({
-        inputs: { value: () => {} },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should return 'function' for function", async () => {
+      const result = await node.execute(
+        createContext({
+          value: () => {},
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.type).toBe("object");
+      expect(result.outputs?.type).toBe("function");
     });
   });
 });

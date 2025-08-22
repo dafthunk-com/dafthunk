@@ -40,7 +40,11 @@ export class CalculatorNode extends ExecutableNode {
   async execute(context: NodeContext): Promise<NodeExecution> {
     const { expression } = context.inputs;
 
-    if (!expression || typeof expression !== "string" || expression.trim() === "") {
+    if (
+      !expression ||
+      typeof expression !== "string" ||
+      expression.trim() === ""
+    ) {
       return this.createErrorResult("Missing or empty expression.");
     }
 
@@ -49,19 +53,22 @@ export class CalculatorNode extends ExecutableNode {
     try {
       // Validate expression for safety - only allow mathematical operations
       const allowedPattern = /^[0-9+\-*/()., \t\n\r\s^%&|<>~]+$/;
-      const mathFunctions = /(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|asinh|acosh|atanh|sqrt|cbrt|pow|exp|log|log10|abs|floor|ceil|round|min|max|random|PI|E|sign|trunc|hypot|atan2)/g;
-      
+      const mathFunctions =
+        /(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|asinh|acosh|atanh|sqrt|cbrt|pow|exp|log|log10|abs|floor|ceil|round|min|max|random|PI|E|sign|trunc|hypot|atan2)/g;
+
       // Check if expression contains only allowed characters and math functions
-      const cleanExpression = expression.replace(mathFunctions, '');
+      const cleanExpression = expression.replace(mathFunctions, "");
       if (cleanExpression && !allowedPattern.test(cleanExpression)) {
-        return this.createErrorResult("Expression contains invalid characters. Only numbers, operators (+, -, *, /, ^, %, &, |, <, >, ~), parentheses, and math functions are allowed.");
+        return this.createErrorResult(
+          "Expression contains invalid characters. Only numbers, operators (+, -, *, /, ^, %, &, |, <, >, ~), parentheses, and math functions are allowed."
+        );
       }
 
       const QuickJSModule = await getQuickJSWASMModule();
       vm = QuickJSModule.newContext();
 
       // Replace ^ with ** for JavaScript exponentiation
-      const jsExpression = expression.replace(/\^/g, '**');
+      const jsExpression = expression.replace(/\^/g, "**");
 
       // Create a bootstrap script that sets up the Math environment
       const bootstrapScript = `
@@ -159,8 +166,10 @@ export class CalculatorNode extends ExecutableNode {
       evalResult.value.dispose();
 
       // Validate the result
-      if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) {
-        return this.createErrorResult("Expression evaluation resulted in an invalid number (NaN or Infinity).");
+      if (typeof result !== "number" || isNaN(result) || !isFinite(result)) {
+        return this.createErrorResult(
+          "Expression evaluation resulted in an invalid number (NaN or Infinity)."
+        );
       }
 
       return this.createSuccessResult({ result });
@@ -174,5 +183,4 @@ export class CalculatorNode extends ExecutableNode {
       }
     }
   }
-
-  }
+}

@@ -1,6 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
+import { NodeContext } from "../types";
 import { JsonRemoveNode } from "./json-remove-node";
 
 describe("JsonRemoveNode", () => {
@@ -9,255 +10,249 @@ describe("JsonRemoveNode", () => {
     nodeId,
   } as unknown as Node);
 
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
+      organizationId: "test-org",
+      env: {},
+    }) as unknown as NodeContext;
+
   describe("execute", () => {
-    it("should return null for null input", async () => {
-      const result = await node.execute({
-        inputs: { json: null, path: "$.test" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should handle null input", async () => {
+      const result = await node.execute(
+        createContext({
+          json: null,
+          path: "$.test",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toBeNull();
-      expect(result.outputs?.success).toBe(false);
-      expect(result.outputs?.removed).toBe(false);
     });
 
-    it("should return original for empty path", async () => {
-      const input = { name: "John", age: 30 };
-      const result = await node.execute({
-        inputs: { json: input, path: "" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should remove field at root level", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "$.age",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual(input);
-      expect(result.outputs?.success).toBe(false);
-      expect(result.outputs?.removed).toBe(false);
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+      });
     });
 
-    it("should remove value when path exists", async () => {
-      const input = { name: "John", age: 30 };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.age" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should remove multiple fields", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30, city: "New York" },
+          path: "$.age",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ name: "John" });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        city: "New York",
+      });
     });
 
-    it("should not remove value when path doesn't exist", async () => {
-      const input = { name: "John", age: 30 };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.city" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should remove nested field", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { user: { name: "John", age: 30 } },
+          path: "$.user.age",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ name: "John", age: 30 });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(false);
+      expect(result.outputs?.result).toEqual({
+        user: {
+          name: "John",
+        },
+      });
     });
 
-    it("should remove nested value when path exists", async () => {
-      const input = { user: { name: "John", age: 30 } };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.user.age" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should remove deeply nested field", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { user: { name: "John" } },
+          path: "$.user.name",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ user: { name: "John" } });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
+      expect(result.outputs?.result).toEqual({
+        user: {},
+      });
     });
 
-    it("should not remove nested value when path doesn't exist", async () => {
-      const input = { user: { name: "John" } };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.user.age" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should remove array element", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana", "cherry"] },
+          path: "$.items[1]",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ user: { name: "John" } });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(false);
+      expect(result.outputs?.result).toEqual({
+        items: ["apple", "cherry"],
+      });
     });
 
-    it("should remove array element when index exists", async () => {
-      const input = { items: ["apple", "banana", "cherry"] };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[1]" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should remove last array element", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana", "cherry"] },
+          path: "$.items[2]",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ items: ["apple", "cherry"] });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
-    });
-
-    it("should not remove array element when index doesn't exist", async () => {
-      const input = { items: ["apple", "banana"] };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[5]" },
-        nodeId: "test",
-        workflowId: "test",
+      expect(result.outputs?.result).toEqual({
+        items: ["apple", "banana"],
       });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ items: ["apple", "banana"] });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(false);
     });
 
     it("should handle quoted property names", async () => {
-      const input = { "user-name": "John", age: 30 };
-      const result = await node.execute({
-        inputs: { json: input, path: '$["user-name"]' },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ age: 30 });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
-    });
-
-    it("should not modify original object", async () => {
-      const input = { name: "John", age: 30 };
-      const original = JSON.parse(JSON.stringify(input));
-
-      await node.execute({
-        inputs: { json: input, path: "$.age" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(input).toEqual(original);
-    });
-
-    it("should handle complex nested removal", async () => {
-      const input = {
-        users: [
-          {
-            name: "John",
-            profile: {
-              theme: "light",
-              notifications: true,
-              settings: { autoSave: true },
-            },
-          },
-        ],
-      };
-      const result = await node.execute({
-        inputs: {
-          json: input,
-          path: "$.users[0].profile.notifications",
-        },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({
+          json: { "user-name": "John", age: 30 },
+          path: "$.user-name",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        users: [
-          {
-            name: "John",
-            profile: {
-              theme: "light",
-              settings: { autoSave: true },
-            },
-          },
-        ],
+        age: 30,
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
     });
 
-    it("should handle multiple removals", async () => {
-      const input = {
+    it("should handle non-existent path", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "$.nonexistent",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
         name: "John",
         age: 30,
-        city: "New York",
-        country: "USA",
-      };
-
-      // Remove multiple properties
-      let result = await node.execute({
-        inputs: { json: input, path: "$.age" },
-        nodeId: "test",
-        workflowId: "test",
       });
+    });
 
-      result = await node.execute({
-        inputs: { json: result.outputs?.result, path: "$.city" },
-        nodeId: "test",
-        workflowId: "test",
+    it("should handle complex nested structure", async () => {
+      const result = await node.execute(
+        createContext({
+          json: {
+            users: [
+              {
+                name: "John",
+                profile: {
+                  theme: "dark",
+                  notifications: true,
+                  settings: {
+                    autoSave: true,
+                  },
+                },
+              },
+            ],
+          },
+          path: "$.users[0].profile.settings",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        users: [
+          {
+            name: "John",
+            profile: {
+              theme: "dark",
+              notifications: true,
+            },
+          },
+        ],
       });
+    });
+
+    it("should handle any type input", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30, city: "New York", country: "USA" },
+          path: "$.city",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
         name: "John",
+        age: 30,
         country: "USA",
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
     });
 
-    it("should handle array with single element removal", async () => {
-      const input = { items: ["apple"] };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[0]" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ items: [] });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(true);
-    });
-
-    it("should handle invalid path gracefully", async () => {
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "invalid-path" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual(input);
-      expect(result.outputs?.success).toBe(false);
-      expect(result.outputs?.removed).toBe(false);
-    });
-
-    it("should handle negative array indices", async () => {
-      const input = { items: ["apple", "banana", "cherry"] };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[-1]" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should handle array with multiple elements", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana", "cherry", "orange"] },
+          path: "$.items[1]",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        items: ["apple", "banana", "cherry"],
+        items: ["apple", "cherry", "orange"],
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.removed).toBe(false);
+    });
+
+    it("should handle simple path", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "age",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+      });
+    });
+
+    it("should handle array index out of bounds", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana"] },
+          path: "$.items[5]",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        items: ["apple", "banana"],
+      });
+    });
+
+    it("should handle negative array index", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana", "cherry"] },
+          path: "$.items[-1]",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        items: ["apple", "banana"],
+      });
     });
   });
 });

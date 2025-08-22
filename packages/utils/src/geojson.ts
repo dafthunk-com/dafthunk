@@ -1,6 +1,26 @@
 import type { GeoPath } from "d3-geo";
 import { geoIdentity, geoPath } from "d3-geo";
 
+// Basic GeoJSON type definitions
+interface GeoJSONGeometry {
+  type: string;
+  coordinates: number[] | number[][] | number[][][] | number[][][][];
+  geometries?: GeoJSONGeometry[];
+}
+
+interface GeoJSONFeature {
+  type: "Feature";
+  geometry: GeoJSONGeometry;
+  properties: Record<string, unknown>;
+}
+
+interface GeoJSONFeatureCollection {
+  type: "FeatureCollection";
+  features: GeoJSONFeature[];
+}
+
+type GeoJSON = GeoJSONGeometry | GeoJSONFeature | GeoJSONFeatureCollection;
+
 export interface GeoJSONSvgOptions {
   width?: number;
   height?: number;
@@ -23,10 +43,10 @@ export interface GeoJSONSvgResult {
 /**
  * Extracts all coordinates from GeoJSON for bounding box calculation
  */
-export function extractCoordinates(geojson: any): number[][] {
+export function extractCoordinates(geojson: GeoJSON): number[][] {
   const coords: number[][] = [];
 
-  const processGeometry = (geometry: any) => {
+  const processGeometry = (geometry: GeoJSONGeometry) => {
     if (!geometry || !geometry.coordinates) return;
 
     const addCoord = (coord: number[]) => {
@@ -35,11 +55,24 @@ export function extractCoordinates(geojson: any): number[][] {
       }
     };
 
-    const processCoords = (coordinates: any, depth: number) => {
+    const processCoords = (
+      coordinates: number[] | number[][] | number[][][] | number[][][][],
+      depth: number
+    ) => {
       if (depth === 0) {
-        addCoord(coordinates);
+        if (
+          Array.isArray(coordinates) &&
+          coordinates.length >= 2 &&
+          typeof coordinates[0] === "number"
+        ) {
+          addCoord(coordinates as number[]);
+        }
       } else if (Array.isArray(coordinates)) {
-        coordinates.forEach((coord) => processCoords(coord, depth - 1));
+        coordinates.forEach((coord) => {
+          if (Array.isArray(coord)) {
+            processCoords(coord, depth - 1);
+          }
+        });
       }
     };
 
@@ -64,18 +97,18 @@ export function extractCoordinates(geojson: any): number[][] {
     }
   };
 
-  const processFeature = (feature: any) => {
+  const processFeature = (feature: GeoJSONFeature) => {
     if (feature.geometry) {
       processGeometry(feature.geometry);
     }
   };
 
   if (geojson.type === "FeatureCollection") {
-    geojson.features?.forEach(processFeature);
+    (geojson as GeoJSONFeatureCollection).features?.forEach(processFeature);
   } else if (geojson.type === "Feature") {
-    processFeature(geojson);
-  } else if (geojson.type && geojson.coordinates) {
-    processGeometry(geojson);
+    processFeature(geojson as GeoJSONFeature);
+  } else if (geojson.type && (geojson as GeoJSONGeometry).coordinates) {
+    processGeometry(geojson as GeoJSONGeometry);
   }
 
   return coords;
@@ -84,7 +117,10 @@ export function extractCoordinates(geojson: any): number[][] {
 /**
  * Sets up projection with proper fitting based on GeoJSON bounds
  */
-export function setupProjection(geojson: any, options: GeoJSONSvgOptions): any {
+export function setupProjection(
+  geojson: GeoJSON,
+  options: GeoJSONSvgOptions
+): ReturnType<typeof geoIdentity> {
   const { width = 400, height = 300, minX, minY, maxX, maxY } = options;
   const proj = geoIdentity();
 
@@ -117,7 +153,7 @@ export function setupProjection(geojson: any, options: GeoJSONSvgOptions): any {
         [0, 0],
         [width, height],
       ],
-      bboxFeature as any
+      bboxFeature as unknown as Parameters<typeof proj.fitExtent>[1]
     );
     return proj;
   }
@@ -148,7 +184,7 @@ export function setupProjection(geojson: any, options: GeoJSONSvgOptions): any {
         [0, 0],
         [width, height],
       ],
-      worldFeature as any
+      worldFeature as unknown as Parameters<typeof proj.fitExtent>[1]
     );
     return proj;
   }
@@ -203,7 +239,7 @@ export function setupProjection(geojson: any, options: GeoJSONSvgOptions): any {
       [0, 0],
       [width, height],
     ],
-    bboxFeature as any
+    bboxFeature as unknown as Parameters<typeof proj.fitExtent>[1]
   );
   return proj;
 }
@@ -212,15 +248,15 @@ export function setupProjection(geojson: any, options: GeoJSONSvgOptions): any {
  * Generates SVG paths using D3 for a given GeoJSON
  */
 export function generatePaths(
-  geojson: any,
+  geojson: GeoJSON,
   path: GeoPath
 ): { pathData: string; isPolygon: boolean }[] {
   const paths: { pathData: string; isPolygon: boolean }[] = [];
 
-  const processGeometry = (geometry: any) => {
+  const processGeometry = (geometry: GeoJSONGeometry) => {
     if (!geometry) return;
 
-    const pathData = path(geometry);
+    const pathData = path(geometry as unknown as Parameters<GeoPath>[0]);
     if (pathData) {
       const isPolygon =
         geometry.type === "Polygon" || geometry.type === "MultiPolygon";
@@ -228,18 +264,18 @@ export function generatePaths(
     }
   };
 
-  const processFeature = (feature: any) => {
+  const processFeature = (feature: GeoJSONFeature) => {
     if (feature.geometry) {
       processGeometry(feature.geometry);
     }
   };
 
   if (geojson.type === "FeatureCollection") {
-    geojson.features?.forEach(processFeature);
+    (geojson as GeoJSONFeatureCollection).features?.forEach(processFeature);
   } else if (geojson.type === "Feature") {
-    processFeature(geojson);
-  } else if (geojson.type && geojson.coordinates) {
-    processGeometry(geojson);
+    processFeature(geojson as GeoJSONFeature);
+  } else if (geojson.type && (geojson as GeoJSONGeometry).coordinates) {
+    processGeometry(geojson as GeoJSONGeometry);
   }
 
   return paths;
@@ -249,7 +285,7 @@ export function generatePaths(
  * Main function to convert GeoJSON to SVG
  */
 export function geojsonToSvg(
-  geojson: any,
+  geojson: GeoJSON,
   options: GeoJSONSvgOptions = {}
 ): GeoJSONSvgResult {
   const {
@@ -303,12 +339,11 @@ export function geojsonToSvg(
       paths: paths.map((p) => p.pathData),
       error: null,
     };
-  } catch (err) {
-    console.error("Error converting GeoJSON to SVG:", err);
+  } catch (error) {
     return {
       svg: "",
       paths: [],
-      error: `Error converting GeoJSON to SVG: ${err instanceof Error ? err.message : "Unknown error"}`,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
 }

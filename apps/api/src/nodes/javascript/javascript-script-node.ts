@@ -80,8 +80,8 @@ export class JavascriptScriptNode extends ExecutableNode {
       vm = QuickJSModule.newContext();
 
       // Capture console output
-      const stdout: string[] = [];
-      const stderr: string[] = [];
+      const _stdout: string[] = [];
+      const _stderr: string[] = [];
 
       // Create a bootstrap script that sets up the environment
       const bootstrapScript = `

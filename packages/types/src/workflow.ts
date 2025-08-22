@@ -40,7 +40,7 @@ export type Coordinate = [number, number] | [number, number, number];
 // Base Geometry Interface
 export interface Geometry {
   type: string;
-  coordinates: any;
+  coordinates: Coordinate | Coordinate[] | Coordinate[][] | Coordinate[][][];
 }
 
 export interface Point extends Geometry {
@@ -81,7 +81,7 @@ export interface GeometryCollection {
 
 export interface Feature<
   G extends Geometry | GeometryCollection = Geometry,
-  P = { [key: string]: any },
+  P = Record<string, unknown>,
 > {
   type: "Feature";
   geometry: G;
@@ -91,7 +91,7 @@ export interface Feature<
 
 export interface FeatureCollection<
   G extends Geometry | GeometryCollection = Geometry,
-  P = { [key: string]: any },
+  P = Record<string, unknown>,
 > {
   type: "FeatureCollection";
   features: Array<Feature<G, P>>;

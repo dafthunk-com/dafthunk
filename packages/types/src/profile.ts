@@ -28,7 +28,7 @@ export interface UpdateProfileRequest {
 /**
  * Response when getting a user's profile
  */
-export interface GetProfileResponse extends UserProfile {}
+export type GetProfileResponse = UserProfile;
 
 /**
  * Response when updating a user's profile

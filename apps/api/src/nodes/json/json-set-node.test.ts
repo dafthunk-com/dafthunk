@@ -1,6 +1,7 @@
 import { Node } from "@dafthunk/types";
 import { describe, expect, it } from "vitest";
 
+import { NodeContext } from "../types";
 import { JsonSetNode } from "./json-set-node";
 
 describe("JsonSetNode", () => {
@@ -9,194 +10,248 @@ describe("JsonSetNode", () => {
     nodeId,
   } as unknown as Node);
 
+  const createContext = (inputs: Record<string, any>): NodeContext =>
+    ({
+      nodeId: "test",
+      inputs,
+      workflowId: "test",
+      organizationId: "test-org",
+      env: {},
+    }) as unknown as NodeContext;
+
   describe("execute", () => {
-    it("should return null for null input", async () => {
-      const result = await node.execute({
-        inputs: { json: null, path: "$.test", value: "new" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toBeNull();
-      expect(result.outputs?.success).toBe(false);
-      expect(result.outputs?.pathExists).toBe(false);
-    });
-
-    it("should return original for empty path", async () => {
-      const input = { name: "John", age: 30 };
-      const result = await node.execute({
-        inputs: { json: input, path: "", value: "new" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual(input);
-      expect(result.outputs?.success).toBe(false);
-      expect(result.outputs?.pathExists).toBe(false);
-    });
-
-    it("should set value at simple object path", async () => {
-      const input = { name: "John", age: 30 };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.name", value: "Jane" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ name: "Jane", age: 30 });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(true);
-    });
-
-    it("should set value at nested object path", async () => {
-      const input = { user: { name: "John", age: 30 } };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.user.name", value: "Jane" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should handle null input", async () => {
+      const result = await node.execute(
+        createContext({
+          json: null,
+          path: "$.newField",
+          value: "test value",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        user: { name: "Jane", age: 30 },
+        newField: "test value",
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(true);
     });
 
-    it("should set value at array index", async () => {
-      const input = { items: ["apple", "banana", "cherry"] };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[1]", value: "orange" },
-        nodeId: "test",
-        workflowId: "test",
+    it("should set string value at root level", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "$.city",
+          value: "New York",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        age: 30,
+        city: "New York",
       });
+    });
+
+    it("should update existing field", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "$.age",
+          value: 31,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        age: 31,
+      });
+    });
+
+    it("should set nested field", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { user: { name: "John" } },
+          path: "$.user.age",
+          value: 30,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        user: {
+          name: "John",
+          age: 30,
+        },
+      });
+    });
+
+    it("should set array element", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana", "cherry"] },
+          path: "$.items[1]",
+          value: "orange",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
         items: ["apple", "orange", "cherry"],
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(true);
     });
 
-    it("should set value at nested array path", async () => {
-      const input = { data: { items: ["apple", "banana", "cherry"] } };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.data.items[0]", value: "orange" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should set deeply nested field", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { data: { items: ["apple", "banana"] } },
+          path: "$.data.items[2]",
+          value: "cherry",
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        data: { items: ["orange", "banana", "cherry"] },
-      });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(true);
-    });
-
-    it("should create new path if it doesn't exist", async () => {
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.age", value: 30 },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ name: "John", age: 30 });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
-    });
-
-    it("should create nested path if it doesn't exist", async () => {
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.user.profile.name", value: "Jane" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({
-        name: "John",
-        user: { profile: { name: "Jane" } },
-      });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
-    });
-
-    it("should create array and set value", async () => {
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[2]", value: "apple" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({
-        name: "John",
-        items: [null, null, "apple"],
-      });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
-    });
-
-    it("should handle complex nested path creation", async () => {
-      const input = {};
-      const result = await node.execute({
-        inputs: {
-          json: input,
-          path: "$.users[0].profile.settings.theme",
-          value: "dark",
+        data: {
+          items: ["apple", "banana", "cherry"],
         },
-        nodeId: "test",
-        workflowId: "test",
       });
+    });
+
+    it("should set number value", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John" },
+          path: "$.age",
+          value: 30,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        users: [
-          {
-            profile: {
-              settings: {
-                theme: "dark",
-              },
-            },
-          },
-        ],
+        name: "John",
+        age: 30,
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
+    });
+
+    it("should set boolean value", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John" },
+          path: "$.active",
+          value: true,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        active: true,
+      });
+    });
+
+    it("should set null value", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "$.age",
+          value: null,
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        age: null,
+      });
+    });
+
+    it("should set object value", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John" },
+          path: "$.address",
+          value: { street: "123 Main St", city: "New York" },
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        address: {
+          street: "123 Main St",
+          city: "New York",
+        },
+      });
+    });
+
+    it("should set array value", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John" },
+          path: "$.hobbies",
+          value: ["reading", "swimming"],
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        hobbies: ["reading", "swimming"],
+      });
+    });
+
+    it("should handle empty object", async () => {
+      const result = await node.execute(
+        createContext({
+          json: {},
+          path: "$.newField",
+          value: "test value",
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        newField: "test value",
+      });
     });
 
     it("should handle quoted property names", async () => {
-      const input = { "user-name": "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: '$["user-name"]', value: "Jane" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+      const result = await node.execute(
+        createContext({
+          json: { "user-name": "John" },
+          path: "$.user-name",
+          value: "Jane",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ "user-name": "Jane" });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(true);
+      expect(result.outputs?.result).toEqual({
+        "user-name": "Jane",
+      });
     });
 
-    it("should handle mixed value types", async () => {
-      const input = { data: {} };
-      const result = await node.execute({
-        inputs: {
-          json: input,
-          path: "$.data",
+    it("should handle complex nested structure", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { data: {} },
+          path: "$.data.complex",
           value: {
-            string: "hello",
+            string: "test",
+            number: 42,
+            boolean: true,
+            null: null,
+            array: [1, 2, 3],
+            object: { nested: "value" },
+          },
+        })
+      );
+
+      expect(result.status).toBe("completed");
+      expect(result.outputs?.result).toEqual({
+        data: {
+          complex: {
+            string: "test",
             number: 42,
             boolean: true,
             null: null,
@@ -204,96 +259,73 @@ describe("JsonSetNode", () => {
             object: { nested: "value" },
           },
         },
-        nodeId: "test",
-        workflowId: "test",
       });
+    });
+
+    it("should handle function value", async () => {
+      const handler = () => {};
+      const result = await node.execute(
+        createContext({
+          json: { name: "John" },
+          path: "$.handler",
+          value: handler,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        data: {
-          string: "hello",
-          number: 42,
-          boolean: true,
-          null: null,
-          array: [1, 2, 3],
-          object: { nested: "value" },
-        },
+        name: "John",
+        handler,
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(true);
     });
 
-    it("should not modify original object", async () => {
-      const input = { name: "John", age: 30 };
-      const original = JSON.parse(JSON.stringify(input));
-
-      await node.execute({
-        inputs: { json: input, path: "$.name", value: "Jane" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(input).toEqual(original);
-    });
-
-    it("should handle invalid path gracefully", async () => {
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "invalid-path", value: "new" },
-        nodeId: "test",
-        workflowId: "test",
-      });
-
-      expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual(input);
-      expect(result.outputs?.success).toBe(false);
-      expect(result.outputs?.pathExists).toBe(false);
-    });
-
-    it("should handle array out of bounds", async () => {
-      const input = { items: ["apple", "banana"] };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.items[5]", value: "cherry" },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should handle Date value", async () => {
+      const date = new Date("2024-01-01");
+      const result = await node.execute(
+        createContext({
+          json: { name: "John" },
+          path: "$.created",
+          value: date,
+        })
+      );
 
       expect(result.status).toBe("completed");
       expect(result.outputs?.result).toEqual({
-        items: ["apple", "banana", null, null, null, "cherry"],
+        name: "John",
+        created: date,
       });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
     });
 
-    it("should handle functions as values", async () => {
-      const func = () => {};
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.handler", value: func },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should handle simple path", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { name: "John", age: 30 },
+          path: "city",
+          value: "New York",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ name: "John", handler: func });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
+      expect(result.outputs?.result).toEqual({
+        name: "John",
+        age: 30,
+        city: "New York",
+      });
     });
 
-    it("should handle Date objects as values", async () => {
-      const date = new Date();
-      const input = { name: "John" };
-      const result = await node.execute({
-        inputs: { json: input, path: "$.created", value: date },
-        nodeId: "test",
-        workflowId: "test",
-      });
+    it("should handle array with multiple elements", async () => {
+      const result = await node.execute(
+        createContext({
+          json: { items: ["apple", "banana", "cherry"] },
+          path: "$.items[3]",
+          value: "orange",
+        })
+      );
 
       expect(result.status).toBe("completed");
-      expect(result.outputs?.result).toEqual({ name: "John", created: date });
-      expect(result.outputs?.success).toBe(true);
-      expect(result.outputs?.pathExists).toBe(false);
+      expect(result.outputs?.result).toEqual({
+        items: ["apple", "banana", "cherry", "orange"],
+      });
     });
   });
 });

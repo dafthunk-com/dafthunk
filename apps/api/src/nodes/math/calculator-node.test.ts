@@ -1,25 +1,28 @@
-import { describe, it, expect } from "vitest";
-import { CalculatorNode } from "./calculator-node";
 import { Node } from "@dafthunk/types";
+import { describe, expect, it } from "vitest";
+
 import { NodeContext } from "../types";
+import { CalculatorNode } from "./calculator-node";
 
 describe("CalculatorNode", () => {
-  const createNode = (): Node => ({
-    id: "test-calculator",
-    type: "calculator",
-    position: { x: 0, y: 0 },
-  } as unknown as Node);
+  const createNode = (): Node =>
+    ({
+      id: "test-calculator",
+      type: "calculator",
+      position: { x: 0, y: 0 },
+    }) as unknown as Node;
 
-  const createContext = (inputs: Record<string, any>) => ({
-    nodeId: "test-calculator",
-    inputs,
-    workflowId: "test-workflow",
-    executionId: "test-execution",
-    organizationId: "test-org",
-    env: {},
-    nodeRegistry: null,
-    toolRegistry: null,
-  } as unknown as NodeContext);
+  const createContext = (inputs: Record<string, any>) =>
+    ({
+      nodeId: "test-calculator",
+      inputs,
+      workflowId: "test-workflow",
+      executionId: "test-execution",
+      organizationId: "test-org",
+      env: {},
+      nodeRegistry: null,
+      toolRegistry: null,
+    }) as unknown as NodeContext;
 
   describe("nodeType", () => {
     it("should have correct node type definition", () => {
@@ -216,7 +219,9 @@ describe("CalculatorNode", () => {
 
     it("should handle additional math functions", async () => {
       const node = new CalculatorNode(createNode());
-      const context = createContext({ expression: "sign(-5) + trunc(3.7) + hypot(3, 4)" });
+      const context = createContext({
+        expression: "sign(-5) + trunc(3.7) + hypot(3, 4)",
+      });
 
       const result = await node.execute(context);
 

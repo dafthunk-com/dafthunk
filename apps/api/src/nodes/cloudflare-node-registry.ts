@@ -207,18 +207,25 @@ import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { RagSearchNode } from "./rag/rag-search-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
+import { Claude3OpusNode } from "./text/claude-3-opus-node";
+import { Claude35HaikuNode } from "./text/claude-35-haiku-node";
+import { Claude35SonnetNode } from "./text/claude-35-sonnet-node";
+import { Claude37SonnetNode } from "./text/claude-37-sonnet-node";
+import { ClaudeOpus4Node } from "./text/claude-opus-4-node";
+import { ClaudeOpus41Node } from "./text/claude-opus-41-node";
+import { ClaudeSonnet4Node } from "./text/claude-sonnet-4-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
 import { DistilbertSst2Int8Node } from "./text/distilbert-sst-2-int8-node";
+import { Gpt5MiniNode } from "./text/gpt-5-mini-node";
+import { Gpt5NanoNode } from "./text/gpt-5-nano-node";
+import { Gpt5Node } from "./text/gpt-5-node";
+import { Gpt41Node } from "./text/gpt-41-node";
+import { GptOss20BNode } from "./text/gpt-oss-20b-node";
+import { GptOss120BNode } from "./text/gpt-oss-120b-node";
 import { Hermes2ProMistral7BNode } from "./text/hermes-2-pro-mistral-7b-node";
 import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
 import { Llama3370BInstructFastNode } from "./text/llama-3-3-70b-instruct-fp8-fast-node";
-import { Gpt41Node } from "./text/gpt-41-node";
-import { Gpt5Node } from "./text/gpt-5-node";
-import { Gpt5MiniNode } from "./text/gpt-5-mini-node";
-import { Gpt5NanoNode } from "./text/gpt-5-nano-node";
-import { GptOss120BNode } from "./text/gpt-oss-120b-node";
-import { GptOss20BNode } from "./text/gpt-oss-20b-node";
 import { Llama4Scout17B16EInstructNode } from "./text/llama-4-scout-17b-16e-instruct-node";
 import { M2m10012bNode } from "./text/m2m100-1-2b-node";
 import { MistralSmall31_24BInstructNode } from "./text/mistral-small-3-1-24b-instruct-node";
@@ -241,13 +248,6 @@ import { TextAreaNode } from "./text/text-area-node";
 import { ToJsonNode } from "./text/to-json-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
-import { ClaudeOpus41Node } from "./text/claude-opus-41-node";
-import { ClaudeOpus4Node } from "./text/claude-opus-4-node";
-import { ClaudeSonnet4Node } from "./text/claude-sonnet-4-node";
-import { Claude37SonnetNode } from "./text/claude-37-sonnet-node";
-import { Claude35SonnetNode } from "./text/claude-35-sonnet-node";
-import { Claude35HaikuNode } from "./text/claude-35-haiku-node";
-import { Claude3OpusNode } from "./text/claude-3-opus-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -554,7 +554,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(Gpt5MiniNode);
       this.registerImplementation(Gpt5NanoNode);
     }
-    
+
     // Anthropic Claude nodes
     if (hasAnthropic) {
       this.registerImplementation(ClaudeOpus41Node);

@@ -1,4 +1,4 @@
-import Anthropic, { APIError } from '@anthropic-ai/sdk';
+import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { ExecutableNode } from "../types";
@@ -56,20 +56,20 @@ export class Claude35SonnetNode extends ExecutableNode {
 
       const client = new Anthropic({
         apiKey: context.env.ANTHROPIC_API_KEY,
-        timeout: 60000
+        timeout: 60000,
       });
 
       const response = await client.messages.create({
         model: "claude-3-5-sonnet-latest",
         max_tokens: 1024,
         messages: [{ role: "user", content: input }],
-        ...(instructions && { system: instructions })
+        ...(instructions && { system: instructions }),
       });
 
       const responseText = response.content
-        .filter(block => block.type === 'text')
-        .map(block => block.text)
-        .join('');
+        .filter((block) => block.type === "text")
+        .map((block) => block.text)
+        .join("");
 
       return this.createSuccessResult({
         response: responseText,
