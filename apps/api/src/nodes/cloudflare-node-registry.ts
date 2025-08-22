@@ -237,6 +237,13 @@ import { TextAreaNode } from "./text/text-area-node";
 import { ToJsonNode } from "./text/to-json-node";
 import { ToStringNode } from "./text/to-string-node";
 import { TwilioSmsNode } from "./text/twilio-sms-node";
+import { ClaudeOpus41Node } from "./text/claude-opus-41-node";
+import { ClaudeOpus4Node } from "./text/claude-opus-4-node";
+import { ClaudeSonnet4Node } from "./text/claude-sonnet-4-node";
+import { Claude37SonnetNode } from "./text/claude-37-sonnet-node";
+import { Claude35SonnetNode } from "./text/claude-35-sonnet-node";
+import { Claude35HaikuNode } from "./text/claude-35-haiku-node";
+import { Claude3OpusNode } from "./text/claude-3-opus-node";
 
 export class CloudflareNodeRegistry extends BaseNodeRegistry {
   protected registerNodes(): void {
@@ -261,6 +268,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.AWS_REGION &&
       this.env.SES_DEFAULT_FROM
     );
+    const hasAnthropic = !!this.env.ANTHROPIC_API_KEY;
 
     // Register all core nodes
     this.registerImplementation(FormDataStringNode);
@@ -532,6 +540,17 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(UnkinkPolygonNode);
       this.registerImplementation(VoronoiNode);
       this.registerImplementation(WktGeometryNode);
+    }
+
+    // Anthropic Claude nodes
+    if (hasAnthropic) {
+      this.registerImplementation(ClaudeOpus41Node);
+      this.registerImplementation(ClaudeOpus4Node);
+      this.registerImplementation(ClaudeSonnet4Node);
+      this.registerImplementation(Claude37SonnetNode);
+      this.registerImplementation(Claude35SonnetNode);
+      this.registerImplementation(Claude35HaikuNode);
+      this.registerImplementation(Claude3OpusNode);
     }
   }
 }

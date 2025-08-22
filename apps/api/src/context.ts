@@ -37,6 +37,7 @@ export interface Bindings {
   AWS_SECRET_ACCESS_KEY?: string;
   AWS_REGION?: string;
   SES_DEFAULT_FROM?: string;
+  ANTHROPIC_API_KEY?: string;
 }
 
 export interface Variables {

@@ -41,6 +41,7 @@
     "wrangler": "^4.26.1"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
     "@aws-sdk/client-ses": "^3.812.0",
     "@cf-wasm/photon": "^0.1.31",
     "@cf-wasm/quickjs": "^0.0.6",
