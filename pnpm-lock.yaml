@@ -23,6 +23,9 @@ importers:
       '@cf-wasm/photon':
         specifier: ^0.1.31
         version: 0.1.31
+      '@cf-wasm/png':
+        specifier: ^0.1.24
+        version: 0.1.24
       '@cf-wasm/quickjs':
         specifier: ^0.0.6
         version: 0.0.6
@@ -683,6 +686,9 @@ packages:
 
   '@cf-wasm/photon@0.1.31':
     resolution: {integrity: sha512-czB1kvK8L1oKsBcQxNhWn5JyIlXrXF+Fd61kQSZSwxi+ol7ikqf9SPnEVQ//C3MW9bzp62eCVMetoB5+9iMsvw==}
+
+  '@cf-wasm/png@0.1.24':
+    resolution: {integrity: sha512-ZxH2y4CBKETAhNNYQb5P66l9ix32sYVQs0OBYB2aE6hC+lAtYDJT6fdmqCtyKQVAQUm8AklY2pWeciFgZevlDQ==}
 
   '@cf-wasm/quickjs@0.0.6':
     resolution: {integrity: sha512-nE4Lpkob4Dd/opvNOLg1xr+WuF/CcjIRRcM/FA/AqpuscHJE6TUyZKAnXjvzeJ5pSlQnUEbfczHYw8Pvidl3LQ==}
@@ -6276,6 +6282,8 @@ snapshots:
   '@cf-wasm/photon@0.1.31':
     dependencies:
       '@cf-wasm/internals': 0.0.3
+
+  '@cf-wasm/png@0.1.24': {}
 
   '@cf-wasm/quickjs@0.0.6':
     dependencies:
