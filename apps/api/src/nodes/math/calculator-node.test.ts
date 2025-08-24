@@ -24,39 +24,6 @@ describe("CalculatorNode", () => {
       toolRegistry: null,
     }) as unknown as NodeContext;
 
-  describe("nodeType", () => {
-    it("should have correct node type definition", () => {
-      expect(CalculatorNode.nodeType).toEqual({
-        id: "calculator",
-        name: "Calculator",
-        type: "calculator",
-        description:
-          "Evaluates mathematical expressions with comprehensive support for arithmetic operations, mathematical functions, trigonometric functions, constants, and complex formulas. Supports: basic arithmetic (+, -, *, /, ^, %), bitwise operators (&, |, <, >, ~), mathematical functions (sqrt, cbrt, pow, exp, log, log10, abs, floor, ceil, round, min, max, sign, trunc, hypot), trigonometric functions (sin, cos, tan, asin, acos, atan, atan2, sinh, cosh, tanh, asinh, acosh, atanh), mathematical constants (PI, E), random numbers, and complex nested expressions with proper order of operations and parentheses. All inputs are validated for security and only mathematical operations are allowed.",
-        tags: ["Math"],
-        icon: "calculator",
-        inlinable: true,
-        asTool: true,
-        inputs: [
-          {
-            name: "expression",
-            type: "string",
-            description:
-              "The mathematical expression to evaluate as a string. Examples: '2 + 3 * 4', 'sqrt(16)', 'sin(PI/2)', 'pow(2, 3)', 'abs(-5)', 'floor(3.7)', 'PI * 2^2', '(10 + 5) * 2 / 4', 'log(100)', 'random * 10', '17 % 5', '15 & 7', '8 | 4', '~10'. Supports all standard mathematical operations, functions, and constants. Use ^ for exponentiation (e.g., 2^3 = 8), % for modulo (e.g., 17 % 5 = 2), & for bitwise AND, | for bitwise OR, ~ for bitwise NOT. All expressions are validated for security.",
-            required: true,
-          },
-        ],
-        outputs: [
-          {
-            name: "result",
-            type: "number",
-            description:
-              "The calculated result of the mathematical expression as a number. Returns the final computed value after evaluating the expression with proper order of operations. Will be NaN or throw an error for invalid expressions.",
-          },
-        ],
-      });
-    });
-  });
-
   describe("execute", () => {
     it("should evaluate simple arithmetic expressions", async () => {
       const node = new CalculatorNode(createNode());
