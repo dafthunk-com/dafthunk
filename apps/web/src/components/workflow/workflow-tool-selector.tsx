@@ -197,7 +197,7 @@ export function WorkflowToolSelector({
                       ? "bg-accent border-primary/50"
                       : "hover:bg-accent/50",
                     isSelected &&
-                      "bg-blue-50 border-blue-300 dark:bg-blue-950/20 dark:border-blue-700"
+                      "bg-blue-50 border-blue-500 dark:bg-blue-950/20"
                   )}
                   onClick={() => handleTemplateToggle(template.id)}
                   onMouseEnter={() => {
@@ -223,7 +223,7 @@ export function WorkflowToolSelector({
                       <div className="flex items-center gap-3 mb-2">
                         <DynamicIcon
                           name={template.icon as any}
-                          className="h-4 w-4 text-blue-600 shrink-0"
+                          className="h-4 w-4 text-blue-500 shrink-0"
                         />
                         <h3 className="font-semibold text-base leading-tight truncate">
                           {template.name}

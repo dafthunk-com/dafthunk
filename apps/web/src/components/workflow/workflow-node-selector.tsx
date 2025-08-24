@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { NodeTags } from "./node-tags";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,6 @@ import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useSearch } from "@/hooks/use-search";
 import { useTagCounts } from "@/hooks/use-tag-counts";
-import { getTagColor } from "@/utils/tag-colors";
 import { cn } from "@/utils/utils";
 
 import type { NodeTemplate } from "./workflow-types";
@@ -53,6 +52,9 @@ export function WorkflowNodeSelector({
 
   // Filter templates based on search results and selected tag
   const filteredTemplates = searchResults.filter((template) => {
+    if (selectedTag === "Tools") {
+      return !!template.functionCalling;
+    }
     const matchesTag = !selectedTag || template.tags.includes(selectedTag);
     return matchesTag;
   });
@@ -160,22 +162,15 @@ export function WorkflowNodeSelector({
                       <div className="flex items-center gap-3 mb-2">
                         <DynamicIcon
                           name={template.icon as any}
-                          className="h-4 w-4 text-blue-600 shrink-0 [&svg>path]:stroke-2"
+                          className="h-4 w-4 text-blue-500 shrink-0 [&svg>path]:stroke-2"
                         />
                         <h3 className="font-semibold text-base leading-tight truncate">
                           {template.name}
                         </h3>
-                        <div className="flex gap-1 shrink-0">
-                          {template.tags.map((tag, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className={`${getTagColor([tag])} text-xs`}
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
+                        <NodeTags
+                          tags={template.tags}
+                          functionCalling={template.functionCalling}
+                        />
                       </div>
                       {template.description && (
                         <p className="text-sm text-muted-foreground leading-relaxed">

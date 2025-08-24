@@ -16,6 +16,7 @@ export function getTagColor(tagOrTags: string | string[]): string {
     parameter: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
     document: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
     email: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+    tools: "bg-transparent text-blue-500 border-blue-500",
   };
 
   return (

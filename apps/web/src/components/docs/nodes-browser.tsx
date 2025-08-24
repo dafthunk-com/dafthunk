@@ -40,9 +40,12 @@ export function NodesBrowser() {
 
     // Filter by tag (check if any tag matches)
     if (selectedTag) {
-      filtered = filtered.filter((nodeType) =>
-        nodeType.tags.includes(selectedTag)
-      );
+      filtered = filtered.filter((nodeType) => {
+        if (selectedTag === "Tools") {
+          return !!nodeType.functionCalling;
+        }
+        return nodeType.tags.includes(selectedTag);
+      });
     }
 
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
