@@ -9,6 +9,7 @@ import {
   CheckIcon,
   ChevronDown,
   ChevronUp,
+  CircleHelp,
   DotIcon,
   EllipsisIcon,
   GlobeIcon,
@@ -27,7 +28,9 @@ import {
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { createElement, memo, useEffect, useState } from "react";
 
+import { NodeDocsDialog } from "@/components/docs/node-docs-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
 import { InputEditDialog } from "./input-edit-dialog";
@@ -193,6 +196,7 @@ export const WorkflowNode = memo(
     const [showOutputs, setShowOutputs] = useState(false);
     const [showError, setShowError] = useState(true);
     const [isToolSelectorOpen, setIsToolSelectorOpen] = useState(false);
+    const [isDocsOpen, setIsDocsOpen] = useState(false);
     const hasVisibleOutputs = data.outputs.some((output) => !output.hidden);
     const canShowOutputs =
       hasVisibleOutputs &&
@@ -207,6 +211,20 @@ export const WorkflowNode = memo(
 
     // Get node type
     const nodeType = data.nodeType || "";
+
+    // Load available node types for docs resolution
+    const { nodeTypes } = useNodeTypes();
+
+    const resolvedNodeType = (() => {
+      if (!nodeTypes || nodeTypes.length === 0) return null;
+      // Prefer matching by type identifier when available
+      if (nodeType) {
+        const byType = nodeTypes.find((t) => t.type === nodeType);
+        if (byType) return byType;
+      }
+      // Fallback to name match
+      return nodeTypes.find((t) => t.name === data.name) || null;
+    })();
 
     // Widget mapping
     const widgetComponents: Record<
@@ -324,6 +342,27 @@ export const WorkflowNode = memo(
               />
               <h3 className="text-xs font-medium truncate">{data.name}</h3>
             </div>
+            <button
+              type="button"
+              className={cn(
+                "nodrag p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors",
+                "text-neutral-500"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!resolvedNodeType) return;
+                setIsDocsOpen(true);
+              }}
+              aria-label="Open node documentation"
+              title={
+                resolvedNodeType
+                  ? "Open documentation"
+                  : "Documentation unavailable"
+              }
+              disabled={!resolvedNodeType}
+            >
+              <CircleHelp className="h-3 w-3" />
+            </button>
           </div>
 
           {/* Tools bar (between header and body) */}
@@ -532,6 +571,14 @@ export const WorkflowNode = memo(
             onSelect={handleToolsSelect}
             templates={data.nodeTemplates || []}
             selectedTools={getCurrentSelectedTools()}
+          />
+        )}
+
+        {resolvedNodeType && (
+          <NodeDocsDialog
+            nodeType={resolvedNodeType}
+            isOpen={isDocsOpen}
+            onOpenChange={setIsDocsOpen}
           />
         )}
       </TooltipProvider>
