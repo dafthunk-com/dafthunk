@@ -15,7 +15,18 @@ export class PhotonAdjustHueNode extends ExecutableNode {
       "Adjusts image hue using HSL. Degrees from 0 to 360 for hue rotation.",
     tags: ["Image"],
     icon: "rotate-3d",
-    documentation: "*Missing detailed documentation*", // Placeholder icon for hue rotation
+    documentation: `This node adjusts image hue using HSL. Degrees from 0 to 360 for hue rotation.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data],
+  "degrees": 180
+}
+\`\`\`
+- **Output**: \`[hue-adjusted image data in PNG format]\``,
     inlinable: true,
     inputs: [
       {

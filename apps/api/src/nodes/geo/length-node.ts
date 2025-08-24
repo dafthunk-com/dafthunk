@@ -13,7 +13,24 @@ export class LengthNode extends ExecutableNode {
       "Calculates the length of LineString or MultiLineString features.",
     tags: ["Geo"],
     icon: "ruler",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node calculates the length of LineString or MultiLineString geometries in specified units.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[0, 0], [10, 0], [10, 10]]
+    }
+  },
+  "units": "kilometers"
+}
+\`\`\`
+- **Output**: \`20.0\` (total length of the line in kilometers)`,
     inlinable: true,
     inputs: [
       {

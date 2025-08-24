@@ -13,7 +13,13 @@ export class AdditionNode extends ExecutableNode {
     description: "Adds two numbers together",
     tags: ["Math"],
     icon: "plus",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node adds two numbers together to produce their sum.
+
+## Usage Example
+
+- **Input a**: \`5\`
+- **Input b**: \`3\`
+- **Output**: \`8\``,
     inlinable: true,
     asTool: true,
     inputs: [

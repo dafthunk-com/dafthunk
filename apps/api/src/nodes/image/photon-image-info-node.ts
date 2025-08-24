@@ -16,7 +16,26 @@ export class PhotonImageInfoNode extends ExecutableNode {
       "Extracts width, height, mime type, and estimated filesize from an image. Also passes the original image through.",
     tags: ["Image"],
     icon: "info",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts width, height, mime type, and estimated filesize from an image. Also passes the original image through.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data]
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "width": 1920,
+  "height": 1080,
+  "mimeType": "image/png",
+  "estimatedFilesize": 245760,
+  "imagePassthrough": [original image data]
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

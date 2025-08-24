@@ -14,7 +14,13 @@ export class SubtractionNode extends ExecutableNode {
     description: "Subtracts one number from another",
     tags: ["Math"],
     icon: "minus",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node subtracts one number from another to produce their difference.
+
+## Usage Example
+
+- **Input a**: \`10\`
+- **Input b**: \`3\`
+- **Output**: \`7\``,
     inlinable: true,
     asTool: true,
     inputs: [

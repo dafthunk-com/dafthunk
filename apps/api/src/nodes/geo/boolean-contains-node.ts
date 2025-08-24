@@ -13,7 +13,13 @@ export class BooleanContainsNode extends ExecutableNode {
       "Tests whether one geometry completely contains another geometry.",
     tags: ["Geo"],
     icon: "box",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node tests whether one geometry completely contains another geometry.
+
+## Usage Example
+
+- **Input feature1**: \`{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[0,0],[0,10],[10,10],[10,0],[0,0]]]}}\`
+- **Input feature2**: \`{"type":"Feature","geometry":{"type":"Point","coordinates":[5,5]}}\`
+- **Output**: \`true\``,
     inlinable: true,
     inputs: [
       {

@@ -13,7 +13,14 @@ export class MaskNode extends ExecutableNode {
       "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes.",
     tags: ["Geo"],
     icon: "eye-off",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node masks one geometry using another geometry as a clipping boundary.
+
+## Usage Example
+
+- **Input**: A geometry to mask and a masking geometry
+- **Output**: The portion of the first geometry that falls within the masking geometry
+
+The node clips the input geometry to only include areas that overlap with the masking geometry.`,
     inlinable: true,
     inputs: [
       {

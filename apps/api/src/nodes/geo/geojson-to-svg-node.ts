@@ -13,7 +13,35 @@ export class GeoJsonToSvgNode extends ExecutableNode {
       "Renders GeoJSON data into an SVG file using d3-geo with identity projection. Creates separate path elements for each geometry with appropriate styling.",
     tags: ["Geo", "Image"],
     icon: "map",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node converts GeoJSON data into an SVG image with customizable styling and dimensions.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  },
+  "width": 400,
+  "height": 300,
+  "strokeColor": "#3b82f6",
+  "fillColor": "rgba(59, 130, 246, 0.2)"
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "svg": {
+    "data": "<svg width='400' height='300'>...</svg>",
+    "mimeType": "image/svg+xml"
+  }
+}
+\`\`\``,
     inputs: [
       {
         name: "geojson",

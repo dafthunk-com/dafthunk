@@ -11,7 +11,18 @@ export class JsonKeysNode extends ExecutableNode {
     description: "Get all keys at a specific JSON path",
     tags: ["JSON"],
     icon: "key",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node gets all keys at a specific JSON path.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "json": {"user": {"name": "John", "age": 30, "email": "john@example.com"}},
+  "path": "$.user"
+}
+\`\`\`
+- **Output**: \`["name", "age", "email"]\``,
     inlinable: true,
     asTool: true,
     inputs: [

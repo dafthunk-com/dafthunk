@@ -18,7 +18,27 @@ export class RagSearchNode extends ExecutableNode {
     description: "Search through datasets and return relevant results",
     tags: ["AI"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node searches through datasets using RAG (Retrieval-Augmented Generation) to find relevant content based on a query.
+
+## Usage Example
+
+- **Input**: \`"What are the benefits of machine learning?"\`
+- **Output**: 
+\`\`\`
+{
+  "searchResults": [
+    {
+      "content": "Machine learning provides automated pattern recognition...",
+      "score": 0.85,
+      "metadata": {...}
+    }
+  ],
+  "searchQuery": "What are the benefits of machine learning?",
+  "hasMore": false
+}
+\`\`\`
+
+The node searches through your dataset and returns the most relevant content without generating AI responses.`,
     computeCost: 10,
     asTool: true,
     inputs: [

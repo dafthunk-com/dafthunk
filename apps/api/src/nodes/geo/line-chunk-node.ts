@@ -12,7 +12,14 @@ export class LineChunkNode extends ExecutableNode {
     description: "Breaks a LineString into chunks of a specified length.",
     tags: ["Geo"],
     icon: "scissors",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node splits a line into smaller segments or chunks.
+
+## Usage Example
+
+- **Input**: A line geometry and chunk size
+- **Output**: Multiple smaller line segments
+
+The node divides a long line into smaller, more manageable pieces based on the specified chunk size.`,
     inlinable: true,
     inputs: [
       {

@@ -13,7 +13,13 @@ export class LineStringNode extends ExecutableNode {
       "Creates a LineString feature from an array of coordinate pairs.",
     tags: ["Geo"],
     icon: "route",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a LineString feature from an array of coordinate pairs.
+
+## Usage Example
+
+- **Input coordinates**: \`[[-73.935242, 40.730610], [-73.935242, 40.730610]]\`
+- **Input properties**: \`{"name": "Route 1", "type": "highway"}\`
+- **Output**: \`{"type":"Feature","geometry":{"type":"LineString","coordinates":[[-73.935242,40.730610],[-73.935242,40.730610]]},"properties":{"name":"Route 1","type":"highway"}}\``,
     inlinable: true,
     inputs: [
       {

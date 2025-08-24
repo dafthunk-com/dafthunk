@@ -12,7 +12,13 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
       "Create a string using a template with multiple variable injection using ${variableName} syntax",
     tags: ["Text"],
     icon: "quote",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a string using a template with multiple variable injection using \${variableName} syntax.
+
+## Usage Example
+
+- **Input template**: \`"Hello \${name}, you have \${count} messages in your \${folder} folder."\`
+- **Input variables**: \`{ "name": "John", "count": 5, "folder": "inbox" }\`
+- **Output**: \`"Hello John, you have 5 messages in your inbox folder."\``,
     inlinable: true,
     asTool: true,
     inputs: [

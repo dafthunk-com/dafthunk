@@ -18,7 +18,14 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
       "Generates text with function calling support using Llama 4 Scout 17B 16E Instruct model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node generates text with function calling support using Meta's Llama 4 Scout 17B 16E Instruct model.
+
+## Usage Example
+
+- **Input prompt**: \`"What's the weather like in New York?"\`
+- **Input temperature**: \`0.7\`
+- **Input max_tokens**: \`256\`
+- **Output**: \`"I don't have access to real-time weather data, but I can help you find weather information for New York."\``,
     computeCost: 10,
     asTool: true,
     functionCalling: true,

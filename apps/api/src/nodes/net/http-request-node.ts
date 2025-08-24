@@ -10,7 +10,17 @@ export class HttpRequestNode extends ExecutableNode {
     description: "Make a customizable HTTP request to a third-party service.",
     tags: ["Net"],
     icon: "globe",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node makes a customizable HTTP request to a third-party service.
+
+## Usage Example
+
+- **Input url**: \`"https://api.example.com/users"\`
+- **Input method**: \`"GET"\`
+- **Input headers**: \`{"Authorization": "Bearer token123"}\`
+- **Input body**: \`""\`
+- **Input query**: \`{"limit": "10"}\`
+- **Input timeout**: \`5000\`
+- **Output**: \`{ "status": 200, "statusText": "OK", "headers": {...}, "body": "[{\\"id\\":1,\\"name\\":\\"John\\"}]" }\``,
     asTool: true,
     inputs: [
       {

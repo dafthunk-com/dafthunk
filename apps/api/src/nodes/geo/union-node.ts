@@ -13,7 +13,46 @@ export class UnionNode extends ExecutableNode {
       "Takes a collection of input polygons and returns a combined polygon. If the input polygons are not contiguous, this function returns a multi-polygon feature.",
     tags: ["Geo"],
     icon: "circle-plus",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node combines multiple polygon features into a single unified geometry using the union operation.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "features": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]]
+        }
+      }
+    ]
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "union": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [2, 0], [3, 1], [3, 3], [1, 3], [0, 2], [0, 0]]]
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

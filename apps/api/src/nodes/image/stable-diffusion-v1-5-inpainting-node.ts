@@ -14,7 +14,14 @@ export class StableDiffusionV15InpaintingNode extends ExecutableNode {
       "Generates images by inpainting masked areas using Stable Diffusion v1.5",
     tags: ["Image", "AI"],
     icon: "brush",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node fills in missing or masked areas of images using Stable Diffusion v1.5 inpainting model.
+
+## Usage Example
+
+- **Input**: An image with masked areas + \`"Fill with grass and flowers"\`
+- **Output**: The image with masked areas filled with grass and flowers
+
+The node intelligently fills in selected areas of images based on your text prompts and surrounding context.`,
     computeCost: 10,
     inputs: [
       {

@@ -11,7 +11,13 @@ export class StringLastIndexOfNode extends ExecutableNode {
     description: "Find the last index of a substring within a string",
     tags: ["Text"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node finds the last index of a substring within a string.
+
+## Usage Example
+
+- **Input haystack**: \`"Hello world, hello universe"\`
+- **Input needle**: \`"hello"\`
+- **Output**: \`13\``,
     inlinable: true,
     asTool: true,
     inputs: [

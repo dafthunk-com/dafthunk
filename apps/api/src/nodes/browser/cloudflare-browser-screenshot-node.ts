@@ -16,7 +16,18 @@ export class CloudflareBrowserScreenshotNode extends ExecutableNode {
       "Capture a screenshot of a webpage using Cloudflare Browser Rendering.",
     tags: ["Browser"],
     icon: "camera",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node captures a screenshot of a webpage using Cloudflare Browser Rendering.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "url": "https://example.com",
+  "screenshotOptions": {"fullPage": true, "omitBackground": false}
+}
+\`\`\`
+- **Output**: \`[screenshot image data in PNG format]\``,
     computeCost: 10,
     inputs: [
       {

@@ -15,7 +15,14 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
       "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
     tags: ["Image", "AI"],
     icon: "wand",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img model.
+
+## Usage Example
+
+- **Input**: An image file + \`"Transform this into a watercolor painting style"\`
+- **Output**: A new image in watercolor painting style
+
+The node takes an existing image and applies AI-powered transformations based on your text prompt, preserving the original composition while changing the artistic style.`,
     computeCost: 10,
     inputs: [
       {

@@ -14,7 +14,13 @@ export class DivisionNode extends ExecutableNode {
     description: "Divides one number by another",
     tags: ["Math"],
     icon: "divide",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node divides one number by another to produce their quotient.
+
+## Usage Example
+
+- **Input a**: \`15\`
+- **Input b**: \`3\`
+- **Output**: \`5\``,
     inlinable: true,
     asTool: true,
     inputs: [

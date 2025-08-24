@@ -13,7 +13,14 @@ export class PointOnFeatureNode extends ExecutableNode {
       "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature.",
     tags: ["Geo"],
     icon: "map-pin",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node finds a random point that lies within a given polygon or on a line.
+
+## Usage Example
+
+- **Input**: A polygon or line geometry
+- **Output**: A point that is guaranteed to be within the geometry
+
+The node generates a random point that is contained within the input geometry boundaries.`,
     inlinable: true,
     inputs: [
       {

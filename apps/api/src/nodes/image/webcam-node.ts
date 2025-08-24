@@ -15,7 +15,19 @@ export class WebcamNode extends ExecutableNode {
     description: "A webcam widget for capturing images",
     tags: ["Image"],
     icon: "camera",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node provides a webcam widget that allows users to capture images and outputs them as an image reference.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "value": [captured image data],
+  "width": 640,
+  "height": 480
+}
+\`\`\`
+- **Output**: \`[captured image data]\``,
     inputs: [
       {
         name: "value",

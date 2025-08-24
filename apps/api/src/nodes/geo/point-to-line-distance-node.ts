@@ -13,7 +13,14 @@ export class PointToLineDistanceNode extends ExecutableNode {
       "Calculates the distance between a given point and the nearest point on a line. Sometimes referred to as the cross track distance.",
     tags: ["Geo"],
     icon: "ruler",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node calculates the distance from a point to a line geometry.
+
+## Usage Example
+
+- **Input**: A point and a line GeoJSON
+- **Output**: \`42.5\` (distance in meters)
+
+The node computes the shortest distance between a point and a line segment or multi-line.`,
     inlinable: true,
     inputs: [
       {

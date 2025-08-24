@@ -12,7 +12,18 @@ export class JsonTypeofNode extends ExecutableNode {
       "Get the type of a JSON value (object, array, string, number, boolean, null)",
     tags: ["JSON"],
     icon: "type",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node determines the type of a JSON value and returns it as a string.
+
+## Usage Example
+
+- **Input**: \`{"name": "John", "age": 30}\`
+- **Output**: \`"object"\`
+
+- **Input**: \`[1, 2, 3, 4]\`
+- **Output**: \`"array"\`
+
+- **Input**: \`"Hello World"\`
+- **Output**: \`"string"\``,
     inlinable: true,
     asTool: true,
     inputs: [

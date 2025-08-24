@@ -11,7 +11,47 @@ export class IntersectNode extends ExecutableNode {
     description: "Finds the intersection of two polygons.",
     tags: ["Geo"],
     icon: "squares-intersect",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node finds the geometric intersection (overlapping area) between two polygon geometries.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "polygon1": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  },
+  "polygon2": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[5, 5], [15, 5], [15, 15], [5, 15], [5, 5]]]
+    }
+  },
+  "properties": {
+    "name": "Overlap Area"
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "intersection": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[5, 5], [10, 5], [10, 10], [5, 10], [5, 5]]]
+    },
+    "properties": {
+      "name": "Overlap Area"
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

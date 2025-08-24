@@ -13,7 +13,14 @@ export class BooleanCrossesNode extends ExecutableNode {
       "Tests whether two geometries cross each other (intersect but do not contain each other).",
     tags: ["Geo"],
     icon: "x",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node checks if two geometries cross each other.
+
+## Usage Example
+
+- **Input**: Two GeoJSON geometries (lines or polygons)
+- **Output**: \`true\` or \`false\`
+
+The node determines if the geometries intersect and cross over each other at their intersection points.`,
     inlinable: true,
     inputs: [
       {

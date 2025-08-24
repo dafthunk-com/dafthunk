@@ -15,7 +15,12 @@ export class JsonObjectAggNode extends ExecutableNode {
     description: "Aggregates key-value pairs into a JSON object",
     tags: ["JSON"],
     icon: "hash",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node aggregates key-value pairs into a JSON object, similar to SQLite/PostgreSQL's json_object_agg function.
+
+## Usage Example
+
+- **Input pairs**: \`[{"key": "name", "value": "John"}, {"key": "age", "value": 30}, {"key": "city", "value": "New York"}]\`
+- **Output**: \`{"name": "John", "age": 30, "city": "New York"}\``,
     inlinable: true,
     asTool: true,
     inputs: [

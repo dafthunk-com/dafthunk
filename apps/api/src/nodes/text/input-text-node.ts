@@ -18,7 +18,13 @@ export class InputTextNode extends ExecutableNode {
     description: "A text input widget for entering single-line text",
     tags: ["Text"],
     icon: "text",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node provides a text input widget for entering single-line text.
+
+## Usage Example
+
+- **Input value**: \`"Hello World"\`
+- **Input placeholder**: \`"Enter your message here"\`
+- **Output**: \`"Hello World"\``,
     asTool: true,
     inputs: [
       {

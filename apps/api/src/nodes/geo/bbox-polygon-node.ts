@@ -12,7 +12,20 @@ export class BboxPolygonNode extends ExecutableNode {
     description: "Takes a bbox and returns an equivalent polygon.",
     tags: ["Geo"],
     icon: "square",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a bounding box polygon from a GeoJSON geometry.
+
+## Usage Example
+
+- **Input**: Any GeoJSON geometry
+- **Output**: 
+\`\`\`
+{
+  "type": "Polygon",
+  "coordinates": [[[minLng, minLat], [maxLng, minLat], [maxLng, maxLat], [minLng, maxLat], [minLng, minLat]]]
+}
+\`\`\`
+
+The node creates a rectangular polygon that completely contains the input geometry.`,
     inlinable: true,
     inputs: [
       {

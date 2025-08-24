@@ -11,7 +11,13 @@ export class RegexSplitNode extends ExecutableNode {
     description: "Split a string by a regular expression pattern.",
     tags: ["Text"],
     icon: "divide",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node splits a string by a regular expression pattern.
+
+## Usage Example
+
+- **Input string**: \`"apple,banana;orange grape"\`
+- **Input pattern**: \`"[,;\\s]"\`
+- **Output**: \`["apple", "banana", "orange", "grape"]\``,
     inlinable: true,
     asTool: true,
     inputs: [

@@ -12,7 +12,71 @@ export class FeatureCollectionNode extends ExecutableNode {
     description: "Takes one or more Features and creates a FeatureCollection.",
     tags: ["Geo"],
     icon: "layers",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a FeatureCollection from an array of GeoJSON features.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.3522, 48.8566]
+      },
+      "properties": {
+        "name": "Paris"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-74.006, 40.7128]
+      },
+      "properties": {
+        "name": "New York"
+      }
+    }
+  ],
+  "bbox": [-74.006, 40.7128, 2.3522, 48.8566],
+  "id": "cities"
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "featureCollection": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [2.3522, 48.8566]
+        },
+        "properties": {
+          "name": "Paris"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [-74.006, 40.7128]
+        },
+        "properties": {
+          "name": "New York"
+        }
+      }
+    ],
+    "bbox": [-74.006, 40.7128, 2.3522, 48.8566],
+    "id": "cities"
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

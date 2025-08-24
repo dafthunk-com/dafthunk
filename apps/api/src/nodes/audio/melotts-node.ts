@@ -14,7 +14,12 @@ export class MelottsNode extends ExecutableNode {
     description: "Converts text to natural-sounding speech using MeloTTS",
     tags: ["Audio", "AI"],
     icon: "mic",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node converts text to natural-sounding speech using the MeloTTS model, supporting multiple languages.
+
+## Usage Example
+
+- **Input**: prompt: \`"Hello, how are you today?"\`, lang: \`"en"\`
+- **Output**: MP3 audio file with synthesized speech`,
     computeCost: 10,
     inputs: [
       {

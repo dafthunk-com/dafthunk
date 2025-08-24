@@ -16,7 +16,13 @@ export class Gpt5MiniNode extends ExecutableNode {
     description: "Faster, cost-effective version of GPT-5",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses OpenAI's GPT-5 Mini model, a faster, cost-effective version of GPT-5.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"Summarize the benefits of exercise."\`
+- **Output**: \`"Exercise offers numerous benefits including improved cardiovascular health, increased strength, and better mental well-being..."\``,
     computeCost: 15,
     asTool: true,
     inputs: [

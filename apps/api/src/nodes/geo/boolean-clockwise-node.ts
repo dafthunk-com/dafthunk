@@ -13,7 +13,23 @@ export class BooleanClockwiseNode extends ExecutableNode {
       "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise.",
     tags: ["Geo"],
     icon: "rotate-cw",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node determines whether a LineString or polygon ring follows a clockwise or counter-clockwise direction.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "line": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]
+    }
+  }
+}
+\`\`\`
+- **Output**: \`true\` (clockwise direction)`,
     inlinable: true,
     inputs: [
       {

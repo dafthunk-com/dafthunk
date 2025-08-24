@@ -13,7 +13,35 @@ export class TruncateNode extends ExecutableNode {
       "Truncates the precision of a coordinate to a specified number of decimal places.",
     tags: ["Geo"],
     icon: "scissors",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node truncates coordinate precision in GeoJSON geometries to a specified number of decimal places.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [12.345678901234, 98.765432109876]
+    }
+  },
+  "precision": 3
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "truncated": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [12.346, 98.765]
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

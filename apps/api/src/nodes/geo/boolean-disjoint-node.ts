@@ -13,7 +13,14 @@ export class BooleanDisjointNode extends ExecutableNode {
       "Returns true if the intersection of the two geometries is an empty set.",
     tags: ["Geo"],
     icon: "slash",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node checks if two geometries are completely separate (no intersection).
+
+## Usage Example
+
+- **Input**: Two GeoJSON geometries
+- **Output**: \`true\` or \`false\`
+
+The node determines if the geometries have no points in common and are completely disjoint.`,
     inlinable: true,
     inputs: [
       {

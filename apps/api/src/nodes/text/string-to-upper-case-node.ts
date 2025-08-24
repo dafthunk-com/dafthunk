@@ -11,7 +11,12 @@ export class StringToUpperCaseNode extends ExecutableNode {
     description: "Convert a string to uppercase",
     tags: ["Text"],
     icon: "text",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node converts any string to uppercase letters.
+
+## Usage Example
+
+- **Input**: \`"hello world"\`
+- **Output**: \`"HELLO WORLD"\``,
     inlinable: true,
     asTool: true,
     inputs: [

@@ -16,7 +16,12 @@ export class CalculatorNode extends ExecutableNode {
       "Evaluates mathematical expressions with comprehensive support for arithmetic operations, mathematical functions, trigonometric functions, constants, and complex formulas. Supports: basic arithmetic (+, -, *, /, ^, %), bitwise operators (&, |, <, >, ~), mathematical functions (sqrt, cbrt, pow, exp, log, log10, abs, floor, ceil, round, min, max, sign, trunc, hypot), trigonometric functions (sin, cos, tan, asin, acos, atan, atan2, sinh, cosh, tanh, asinh, acosh, atanh), mathematical constants (PI, E), random numbers, and complex nested expressions with proper order of operations and parentheses. All inputs are validated for security and only mathematical operations are allowed.",
     tags: ["Math"],
     icon: "calculator",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node evaluates mathematical expressions with support for arithmetic operations, functions, and constants.
+
+## Usage Example
+
+- **Input**: \`"2 + 3 * 4"\`
+- **Output**: \`14\``,
     inlinable: true,
     asTool: true,
     inputs: [

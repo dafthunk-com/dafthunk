@@ -16,7 +16,21 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
       "Fetch all links from a rendered page using Cloudflare Browser Rendering.",
     tags: ["Browser"],
     icon: "link",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts all links from a web page using Cloudflare's Browser Rendering API.
+
+## Usage Example
+
+- **Input**: \`"https://example.com"\`
+- **Output**: 
+\`\`\`
+[
+  "https://example.com/page1",
+  "https://example.com/page2",
+  "https://external-site.com"
+]
+\`\`\`
+
+The node renders the page in a headless browser and extracts all href attributes from anchor tags.`,
     computeCost: 10,
     asTool: true,
     inputs: [

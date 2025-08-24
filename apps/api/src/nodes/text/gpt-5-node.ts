@@ -16,7 +16,21 @@ export class Gpt5Node extends ExecutableNode {
     description: "Next-generation flagship model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses OpenAI's GPT-5 model to generate text responses based on input prompts.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful coding assistant."\`
+- **Input input**: \`"Write a function to calculate the factorial of a number in JavaScript."\`
+- **Output**: 
+\`\`\`
+Here's a JavaScript function to calculate factorial:
+
+function factorial(n) {
+  if (n <= 1) return 1;
+  return n * factorial(n - 1);
+}
+\`\`\``,
     computeCost: 35,
     asTool: true,
     inputs: [

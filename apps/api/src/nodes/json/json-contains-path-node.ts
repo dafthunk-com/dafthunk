@@ -11,7 +11,13 @@ export class JsonContainsPathNode extends ExecutableNode {
     description: "Check if JSON contains a specific path",
     tags: ["JSON"],
     icon: "map-pin",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node checks if a JSON object contains a specific path.
+
+## Usage Example
+
+- **Input json**: \`{"user": {"profile": {"name": "John", "age": 30}}}\`
+- **Input path**: \`"$.user.profile.name"\`
+- **Output**: \`true\``,
     inlinable: true,
     asTool: true,
     inputs: [

@@ -13,7 +13,59 @@ export class ConvexNode extends ExecutableNode {
       "Creates a convex hull polygon that encompasses all input points.",
     tags: ["Geo"],
     icon: "hexagon",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a convex hull polygon that encompasses all input points with the smallest possible convex area.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [0, 0]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [10, 0]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [5, 10]
+        }
+      }
+    ]
+  },
+  "properties": {
+    "name": "Triangle Hull"
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "convexHull": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [5, 10], [0, 0]]]
+    },
+    "properties": {
+      "name": "Triangle Hull"
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

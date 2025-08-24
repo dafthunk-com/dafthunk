@@ -13,7 +13,37 @@ export class BufferNode extends ExecutableNode {
       "Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.",
     tags: ["Geo"],
     icon: "circle",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a buffer zone around a geometry by expanding it outward (or inward with negative radius) by a specified distance.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [0, 0]
+    }
+  },
+  "radius": 5,
+  "units": "kilometers",
+  "steps": 16
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "buffered": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0.045, 0], [0.044, 0.013], [0.042, 0.025], [0.038, 0.038], [0.032, 0.049], [0.025, 0.059], [0.016, 0.068], [0.006, 0.075], [-0.006, 0.075], [-0.016, 0.068], [-0.025, 0.059], [-0.032, 0.049], [-0.038, 0.038], [-0.042, 0.025], [-0.044, 0.013], [-0.045, 0], [-0.044, -0.013], [-0.042, -0.025], [-0.038, -0.038], [-0.032, -0.049], [-0.025, -0.059], [-0.016, -0.068], [-0.006, -0.075], [0.006, -0.075], [0.016, -0.068], [0.025, -0.059], [0.032, -0.049], [0.038, -0.038], [0.042, -0.025], [0.044, -0.013], [0.045, 0]]]
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

@@ -13,7 +13,14 @@ export class ConcaveNode extends ExecutableNode {
       "Takes a set of points and returns a concave hull polygon. Internally, this uses turf-tin to generate geometries.",
     tags: ["Geo"],
     icon: "square",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a concave hull (alpha shape) from a set of points.
+
+## Usage Example
+
+- **Input**: A collection of points
+- **Output**: A concave polygon that encompasses the points
+
+The node creates a boundary around the points that follows the natural shape of the point distribution.`,
     inlinable: true,
     inputs: [
       {

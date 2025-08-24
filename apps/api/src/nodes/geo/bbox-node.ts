@@ -13,7 +13,29 @@ export class BboxNode extends ExecutableNode {
       "Calculates the bounding box of any GeoJSON feature in [minX, minY, maxX, maxY] format.",
     tags: ["Geo"],
     icon: "square-dashed",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node calculates the bounding box (minimum and maximum coordinates) of a GeoJSON feature or feature collection.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  },
+  "recompute": false
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "bbox": [0, 0, 10, 10]
+}
+\`\`\` (minX, minY, maxX, maxY)`,
     inlinable: true,
     inputs: [
       {

@@ -11,7 +11,29 @@ export class JsonMergeNode extends ExecutableNode {
     description: "Merge multiple JSON objects",
     tags: ["JSON"],
     icon: "merge",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node merges multiple JSON objects.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "objects": [
+    {"name": "John", "age": 30},
+    {"email": "john@example.com", "city": "New York"}
+  ],
+  "deep": true
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "name": "John",
+  "age": 30,
+  "email": "john@example.com",
+  "city": "New York"
+}
+\`\`\``,
     inlinable: true,
     asTool: true,
     inputs: [

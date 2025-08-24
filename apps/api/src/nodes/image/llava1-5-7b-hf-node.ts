@@ -15,7 +15,15 @@ export class LLaVA157BHFNode extends ExecutableNode {
       "Generates text descriptions from images using LLaVA 1.5 7B model",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node generates text descriptions from images using the LLaVA 1.5 7B model for image-to-text analysis.
+
+## Usage Example
+
+- **Input**: An image file (PNG, JPEG, etc.)
+- **Prompt**: \`"Describe what you see in this image"\`
+- **Output**: \`"A beautiful sunset over a mountain landscape with orange and pink clouds reflecting in a calm lake below."\`
+
+The node analyzes the visual content and generates natural language descriptions based on the image content.`,
     computeCost: 10,
     inputs: [
       {
