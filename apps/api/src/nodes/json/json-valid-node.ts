@@ -37,10 +37,9 @@ export class JsonValidNode extends ExecutableNode {
         description: "Whether the value is valid JSON",
       },
       {
-        name: "parsedValue",
+        name: "parsed",
         type: "json",
         description: "The parsed JSON value if valid, null otherwise",
-        hidden: true,
       },
       {
         name: "error",
@@ -96,7 +95,7 @@ export class JsonValidNode extends ExecutableNode {
       if (value === null || value === undefined) {
         return this.createSuccessResult({
           isValid: false,
-          parsedValue: null,
+          parsed: null,
           error: "Input value is required",
         });
       }
@@ -105,7 +104,7 @@ export class JsonValidNode extends ExecutableNode {
 
       return this.createSuccessResult({
         isValid: result.isValid,
-        parsedValue: result.parsedValue,
+        parsed: result.parsedValue,
         error: result.error,
       });
     } catch (err) {

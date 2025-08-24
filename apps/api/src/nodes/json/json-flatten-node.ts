@@ -80,12 +80,12 @@ export class JsonFlattenNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { value, separator = ".", includeArrays = true } = context.inputs;
+      const { value, separator = ".", includeArrays = false } = context.inputs;
 
       // Handle null or undefined inputs
       if (value === null || value === undefined) {
         return this.createSuccessResult({
-          result: {},
+          result: null,
           keyCount: 0,
           success: true,
         });
@@ -94,10 +94,21 @@ export class JsonFlattenNode extends ExecutableNode {
       // Handle primitive values
       if (typeof value !== "object") {
         return this.createSuccessResult({
-          result: { value },
+          result: value,
           keyCount: 1,
           success: true,
         });
+      }
+
+      // Handle top-level arrays explicitly
+      if (Array.isArray(value)) {
+        if (!includeArrays) {
+          return this.createSuccessResult({
+            result: value,
+            keyCount: Array.isArray(value) ? value.length : 0,
+            success: true,
+          });
+        }
       }
 
       // Flatten the JSON structure
@@ -125,41 +136,57 @@ export class JsonFlattenNode extends ExecutableNode {
 
     if (Array.isArray(obj)) {
       if (includeArrays) {
-        // Handle arrays by including indices
         for (let i = 0; i < obj.length; i++) {
-          const key = prefix ? `${prefix}${separator}${i}` : `${i}`;
-          const value = obj[i];
-
-          if (value !== null && typeof value === "object") {
+          const idxKey = prefix ? `${prefix}[${i}]` : `[${i}]`;
+          const valueAtIndex = obj[i];
+          if (valueAtIndex !== null && typeof valueAtIndex === "object") {
             Object.assign(
               result,
-              this.flattenObject(value, separator, includeArrays, key)
+              this.flattenObject(valueAtIndex, separator, includeArrays, idxKey)
             );
           } else {
-            result[key] = value;
+            result[idxKey] = valueAtIndex;
           }
         }
       } else {
-        // Skip arrays if includeArrays is false
-        result[prefix || "value"] = obj;
+        if (prefix) {
+          result[prefix] = obj;
+        }
       }
     } else if (typeof obj === "object" && obj !== null) {
       // Handle objects
       for (const [key, value] of Object.entries(obj)) {
         const newKey = prefix ? `${prefix}${separator}${key}` : key;
 
-        if (value !== null && typeof value === "object") {
+        if (
+          value !== null &&
+          typeof value === "object" &&
+          !Array.isArray(value)
+        ) {
           Object.assign(
             result,
             this.flattenObject(value, separator, includeArrays, newKey)
           );
         } else {
-          result[newKey] = value;
+          if (Array.isArray(value)) {
+            if (includeArrays) {
+              Object.assign(
+                result,
+                this.flattenObject(value, separator, includeArrays, newKey)
+              );
+            } else {
+              result[newKey] = value;
+            }
+          } else {
+            result[newKey] = value;
+          }
         }
       }
     } else {
       // Handle primitives
-      result[prefix || "value"] = obj;
+      if (prefix) {
+        result[prefix] = obj;
+      }
     }
 
     return result;

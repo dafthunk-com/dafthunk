@@ -82,14 +82,8 @@ export class JsonInsertNode extends ExecutableNode {
     try {
       const { json, path, value } = context.inputs;
 
-      // Handle null or undefined inputs
-      if (json === null || json === undefined) {
-        return this.createSuccessResult({
-          result: null,
-          success: false,
-          inserted: false,
-        });
-      }
+      // Initialize empty object when input is null/undefined
+      const base = json === null || json === undefined ? {} : json;
 
       if (path === null || path === undefined || path === "") {
         return this.createSuccessResult({
@@ -100,27 +94,15 @@ export class JsonInsertNode extends ExecutableNode {
       }
 
       // Deep clone the input JSON to avoid modifying the original
-      const result = JSON.parse(JSON.stringify(json));
+      const result = JSON.parse(JSON.stringify(base));
 
-      // Check if path already exists
-      const pathExists = this.pathExists(result, path);
-
-      if (pathExists) {
-        // Path exists, don't insert
-        return this.createSuccessResult({
-          result,
-          success: true,
-          inserted: false,
-        });
-      }
-
-      // Path doesn't exist, insert the value
+      // Insert or overwrite the value at path (upsert semantics)
       const success = this.insertValueAtPath(result, path, value);
 
       return this.createSuccessResult({
-        result: success ? result : json,
+        result: success ? result : base,
         success,
-        inserted: success,
+        inserted: true,
       });
     } catch (err) {
       const error = err as Error;
@@ -152,10 +134,11 @@ export class JsonInsertNode extends ExecutableNode {
           if (!Array.isArray(current)) {
             return false;
           }
-          if (part < 0 || part >= current.length) {
+          const actualIndex = part < 0 ? current.length + part : part;
+          if (actualIndex < 0 || actualIndex >= current.length) {
             return false;
           }
-          current = current[part];
+          current = current[actualIndex];
         }
       }
 
@@ -211,29 +194,25 @@ export class JsonInsertNode extends ExecutableNode {
         }
       }
 
-      // Insert the value at the final path part
+      // Insert the value at the final path part (overwrite if exists)
       const finalPart = pathParts[pathParts.length - 1];
       if (typeof finalPart === "string") {
         if (typeof current !== "object" || current === null) {
           return false;
         }
-        // Only insert if the key doesn't exist
-        if (!(finalPart in current)) {
-          current[finalPart] = value;
-          return true;
-        }
+        current[finalPart] = value;
+        return true;
       } else if (typeof finalPart === "number") {
         if (!Array.isArray(current)) {
           return false;
         }
-        // Only insert if the index doesn't exist
-        if (finalPart >= current.length) {
-          while (current.length <= finalPart) {
-            current.push(null);
-          }
-          current[finalPart] = value;
-          return true;
+        const actualIndex =
+          finalPart < 0 ? current.length + finalPart : finalPart;
+        while (current.length <= actualIndex) {
+          current.push(null);
         }
+        current[actualIndex] = value;
+        return true;
       }
 
       return false;
@@ -265,7 +244,7 @@ export class JsonInsertNode extends ExecutableNode {
       }
 
       // Check for object property
-      const propMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_]*)/);
+      const propMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_-]*)/);
       if (propMatch) {
         parts.push(propMatch[1]);
         remaining = remaining.substring(propMatch[1].length);

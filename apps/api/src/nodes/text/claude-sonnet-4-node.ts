@@ -42,7 +42,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "response",
+        name: "text",
         type: "string",
         description: "Generated text response from Claude Sonnet 4",
       },
@@ -79,7 +79,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
         .join("");
 
       return this.createSuccessResult({
-        response: responseText,
+        text: responseText,
       });
     } catch (error) {
       console.error(error);

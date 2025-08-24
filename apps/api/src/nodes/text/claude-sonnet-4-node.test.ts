@@ -1,10 +1,21 @@
 import { Node } from "@dafthunk/types";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { NodeContext } from "../types";
 import { ClaudeSonnet4Node } from "./claude-sonnet-4-node";
 
 describe("ClaudeSonnet4Node", () => {
+  vi.mock("@anthropic-ai/sdk", () => ({
+    APIError: class MockError extends Error {},
+    default: class MockAnthropic {
+      messages = {
+        create: vi.fn().mockResolvedValue({
+          content: [{ type: "text", text: "mocked response" }],
+        }),
+      };
+      constructor() {}
+    },
+  }));
   const nodeId = "claude-sonnet-4";
   const node = new ClaudeSonnet4Node({
     nodeId,
@@ -39,7 +50,7 @@ describe("ClaudeSonnet4Node", () => {
         AWS_REGION: "",
         SES_DEFAULT_FROM: "",
         OPENAI_API_KEY: "",
-        ANTHROPIC_API_KEY: "",
+        ANTHROPIC_API_KEY: "test",
       },
     }) as unknown as NodeContext;
 

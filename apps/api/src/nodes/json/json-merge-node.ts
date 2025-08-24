@@ -73,7 +73,7 @@ export class JsonMergeNode extends ExecutableNode {
 
   public async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { objects, deep = false } = context.inputs;
+      const { objects, deep = true } = context.inputs;
 
       // Handle null or undefined inputs
       if (objects === null || objects === undefined) {
@@ -158,8 +158,8 @@ export class JsonMergeNode extends ExecutableNode {
         const sourceValue = source[key];
         const targetValue = target[key];
 
-        if (sourceValue === null || sourceValue === undefined) {
-          // Skip null/undefined values
+        if (sourceValue === undefined) {
+          // Skip undefined values; allow null to overwrite
           continue;
         }
 

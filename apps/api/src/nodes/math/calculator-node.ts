@@ -13,23 +13,125 @@ export class CalculatorNode extends ExecutableNode {
     name: "Calculator",
     type: "calculator",
     description:
-      "Evaluates mathematical expressions with comprehensive support for arithmetic operations, mathematical functions, trigonometric functions, constants, and complex formulas. Supports: basic arithmetic (+, -, *, /, ^, %), bitwise operators (&, |, <, >, ~), mathematical functions (sqrt, cbrt, pow, exp, log, log10, abs, floor, ceil, round, min, max, sign, trunc, hypot), trigonometric functions (sin, cos, tan, asin, acos, atan, atan2, sinh, cosh, tanh, asinh, acosh, atanh), mathematical constants (PI, E), random numbers, and complex nested expressions with proper order of operations and parentheses. All inputs are validated for security and only mathematical operations are allowed.",
+      "Evaluates mathematical expressions with support for arithmetic, functions, and constants.",
     tags: ["Math"],
     icon: "calculator",
-    documentation: `This node evaluates mathematical expressions with support for arithmetic operations, functions, and constants.
+    documentation: `Evaluates mathematical expressions with comprehensive support for arithmetic operations, mathematical functions, trigonometric functions, constants, and complex formulas.
 
-## Usage Example
+## Supported Operations
 
+### Basic Arithmetic
+- Addition: \`+\`
+- Subtraction: \`-\`
+- Multiplication: \`*\`
+- Division: \`/\`
+- Exponentiation: \`^\` (e.g., \`2^3 = 8\`)
+- Modulo: \`%\` (e.g., \`17 % 5 = 2\`)
+
+### Bitwise Operators
+- Bitwise AND: \`&\`
+- Bitwise OR: \`|\`
+- Bitwise NOT: \`~\`
+- Left shift: \`<\`
+- Right shift: \`>\`
+
+### Mathematical Functions
+- Square root: \`sqrt(x)\`
+- Cube root: \`cbrt(x)\`
+- Power: \`pow(x, y)\`
+- Exponential: \`exp(x)\`
+- Natural logarithm: \`log(x)\`
+- Base-10 logarithm: \`log10(x)\`
+- Absolute value: \`abs(x)\`
+- Floor: \`floor(x)\`
+- Ceiling: \`ceil(x)\`
+- Round: \`round(x)\`
+- Minimum: \`min(x, y)\`
+- Maximum: \`max(x, y)\`
+- Sign: \`sign(x)\`
+- Truncate: \`trunc(x)\`
+- Hypotenuse: \`hypot(x, y)\`
+
+### Trigonometric Functions
+- Sine: \`sin(x)\`
+- Cosine: \`cos(x)\`
+- Tangent: \`tan(x)\`
+- Arc sine: \`asin(x)\`
+- Arc cosine: \`acos(x)\`
+- Arc tangent: \`atan(x)\`
+- Arc tangent 2: \`atan2(y, x)\`
+- Hyperbolic sine: \`sinh(x)\`
+- Hyperbolic cosine: \`cosh(x)\`
+- Hyperbolic tangent: \`tanh(x)\`
+- Inverse hyperbolic sine: \`asinh(x)\`
+- Inverse hyperbolic cosine: \`acosh(x)\`
+- Inverse hyperbolic tangent: \`atanh(x)\`
+
+### Constants
+- Pi: \`PI\` (≈ 3.14159)
+- Euler's number: \`E\` (≈ 2.71828)
+- Random number: \`random\` (0 to 1)
+
+## Usage Examples
+
+### Basic Arithmetic
 - **Input**: \`"2 + 3 * 4"\`
-- **Output**: \`14\``,
+- **Output**: \`14\`
+
+### Functions and Constants
+- **Input**: \`"sqrt(16)"\`
+- **Output**: \`4\`
+
+- **Input**: \`"sin(PI/2)"\`
+- **Output**: \`1\`
+
+- **Input**: \`"pow(2, 3)"\`
+- **Output**: \`8\`
+
+- **Input**: \`"abs(-5)"\`
+- **Output**: \`5\`
+
+### Complex Expressions
+- **Input**: \`"PI * 2^2"\`
+- **Output**: \`12.566370614359172\`
+
+- **Input**: \`"(10 + 5) * 2 / 4"\`
+- **Output**: \`7.5\`
+
+- **Input**: \`"log(100)"\`
+- **Output**: \`4.605170185988092\`
+
+### Random Numbers
+- **Input**: \`"random * 10"\`
+- **Output**: Random number between 0 and 10
+
+### Bitwise Operations
+- **Input**: \`"17 % 5"\`
+- **Output**: \`2\`
+
+- **Input**: \`"15 & 7"\`
+- **Output**: \`7\`
+
+- **Input**: \`"8 | 4"\`
+- **Output**: \`12\`
+
+## Security
+
+All expressions are validated for security. Only mathematical operations, numbers, and predefined functions are allowed. The node prevents code injection by restricting input to safe mathematical expressions only.
+
+## Error Handling
+
+- Invalid expressions return an error
+- Division by zero is handled gracefully
+- Invalid function arguments return appropriate error messages
+- Results are validated to ensure they are finite numbers`,
     inlinable: true,
     asTool: true,
     inputs: [
       {
         name: "expression",
         type: "string",
-        description:
-          "The mathematical expression to evaluate as a string. Examples: '2 + 3 * 4', 'sqrt(16)', 'sin(PI/2)', 'pow(2, 3)', 'abs(-5)', 'floor(3.7)', 'PI * 2^2', '(10 + 5) * 2 / 4', 'log(100)', 'random * 10', '17 % 5', '15 & 7', '8 | 4', '~10'. Supports all standard mathematical operations, functions, and constants. Use ^ for exponentiation (e.g., 2^3 = 8), % for modulo (e.g., 17 % 5 = 2), & for bitwise AND, | for bitwise OR, ~ for bitwise NOT. All expressions are validated for security.",
+        description: "Mathematical expression to evaluate",
         required: true,
       },
     ],
@@ -37,8 +139,7 @@ export class CalculatorNode extends ExecutableNode {
       {
         name: "result",
         type: "number",
-        description:
-          "The calculated result of the mathematical expression as a number. Returns the final computed value after evaluating the expression with proper order of operations. Will be NaN or throw an error for invalid expressions.",
+        description: "Calculated result of the expression",
       },
     ],
   };

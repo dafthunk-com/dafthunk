@@ -1,10 +1,22 @@
 import { Node } from "@dafthunk/types";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { NodeContext } from "../types";
 import { Gpt5MiniNode } from "./gpt-5-mini-node";
 
 describe("Gpt5MiniNode", () => {
+  vi.mock("openai", () => ({
+    default: class MockOpenAI {
+      chat = {
+        completions: {
+          create: vi.fn().mockResolvedValue({
+            choices: [{ message: { content: "mocked response" } }],
+          }),
+        },
+      };
+      constructor() {}
+    },
+  }));
   const nodeId = "gpt-5-mini";
   const node = new Gpt5MiniNode({
     nodeId,
@@ -38,7 +50,7 @@ describe("Gpt5MiniNode", () => {
         AWS_SECRET_ACCESS_KEY: "",
         AWS_REGION: "",
         SES_DEFAULT_FROM: "",
-        OPENAI_API_KEY: "",
+        OPENAI_API_KEY: "test",
         ANTHROPIC_API_KEY: "",
       },
     }) as unknown as NodeContext;

@@ -65,14 +65,8 @@ export class JsonSetNode extends ExecutableNode {
     try {
       const { json, path, value } = context.inputs;
 
-      // Handle null or undefined inputs
-      if (json === null || json === undefined) {
-        return this.createSuccessResult({
-          result: null,
-          success: false,
-          pathExists: false,
-        });
-      }
+      // Initialize empty object when input is null/undefined
+      const base = json === null || json === undefined ? {} : json;
 
       if (path === null || path === undefined || path === "") {
         return this.createSuccessResult({
@@ -83,7 +77,7 @@ export class JsonSetNode extends ExecutableNode {
       }
 
       // Deep clone the input JSON to avoid modifying the original
-      const result = JSON.parse(JSON.stringify(json));
+      const result = JSON.parse(JSON.stringify(base));
 
       // Check if path exists before setting
       const pathExists = this.pathExists(result, path);
@@ -92,7 +86,7 @@ export class JsonSetNode extends ExecutableNode {
       const success = this.setValueAtPath(result, path, value);
 
       return this.createSuccessResult({
-        result: success ? result : json,
+        result: success ? result : base,
         success,
         pathExists,
       });
@@ -239,7 +233,7 @@ export class JsonSetNode extends ExecutableNode {
       }
 
       // Check for object property
-      const propMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_]*)/);
+      const propMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_-]*)/);
       if (propMatch) {
         parts.push(propMatch[1]);
         remaining = remaining.substring(propMatch[1].length);
