@@ -64,6 +64,10 @@ export type ParameterType =
       value?: string;
     }
   | {
+      type: "date";
+      value?: string; // ISO 8601 timestamp
+    }
+  | {
       type: "number";
       value?: number;
     }
