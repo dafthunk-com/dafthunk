@@ -22,7 +22,6 @@ import {
   StickyNoteIcon,
   TriangleIcon,
   TypeIcon,
-  WrenchIcon,
 } from "lucide-react";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
@@ -273,12 +272,6 @@ export const WorkflowNode = memo(
       setSelectedInput(null);
     };
 
-    const handleToolIconClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (readonly) return;
-      setIsToolSelectorOpen(true);
-    };
-
     const handleToolSelectorClose = () => {
       setIsToolSelectorOpen(false);
     };
@@ -330,14 +323,58 @@ export const WorkflowNode = memo(
                 className="mx-1 h-3 w-3 text-blue-600 shrink-0"
               />
               <h3 className="text-xs font-medium truncate">{data.name}</h3>
-              {data.functionCalling && (
-                <WrenchIcon
-                  className="h-3 w-3 text-blue-600 shrink-0 cursor-pointer hover:text-blue-700 transition-colors"
-                  onClick={handleToolIconClick}
-                />
-              )}
             </div>
           </div>
+
+          {/* Tools bar (between header and body) */}
+          {data.functionCalling && (
+            <div
+              className="px-1 py-1 border-b nodrag flex flex-wrap items-start gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (readonly) return;
+                setIsToolSelectorOpen(true);
+              }}
+            >
+              {(() => {
+                const selectedTools = getCurrentSelectedTools();
+                if (!selectedTools.length) {
+                  return (
+                    <span className="text-[10px] text-neutral-500">
+                      Click to select tools
+                    </span>
+                  );
+                }
+
+                return (
+                  <div className="flex flex-wrap items-center gap-1">
+                    {selectedTools.map((tool, idx) => {
+                      const tpl = (data.nodeTemplates || []).find(
+                        (t) => t.id === tool.identifier
+                      );
+                      return (
+                        <span
+                          key={`${tool.identifier}-${idx}`}
+                          className="inline-flex items-center gap-1 px-1 py-[2px] rounded bg-neutral-100 text-[10px] text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        >
+                          {tpl?.icon ? (
+                            <DynamicIcon
+                              name={tpl.icon as any}
+                              className="h-3 w-3"
+                            />
+                          ) : null}
+                          <span className="truncate max-w-[84px]">
+                            {tpl?.name || tool.identifier}
+                          </span>
+                        </span>
+                      );
+                    })}
+                    <span className="text-[10px] text-blue-600 ml-1">Edit</span>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
 
           {/* Widget */}
           {!readonly &&
