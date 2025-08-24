@@ -83,6 +83,31 @@ const converters = {
     nodeToApi: typeValidatingNodeToApi("string"),
     apiToNode: typeValidatingApiToNode("string"),
   },
+  date: {
+    nodeToApi: (value: NodeParameterValue) => {
+      if (typeof value === "string") {
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      }
+      if (value instanceof Date) return value.toISOString();
+      if (typeof value === "number") {
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      }
+      return undefined;
+    },
+    apiToNode: (value: ApiParameterValue) => {
+      if (typeof value === "string") {
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      }
+      if (typeof value === "number") {
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      }
+      return undefined;
+    },
+  },
   number: {
     nodeToApi: typeValidatingNodeToApi("number"),
     apiToNode: typeValidatingApiToNode("number"),

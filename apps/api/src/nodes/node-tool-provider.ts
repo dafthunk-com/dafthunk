@@ -202,6 +202,8 @@ export class NodeToolProvider implements ToolProvider {
     switch (parameter.type) {
       case "string":
         return { ...baseProperty, type: "string" };
+      case "date":
+        return { ...baseProperty, type: "string", format: "date-time" } as any;
       case "number":
         return { ...baseProperty, type: "number" };
       case "boolean":
@@ -275,6 +277,20 @@ export class NodeToolProvider implements ToolProvider {
           return isNaN(parsed) ? value : parsed;
         }
         return value;
+
+      case "date": {
+        // Accept Date, number (epoch ms), or string; always output ISO string
+        if (value instanceof Date) return value.toISOString();
+        if (typeof value === "number") {
+          const d = new Date(value);
+          return isNaN(d.getTime()) ? value : d.toISOString();
+        }
+        if (typeof value === "string") {
+          const d = new Date(value);
+          return isNaN(d.getTime()) ? value : d.toISOString();
+        }
+        return value;
+      }
 
       case "boolean":
         if (typeof value === "string") {
