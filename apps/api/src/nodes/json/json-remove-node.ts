@@ -130,11 +130,11 @@ export class JsonRemoveNode extends ExecutableNode {
           if (!Array.isArray(current)) {
             return { success: false, removed: false };
           }
-          // Treat negative indices as out of bounds
-          if (part < 0 || part >= current.length) {
+          const actualIndex = part < 0 ? current.length + part : part;
+          if (actualIndex < 0 || actualIndex >= current.length) {
             return { success: true, removed: false };
           }
-          current = current[part];
+          current = current[actualIndex];
         }
       }
 
@@ -154,9 +154,10 @@ export class JsonRemoveNode extends ExecutableNode {
         if (!Array.isArray(current)) {
           return { success: false, removed: false };
         }
-        // Treat negative indices as out of bounds
-        if (finalPart >= 0 && finalPart < current.length) {
-          current.splice(finalPart, 1);
+        const actualIndex =
+          finalPart < 0 ? current.length + finalPart : finalPart;
+        if (actualIndex >= 0 && actualIndex < current.length) {
+          current.splice(actualIndex, 1);
           return { success: true, removed: true };
         } else {
           return { success: true, removed: false };
@@ -187,7 +188,7 @@ export class JsonRemoveNode extends ExecutableNode {
       }
 
       // Check for object property
-      const propMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_]*)/);
+      const propMatch = remaining.match(/^([a-zA-Z_][a-zA-Z0-9_-]*)/);
       if (propMatch) {
         parts.push(propMatch[1]);
         remaining = remaining.substring(propMatch[1].length);

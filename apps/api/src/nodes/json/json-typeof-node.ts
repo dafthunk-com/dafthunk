@@ -54,7 +54,7 @@ export class JsonTypeofNode extends ExecutableNode {
     }
 
     if (typeof value === "function") {
-      return "object";
+      return "function";
     }
 
     if (typeof value === "object") {
