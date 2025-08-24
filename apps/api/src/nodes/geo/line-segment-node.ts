@@ -13,6 +13,7 @@ export class LineSegmentNode extends ExecutableNode {
       "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon.",
     tags: ["Geo"],
     icon: "git-branch",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

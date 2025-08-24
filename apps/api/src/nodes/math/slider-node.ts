@@ -20,6 +20,7 @@ export class SliderNode extends ExecutableNode {
       "A slider widget for selecting a value constrained by min, max, and step values",
     tags: ["Math"],
     icon: "sliders-horizontal",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

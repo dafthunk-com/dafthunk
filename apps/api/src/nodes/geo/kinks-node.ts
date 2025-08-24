@@ -13,6 +13,7 @@ export class KinksNode extends ExecutableNode {
       "Takes a LineString or Polygon and returns the points at all self-intersections.",
     tags: ["Geo"],
     icon: "zap",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

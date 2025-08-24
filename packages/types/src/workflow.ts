@@ -207,6 +207,7 @@ export interface NodeType {
   name: string;
   type: string;
   description?: string;
+  documentation?: string;
   tags: string[];
   icon: string;
   computeCost?: number; // The cost of running this node in compute credits

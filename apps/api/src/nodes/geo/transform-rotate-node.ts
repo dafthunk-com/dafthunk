@@ -13,6 +13,7 @@ export class TransformRotateNode extends ExecutableNode {
       "Rotates any GeoJSON geometry around a pivot point by a specified angle.",
     tags: ["Geo"],
     icon: "rotate-cw",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

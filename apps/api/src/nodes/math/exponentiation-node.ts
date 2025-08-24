@@ -14,6 +14,7 @@ export class ExponentiationNode extends ExecutableNode {
     description: "Raises a base number to the power of an exponent",
     tags: ["Math"],
     icon: "superscript",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

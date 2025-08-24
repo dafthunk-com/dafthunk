@@ -15,6 +15,7 @@ export class DetrResnet50Node extends ExecutableNode {
       "Detects and classifies objects in images using DETR-ResNet-50 model",
     tags: ["Image", "AI"],
     icon: "image",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     inputs: [
       {

@@ -13,6 +13,7 @@ export class PolygonizeNode extends ExecutableNode {
       "Takes a set of line features and returns a set of polygon features constructed from the lines.",
     tags: ["Geo"],
     icon: "square",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

@@ -14,6 +14,7 @@ export class SumNode extends ExecutableNode {
     description: "Sums multiple numbers together",
     tags: ["Math"],
     icon: "plus",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

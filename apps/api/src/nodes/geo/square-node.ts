@@ -13,6 +13,7 @@ export class SquareNode extends ExecutableNode {
       "Takes a bounding box and calculates the minimum square bounding box that would contain the input.",
     tags: ["Geo"],
     icon: "square",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

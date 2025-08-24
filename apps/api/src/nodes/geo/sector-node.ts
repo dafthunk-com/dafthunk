@@ -14,6 +14,7 @@ export class SectorNode extends ExecutableNode {
       "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise.",
     tags: ["Geo"],
     icon: "chart-pie",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

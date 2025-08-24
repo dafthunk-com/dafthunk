@@ -15,6 +15,7 @@ export class JsonObjectAggNode extends ExecutableNode {
     description: "Aggregates key-value pairs into a JSON object",
     tags: ["JSON"],
     icon: "hash",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

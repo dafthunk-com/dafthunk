@@ -11,6 +11,7 @@ export class JsonContainsNode extends ExecutableNode {
     description: "Check if JSON contains another JSON value",
     tags: ["JSON"],
     icon: "search",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

@@ -11,6 +11,7 @@ export class JsonValidNode extends ExecutableNode {
     description: "Validate if a value is valid JSON",
     tags: ["JSON"],
     icon: "check-circle",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

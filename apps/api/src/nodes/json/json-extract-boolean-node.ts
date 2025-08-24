@@ -12,6 +12,7 @@ export class JsonExtractBooleanNode extends ExecutableNode {
     description: "Extract a boolean value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "check",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

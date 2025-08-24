@@ -13,6 +13,7 @@ export class BartLargeCnnNode extends ExecutableNode {
     description: "Summarizes text using BART-large-CNN model",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     asTool: true,
     inputs: [

@@ -14,6 +14,7 @@ export class JsonToGeojsonNode extends ExecutableNode {
     description: "Converts JSON data to valid GeoJSON format with validation.",
     tags: ["JSON", "Geo"],
     icon: "convert",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

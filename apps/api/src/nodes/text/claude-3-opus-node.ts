@@ -16,6 +16,7 @@ export class Claude3OpusNode extends ExecutableNode {
     description: "Previous generation premium model, still very capable",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 45,
     asTool: true,
     inputs: [

@@ -16,6 +16,7 @@ export class Gpt5NanoNode extends ExecutableNode {
     description: "Ultra-lightweight, high-speed model",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 5,
     asTool: true,
     inputs: [

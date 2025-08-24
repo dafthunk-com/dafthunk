@@ -17,6 +17,7 @@ export class GptOss20BNode extends ExecutableNode {
       "OpenAI's open-weight model for lower latency and specialized use cases",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 20,
     asTool: true,
     inputs: [

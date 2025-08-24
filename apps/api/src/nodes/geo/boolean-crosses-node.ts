@@ -13,6 +13,7 @@ export class BooleanCrossesNode extends ExecutableNode {
       "Tests whether two geometries cross each other (intersect but do not contain each other).",
     tags: ["Geo"],
     icon: "x",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

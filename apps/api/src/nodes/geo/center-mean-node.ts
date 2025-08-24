@@ -13,6 +13,7 @@ export class CenterMeanNode extends ExecutableNode {
       "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature.",
     tags: ["Geo"],
     icon: "align-center",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

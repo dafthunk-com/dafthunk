@@ -12,6 +12,7 @@ export class FeatureCollectionNode extends ExecutableNode {
     description: "Takes one or more Features and creates a FeatureCollection.",
     tags: ["Geo"],
     icon: "layers",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

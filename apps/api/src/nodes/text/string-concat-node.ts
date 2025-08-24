@@ -11,6 +11,7 @@ export class StringConcatNode extends ExecutableNode {
     description: "Concatenate multiple strings together",
     tags: ["Text"],
     icon: "link",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

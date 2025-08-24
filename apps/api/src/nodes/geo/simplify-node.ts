@@ -13,6 +13,7 @@ export class SimplifyNode extends ExecutableNode {
       "Simplifies a geometry by reducing the number of vertices while preserving its general shape.",
     tags: ["Geo"],
     icon: "minimize",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

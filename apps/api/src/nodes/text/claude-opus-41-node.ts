@@ -16,6 +16,7 @@ export class ClaudeOpus41Node extends ExecutableNode {
     description: "Most advanced Claude model with latest capabilities",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 70,
     asTool: true,
     inputs: [

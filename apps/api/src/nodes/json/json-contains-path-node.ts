@@ -11,6 +11,7 @@ export class JsonContainsPathNode extends ExecutableNode {
     description: "Check if JSON contains a specific path",
     tags: ["JSON"],
     icon: "map-pin",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

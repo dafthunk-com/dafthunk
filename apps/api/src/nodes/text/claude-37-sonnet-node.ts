@@ -16,6 +16,7 @@ export class Claude37SonnetNode extends ExecutableNode {
     description: "Mid-tier model between 3.5 and 4.0 generations",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 35,
     asTool: true,
     inputs: [

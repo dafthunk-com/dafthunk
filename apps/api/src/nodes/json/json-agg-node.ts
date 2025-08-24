@@ -15,6 +15,7 @@ export class JsonAggNode extends ExecutableNode {
     description: "Aggregates multiple values into a JSON array",
     tags: ["JSON"],
     icon: "list",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

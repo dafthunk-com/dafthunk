@@ -13,6 +13,7 @@ export class LineIntersectNode extends ExecutableNode {
       "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
     tags: ["Geo"],
     icon: "cross",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

@@ -13,6 +13,7 @@ export class RewindNode extends ExecutableNode {
       "Rewind (Multi)LineString or (Multi)Polygon outer ring counterclockwise and inner rings clockwise (Uses Shoelace Formula).",
     tags: ["Geo"],
     icon: "rotate-ccw",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

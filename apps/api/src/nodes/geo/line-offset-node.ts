@@ -13,6 +13,7 @@ export class LineOffsetNode extends ExecutableNode {
       "Takes a line and returns a line at offset by the specified distance.",
     tags: ["Geo"],
     icon: "move",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

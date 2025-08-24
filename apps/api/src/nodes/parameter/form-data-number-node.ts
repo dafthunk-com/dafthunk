@@ -10,6 +10,7 @@ export class FormDataNumberNode extends ExecutableNode {
     description: "Extracts a number parameter from the HTTP request form data.",
     tags: ["Parameter"],
     icon: "calculator",
+    documentation: "*Missing detailed documentation*",
     asTool: true,
     compatibility: ["http_request"],
     inlinable: true,

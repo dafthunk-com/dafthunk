@@ -16,6 +16,7 @@ export class GptOss120BNode extends ExecutableNode {
       "OpenAI's open-weight model for powerful reasoning and agentic tasks",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 35,
     asTool: true,
     inputs: [

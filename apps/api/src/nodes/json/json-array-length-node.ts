@@ -11,6 +11,7 @@ export class JsonArrayLengthNode extends ExecutableNode {
     description: "Get the length of a JSON array",
     tags: ["JSON"],
     icon: "hash",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

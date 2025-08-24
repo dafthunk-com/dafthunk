@@ -16,6 +16,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
     description: "Latest Claude Sonnet model with advanced capabilities",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 30,
     asTool: true,
     inputs: [

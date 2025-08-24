@@ -14,6 +14,7 @@ export class PhotonCropNode extends ExecutableNode {
     description: "Crops an image to the specified rectangle using Photon.",
     tags: ["Image"],
     icon: "crop",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

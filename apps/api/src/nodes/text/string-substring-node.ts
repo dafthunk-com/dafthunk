@@ -12,6 +12,7 @@ export class StringSubstringNode extends ExecutableNode {
       "Extract a substring from a string using start index (inclusive) and end index (exclusive)",
     tags: ["Text"],
     icon: "scissors",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

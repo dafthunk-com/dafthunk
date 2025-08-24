@@ -13,7 +13,8 @@ export class ExifReaderNode extends ExecutableNode {
     type: "exif-reader",
     description: "Extracts EXIF data from an image.",
     tags: ["Image"],
-    icon: "file-text", // Using 'file-text' as an icon, similar to info.
+    icon: "file-text",
+    documentation: "*Missing detailed documentation*", // Using 'file-text' as an icon, similar to info.
     inlinable: true,
     inputs: [
       {

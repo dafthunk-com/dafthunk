@@ -13,6 +13,7 @@ export class PolygonSmoothNode extends ExecutableNode {
       "Smooths a Polygon or MultiPolygon. Based on Chaikin's algorithm. Warning: may create degenerate polygons.",
     tags: ["Geo"],
     icon: "circle",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

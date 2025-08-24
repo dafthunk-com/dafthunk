@@ -11,6 +11,7 @@ export class JsonObjectKeysNode extends ExecutableNode {
     description: "Extract all keys from a JSON object",
     tags: ["JSON"],
     icon: "key",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

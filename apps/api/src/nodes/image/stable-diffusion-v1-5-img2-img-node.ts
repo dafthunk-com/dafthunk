@@ -15,6 +15,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
       "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
     tags: ["Image", "AI"],
     icon: "wand",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     inputs: [
       {

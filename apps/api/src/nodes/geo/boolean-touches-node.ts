@@ -13,6 +13,7 @@ export class BooleanTouchesNode extends ExecutableNode {
       "Returns true if none of the points common to both geometries intersect the interiors of both geometries.",
     tags: ["Geo"],
     icon: "touchpad",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

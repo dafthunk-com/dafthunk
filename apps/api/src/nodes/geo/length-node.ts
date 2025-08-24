@@ -13,6 +13,7 @@ export class LengthNode extends ExecutableNode {
       "Calculates the length of LineString or MultiLineString features.",
     tags: ["Geo"],
     icon: "ruler",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

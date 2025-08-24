@@ -14,6 +14,7 @@ export class ShortestPathNode extends ExecutableNode {
       "Returns the shortest path from start to end without colliding with any Feature in obstacles FeatureCollection<Polygon>",
     tags: ["Geo"],
     icon: "route",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {
