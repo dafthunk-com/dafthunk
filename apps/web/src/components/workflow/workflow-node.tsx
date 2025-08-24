@@ -320,7 +320,7 @@ export const WorkflowNode = memo(
             <div className="flex items-center gap-1 flex-1 min-w-0">
               <DynamicIcon
                 name={data.icon as any}
-                className="mx-1 h-3 w-3 text-blue-600 shrink-0"
+                className="mx-1 h-3 w-3 text-blue-500 shrink-0"
               />
               <h3 className="text-xs font-medium truncate">{data.name}</h3>
             </div>
@@ -369,7 +369,7 @@ export const WorkflowNode = memo(
                         </span>
                       );
                     })}
-                    <span className="text-[10px] text-blue-600 ml-1">Edit</span>
+                    <span className="text-[10px] text-blue-500 ml-1">Edit</span>
                   </div>
                 );
               })()}

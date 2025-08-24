@@ -13,7 +13,9 @@ export interface ItemWithCategory {
   category: string;
 }
 
-export function useTagCounts<T extends ItemWithTags>(items: T[]): TagCount[] {
+export function useTagCounts<
+  T extends ItemWithTags & { functionCalling?: boolean },
+>(items: T[]): TagCount[] {
   return useMemo(() => {
     const counts: Record<string, number> = {};
 
@@ -24,6 +26,11 @@ export function useTagCounts<T extends ItemWithTags>(items: T[]): TagCount[] {
           counts[tag] = (counts[tag] || 0) + 1;
         }
       });
+
+      // Add synthetic tag for function calling support
+      if ((item as any).functionCalling) {
+        counts["Tools"] = (counts["Tools"] || 0) + 1;
+      }
     });
 
     return Object.entries(counts)

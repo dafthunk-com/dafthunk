@@ -4,6 +4,7 @@ import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { NodeTags } from "@/components/workflow/node-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -40,15 +41,10 @@ function NodeDetailsDialog({
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 {nodeType.name}
-                {nodeType.tags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className={getTagColor([tag])}
-                  >
-                    {tag}
-                  </Badge>
-                ))}
+                <NodeTags
+                  tags={nodeType.tags}
+                  functionCalling={nodeType.functionCalling}
+                />
               </div>
             </div>
           </DialogTitle>
@@ -218,7 +214,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <DynamicIcon
                   name={nodeType.icon as any}
-                  className="h-4 w-4 text-blue-600 shrink-0"
+                  className="h-4 w-4 text-blue-500 shrink-0"
                 />
                 <CardTitle className="text-base font-semibold leading-tight truncate">
                   {nodeType.name}
@@ -278,23 +274,16 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <DynamicIcon
                 name={nodeType.icon as any}
-                className="h-4 w-4 text-blue-600 shrink-0"
+                className="h-4 w-4 text-blue-500 shrink-0"
               />
               <CardTitle className="text-base font-semibold leading-tight truncate">
                 {nodeType.name}
               </CardTitle>
             </div>
-            <div className="flex gap-1 shrink-0">
-              {nodeType.tags.map((tag, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className={`${getTagColor([tag])} text-xs`}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
+            <NodeTags
+              tags={nodeType.tags}
+              functionCalling={nodeType.functionCalling}
+            />
           </div>
         </CardHeader>
         <CardContent className="pt-0">
