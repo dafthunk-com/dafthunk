@@ -12,6 +12,10 @@ import { CloudflareBrowserPdfNode } from "./browser/cloudflare-browser-pdf-node"
 import { CloudflareBrowserScrapeNode } from "./browser/cloudflare-browser-scrape-node";
 import { CloudflareBrowserScreenshotNode } from "./browser/cloudflare-browser-screenshot-node";
 import { CloudflareBrowserSnapshotNode } from "./browser/cloudflare-browser-snapshot-node";
+import { AddDateNode } from "./date/add-date-node";
+import { DiffDateNode } from "./date/diff-date-node";
+import { NowDateNode } from "./date/now-date-node";
+import { ParseDateNode } from "./date/parse-date-node";
 import { DocumentNode } from "./document/document-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
@@ -335,6 +339,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(JsonExecuteJavascriptNode);
     this.registerImplementation(JsonTemplateNode);
     this.registerImplementation(JsonEditorNode);
+    // Date nodes
+    this.registerImplementation(NowDateNode);
+    this.registerImplementation(ParseDateNode);
+    this.registerImplementation(AddDateNode);
+    this.registerImplementation(DiffDateNode);
     this.registerImplementation(JsonArrayLengthNode);
     this.registerImplementation(JsonContainsNode);
     this.registerImplementation(JsonContainsPathNode);
