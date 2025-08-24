@@ -4,7 +4,6 @@ import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { NodeTags } from "@/components/workflow/node-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { NodeTags } from "@/components/workflow/node-tags";
 import { getTagColor } from "@/utils/tag-colors";
 
 interface NodeCardProps {

@@ -3,7 +3,6 @@ import { Search } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import { useState } from "react";
 
-import { NodeTags } from "./node-tags";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,7 @@ import { useSearch } from "@/hooks/use-search";
 import { useTagCounts } from "@/hooks/use-tag-counts";
 import { cn } from "@/utils/utils";
 
+import { NodeTags } from "./node-tags";
 import type { NodeTemplate } from "./workflow-types";
 
 export interface WorkflowNodeSelectorProps {
