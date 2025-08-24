@@ -14,7 +14,17 @@ export class PhotonEdgeDetectionNode extends ExecutableNode {
     description: "Highlights edges in an image using Photon.",
     tags: ["Image"],
     icon: "minimize-2",
-    documentation: "*Missing detailed documentation*", // Placeholder icon, could be something like a Sobel filter icon
+    documentation: `This node highlights edges in an image using Photon.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data]
+}
+\`\`\`
+- **Output**: \`[edge-detected image data in PNG format]\``,
     inlinable: true,
     inputs: [
       {

@@ -13,7 +13,32 @@ export class BooleanPointOnLineNode extends ExecutableNode {
       "Returns true if a point is on a line. Accepts optional parameters to ignore start/end vertices and set epsilon tolerance.",
     tags: ["Geo"],
     icon: "mouse-pointer",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node tests whether a point lies exactly on a LineString geometry.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "pt": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [5, 5]
+    }
+  },
+  "line": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[0, 0], [10, 10]]
+    }
+  },
+  "ignoreEndVertices": false,
+  "epsilon": 0.001
+}
+\`\`\`
+- **Output**: \`true\` (point is on the line)`,
     inlinable: true,
     inputs: [
       {

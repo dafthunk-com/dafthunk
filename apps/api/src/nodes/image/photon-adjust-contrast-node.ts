@@ -15,7 +15,18 @@ export class PhotonAdjustContrastNode extends ExecutableNode {
       "Adjusts image contrast. Values typically range from -100 to 100.",
     tags: ["Image"],
     icon: "contrast",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node adjusts image contrast. Values typically range from -100 to 100.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data],
+  "amount": 30
+}
+\`\`\`
+- **Output**: \`[contrast-adjusted image data in PNG format]\``,
     inlinable: true,
     inputs: [
       {

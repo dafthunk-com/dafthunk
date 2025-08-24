@@ -13,7 +13,14 @@ export class RhumbDestinationNode extends ExecutableNode {
       "Calculates the destination point along a rhumb line (constant bearing) from an origin point.",
     tags: ["Geo"],
     icon: "map-pin",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node calculates a destination point given a starting point, bearing, and distance using rhumb lines.
+
+## Usage Example
+
+- **Input**: A starting point, bearing angle, and distance
+- **Output**: A destination point at the specified bearing and distance
+
+The node finds a point that is a certain distance away from the starting point along a constant bearing (rhumb line).`,
     inlinable: true,
     inputs: [
       {

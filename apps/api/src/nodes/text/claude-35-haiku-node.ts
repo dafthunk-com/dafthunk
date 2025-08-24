@@ -16,7 +16,13 @@ export class Claude35HaikuNode extends ExecutableNode {
     description: "Fastest Claude model for simple tasks and high-volume usage",
     tags: ["Text", "AI"],
     icon: "zap",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses Anthropic's Claude 3.5 Haiku model for fast, simple tasks and high-volume usage.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"What is the capital of France?"\`
+- **Output**: \`"The capital of France is Paris."\``,
     computeCost: 10,
     asTool: true,
     inputs: [

@@ -13,7 +13,43 @@ export class DestinationNode extends ExecutableNode {
       "Calculates a destination point given an origin point, distance, and bearing.",
     tags: ["Geo"],
     icon: "navigation",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node calculates a destination point given an origin point, distance, and bearing direction.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "origin": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [0, 0]
+    }
+  },
+  "distance": 100,
+  "bearing": 45,
+  "units": "kilometers",
+  "properties": {
+    "name": "Destination Point"
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "destination": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [0.7071, 0.7071]
+    },
+    "properties": {
+      "name": "Destination Point"
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

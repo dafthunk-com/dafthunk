@@ -16,7 +16,13 @@ export class Claude35SonnetNode extends ExecutableNode {
     description: "Well-tested model with excellent performance/cost balance",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses Anthropic's Claude 3.5 Sonnet model with excellent performance/cost balance.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"Explain quantum computing in simple terms."\`
+- **Output**: \`"Quantum computing uses quantum mechanics to process information in ways that classical computers cannot..."\``,
     computeCost: 25,
     asTool: true,
     inputs: [

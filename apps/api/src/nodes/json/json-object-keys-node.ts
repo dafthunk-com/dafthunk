@@ -11,7 +11,12 @@ export class JsonObjectKeysNode extends ExecutableNode {
     description: "Extract all keys from a JSON object",
     tags: ["JSON"],
     icon: "key",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts all property keys from a JSON object and returns them as an array.
+
+## Usage Example
+
+- **Input**: \`{"name": "John", "age": 30, "city": "New York"}\`
+- **Output**: \`["name", "age", "city"]\``,
     inlinable: true,
     asTool: true,
     inputs: [

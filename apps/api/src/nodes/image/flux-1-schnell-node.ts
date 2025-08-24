@@ -14,7 +14,14 @@ export class Flux1SchnellNode extends ExecutableNode {
       "Generates images from text descriptions using the FLUX.1 schnell model",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node generates images from text descriptions using the Flux 1 Schnell model for rapid image creation.
+
+## Usage Example
+
+- **Input**: \`"A serene mountain lake at dawn"\`
+- **Output**: A generated image of a peaceful mountain lake at sunrise
+
+The node creates beautiful images quickly using the Flux Schnell model designed for fast generation while maintaining quality.`,
     computeCost: 10,
     inputs: [
       {

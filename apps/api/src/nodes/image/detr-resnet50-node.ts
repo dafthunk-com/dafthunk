@@ -15,7 +15,30 @@ export class DetrResnet50Node extends ExecutableNode {
       "Detects and classifies objects in images using DETR-ResNet-50 model",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node detects and locates objects in images using the DETR-ResNet-50 model with bounding box coordinates.
+
+## Usage Example
+
+- **Input**: An image file (PNG, JPEG, etc.)
+- **Output**: 
+\`\`\`
+{
+  "detections": [
+    {
+      "label": "person",
+      "score": 0.98,
+      "bbox": [100, 150, 200, 300]
+    },
+    {
+      "label": "car",
+      "score": 0.85,
+      "bbox": [300, 200, 400, 250]
+    }
+  ]
+}
+\`\`\`
+
+The node identifies objects in the image and provides their locations with bounding box coordinates.`,
     computeCost: 10,
     inputs: [
       {

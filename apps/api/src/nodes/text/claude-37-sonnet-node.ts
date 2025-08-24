@@ -16,7 +16,13 @@ export class Claude37SonnetNode extends ExecutableNode {
     description: "Mid-tier model between 3.5 and 4.0 generations",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses Anthropic's Claude 3.7 Sonnet model, a mid-tier model between 3.5 and 4.0 generations.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"Explain machine learning algorithms."\`
+- **Output**: \`"Machine learning algorithms are computational methods that enable computers to learn patterns from data..."\``,
     computeCost: 35,
     asTool: true,
     inputs: [

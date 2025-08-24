@@ -13,7 +13,60 @@ export class GeometryCollectionNode extends ExecutableNode {
       "Creates a Feature<GeometryCollection> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "layers",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node creates a GeometryCollection GeoJSON feature from an array of different geometry types.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geometries": [
+    {
+      "type": "Point",
+      "coordinates": [100, 0]
+    },
+    {
+      "type": "LineString",
+      "coordinates": [[101, 0], [102, 1]]
+    },
+    {
+      "type": "Polygon",
+      "coordinates": [[[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]]]
+    }
+  ],
+  "properties": {
+    "name": "Mixed Geometries"
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "geometryCollection": {
+    "type": "Feature",
+    "geometry": {
+      "type": "GeometryCollection",
+      "geometries": [
+        {
+          "type": "Point",
+          "coordinates": [100, 0]
+        },
+        {
+          "type": "LineString",
+          "coordinates": [[101, 0], [102, 1]]
+        },
+        {
+          "type": "Polygon",
+          "coordinates": [[[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]]]
+        }
+      ]
+    },
+    "properties": {
+      "name": "Mixed Geometries"
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

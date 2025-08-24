@@ -13,7 +13,14 @@ export class BooleanWithinNode extends ExecutableNode {
       "Returns true if the first geometry is completely within the second geometry.",
     tags: ["Geo"],
     icon: "mouse-pointer-2",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node checks if one geometry is completely within another geometry.
+
+## Usage Example
+
+- **Input**: Two GeoJSON geometries
+- **Output**: \`true\` or \`false\`
+
+The node determines if the first geometry is entirely contained within the second geometry.`,
     inlinable: true,
     inputs: [
       {

@@ -11,7 +11,12 @@ export class JsonContainsNode extends ExecutableNode {
     description: "Check if JSON contains another JSON value",
     tags: ["JSON"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node checks if a JSON value contains another JSON value, supporting deep comparison and optional path-based searching.
+
+## Usage Example
+
+- **Input**: json: \`{"items": [{"id": 1, "name": "apple"}, {"id": 2, "name": "banana"}]}\`, value: \`{"id": 1, "name": "apple"}\`, path: \`"$.items"\`
+- **Output**: \`true\``,
     inlinable: true,
     asTool: true,
     inputs: [

@@ -15,7 +15,20 @@ export class PhotonAlterRGBChannelsNode extends ExecutableNode {
       "Adjusts the Red, Green, and Blue channels of an image by adding specified amounts (positive or negative).",
     tags: ["Image"],
     icon: "sliders-horizontal",
-    documentation: "*Missing detailed documentation*", // Icon suggesting channel adjustments
+    documentation: `This node adjusts the Red, Green, and Blue channels of an image by adding specified amounts (positive or negative).
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data],
+  "redAmount": 50,
+  "greenAmount": -20,
+  "blueAmount": 30
+}
+\`\`\`
+- **Output**: \`[image with altered RGB channels in PNG format]\``,
     inlinable: true,
     inputs: [
       {

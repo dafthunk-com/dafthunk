@@ -13,7 +13,14 @@ export class BboxClipNode extends ExecutableNode {
       "Takes a Feature and a bbox and clips the feature to the bbox using lineclip. Polygon features are clipped to polygon intersection with bbox, LineString features are clipped to segments that intersect the bbox, and Point features are clipped if they fall within the bbox.",
     tags: ["Geo"],
     icon: "scissors",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node clips a geometry to a bounding box area.
+
+## Usage Example
+
+- **Input**: A geometry and a bounding box
+- **Output**: The portion of the geometry that falls within the bounding box
+
+The node cuts off any parts of the geometry that extend outside the specified bounding box area.`,
     inlinable: true,
     inputs: [
       {

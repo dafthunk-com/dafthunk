@@ -14,7 +14,17 @@ export class PhotonSharpenNode extends ExecutableNode {
     description: "Sharpens an image using Photon.",
     tags: ["Image"],
     icon: "trending-up",
-    documentation: "*Missing detailed documentation*", // Placeholder for a sharpen-specific icon
+    documentation: `This node sharpens an image using Photon.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data]
+}
+\`\`\`
+- **Output**: \`[sharpened image data in PNG format]\``,
     inlinable: true,
     inputs: [
       {

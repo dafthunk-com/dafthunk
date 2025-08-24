@@ -14,7 +14,17 @@ export class PhotonInvertColorsNode extends ExecutableNode {
     description: "Inverts the colors of an image using Photon.",
     tags: ["Image"],
     icon: "aperture",
-    documentation: "*Missing detailed documentation*", // Placeholder icon, consider a more specific one
+    documentation: `This node inverts the colors of an image using Photon.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "image": [image data]
+}
+\`\`\`
+- **Output**: \`[color-inverted image data in PNG format]\``,
     inlinable: true,
     inputs: [
       {

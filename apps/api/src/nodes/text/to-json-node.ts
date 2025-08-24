@@ -15,7 +15,20 @@ export class ToJsonNode extends ExecutableNode {
     description: "Converts any input value to its JSON representation",
     tags: ["Text"],
     icon: "code",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node converts any input value to its JSON representation.
+
+## Usage Example
+
+- **Input value**: \`{ "name": "John", "age": 30, "city": "New York" }\`
+- **Input prettyPrint**: \`true\`
+- **Output**: 
+\`\`\`
+{
+  "name": "John",
+  "age": 30,
+  "city": "New York"
+}
+\`\`\``,
     asTool: true,
     inputs: [
       {

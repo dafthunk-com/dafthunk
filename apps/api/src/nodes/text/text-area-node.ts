@@ -18,7 +18,24 @@ export class TextAreaNode extends ExecutableNode {
     description: "A text area widget for entering multi-line text",
     tags: ["Text"],
     icon: "text",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node provides a text area widget for entering multi-line text.
+
+## Usage Example
+
+- **Input value**: 
+\`\`\`
+This is a multi-line
+text area input
+with line breaks.
+\`\`\`
+- **Input placeholder**: \`"Enter your message here"\`
+- **Input rows**: \`6\`
+- **Output**: 
+\`\`\`
+This is a multi-line
+text area input
+with line breaks.
+\`\`\``,
     inlinable: true,
     asTool: true,
     inputs: [

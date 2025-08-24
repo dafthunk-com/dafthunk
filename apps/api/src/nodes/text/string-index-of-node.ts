@@ -11,7 +11,12 @@ export class StringIndexOfNode extends ExecutableNode {
     description: "Find the index of a substring within a string",
     tags: ["Text"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node finds the position (index) of a substring within a string, returning the first occurrence or -1 if not found.
+
+## Usage Example
+
+- **Input**: haystack: \`"Hello World"\`, needle: \`"World"\`
+- **Output**: \`6\``,
     inlinable: true,
     asTool: true,
     inputs: [

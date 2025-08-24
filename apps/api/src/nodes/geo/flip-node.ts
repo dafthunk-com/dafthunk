@@ -13,7 +13,34 @@ export class FlipNode extends ExecutableNode {
       "Flips the coordinate order of GeoJSON features (longitude/latitude ↔ latitude/longitude).",
     tags: ["Geo"],
     icon: "flip-horizontal",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node flips the coordinate order in GeoJSON from [longitude, latitude] to [latitude, longitude] or vice versa.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [2.3522, 48.8566]
+    }
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "flipped": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [48.8566, 2.3522]
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

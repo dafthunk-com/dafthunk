@@ -14,7 +14,12 @@ export class MinNode extends ExecutableNode {
     description: "Returns the minimum value from multiple numbers",
     tags: ["Math"],
     icon: "arrow-down",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node returns the minimum value from multiple numbers.
+
+## Usage Example
+
+- **Input numbers**: \`[5, 2, 8, 1, 9]\`
+- **Output**: \`1\``,
     inlinable: true,
     asTool: true,
     inputs: [

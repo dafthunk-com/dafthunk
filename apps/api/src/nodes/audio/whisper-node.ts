@@ -15,7 +15,13 @@ export class WhisperNode extends ExecutableNode {
       "Transcribes speech from audio files using OpenAI's Whisper model",
     tags: ["Audio", "AI"],
     icon: "mic",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node transcribes speech from audio files using OpenAI's Whisper model, converting spoken words to text.
+
+## Usage Example
+
+- **Input**: audio file (MP3, WAV, etc.)
+- **Output**: \`"Hello, this is a transcription of the audio content."\`
+`,
     computeCost: 10,
     inputs: [
       {

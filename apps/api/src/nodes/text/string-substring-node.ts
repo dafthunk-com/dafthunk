@@ -12,7 +12,12 @@ export class StringSubstringNode extends ExecutableNode {
       "Extract a substring from a string using start index (inclusive) and end index (exclusive)",
     tags: ["Text"],
     icon: "scissors",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts a substring from a string using start and end indices, returning the characters between the specified positions.
+
+## Usage Example
+
+- **Input**: \`"Hello World"\` with start: \`0\`, end: \`5\`
+- **Output**: \`"Hello"\``,
     inlinable: true,
     asTool: true,
     inputs: [

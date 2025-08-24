@@ -16,7 +16,13 @@ export class Gpt5NanoNode extends ExecutableNode {
     description: "Ultra-lightweight, high-speed model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses OpenAI's GPT-5 Nano model, an ultra-lightweight, high-speed model.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"What is the weather like?"\`
+- **Output**: \`"I don't have access to real-time weather data, but I can help you find weather information for your location."\``,
     computeCost: 5,
     asTool: true,
     inputs: [

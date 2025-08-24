@@ -13,7 +13,48 @@ export class GreatCircleNode extends ExecutableNode {
       "Calculate great circles routes as LineString or MultiLineString between two points.",
     tags: ["Geo"],
     icon: "globe",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node calculates a great circle route between two points on Earth's surface, following the shortest path along the globe.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "start": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [-74.006, 40.7128]
+    }
+  },
+  "end": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [2.3522, 48.8566]
+    }
+  },
+  "npoints": 100,
+  "properties": {
+    "name": "NYC to Paris"
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "line": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[-74.006, 40.7128], [-73.5, 41.2], ...]
+    },
+    "properties": {
+      "name": "NYC to Paris"
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

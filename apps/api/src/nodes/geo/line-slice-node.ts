@@ -13,7 +13,48 @@ export class LineSliceNode extends ExecutableNode {
       "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points.",
     tags: ["Geo"],
     icon: "scissors",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts a portion of a LineString between two specified points.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "startPt": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [2, 2]
+    }
+  },
+  "stopPt": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [8, 8]
+    }
+  },
+  "line": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[0, 0], [5, 5], [10, 10]]
+    }
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "sliced": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[2, 2], [5, 5], [8, 8]]
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

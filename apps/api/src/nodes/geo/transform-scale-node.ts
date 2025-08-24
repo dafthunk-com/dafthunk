@@ -13,7 +13,42 @@ export class TransformScaleNode extends ExecutableNode {
       "Scales any GeoJSON geometry by a factor around an origin point.",
     tags: ["Geo"],
     icon: "maximize",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node scales a GeoJSON geometry by a specified factor around an origin point.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  },
+  "factor": 2,
+  "origin": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [5, 5]
+    }
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "scaled": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[-5, -5], [15, -5], [15, 15], [-5, 15], [-5, -5]]]
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

@@ -13,7 +13,23 @@ export class BooleanValidNode extends ExecutableNode {
       "Checks if the geometry is valid according to the OGC Simple Feature Specification.",
     tags: ["Geo"],
     icon: "check-circle",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node validates whether a GeoJSON geometry conforms to the OGC Simple Feature Specification.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "feature": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  }
+}
+\`\`\`
+- **Output**: \`true\` (valid polygon with closed ring)`,
     inlinable: true,
     inputs: [
       {

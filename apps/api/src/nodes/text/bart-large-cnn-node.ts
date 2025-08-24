@@ -13,7 +13,13 @@ export class BartLargeCnnNode extends ExecutableNode {
     description: "Summarizes text using BART-large-CNN model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node summarizes text using Facebook's BART-large-CNN model.
+
+## Usage Example
+
+- **Input inputText**: \`"The article discusses the latest developments in renewable energy technology, including solar panels, wind turbines, and battery storage systems. Researchers have made significant breakthroughs in efficiency and cost reduction."\`
+- **Input maxLength**: \`1024\`
+- **Output**: \`"Researchers have made significant breakthroughs in renewable energy technology, including solar panels, wind turbines, and battery storage systems."\``,
     computeCost: 10,
     asTool: true,
     inputs: [

@@ -11,7 +11,12 @@ export class JsonSetNode extends ExecutableNode {
     description: "Set a value at a specific path in JSON",
     tags: ["JSON"],
     icon: "edit",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node sets a value at a specific path within a JSON object, creating the path if it doesn't exist.
+
+## Usage Example
+
+- **Input**: json: \`{"user": {"name": "John"}}\`, path: \`"$.user.age"\`, value: \`30\`
+- **Output**: \`{"user": {"name": "John", "age": 30}}\``,
     inlinable: true,
     asTool: true,
     inputs: [

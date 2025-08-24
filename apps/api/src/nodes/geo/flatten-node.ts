@@ -13,7 +13,54 @@ export class FlattenNode extends ExecutableNode {
       "Flattens any GeoJSON to a FeatureCollection of Point, LineString, or Polygon features.",
     tags: ["Geo"],
     icon: "layers",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node flattens complex GeoJSON structures into a FeatureCollection of simple Point, LineString, or Polygon features.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+            [[[20, 20], [30, 20], [30, 30], [20, 30], [20, 20]]]
+          ]
+        }
+      }
+    ]
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "flattened": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[20, 20], [30, 20], [30, 30], [20, 30], [20, 20]]]
+        }
+      }
+    ]
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {
