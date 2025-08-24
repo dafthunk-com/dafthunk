@@ -11,7 +11,12 @@ export class SendEmailSendgridNode extends ExecutableNode {
     description: "Send an email using Sendgrid",
     tags: ["Email"],
     icon: "mail",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node sends emails using the SendGrid email service, supporting HTML content and providing delivery status.
+
+## Usage Example
+
+- **Input**: to: \`"user@example.com"\`, subject: \`"Hello"\`, body: \`"<h1>Welcome!</h1>"\`
+- **Output**: \`messageId: "abc123", status: "202"\``,
     computeCost: 10,
     asTool: true,
     inputs: [

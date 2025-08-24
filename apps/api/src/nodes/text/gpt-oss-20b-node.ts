@@ -17,7 +17,13 @@ export class GptOss20BNode extends ExecutableNode {
       "OpenAI's open-weight model for lower latency and specialized use cases",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses OpenAI's GPT-OSS-20B model, an open-weight model designed for lower latency and specialized use cases.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"Explain the concept of blockchain technology."\`
+- **Output**: \`"Blockchain is a distributed ledger technology that enables secure, transparent, and tamper-proof record-keeping..."\``,
     computeCost: 20,
     asTool: true,
     inputs: [

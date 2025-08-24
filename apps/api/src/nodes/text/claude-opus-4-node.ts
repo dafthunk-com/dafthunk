@@ -17,7 +17,13 @@ export class ClaudeOpus4Node extends ExecutableNode {
       "Most powerful Claude 4 model for complex reasoning and advanced analysis",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node uses Anthropic's Claude Opus 4 model, the most powerful Claude 4 model for complex reasoning and advanced analysis.
+
+## Usage Example
+
+- **Input instructions**: \`"You are a helpful assistant."\`
+- **Input input**: \`"Analyze the economic implications of renewable energy adoption."\`
+- **Output**: \`"The economic implications of renewable energy adoption are multifaceted and far-reaching..."\``,
     computeCost: 60,
     asTool: true,
     inputs: [

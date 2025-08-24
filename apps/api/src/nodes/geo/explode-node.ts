@@ -13,7 +13,60 @@ export class ExplodeNode extends ExecutableNode {
       "Extracts all vertices from geometries as individual Point features.",
     tags: ["Geo"],
     icon: "chart-scatter",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts all vertices from a geometry as individual Point features.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "geojson": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "points": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [0, 0]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [10, 0]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [10, 10]
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [0, 10]
+        }
+      }
+    ]
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {

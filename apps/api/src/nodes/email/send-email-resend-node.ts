@@ -11,7 +11,12 @@ export class SendEmailResendNode extends ExecutableNode {
     description: "Send an email using Resend",
     tags: ["Email"],
     icon: "mail",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node sends emails using the Resend email service, supporting HTML content and multiple recipients.
+
+## Usage Example
+
+- **Input**: to: \`"user@example.com"\`, subject: \`"Hello"\`, body: \`"<h1>Welcome!</h1>"\`
+- **Output**: \`"email_id_123"\``,
     computeCost: 10,
     asTool: true,
     inputs: [

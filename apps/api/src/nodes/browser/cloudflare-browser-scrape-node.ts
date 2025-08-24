@@ -16,7 +16,25 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
       "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
     tags: ["Browser"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node scrapes elements from a rendered page using Cloudflare Browser Rendering.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "url": "https://example.com",
+  "elements": ["h1", ".title", "#content"]
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+[
+  {"result": "Page Title", "selector": "h1"},
+  {"result": "Subtitle", "selector": ".title"},
+  {"result": "Content text", "selector": "#content"}
+]
+\`\`\``,
     computeCost: 10,
     asTool: true,
     inputs: [

@@ -18,7 +18,14 @@ export class Hermes2ProMistral7BNode extends ExecutableNode {
       "Generates text with function calling support using Hermes 2 Pro Mistral 7B model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node generates text with function calling support using Nous Research's Hermes 2 Pro Mistral 7B model.
+
+## Usage Example
+
+- **Input prompt**: \`"Write a haiku about programming."\`
+- **Input temperature**: \`0.7\`
+- **Input max_tokens**: \`256\`
+- **Output**: \`"Code flows like water, bugs hide in shadows deep, debug brings the light."\``,
     computeCost: 10,
     asTool: true,
     functionCalling: true,

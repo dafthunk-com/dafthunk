@@ -11,7 +11,12 @@ export class StringIncludesNode extends ExecutableNode {
     description: "Check if one string includes another string",
     tags: ["Text"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node checks if one string contains another string as a substring, returning true if found and false otherwise.
+
+## Usage Example
+
+- **Input**: haystack: \`"Hello World"\`, needle: \`"World"\`
+- **Output**: \`true\``,
     inlinable: true,
     asTool: true,
     inputs: [

@@ -15,7 +15,23 @@ export class Resnet50Node extends ExecutableNode {
       "Classifies images using the ResNet-50 model trained on ImageNet",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node classifies images using the ResNet-50 model trained on ImageNet dataset.
+
+## Usage Example
+
+- **Input**: An image file (PNG, JPEG, etc.)
+- **Output**: 
+\`\`\`
+{
+  "classifications": [
+    {"label": "golden retriever", "confidence": 0.95},
+    {"label": "Labrador retriever", "confidence": 0.03},
+    {"label": "tennis ball", "confidence": 0.01}
+  ]
+}
+\`\`\`
+
+The node identifies objects in the image and provides confidence scores for each classification.`,
     computeCost: 10,
     inputs: [
       {

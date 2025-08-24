@@ -12,7 +12,14 @@ export class RegexExtractNode extends ExecutableNode {
       "Extract all matches of a regular expression pattern from a string.",
     tags: ["Text"],
     icon: "search",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts all matches of a regular expression pattern from a string.
+
+## Usage Example
+
+- **Input string**: \`"Hello world, hello universe"\`
+- **Input pattern**: \`"hello"\`
+- **Input flags**: \`"gi"\`
+- **Output**: \`["Hello", "hello"]\``,
     inlinable: true,
     asTool: true,
     inputs: [

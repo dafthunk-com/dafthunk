@@ -12,7 +12,31 @@ export class BooleanPointInPolygonNode extends ExecutableNode {
     description: "Tests whether a point is inside a polygon.",
     tags: ["Geo"],
     icon: "locate",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node tests whether a point is located inside a polygon geometry.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "point": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [5, 5]
+    }
+  },
+  "polygon": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    }
+  },
+  "ignoreBoundary": false
+}
+\`\`\`
+- **Output**: \`true\` (point is inside the polygon)`,
     inlinable: true,
     inputs: [
       {

@@ -11,7 +11,13 @@ export class JsonExtractAllNode extends ExecutableNode {
     description: "Extract all values matching a JSON path (not just first)",
     tags: ["JSON"],
     icon: "list",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node extracts all values matching a JSON path (not just the first match).
+
+## Usage Example
+
+- **Input json**: \`{ "items": [{"name": "apple", "price": 1.99}, {"name": "banana", "price": 0.99}] }\`
+- **Input path**: \`"$.items[*].name"\`
+- **Output**: \`["apple", "banana"]\``,
     inlinable: true,
     asTool: true,
     inputs: [

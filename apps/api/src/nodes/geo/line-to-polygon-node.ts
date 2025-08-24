@@ -13,7 +13,40 @@ export class LineToPolygonNode extends ExecutableNode {
       "Converts a LineString or MultiLineString to a Polygon or MultiPolygon.",
     tags: ["Geo"],
     icon: "square",
-    documentation: "*Missing detailed documentation*",
+    documentation: `This node converts a LineString or MultiLineString geometry into a Polygon or MultiPolygon.
+
+## Usage Example
+
+- **Input**: 
+\`\`\`
+{
+  "line": {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]
+    }
+  },
+  "properties": {
+    "name": "Converted Polygon"
+  }
+}
+\`\`\`
+- **Output**: 
+\`\`\`
+{
+  "polygon": {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
+    },
+    "properties": {
+      "name": "Converted Polygon"
+    }
+  }
+}
+\`\`\``,
     inlinable: true,
     inputs: [
       {
