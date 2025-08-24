@@ -42,7 +42,7 @@ export class Gpt41Node extends ExecutableNode {
     ],
     outputs: [
       {
-        name: "response",
+        name: "text",
         type: "string",
         description: "Generated text response from GPT-4.1",
       },
@@ -80,7 +80,7 @@ export class Gpt41Node extends ExecutableNode {
       const responseText = completion.choices[0]?.message?.content || "";
 
       return this.createSuccessResult({
-        response: responseText,
+        text: responseText,
       });
     } catch (error) {
       console.error(error);
