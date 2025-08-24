@@ -16,6 +16,7 @@ export class CloudflareBrowserSnapshotNode extends ExecutableNode {
       "Get HTML content and screenshot from a rendered page using Cloudflare Browser Rendering.",
     tags: ["Browser"],
     icon: "camera",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     inputs: [
       {

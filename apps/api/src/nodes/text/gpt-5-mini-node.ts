@@ -16,6 +16,7 @@ export class Gpt5MiniNode extends ExecutableNode {
     description: "Faster, cost-effective version of GPT-5",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 15,
     asTool: true,
     inputs: [

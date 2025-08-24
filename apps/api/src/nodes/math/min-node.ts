@@ -14,6 +14,7 @@ export class MinNode extends ExecutableNode {
     description: "Returns the minimum value from multiple numbers",
     tags: ["Math"],
     icon: "arrow-down",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

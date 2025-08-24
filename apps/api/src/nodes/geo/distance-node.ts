@@ -12,6 +12,7 @@ export class DistanceNode extends ExecutableNode {
     description: "Calculates the distance between two points.",
     tags: ["Geo"],
     icon: "ruler",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

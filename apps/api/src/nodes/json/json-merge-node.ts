@@ -11,6 +11,7 @@ export class JsonMergeNode extends ExecutableNode {
     description: "Merge multiple JSON objects",
     tags: ["JSON"],
     icon: "merge",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

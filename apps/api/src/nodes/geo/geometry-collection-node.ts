@@ -13,6 +13,7 @@ export class GeometryCollectionNode extends ExecutableNode {
       "Creates a Feature<GeometryCollection> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "layers",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

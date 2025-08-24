@@ -11,6 +11,7 @@ export class JsonRemoveNode extends ExecutableNode {
     description: "Remove a value at a specific path in JSON",
     tags: ["JSON"],
     icon: "trash",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

@@ -19,6 +19,7 @@ export class JavaScriptEditorNode extends ExecutableNode {
       "A JavaScript Editor widget for editing and validating JavaScript code",
     tags: ["JavaScript"],
     icon: "code",
+    documentation: "*Missing detailed documentation*",
     inputs: [
       {
         name: "value",

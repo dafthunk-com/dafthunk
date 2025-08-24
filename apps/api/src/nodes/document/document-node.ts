@@ -15,6 +15,7 @@ export class DocumentNode extends ExecutableNode {
     description: "A document widget for uploading files",
     tags: ["Document"],
     icon: "file",
+    documentation: "*Missing detailed documentation*",
     inputs: [
       {
         name: "value",

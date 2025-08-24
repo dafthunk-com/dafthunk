@@ -12,6 +12,7 @@ export class JsonExtractObjectNode extends ExecutableNode {
     description: "Extract a JSON value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "braces",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

@@ -16,6 +16,7 @@ export class Gpt41Node extends ExecutableNode {
     description: "Latest GPT-4 iteration with enhanced capabilities",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 25,
     asTool: true,
     inputs: [

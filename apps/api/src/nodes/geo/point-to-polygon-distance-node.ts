@@ -13,6 +13,7 @@ export class PointToPolygonDistanceNode extends ExecutableNode {
       "Calculates the distance from a point to the edges of a polygon or multi-polygon. Returns negative values for points inside the polygon.",
     tags: ["Geo"],
     icon: "ruler",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

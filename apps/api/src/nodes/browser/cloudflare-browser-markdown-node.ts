@@ -16,6 +16,7 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
       "Fetch markdown from a rendered page using Cloudflare Browser Rendering.",
     tags: ["Browser"],
     icon: "file-text",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     asTool: true,
     inputs: [

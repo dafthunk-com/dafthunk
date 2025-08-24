@@ -12,6 +12,7 @@ export class MultiVariableStringTemplateNode extends ExecutableNode {
       "Create a string using a template with multiple variable injection using ${variableName} syntax",
     tags: ["Text"],
     icon: "quote",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

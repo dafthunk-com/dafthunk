@@ -15,6 +15,7 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
       "Generates text descriptions from images using UForm-Gen2 model (smaller and faster than LLaVA)",
     tags: ["Image", "AI"],
     icon: "image",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     inputs: [
       {

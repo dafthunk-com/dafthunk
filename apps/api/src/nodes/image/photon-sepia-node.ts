@@ -13,7 +13,8 @@ export class PhotonSepiaNode extends ExecutableNode {
     type: "photon-sepia",
     description: "Applies a sepia tone to an image using Photon.",
     tags: ["Image"],
-    icon: "coffee", // Placeholder icon, represents vintage/sepia
+    icon: "coffee",
+    documentation: "*Missing detailed documentation*", // Placeholder icon, represents vintage/sepia
     inlinable: true,
     inputs: [
       {

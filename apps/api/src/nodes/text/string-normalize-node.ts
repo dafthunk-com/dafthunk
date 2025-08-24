@@ -11,6 +11,7 @@ export class StringNormalizeNode extends ExecutableNode {
     description: "Normalize a string using the Unicode Normalization forms",
     tags: ["Text"],
     icon: "text",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

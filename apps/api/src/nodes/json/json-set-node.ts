@@ -11,6 +11,7 @@ export class JsonSetNode extends ExecutableNode {
     description: "Set a value at a specific path in JSON",
     tags: ["JSON"],
     icon: "edit",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

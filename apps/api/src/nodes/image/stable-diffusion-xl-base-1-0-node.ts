@@ -15,6 +15,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       "Generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0",
     tags: ["Image", "AI"],
     icon: "image",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     inputs: [
       {

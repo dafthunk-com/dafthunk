@@ -13,6 +13,7 @@ export class DestinationNode extends ExecutableNode {
       "Calculates a destination point given an origin point, distance, and bearing.",
     tags: ["Geo"],
     icon: "navigation",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

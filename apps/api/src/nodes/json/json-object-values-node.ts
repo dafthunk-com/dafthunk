@@ -11,6 +11,7 @@ export class JsonObjectValuesNode extends ExecutableNode {
     description: "Extract all values from a JSON object",
     tags: ["JSON"],
     icon: "list",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

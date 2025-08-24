@@ -13,6 +13,7 @@ export class TruncateNode extends ExecutableNode {
       "Truncates the precision of a coordinate to a specified number of decimal places.",
     tags: ["Geo"],
     icon: "scissors",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

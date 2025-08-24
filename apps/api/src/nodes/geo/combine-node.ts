@@ -13,6 +13,7 @@ export class CombineNode extends ExecutableNode {
       "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
     tags: ["Geo"],
     icon: "layers",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

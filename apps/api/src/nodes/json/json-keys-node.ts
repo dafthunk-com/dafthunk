@@ -11,6 +11,7 @@ export class JsonKeysNode extends ExecutableNode {
     description: "Get all keys at a specific JSON path",
     tags: ["JSON"],
     icon: "key",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

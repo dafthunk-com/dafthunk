@@ -17,6 +17,7 @@ export class ClaudeOpus4Node extends ExecutableNode {
       "Most powerful Claude 4 model for complex reasoning and advanced analysis",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 60,
     asTool: true,
     inputs: [

@@ -11,6 +11,7 @@ export class JsonInsertNode extends ExecutableNode {
     description: "Insert a value at a specific path only if it doesn't exist",
     tags: ["JSON"],
     icon: "plus",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

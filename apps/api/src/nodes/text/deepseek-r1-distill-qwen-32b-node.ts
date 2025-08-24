@@ -20,6 +20,7 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
     description: "Generates text using DeepSeek R1 Distill Qwen 32B model",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     asTool: true,
     inputs: [

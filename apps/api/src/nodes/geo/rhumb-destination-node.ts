@@ -13,6 +13,7 @@ export class RhumbDestinationNode extends ExecutableNode {
       "Calculates the destination point along a rhumb line (constant bearing) from an origin point.",
     tags: ["Geo"],
     icon: "map-pin",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

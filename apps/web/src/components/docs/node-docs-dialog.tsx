@@ -1,6 +1,7 @@
 import type { NodeType } from "@dafthunk/types";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
+import Markdown from "react-markdown";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -175,6 +176,18 @@ export function NodeDocsDialog({
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {nodeType.documentation && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">Documentation</h4>
+                  <div className="md">
+                    <Markdown>{nodeType.documentation}</Markdown>
                   </div>
                 </div>
               </>

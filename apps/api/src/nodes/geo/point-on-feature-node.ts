@@ -13,6 +13,7 @@ export class PointOnFeatureNode extends ExecutableNode {
       "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature.",
     tags: ["Geo"],
     icon: "map-pin",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

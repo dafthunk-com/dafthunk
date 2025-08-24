@@ -13,6 +13,7 @@ export class LineSliceNode extends ExecutableNode {
       "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points.",
     tags: ["Geo"],
     icon: "scissors",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

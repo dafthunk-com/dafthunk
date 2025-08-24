@@ -11,6 +11,7 @@ export class JsonExtractAllNode extends ExecutableNode {
     description: "Extract all values matching a JSON path (not just first)",
     tags: ["JSON"],
     icon: "list",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

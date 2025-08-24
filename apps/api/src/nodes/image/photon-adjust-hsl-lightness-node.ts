@@ -14,7 +14,8 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
     description:
       "Adjusts image lightness using HSL. Amount from -1.0 (max darken) to 1.0 (max lighten).",
     tags: ["Image"],
-    icon: "sun", // Using 'sun' as it relates to light, could also use 'moon' or a slider icon
+    icon: "sun",
+    documentation: "*Missing detailed documentation*", // Using 'sun' as it relates to light, could also use 'moon' or a slider icon
     inlinable: true,
     inputs: [
       {

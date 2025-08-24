@@ -11,6 +11,7 @@ export class JsonStripNullsNode extends ExecutableNode {
     description: "Remove null values from JSON objects and arrays",
     tags: ["JSON"],
     icon: "filter",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     asTool: true,
     inputs: [

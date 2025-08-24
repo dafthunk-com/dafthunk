@@ -13,6 +13,7 @@ export class NearestPointOnLineNode extends ExecutableNode {
     description: "Returns the nearest point on a line to a given point.",
     tags: ["Geo"],
     icon: "map-pin",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

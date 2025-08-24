@@ -10,6 +10,7 @@ export class FormDataStringNode extends ExecutableNode {
     description: "Extracts a string parameter from the HTTP request form data.",
     tags: ["Parameter"],
     icon: "text",
+    documentation: "*Missing detailed documentation*",
     asTool: true,
     compatibility: ["http_request"],
     inlinable: true,

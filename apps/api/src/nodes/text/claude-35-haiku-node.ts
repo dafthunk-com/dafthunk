@@ -16,6 +16,7 @@ export class Claude35HaikuNode extends ExecutableNode {
     description: "Fastest Claude model for simple tasks and high-volume usage",
     tags: ["Text", "AI"],
     icon: "zap",
+    documentation: "*Missing detailed documentation*",
     computeCost: 10,
     asTool: true,
     inputs: [

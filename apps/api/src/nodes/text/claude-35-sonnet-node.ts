@@ -16,6 +16,7 @@ export class Claude35SonnetNode extends ExecutableNode {
     description: "Well-tested model with excellent performance/cost balance",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 25,
     asTool: true,
     inputs: [

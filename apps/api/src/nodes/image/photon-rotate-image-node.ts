@@ -15,6 +15,7 @@ export class PhotonRotateImageNode extends ExecutableNode {
       "Rotates an image by a specified angle (in degrees) using Photon.",
     tags: ["Image"],
     icon: "rotate-cw",
+    documentation: "*Missing detailed documentation*",
     inlinable: true,
     inputs: [
       {

@@ -16,6 +16,7 @@ export class Gpt5Node extends ExecutableNode {
     description: "Next-generation flagship model",
     tags: ["Text", "AI"],
     icon: "sparkles",
+    documentation: "*Missing detailed documentation*",
     computeCost: 35,
     asTool: true,
     inputs: [
