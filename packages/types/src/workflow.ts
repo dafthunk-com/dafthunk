@@ -139,6 +139,10 @@ export type ParameterType =
       value?: ObjectReference;
     }
   | {
+      type: "buffergeometry";
+      value?: ObjectReference;
+    }
+  | {
       type: "point";
       value?: Point;
     }

@@ -2,6 +2,7 @@ import { ObjectReference } from "@dafthunk/types";
 import { Handle, Position } from "@xyflow/react";
 import {
   AsteriskIcon,
+  BoxIcon,
   BracesIcon,
   Building2Icon,
   BuildingIcon,
@@ -94,6 +95,7 @@ const TypeBadge = ({
     image: <ImageIcon className="!size-3" />,
     document: <StickyNoteIcon className="!size-3" />,
     audio: <MusicIcon className="!size-3" />,
+    buffergeometry: <BoxIcon className="!size-3" />,
     json: <BracesIcon className="!size-3" />,
     date: <CalendarIcon className="!size-3" />,
     point: <DotIcon className="!size-3" />,
