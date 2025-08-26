@@ -58,6 +58,11 @@ export type DocumentParameter = {
     | "application/vnd.apple.numbers";
 };
 
+export type BufferGeometryParameter = {
+  data: Uint8Array;
+  mimeType: "application/x-buffer-geometry";
+};
+
 export type ParameterType =
   | {
       type: "string";
@@ -90,6 +95,10 @@ export type ParameterType =
   | {
       type: "audio";
       value?: AudioParameter;
+    }
+  | {
+      type: "buffergeometry";
+      value?: BufferGeometryParameter;
     }
   | {
       type: "point";
