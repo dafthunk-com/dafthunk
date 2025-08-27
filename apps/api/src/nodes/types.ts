@@ -63,6 +63,11 @@ export type BufferGeometryParameter = {
   mimeType: "application/x-buffer-geometry";
 };
 
+export type GltfParameter = {
+  data: Uint8Array;
+  mimeType: "model/gltf-binary";
+};
+
 export type ParameterType =
   | {
       type: "string";
@@ -99,6 +104,10 @@ export type ParameterType =
   | {
       type: "buffergeometry";
       value?: BufferGeometryParameter;
+    }
+  | {
+      type: "gltf";
+      value?: GltfParameter;
     }
   | {
       type: "point";

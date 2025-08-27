@@ -143,6 +143,10 @@ export type ParameterType =
       value?: ObjectReference;
     }
   | {
+      type: "gltf";
+      value?: ObjectReference;
+    }
+  | {
       type: "point";
       value?: Point;
     }

@@ -1,3 +1,4 @@
+import { BufferGeometryToGltfNode } from "./3d/buffergeometry-to-gltf-node";
 import { DemToBufferGeometryNode } from "./3d/dem-to-buffergeometry-node";
 import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
@@ -465,6 +466,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // 3D Tiles workflow nodes
     if (this.developerMode) {
+      this.registerImplementation(BufferGeometryToGltfNode);
       this.registerImplementation(DemToBufferGeometryNode);
       this.registerImplementation(GeoTiffDemQueryNode);
       this.registerImplementation(GeoTiffMetadataReaderNode);
