@@ -36,7 +36,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
       mimeType: z.literal("image/png"),
     }),
     bounds: z.tuple([z.number(), z.number(), z.number(), z.number()]),
-    tilesetCenter: z.tuple([z.number(), z.number()]).optional().default([0, 0]),
+    tilesetCenter: z.tuple([z.number(), z.number()]).optional(),
     martiniError: z.number().min(0.1).max(100).default(1),
   });
 
@@ -89,7 +89,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
         name: "tilesetCenter",
         type: "json",
         description:
-          "Center point [X, Y] for coordinate transformation (default: [0, 0])",
+          "Center point [X, Y] for coordinate transformation (default: center of bounds)",
         required: false,
       },
       {
@@ -259,13 +259,19 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     vertices: Uint16Array,
     terrainGrid: Float32Array,
     bounds: readonly [number, number, number, number],
-    tilesetCenter: readonly [number, number],
+    tilesetCenter: readonly [number, number] | undefined,
     width: number,
     height: number
   ): typeof DemToBufferGeometryNode.transformedGeometryShape {
     const pos: number[] = [];
     const uvs: number[] = [];
     const vMap = new Map<number, number>();
+
+    const tileCenterDefault: readonly [number, number] = [
+      (bounds[0] + bounds[2]) / 2,
+      (bounds[1] + bounds[3]) / 2,
+    ];
+    const actualTilesetCenter = tilesetCenter ?? tileCenterDefault;
 
     const tileWidth = bounds[2] - bounds[0];
     const tileHeight = bounds[3] - bounds[1];
@@ -295,9 +301,9 @@ export class DemToBufferGeometryNode extends ExecutableNode {
       const rasterX = bounds[0] + normalizedX * tileWidth;
       const rasterY = bounds[3] - normalizedY * tileHeight;
 
-      const threejsX = rasterX - tilesetCenter[0];
+      const threejsX = rasterX - actualTilesetCenter[0];
       const threejsY = elevation;
-      const threejsZ = -(rasterY - tilesetCenter[1]);
+      const threejsZ = -(rasterY - actualTilesetCenter[1]);
 
       pos.push(threejsX, threejsY, threejsZ);
       uvs.push(normalizedX, normalizedY);
