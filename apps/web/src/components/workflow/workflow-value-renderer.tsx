@@ -560,6 +560,22 @@ export function WorkflowValueRenderer({
             </a>
           </div>
         );
+      case "gltf":
+        return (
+          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+            <div className="text-xs text-neutral-500">
+              glTF Model ({parameter.value.mimeType})
+            </div>
+            <a
+              href={objectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:underline flex items-center"
+            >
+              Download GLB File
+            </a>
+          </div>
+        );
       case "point":
       case "multipoint":
       case "linestring":
@@ -614,6 +630,23 @@ export function WorkflowValueRenderer({
                   className="text-sm text-blue-500 hover:underline flex items-center"
                 >
                   Download Geometry Data
+                </a>
+              </div>
+            );
+          }
+          if (parameter.value.mimeType === "model/gltf-binary") {
+            return (
+              <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+                <div className="text-xs text-neutral-500">
+                  glTF Model ({parameter.value.mimeType})
+                </div>
+                <a
+                  href={objectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500 hover:underline flex items-center"
+                >
+                  Download GLB File
                 </a>
               </div>
             );

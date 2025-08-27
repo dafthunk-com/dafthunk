@@ -96,6 +96,7 @@ const TypeBadge = ({
     document: <StickyNoteIcon className="!size-3" />,
     audio: <MusicIcon className="!size-3" />,
     buffergeometry: <BoxIcon className="!size-3" />,
+    gltf: <BoxIcon className="!size-3" />,
     json: <BracesIcon className="!size-3" />,
     date: <CalendarIcon className="!size-3" />,
     point: <DotIcon className="!size-3" />,
