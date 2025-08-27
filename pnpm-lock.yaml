@@ -41,6 +41,9 @@ importers:
       '@dafthunk/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@gltf-transform/core':
+        specifier: ^4.2.1
+        version: 4.2.1
       '@hono-rate-limiter/cloudflare':
         specifier: ^0.2.2
         version: 0.2.2(@cloudflare/workers-types@4.20250726.0)(hono@4.7.11)
@@ -1299,6 +1302,9 @@ packages:
     peerDependencies:
       '@fortawesome/fontawesome-svg-core': ~1 || ~6
       react: '>=16.3'
+
+  '@gltf-transform/core@4.2.1':
+    resolution: {integrity: sha512-qKhrQ29KJ9K6sz7xGoGRllqPBlROjPJMQPvCLBOfgMPH3S/Ph5E0e6fD5WmwTY5QPyBsDMRqKd1Vl0ncThTXGw==}
 
   '@hono-rate-limiter/cloudflare@0.2.2':
     resolution: {integrity: sha512-wMnqeV+cb5Wov2npLIMFtCVm3tiNMtqw9LhPWSzSMwHOzh2qbhI3mCS6s962fxcJ6UUNJhRqDbVMEsB/NinCIQ==}
@@ -4838,6 +4844,9 @@ packages:
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
+  property-graph@3.0.0:
+    resolution: {integrity: sha512-TnzxUsttmGtw+OiU0LDw+0FlMbJ8vV8pOjyDI7+Kdni4Tj0hW5BFh7TatQu7Y68hcvvFmiFOHilKShsA4R82fA==}
+
   property-information@7.1.0:
     resolution: {integrity: sha512-TwEZ+X+yCJmYfL7TPUOcvBZ4QfoT5YenQiJuX//0th53DE6w0xxLEtfK3iyryQFddXuvkIk51EEgrJQ0WJkOmQ==}
 
@@ -6702,6 +6711,10 @@ snapshots:
       '@fortawesome/fontawesome-svg-core': 6.7.2
       prop-types: 15.8.1
       react: 19.1.0
+
+  '@gltf-transform/core@4.2.1':
+    dependencies:
+      property-graph: 3.0.0
 
   '@hono-rate-limiter/cloudflare@0.2.2(@cloudflare/workers-types@4.20250726.0)(hono@4.7.11)':
     dependencies:
@@ -11248,6 +11261,8 @@ snapshots:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       react-is: 16.13.1
+
+  property-graph@3.0.0: {}
 
   property-information@7.1.0: {}
 
