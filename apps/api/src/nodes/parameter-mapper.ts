@@ -8,6 +8,7 @@ import {
   AudioParameter as NodeAudioParameter,
   BufferGeometryParameter as NodeBufferGeometryParameter,
   DocumentParameter as NodeDocumentParameter,
+  GltfParameter as NodeGltfParameter,
   ImageParameter as NodeImageParameter,
   ParameterValue as NodeParameterValue,
 } from "./types";
@@ -49,6 +50,17 @@ function isAudioParameter(value: unknown): value is NodeAudioParameter {
 function isBufferGeometryParameter(
   value: unknown
 ): value is NodeBufferGeometryParameter {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "data" in value &&
+    "mimeType" in value &&
+    value["data"] instanceof Uint8Array &&
+    typeof value["mimeType"] === "string"
+  );
+}
+
+function isGltfParameter(value: unknown): value is NodeGltfParameter {
   return (
     !!value &&
     typeof value === "object" &&
@@ -266,6 +278,40 @@ const converters = {
       } as NodeBufferGeometryParameter;
     },
   },
+  gltf: {
+    nodeToApi: async (
+      value: NodeParameterValue,
+      objectStore: ObjectStore,
+      organizationId: string,
+      executionId?: string
+    ) => {
+      if (!isGltfParameter(value)) return undefined;
+      const blob = new Blob([value.data], { type: value.mimeType });
+      const buffer = await blob.arrayBuffer();
+      const data = new Uint8Array(buffer);
+      return await objectStore.writeObject(
+        data,
+        blob.type,
+        organizationId,
+        executionId
+      );
+    },
+    apiToNode: async (value: ApiParameterValue, objectStore: ObjectStore) => {
+      if (
+        !value ||
+        typeof value !== "object" ||
+        !("id" in value) ||
+        !("mimeType" in value)
+      )
+        return undefined;
+      const result = await objectStore.readObject(value as ObjectReference);
+      if (!result) return undefined;
+      return {
+        data: result.data,
+        mimeType: (value as ObjectReference).mimeType,
+      } as NodeGltfParameter;
+    },
+  },
   json: {
     nodeToApi: createJsonParsingNodeToApi(),
     apiToNode: createJsonParsingApiToNode(),
@@ -326,7 +372,8 @@ const converters = {
         isImageParameter(value) ||
         isDocumentParameter(value) ||
         isAudioParameter(value) ||
-        isBufferGeometryParameter(value)
+        isBufferGeometryParameter(value) ||
+        isGltfParameter(value)
       ) {
         if (!objectStore || !organizationId) {
           throw new Error(
@@ -359,6 +406,14 @@ const converters = {
         }
         if (isBufferGeometryParameter(value)) {
           return converters.buffergeometry.nodeToApi(
+            value,
+            objectStore,
+            organizationId,
+            executionId
+          );
+        }
+        if (isGltfParameter(value)) {
+          return converters.gltf.nodeToApi(
             value,
             objectStore,
             organizationId,
@@ -407,6 +462,12 @@ const converters = {
               data: result.data,
               mimeType,
             } as NodeBufferGeometryParameter;
+          }
+          if (mimeType === "model/gltf-binary") {
+            return {
+              data: result.data,
+              mimeType,
+            } as NodeGltfParameter;
           }
           return {
             data: result.data,
@@ -463,7 +524,8 @@ export async function nodeToApiParameter(
       type === "image" ||
       type === "document" ||
       type === "audio" ||
-      type === "buffergeometry"
+      type === "buffergeometry" ||
+      type === "gltf"
     ) {
       return await (
         fn as (
