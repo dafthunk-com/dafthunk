@@ -544,6 +544,22 @@ export function WorkflowValueRenderer({
             compact={compact}
           />
         );
+      case "buffergeometry":
+        return (
+          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+            <div className="text-xs text-neutral-500">
+              3D Geometry ({parameter.value.mimeType})
+            </div>
+            <a
+              href={objectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:underline flex items-center"
+            >
+              Download Geometry Data
+            </a>
+          </div>
+        );
       case "point":
       case "multipoint":
       case "linestring":
@@ -583,6 +599,23 @@ export function WorkflowValueRenderer({
                 onError={handleAudioError}
                 audioRef={audioRef}
               />
+            );
+          }
+          if (parameter.value.mimeType === "application/x-buffer-geometry") {
+            return (
+              <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+                <div className="text-xs text-neutral-500">
+                  3D Geometry ({parameter.value.mimeType})
+                </div>
+                <a
+                  href={objectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500 hover:underline flex items-center"
+                >
+                  Download Geometry Data
+                </a>
+              </div>
             );
           }
           if (
