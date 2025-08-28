@@ -110,6 +110,7 @@ export class BufferGeometryToGltfNode extends ExecutableNode {
         type: "json",
         description: "PBR material configuration overrides",
         required: false,
+        hidden: true,
       },
     ],
     outputs: [
