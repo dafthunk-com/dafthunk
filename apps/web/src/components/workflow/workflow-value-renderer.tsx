@@ -1,6 +1,6 @@
 import { ObjectReference } from "@dafthunk/types";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
-import { useEffect, useRef, useState, Suspense, Component, type ErrorInfo, type ReactNode, useMemo } from "react";
+import React, { useEffect, useRef, useState, Suspense, Component, type ErrorInfo, type ReactNode, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import type { Group } from "three";
@@ -173,6 +173,20 @@ function GltfModel({ url }: GltfModelProps) {
   const groupRef = useRef<Group>(null);
   const { scene } = useAuthenticatedGLTF(url);
 
+  console.log('GltfModel rendering with scene:', scene);
+  
+  useEffect(() => {
+    if (scene) {
+      console.log('GLTF scene loaded successfully:', scene);
+      console.log('Scene children count:', scene.children.length);
+    }
+  }, [scene]);
+
+  if (!scene) {
+    console.log('GLTF scene not ready yet');
+    return null;
+  }
+
   return <primitive ref={groupRef} object={scene} />;
 }
 
@@ -262,7 +276,7 @@ function checkWebGLSupport(): boolean {
 }
 
 // glTF renderer
-const GltfRenderer = ({
+const GltfRenderer = React.memo(({
   parameter,
   objectUrl,
   compact,
@@ -271,9 +285,10 @@ const GltfRenderer = ({
   objectUrl: string;
   compact?: boolean;
 }) => {
+  const renderID = useRef(Math.random().toString(36).substr(2, 9));
   const isWebGLSupported = checkWebGLSupport();
 
-  console.log('=== GltfRenderer with Authentication ===');
+  console.log(`=== GltfRenderer [${renderID.current}] ===`);
   console.log('ObjectURL:', objectUrl);
   console.log('WebGL supported:', isWebGLSupported);
 
@@ -333,16 +348,29 @@ const GltfRenderer = ({
           className="relative bg-slate-50 dark:bg-slate-900 rounded border"
           style={{ width: viewerDimensions.width, height: viewerDimensions.height }}
         >
-          <Suspense fallback={<GltfLoadingFallback />}>
-            <Canvas
+          <Canvas
+              key="gltf-renderer-canvas" // Stable key to prevent Canvas recreation during auth
               camera={{
                 position: [2, 2, 2],
                 fov: 50,
               }}
               style={{ width: "100%", height: "100%" }}
               onCreated={({ gl }) => {
+                console.log('Canvas onCreated - WebGL context created');
+                
+                // Add minimal context loss monitoring
+                gl.domElement.addEventListener('webglcontextlost', (e) => {
+                  console.error('WebGL Context Lost Event - preventing default');
+                  e.preventDefault();
+                });
+                
+                gl.domElement.addEventListener('webglcontextrestored', () => {
+                  console.log('WebGL Context Restored Event');
+                });
+                
                 gl.setClearColor("#f8fafc");
                 gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                console.log('Canvas setup complete');
               }}
             >
               {/* Lighting setup */}
@@ -350,8 +378,10 @@ const GltfRenderer = ({
               <directionalLight position={[10, 10, 5]} intensity={1} />
               <directionalLight position={[-10, -10, -5]} intensity={0.5} />
 
-              {/* glTF Model */}
-              <GltfModel url={objectUrl} />
+              {/* glTF Model with Suspense inside Canvas */}
+              <Suspense fallback={null}>
+                <GltfModel url={objectUrl} />
+              </Suspense>
 
               {/* Camera controls */}
               <OrbitControls
@@ -364,7 +394,6 @@ const GltfRenderer = ({
                 enableDamping={true}
               />
             </Canvas>
-          </Suspense>
         </div>
       </GltfViewerErrorBoundary>
 
@@ -383,7 +412,7 @@ const GltfRenderer = ({
       </div>
     </div>
   );
-};
+});
 
 // Document renderer
 const DocumentRenderer = ({
