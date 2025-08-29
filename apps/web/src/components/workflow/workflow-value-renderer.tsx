@@ -1,6 +1,9 @@
 import { ObjectReference } from "@dafthunk/types";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense, Component, type ErrorInfo, type ReactNode } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import type { Group } from "three";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Input } from "@/components/ui/input";
@@ -87,6 +90,213 @@ const AudioRenderer = ({
     onError={onError}
   />
 );
+
+// 3D glTF Model Components
+interface GltfModelProps {
+  url: string;
+}
+
+function GltfModel({ url }: GltfModelProps) {
+  const groupRef = useRef<Group>(null);
+  const { scene } = useGLTF(url);
+
+  return <primitive ref={groupRef} object={scene} />;
+}
+
+function GltfLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center w-full h-full bg-slate-50 dark:bg-slate-900 rounded border">
+      <div className="flex flex-col items-center space-y-2">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-slate-500 dark:text-slate-400">
+          Loading 3D model...
+        </span>
+      </div>
+    </div>
+  );
+}
+
+class GltfViewerErrorBoundary extends Component<
+  { children: ReactNode; onError: (error: Error, errorInfo: ErrorInfo) => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; onError: (error: Error, errorInfo: ErrorInfo) => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.props.onError(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center w-full h-full bg-red-50 dark:bg-red-900 rounded border border-red-200 dark:border-red-800">
+          <div className="flex flex-col items-center space-y-2 text-center p-4">
+            <div className="w-8 h-8 text-red-500 dark:text-red-400">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.962-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <span className="text-sm text-red-600 dark:text-red-400">
+              3D Rendering Error
+            </span>
+            <span className="text-xs text-red-500 dark:text-red-300">
+              WebGL may not be supported in your browser
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+function checkWebGLSupport(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    return !!gl;
+  } catch {
+    return false;
+  }
+}
+
+// glTF renderer
+const GltfRenderer = ({
+  parameter,
+  objectUrl,
+  compact,
+}: {
+  parameter: WorkflowParameter;
+  objectUrl: string;
+  compact?: boolean;
+}) => {
+  const isWebGLSupported = checkWebGLSupport();
+
+  // Preload the glTF for better performance
+  if (isWebGLSupported) {
+    useGLTF.preload(objectUrl);
+  }
+
+  const handleError = (error: Error, errorInfo: ErrorInfo) => {
+    console.error("3D Viewer Error:", error);
+    console.error("Error Info:", errorInfo);
+  };
+
+  if (!isWebGLSupported) {
+    return (
+      <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
+        <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded border border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center space-x-2">
+            <div className="w-5 h-5 text-yellow-600 dark:text-yellow-400">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                3D Preview Unavailable
+              </div>
+              <div className="text-xs text-yellow-700 dark:text-yellow-300">
+                WebGL is not supported in your browser
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-neutral-500">
+          glTF Model ({parameter.value.mimeType})
+        </div>
+        <a
+          href={objectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-blue-500 hover:underline flex items-center"
+        >
+          Download GLB File
+        </a>
+      </div>
+    );
+  }
+
+  const viewerDimensions = compact
+    ? { width: 300, height: 200 }
+    : { width: 400, height: 300 };
+
+  return (
+    <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
+      <GltfViewerErrorBoundary onError={handleError}>
+        <div
+          className="relative bg-slate-50 dark:bg-slate-900 rounded border"
+          style={{ width: viewerDimensions.width, height: viewerDimensions.height }}
+        >
+          <Suspense fallback={<GltfLoadingFallback />}>
+            <Canvas
+              camera={{
+                position: [2, 2, 2],
+                fov: 50,
+              }}
+              style={{ width: "100%", height: "100%" }}
+              onCreated={({ gl }) => {
+                gl.setClearColor("#f8fafc");
+                gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+              }}
+            >
+              {/* Lighting setup */}
+              <ambientLight intensity={0.4} />
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+
+              {/* glTF Model */}
+              <GltfModel url={objectUrl} />
+
+              {/* Camera controls */}
+              <OrbitControls
+                enablePan={true}
+                enableZoom={true}
+                enableRotate={true}
+                autoRotate={false}
+                autoRotateSpeed={2}
+                dampingFactor={0.1}
+                enableDamping={true}
+              />
+            </Canvas>
+          </Suspense>
+        </div>
+      </GltfViewerErrorBoundary>
+
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-neutral-500">
+          glTF Model ({parameter.value.mimeType})
+        </div>
+        <a
+          href={objectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-500 hover:underline flex items-center"
+        >
+          Download GLB File
+        </a>
+      </div>
+    </div>
+  );
+};
 
 // Document renderer
 const DocumentRenderer = ({
@@ -562,19 +772,11 @@ export function WorkflowValueRenderer({
         );
       case "gltf":
         return (
-          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-            <div className="text-xs text-neutral-500">
-              glTF Model ({parameter.value.mimeType})
-            </div>
-            <a
-              href={objectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-500 hover:underline flex items-center"
-            >
-              Download GLB File
-            </a>
-          </div>
+          <GltfRenderer
+            parameter={parameter}
+            objectUrl={objectUrl}
+            compact={compact}
+          />
         );
       case "point":
       case "multipoint":
