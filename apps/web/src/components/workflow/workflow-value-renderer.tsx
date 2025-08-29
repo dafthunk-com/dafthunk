@@ -1,9 +1,10 @@
 import { ObjectReference } from "@dafthunk/types";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
-import { useEffect, useRef, useState, Suspense, Component, type ErrorInfo, type ReactNode } from "react";
+import { useEffect, useRef, useState, Suspense, Component, type ErrorInfo, type ReactNode, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import type { Group } from "three";
+import { LoadingManager } from "three";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Input } from "@/components/ui/input";
@@ -96,9 +97,81 @@ interface GltfModelProps {
   url: string;
 }
 
+// Custom hook for authenticated GLTF loading
+function useAuthenticatedGLTF(url: string) {
+  const extendLoader = useMemo(() => {
+    return (loader: any) => {
+      console.log('Extending GLTFLoader for authenticated requests');
+      
+      // Set withCredentials to include cookies/auth headers
+      if (loader.manager && loader.manager.itemStart) {
+        // Create a custom loading manager that includes credentials
+        const manager = new LoadingManager();
+        
+        // Override the manager's load method to add credentials
+        const originalResolveURL = manager.resolveURL?.bind(manager);
+        if (originalResolveURL) {
+          manager.resolveURL = function(url: string) {
+            return originalResolveURL(url);
+          };
+        }
+        
+        loader.manager = manager;
+      }
+      
+      // If the loader has a setWithCredentials method, use it
+      if (typeof loader.setWithCredentials === 'function') {
+        loader.setWithCredentials(true);
+        console.log('Set withCredentials=true on GLTFLoader');
+      }
+      
+      // If the loader supports request headers (some loaders do)
+      if (typeof loader.setRequestHeader === 'function') {
+        // Add any additional headers if needed
+        console.log('GLTFLoader supports setRequestHeader');
+      }
+      
+      // Override the load method to ensure credentials
+      const originalLoad = loader.load.bind(loader);
+      loader.load = function(url: string, onLoad?: any, onProgress?: any, onError?: any) {
+        console.log('Loading glTF with authentication:', url);
+        
+        // Try to use fetch directly with credentials for better control
+        fetch(url, { 
+          credentials: 'include',
+          method: 'GET'
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.arrayBuffer();
+          })
+          .then(buffer => {
+            // Create a blob URL for the Three.js loader to use
+            const blob = new Blob([buffer], { type: 'model/gltf-binary' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // Load using the blob URL (no auth needed)
+            return originalLoad(blobUrl, (gltf: any) => {
+              URL.revokeObjectURL(blobUrl); // Clean up
+              if (onLoad) onLoad(gltf);
+            }, onProgress, onError);
+          })
+          .catch(error => {
+            console.error('Authenticated glTF fetch failed:', error);
+            if (onError) onError(error);
+          });
+      };
+    };
+  }, []);
+
+  return useGLTF(url, false, false, extendLoader);
+}
+
 function GltfModel({ url }: GltfModelProps) {
   const groupRef = useRef<Group>(null);
-  const { scene } = useGLTF(url);
+  const { scene } = useAuthenticatedGLTF(url);
 
   return <primitive ref={groupRef} object={scene} />;
 }
@@ -130,6 +203,21 @@ class GltfViewerErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('=== Enhanced 3D Error Boundary ===');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Component stack:', errorInfo.componentStack);
+    console.error('Error name:', error.name);
+    console.error('Full error object:', error);
+    console.error('Full errorInfo object:', errorInfo);
+    
+    // Check for specific Three.js/glTF related errors
+    const isThreeJSError = error.message.includes('THREE') || 
+                          error.message.includes('glTF') || 
+                          error.message.includes('GLTFLoader') ||
+                          error.stack?.includes('three');
+    console.error('Is Three.js related error:', isThreeJSError);
+    
     this.props.onError(error, errorInfo);
   }
 
@@ -185,10 +273,9 @@ const GltfRenderer = ({
 }) => {
   const isWebGLSupported = checkWebGLSupport();
 
-  // Preload the glTF for better performance
-  if (isWebGLSupported) {
-    useGLTF.preload(objectUrl);
-  }
+  console.log('=== GltfRenderer with Authentication ===');
+  console.log('ObjectURL:', objectUrl);
+  console.log('WebGL supported:', isWebGLSupported);
 
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
     console.error("3D Viewer Error:", error);
