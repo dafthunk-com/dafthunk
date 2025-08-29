@@ -1,10 +1,11 @@
 import { ObjectReference } from "@dafthunk/types";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
-import React, { useEffect, useRef, useState, Suspense, Component, type ErrorInfo, type ReactNode, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
+import { Canvas, useThree } from "@react-three/fiber";
+import React, { Component, type ErrorInfo, type ReactNode, Suspense, useCallback,useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
 import { LoadingManager } from "three";
+import * as THREE from "three";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Input } from "@/components/ui/input";
@@ -169,18 +170,129 @@ function useAuthenticatedGLTF(url: string) {
   return useGLTF(url, false, false, extendLoader);
 }
 
-function GltfModel({ url }: GltfModelProps) {
+// Camera positioning utility
+const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
+  try {
+    // Calculate model bounds
+    const box = new THREE.Box3().setFromObject(scene);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    console.log('Model size:', size.x.toFixed(0), size.y.toFixed(0), size.z.toFixed(0));
+    console.log('Model center:', center.x.toFixed(0), center.y.toFixed(0), center.z.toFixed(0));
+
+    // Calculate appropriate camera distance
+    const maxDimension = Math.max(size.x, size.y, size.z);
+
+    if (maxDimension === 0 || !isFinite(maxDimension)) {
+      console.warn('Invalid model dimensions, keeping default camera');
+      return;
+    }
+
+    // Position camera at 2x the largest dimension for better viewing
+    const distance = maxDimension * 2.0;
+
+    // Position camera at a diagonal angle above and to the side of the model
+    const cameraPos = new THREE.Vector3(
+      center.x + distance * 0.7,  // More to the side
+      center.y + distance * 1.0,  // Higher up
+      center.z + distance * 0.7   // More forward
+    );
+
+    console.log('BEFORE camera update - position:', camera.position.x.toFixed(0), camera.position.y.toFixed(0), camera.position.z.toFixed(0));
+    console.log('Setting camera at distance:', distance.toFixed(0), 'new position:', cameraPos.x.toFixed(0), cameraPos.y.toFixed(0), cameraPos.z.toFixed(0));
+    console.log('Camera will look at center:', center.x.toFixed(0), center.y.toFixed(0), center.z.toFixed(0));
+
+    // Update camera imperatively
+    camera.position.copy(cameraPos);
+    camera.lookAt(center);
+
+    // Verify the camera is actually looking at the center
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    console.log('Camera direction after lookAt:', direction.x.toFixed(3), direction.y.toFixed(3), direction.z.toFixed(3));
+    console.log('AFTER camera update - position:', camera.position.x.toFixed(0), camera.position.y.toFixed(0), camera.position.z.toFixed(0));
+
+  } catch (error) {
+    console.error('Camera positioning error:', error);
+  }
+};
+
+// Hook to monitor scene ref and position camera when available
+function useSceneCamera(sceneRef: React.RefObject<Group | null>, trigger: number) {
+  const { camera } = useThree();
+  const lastSceneUUID = useRef<string | null>(null);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    
+    console.log('useSceneCamera: Checking scene - scene:', !!scene, 'camera:', !!camera, 'trigger:', trigger);
+    console.log('useSceneCamera: Current UUID:', scene?.uuid, 'Last UUID:', lastSceneUUID.current);
+
+    if (!scene || !camera) {
+      console.log('useSceneCamera: Missing scene or camera, skipping');
+      return;
+    }
+
+    // Only position camera if scene has changed (different UUID)
+    if (scene.uuid === lastSceneUUID.current) {
+      console.log('useSceneCamera: Same scene UUID, skipping positioning');
+      return;
+    }
+
+    console.log('useSceneCamera: New scene detected, positioning camera');
+    lastSceneUUID.current = scene.uuid;
+    positionCameraForScene(scene, camera);
+  }, [trigger]); // Re-run when trigger changes
+
+  return null;
+}
+
+// Simple camera controller that monitors scene ref
+function CameraController({ sceneRef, trigger }: { sceneRef: React.RefObject<Group | null>, trigger: number }) {
+  useSceneCamera(sceneRef, trigger);
+  return null;
+}
+
+function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene: Group) => void }) {
   const groupRef = useRef<Group>(null);
   const { scene } = useAuthenticatedGLTF(url);
 
-  console.log('GltfModel rendering with scene:', scene);
+  console.log('GltfModel rendering with scene:');
   
   useEffect(() => {
     if (scene) {
-      console.log('GLTF scene loaded successfully:', scene);
+      console.log('GLTF scene loaded successfully:');
       console.log('Scene children count:', scene.children.length);
+      
+      // Debug scene contents
+      scene.traverse((child) => {
+//        console.log('Scene child:', child.type, child.name, child);
+        if (child.type === 'Mesh') {
+          const mesh = child as THREE.Mesh;
+//          console.log('  Mesh geometry:', mesh.geometry);
+//          console.log('  Mesh material:', mesh.material);
+          if (mesh.geometry) {
+            const geo = mesh.geometry;
+            console.log('  Vertices count:', geo.attributes.position?.count);
+            console.log('  Has normals:', !!geo.attributes.normal);
+            console.log('  Has UVs:', !!geo.attributes.uv);
+          }
+          if (mesh.material) {
+            const mat = mesh.material as THREE.Material;
+            console.log('  Material type:', mat.type);
+            console.log('  Material visible:', mat.visible);
+            console.log('  Material opacity:', mat.opacity);
+          }
+        }
+      });
+
+      // Pass scene to parent for camera positioning
+      if (onSceneLoad) {
+        onSceneLoad(scene);
+      }
     }
-  }, [scene]);
+  }, [scene, onSceneLoad]);
 
   if (!scene) {
     console.log('GLTF scene not ready yet');
@@ -286,11 +398,22 @@ const GltfRenderer = React.memo(({
   compact?: boolean;
 }) => {
   const renderID = useRef(Math.random().toString(36).substr(2, 9));
-  const isWebGLSupported = checkWebGLSupport();
+  const loadedSceneRef = useRef<Group | null>(null);
+  const [sceneLoadTrigger, setSceneLoadTrigger] = useState(0);
+  const isWebGLSupported = useMemo(() => checkWebGLSupport(), []);
 
   console.log(`=== GltfRenderer [${renderID.current}] ===`);
   console.log('ObjectURL:', objectUrl);
   console.log('WebGL supported:', isWebGLSupported);
+
+  // Callback to update scene ref and trigger camera positioning
+  const handleSceneLoad = useCallback((scene: Group) => {
+    console.log('GltfRenderer: Scene loaded, updating ref and triggering camera positioning');
+    loadedSceneRef.current = scene;
+    
+    // Force camera positioning by triggering a re-render
+    setSceneLoadTrigger(prev => prev + 1);
+  }, []);
 
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
     console.error("3D Viewer Error:", error);
@@ -349,7 +472,7 @@ const GltfRenderer = React.memo(({
           style={{ width: viewerDimensions.width, height: viewerDimensions.height }}
         >
           <Canvas
-              key="gltf-renderer-canvas" // Stable key to prevent Canvas recreation during auth
+              key={`gltf-canvas-${renderID.current}`} // Stable key per component instance
               camera={{
                 position: [2, 2, 2],
                 fov: 50,
@@ -378,9 +501,12 @@ const GltfRenderer = React.memo(({
               <directionalLight position={[10, 10, 5]} intensity={1} />
               <directionalLight position={[-10, -10, -5]} intensity={0.5} />
 
+              {/* Camera controller for dynamic positioning */}
+              <CameraController sceneRef={loadedSceneRef} trigger={sceneLoadTrigger} />
+
               {/* glTF Model with Suspense inside Canvas */}
               <Suspense fallback={null}>
-                <GltfModel url={objectUrl} />
+                <GltfModel url={objectUrl} onSceneLoad={handleSceneLoad} />
               </Suspense>
 
               {/* Camera controls */}
