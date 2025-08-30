@@ -39,6 +39,7 @@ export interface Bindings {
   SES_DEFAULT_FROM?: string;
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
+  GEMINI_API_KEY?: string;
 }
 
 export interface Variables {

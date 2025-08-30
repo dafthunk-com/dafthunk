@@ -51,6 +51,7 @@
     "@dafthunk/types": "workspace:*",
     "@dafthunk/utils": "workspace:*",
     "@gltf-transform/core": "^4.2.1",
+    "@google/genai": "^1.16.0",
     "@hono-rate-limiter/cloudflare": "^0.2.2",
     "@hono/oauth-providers": "^0.7.1",
     "@hono/zod-validator": "^0.5.0",

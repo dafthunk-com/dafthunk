@@ -160,6 +160,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
         OPENAI_API_KEY: this.env.OPENAI_API_KEY,
         ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
+        GEMINI_API_KEY: this.env.GEMINI_API_KEY,
       },
     };
   }
@@ -336,16 +337,19 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         "persist final execution record",
         Runtime.defaultStepConfig,
         async () => {
-          await updateOrganizationComputeUsage(
-            this.env.KV,
-            organizationId,
-            // Update organization compute credits for executed nodes
-            this.getNodesComputeCost(
-              runtimeState.workflow.nodes.filter((node) =>
-                runtimeState.executedNodes.has(node.id)
+          // Skip credit usage tracking in development mode
+          if (this.env.CLOUDFLARE_ENV !== "development") {
+            await updateOrganizationComputeUsage(
+              this.env.KV,
+              organizationId,
+              // Update organization compute credits for executed nodes
+              this.getNodesComputeCost(
+                runtimeState.workflow.nodes.filter((node) =>
+                  runtimeState.executedNodes.has(node.id)
+                )
               )
-            )
-          );
+            );
+          }
           return this.saveExecutionState(
             userId,
             organizationId,
@@ -364,12 +368,18 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   /**
    * Checks if the organization has enough compute credits to execute a workflow.
+   * Credit limits are not enforced in development mode.
    */
   private async hasEnoughComputeCredits(
     organizationId: string,
     computeCredits: number,
     computeCost: number
   ): Promise<boolean> {
+    // Skip credit limit enforcement in development mode
+    if (this.env.CLOUDFLARE_ENV === "development") {
+      return true;
+    }
+
     const computeUsage = await getOrganizationComputeUsage(
       this.env.KV,
       organizationId
@@ -769,6 +779,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
           OPENAI_API_KEY: this.env.OPENAI_API_KEY,
           ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
+          GEMINI_API_KEY: this.env.GEMINI_API_KEY,
         },
       };
 

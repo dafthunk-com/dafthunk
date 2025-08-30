@@ -209,6 +209,7 @@ export interface NodeContext {
     SES_DEFAULT_FROM?: string;
     OPENAI_API_KEY?: string;
     ANTHROPIC_API_KEY?: string;
+    GEMINI_API_KEY?: string;
   };
 }
 
@@ -288,6 +289,63 @@ export abstract class ExecutableNode {
     } catch (error) {
       console.error(
         "Failed to convert function calls to tool definitions:",
+        error
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Convert tools input to Gemini function declarations format
+   * Returns Gemini-specific function declarations for function calling
+   */
+  protected async convertFunctionCallsToGeminiDeclarations(
+    functionCalls: ToolReference[],
+    context: NodeContext
+  ): Promise<any[]> {
+    if (
+      !functionCalls ||
+      !Array.isArray(functionCalls) ||
+      functionCalls.length === 0
+    ) {
+      return [];
+    }
+
+    if (!context.toolRegistry) {
+      console.warn(
+        "Tool registry not available in context, cannot resolve tools"
+      );
+      return [];
+    }
+
+    try {
+      // Validate all items are proper ToolReference objects
+      for (const item of functionCalls) {
+        if (
+          !item ||
+          typeof item !== "object" ||
+          !item.type ||
+          !item.identifier
+        ) {
+          throw new Error(
+            `Invalid tool reference format. Expected ToolReference with type and identifier: ${JSON.stringify(item)}`
+          );
+        }
+      }
+
+      // Get tool definitions
+      const toolDefinitions =
+        await context.toolRegistry.getToolDefinitions(functionCalls);
+
+      // Convert to Gemini function declarations format
+      return toolDefinitions.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+      }));
+    } catch (error) {
+      console.error(
+        "Failed to convert function calls to Gemini declarations:",
         error
       );
       return [];

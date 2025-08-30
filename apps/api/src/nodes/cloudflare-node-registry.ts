@@ -28,6 +28,13 @@ import { ReceiveEmailNode } from "./email/receive-email-node";
 import { SendEmailSendgridNode } from "./email/send-emai-sendgrid-node";
 import { SendEmailResendNode } from "./email/send-email-resend-node";
 import { SendEmailSesNode } from "./email/send-email-ses-node";
+import { Gemini25FlashAudioUnderstandingNode } from "./gemini/gemini-2-5-flash-audio-understanding-node";
+import { Gemini25FlashImagePreviewNode } from "./gemini/gemini-2-5-flash-image-preview-node";
+import { Gemini25FlashImageUnderstandingNode } from "./gemini/gemini-2-5-flash-image-understanding-node";
+import { Gemini25FlashNode } from "./gemini/gemini-2-5-flash-node";
+import { Gemini25FlashTtsNode } from "./gemini/gemini-2-5-flash-tts-node";
+import { Gemini25ProNode } from "./gemini/gemini-2-5-pro-node";
+import { ImagenNode } from "./gemini/imagen-node";
 import { AlongNode } from "./geo/along-node";
 import { AngleNode } from "./geo/angle-node";
 import { AreaNode } from "./geo/area-node";
@@ -283,6 +290,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     );
     const hasOpenAI = !!this.env.OPENAI_API_KEY;
     const hasAnthropic = !!this.env.ANTHROPIC_API_KEY;
+    const hasGemini = !!this.env.GEMINI_API_KEY;
 
     // Register all core nodes
     this.registerImplementation(FormDataStringNode);
@@ -587,6 +595,17 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(Claude35SonnetNode);
       this.registerImplementation(Claude35HaikuNode);
       this.registerImplementation(Claude3OpusNode);
+    }
+
+    // Google Gemini nodes
+    if (hasGemini) {
+      this.registerImplementation(Gemini25FlashNode);
+      this.registerImplementation(Gemini25ProNode);
+      this.registerImplementation(Gemini25FlashImagePreviewNode);
+      this.registerImplementation(Gemini25FlashTtsNode);
+      this.registerImplementation(Gemini25FlashAudioUnderstandingNode);
+      this.registerImplementation(Gemini25FlashImageUnderstandingNode);
+      this.registerImplementation(ImagenNode);
     }
   }
 }

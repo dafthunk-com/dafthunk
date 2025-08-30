@@ -63,7 +63,10 @@ function getSecurityHeaders(
       environment === "development"
         ? "'self' ws://localhost:* http://localhost:* https://api.dafthunk.com" // Allow Vite HMR WebSocket connections in dev
         : "'self' https://api.dafthunk.com", // Allow API connections
-    "media-src": "'self' https://api.dafthunk.com", // Allow audio/video from API
+    "media-src":
+      environment === "development"
+        ? "'self' https://api.dafthunk.com http://localhost:*" // Allow localhost HTTP in dev
+        : "'self' https://api.dafthunk.com", // Allow audio/video from API
     "frame-src": "'self' https://www.youtube.com", // Allow self-iframes and YouTube embeds
     "frame-ancestors": "'self' https://www.dafthunk.com", // Allow self-iframes, prevent external clickjacking
     "worker-src": "'self' blob: https://cdn.jsdelivr.net", // Allow Monaco Editor workers
