@@ -9,6 +9,7 @@ import * as THREE from "three";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { isObjectReference } from "@/services/object-service";
 
@@ -266,7 +267,7 @@ function CameraController({ sceneRef, trigger }: { sceneRef: React.RefObject<Gro
 }
 
 
-function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene: Group) => void }) {
+function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSceneLoad?: (scene: Group) => void; wireframeMode?: boolean }) {
   const groupRef = useRef<Group>(null);
   const { scene } = useAuthenticatedGLTF(url);
 
@@ -299,15 +300,15 @@ function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene
             mat.transparent = false;
             mat.opacity = 1.0;
 
+            // Set wireframe mode
+            mat.wireframe = wireframeMode || false;
+
             // If it's a MeshStandardMaterial, ensure it responds to lights
             if (mat.type === 'MeshStandardMaterial') {
               const stdMat = mat as THREE.MeshStandardMaterial;
               stdMat.needsUpdate = true;
               console.log('  Fixed MeshStandardMaterial properties');
             }
-
-            // Add wireframe mode for debugging
-            // mat.wireframe = true; // Uncomment to enable wireframe
           }
         }
       });
@@ -317,7 +318,7 @@ function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene
         onSceneLoad(scene);
       }
     }
-  }, [scene, onSceneLoad]);
+  }, [scene, onSceneLoad, wireframeMode]);
 
   if (!scene) {
     console.log('GLTF scene not ready yet');
@@ -425,6 +426,7 @@ const GltfRenderer = React.memo(({
   const renderID = useRef(Math.random().toString(36).substr(2, 9));
   const loadedSceneRef = useRef<Group | null>(null);
   const [sceneLoadTrigger, setSceneLoadTrigger] = useState(0);
+  const [wireframeMode, setWireframeMode] = useState(false);
   const isWebGLSupported = useMemo(() => checkWebGLSupport(), []);
 
 
@@ -579,7 +581,7 @@ const GltfRenderer = React.memo(({
 
               {/* glTF Model with Suspense inside Canvas */}
               <Suspense fallback={null}>
-                <GltfModel url={objectUrl} onSceneLoad={handleSceneLoad} />
+                <GltfModel url={objectUrl} onSceneLoad={handleSceneLoad} wireframeMode={wireframeMode} />
               </Suspense>
 
               {/* Camera controls */}
@@ -608,6 +610,22 @@ const GltfRenderer = React.memo(({
         >
           Download GLB File
         </a>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="wireframe-mode"
+            checked={wireframeMode}
+            onCheckedChange={setWireframeMode}
+          />
+          <label
+            htmlFor="wireframe-mode"
+            className="text-xs text-neutral-600 dark:text-neutral-400 cursor-pointer"
+          >
+            Wireframe
+          </label>
+        </div>
       </div>
     </div>
   );
