@@ -488,8 +488,8 @@ const GltfRenderer = React.memo(({
   }
 
   const viewerDimensions = compact
-    ? { width: 300, height: 200 }
-    : { width: 400, height: 300 };
+    ? { width: 180, height: 180 }
+    : { width: 320, height: 320 };
 
   return (
     <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
