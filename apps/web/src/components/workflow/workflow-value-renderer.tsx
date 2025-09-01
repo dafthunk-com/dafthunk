@@ -207,6 +207,17 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
     camera.position.copy(cameraPos);
     camera.lookAt(center);
 
+    // Dynamically set camera far plane based on distance
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const newFar = distance * 5; // 5x the distance to ensure we can see the entire model
+      const newNear = Math.max(0.1, distance / 10000); // Prevent z-fighting but keep reasonable near
+      
+      console.log('Updating camera planes - near:', newNear.toFixed(2), 'far:', newFar.toFixed(0));
+      camera.near = newNear;
+      camera.far = newFar;
+      camera.updateProjectionMatrix(); // Required after changing camera parameters
+    }
+
     // Verify the camera is actually looking at the center
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
@@ -265,13 +276,11 @@ function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene
       console.log('GLTF scene loaded successfully:');
       console.log('Scene children count:', scene.children.length);
       
-      // Debug scene contents
+      // Debug scene contents and fix material issues
       scene.traverse((child) => {
-//        console.log('Scene child:', child.type, child.name, child);
+        console.log('Scene child:', child.type, child.name);
         if (child.type === 'Mesh') {
           const mesh = child as THREE.Mesh;
-//          console.log('  Mesh geometry:', mesh.geometry);
-//          console.log('  Mesh material:', mesh.material);
           if (mesh.geometry) {
             const geo = mesh.geometry;
             console.log('  Vertices count:', geo.attributes.position?.count);
@@ -283,6 +292,21 @@ function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene
             console.log('  Material type:', mat.type);
             console.log('  Material visible:', mat.visible);
             console.log('  Material opacity:', mat.opacity);
+
+            // Force material to be visible and properly configured
+            mat.visible = true;
+            mat.transparent = false;
+            mat.opacity = 1.0;
+
+            // If it's a MeshStandardMaterial, ensure it responds to lights
+            if (mat.type === 'MeshStandardMaterial') {
+              const stdMat = mat as THREE.MeshStandardMaterial;
+              stdMat.needsUpdate = true;
+              console.log('  Fixed MeshStandardMaterial properties');
+            }
+
+            // Add wireframe mode for debugging
+            // mat.wireframe = true; // Uncomment to enable wireframe
           }
         }
       });
@@ -476,6 +500,7 @@ const GltfRenderer = React.memo(({
               camera={{
                 position: [2, 2, 2],
                 fov: 50,
+                // near and far will be set dynamically based on model size
               }}
               style={{ width: "100%", height: "100%" }}
               onCreated={({ gl }) => {
@@ -491,15 +516,16 @@ const GltfRenderer = React.memo(({
                   console.log('WebGL Context Restored Event');
                 });
                 
-                gl.setClearColor("#f8fafc");
+                gl.setClearColor("#000000"); // Black background for better model visibility
                 gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 console.log('Canvas setup complete');
               }}
             >
-              {/* Lighting setup */}
-              <ambientLight intensity={0.4} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-              <directionalLight position={[-10, -10, -5]} intensity={0.5} />
+              {/* Enhanced lighting setup for better model visibility */}
+              <ambientLight intensity={0.6} />
+              <directionalLight position={[10, 10, 5]} intensity={1.2} castShadow />
+              <directionalLight position={[-10, -10, -5]} intensity={0.8} />
+              <directionalLight position={[0, 10, 0]} intensity={0.6} /> {/* Top light */}
 
               {/* Camera controller for dynamic positioning */}
               <CameraController sceneRef={loadedSceneRef} trigger={sceneLoadTrigger} />
