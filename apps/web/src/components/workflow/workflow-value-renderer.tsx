@@ -191,17 +191,8 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspe
       return;
     }
 
-    // Adjust distance calculation for square viewport (aspect ratio = 1)
-    // For square viewports, we need slightly more distance to ensure full model visibility
-    let distanceMultiplier = 1.0;
-    if (Math.abs(viewportAspect - 1.0) < 0.1) {
-      // Square aspect ratio - increase distance slightly for better framing
-      distanceMultiplier = 1.0;
-    } else if (viewportAspect < 1.0) {
-      // Taller than wide - need more distance to fit horizontally
-      distanceMultiplier = 1.5 / viewportAspect;
-    }
-
+    // Fine-tune distance for optimal centering
+    const distanceMultiplier = 1.1; // Base distance for good framing
     const distance = maxDimension * distanceMultiplier;
 
     // Position camera at a diagonal angle above and to the side of the model
@@ -225,12 +216,8 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspe
       const newFar = distance * 5; // 5x the distance to ensure we can see the entire model
       const newNear = Math.max(0.1, distance / 10000); // Prevent z-fighting but keep reasonable near
       
-      // Adjust FOV slightly for square viewports to ensure good framing
-      let fov = 50; // Default FOV
-      if (Math.abs(viewportAspect - 1.0) < 0.1) {
-        // For square viewports, slightly wider FOV helps with model framing
-        fov = 55;
-      }
+      // Adjust FOV to ensure good framing
+      const fov = 50; // Default FOV
       
       console.log('Updating camera - fov:', fov, 'near:', newNear.toFixed(2), 'far:', newFar.toFixed(0));
       camera.fov = fov;
@@ -528,6 +515,73 @@ const GltfRenderer = React.memo(({
               onCreated={({ gl }) => {
                 console.log('Canvas onCreated - WebGL context created');
                 
+                // DOM HIERARCHY INVESTIGATION - Collect container context data
+                const canvas = gl.domElement;
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                console.log('=== DOM HIERARCHY ANALYSIS ===');
+                console.log('Canvas element:', canvas.tagName, canvas.className);
+                console.log('Canvas rect:', {
+                  width: canvasRect.width,
+                  height: canvasRect.height,
+                  top: canvasRect.top,
+                  left: canvasRect.left
+                });
+                
+                // Walk up the DOM hierarchy and log each parent container
+                let currentElement = canvas.parentElement;
+                let level = 1;
+                
+                while (currentElement && level <= 8) {
+                  const rect = currentElement.getBoundingClientRect();
+                  const computedStyle = window.getComputedStyle(currentElement);
+                  
+                  console.log(`Parent Level ${level}:`, {
+                    tag: currentElement.tagName,
+                    className: currentElement.className,
+                    rect: {
+                      width: rect.width,
+                      height: rect.height,
+                      top: rect.top,
+                      left: rect.left
+                    },
+                    styles: {
+                      position: computedStyle.position,
+                      transform: computedStyle.transform,
+                      overflow: computedStyle.overflow,
+                      display: computedStyle.display,
+                      width: computedStyle.width,
+                      height: computedStyle.height,
+                      maxWidth: computedStyle.maxWidth,
+                      maxHeight: computedStyle.maxHeight,
+                      margin: computedStyle.margin,
+                      padding: computedStyle.padding,
+                      border: computedStyle.border,
+                      zIndex: computedStyle.zIndex
+                    }
+                  });
+                  
+                  // Check for ReactFlow specific elements
+                  if (currentElement.className.includes('react-flow') || 
+                      currentElement.className.includes('workflow') ||
+                      currentElement.hasAttribute('data-reactflow-node')) {
+                    console.log(`>>> ReactFlow/Workflow Element Detected at Level ${level} <<<`);
+                  }
+                  
+                  currentElement = currentElement.parentElement;
+                  level++;
+                }
+                
+                // Log viewport and device info
+                console.log('Viewport Info:', {
+                  innerWidth: window.innerWidth,
+                  innerHeight: window.innerHeight,
+                  devicePixelRatio: window.devicePixelRatio,
+                  compact: compact
+                });
+                
+                console.log('=== END DOM HIERARCHY ANALYSIS ===');
+                
                 // Add minimal context loss monitoring
                 gl.domElement.addEventListener('webglcontextlost', (e) => {
                   console.error('WebGL Context Lost Event - preventing default');
@@ -539,7 +593,6 @@ const GltfRenderer = React.memo(({
                 });
                 
                 // Add event isolation for GLTF viewer
-                const canvas = gl.domElement;
                 
                 const stopEventPropagation = (e: Event) => {
                   // Allow right-click to pass through
