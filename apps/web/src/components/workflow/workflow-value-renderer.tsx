@@ -265,6 +265,7 @@ function CameraController({ sceneRef, trigger }: { sceneRef: React.RefObject<Gro
   return null;
 }
 
+
 function GltfModel({ url, onSceneLoad }: GltfModelProps & { onSceneLoad?: (scene: Group) => void }) {
   const groupRef = useRef<Group>(null);
   const { scene } = useAuthenticatedGLTF(url);
@@ -426,6 +427,7 @@ const GltfRenderer = React.memo(({
   const [sceneLoadTrigger, setSceneLoadTrigger] = useState(0);
   const isWebGLSupported = useMemo(() => checkWebGLSupport(), []);
 
+
   console.log(`=== GltfRenderer [${renderID.current}] ===`);
   console.log('ObjectURL:', objectUrl);
   console.log('WebGL supported:', isWebGLSupported);
@@ -438,6 +440,7 @@ const GltfRenderer = React.memo(({
     // Force camera positioning by triggering a re-render
     setSceneLoadTrigger(prev => prev + 1);
   }, []);
+
 
   const handleError = (error: Error, errorInfo: ErrorInfo) => {
     console.error("3D Viewer Error:", error);
@@ -516,9 +519,53 @@ const GltfRenderer = React.memo(({
                   console.log('WebGL Context Restored Event');
                 });
                 
+                // Add event isolation for GLTF viewer
+                const canvas = gl.domElement;
+                
+                const stopEventPropagation = (e: Event) => {
+                  // Allow right-click to pass through
+                  if (e.type === 'contextmenu' || (e as MouseEvent).button === 2) {
+                    return;
+                  }
+                  
+                  // Stop the event from bubbling to ReactFlow
+                  e.stopPropagation();
+                };
+                
+                // Add event listeners to canvas element
+                // Use setTimeout to ensure OrbitControls has attached its listeners first
+                setTimeout(() => {
+                  canvas.addEventListener('mousedown', stopEventPropagation, { capture: false });
+                  canvas.addEventListener('mousemove', stopEventPropagation, { capture: false });
+                  canvas.addEventListener('mouseup', stopEventPropagation, { capture: false });
+                  canvas.addEventListener('touchstart', stopEventPropagation, { capture: false });
+                  canvas.addEventListener('touchmove', stopEventPropagation, { capture: false });
+                  canvas.addEventListener('touchend', stopEventPropagation, { capture: false });
+                  console.log('Event isolation listeners attached after OrbitControls - mouse events isolated');
+                }, 100);
+
+                // Try intercepting wheel events on multiple parent levels to catch them after OrbitControls
+                const containerDiv = canvas.parentElement; // The styled div container
+                const outerDiv = containerDiv?.parentElement; // The error boundary div
+                
+                if (outerDiv) {
+                  setTimeout(() => {
+                    // Add wheel listener at a higher level in DOM tree to catch bubbling events
+                    outerDiv.addEventListener('wheel', (e: WheelEvent) => {
+                      // Check if the event target is within our GLTF viewer
+                      if (canvas.contains(e.target as Node) || e.target === canvas) {
+                        e.stopImmediatePropagation();
+                        console.log('Wheel event intercepted at outer level - stopped from reaching ReactFlow');
+                      }
+                    }, { capture: false });
+                    console.log('Wheel isolation attached at outer div level');
+                  }, 150);
+                }
+
+                
                 gl.setClearColor("#000000"); // Black background for better model visibility
                 gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                console.log('Canvas setup complete');
+                console.log('Canvas setup complete with event isolation');
               }}
             >
               {/* Enhanced lighting setup for better model visibility */}
