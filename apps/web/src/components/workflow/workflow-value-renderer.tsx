@@ -172,7 +172,7 @@ function useAuthenticatedGLTF(url: string) {
 }
 
 // Camera positioning utility
-const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
+const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspect: number = 1.0) => {
   try {
     // Calculate model bounds
     const box = new THREE.Box3().setFromObject(scene);
@@ -181,6 +181,7 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
 
     console.log('Model size:', size.x.toFixed(0), size.y.toFixed(0), size.z.toFixed(0));
     console.log('Model center:', center.x.toFixed(0), center.y.toFixed(0), center.z.toFixed(0));
+    console.log('Viewport aspect ratio:', viewportAspect.toFixed(2));
 
     // Calculate appropriate camera distance
     const maxDimension = Math.max(size.x, size.y, size.z);
@@ -190,14 +191,25 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
       return;
     }
 
-    // Position camera at 2x the largest dimension for better viewing
-    const distance = maxDimension * 2.0;
+    // Adjust distance calculation for square viewport (aspect ratio = 1)
+    // For square viewports, we need slightly more distance to ensure full model visibility
+    let distanceMultiplier = 1.0;
+    if (Math.abs(viewportAspect - 1.0) < 0.1) {
+      // Square aspect ratio - increase distance slightly for better framing
+      distanceMultiplier = 1.0;
+    } else if (viewportAspect < 1.0) {
+      // Taller than wide - need more distance to fit horizontally
+      distanceMultiplier = 1.5 / viewportAspect;
+    }
+
+    const distance = maxDimension * distanceMultiplier;
 
     // Position camera at a diagonal angle above and to the side of the model
+    // Adjust positioning slightly for square viewports to ensure better centering
     const cameraPos = new THREE.Vector3(
-      center.x + distance * 0.7,  // More to the side
-      center.y + distance * 1.0,  // Higher up
-      center.z + distance * 0.7   // More forward
+      center.x + distance * 0.6,  // Slightly less to the side for square viewport
+      center.y + distance * 0.9,  // Slightly lower for better framing
+      center.z + distance * 0.8   // More forward for better depth perception
     );
 
     console.log('BEFORE camera update - position:', camera.position.x.toFixed(0), camera.position.y.toFixed(0), camera.position.z.toFixed(0));
@@ -208,12 +220,20 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
     camera.position.copy(cameraPos);
     camera.lookAt(center);
 
-    // Dynamically set camera far plane based on distance
+    // Dynamically set camera properties based on distance and aspect ratio
     if (camera instanceof THREE.PerspectiveCamera) {
       const newFar = distance * 5; // 5x the distance to ensure we can see the entire model
       const newNear = Math.max(0.1, distance / 10000); // Prevent z-fighting but keep reasonable near
       
-      console.log('Updating camera planes - near:', newNear.toFixed(2), 'far:', newFar.toFixed(0));
+      // Adjust FOV slightly for square viewports to ensure good framing
+      let fov = 50; // Default FOV
+      if (Math.abs(viewportAspect - 1.0) < 0.1) {
+        // For square viewports, slightly wider FOV helps with model framing
+        fov = 55;
+      }
+      
+      console.log('Updating camera - fov:', fov, 'near:', newNear.toFixed(2), 'far:', newFar.toFixed(0));
+      camera.fov = fov;
       camera.near = newNear;
       camera.far = newFar;
       camera.updateProjectionMatrix(); // Required after changing camera parameters
@@ -231,15 +251,19 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera) => {
 };
 
 // Hook to monitor scene ref and position camera when available
-function useSceneCamera(sceneRef: React.RefObject<Group | null>, trigger: number) {
-  const { camera } = useThree();
+function useSceneCamera(sceneRef: React.RefObject<Group | null>, trigger: number, viewportAspect: number = 1.0) {
+  const { camera, size } = useThree();
   const lastSceneUUID = useRef<string | null>(null);
 
   useEffect(() => {
     const scene = sceneRef.current;
     
+    // Calculate actual aspect ratio from Three.js size if available, fallback to provided aspect
+    const actualAspect = size.width && size.height ? size.width / size.height : viewportAspect;
+    
     console.log('useSceneCamera: Checking scene - scene:', !!scene, 'camera:', !!camera, 'trigger:', trigger);
     console.log('useSceneCamera: Current UUID:', scene?.uuid, 'Last UUID:', lastSceneUUID.current);
+    console.log('useSceneCamera: Viewport size:', size.width, 'x', size.height, 'aspect:', actualAspect.toFixed(2));
 
     if (!scene || !camera) {
       console.log('useSceneCamera: Missing scene or camera, skipping');
@@ -254,15 +278,15 @@ function useSceneCamera(sceneRef: React.RefObject<Group | null>, trigger: number
 
     console.log('useSceneCamera: New scene detected, positioning camera');
     lastSceneUUID.current = scene.uuid;
-    positionCameraForScene(scene, camera);
-  }, [trigger]); // Re-run when trigger changes
+    positionCameraForScene(scene, camera, actualAspect);
+  }, [trigger, viewportAspect, size.width, size.height]); // Re-run when trigger, aspect ratio, or size changes
 
   return null;
 }
 
 // Simple camera controller that monitors scene ref
-function CameraController({ sceneRef, trigger }: { sceneRef: React.RefObject<Group | null>, trigger: number }) {
-  useSceneCamera(sceneRef, trigger);
+function CameraController({ sceneRef, trigger, viewportAspect }: { sceneRef: React.RefObject<Group | null>, trigger: number, viewportAspect?: number }) {
+  useSceneCamera(sceneRef, trigger, viewportAspect);
   return null;
 }
 
@@ -300,8 +324,10 @@ function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSce
             mat.transparent = false;
             mat.opacity = 1.0;
 
-            // Set wireframe mode
-            mat.wireframe = wireframeMode || false;
+            // Set wireframe mode (only for materials that support it)
+            if ('wireframe' in mat) {
+              (mat as any).wireframe = wireframeMode || false;
+            }
 
             // If it's a MeshStandardMaterial, ensure it responds to lights
             if (mat.type === 'MeshStandardMaterial') {
@@ -328,18 +354,6 @@ function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSce
   return <primitive ref={groupRef} object={scene} />;
 }
 
-function GltfLoadingFallback() {
-  return (
-    <div className="flex items-center justify-center w-full h-full bg-slate-50 dark:bg-slate-900 rounded border">
-      <div className="flex flex-col items-center space-y-2">
-        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          Loading 3D model...
-        </span>
-      </div>
-    </div>
-  );
-}
 
 class GltfViewerErrorBoundary extends Component<
   { children: ReactNode; onError: (error: Error, errorInfo: ErrorInfo) => void },
@@ -493,6 +507,9 @@ const GltfRenderer = React.memo(({
     ? { width: 180, height: 180 }
     : { width: 320, height: 320 };
 
+  // Calculate aspect ratio for camera positioning
+  const aspectRatio = viewerDimensions.width / viewerDimensions.height;
+
   return (
     <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
       <GltfViewerErrorBoundary onError={handleError}>
@@ -577,7 +594,7 @@ const GltfRenderer = React.memo(({
               <directionalLight position={[0, 10, 0]} intensity={0.6} /> {/* Top light */}
 
               {/* Camera controller for dynamic positioning */}
-              <CameraController sceneRef={loadedSceneRef} trigger={sceneLoadTrigger} />
+              <CameraController sceneRef={loadedSceneRef} trigger={sceneLoadTrigger} viewportAspect={aspectRatio} />
 
               {/* glTF Model with Suspense inside Canvas */}
               <Suspense fallback={null}>
