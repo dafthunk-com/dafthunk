@@ -241,3 +241,14 @@ html.dark .shiki span {
   content: counter(item) ". ";
   counter-increment: item;
 }
+
+/* GLTF Canvas Container - Prevent ReactFlow interference */
+.gltf-canvas-container {
+  contain: layout style size;
+  transform: none !important;
+}
+
+.gltf-canvas-container canvas {
+  transform: none !important;
+  image-rendering: auto;
+}
