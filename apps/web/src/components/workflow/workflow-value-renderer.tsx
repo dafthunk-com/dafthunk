@@ -179,9 +179,6 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspe
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    console.log('Model size:', size.x.toFixed(0), size.y.toFixed(0), size.z.toFixed(0));
-    console.log('Model center:', center.x.toFixed(0), center.y.toFixed(0), center.z.toFixed(0));
-    console.log('Viewport aspect ratio:', viewportAspect.toFixed(2));
 
     // Calculate appropriate camera distance
     const maxDimension = Math.max(size.x, size.y, size.z);
@@ -203,9 +200,6 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspe
       center.z + distance * 0.8   // More forward for better depth perception
     );
 
-    console.log('BEFORE camera update - position:', camera.position.x.toFixed(0), camera.position.y.toFixed(0), camera.position.z.toFixed(0));
-    console.log('Setting camera at distance:', distance.toFixed(0), 'new position:', cameraPos.x.toFixed(0), cameraPos.y.toFixed(0), cameraPos.z.toFixed(0));
-    console.log('Camera will look at center:', center.x.toFixed(0), center.y.toFixed(0), center.z.toFixed(0));
 
     // Update camera imperatively
     camera.position.copy(cameraPos);
@@ -219,18 +213,12 @@ const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspe
       // Adjust FOV to ensure good framing
       const fov = 50; // Default FOV
       
-      console.log('Updating camera - fov:', fov, 'near:', newNear.toFixed(2), 'far:', newFar.toFixed(0));
       camera.fov = fov;
       camera.near = newNear;
       camera.far = newFar;
       camera.updateProjectionMatrix(); // Required after changing camera parameters
     }
 
-    // Verify the camera is actually looking at the center
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    console.log('Camera direction after lookAt:', direction.x.toFixed(3), direction.y.toFixed(3), direction.z.toFixed(3));
-    console.log('AFTER camera update - position:', camera.position.x.toFixed(0), camera.position.y.toFixed(0), camera.position.z.toFixed(0));
 
   } catch (error) {
     console.error('Camera positioning error:', error);
@@ -248,22 +236,15 @@ function useSceneCamera(sceneRef: React.RefObject<Group | null>, trigger: number
     // Calculate actual aspect ratio from Three.js size if available, fallback to provided aspect
     const actualAspect = size.width && size.height ? size.width / size.height : viewportAspect;
     
-    console.log('useSceneCamera: Checking scene - scene:', !!scene, 'camera:', !!camera, 'trigger:', trigger);
-    console.log('useSceneCamera: Current UUID:', scene?.uuid, 'Last UUID:', lastSceneUUID.current);
-    console.log('useSceneCamera: Viewport size:', size.width, 'x', size.height, 'aspect:', actualAspect.toFixed(2));
 
     if (!scene || !camera) {
-      console.log('useSceneCamera: Missing scene or camera, skipping');
       return;
     }
 
     // Only position camera if scene has changed (different UUID)
     if (scene.uuid === lastSceneUUID.current) {
-      console.log('useSceneCamera: Same scene UUID, skipping positioning');
       return;
     }
-
-    console.log('useSceneCamera: New scene detected, positioning camera');
     lastSceneUUID.current = scene.uuid;
     positionCameraForScene(scene, camera, actualAspect);
   }, [trigger, viewportAspect, size.width, size.height]); // Re-run when trigger, aspect ratio, or size changes
@@ -282,29 +263,16 @@ function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSce
   const groupRef = useRef<Group>(null);
   const { scene } = useAuthenticatedGLTF(url);
 
-  console.log('GltfModel rendering with scene:');
   
   useEffect(() => {
     if (scene) {
-      console.log('GLTF scene loaded successfully:');
-      console.log('Scene children count:', scene.children.length);
       
-      // Debug scene contents and fix material issues
+      // Fix material issues
       scene.traverse((child) => {
-        console.log('Scene child:', child.type, child.name);
         if (child.type === 'Mesh') {
           const mesh = child as THREE.Mesh;
-          if (mesh.geometry) {
-            const geo = mesh.geometry;
-            console.log('  Vertices count:', geo.attributes.position?.count);
-            console.log('  Has normals:', !!geo.attributes.normal);
-            console.log('  Has UVs:', !!geo.attributes.uv);
-          }
           if (mesh.material) {
             const mat = mesh.material as THREE.Material;
-            console.log('  Material type:', mat.type);
-            console.log('  Material visible:', mat.visible);
-            console.log('  Material opacity:', mat.opacity);
 
             // Force material to be visible and properly configured
             mat.visible = true;
@@ -320,7 +288,6 @@ function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSce
             if (mat.type === 'MeshStandardMaterial') {
               const stdMat = mat as THREE.MeshStandardMaterial;
               stdMat.needsUpdate = true;
-              console.log('  Fixed MeshStandardMaterial properties');
             }
           }
         }
@@ -334,7 +301,6 @@ function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSce
   }, [scene, onSceneLoad, wireframeMode]);
 
   if (!scene) {
-    console.log('GLTF scene not ready yet');
     return null;
   }
 
@@ -431,13 +397,9 @@ const GltfRenderer = React.memo(({
   const isWebGLSupported = useMemo(() => checkWebGLSupport(), []);
 
 
-  console.log(`=== GltfRenderer [${renderID.current}] ===`);
-  console.log('ObjectURL:', objectUrl);
-  console.log('WebGL supported:', isWebGLSupported);
 
   // Callback to update scene ref and trigger camera positioning
   const handleSceneLoad = useCallback((scene: Group) => {
-    console.log('GltfRenderer: Scene loaded, updating ref and triggering camera positioning');
     loadedSceneRef.current = scene;
     
     // Force camera positioning by triggering a re-render
@@ -513,75 +475,6 @@ const GltfRenderer = React.memo(({
               }}
               style={{ width: "100%", height: "100%" }}
               onCreated={({ gl }) => {
-                console.log('Canvas onCreated - WebGL context created');
-                
-                // DOM HIERARCHY INVESTIGATION - Collect container context data
-                const canvas = gl.domElement;
-                const canvasRect = canvas.getBoundingClientRect();
-                
-                console.log('=== DOM HIERARCHY ANALYSIS ===');
-                console.log('Canvas element:', canvas.tagName, canvas.className);
-                console.log('Canvas rect:', {
-                  width: canvasRect.width,
-                  height: canvasRect.height,
-                  top: canvasRect.top,
-                  left: canvasRect.left
-                });
-                
-                // Walk up the DOM hierarchy and log each parent container
-                let currentElement = canvas.parentElement;
-                let level = 1;
-                
-                while (currentElement && level <= 8) {
-                  const rect = currentElement.getBoundingClientRect();
-                  const computedStyle = window.getComputedStyle(currentElement);
-                  
-                  console.log(`Parent Level ${level}:`, {
-                    tag: currentElement.tagName,
-                    className: currentElement.className,
-                    rect: {
-                      width: rect.width,
-                      height: rect.height,
-                      top: rect.top,
-                      left: rect.left
-                    },
-                    styles: {
-                      position: computedStyle.position,
-                      transform: computedStyle.transform,
-                      overflow: computedStyle.overflow,
-                      display: computedStyle.display,
-                      width: computedStyle.width,
-                      height: computedStyle.height,
-                      maxWidth: computedStyle.maxWidth,
-                      maxHeight: computedStyle.maxHeight,
-                      margin: computedStyle.margin,
-                      padding: computedStyle.padding,
-                      border: computedStyle.border,
-                      zIndex: computedStyle.zIndex
-                    }
-                  });
-                  
-                  // Check for ReactFlow specific elements
-                  if (currentElement.className.includes('react-flow') || 
-                      currentElement.className.includes('workflow') ||
-                      currentElement.hasAttribute('data-reactflow-node')) {
-                    console.log(`>>> ReactFlow/Workflow Element Detected at Level ${level} <<<`);
-                  }
-                  
-                  currentElement = currentElement.parentElement;
-                  level++;
-                }
-                
-                // Log viewport and device info
-                console.log('Viewport Info:', {
-                  innerWidth: window.innerWidth,
-                  innerHeight: window.innerHeight,
-                  devicePixelRatio: window.devicePixelRatio,
-                  compact: compact
-                });
-                
-                console.log('=== END DOM HIERARCHY ANALYSIS ===');
-                
                 // Add minimal context loss monitoring
                 gl.domElement.addEventListener('webglcontextlost', (e) => {
                   console.error('WebGL Context Lost Event - preventing default');
@@ -593,6 +486,7 @@ const GltfRenderer = React.memo(({
                 });
                 
                 // Add event isolation for GLTF viewer
+                const canvas = gl.domElement;
                 
                 const stopEventPropagation = (e: Event) => {
                   // Allow right-click to pass through
@@ -613,7 +507,6 @@ const GltfRenderer = React.memo(({
                   canvas.addEventListener('touchstart', stopEventPropagation, { capture: false });
                   canvas.addEventListener('touchmove', stopEventPropagation, { capture: false });
                   canvas.addEventListener('touchend', stopEventPropagation, { capture: false });
-                  console.log('Event isolation listeners attached after OrbitControls - mouse events isolated');
                 }, 100);
 
                 // Try intercepting wheel events on multiple parent levels to catch them after OrbitControls
@@ -627,17 +520,14 @@ const GltfRenderer = React.memo(({
                       // Check if the event target is within our GLTF viewer
                       if (canvas.contains(e.target as Node) || e.target === canvas) {
                         e.stopImmediatePropagation();
-                        console.log('Wheel event intercepted at outer level - stopped from reaching ReactFlow');
                       }
                     }, { capture: false });
-                    console.log('Wheel isolation attached at outer div level');
                   }, 150);
                 }
 
                 
                 gl.setClearColor("#000000"); // Black background for better model visibility
                 gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                console.log('Canvas setup complete with event isolation');
               }}
             >
               {/* Enhanced lighting setup for better model visibility */}
