@@ -172,7 +172,7 @@ function useAuthenticatedGLTF(url: string) {
 }
 
 // Camera positioning utility
-const positionCameraForScene = (scene: Group, camera: THREE.Camera, viewportAspect: number = 1.0) => {
+const positionCameraForScene = (scene: Group, camera: THREE.Camera, _viewportAspect: number = 1.0) => {
   try {
     // Calculate model bounds
     const box = new THREE.Box3().setFromObject(scene);
@@ -463,7 +463,7 @@ const GltfRenderer = React.memo(({
     <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
       <GltfViewerErrorBoundary onError={handleError}>
         <div
-          className="relative bg-slate-50 dark:bg-slate-900 rounded border"
+          className="relative bg-slate-50 dark:bg-slate-900 rounded border gltf-canvas-container"
           style={{ width: viewerDimensions.width, height: viewerDimensions.height }}
         >
           <Canvas
@@ -473,8 +473,25 @@ const GltfRenderer = React.memo(({
                 fov: 50,
                 // near and far will be set dynamically based on model size
               }}
-              style={{ width: "100%", height: "100%" }}
+              style={{ 
+                width: `${viewerDimensions.width}px !important`,
+                height: `${viewerDimensions.height}px !important`,
+                maxWidth: `${viewerDimensions.width}px`,
+                maxHeight: `${viewerDimensions.height}px`,
+                minWidth: `${viewerDimensions.width}px`,
+                minHeight: `${viewerDimensions.height}px`
+              }}
               onCreated={({ gl }) => {
+                // Force Three.js to respect our dimensions
+                gl.setSize(viewerDimensions.width, viewerDimensions.height, false);
+                
+                // Ensure DOM element matches our intended size
+                const canvas = gl.domElement;
+                canvas.style.width = `${viewerDimensions.width}px`;
+                canvas.style.height = `${viewerDimensions.height}px`;
+                canvas.style.maxWidth = `${viewerDimensions.width}px`;
+                canvas.style.maxHeight = `${viewerDimensions.height}px`;
+                
                 // Add minimal context loss monitoring
                 gl.domElement.addEventListener('webglcontextlost', (e) => {
                   console.error('WebGL Context Lost Event - preventing default');
@@ -486,7 +503,6 @@ const GltfRenderer = React.memo(({
                 });
                 
                 // Add event isolation for GLTF viewer
-                const canvas = gl.domElement;
                 
                 const stopEventPropagation = (e: Event) => {
                   // Allow right-click to pass through
