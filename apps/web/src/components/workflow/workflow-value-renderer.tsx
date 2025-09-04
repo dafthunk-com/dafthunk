@@ -276,8 +276,7 @@ function GltfModel({ url, onSceneLoad, wireframeMode }: GltfModelProps & { onSce
 
             // Force material to be visible and properly configured
             mat.visible = true;
-            mat.transparent = false;
-            mat.opacity = 1.0;
+            mat.transparent = true;
 
             // Set wireframe mode (only for materials that support it)
             if ('wireframe' in mat) {
@@ -452,19 +451,43 @@ const GltfRenderer = React.memo(({
     );
   }
 
-  const viewerDimensions = compact
+  const viewerDimensions = useMemo(() => compact
     ? { width: 180, height: 180 }
-    : { width: 320, height: 320 };
+    : { width: 320, height: 320 }, [compact]);
 
   // Calculate aspect ratio for camera positioning
   const aspectRatio = viewerDimensions.width / viewerDimensions.height;
+
+  // Memoized Canvas style to prevent re-renders and ensure consistent sizing
+  const canvasStyle = useMemo(() => ({
+    width: `${viewerDimensions.width}px`,
+    height: `${viewerDimensions.height}px`,
+    maxWidth: `${viewerDimensions.width}px`,
+    maxHeight: `${viewerDimensions.height}px`,
+    minWidth: `${viewerDimensions.width}px`,
+    minHeight: `${viewerDimensions.height}px`,
+    display: 'block', // Prevent any inline element spacing issues
+    ...(compact ? {
+      position: 'absolute' as const,
+      top: '0',
+      left: '0',
+      zIndex: 9999,
+    } : {})
+  }), [viewerDimensions.width, viewerDimensions.height, compact]);
 
   return (
     <div className={compact ? "mt-1 space-y-2" : "mt-2 space-y-3"}>
       <GltfViewerErrorBoundary onError={handleError}>
         <div
-          className="relative bg-slate-50 dark:bg-slate-900 rounded border gltf-canvas-container"
-          style={{ width: viewerDimensions.width, height: viewerDimensions.height }}
+          className={`${compact ? 'relative' : 'relative gltf-canvas-container'} bg-slate-50 dark:bg-slate-900 rounded border`}
+          style={{
+            width: viewerDimensions.width,
+            height: viewerDimensions.height,
+            ...(compact ? {
+              overflow: 'visible', // Allow absolute Canvas to escape container bounds
+              zIndex: 1 // Ensure container doesn't interfere with Canvas z-index
+            } : {})
+          }}
         >
           <Canvas
               key={`gltf-canvas-${renderID.current}`} // Stable key per component instance
@@ -473,25 +496,28 @@ const GltfRenderer = React.memo(({
                 fov: 50,
                 // near and far will be set dynamically based on model size
               }}
-              style={{ 
-                width: `${viewerDimensions.width}px !important`,
-                height: `${viewerDimensions.height}px !important`,
-                maxWidth: `${viewerDimensions.width}px`,
-                maxHeight: `${viewerDimensions.height}px`,
-                minWidth: `${viewerDimensions.width}px`,
-                minHeight: `${viewerDimensions.height}px`
-              }}
-              onCreated={({ gl }) => {
-                // Force Three.js to respect our dimensions
+              style={canvasStyle}
+              dpr={1} // Force device pixel ratio to 1 to prevent scaling
+              resize={{ scroll: false, debounce: 0 }} // Disable automatic resizing
+              onCreated={({ gl, size }) => {
+                // Log initial state for debugging
+                console.log('Canvas onCreated - initial size:', size, 'intended:', viewerDimensions, 'compact:', compact);
+
+                // Force Three.js to respect our exact dimensions immediately
                 gl.setSize(viewerDimensions.width, viewerDimensions.height, false);
                 
-                // Ensure DOM element matches our intended size
+                // Ensure DOM element matches our intended size (prevents any scaling animation)
                 const canvas = gl.domElement;
                 canvas.style.width = `${viewerDimensions.width}px`;
                 canvas.style.height = `${viewerDimensions.height}px`;
                 canvas.style.maxWidth = `${viewerDimensions.width}px`;
                 canvas.style.maxHeight = `${viewerDimensions.height}px`;
                 
+                // Set pixel ratio to 1 to prevent any scaling calculations
+                gl.setPixelRatio(1);
+                gl.setClearColor("#000000"); // Black background for better model visibility
+
+
                 // Add minimal context loss monitoring
                 gl.domElement.addEventListener('webglcontextlost', (e) => {
                   console.error('WebGL Context Lost Event - preventing default');
@@ -541,9 +567,6 @@ const GltfRenderer = React.memo(({
                   }, 150);
                 }
 
-                
-                gl.setClearColor("#000000"); // Black background for better model visibility
-                gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
               }}
             >
               {/* Enhanced lighting setup for better model visibility */}
@@ -1147,19 +1170,11 @@ export function WorkflowValueRenderer({
           }
           if (parameter.value.mimeType === "model/gltf-binary") {
             return (
-              <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-                <div className="text-xs text-neutral-500">
-                  glTF Model ({parameter.value.mimeType})
-                </div>
-                <a
-                  href={objectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-500 hover:underline flex items-center"
-                >
-                  Download GLB File
-                </a>
-              </div>
+              <GltfRenderer
+                parameter={parameter}
+                objectUrl={objectUrl}
+                compact={compact}
+              />
             );
           }
           if (
