@@ -251,4 +251,12 @@ html.dark .shiki span {
 .gltf-canvas-container canvas {
   transform: none !important;
   image-rendering: auto;
+  transition: none !important;
+  animation: none !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 10 !important;
+  background: #000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
