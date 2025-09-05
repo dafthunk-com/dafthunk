@@ -1,26 +1,8 @@
-import { BoxGeometryNode } from "./3d/box-geometry-node";
 import { BufferGeometryToGltfNode } from "./3d/buffergeometry-to-gltf-node";
-import { CapsuleGeometryNode } from "./3d/capsule-geometry-node";
-import { CircleGeometryNode } from "./3d/circle-geometry-node";
-import { ConeGeometryNode } from "./3d/cone-geometry-node";
-import { CylinderGeometryNode } from "./3d/cylinder-geometry-node";
 import { DemToBufferGeometryNode } from "./3d/dem-to-buffergeometry-node";
-import { DodecahedronGeometryNode } from "./3d/dodecahedron-geometry-node";
 import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
-import { IcosahedronGeometryNode } from "./3d/icosahedron-geometry-node";
-import { LatheGeometryNode } from "./3d/lathe-geometry-node";
-import { OctahedronGeometryNode } from "./3d/octahedron-geometry-node";
-import { PlaneGeometryNode } from "./3d/plane-geometry-node";
-import { RingGeometryNode } from "./3d/ring-geometry-node";
-import { RotateGeometryNode } from "./3d/rotate-geometry-node";
-import { ScaleGeometryNode } from "./3d/scale-geometry-node";
-import { SphereGeometryNode } from "./3d/sphere-geometry-node";
-import { TetrahedronGeometryNode } from "./3d/tetrahedron-geometry-node";
-import { TorusGeometryNode } from "./3d/torus-geometry-node";
-import { TorusKnotGeometryNode } from "./3d/torus-knot-geometry-node";
-import { TranslateGeometryNode } from "./3d/translate-geometry-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
@@ -492,24 +474,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // 3D Tiles workflow nodes
     if (this.developerMode) {
-      this.registerImplementation(BoxGeometryNode);
-      this.registerImplementation(CapsuleGeometryNode);
-      this.registerImplementation(CircleGeometryNode);
-      this.registerImplementation(ConeGeometryNode);
-      this.registerImplementation(CylinderGeometryNode);
-      this.registerImplementation(DodecahedronGeometryNode);
-      this.registerImplementation(IcosahedronGeometryNode);
-      this.registerImplementation(LatheGeometryNode);
-      this.registerImplementation(OctahedronGeometryNode);
-      this.registerImplementation(PlaneGeometryNode);
-      this.registerImplementation(RingGeometryNode);
-      this.registerImplementation(SphereGeometryNode);
-      this.registerImplementation(TetrahedronGeometryNode);
-      this.registerImplementation(TorusGeometryNode);
-      this.registerImplementation(TorusKnotGeometryNode);
-      this.registerImplementation(TranslateGeometryNode);
-      this.registerImplementation(ScaleGeometryNode);
-      this.registerImplementation(RotateGeometryNode);
       this.registerImplementation(BufferGeometryToGltfNode);
       this.registerImplementation(DemToBufferGeometryNode);
       this.registerImplementation(GeoTiffDemQueryNode);
