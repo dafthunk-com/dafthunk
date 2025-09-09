@@ -1,12 +1,13 @@
 import { ObjectReference } from "@dafthunk/types";
 import { type GeoJSONSvgOptions, geojsonToSvg } from "@dafthunk/utils";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { CodeBlock } from "@/components/docs/code-block";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { isObjectReference } from "@/services/object-service";
 
+import { GltfViewer } from "./gltf-viewer";
 import { WorkflowParameter } from "./workflow-types";
 
 interface WorkflowValueRendererProps {
@@ -562,19 +563,11 @@ export function WorkflowValueRenderer({
         );
       case "gltf":
         return (
-          <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-            <div className="text-xs text-neutral-500">
-              glTF Model ({parameter.value.mimeType})
-            </div>
-            <a
-              href={objectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-500 hover:underline flex items-center"
-            >
-              Download GLB File
-            </a>
-          </div>
+          <GltfViewer
+            parameter={parameter}
+            objectUrl={objectUrl}
+            compact={compact}
+          />
         );
       case "point":
       case "multipoint":
@@ -636,19 +629,11 @@ export function WorkflowValueRenderer({
           }
           if (parameter.value.mimeType === "model/gltf-binary") {
             return (
-              <div className={compact ? "mt-1 space-y-1" : "mt-2 space-y-2"}>
-                <div className="text-xs text-neutral-500">
-                  glTF Model ({parameter.value.mimeType})
-                </div>
-                <a
-                  href={objectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-500 hover:underline flex items-center"
-                >
-                  Download GLB File
-                </a>
-              </div>
+              <GltfViewer
+                parameter={parameter}
+                objectUrl={objectUrl}
+                compact={compact}
+              />
             );
           }
           if (
