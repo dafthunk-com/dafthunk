@@ -41,13 +41,15 @@ export class Nova3Node extends ExecutableNode {
       {
         name: "detect_language",
         type: "boolean",
-        description: "Identifies the dominant language spoken in submitted audio",
+        description:
+          "Identifies the dominant language spoken in submitted audio",
         value: true,
       },
       {
         name: "diarize",
         type: "boolean",
-        description: "Recognize speaker changes. Each word will be assigned a speaker number",
+        description:
+          "Recognize speaker changes. Each word will be assigned a speaker number",
         value: false,
       },
       {
@@ -71,7 +73,8 @@ export class Nova3Node extends ExecutableNode {
       {
         name: "smart_format",
         type: "boolean",
-        description: "Apply formatting to transcript output for improved readability",
+        description:
+          "Apply formatting to transcript output for improved readability",
         value: true,
       },
       {
@@ -83,7 +86,8 @@ export class Nova3Node extends ExecutableNode {
       {
         name: "paragraphs",
         type: "boolean",
-        description: "Splits audio into paragraphs to improve transcript readability",
+        description:
+          "Splits audio into paragraphs to improve transcript readability",
         value: false,
       },
       {
@@ -113,19 +117,22 @@ export class Nova3Node extends ExecutableNode {
       {
         name: "measurements",
         type: "boolean",
-        description: "Convert spoken measurements to their corresponding abbreviations",
+        description:
+          "Convert spoken measurements to their corresponding abbreviations",
         value: false,
       },
       {
         name: "language",
         type: "string",
-        description: "The BCP-47 language tag that hints at the primary spoken language",
+        description:
+          "The BCP-47 language tag that hints at the primary spoken language",
         value: "",
       },
       {
         name: "mode",
         type: "string",
-        description: "Mode of operation for the model (general, medical, finance)",
+        description:
+          "Mode of operation for the model (general, medical, finance)",
         value: "general",
       },
       {
@@ -149,7 +156,8 @@ export class Nova3Node extends ExecutableNode {
       {
         name: "keywords",
         type: "string",
-        description: "Keywords to boost or suppress specialized terminology and brands",
+        description:
+          "Keywords to boost or suppress specialized terminology and brands",
         value: "",
       },
       {
@@ -180,7 +188,8 @@ export class Nova3Node extends ExecutableNode {
       {
         name: "words",
         type: "json",
-        description: "Detailed word timing information with speaker assignments",
+        description:
+          "Detailed word timing information with speaker assignments",
         hidden: true,
       },
       {
@@ -246,7 +255,7 @@ export class Nova3Node extends ExecutableNode {
         start(controller) {
           controller.enqueue(audio.data);
           controller.close();
-        }
+        },
       });
 
       const params: any = {
@@ -257,17 +266,20 @@ export class Nova3Node extends ExecutableNode {
       };
 
       // Add optional parameters only if they are provided and not default values
-      if (detect_language !== undefined) params.detect_language = detect_language;
+      if (detect_language !== undefined)
+        params.detect_language = detect_language;
       if (diarize !== undefined) params.diarize = diarize;
       if (sentiment !== undefined) params.sentiment = sentiment;
       if (topics !== undefined) params.topics = topics;
-      if (detect_entities !== undefined) params.detect_entities = detect_entities;
+      if (detect_entities !== undefined)
+        params.detect_entities = detect_entities;
       if (smart_format !== undefined) params.smart_format = smart_format;
       if (punctuate !== undefined) params.punctuate = punctuate;
       if (paragraphs !== undefined) params.paragraphs = paragraphs;
       if (utterances !== undefined) params.utterances = utterances;
       if (filler_words !== undefined) params.filler_words = filler_words;
-      if (profanity_filter !== undefined) params.profanity_filter = profanity_filter;
+      if (profanity_filter !== undefined)
+        params.profanity_filter = profanity_filter;
       if (numerals !== undefined) params.numerals = numerals;
       if (measurements !== undefined) params.measurements = measurements;
       if (language && language.trim()) params.language = language;
@@ -276,8 +288,10 @@ export class Nova3Node extends ExecutableNode {
       if (channels && channels !== 1) params.channels = channels;
       if (multichannel !== undefined) params.multichannel = multichannel;
       if (keywords && keywords.trim()) params.keywords = keywords;
-      if (custom_topic && custom_topic.trim()) params.custom_topic = custom_topic;
-      if (custom_intent && custom_intent.trim()) params.custom_intent = custom_intent;
+      if (custom_topic && custom_topic.trim())
+        params.custom_topic = custom_topic;
+      if (custom_intent && custom_intent.trim())
+        params.custom_intent = custom_intent;
 
       // Call Cloudflare AI Nova-3 model
       const response = await context.env.AI.run(
@@ -294,7 +308,7 @@ export class Nova3Node extends ExecutableNode {
 
       const channel = results.channels[0];
       const alternative = channel.alternatives?.[0];
-      
+
       if (!alternative) {
         throw new Error("No transcription alternatives found in response");
       }
@@ -310,7 +324,7 @@ export class Nova3Node extends ExecutableNode {
       if (results.summary) {
         output.summary = results.summary;
       }
-      
+
       if (results.sentiments) {
         output.sentiments = results.sentiments;
       }

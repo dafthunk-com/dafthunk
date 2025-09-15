@@ -47,7 +47,9 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input: expected object, received undefined");
+    expect(result.error).toContain(
+      "Invalid input: expected object, received undefined"
+    );
   });
 
   it("handles missing bounds parameter", async () => {
@@ -61,7 +63,9 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input: expected tuple, received undefined");
+    expect(result.error).toContain(
+      "Invalid input: expected tuple, received undefined"
+    );
   });
 
   it("handles invalid image format", async () => {
@@ -89,7 +93,9 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Invalid input: expected number, received undefined");
+    expect(result.error).toContain(
+      "Invalid input: expected number, received undefined"
+    );
   });
 
   it("handles invalid martini error", async () => {

@@ -116,10 +116,14 @@ export class Aura1Node extends ExecutableNode {
       if (container && encoding && !["mp3", "opus", "aac"].includes(encoding)) {
         params.container = container;
       }
-      
+
       // Sample rate and bit rate are only valid for certain encodings
       // According to the documentation, these parameters depend on the encoding type
-      if (sample_rate && encoding && !["mp3", "opus", "aac"].includes(encoding)) {
+      if (
+        sample_rate &&
+        encoding &&
+        !["mp3", "opus", "aac"].includes(encoding)
+      ) {
         params.sample_rate = sample_rate;
       }
       if (bit_rate && encoding && !["mp3", "opus", "aac"].includes(encoding)) {
