@@ -6,6 +6,7 @@ import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { Aura1Node } from "./audio/aura-1-node";
 import { MelottsNode } from "./audio/melotts-node";
+import { Nova3Node } from "./audio/nova-3-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
@@ -387,6 +388,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(ExifReaderNode);
     this.registerImplementation(Aura1Node);
     this.registerImplementation(MelottsNode);
+    this.registerImplementation(Nova3Node);
     this.registerImplementation(WebcamNode);
 
     // String operations

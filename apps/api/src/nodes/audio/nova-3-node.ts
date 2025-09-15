@@ -17,8 +17,6 @@ export class Nova3Node extends ExecutableNode {
     icon: "mic",
     documentation: `This node transcribes speech from audio files using Deepgram's Nova-3 model, providing high-quality speech-to-text conversion with advanced features like speaker diarization, sentiment analysis, and topic detection.
 
-⚠️ **CURRENTLY NOT SUPPORTED**: Nova-3 is not currently compatible with Cloudflare's AI Gateway due to incompatible audio format requirements. The API requires a specific \`{audio: {body, contentType}}\` format that the AI Gateway cannot handle.
-
 ## Usage Example
 
 - **Input**: audio file (MP3, WAV, etc.)
@@ -31,16 +29,7 @@ export class Nova3Node extends ExecutableNode {
 - **Topic Detection**: Automatically detect topics in the audio
 - **Language Detection**: Automatically detect the spoken language
 - **Smart Formatting**: Apply intelligent formatting to improve readability
-- **Entity Detection**: Identify and extract key entities from content
-
-## Pricing
-
-- Regular HTTP: $0.0052 per audio minute
-- WebSocket: $0.0092 per audio minute
-
-## Status
-
-This implementation is complete and ready to work once Cloudflare resolves the AI Gateway compatibility issue.`,
+- **Entity Detection**: Identify and extract key entities from content`,
     computeCost: 5,
     inputs: [
       {
@@ -251,10 +240,18 @@ This implementation is complete and ready to work once Cloudflare resolves the A
       }
 
       // Build parameters object with only provided values
-      // Try using the exact format from the documentation but with Uint8Array directly
+      // Nova-3 requires {body, contentType} format where body is a ReadableStream
+      // Convert Uint8Array to ReadableStream
+      const audioStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(audio.data);
+          controller.close();
+        }
+      });
+
       const params: any = {
         audio: {
-          body: audio.data,
+          body: audioStream,
           contentType: audio.mimeType || "audio/mpeg",
         },
       };

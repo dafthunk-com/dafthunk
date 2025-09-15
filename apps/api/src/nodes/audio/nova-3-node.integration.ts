@@ -7,7 +7,7 @@ import { NodeContext } from "../types";
 import { Nova3Node } from "./nova-3-node";
 
 describe("Nova3Node", () => {
-  it("should return expected error due to AI Gateway incompatibility", async () => {
+  it("should execute successfully with basic parameters", async () => {
     const nodeId = "nova-3";
     const node = new Nova3Node({
       nodeId,
@@ -24,13 +24,17 @@ describe("Nova3Node", () => {
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    // Note: Nova-3 is currently not supported by Cloudflare AI Gateway
-    // due to incompatible audio format requirements
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("required properties at '/audio' are 'body,contentType'");
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.text).toBeDefined();
+    expect(typeof result.outputs?.text).toBe("string");
+    expect(result.outputs?.confidence).toBeDefined();
+    expect(typeof result.outputs?.confidence).toBe("number");
+    expect(result.outputs?.words).toBeDefined();
+    expect(Array.isArray(result.outputs?.words)).toBe(true);
   });
 
-  it("should return expected error with language detection enabled", async () => {
+  it("should execute successfully with language detection enabled", async () => {
     const nodeId = "nova-3";
     const node = new Nova3Node({
       nodeId,
@@ -48,8 +52,17 @@ describe("Nova3Node", () => {
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
-    expect(result.status).toBe("error");
-    expect(result.error).toContain("required properties at '/audio' are 'body,contentType'");
+    expect(result.status).toBe("completed");
+    expect(result.outputs).toBeDefined();
+    expect(result.outputs?.text).toBeDefined();
+    expect(typeof result.outputs?.text).toBe("string");
+    expect(result.outputs?.confidence).toBeDefined();
+    expect(typeof result.outputs?.confidence).toBe("number");
+    expect(result.outputs?.words).toBeDefined();
+    expect(Array.isArray(result.outputs?.words)).toBe(true);
+    if (result.outputs?.language) {
+      expect(typeof result.outputs.language).toBe("string");
+    }
   });
 
   it("should return error when audio is not provided", async () => {
