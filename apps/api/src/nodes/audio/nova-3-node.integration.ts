@@ -1,0 +1,92 @@
+import { Node } from "@dafthunk/types";
+import { env } from "cloudflare:test";
+import { describe, expect, it } from "vitest";
+
+import { testAudioData } from "../../../test/fixtures/audio-fixtures";
+import { NodeContext } from "../types";
+import { Nova3Node } from "./nova-3-node";
+
+describe("Nova3Node", () => {
+  it("should return expected error due to AI Gateway incompatibility", async () => {
+    const nodeId = "nova-3";
+    const node = new Nova3Node({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        audio: testAudioData,
+      },
+      env: {
+        AI: env.AI,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    // Note: Nova-3 is currently not supported by Cloudflare AI Gateway
+    // due to incompatible audio format requirements
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("required properties at '/audio' are 'body,contentType'");
+  });
+
+  it("should return expected error with language detection enabled", async () => {
+    const nodeId = "nova-3";
+    const node = new Nova3Node({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        audio: testAudioData,
+        detect_language: true,
+      },
+      env: {
+        AI: env.AI,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("required properties at '/audio' are 'body,contentType'");
+  });
+
+  it("should return error when audio is not provided", async () => {
+    const nodeId = "nova-3";
+    const node = new Nova3Node({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {},
+      env: {
+        AI: env.AI,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("Audio input is required");
+  });
+
+  it("should return error when AI service is not available", async () => {
+    const nodeId = "nova-3";
+    const node = new Nova3Node({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        audio: testAudioData,
+      },
+      env: {},
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("AI service is not available");
+  });
+});
