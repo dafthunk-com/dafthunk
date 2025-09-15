@@ -4,6 +4,7 @@ import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
+import { Aura1Node } from "./audio/aura-1-node";
 import { MelottsNode } from "./audio/melotts-node";
 import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
@@ -384,6 +385,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(Flux1SchnellNode);
     this.registerImplementation(DreamShaper8LCMNode);
     this.registerImplementation(ExifReaderNode);
+    this.registerImplementation(Aura1Node);
     this.registerImplementation(MelottsNode);
     this.registerImplementation(WebcamNode);
 
