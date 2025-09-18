@@ -67,13 +67,17 @@ export function cloneSceneWithMaterials(source: Group): Group {
 
   const cloneMaterial = (mat: Material): Material => {
     const clonedMat = mat.clone();
-    // Clone key textures if present
     const anyMat = clonedMat as any;
-    if (anyMat.map) anyMat.map = anyMat.map.clone();
-    if (anyMat.normalMap) anyMat.normalMap = anyMat.normalMap.clone();
-    if (anyMat.roughnessMap) anyMat.roughnessMap = anyMat.roughnessMap.clone();
-    if (anyMat.metalnessMap) anyMat.metalnessMap = anyMat.metalnessMap.clone();
-    if (anyMat.emissiveMap) anyMat.emissiveMap = anyMat.emissiveMap.clone();
+    const originalMat = mat as any;
+
+    if (originalMat.map) anyMat.map = originalMat.map;
+    if (originalMat.normalMap) anyMat.normalMap = originalMat.normalMap;
+    if (originalMat.roughnessMap)
+      anyMat.roughnessMap = originalMat.roughnessMap;
+    if (originalMat.metalnessMap)
+      anyMat.metalnessMap = originalMat.metalnessMap;
+    if (originalMat.emissiveMap) anyMat.emissiveMap = originalMat.emissiveMap;
+
     anyMat.needsUpdate = true;
     return clonedMat;
   };
