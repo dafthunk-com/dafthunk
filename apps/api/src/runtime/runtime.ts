@@ -17,7 +17,7 @@ import {
 import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
-import { createDatabase, ExecutionStatusType, saveExecution } from "../db";
+import { createDatabase, ExecutionStatusType, saveExecution, getAllSecretsWithValues } from "../db";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import {
@@ -136,6 +136,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       organizationId: "system", // Tool executions are system-level
       inputs,
       toolRegistry: this.toolRegistry,
+      secrets: {}, // Tool executions don't have access to organization secrets
       env: {
         DB: this.env.DB,
         AI: this.env.AI,
@@ -227,6 +228,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     }
 
     try {
+      // Preload all organization secrets for synchronous access
+      const secrets = await step.do(
+        "preload organization secrets",
+        Runtime.defaultStepConfig,
+        async () => this.preloadAllSecrets(organizationId)
+      );
+
       // Prepare workflow (validation + ordering).
       // @ts-ignore
       runtimeState = await step.do(
@@ -274,6 +282,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 nodeIdentifier,
                 organizationId,
                 instanceId,
+                secrets,
                 httpRequest,
                 emailMessage
               )
@@ -292,6 +301,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 executionUnit.nodeIds,
                 organizationId,
                 instanceId,
+                secrets,
                 httpRequest,
                 emailMessage
               )
@@ -395,6 +405,50 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const nodeType = this.nodeRegistry.getNodeType(node.type);
       return acc + (nodeType.computeCost ?? 1);
     }, 0);
+  }
+
+  /**
+   * Preloads all organization secrets for synchronous access during workflow execution
+   */
+  private async preloadAllSecrets(organizationId: string): Promise<Record<string, string>> {
+    const secrets: Record<string, string> = {};
+    const db = createDatabase(this.env.DB);
+    
+    try {
+      // Get all secret records for the organization (including encrypted values)
+      const secretRecords = await getAllSecretsWithValues(db, organizationId);
+      
+      // Decrypt each secret and add to the secrets object
+      for (const secretRecord of secretRecords) {
+        try {
+          const secretValue = await this.decryptSecretValue(
+            secretRecord.encryptedValue,
+            organizationId
+          );
+          secrets[secretRecord.name] = secretValue;
+        } catch (error) {
+          console.warn(`Failed to decrypt secret '${secretRecord.name}':`, error);
+        }
+      }
+      
+      console.log(`Preloaded ${Object.keys(secrets).length} secrets for organization ${organizationId}`);
+    } catch (error) {
+      console.error(`Failed to preload secrets for organization ${organizationId}:`, error);
+    }
+
+    return secrets;
+  }
+
+  /**
+   * Decrypt a secret value using organization-specific key
+   */
+  private async decryptSecretValue(
+    encryptedValue: string,
+    organizationId: string
+  ): Promise<string> {
+    // Import decryptSecret here to avoid circular dependency issues
+    const { decryptSecret } = await import("../utils/encryption");
+    return await decryptSecret(encryptedValue, this.env, organizationId);
   }
 
   /**
@@ -615,6 +669,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     nodeIds: string[],
     organizationId: string,
     executionId: string,
+    secrets: Record<string, string>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<RuntimeState> {
@@ -646,6 +701,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           nodeId,
           organizationId,
           executionId,
+          secrets,
           httpRequest,
           emailMessage
         );
@@ -693,6 +749,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     nodeIdentifier: string,
     organizationId: string,
     executionId: string,
+    secrets: Record<string, string>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<RuntimeState> {
@@ -755,6 +812,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         emailMessage,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
+        secrets: secrets || {},
         env: {
           DB: this.env.DB,
           AI: this.env.AI,
@@ -995,6 +1053,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
       const acceptsMultiple = nodeTypeInput?.repeated || false;
 
+      // Handle secret parameters as strings since secrets are preloaded in context
+      const parameterType = type === "secret" ? "string" : type;
+
       if (acceptsMultiple && Array.isArray(value)) {
         // For parameters that accept multiple connections, process each value individually
         const processedArray = [];
@@ -1007,7 +1068,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             | JsonArray
             | JsonObject;
           const processedSingleValue = await apiToNodeParameter(
-            type,
+            parameterType,
             validSingleValue,
             objectStore
           );
@@ -1024,7 +1085,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           | JsonArray
           | JsonObject;
         const processedValue = await apiToNodeParameter(
-          type,
+          parameterType,
           validValue,
           objectStore
         );
@@ -1058,8 +1119,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const value = outputsFromNode[name];
       if (value === undefined || value === null) continue;
 
+      // Handle secret parameters as strings since secrets are preloaded in context
+      const parameterType = type === "secret" ? "string" : type;
+
       processed[name] = await nodeToApiParameter(
-        type,
+        parameterType,
         value,
         objectStore,
         organizationId,

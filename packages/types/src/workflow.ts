@@ -191,6 +191,10 @@ export type ParameterType =
       value?: GeoJSON;
     }
   | {
+      type: "secret";
+      value?: string; // Secret name reference, not the actual secret value
+    }
+  | {
       type: "any";
       value?: any;
     };

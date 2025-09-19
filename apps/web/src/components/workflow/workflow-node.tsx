@@ -17,6 +17,7 @@ import {
   GlobeIcon,
   HashIcon,
   ImageIcon,
+  LockIcon,
   LayoutGridIcon,
   MinusIcon,
   MusicIcon,
@@ -110,6 +111,7 @@ const TypeBadge = ({
     feature: <BuildingIcon className="!size-3" />,
     featurecollection: <Building2Icon className="!size-3" />,
     geojson: <GlobeIcon className="!size-3" />,
+    secret: <LockIcon className="!size-3" />,
     any: <AsteriskIcon className="!size-3" />,
   } satisfies Record<InputOutputType, React.ReactNode>;
 

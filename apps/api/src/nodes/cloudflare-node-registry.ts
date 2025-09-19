@@ -221,6 +221,7 @@ import { FormDataBooleanNode } from "./parameter/form-data-boolean-node";
 import { FormDataNumberNode } from "./parameter/form-data-number-node";
 import { FormDataStringNode } from "./parameter/form-data-string-node";
 import { JsonBodyNode } from "./parameter/json-body-node";
+import { SecretInputNode } from "./parameter/secret-input-node";
 import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { RagSearchNode } from "./rag/rag-search-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
@@ -299,6 +300,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(FormDataNumberNode);
     this.registerImplementation(FormDataBooleanNode);
     this.registerImplementation(JsonBodyNode);
+    this.registerImplementation(SecretInputNode);
     this.registerImplementation(ReceiveEmailNode);
     this.registerImplementation(ParseEmailNode);
     this.registerImplementation(AdditionNode);

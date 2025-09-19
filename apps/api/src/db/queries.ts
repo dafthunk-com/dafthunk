@@ -1459,6 +1459,35 @@ export async function getSecrets(
 }
 
 /**
+ * Get all encrypted secrets for an organization (including encrypted values)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of secret records with encrypted values
+ */
+export async function getAllSecretsWithValues(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return db
+    .select({
+      id: secrets.id,
+      name: secrets.name,
+      encryptedValue: secrets.encryptedValue,
+      createdAt: secrets.createdAt,
+      updatedAt: secrets.updatedAt,
+    })
+    .from(secrets)
+    .innerJoin(
+      organizations,
+      and(
+        eq(secrets.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
  * Get a secret by ID (without the encrypted value)
  *
  * @param db Database instance
@@ -1549,6 +1578,32 @@ export async function getSecretValue(
     .select({ encryptedValue: secrets.encryptedValue })
     .from(secrets)
     .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
+    .limit(1);
+
+  if (!secret) return null;
+
+  return await decryptSecret(secret.encryptedValue, env, organizationId);
+}
+
+/**
+ * Get the decrypted value of a secret by name
+ *
+ * @param db Database instance
+ * @param name Secret name
+ * @param organizationId Organization ID
+ * @param env Environment variables (for encryption key)
+ * @returns Decrypted secret value or null if not found
+ */
+export async function getSecretValueByName(
+  db: ReturnType<typeof createDatabase>,
+  name: string,
+  organizationId: string,
+  env: Bindings
+): Promise<string | null> {
+  const [secret] = await db
+    .select({ encryptedValue: secrets.encryptedValue })
+    .from(secrets)
+    .where(and(eq(secrets.name, name), eq(secrets.organizationId, organizationId)))
     .limit(1);
 
   if (!secret) return null;
