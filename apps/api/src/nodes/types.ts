@@ -185,6 +185,7 @@ export interface NodeContext {
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
   toolRegistry?: BaseToolRegistry;
+  secrets?: Record<string, string>; // Preloaded secrets for synchronous access
   env: {
     DB: D1Database;
     AI: Ai;
