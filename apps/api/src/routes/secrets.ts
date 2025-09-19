@@ -3,7 +3,6 @@ import {
   CreateSecretResponse,
   DeleteSecretResponse,
   GetSecretResponse,
-  GetSecretValueResponse,
   ListSecretsResponse,
   UpdateSecretRequest,
   UpdateSecretResponse,
@@ -20,7 +19,6 @@ import {
   deleteSecret,
   getSecret,
   getSecrets,
-  getSecretValue,
   updateSecret,
 } from "../db";
 
@@ -113,30 +111,8 @@ secretRoutes.get("/:id", async (c) => {
   }
 });
 
-/**
- * GET /api/secrets/:id/value
- *
- * Get the decrypted value of a secret (use with caution)
- */
-secretRoutes.get("/:id/value", async (c) => {
-  const organizationId = c.get("organizationId")!;
-  const db = createDatabase(c.env.DB);
-  const secretId = c.req.param("id");
-
-  try {
-    const value = await getSecretValue(db, secretId, organizationId, c.env);
-
-    if (value === null) {
-      return c.json({ error: "Secret not found" }, 404);
-    }
-
-    const response: GetSecretValueResponse = { value };
-    return c.json(response);
-  } catch (error) {
-    console.error("Error decrypting secret:", error);
-    return c.json({ error: "Failed to decrypt secret" }, 500);
-  }
-});
+// Note: We intentionally removed the GET /:id/value endpoint for security reasons.
+// Secret values can only be retrieved once during creation, similar to GitHub's approach.
 
 /**
  * PUT /api/secrets/:id

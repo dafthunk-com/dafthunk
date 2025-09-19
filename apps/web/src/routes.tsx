@@ -2,6 +2,7 @@ import {
   ChartNoAxesCombined,
   Database,
   KeyRound,
+  Lock,
   Logs,
   SquareTerminal,
   Target,
@@ -18,6 +19,7 @@ import { DocsLayout } from "./components/layouts/docs-layout";
 import { ProtectedRoute } from "./components/protected-route";
 import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
+import { SecretsPage } from "./pages/secrets-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatasetDetailPage } from "./pages/datasets/dataset-detail-page";
 import { DatasetsPage } from "./pages/datasets/datasets-page";
@@ -90,6 +92,11 @@ const settingsSidebarItems = [
     title: "API Keys",
     url: "/settings/api-keys",
     icon: KeyRound,
+  },
+  {
+    title: "Secrets",
+    url: "/settings/secrets",
+    icon: Lock,
   },
 ];
 
@@ -176,6 +183,23 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="API Keys - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/settings/secrets",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Settings",
+          items: settingsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <SecretsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Secrets - Settings - Dafthunk" /> },
   },
   {
     path: "/dashboard",
