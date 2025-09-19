@@ -6,6 +6,7 @@ export * from "./deployment";
 export * from "./execution";
 export * from "./objects";
 export * from "./profile";
+export * from "./secret";
 export * from "./types";
 export * from "./usage";
 export * from "./workflow";
