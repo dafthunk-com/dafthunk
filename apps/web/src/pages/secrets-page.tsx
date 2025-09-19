@@ -9,7 +9,6 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -149,7 +148,6 @@ export function SecretsPage() {
       }
     };
 
-
     document.addEventListener("deleteSecretTrigger", handleDeleteEvent);
     document.addEventListener("editSecretTrigger", handleEditEvent);
 
@@ -177,7 +175,11 @@ export function SecretsPage() {
   }, [secretToDelete, organization?.handle, mutateSecrets]);
 
   const handleCreateSecret = useCallback(async (): Promise<void> => {
-    if (!newSecretName.trim() || !newSecretValue.trim() || !organization?.handle) {
+    if (
+      !newSecretName.trim() ||
+      !newSecretValue.trim() ||
+      !organization?.handle
+    ) {
       toast.error("Secret name and value are required");
       return;
     }
@@ -203,7 +205,7 @@ export function SecretsPage() {
 
   const handleUpdateSecret = useCallback(async (): Promise<void> => {
     if (!editingSecret || !organization?.handle) return;
-    
+
     const updates: { name?: string; value?: string } = {};
     if (editSecretName.trim() !== editingSecret.name) {
       updates.name = editSecretName.trim();
@@ -239,7 +241,6 @@ export function SecretsPage() {
     organization?.handle,
     mutateSecrets,
   ]);
-
 
   if (isSecretsLoading && !secrets) {
     return <InsetLoading title="Secrets" />;
@@ -313,7 +314,9 @@ export function SecretsPage() {
             </Button>
             <Button
               onClick={handleCreateSecret}
-              disabled={isProcessing || !newSecretName.trim() || !newSecretValue.trim()}
+              disabled={
+                isProcessing || !newSecretName.trim() || !newSecretValue.trim()
+              }
             >
               {isProcessing ? "Creating..." : "Create Secret"}
             </Button>
@@ -368,16 +371,12 @@ export function SecretsPage() {
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleUpdateSecret}
-              disabled={isProcessing}
-            >
+            <Button onClick={handleUpdateSecret} disabled={isProcessing}>
               {isProcessing ? "Updating..." : "Update Secret"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
 
       {/* Delete Secret Dialog */}
       <AlertDialog

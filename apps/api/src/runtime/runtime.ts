@@ -17,7 +17,12 @@ import {
 import { NonRetryableError } from "cloudflare:workflows";
 
 import { Bindings } from "../context";
-import { createDatabase, ExecutionStatusType, saveExecution, getAllSecretsWithValues } from "../db";
+import {
+  createDatabase,
+  ExecutionStatusType,
+  getAllSecretsWithValues,
+  saveExecution,
+} from "../db";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import {
@@ -410,14 +415,16 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   /**
    * Preloads all organization secrets for synchronous access during workflow execution
    */
-  private async preloadAllSecrets(organizationId: string): Promise<Record<string, string>> {
+  private async preloadAllSecrets(
+    organizationId: string
+  ): Promise<Record<string, string>> {
     const secrets: Record<string, string> = {};
     const db = createDatabase(this.env.DB);
-    
+
     try {
       // Get all secret records for the organization (including encrypted values)
       const secretRecords = await getAllSecretsWithValues(db, organizationId);
-      
+
       // Decrypt each secret and add to the secrets object
       for (const secretRecord of secretRecords) {
         try {
@@ -427,13 +434,21 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           );
           secrets[secretRecord.name] = secretValue;
         } catch (error) {
-          console.warn(`Failed to decrypt secret '${secretRecord.name}':`, error);
+          console.warn(
+            `Failed to decrypt secret '${secretRecord.name}':`,
+            error
+          );
         }
       }
-      
-      console.log(`Preloaded ${Object.keys(secrets).length} secrets for organization ${organizationId}`);
+
+      console.log(
+        `Preloaded ${Object.keys(secrets).length} secrets for organization ${organizationId}`
+      );
     } catch (error) {
-      console.error(`Failed to preload secrets for organization ${organizationId}:`, error);
+      console.error(
+        `Failed to preload secrets for organization ${organizationId}:`,
+        error
+      );
     }
 
     return secrets;

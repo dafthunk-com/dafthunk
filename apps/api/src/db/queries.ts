@@ -11,8 +11,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
 import { Bindings } from "../context";
-import { encryptSecret, decryptSecret } from "../utils/encryption";
-
+import { decryptSecret, encryptSecret } from "../utils/encryption";
 import {
   type ApiKeyInsert,
   apiKeys,
@@ -1542,7 +1541,11 @@ export async function updateSecret(
 
   if (updates.value) {
     // Encrypt the new secret value using organization-specific key
-    updateData.encryptedValue = await encryptSecret(updates.value, env, organizationId);
+    updateData.encryptedValue = await encryptSecret(
+      updates.value,
+      env,
+      organizationId
+    );
   }
 
   const [updatedSecret] = await db
@@ -1603,7 +1606,9 @@ export async function getSecretValueByName(
   const [secret] = await db
     .select({ encryptedValue: secrets.encryptedValue })
     .from(secrets)
-    .where(and(eq(secrets.name, name), eq(secrets.organizationId, organizationId)))
+    .where(
+      and(eq(secrets.name, name), eq(secrets.organizationId, organizationId))
+    )
     .limit(1);
 
   if (!secret) return null;
