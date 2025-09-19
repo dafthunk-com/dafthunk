@@ -372,6 +372,31 @@ export const datasets = sqliteTable(
   ]
 );
 
+// Secrets - Encrypted secrets associated with organizations
+export const secrets = sqliteTable(
+  "secrets",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    encryptedValue: text("encrypted_value").notNull(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("secrets_name_idx").on(table.name),
+    index("secrets_organization_id_idx").on(table.organizationId),
+    index("secrets_created_at_idx").on(table.createdAt),
+    // Ensure unique secret names per organization
+    uniqueIndex("secrets_organization_id_name_unique_idx").on(
+      table.organizationId,
+      table.name
+    ),
+  ]
+);
+
 /**
  * RELATION DEFINITIONS
  */
@@ -393,6 +418,7 @@ export const organizationsRelations = relations(
     deployments: many(deployments),
     apiKeys: many(apiKeys),
     datasets: many(datasets),
+    secrets: many(secrets),
     users: one(users),
   })
 );
@@ -468,6 +494,13 @@ export const datasetsRelations = relations(datasets, ({ one }) => ({
   }),
 }));
 
+export const secretsRelations = relations(secrets, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [secrets.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 /**
  * HELPER FUNCTIONS
  */
@@ -512,3 +545,6 @@ export type CronTriggerInsert = typeof cronTriggers.$inferInsert;
 
 export type DatasetRow = typeof datasets.$inferSelect;
 export type DatasetInsert = typeof datasets.$inferInsert;
+
+export type SecretRow = typeof secrets.$inferSelect;
+export type SecretInsert = typeof secrets.$inferInsert;

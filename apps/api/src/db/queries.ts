@@ -10,6 +10,9 @@ import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
+import { Bindings } from "../context";
+import { encryptSecret, decryptSecret } from "../utils/encryption";
+
 import {
   type ApiKeyInsert,
   apiKeys,
@@ -33,6 +36,8 @@ import {
   organizations,
   Plan,
   type PlanType,
+  type SecretInsert,
+  secrets,
   UserRole,
   type UserRoleType,
   type UserRow,
@@ -1380,4 +1385,196 @@ export async function getOrganizationComputeCredits(
     .where(getOrganizationCondition(organizationIdOrHandle))
     .limit(1);
   return organization?.computeCredits;
+}
+
+/**
+ * Create a new secret for an organization
+ *
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @param name Descriptive name for the secret
+ * @param value The secret value to encrypt
+ * @param env Environment variables (for encryption key)
+ * @returns Object containing the secret record and the unencrypted value
+ */
+export async function createSecret(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string,
+  name: string,
+  value: string,
+  env: Bindings
+) {
+  const id = uuidv7();
+  const now = new Date();
+
+  // Encrypt the secret value using organization-specific key
+  const encryptedValue = await encryptSecret(value, env, organizationId);
+
+  // Create the secret record
+  const newSecret: SecretInsert = {
+    id,
+    name,
+    encryptedValue,
+    organizationId,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  // Insert the secret record
+  const [secretRecord] = await db.insert(secrets).values(newSecret).returning();
+
+  // Return both the unencrypted value (only shown once) and the record
+  return {
+    value: value, // The plain secret value
+    secret: secretRecord,
+  };
+}
+
+/**
+ * List secrets for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of secret records (without the encrypted value)
+ */
+export async function getSecrets(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return db
+    .select({
+      id: secrets.id,
+      name: secrets.name,
+      createdAt: secrets.createdAt,
+      updatedAt: secrets.updatedAt,
+    })
+    .from(secrets)
+    .innerJoin(
+      organizations,
+      and(
+        eq(secrets.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get a secret by ID (without the encrypted value)
+ *
+ * @param db Database instance
+ * @param id Secret ID
+ * @param organizationId Organization ID
+ * @returns Secret record or null if not found
+ */
+export async function getSecret(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+) {
+  const [secret] = await db
+    .select({
+      id: secrets.id,
+      name: secrets.name,
+      createdAt: secrets.createdAt,
+      updatedAt: secrets.updatedAt,
+    })
+    .from(secrets)
+    .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
+    .limit(1);
+
+  return secret || null;
+}
+
+/**
+ * Update a secret
+ *
+ * @param db Database instance
+ * @param id Secret ID
+ * @param organizationId Organization ID
+ * @param updates Fields to update
+ * @param env Environment variables (for encryption key)
+ * @returns Updated secret record or null if not found
+ */
+export async function updateSecret(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  updates: { name?: string; value?: string },
+  env: Bindings
+) {
+  const now = new Date();
+  const updateData: Partial<SecretInsert> = {
+    updatedAt: now,
+  };
+
+  if (updates.name) {
+    updateData.name = updates.name;
+  }
+
+  if (updates.value) {
+    // Encrypt the new secret value using organization-specific key
+    updateData.encryptedValue = await encryptSecret(updates.value, env, organizationId);
+  }
+
+  const [updatedSecret] = await db
+    .update(secrets)
+    .set(updateData)
+    .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
+    .returning({
+      id: secrets.id,
+      name: secrets.name,
+      createdAt: secrets.createdAt,
+      updatedAt: secrets.updatedAt,
+    });
+
+  return updatedSecret || null;
+}
+
+/**
+ * Get the decrypted value of a secret
+ *
+ * @param db Database instance
+ * @param id Secret ID
+ * @param organizationId Organization ID
+ * @param env Environment variables (for encryption key)
+ * @returns Decrypted secret value or null if not found
+ */
+export async function getSecretValue(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  env: Bindings
+): Promise<string | null> {
+  const [secret] = await db
+    .select({ encryptedValue: secrets.encryptedValue })
+    .from(secrets)
+    .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
+    .limit(1);
+
+  if (!secret) return null;
+
+  return await decryptSecret(secret.encryptedValue, env, organizationId);
+}
+
+/**
+ * Delete a secret
+ *
+ * @param db Database instance
+ * @param id Secret ID
+ * @param organizationId Organization ID
+ * @returns True if secret was deleted, false if not found
+ */
+export async function deleteSecret(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<boolean> {
+  // Try to delete the secret by its ID and organization
+  const [deletedSecret] = await db
+    .delete(secrets)
+    .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
+    .returning({ id: secrets.id });
+
+  // If we got a record back, it was deleted successfully
+  return !!deletedSecret;
 }
