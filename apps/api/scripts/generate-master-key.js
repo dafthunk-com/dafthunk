@@ -9,13 +9,15 @@ crypto.getRandomValues(keyBytes);
 
 // Convert to hex string
 const masterKey = Array.from(keyBytes)
-  .map(byte => byte.toString(16).padStart(2, '0'))
-  .join('');
+  .map((byte) => byte.toString(16).padStart(2, "0"))
+  .join("");
 
-console.log('Generated master key (store this securely):');
+console.log("Generated master key (store this securely):");
 console.log(masterKey);
-console.log('');
-console.log('Add this to your environment variables as:');
+console.log("");
+console.log("Add this to your environment variables as:");
 console.log(`SECRET_MASTER_KEY=${masterKey}`);
-console.log('');
-console.log('⚠️  IMPORTANT: Store this key securely and never commit it to version control!');
+console.log("");
+console.log(
+  "⚠️  IMPORTANT: Store this key securely and never commit it to version control!"
+);
