@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 import { ParsedMail, simpleParser } from "mailparser";
 

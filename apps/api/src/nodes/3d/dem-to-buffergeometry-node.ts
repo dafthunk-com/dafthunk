@@ -154,6 +154,14 @@ export class DemToBufferGeometryNode extends ExecutableNode {
         },
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessages = error.issues
+          .map((issue) => issue.message)
+          .join(", ");
+        return this.createErrorResult(
+          `DEM to BufferGeometry conversion failed: ${errorMessages}`
+        );
+      }
       return this.createErrorResult(
         `DEM to BufferGeometry conversion failed: ${error instanceof Error ? error.message : String(error)}`
       );

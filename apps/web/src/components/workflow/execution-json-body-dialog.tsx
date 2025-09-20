@@ -32,7 +32,7 @@ type ExecutionJsonBodyDialogProps = {
   onCancel?: () => void;
 };
 
-type FormValues = Record<string, string>;
+type FormValues = Record<string, unknown>;
 
 // Validates if a string is valid JSON
 const isValidJson = (str: string) => {
@@ -150,6 +150,7 @@ export function ExecutionJsonBodyDialog({
                     <Textarea
                       id={param.nameForForm}
                       {...field}
+                      value={String(field.value || "")}
                       placeholder={`Enter ${param.label.toLowerCase()} as JSON`}
                       className="w-full font-mono min-h-[200px]"
                     />

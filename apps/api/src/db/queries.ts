@@ -11,7 +11,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
 import { Bindings } from "../context";
-import { decryptSecret, encryptSecret } from "../utils/encryption";
+import { encryptSecret } from "../utils/encryption";
 import {
   type ApiKeyInsert,
   apiKeys,
@@ -1560,60 +1560,6 @@ export async function updateSecret(
     });
 
   return updatedSecret || null;
-}
-
-/**
- * Get the decrypted value of a secret
- *
- * @param db Database instance
- * @param id Secret ID
- * @param organizationId Organization ID
- * @param env Environment variables (for encryption key)
- * @returns Decrypted secret value or null if not found
- */
-export async function getSecretValue(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string,
-  env: Bindings
-): Promise<string | null> {
-  const [secret] = await db
-    .select({ encryptedValue: secrets.encryptedValue })
-    .from(secrets)
-    .where(and(eq(secrets.id, id), eq(secrets.organizationId, organizationId)))
-    .limit(1);
-
-  if (!secret) return null;
-
-  return await decryptSecret(secret.encryptedValue, env, organizationId);
-}
-
-/**
- * Get the decrypted value of a secret by name
- *
- * @param db Database instance
- * @param name Secret name
- * @param organizationId Organization ID
- * @param env Environment variables (for encryption key)
- * @returns Decrypted secret value or null if not found
- */
-export async function getSecretValueByName(
-  db: ReturnType<typeof createDatabase>,
-  name: string,
-  organizationId: string,
-  env: Bindings
-): Promise<string | null> {
-  const [secret] = await db
-    .select({ encryptedValue: secrets.encryptedValue })
-    .from(secrets)
-    .where(
-      and(eq(secrets.name, name), eq(secrets.organizationId, organizationId))
-    )
-    .limit(1);
-
-  if (!secret) return null;
-
-  return await decryptSecret(secret.encryptedValue, env, organizationId);
 }
 
 /**

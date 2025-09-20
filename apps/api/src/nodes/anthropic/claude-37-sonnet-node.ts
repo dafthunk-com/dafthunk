@@ -61,10 +61,13 @@ export class Claude37SonnetNode extends ExecutableNode {
       const { instructions, input, apiKey } = context.inputs;
 
       // Use provided API key secret or fallback to environment variable
-      const anthropicApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.ANTHROPIC_API_KEY;
-      
+      const anthropicApiKey =
+        (apiKey && context.secrets?.[apiKey]) || context.env.ANTHROPIC_API_KEY;
+
       if (!anthropicApiKey) {
-        return this.createErrorResult("Anthropic API key is required. Provide via apiKey input or ANTHROPIC_API_KEY environment variable");
+        return this.createErrorResult(
+          "Anthropic API key is required. Provide via apiKey input or ANTHROPIC_API_KEY environment variable"
+        );
       }
 
       if (!input) {
