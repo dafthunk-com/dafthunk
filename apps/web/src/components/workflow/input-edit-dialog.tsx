@@ -1,4 +1,4 @@
-import { XCircleIcon } from "lucide-react";
+import { Download, File, Upload, XCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { isObjectReference, useObjectService } from "@/services/object-service";
 import { useSecrets } from "@/services/secrets-service";
+import { cn } from "@/utils/utils";
 import {
   clearNodeInput,
   convertValueByType,
@@ -48,13 +50,38 @@ export function InputEditDialog({
   const { updateNodeData } = useWorkflow();
   const [inputValue, setInputValue] = useState("");
   const { secrets, isSecretsLoading } = useSecrets();
+  const { uploadBinaryData, createObjectUrl } = useObjectService();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Helper function to create object URL for previews and downloads
+  const getObjectUrl = (objectRef: any): string | null => {
+    if (!isObjectReference(objectRef)) return null;
+    try {
+      return createObjectUrl(objectRef);
+    } catch (error) {
+      console.error('Failed to create object URL:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (input) {
-      setInputValue(input.value !== undefined ? String(input.value) : "");
+      if (input.value !== undefined) {
+        // Handle ObjectReference types specially
+        if (isObjectReference(input.value)) {
+          setInputValue("Uploaded File");
+        } else {
+          setInputValue(String(input.value));
+        }
+      } else {
+        setInputValue("");
+      }
     } else {
       setInputValue("");
     }
+    // Clear upload error when input changes
+    setUploadError(null);
   }, [input]);
 
   const handleInputChange = (value: string) => {
@@ -77,6 +104,119 @@ export function InputEditDialog({
 
     setInputValue(secretName);
     updateNodeInput(nodeId, input.id, secretName, nodeInputs, updateNodeData);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !input || readonly || !updateNodeData) return;
+
+    try {
+      setUploadError(null);
+      setIsUploading(true);
+
+      // Validate image file
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Please select a valid image file');
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const reference = await uploadBinaryData(arrayBuffer, file.type);
+      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      setInputValue(file.name);
+      setIsUploading(false);
+    } catch (err) {
+      setIsUploading(false);
+      setUploadError(err instanceof Error ? err.message : "Failed to upload image");
+    }
+  };
+
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !input || readonly || !updateNodeData) return;
+
+    try {
+      setUploadError(null);
+      setIsUploading(true);
+
+      // Ensure correct mime type for Excel files
+      let mimeType = file.type;
+      if (file.name.endsWith(".xlsx")) {
+        mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      } else if (file.name.endsWith(".xls")) {
+        mimeType = "application/vnd.ms-excel";
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const reference = await uploadBinaryData(arrayBuffer, mimeType);
+      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      setInputValue(file.name);
+      setIsUploading(false);
+    } catch (err) {
+      setIsUploading(false);
+      setUploadError(err instanceof Error ? err.message : "Failed to upload document");
+    }
+  };
+
+  const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !input || readonly || !updateNodeData) return;
+
+    try {
+      setUploadError(null);
+      setIsUploading(true);
+
+      // Validate audio file
+      if (!file.type.startsWith('audio/')) {
+        throw new Error('Please select a valid audio file');
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const reference = await uploadBinaryData(arrayBuffer, file.type);
+      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      setInputValue(file.name);
+      setIsUploading(false);
+    } catch (err) {
+      setIsUploading(false);
+      setUploadError(err instanceof Error ? err.message : "Failed to upload audio");
+    }
+  };
+
+
+  const handleGltfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !input || readonly || !updateNodeData) return;
+
+    try {
+      setUploadError(null);
+      setIsUploading(true);
+
+      // Set appropriate MIME type for glTF files
+      let mimeType = file.type;
+      const fileName = file.name.toLowerCase();
+      
+      if (fileName.endsWith('.gltf')) {
+        mimeType = 'model/gltf+json';
+      } else if (fileName.endsWith('.glb')) {
+        mimeType = 'model/gltf-binary';
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const reference = await uploadBinaryData(arrayBuffer, mimeType);
+      updateNodeInput(nodeId, input.id, reference, nodeInputs, updateNodeData);
+      setInputValue(file.name);
+      setIsUploading(false);
+    } catch (err) {
+      setIsUploading(false);
+      setUploadError(err instanceof Error ? err.message : "Failed to upload glTF model");
+    }
+  };
+
+  const clearObjectReference = () => {
+    if (!input || readonly || !updateNodeData) return;
+
+    clearNodeInput(nodeId, input.id, nodeInputs, updateNodeData);
+    setInputValue("");
+    setUploadError(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -232,6 +372,265 @@ export function InputEditDialog({
                     >
                       <XCircleIcon className="h-4 w-4" />
                     </button>
+                  )}
+                </div>
+              ) : input.type === "image" ? (
+                <div className="space-y-2">
+                  {inputValue && isObjectReference(input.value) ? (
+                    <div className="relative border rounded-md overflow-hidden bg-neutral-50 dark:bg-neutral-900">
+                      {/* Image Preview */}
+                      {(() => {
+                        const objectUrl = getObjectUrl(input.value);
+                        return objectUrl ? (
+                          <img
+                            src={objectUrl}
+                            alt="Uploaded image"
+                            className="w-full h-32 object-cover"
+                            onError={(e) => {
+                              // Hide image on error and show fallback
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      
+                      {/* Clear Button Overlay */}
+                      {!readonly && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={clearObjectReference}
+                          className="absolute top-2 right-2 h-6 w-6 bg-white/80 hover:bg-white dark:bg-black/80 dark:hover:bg-black"
+                          disabled={isUploading}
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-2 p-4 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-md">
+                      <Upload className="h-8 w-8 text-neutral-400" />
+                      <div className="text-sm text-neutral-500 text-center">
+                        <label
+                          htmlFor={`image-upload-${input.id}`}
+                          className={cn(
+                            "cursor-pointer text-blue-500 hover:text-blue-600",
+                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                          )}
+                        >
+                          {isUploading ? "Uploading..." : "Upload Image"}
+                        </label>
+                        <input
+                          id={`image-upload-${input.id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                          disabled={isUploading || readonly}
+                          accept="image/*"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {uploadError && (
+                    <div className="text-sm text-red-600 dark:text-red-400">
+                      {uploadError}
+                    </div>
+                  )}
+                </div>
+              ) : input.type === "document" ? (
+                <div className="space-y-2">
+                  {inputValue && isObjectReference(input.value) ? (
+                    <div className="relative flex items-center gap-2 p-2 border rounded-md bg-neutral-50 dark:bg-neutral-900">
+                      {/* File Icon and Download */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+                        {(() => {
+                          const objectUrl = getObjectUrl(input.value);
+                          return objectUrl ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(objectUrl, '_blank')}
+                              className="h-6 px-2 text-xs"
+                              title="Download file"
+                            >
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          ) : null;
+                        })()}
+                      </div>
+                      
+                      {/* Clear Button */}
+                      {!readonly && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={clearObjectReference}
+                          className="h-6 w-6 flex-shrink-0"
+                          disabled={isUploading}
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-2 p-4 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-md">
+                      <Upload className="h-8 w-8 text-neutral-400" />
+                      <div className="text-sm text-neutral-500 text-center">
+                        <label
+                          htmlFor={`document-upload-${input.id}`}
+                          className={cn(
+                            "cursor-pointer text-blue-500 hover:text-blue-600",
+                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                          )}
+                        >
+                          {isUploading ? "Uploading..." : "Upload Document"}
+                        </label>
+                        <input
+                          id={`document-upload-${input.id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={handleDocumentUpload}
+                          disabled={isUploading || readonly}
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.html,.xml"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {uploadError && (
+                    <div className="text-sm text-red-600 dark:text-red-400">
+                      {uploadError}
+                    </div>
+                  )}
+                </div>
+              ) : input.type === "audio" ? (
+                <div className="space-y-2">
+                  {inputValue && isObjectReference(input.value) ? (
+                    <div className="relative border rounded-md p-2 bg-neutral-50 dark:bg-neutral-900">
+                      {/* Audio Preview */}
+                      {(() => {
+                        const objectUrl = getObjectUrl(input.value);
+                        return objectUrl ? (
+                          <audio
+                            controls
+                            className="w-full h-8"
+                            preload="metadata"
+                          >
+                            <source src={objectUrl} type={input.value?.mimeType || 'audio/*'} />
+                            Your browser does not support the audio element.
+                          </audio>
+                        ) : null;
+                      })()}
+                      
+                      {/* Clear Button Overlay */}
+                      {!readonly && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={clearObjectReference}
+                          className="absolute top-2 right-2 h-6 w-6 bg-white/80 hover:bg-white dark:bg-black/80 dark:hover:bg-black"
+                          disabled={isUploading}
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-2 p-4 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-md">
+                      <Upload className="h-8 w-8 text-neutral-400" />
+                      <div className="text-sm text-neutral-500 text-center">
+                        <label
+                          htmlFor={`audio-upload-${input.id}`}
+                          className={cn(
+                            "cursor-pointer text-blue-500 hover:text-blue-600",
+                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                          )}
+                        >
+                          {isUploading ? "Uploading..." : "Upload Audio"}
+                        </label>
+                        <input
+                          id={`audio-upload-${input.id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={handleAudioUpload}
+                          disabled={isUploading || readonly}
+                          accept="audio/*"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {uploadError && (
+                    <div className="text-sm text-red-600 dark:text-red-400">
+                      {uploadError}
+                    </div>
+                  )}
+                </div>
+              ) : input.type === "gltf" ? (
+                <div className="space-y-2">
+                  {inputValue && isObjectReference(input.value) ? (
+                    <div className="relative flex items-center gap-2 p-2 border rounded-md bg-neutral-50 dark:bg-neutral-900">
+                      {/* File Icon and Download */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <File className="h-4 w-4 flex-shrink-0 text-neutral-500" />
+                        {(() => {
+                          const objectUrl = getObjectUrl(input.value);
+                          return objectUrl ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(objectUrl, '_blank')}
+                              className="h-6 px-2 text-xs"
+                              title="Download glTF model"
+                            >
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          ) : null;
+                        })()}
+                      </div>
+                      
+                      {/* Clear Button */}
+                      {!readonly && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={clearObjectReference}
+                          className="h-6 w-6 flex-shrink-0"
+                          disabled={isUploading}
+                        >
+                          <XCircleIcon className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-2 p-4 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-md">
+                      <Upload className="h-8 w-8 text-neutral-400" />
+                      <div className="text-sm text-neutral-500 text-center">
+                        <label
+                          htmlFor={`gltf-upload-${input.id}`}
+                          className={cn(
+                            "cursor-pointer text-blue-500 hover:text-blue-600",
+                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                          )}
+                        >
+                          {isUploading ? "Uploading..." : "Upload glTF Model"}
+                        </label>
+                        <input
+                          id={`gltf-upload-${input.id}`}
+                          type="file"
+                          className="hidden"
+                          onChange={handleGltfUpload}
+                          disabled={isUploading || readonly}
+                          accept=".gltf,.glb"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {uploadError && (
+                    <div className="text-sm text-red-600 dark:text-red-400">
+                      {uploadError}
+                    </div>
                   )}
                 </div>
               ) : (
