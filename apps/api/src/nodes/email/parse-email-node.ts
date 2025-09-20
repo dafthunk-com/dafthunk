@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import { Node, NodeExecution, NodeType } from "@dafthunk/types";
 import { ParsedMail, simpleParser } from "mailparser";
 
@@ -40,7 +46,7 @@ export class ParseEmailNode extends ExecutableNode {
 From: sender@example.com
 To: recipient@example.com
 Subject: Test Email
-
+email
 This is the email body.
 \`\`\`
 - **Output**: 

@@ -27,6 +27,7 @@ describe("ClaudeSonnet4Node", () => {
       inputs,
       workflowId: "test",
       organizationId: "test-org",
+      secrets: {},
       env: {
         DB: {} as any,
         AI: {} as any,
