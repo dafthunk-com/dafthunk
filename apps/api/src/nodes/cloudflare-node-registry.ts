@@ -582,13 +582,11 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(WktGeometryNode);
     }
 
-    // OpenAI models
-    if (hasOpenAI) {
-      this.registerImplementation(Gpt41Node);
-      this.registerImplementation(Gpt5Node);
-      this.registerImplementation(Gpt5MiniNode);
-      this.registerImplementation(Gpt5NanoNode);
-    }
+    // OpenAI models - always register (users can provide API keys via secrets)
+    this.registerImplementation(Gpt41Node);
+    this.registerImplementation(Gpt5Node);
+    this.registerImplementation(Gpt5MiniNode);
+    this.registerImplementation(Gpt5NanoNode);
 
     // Anthropic Claude nodes - always register (users can provide API keys via secrets)
     this.registerImplementation(ClaudeOpus41Node);
