@@ -135,7 +135,7 @@ describe("ImagenNode", () => {
       const result = await node.execute(context);
 
       expect(result.status).toBe("error");
-      expect(result.error).toContain("GEMINI_API_KEY is not configured");
+      expect(result.error).toContain("Gemini API key is required");
     });
 
     it("should validate aspectRatio values", async () => {
