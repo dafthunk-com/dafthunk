@@ -47,9 +47,7 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "Invalid input: expected object, received undefined"
-    );
+    expect(result.error).toContain("Required");
   });
 
   it("handles missing bounds parameter", async () => {
@@ -63,9 +61,7 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "Invalid input: expected tuple, received undefined"
-    );
+    expect(result.error).toContain("Required");
   });
 
   it("handles invalid image format", async () => {
@@ -93,9 +89,7 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain(
-      "Invalid input: expected number, received undefined"
-    );
+    expect(result.error).toContain("Array must contain at least 4 element(s)");
   });
 
   it("handles invalid martini error", async () => {
@@ -110,7 +104,9 @@ describe("DemToBufferGeometryNode", () => {
     const result = await node.execute(context);
 
     expect(result.status).toBe("error");
-    expect(result.error).toContain("Too small: expected number to be >=0.1");
+    expect(result.error).toContain(
+      "Number must be greater than or equal to 0.1"
+    );
   });
 
   it("uses default martini error when not provided", async () => {
