@@ -11,7 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useSecrets } from "@/services/secrets-service";
 import {
   clearNodeInput,
   convertValueByType,
@@ -39,6 +47,7 @@ export function InputEditDialog({
 }: InputEditDialogProps) {
   const { updateNodeData } = useWorkflow();
   const [inputValue, setInputValue] = useState("");
+  const { secrets, isSecretsLoading } = useSecrets();
 
   useEffect(() => {
     if (input) {
@@ -61,6 +70,13 @@ export function InputEditDialog({
 
     clearNodeInput(nodeId, input.id, nodeInputs, updateNodeData);
     setInputValue("");
+  };
+
+  const handleSecretSelect = (secretName: string) => {
+    if (!input || readonly || !updateNodeData) return;
+
+    setInputValue(secretName);
+    updateNodeInput(nodeId, input.id, secretName, nodeInputs, updateNodeData);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -176,6 +192,42 @@ export function InputEditDialog({
                     <button
                       onClick={handleClearValue}
                       className="absolute right-2 top-2 text-neutral-400 hover:text-neutral-600"
+                      aria-label="Clear value"
+                    >
+                      <XCircleIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ) : input.type === "secret" ? (
+                <div className="relative">
+                  <Select
+                    value={inputValue}
+                    onValueChange={handleSecretSelect}
+                    disabled={readonly || isSecretsLoading}
+                  >
+                    <SelectTrigger id="input-value">
+                      <SelectValue 
+                        placeholder={
+                          isSecretsLoading 
+                            ? "Loading secrets..." 
+                            : secrets.length === 0 
+                            ? "No secrets available"
+                            : "Select a secret"
+                        } 
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {secrets.map((secret) => (
+                        <SelectItem key={secret.id} value={secret.name}>
+                          {secret.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {inputValue && !readonly && (
+                    <button
+                      onClick={handleClearValue}
+                      className="absolute right-8 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
                       aria-label="Clear value"
                     >
                       <XCircleIcon className="h-4 w-4" />
