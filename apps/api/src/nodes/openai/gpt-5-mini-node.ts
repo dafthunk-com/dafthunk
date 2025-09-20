@@ -61,10 +61,13 @@ export class Gpt5MiniNode extends ExecutableNode {
       const { instructions, input, apiKey } = context.inputs;
 
       // Use provided API key secret or fallback to environment variable
-      const openaiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.OPENAI_API_KEY;
-      
+      const openaiApiKey =
+        (apiKey && context.secrets?.[apiKey]) || context.env.OPENAI_API_KEY;
+
       if (!openaiApiKey) {
-        return this.createErrorResult("OpenAI API key is required. Provide via apiKey input or OPENAI_API_KEY environment variable");
+        return this.createErrorResult(
+          "OpenAI API key is required. Provide via apiKey input or OPENAI_API_KEY environment variable"
+        );
       }
 
       if (!input) {

@@ -159,14 +159,22 @@ Automatically detects and supports 24 languages including:
     let response: any;
 
     try {
-      const { apiKey, text, voice_name, multi_speaker_config, thinking_budget } =
-        context.inputs;
+      const {
+        apiKey,
+        text,
+        voice_name,
+        multi_speaker_config,
+        thinking_budget,
+      } = context.inputs;
 
       // Use provided API key secret or fallback to environment variable
-      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
-      
+      const geminiApiKey =
+        (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+
       if (!geminiApiKey) {
-        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
+        return this.createErrorResult(
+          "Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable"
+        );
       }
 
       if (!text) {

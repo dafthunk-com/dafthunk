@@ -1,7 +1,6 @@
 import {
   CreateSecretResponse,
   DeleteSecretResponse,
-  GetSecretResponse,
   ListSecretsResponse,
   Secret,
   UpdateSecretResponse,
@@ -79,22 +78,6 @@ export const createSecret = async (
     createdAt: response.secret.createdAt,
     updatedAt: response.secret.updatedAt,
   };
-};
-
-/**
- * Get a specific secret (without the value)
- */
-export const getSecret = async (
-  id: string,
-  orgHandle: string
-): Promise<Secret> => {
-  const response = await makeOrgRequest<GetSecretResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${id}`
-  );
-
-  return response.secret;
 };
 
 // Note: We intentionally don't provide a function to get secret values

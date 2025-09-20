@@ -19,9 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { isObjectReference, useObjectService } from "@/services/object-service";
-import { useSecrets } from "@/services/secrets-service";
-import { cn } from "@/utils/utils";
 import {
   clearNodeInput,
   convertValueByType,
@@ -29,6 +26,9 @@ import {
   useWorkflow,
 } from "@/components/workflow/workflow-context";
 import { WorkflowParameter } from "@/components/workflow/workflow-types";
+import { isObjectReference, useObjectService } from "@/services/object-service";
+import { useSecrets } from "@/services/secrets-service";
+import { cn } from "@/utils/utils";
 
 interface InputEditDialogProps {
   nodeId: string;
@@ -60,7 +60,7 @@ export function InputEditDialog({
     try {
       return createObjectUrl(objectRef);
     } catch (error) {
-      console.error('Failed to create object URL:', error);
+      console.error("Failed to create object URL:", error);
       return null;
     }
   };
@@ -106,7 +106,9 @@ export function InputEditDialog({
     updateNodeInput(nodeId, input.id, secretName, nodeInputs, updateNodeData);
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !input || readonly || !updateNodeData) return;
 
@@ -115,8 +117,8 @@ export function InputEditDialog({
       setIsUploading(true);
 
       // Validate image file
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Please select a valid image file');
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Please select a valid image file");
       }
 
       const arrayBuffer = await file.arrayBuffer();
@@ -126,11 +128,15 @@ export function InputEditDialog({
       setIsUploading(false);
     } catch (err) {
       setIsUploading(false);
-      setUploadError(err instanceof Error ? err.message : "Failed to upload image");
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload image"
+      );
     }
   };
 
-  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocumentUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !input || readonly || !updateNodeData) return;
 
@@ -141,7 +147,8 @@ export function InputEditDialog({
       // Ensure correct mime type for Excel files
       let mimeType = file.type;
       if (file.name.endsWith(".xlsx")) {
-        mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        mimeType =
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
       } else if (file.name.endsWith(".xls")) {
         mimeType = "application/vnd.ms-excel";
       }
@@ -153,11 +160,15 @@ export function InputEditDialog({
       setIsUploading(false);
     } catch (err) {
       setIsUploading(false);
-      setUploadError(err instanceof Error ? err.message : "Failed to upload document");
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload document"
+      );
     }
   };
 
-  const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !input || readonly || !updateNodeData) return;
 
@@ -166,8 +177,8 @@ export function InputEditDialog({
       setIsUploading(true);
 
       // Validate audio file
-      if (!file.type.startsWith('audio/')) {
-        throw new Error('Please select a valid audio file');
+      if (!file.type.startsWith("audio/")) {
+        throw new Error("Please select a valid audio file");
       }
 
       const arrayBuffer = await file.arrayBuffer();
@@ -177,12 +188,15 @@ export function InputEditDialog({
       setIsUploading(false);
     } catch (err) {
       setIsUploading(false);
-      setUploadError(err instanceof Error ? err.message : "Failed to upload audio");
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload audio"
+      );
     }
   };
 
-
-  const handleGltfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGltfUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !input || readonly || !updateNodeData) return;
 
@@ -193,11 +207,11 @@ export function InputEditDialog({
       // Set appropriate MIME type for glTF files
       let mimeType = file.type;
       const fileName = file.name.toLowerCase();
-      
-      if (fileName.endsWith('.gltf')) {
-        mimeType = 'model/gltf+json';
-      } else if (fileName.endsWith('.glb')) {
-        mimeType = 'model/gltf-binary';
+
+      if (fileName.endsWith(".gltf")) {
+        mimeType = "model/gltf+json";
+      } else if (fileName.endsWith(".glb")) {
+        mimeType = "model/gltf-binary";
       }
 
       const arrayBuffer = await file.arrayBuffer();
@@ -207,7 +221,9 @@ export function InputEditDialog({
       setIsUploading(false);
     } catch (err) {
       setIsUploading(false);
-      setUploadError(err instanceof Error ? err.message : "Failed to upload glTF model");
+      setUploadError(
+        err instanceof Error ? err.message : "Failed to upload glTF model"
+      );
     }
   };
 
@@ -346,14 +362,14 @@ export function InputEditDialog({
                     disabled={readonly || isSecretsLoading}
                   >
                     <SelectTrigger id="input-value">
-                      <SelectValue 
+                      <SelectValue
                         placeholder={
-                          isSecretsLoading 
-                            ? "Loading secrets..." 
-                            : secrets.length === 0 
-                            ? "No secrets available"
-                            : "Select a secret"
-                        } 
+                          isSecretsLoading
+                            ? "Loading secrets..."
+                            : secrets.length === 0
+                              ? "No secrets available"
+                              : "Select a secret"
+                        }
                       />
                     </SelectTrigger>
                     <SelectContent>
@@ -388,12 +404,12 @@ export function InputEditDialog({
                             className="w-full h-32 object-cover"
                             onError={(e) => {
                               // Hide image on error and show fallback
-                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.style.display = "none";
                             }}
                           />
                         ) : null;
                       })()}
-                      
+
                       {/* Clear Button Overlay */}
                       {!readonly && (
                         <Button
@@ -415,7 +431,8 @@ export function InputEditDialog({
                           htmlFor={`image-upload-${input.id}`}
                           className={cn(
                             "cursor-pointer text-blue-500 hover:text-blue-600",
-                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                            (isUploading || readonly) &&
+                              "opacity-50 pointer-events-none"
                           )}
                         >
                           {isUploading ? "Uploading..." : "Upload Image"}
@@ -450,7 +467,7 @@ export function InputEditDialog({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(objectUrl, '_blank')}
+                              onClick={() => window.open(objectUrl, "_blank")}
                               className="h-6 px-2 text-xs"
                               title="Download file"
                             >
@@ -460,7 +477,7 @@ export function InputEditDialog({
                           ) : null;
                         })()}
                       </div>
-                      
+
                       {/* Clear Button */}
                       {!readonly && (
                         <Button
@@ -482,7 +499,8 @@ export function InputEditDialog({
                           htmlFor={`document-upload-${input.id}`}
                           className={cn(
                             "cursor-pointer text-blue-500 hover:text-blue-600",
-                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                            (isUploading || readonly) &&
+                              "opacity-50 pointer-events-none"
                           )}
                         >
                           {isUploading ? "Uploading..." : "Upload Document"}
@@ -517,12 +535,15 @@ export function InputEditDialog({
                             className="w-full h-8"
                             preload="metadata"
                           >
-                            <source src={objectUrl} type={input.value?.mimeType || 'audio/*'} />
+                            <source
+                              src={objectUrl}
+                              type={input.value?.mimeType || "audio/*"}
+                            />
                             Your browser does not support the audio element.
                           </audio>
                         ) : null;
                       })()}
-                      
+
                       {/* Clear Button Overlay */}
                       {!readonly && (
                         <Button
@@ -544,7 +565,8 @@ export function InputEditDialog({
                           htmlFor={`audio-upload-${input.id}`}
                           className={cn(
                             "cursor-pointer text-blue-500 hover:text-blue-600",
-                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                            (isUploading || readonly) &&
+                              "opacity-50 pointer-events-none"
                           )}
                         >
                           {isUploading ? "Uploading..." : "Upload Audio"}
@@ -579,7 +601,7 @@ export function InputEditDialog({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(objectUrl, '_blank')}
+                              onClick={() => window.open(objectUrl, "_blank")}
                               className="h-6 px-2 text-xs"
                               title="Download glTF model"
                             >
@@ -589,7 +611,7 @@ export function InputEditDialog({
                           ) : null;
                         })()}
                       </div>
-                      
+
                       {/* Clear Button */}
                       {!readonly && (
                         <Button
@@ -611,7 +633,8 @@ export function InputEditDialog({
                           htmlFor={`gltf-upload-${input.id}`}
                           className={cn(
                             "cursor-pointer text-blue-500 hover:text-blue-600",
-                            (isUploading || readonly) && "opacity-50 pointer-events-none"
+                            (isUploading || readonly) &&
+                              "opacity-50 pointer-events-none"
                           )}
                         >
                           {isUploading ? "Uploading..." : "Upload glTF Model"}

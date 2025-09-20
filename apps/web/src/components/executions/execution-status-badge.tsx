@@ -13,7 +13,7 @@ import { cn } from "@/utils/utils";
 
 // Define the structure for status information
 type StatusInfo = {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   variant: VariantProps<typeof badgeVariants>["variant"];
 };
 
@@ -62,17 +62,18 @@ export function ExecutionStatusBadge({ status }: ExecutionStatusBadgeProps) {
   const statusInfo = statusMap[status] ?? statusMap["submitted"];
   const Icon = statusInfo.icon;
 
+  const iconClasses = cn(
+    "size-3",
+    "mr-0.5",
+    status === "executing" && "animate-spin"
+  );
+
   return (
     <Badge
       variant={statusInfo.variant}
       className="capitalize flex items-center space-x-1 w-fit"
     >
-      <Icon
-        className={cn(
-          "size-3 mr-0.5",
-          status === "executing" ? "animate-spin" : ""
-        )}
-      />
+      <Icon className={iconClasses} />
       <span>{status}</span>
     </Badge>
   );

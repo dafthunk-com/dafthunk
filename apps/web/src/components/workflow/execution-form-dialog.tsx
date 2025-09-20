@@ -54,7 +54,7 @@ const createStringValidator = (param: DialogFormParameter): z.ZodTypeAny => {
 const createNumberValidator = (param: DialogFormParameter): z.ZodTypeAny => {
   const numberBase = z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
-    z.number({ invalid_type_error: `${param.label} must be a number` })
+    z.number({ message: `${param.label} must be a number` })
   );
   return param.isRequired
     ? numberBase.refine((val) => val >= 1, {
@@ -65,7 +65,7 @@ const createNumberValidator = (param: DialogFormParameter): z.ZodTypeAny => {
 
 const createBooleanValidator = (param: DialogFormParameter): z.ZodTypeAny => {
   return param.isRequired
-    ? z.boolean({ required_error: `${param.label} is required.` })
+    ? z.boolean({ message: `${param.label} is required.` })
     : z.boolean().optional();
 };
 

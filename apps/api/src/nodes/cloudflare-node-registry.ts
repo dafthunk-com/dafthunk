@@ -3,6 +3,13 @@ import { DemToBufferGeometryNode } from "./3d/dem-to-buffergeometry-node";
 import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
+import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
+import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
+import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
+import { Claude37SonnetNode } from "./anthropic/claude-37-sonnet-node";
+import { ClaudeOpus4Node } from "./anthropic/claude-opus-4-node";
+import { ClaudeOpus41Node } from "./anthropic/claude-opus-41-node";
+import { ClaudeSonnet4Node } from "./anthropic/claude-sonnet-4-node";
 import { AudioRecorderNode } from "./audio/audio-recorder-node";
 import { Aura1Node } from "./audio/aura-1-node";
 import { MelottsNode } from "./audio/melotts-node";
@@ -217,6 +224,12 @@ import { SquareRootNode } from "./math/square-root-node";
 import { SubtractionNode } from "./math/subtraction-node";
 import { SumNode } from "./math/sum-node";
 import { HttpRequestNode } from "./net/http-request-node";
+import { Gpt5MiniNode } from "./openai/gpt-5-mini-node";
+import { Gpt5NanoNode } from "./openai/gpt-5-nano-node";
+import { Gpt5Node } from "./openai/gpt-5-node";
+import { Gpt41Node } from "./openai/gpt-41-node";
+import { GptOss20BNode } from "./openai/gpt-oss-20b-node";
+import { GptOss120BNode } from "./openai/gpt-oss-120b-node";
 import { FormDataBooleanNode } from "./parameter/form-data-boolean-node";
 import { FormDataNumberNode } from "./parameter/form-data-number-node";
 import { FormDataStringNode } from "./parameter/form-data-string-node";
@@ -225,21 +238,8 @@ import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { RagSearchNode } from "./rag/rag-search-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
-import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
-import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
-import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
-import { Claude37SonnetNode } from "./anthropic/claude-37-sonnet-node";
-import { ClaudeOpus4Node } from "./anthropic/claude-opus-4-node";
-import { ClaudeOpus41Node } from "./anthropic/claude-opus-41-node";
-import { ClaudeSonnet4Node } from "./anthropic/claude-sonnet-4-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
 import { DistilbertSst2Int8Node } from "./text/distilbert-sst-2-int8-node";
-import { Gpt5MiniNode } from "./openai/gpt-5-mini-node";
-import { Gpt5NanoNode } from "./openai/gpt-5-nano-node";
-import { Gpt5Node } from "./openai/gpt-5-node";
-import { Gpt41Node } from "./openai/gpt-41-node";
-import { GptOss20BNode } from "./openai/gpt-oss-20b-node";
-import { GptOss120BNode } from "./openai/gpt-oss-120b-node";
 import { Hermes2ProMistral7BNode } from "./text/hermes-2-pro-mistral-7b-node";
 import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
@@ -290,9 +290,6 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.AWS_REGION &&
       this.env.SES_DEFAULT_FROM
     );
-    const hasOpenAI = !!this.env.OPENAI_API_KEY;
-    const hasAnthropic = !!this.env.ANTHROPIC_API_KEY;
-    const hasGemini = !!this.env.GEMINI_API_KEY;
 
     // Register all core nodes
     this.registerImplementation(FormDataStringNode);

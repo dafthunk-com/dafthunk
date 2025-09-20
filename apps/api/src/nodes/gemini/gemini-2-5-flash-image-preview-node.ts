@@ -121,10 +121,13 @@ The node works best with up to 3 input images for optimal performance and qualit
         context.inputs;
 
       // Use provided API key secret or fallback to environment variable
-      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
-      
+      const geminiApiKey =
+        (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+
       if (!geminiApiKey) {
-        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
+        return this.createErrorResult(
+          "Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable"
+        );
       }
 
       if (!prompt) {

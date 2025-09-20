@@ -104,14 +104,23 @@ Note: "allow_all" is not available in EU, UK, CH, MENA locations.`,
     let response: any;
 
     try {
-      const { apiKey, prompt, aspectRatio, sampleImageSize, personGeneration, model } =
-        context.inputs;
+      const {
+        apiKey,
+        prompt,
+        aspectRatio,
+        sampleImageSize,
+        personGeneration,
+        model,
+      } = context.inputs;
 
       // Use provided API key secret or fallback to environment variable
-      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
-      
+      const geminiApiKey =
+        (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+
       if (!geminiApiKey) {
-        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
+        return this.createErrorResult(
+          "Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable"
+        );
       }
 
       if (!prompt) {
