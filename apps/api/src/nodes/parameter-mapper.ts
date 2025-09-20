@@ -360,6 +360,10 @@ const converters = {
     nodeToApi: createJsonParsingNodeToApi(),
     apiToNode: createJsonParsingApiToNode(),
   },
+  secret: {
+    nodeToApi: typeValidatingNodeToApi("string"),
+    apiToNode: typeValidatingApiToNode("string"),
+  },
   any: {
     nodeToApi: (
       value: NodeParameterValue,
