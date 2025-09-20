@@ -40,6 +40,7 @@ export interface Bindings {
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
   GEMINI_API_KEY?: string;
+  HUGGINGFACE_API_KEY?: string;
   SECRET_MASTER_KEY: string;
 }
 
