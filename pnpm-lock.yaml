@@ -56,6 +56,9 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.2
         version: 0.7.2(hono@4.9.7)(zod@4.1.8)
+      '@huggingface/inference':
+        specifier: ^4.8.0
+        version: 4.8.0
       '@mapbox/martini':
         specifier: ^0.2.0
         version: 0.2.0
@@ -1388,6 +1391,17 @@ packages:
     resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
     peerDependencies:
       react-hook-form: ^7.55.0
+
+  '@huggingface/inference@4.8.0':
+    resolution: {integrity: sha512-Eq98EAXqYn4rKMfrbEXuhc3IjKfaeIO6eXNOZk9xk6v5akrIWRtd6d1h0fjAWyX4zRbdUpXRh6MvsqXnzGvXCA==}
+    engines: {node: '>=18'}
+
+  '@huggingface/jinja@0.5.1':
+    resolution: {integrity: sha512-yUZLld4lrM9iFxHCwFQ7D1HW2MWMwSbeB7WzWqFYDWK+rEb+WldkLdAJxUPOmgICMHZLzZGVcVjFh3w/YGubng==}
+    engines: {node: '>=18'}
+
+  '@huggingface/tasks@0.19.47':
+    resolution: {integrity: sha512-YI+DKLpWQGNpIBkOCTcv3nIoCi3USpUPyfRu0IfMEi2Do0q6r5pQPfy+GWhQFZEPCHsxOwoc8S8hPmmejeK9Cg==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -7319,6 +7333,15 @@ snapshots:
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.57.0(react@19.1.0)
+
+  '@huggingface/inference@4.8.0':
+    dependencies:
+      '@huggingface/jinja': 0.5.1
+      '@huggingface/tasks': 0.19.47
+
+  '@huggingface/jinja@0.5.1': {}
+
+  '@huggingface/tasks@0.19.47': {}
 
   '@humanfs/core@0.19.1': {}
 

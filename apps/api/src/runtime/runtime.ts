@@ -167,6 +167,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         OPENAI_API_KEY: this.env.OPENAI_API_KEY,
         ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
         GEMINI_API_KEY: this.env.GEMINI_API_KEY,
+        HUGGINGFACE_API_KEY: this.env.HUGGINGFACE_API_KEY,
       },
     };
   }
@@ -853,6 +854,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           OPENAI_API_KEY: this.env.OPENAI_API_KEY,
           ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
           GEMINI_API_KEY: this.env.GEMINI_API_KEY,
+          HUGGINGFACE_API_KEY: this.env.HUGGINGFACE_API_KEY,
         },
       };
 
