@@ -124,6 +124,13 @@ Automatically detects and supports 24 languages including:
         value: 100,
         hidden: true,
       },
+      {
+        name: "apiKey",
+        type: "secret",
+        description: "Gemini API key secret name",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -152,11 +159,14 @@ Automatically detects and supports 24 languages including:
     let response: any;
 
     try {
-      const { text, voice_name, multi_speaker_config, thinking_budget } =
+      const { apiKey, text, voice_name, multi_speaker_config, thinking_budget } =
         context.inputs;
 
-      if (!context.env.GEMINI_API_KEY) {
-        return this.createErrorResult("GEMINI_API_KEY is not configured");
+      // Use provided API key secret or fallback to environment variable
+      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      
+      if (!geminiApiKey) {
+        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
       }
 
       if (!text) {
@@ -164,7 +174,7 @@ Automatically detects and supports 24 languages including:
       }
 
       ai = new GoogleGenAI({
-        apiKey: context.env.GEMINI_API_KEY,
+        apiKey: geminiApiKey,
       });
 
       const config: any = {

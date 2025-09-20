@@ -76,6 +76,13 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
         value: 100,
         hidden: true,
       },
+      {
+        name: "apiKey",
+        type: "secret",
+        description: "Gemini API key secret name",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -96,10 +103,13 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { image, prompt, thinking_budget } = context.inputs;
+      const { apiKey, image, prompt, thinking_budget } = context.inputs;
 
-      if (!context.env.GEMINI_API_KEY) {
-        return this.createErrorResult("GEMINI_API_KEY is not configured");
+      // Use provided API key secret or fallback to environment variable
+      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      
+      if (!geminiApiKey) {
+        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
       }
 
       if (!image) {
@@ -111,7 +121,7 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
       }
 
       const ai = new GoogleGenAI({
-        apiKey: context.env.GEMINI_API_KEY,
+        apiKey: geminiApiKey,
       });
 
       const config: any = {};

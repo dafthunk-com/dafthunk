@@ -44,7 +44,6 @@ Note: "allow_all" is not available in EU, UK, CH, MENA locations.`,
           "Text prompt describing the image to generate (max 480 tokens)",
         required: true,
       },
-
       {
         name: "aspectRatio",
         type: "string",
@@ -77,6 +76,13 @@ Note: "allow_all" is not available in EU, UK, CH, MENA locations.`,
         hidden: true,
         value: "imagen-4.0-generate-001",
       },
+      {
+        name: "apiKey",
+        type: "secret",
+        description: "Gemini API key secret name",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -98,11 +104,14 @@ Note: "allow_all" is not available in EU, UK, CH, MENA locations.`,
     let response: any;
 
     try {
-      const { prompt, aspectRatio, sampleImageSize, personGeneration, model } =
+      const { apiKey, prompt, aspectRatio, sampleImageSize, personGeneration, model } =
         context.inputs;
 
-      if (!context.env.GEMINI_API_KEY) {
-        return this.createErrorResult("GEMINI_API_KEY is not configured");
+      // Use provided API key secret or fallback to environment variable
+      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      
+      if (!geminiApiKey) {
+        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
       }
 
       if (!prompt) {
@@ -134,7 +143,7 @@ Note: "allow_all" is not available in EU, UK, CH, MENA locations.`,
       }
 
       ai = new GoogleGenAI({
-        apiKey: context.env.GEMINI_API_KEY,
+        apiKey: geminiApiKey,
       });
 
       // Build configuration object

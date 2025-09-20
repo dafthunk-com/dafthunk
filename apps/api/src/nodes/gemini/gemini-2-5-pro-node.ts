@@ -69,6 +69,13 @@ Each service is independently deployable with its own database and API gateway f
         hidden: true,
         value: [] as any,
       },
+      {
+        name: "apiKey",
+        type: "secret",
+        description: "Gemini API key secret name",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -118,10 +125,13 @@ Each service is independently deployable with its own database and API gateway f
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { instructions, input, thinking_budget, tools } = context.inputs;
+      const { apiKey, instructions, input, thinking_budget, tools } = context.inputs;
 
-      if (!context.env.GEMINI_API_KEY) {
-        return this.createErrorResult("GEMINI_API_KEY is not configured");
+      // Use provided API key secret or fallback to environment variable
+      const geminiApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      
+      if (!geminiApiKey) {
+        return this.createErrorResult("Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable");
       }
 
       if (!input) {
@@ -129,7 +139,7 @@ Each service is independently deployable with its own database and API gateway f
       }
 
       const ai = new GoogleGenAI({
-        apiKey: context.env.GEMINI_API_KEY,
+        apiKey: geminiApiKey,
       });
 
       const config: any = {};
