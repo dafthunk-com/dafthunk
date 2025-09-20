@@ -234,12 +234,12 @@ import { ClaudeOpus41Node } from "./anthropic/claude-opus-41-node";
 import { ClaudeSonnet4Node } from "./anthropic/claude-sonnet-4-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
 import { DistilbertSst2Int8Node } from "./text/distilbert-sst-2-int8-node";
-import { Gpt5MiniNode } from "./text/gpt-5-mini-node";
-import { Gpt5NanoNode } from "./text/gpt-5-nano-node";
-import { Gpt5Node } from "./text/gpt-5-node";
-import { Gpt41Node } from "./text/gpt-41-node";
-import { GptOss20BNode } from "./text/gpt-oss-20b-node";
-import { GptOss120BNode } from "./text/gpt-oss-120b-node";
+import { Gpt5MiniNode } from "./openai/gpt-5-mini-node";
+import { Gpt5NanoNode } from "./openai/gpt-5-nano-node";
+import { Gpt5Node } from "./openai/gpt-5-node";
+import { Gpt41Node } from "./openai/gpt-41-node";
+import { GptOss20BNode } from "./openai/gpt-oss-20b-node";
+import { GptOss120BNode } from "./openai/gpt-oss-120b-node";
 import { Hermes2ProMistral7BNode } from "./text/hermes-2-pro-mistral-7b-node";
 import { InputTextNode } from "./text/input-text-node";
 import { Llama318BInstructFastNode } from "./text/llama-3-1-8b-instruct-fast-node";
@@ -590,16 +590,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(Gpt5NanoNode);
     }
 
-    // Anthropic Claude nodes
-    if (hasAnthropic) {
-      this.registerImplementation(ClaudeOpus41Node);
-      this.registerImplementation(ClaudeOpus4Node);
-      this.registerImplementation(ClaudeSonnet4Node);
-      this.registerImplementation(Claude37SonnetNode);
-      this.registerImplementation(Claude35SonnetNode);
-      this.registerImplementation(Claude35HaikuNode);
-      this.registerImplementation(Claude3OpusNode);
-    }
+    // Anthropic Claude nodes - always register (users can provide API keys via secrets)
+    this.registerImplementation(ClaudeOpus41Node);
+    this.registerImplementation(ClaudeOpus4Node);
+    this.registerImplementation(ClaudeSonnet4Node);
+    this.registerImplementation(Claude37SonnetNode);
+    this.registerImplementation(Claude35SonnetNode);
+    this.registerImplementation(Claude35HaikuNode);
+    this.registerImplementation(Claude3OpusNode);
 
     // Google Gemini nodes - always register (users can provide API keys via secrets)
     this.registerImplementation(Gemini25FlashNode);

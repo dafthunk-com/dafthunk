@@ -39,6 +39,13 @@ export class ClaudeSonnet4Node extends ExecutableNode {
         description: "The input text or question for Claude",
         required: true,
       },
+      {
+        name: "apiKey",
+        type: "secret",
+        description: "Anthropic API key secret name",
+        required: false,
+        hidden: true,
+      },
     ],
     outputs: [
       {
@@ -51,10 +58,13 @@ export class ClaudeSonnet4Node extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { instructions, input } = context.inputs;
+      const { instructions, input, apiKey } = context.inputs;
 
-      if (!context.env.ANTHROPIC_API_KEY) {
-        return this.createErrorResult("ANTHROPIC_API_KEY is not configured");
+      // Use provided API key secret or fallback to environment variable
+      const anthropicApiKey = (apiKey && context.secrets?.[apiKey]) || context.env.ANTHROPIC_API_KEY;
+      
+      if (!anthropicApiKey) {
+        return this.createErrorResult("Anthropic API key is required. Provide via apiKey input or ANTHROPIC_API_KEY environment variable");
       }
 
       if (!input) {
@@ -62,7 +72,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
       }
 
       const client = new Anthropic({
-        apiKey: context.env.ANTHROPIC_API_KEY,
+        apiKey: anthropicApiKey,
         timeout: 60000,
       });
 
