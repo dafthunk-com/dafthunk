@@ -510,7 +510,7 @@ export const WorkflowNode = memo(
               </div>
 
               {showOutputs && (
-                <div className="p-2 border-t space-y-2">
+                <div className="p-2 border-t space-y-2 nodrag">
                   {data.outputs
                     .filter((output) => !output.hidden)
                     .map((output, index) => (
@@ -554,7 +554,7 @@ export const WorkflowNode = memo(
               </div>
 
               {showError && (
-                <div className="p-2 bg-red-50 text-red-600 text-xs border-t border-red-200 dark:bg-red-900 dark:text-red-400 dark:border-red-800">
+                <div className="p-2 bg-red-50 text-red-600 text-xs border-t border-red-200 dark:bg-red-900 dark:text-red-400 dark:border-red-800 nodrag">
                   <p className="m-0">{data.error}</p>
                 </div>
               )}
