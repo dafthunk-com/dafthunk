@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { isObjectReference } from "@/services/object-service";
 
-import { GltfViewer } from "./gltf-viewer";
+import { ModelViewer } from "./model-viewer";
 import { WorkflowParameter } from "./workflow-types";
 
 interface WorkflowValueRendererProps {
@@ -563,7 +563,7 @@ export function WorkflowValueRenderer({
         );
       case "gltf":
         return (
-          <GltfViewer
+          <ModelViewer
             parameter={parameter}
             objectUrl={objectUrl}
             compact={compact}
@@ -629,7 +629,7 @@ export function WorkflowValueRenderer({
           }
           if (parameter.value.mimeType === "model/gltf-binary") {
             return (
-              <GltfViewer
+              <ModelViewer
                 parameter={parameter}
                 objectUrl={objectUrl}
                 compact={compact}
