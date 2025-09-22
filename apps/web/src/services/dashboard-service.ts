@@ -1,4 +1,8 @@
-import { DashboardStats, DashboardStatsResponse, UsageCreditsResponse } from "@dafthunk/types";
+import {
+  DashboardStats,
+  DashboardStatsResponse,
+  UsageCreditsResponse,
+} from "@dafthunk/types";
 import useSWR from "swr";
 
 import { useAuth } from "@/components/auth-context";
@@ -63,7 +67,9 @@ export const useUsageCredits = (): UseUsageCredits => {
   const orgHandle = organization?.handle;
 
   // Create a unique SWR key that includes the organization handle
-  const swrKey = orgHandle ? `/${orgHandle}${USAGE_API_ENDPOINT}/credits` : null;
+  const swrKey = orgHandle
+    ? `/${orgHandle}${USAGE_API_ENDPOINT}/credits`
+    : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     swrKey,

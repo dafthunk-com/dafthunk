@@ -29,7 +29,11 @@ export function DashboardPage() {
     return (
       <InsetError
         title="Dashboard"
-        errorMessage={dashboardStatsError?.message || usageError?.message || "An error occurred"}
+        errorMessage={
+          dashboardStatsError?.message ||
+          usageError?.message ||
+          "An error occurred"
+        }
       />
     );
   }
@@ -154,10 +158,7 @@ export function DashboardPage() {
             <p className="text-xs text-muted-foreground pt-1">
               Available this month
             </p>
-            <Badge
-              variant="secondary"
-              className="mt-2 text-xs"
-            >
+            <Badge variant="secondary" className="mt-2 text-xs">
               Monthly allocation
             </Badge>
           </CardContent>
@@ -199,12 +200,11 @@ export function DashboardPage() {
             <div className="text-xs text-muted-foreground pt-1 flex items-center gap-1">
               <span className="flex size-2 translate-y-px rounded-full bg-green-500" />
               <span>
-                {usagePercentage >= 90 
-                  ? "Low remaining" 
-                  : usagePercentage >= 70 
-                  ? "Moderate usage" 
-                  : "Plenty remaining"
-                }
+                {usagePercentage >= 90
+                  ? "Low remaining"
+                  : usagePercentage >= 70
+                    ? "Moderate usage"
+                    : "Plenty remaining"}
               </span>
             </div>
           </CardContent>
@@ -282,7 +282,6 @@ export function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-
     </InsetLayout>
   );
 }

@@ -1,8 +1,4 @@
-import {
-  Building2,
-  CircleUserRound,
-  LogOut,
-} from "lucide-react";
+import { Building2, CircleUserRound, LogOut } from "lucide-react";
 import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";

@@ -71,6 +71,22 @@ const dashboardSidebarItems = [
     url: "/org/workflows",
     icon: SquareTerminal,
   },
+
+  {
+    title: "Datasets",
+    url: "/org/datasets",
+    icon: Database,
+  },
+  {
+    title: "Secrets",
+    url: "/org/secrets",
+    icon: Lock,
+  },
+  {
+    title: "API Keys",
+    url: "/org/api-keys",
+    icon: KeyRound,
+  },
   {
     title: "Deployments",
     url: "/org/deployments",
@@ -80,21 +96,6 @@ const dashboardSidebarItems = [
     title: "Executions",
     url: "/org/executions",
     icon: Logs,
-  },
-  {
-    title: "Datasets",
-    url: "/org/datasets",
-    icon: Database,
-  },
-  {
-    title: "API Keys",
-    url: "/org/api-keys",
-    icon: KeyRound,
-  },
-  {
-    title: "Secrets",
-    url: "/org/secrets",
-    icon: Lock,
   },
 ];
 

@@ -1,7 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown, Settings } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
@@ -9,24 +8,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 export function OrganizationSwitcher() {
   const { organization } = useAuth();
-  const navigate = useNavigate();
 
-  // Use organization name from auth context, fallback to "Personal" if not available
   const currentOrganization = organization?.name || "Personal";
 
-  // For now, we just have one organization, but we'll keep the dropdown
-  // In the future, this could fetch all available organizations for the user
   const organizations = [currentOrganization];
-
-  const handleAdministrationClick = () => {
-    navigate("/organizations");
-  };
 
   return (
     <DropdownMenu>

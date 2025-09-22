@@ -445,10 +445,7 @@ export function DeploymentDetailPage() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg">Workflow not found</p>
-          <Button
-            className="mt-4"
-            onClick={() => navigate("/org/deployments")}
-          >
+          <Button className="mt-4" onClick={() => navigate("/org/deployments")}>
             Back to Deployments
           </Button>
         </div>

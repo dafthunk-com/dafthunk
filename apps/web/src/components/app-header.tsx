@@ -1,4 +1,4 @@
-import { Bot, Settings } from "lucide-react";
+import { Bot } from "lucide-react";
 import { Link } from "react-router";
 
 import { OrganizationSwitcher } from "@/components/organization-switcher";
@@ -10,7 +10,7 @@ import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 
 export function AppHeader() {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const navLinkClasses =
     "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors";
