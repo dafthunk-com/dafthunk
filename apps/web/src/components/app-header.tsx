@@ -1,6 +1,7 @@
 import { Bot, Settings } from "lucide-react";
 import { Link } from "react-router";
 
+import { OrganizationSwitcher } from "@/components/sidebar/organization-switcher";
 import { UserProfile } from "@/components/user-profile";
 
 import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
@@ -22,6 +23,7 @@ export function AppHeader() {
         <Link to="/" className="flex items-center gap-2">
           <Bot className="h-6 w-6" />
         </Link>
+        {isAuthenticated && <OrganizationSwitcher />}
         <AppHeaderBreadcrumb />
       </div>
       <div className="flex items-center gap-2">

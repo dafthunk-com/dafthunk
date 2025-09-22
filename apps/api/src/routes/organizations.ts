@@ -126,5 +126,4 @@ organizationRoutes.delete("/:id", async (c) => {
   }
 });
 
-
 export default organizationRoutes;

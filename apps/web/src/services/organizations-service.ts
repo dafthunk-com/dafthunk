@@ -44,7 +44,6 @@ export const useOrganizations = (): UseOrganizations => {
   };
 };
 
-
 /**
  * Create a new organization
  */
@@ -77,4 +76,3 @@ export const deleteOrganization = async (
 
   return response.success;
 };
-
