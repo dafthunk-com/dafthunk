@@ -171,6 +171,99 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Organizations - Dafthunk" /> },
   },
   {
+    path: "/org/dashboard",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Dashboard",
+          items: dashboardSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DashboardPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Dashboard - Dafthunk" /> },
+  },
+  {
+    path: "/workflows",
+    element: <Navigate to="/org/workflows" replace />,
+  },
+  {
+    path: "/org/workflows",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: dashboardSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <WorkflowsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/org/deployments",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: dashboardSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DeploymentsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Deployments - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/org/executions",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Workflows",
+          items: dashboardSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <ExecutionsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Executions - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/datasets",
+    element: <Navigate to="/org/datasets" replace />,
+  },
+  {
+    path: "/org/datasets",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Datasets",
+          items: dashboardSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <DatasetsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Datasets - Datasets - Dafthunk" /> },
+  },
+  {
     path: "/org/api-keys",
     element: (
       <AppLayout
@@ -203,23 +296,6 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Secrets - Settings - Dafthunk" /> },
-  },
-  {
-    path: "/org/dashboard",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Dashboard",
-          items: dashboardSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <DashboardPage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
-    handle: { head: <HeadSeo title="Dashboard - Dafthunk" /> },
   },
   {
     path: "/docs",
@@ -302,27 +378,6 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/datasets",
-    element: <Navigate to="/org/datasets" replace />,
-  },
-  {
-    path: "/org/datasets",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Datasets",
-          items: dashboardSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <DatasetsPage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
-    handle: { head: <HeadSeo title="Datasets - Datasets - Dafthunk" /> },
-  },
-  {
     path: "/datasets/datasets/:datasetId",
     element: (
       <AppLayout
@@ -338,44 +393,6 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Dataset Details - Datasets - Dafthunk" /> },
-  },
-  {
-    path: "/workflows",
-    element: <Navigate to="/org/workflows" replace />,
-  },
-  {
-    path: "/org/workflows",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Workflows",
-          items: dashboardSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <WorkflowsPage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
-    handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
-  },
-  {
-    path: "/org/deployments",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Workflows",
-          items: dashboardSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <DeploymentsPage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
-    handle: { head: <HeadSeo title="Deployments - Workflows - Dafthunk" /> },
   },
   {
     path: "/workflows/deployments/:workflowId",
@@ -414,23 +431,6 @@ export const routes: AppRouteObject[] = [
     handle: {
       head: <HeadSeo title="Deployment Version - Workflows - Dafthunk" />,
     },
-  },
-  {
-    path: "/org/executions",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Workflows",
-          items: dashboardSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <ExecutionsPage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
-    handle: { head: <HeadSeo title="Executions - Workflows - Dafthunk" /> },
   },
   {
     path: "/workflows/executions/:executionId",
