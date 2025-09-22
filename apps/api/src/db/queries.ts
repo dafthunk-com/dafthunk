@@ -1869,3 +1869,28 @@ export async function deleteMembership(
 
   return !!deletedMembership;
 }
+
+/**
+ * List all memberships for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of membership records
+ */
+export async function getOrganizationMemberships(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      userId: memberships.userId,
+      organizationId: memberships.organizationId,
+      role: memberships.role,
+      createdAt: memberships.createdAt,
+      updatedAt: memberships.updatedAt,
+    })
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .orderBy(memberships.createdAt);
+}
