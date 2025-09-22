@@ -110,7 +110,7 @@ function createColumns(
         const datasetId = row.original.id;
         return (
           <Link
-            to={`/datasets/datasets/${datasetId}`}
+            to={`/org/datasets/${datasetId}`}
             className="hover:underline"
           >
             <div className="font-medium">{name || "Untitled Dataset"}</div>
@@ -126,7 +126,7 @@ function createColumns(
         const datasetId = row.original.id;
         return (
           <Link
-            to={`/datasets/datasets/${datasetId}`}
+            to={`/org/datasets/${datasetId}`}
             className="font-mono text-xs hover:underline"
           >
             {handle}
@@ -149,7 +149,7 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onClick={() => navigate(`/datasets/datasets/${dataset.id}`)}
+                  onClick={() => navigate(`/org/datasets/${dataset.id}`)}
                 >
                   View Dataset
                 </DropdownMenuItem>
@@ -189,7 +189,7 @@ export function DatasetsPage() {
     try {
       const newDataset = await createDataset({ name }, orgHandle);
       mutateDatasets();
-      navigate(`/datasets/datasets/${newDataset.id}`);
+      navigate(`/org/datasets/${newDataset.id}`);
     } catch (error) {
       console.error("Failed to create dataset:", error);
     }

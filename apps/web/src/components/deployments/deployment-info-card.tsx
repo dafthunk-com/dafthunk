@@ -97,7 +97,7 @@ export function DeploymentInfoCard({
                 </p>
                 <p className="mt-1">
                   <Link
-                    to={`/workflows/workflows/${workflowId}`}
+                    to={`/org/workflows/${workflowId}`}
                     className="hover:underline font-mono text-xs"
                   >
                     {workflowId}

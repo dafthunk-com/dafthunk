@@ -379,7 +379,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/datasets/datasets/:datasetId",
+    path: "/org/datasets/:datasetId",
     element: (
       <AppLayout
         sidebar={{
@@ -453,7 +453,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/workflows/workflows/:id",
+    path: "/org/workflows/:id",
     element: (
       <AppLayout
         sidebar={{

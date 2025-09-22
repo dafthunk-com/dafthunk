@@ -36,7 +36,7 @@ export function WorkflowInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/workflows/${id}`}
+                  to={`/org/workflows/${id}`}
                   className="hover:underline font-medium"
                 >
                   {name}
@@ -53,7 +53,7 @@ export function WorkflowInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/workflows/${id}`}
+                  to={`/org/workflows/${id}`}
                   className="hover:underline font-mono text-xs"
                 >
                   {id}

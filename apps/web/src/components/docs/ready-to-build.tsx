@@ -37,7 +37,7 @@ export function ReadyToBuildBlock() {
 
       mutateWorkflows();
       setIsCreateDialogOpen(false);
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
+      navigate(`/org/workflows/${newWorkflow.id}`);
     } catch (error) {
       console.error("Failed to create workflow:", error);
     }

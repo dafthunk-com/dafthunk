@@ -270,7 +270,7 @@ function createColumns(
         const workflowId = row.original.id;
         return (
           <Link
-            to={`/workflows/workflows/${workflowId}`}
+            to={`/org/workflows/${workflowId}`}
             className="hover:underline"
           >
             <div className="font-medium">{name || "Untitled Workflow"}</div>
@@ -286,7 +286,7 @@ function createColumns(
         const workflowId = row.original.id;
         return (
           <Link
-            to={`/workflows/workflows/${workflowId}`}
+            to={`/org/workflows/${workflowId}`}
             className="font-mono text-xs hover:underline"
           >
             {handle}
@@ -328,7 +328,7 @@ function createColumns(
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() =>
-                    navigate(`/workflows/workflows/${workflow.id}`)
+                    navigate(`/org/workflows/${workflow.id}`)
                   }
                 >
                   Edit Workflow
@@ -396,7 +396,7 @@ export function WorkflowsPage() {
       const newWorkflow = await createWorkflow(request, orgHandle);
 
       mutateWorkflows();
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
+      navigate(`/org/workflows/${newWorkflow.id}`);
     } catch (error) {
       console.error("Failed to create workflow:", error);
       // Optionally show a toast here
@@ -417,7 +417,7 @@ export function WorkflowsPage() {
       const newWorkflow = await createWorkflow(request, orgHandle);
 
       mutateWorkflows();
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
+      navigate(`/org/workflows/${newWorkflow.id}`);
     } catch (error) {
       console.error("Failed to import template:", error);
       // Optionally show a toast here
