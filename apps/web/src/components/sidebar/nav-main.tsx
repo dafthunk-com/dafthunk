@@ -60,11 +60,19 @@ export function NavMain({ items, footerItems }: NavMainProps) {
   return (
     <SidebarGroup className="bg-transparent justify-between flex-1 py-2 px-4 pt-4 pb-0">
       <SidebarMenu className="bg-transparent">
+        {items.map((item) => (
+          <NavMainItem key={item.title} item={item} open={open} />
+        ))}
+      </SidebarMenu>
+      <SidebarMenu className="bg-transparent">
+        {footerItems && footerItems.map((item) => (
+          <NavMainItem key={item.title} item={item} open={open} />
+        ))}
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Toggle sidebar"
             onClick={toggleSidebar}
-            className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mb-1"
+            className="hover:bg-neutral-200/50 dark:hover:bg-neutral-800/50 transition-colors mt-1 mb-5"
           >
             <PanelLeft />
             <span
@@ -77,17 +85,7 @@ export function NavMain({ items, footerItems }: NavMainProps) {
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        {items.map((item) => (
-          <NavMainItem key={item.title} item={item} open={open} />
-        ))}
       </SidebarMenu>
-      {footerItems && (
-        <SidebarMenu className="bg-transparent">
-          {footerItems.map((item) => (
-            <NavMainItem key={item.title} item={item} open={open} />
-          ))}
-        </SidebarMenu>
-      )}
     </SidebarGroup>
   );
 }
