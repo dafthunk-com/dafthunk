@@ -31,7 +31,7 @@ export function AppHeader() {
           {isAuthenticated ? (
             <>
               <NavLink
-                to="/org/dashboard"
+                to="/org"
                 className={navLinkClasses}
                 activeClassName={activeNavLinkClasses}
               >

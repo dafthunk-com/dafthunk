@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -114,6 +115,7 @@ const columns: ColumnDef<Secret>[] = [
 ];
 
 export function SecretsPage() {
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { secrets, secretsError, isSecretsLoading, mutateSecrets } =
     useSecrets();
   const { organization } = useAuth();
@@ -128,6 +130,10 @@ export function SecretsPage() {
   const [editSecretName, setEditSecretName] = useState("");
   const [editSecretValue, setEditSecretValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Secrets" }]);
+  }, [setBreadcrumbs]);
 
   useEffect(() => {
     const handleDeleteEvent = (e: Event) => {

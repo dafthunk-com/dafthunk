@@ -15,13 +15,21 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react";
+
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useDashboard, useUsageCredits } from "@/services/dashboard-service";
 import { cn } from "@/utils/utils";
 
 export function DashboardPage() {
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
   const { usageData, usageError, isUsageLoading } = useUsageCredits();
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Dashboard" }]);
+  }, [setBreadcrumbs]);
 
   if (isDashboardStatsLoading || isUsageLoading) {
     return <InsetLoading title="Dashboard" />;

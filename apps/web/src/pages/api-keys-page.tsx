@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -85,6 +86,7 @@ const columns: ColumnDef<ApiKey>[] = [
 ];
 
 export function ApiKeysPage() {
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { apiKeys, apiKeysError, isApiKeysLoading, mutateApiKeys } =
     useApiKeys();
   const { organization } = useAuth();
@@ -96,6 +98,10 @@ export function ApiKeysPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [createdKeyToShow, setCreatedKeyToShow] = useState<string | null>(null);
   const [isShowKeyDialogOpen, setIsShowKeyDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "API Keys" }]);
+  }, [setBreadcrumbs]);
 
   useEffect(() => {
     const handleDeleteEvent = (e: Event) => {

@@ -83,11 +83,6 @@ const dashboardSidebarItems = [
     icon: Lock,
   },
   {
-    title: "API Keys",
-    url: "/org/api-keys",
-    icon: KeyRound,
-  },
-  {
     title: "Deployments",
     url: "/org/deployments",
     icon: Target,
@@ -96,6 +91,11 @@ const dashboardSidebarItems = [
     title: "Executions",
     url: "/org/executions",
     icon: Logs,
+  },
+  {
+    title: "API Keys",
+    url: "/org/api-keys",
+    icon: KeyRound,
   },
 ];
 
@@ -153,6 +153,10 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/org",
+    element: <Navigate to="/org/dashboard" replace />,
   },
   {
     path: "/settings/organizations",
