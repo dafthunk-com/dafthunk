@@ -29,9 +29,11 @@ import {
   executions,
   type ExecutionStatusType,
   type MembershipInsert,
+  type MembershipRow,
   memberships,
   type OrganizationInsert,
   OrganizationRole,
+  type OrganizationRoleType,
   organizations,
   Plan,
   type PlanType,
@@ -1583,4 +1585,287 @@ export async function deleteSecret(
 
   // If we got a record back, it was deleted successfully
   return !!deletedSecret;
+}
+
+/**
+ * List all organizations for a user
+ *
+ * @param db Database instance
+ * @param userId User ID
+ * @returns Array of organizations with membership role information
+ */
+export async function getUserOrganizations(
+  db: ReturnType<typeof createDatabase>,
+  userId: string
+) {
+  return await db
+    .select({
+      id: organizations.id,
+      name: organizations.name,
+      handle: organizations.handle,
+      computeCredits: organizations.computeCredits,
+      role: memberships.role,
+      createdAt: organizations.createdAt,
+      updatedAt: organizations.updatedAt,
+    })
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(eq(memberships.userId, userId))
+    .orderBy(organizations.createdAt);
+}
+
+/**
+ * Create a new organization and make the creator the owner
+ *
+ * @param db Database instance
+ * @param name Organization name
+ * @param handle Organization handle (optional, will be generated from name if not provided)
+ * @param creatorUserId User ID of the creator who will become the owner
+ * @returns Object containing the created organization and membership
+ */
+export async function createOrganization(
+  db: ReturnType<typeof createDatabase>,
+  name: string,
+  creatorUserId: string,
+  handle?: string
+): Promise<{
+  organization: OrganizationInsert;
+  membership: MembershipInsert;
+}> {
+  const now = new Date();
+  const organizationId = uuidv7();
+  
+  // Generate handle from name if not provided
+  const organizationHandle = handle || createHandle(name);
+  
+  const organization: OrganizationInsert = {
+    id: organizationId,
+    name,
+    handle: organizationHandle,
+    computeCredits: 1000, // Default compute credits
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const membership: MembershipInsert = {
+    userId: creatorUserId,
+    organizationId: organizationId,
+    role: OrganizationRole.OWNER,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  // Use batch to ensure atomicity
+  await db.batch([
+    db.insert(organizations).values(organization),
+    db.insert(memberships).values(membership),
+  ]);
+
+  return { organization, membership };
+}
+
+/**
+ * Delete an organization (only owners can delete)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @param userId User ID attempting to delete
+ * @returns True if organization was deleted, false if not found or user is not owner
+ */
+export async function deleteOrganization(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string,
+  userId: string
+): Promise<boolean> {
+  // First, verify the user is the owner of the organization
+  const [membership] = await db
+    .select()
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(
+      and(
+        eq(memberships.userId, userId),
+        getOrganizationCondition(organizationIdOrHandle),
+        eq(memberships.role, OrganizationRole.OWNER)
+      )
+    )
+    .limit(1);
+
+  if (!membership) {
+    return false; // User is not the owner or organization doesn't exist
+  }
+
+  const organizationId = membership.organizations.id;
+
+  // Delete the organization (cascade will handle related records)
+  const [deletedOrganization] = await db
+    .delete(organizations)
+    .where(eq(organizations.id, organizationId))
+    .returning({ id: organizations.id });
+
+  return !!deletedOrganization;
+}
+
+/**
+ * Add or update a user's membership in an organization (only admins and owners can do this)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @param targetUserId User ID to add/update membership for
+ * @param role Role to assign (member, admin, owner)
+ * @param adminUserId User ID of the admin/owner making the change
+ * @returns The created or updated membership record, or null if permission denied
+ */
+export async function addOrUpdateMembership(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string,
+  targetUserId: string,
+  role: OrganizationRoleType,
+  adminUserId: string
+): Promise<MembershipRow | null> {
+  // First, verify the admin user has permission (admin or owner)
+  const [adminMembership] = await db
+    .select()
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(
+      and(
+        eq(memberships.userId, adminUserId),
+        getOrganizationCondition(organizationIdOrHandle),
+        inArray(memberships.role, [OrganizationRole.ADMIN, OrganizationRole.OWNER])
+      )
+    )
+    .limit(1);
+
+  if (!adminMembership) {
+    return null; // Admin user doesn't have permission
+  }
+
+  // Additional check: only owners can assign the owner role
+  if (role === OrganizationRole.OWNER && adminMembership.memberships.role !== OrganizationRole.OWNER) {
+    return null; // Only owners can assign owner role
+  }
+
+  const organizationId = adminMembership.organizations.id;
+  const now = new Date();
+
+  // Check if the target user is already a member
+  const [existingMembership] = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, targetUserId),
+        eq(memberships.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  if (existingMembership) {
+    // Update existing membership
+    const [updatedMembership] = await db
+      .update(memberships)
+      .set({
+        role,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(memberships.userId, targetUserId),
+          eq(memberships.organizationId, organizationId)
+        )
+      )
+      .returning();
+
+    return updatedMembership;
+  } else {
+    // Create new membership
+    const newMembership: MembershipInsert = {
+      userId: targetUserId,
+      organizationId,
+      role,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const [createdMembership] = await db
+      .insert(memberships)
+      .values(newMembership)
+      .returning();
+
+    return createdMembership;
+  }
+}
+
+/**
+ * Delete a user's membership from an organization (only admins and owners can do this)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @param targetUserId User ID to remove from the organization
+ * @param adminUserId User ID of the admin/owner making the change
+ * @returns True if membership was deleted, false if permission denied or not found
+ */
+export async function deleteMembership(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string,
+  targetUserId: string,
+  adminUserId: string
+): Promise<boolean> {
+  // First, verify the admin user has permission (admin or owner)
+  const [adminMembership] = await db
+    .select()
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(
+      and(
+        eq(memberships.userId, adminUserId),
+        getOrganizationCondition(organizationIdOrHandle),
+        inArray(memberships.role, [OrganizationRole.ADMIN, OrganizationRole.OWNER])
+      )
+    )
+    .limit(1);
+
+  if (!adminMembership) {
+    return false; // Admin user doesn't have permission
+  }
+
+  // Get the target user's membership to check their role
+  const [targetMembership] = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, targetUserId),
+        eq(memberships.organizationId, adminMembership.organizations.id)
+      )
+    )
+    .limit(1);
+
+  if (!targetMembership) {
+    return false; // Target user is not a member
+  }
+
+  // Additional check: only owners can delete other owners
+  if (targetMembership.role === OrganizationRole.OWNER && adminMembership.memberships.role !== OrganizationRole.OWNER) {
+    return false; // Only owners can delete other owners
+  }
+
+  // Prevent users from deleting themselves
+  if (targetUserId === adminUserId) {
+    return false; // Users cannot delete their own membership
+  }
+
+  // Delete the membership
+  const [deletedMembership] = await db
+    .delete(memberships)
+    .where(
+      and(
+        eq(memberships.userId, targetUserId),
+        eq(memberships.organizationId, adminMembership.organizations.id)
+      )
+    )
+    .returning({ id: memberships.userId });
+
+  return !!deletedMembership;
 }
