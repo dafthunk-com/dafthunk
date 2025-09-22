@@ -2,6 +2,7 @@ import {
   ChartNoAxesCombined,
   Database,
   KeyRound,
+  LayoutDashboard,
   Lock,
   Logs,
   SquareTerminal,
@@ -58,6 +59,14 @@ export interface RouteHandle {
 export type AppRouteObject = RouteObject & {
   handle?: RouteHandle;
 };
+
+const dashboardSidebarItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+  },
+];
 
 const workflowsSidebarItems = [
   {
@@ -204,7 +213,13 @@ export const routes: AppRouteObject[] = [
   {
     path: "/dashboard",
     element: (
-      <AppLayout>
+      <AppLayout
+        sidebar={{
+          title: "Dashboard",
+          items: dashboardSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
         <ProtectedRoute>
           <DashboardPage />
         </ProtectedRoute>

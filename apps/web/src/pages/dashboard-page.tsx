@@ -1,22 +1,18 @@
-import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
 import { format } from "date-fns";
 import {
   AlertCircle,
   Clock,
   Logs,
   MoreHorizontal,
-  Plus,
   Target,
   Workflow,
 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import { Link } from "react-router";
 
-import { useAuth } from "@/components/auth-context";
 import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
@@ -26,10 +22,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
 import { useDashboard } from "@/services/dashboard-service";
-import { createWorkflow } from "@/services/workflow-service";
 
 // Define a type for recent execution items, mirroring DashboardStats.recentExecutions
 interface RecentExecutionItem {
@@ -41,63 +35,34 @@ interface RecentExecutionItem {
 }
 
 export function DashboardPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const navigate = useNavigate();
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
-
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
 
-  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
-    if (!orgHandle) return;
-
-    try {
-      const request: CreateWorkflowRequest = {
-        name,
-        type,
-        nodes: [],
-        edges: [],
-      };
-
-      const newWorkflow = await createWorkflow(request, orgHandle);
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
-    } catch (error) {
-      console.error("Failed to create workflow:", error);
-      // Optionally show a toast here
-    }
-  };
-
   if (isDashboardStatsLoading) {
-    return <InsetLoading />;
+    return <InsetLoading title="Dashboard" />;
   } else if (dashboardStatsError) {
-    return <InsetError errorMessage={dashboardStatsError.message} />;
+    return (
+      <InsetError
+        title="Dashboard"
+        errorMessage={dashboardStatsError.message}
+      />
+    );
   }
 
   if (!dashboardStats) {
     return (
-      <div className="flex flex-1 items-center justify-center p-4 md:p-6 lg:p-8">
-        No dashboard data available.
-      </div>
+      <InsetLayout title="Dashboard">
+        <div className="flex flex-1 items-center justify-center">
+          No dashboard data available.
+        </div>
+      </InsetLayout>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 size-4" /> Create Workflow
-        </Button>
-        <CreateWorkflowDialog
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          onCreateWorkflow={handleCreateWorkflow}
-        />
-      </div>
-
+    <InsetLayout title="Dashboard">
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Workflows</CardTitle>
@@ -308,6 +273,6 @@ export function DashboardPage() {
           description: "There are no recent executions to display.",
         }}
       />
-    </div>
+    </InsetLayout>
   );
 }
