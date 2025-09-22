@@ -1634,10 +1634,10 @@ export async function createOrganization(
 }> {
   const now = new Date();
   const organizationId = uuidv7();
-  
+
   // Generate handle from name if not provided
   const organizationHandle = handle || createHandle(name);
-  
+
   const organization: OrganizationInsert = {
     id: organizationId,
     name,
@@ -1732,7 +1732,10 @@ export async function addOrUpdateMembership(
       and(
         eq(memberships.userId, adminUserId),
         getOrganizationCondition(organizationIdOrHandle),
-        inArray(memberships.role, [OrganizationRole.ADMIN, OrganizationRole.OWNER])
+        inArray(memberships.role, [
+          OrganizationRole.ADMIN,
+          OrganizationRole.OWNER,
+        ])
       )
     )
     .limit(1);
@@ -1742,7 +1745,10 @@ export async function addOrUpdateMembership(
   }
 
   // Additional check: only owners can assign the owner role
-  if (role === OrganizationRole.OWNER && adminMembership.memberships.role !== OrganizationRole.OWNER) {
+  if (
+    role === OrganizationRole.OWNER &&
+    adminMembership.memberships.role !== OrganizationRole.OWNER
+  ) {
     return null; // Only owners can assign owner role
   }
 
@@ -1821,7 +1827,10 @@ export async function deleteMembership(
       and(
         eq(memberships.userId, adminUserId),
         getOrganizationCondition(organizationIdOrHandle),
-        inArray(memberships.role, [OrganizationRole.ADMIN, OrganizationRole.OWNER])
+        inArray(memberships.role, [
+          OrganizationRole.ADMIN,
+          OrganizationRole.OWNER,
+        ])
       )
     )
     .limit(1);
@@ -1847,7 +1856,10 @@ export async function deleteMembership(
   }
 
   // Additional check: only owners can delete other owners
-  if (targetMembership.role === OrganizationRole.OWNER && adminMembership.memberships.role !== OrganizationRole.OWNER) {
+  if (
+    targetMembership.role === OrganizationRole.OWNER &&
+    adminMembership.memberships.role !== OrganizationRole.OWNER
+  ) {
     return false; // Only owners can delete other owners
   }
 

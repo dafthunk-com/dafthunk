@@ -132,7 +132,10 @@ organizationRoutes.delete("/:id", async (c) => {
     if (success) {
       return c.json(response);
     } else {
-      return c.json({ error: "Organization not found or permission denied" }, 404);
+      return c.json(
+        { error: "Organization not found or permission denied" },
+        404
+      );
     }
   } catch (error) {
     console.error("Error deleting organization:", error);
@@ -155,7 +158,10 @@ organizationRoutes.get("/:id/memberships", async (c) => {
   const organizationIdOrHandle = c.req.param("id");
 
   try {
-    const memberships = await getOrganizationMemberships(db, organizationIdOrHandle);
+    const memberships = await getOrganizationMemberships(
+      db,
+      organizationIdOrHandle
+    );
     const response: ListMembershipsResponse = { memberships };
     return c.json(response);
   } catch (error) {
@@ -200,7 +206,10 @@ organizationRoutes.post(
       );
 
       if (!membership) {
-        return c.json({ error: "Permission denied or organization not found" }, 403);
+        return c.json(
+          { error: "Permission denied or organization not found" },
+          403
+        );
       }
 
       const response: AddOrUpdateMembershipResponse = {
@@ -257,7 +266,10 @@ organizationRoutes.delete(
       if (success) {
         return c.json(response);
       } else {
-        return c.json({ error: "Membership not found or permission denied" }, 404);
+        return c.json(
+          { error: "Membership not found or permission denied" },
+          404
+        );
       }
     } catch (error) {
       console.error("Error deleting membership:", error);

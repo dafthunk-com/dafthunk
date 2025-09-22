@@ -1,4 +1,5 @@
 import {
+  Building2,
   ChartNoAxesCombined,
   Database,
   KeyRound,
@@ -32,6 +33,7 @@ import { HomePage } from "./pages/home-page";
 import { LegalPage } from "./pages/legal";
 import { LoginPage } from "./pages/login-page";
 import { NotFoundPage } from "./pages/not-found-page";
+import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
 import { SecretsPage } from "./pages/secrets-page";
 import { UsagePage } from "./pages/usage-page";
@@ -91,6 +93,11 @@ const settingsSidebarItems = [
     title: "Profile",
     url: "/settings/profile",
     icon: User,
+  },
+  {
+    title: "Organizations",
+    url: "/settings/organizations",
+    icon: Building2,
   },
   {
     title: "Usage",
@@ -158,6 +165,23 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/settings/organizations",
+    element: (
+      <AppLayout
+        sidebar={{
+          title: "Settings",
+          items: settingsSidebarItems,
+          footerItems: footerItems,
+        }}
+      >
+        <ProtectedRoute>
+          <OrganizationsPage />
+        </ProtectedRoute>
+      </AppLayout>
+    ),
+    handle: { head: <HeadSeo title="Organizations - Settings - Dafthunk" /> },
   },
   {
     path: "/settings/usage",
