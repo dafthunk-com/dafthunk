@@ -21,8 +21,8 @@ import { ProtectedRoute } from "./components/protected-route";
 import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { DashboardPage } from "./pages/dashboard-page";
-import { DatasetDetailPage } from "./pages/datasets/dataset-detail-page";
-import { DatasetsPage } from "./pages/datasets/datasets-page";
+import { DatasetDetailPage } from "./pages/dataset-detail-page";
+import { DatasetsPage } from "./pages/datasets-page";
 import { DocsApiPage } from "./pages/docs/api-page";
 import { DocsOverviewPage } from "./pages/docs/concepts-page";
 import { DocsDevelopersPage } from "./pages/docs/developers-page";
@@ -35,14 +35,14 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
 import { SecretsPage } from "./pages/secrets-page";
-import { DeploymentDetailPage } from "./pages/workflows/deployment-detail-page";
-import { DeploymentVersionPage } from "./pages/workflows/deployment-version-page";
-import { DeploymentsPage } from "./pages/workflows/deployments-page";
-import { EditorPage } from "./pages/workflows/editor-page";
-import { ExecutionDetailPage } from "./pages/workflows/execution-detail-page";
-import { ExecutionsPage } from "./pages/workflows/executions-page";
-import { PublicExecutionPage } from "./pages/workflows/public-execution-page";
-import { WorkflowsPage } from "./pages/workflows/workflows-page";
+import { DeploymentDetailPage } from "./pages/deployment-detail-page";
+import { DeploymentVersionPage } from "./pages/deployment-version-page";
+import { DeploymentsPage } from "./pages/deployments-page";
+import { EditorPage } from "./pages/editor-page";
+import { ExecutionDetailPage } from "./pages/execution-detail-page";
+import { ExecutionsPage } from "./pages/executions-page";
+import { PublicExecutionPage } from "./pages/public-execution-page";
+import { WorkflowsPage } from "./pages/workflows-page";
 
 export interface RouteHandle {
   head?:
