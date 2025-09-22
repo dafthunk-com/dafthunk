@@ -1,6 +1,5 @@
 import {
   Building2,
-  ChartNoAxesCombined,
   Database,
   KeyRound,
   LayoutDashboard,
@@ -36,7 +35,6 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
 import { SecretsPage } from "./pages/secrets-page";
-import { UsagePage } from "./pages/usage-page";
 import { DeploymentDetailPage } from "./pages/workflows/deployment-detail-page";
 import { DeploymentVersionPage } from "./pages/workflows/deployment-version-page";
 import { DeploymentsPage } from "./pages/workflows/deployments-page";
@@ -87,11 +85,6 @@ const dashboardSidebarItems = [
     title: "Datasets",
     url: "/org/datasets",
     icon: Database,
-  },
-  {
-    title: "Usage",
-    url: "/org/usage",
-    icon: ChartNoAxesCombined,
   },
   {
     title: "API Keys",
@@ -176,23 +169,6 @@ export const routes: AppRouteObject[] = [
       </AppLayout>
     ),
     handle: { head: <HeadSeo title="Organizations - Dafthunk" /> },
-  },
-  {
-    path: "/org/usage",
-    element: (
-      <AppLayout
-        sidebar={{
-          title: "Settings",
-          items: dashboardSidebarItems,
-          footerItems: footerItems,
-        }}
-      >
-        <ProtectedRoute>
-          <UsagePage />
-        </ProtectedRoute>
-      </AppLayout>
-    ),
-    handle: { head: <HeadSeo title="Usage - Settings - Dafthunk" /> },
   },
   {
     path: "/org/api-keys",
