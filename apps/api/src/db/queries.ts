@@ -1592,7 +1592,7 @@ export async function deleteSecret(
  *
  * @param db Database instance
  * @param userId User ID
- * @returns Array of organizations with membership role information
+ * @returns Array of organizations
  */
 export async function getUserOrganizations(
   db: ReturnType<typeof createDatabase>,
@@ -1603,8 +1603,6 @@ export async function getUserOrganizations(
       id: organizations.id,
       name: organizations.name,
       handle: organizations.handle,
-      computeCredits: organizations.computeCredits,
-      role: memberships.role,
       createdAt: organizations.createdAt,
       updatedAt: organizations.updatedAt,
     })

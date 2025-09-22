@@ -68,6 +68,11 @@ const dashboardSidebarItems = [
     url: "/dashboard",
     icon: LayoutDashboard,
   },
+  {
+    title: "Organizations",
+    url: "/organizations",
+    icon: Building2,
+  },
 ];
 
 const workflowsSidebarItems = [
@@ -93,11 +98,6 @@ const settingsSidebarItems = [
     title: "Profile",
     url: "/settings/profile",
     icon: User,
-  },
-  {
-    title: "Organizations",
-    url: "/settings/organizations",
-    icon: Building2,
   },
   {
     title: "Usage",
@@ -167,12 +167,12 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
   },
   {
-    path: "/settings/organizations",
+    path: "/organizations",
     element: (
       <AppLayout
         sidebar={{
-          title: "Settings",
-          items: settingsSidebarItems,
+          title: "Dashboard",
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -181,7 +181,7 @@ export const routes: AppRouteObject[] = [
         </ProtectedRoute>
       </AppLayout>
     ),
-    handle: { head: <HeadSeo title="Organizations - Settings - Dafthunk" /> },
+    handle: { head: <HeadSeo title="Organizations - Dafthunk" /> },
   },
   {
     path: "/settings/usage",

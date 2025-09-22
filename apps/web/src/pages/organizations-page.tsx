@@ -18,7 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -39,8 +38,6 @@ const columns: ColumnDef<{
   id: string;
   name: string;
   handle: string;
-  computeCredits: number;
-  role: "member" | "admin" | "owner";
   createdAt: Date;
   updatedAt: Date;
 }>[] = [
@@ -57,34 +54,6 @@ const columns: ColumnDef<{
     cell: ({ row }) => <div>{row.getValue("handle")}</div>,
   },
   {
-    accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => {
-      const role = row.getValue("role") as string;
-      const getVariant = (role: string) => {
-        switch (role) {
-          case "owner":
-            return "default" as const;
-          case "admin":
-            return "secondary" as const;
-          case "member":
-            return "outline" as const;
-          default:
-            return "outline" as const;
-        }
-      };
-      return <Badge variant={getVariant(role)}>{role}</Badge>;
-    },
-  },
-  {
-    accessorKey: "computeCredits",
-    header: "Credits",
-    cell: ({ row }) => {
-      const credits = row.getValue("computeCredits") as number;
-      return <div>{credits.toLocaleString()}</div>;
-    },
-  },
-  {
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
@@ -98,33 +67,31 @@ const columns: ColumnDef<{
       const organization = row.original;
       return (
         <div className="text-right">
-          {organization.role === "owner" && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button aria-haspopup="true" size="icon" variant="ghost">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() =>
-                    document.dispatchEvent(
-                      new CustomEvent("deleteOrganizationTrigger", {
-                        detail: {
-                          id: organization.id,
-                          name: organization.name,
-                        },
-                      })
-                    )
-                  }
-                  className="text-red-600 focus:text-red-600"
-                >
-                  Delete Organization
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button aria-haspopup="true" size="icon" variant="ghost">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() =>
+                  document.dispatchEvent(
+                    new CustomEvent("deleteOrganizationTrigger", {
+                      detail: {
+                        id: organization.id,
+                        name: organization.name,
+                      },
+                    })
+                  )
+                }
+                className="text-red-600 focus:text-red-600"
+              >
+                Delete Organization
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },
@@ -299,7 +266,7 @@ export function OrganizationsPage() {
                 <li>All workflows and deployments</li>
                 <li>All executions and results</li>
                 <li>All API keys and secrets</li>
-                <li>All datasets and memberships</li>
+                <li>All datasets</li>
               </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>

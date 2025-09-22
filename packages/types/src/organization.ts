@@ -11,14 +11,6 @@ export interface CreateOrganizationResponse {
     id: string;
     name: string;
     handle: string;
-    computeCredits: number;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  membership: {
-    userId: string;
-    organizationId: string;
-    role: "owner";
     createdAt: Date;
     updatedAt: Date;
   };
@@ -33,41 +25,6 @@ export interface ListOrganizationsResponse {
     id: string;
     name: string;
     handle: string;
-    computeCredits: number;
-    role: "member" | "admin" | "owner";
-    createdAt: Date;
-    updatedAt: Date;
-  }>;
-}
-
-export interface AddOrUpdateMembershipRequest {
-  userId: string;
-  role: "member" | "admin" | "owner";
-}
-
-export interface AddOrUpdateMembershipResponse {
-  membership: {
-    userId: string;
-    organizationId: string;
-    role: "member" | "admin" | "owner";
-    createdAt: Date;
-    updatedAt: Date;
-  };
-}
-
-export interface DeleteMembershipRequest {
-  userId: string;
-}
-
-export interface DeleteMembershipResponse {
-  success: boolean;
-}
-
-export interface ListMembershipsResponse {
-  memberships: Array<{
-    userId: string;
-    organizationId: string;
-    role: "member" | "admin" | "owner";
     createdAt: Date;
     updatedAt: Date;
   }>;
