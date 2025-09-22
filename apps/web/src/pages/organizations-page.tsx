@@ -143,7 +143,6 @@ export function OrganizationsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
-  const [newOrgHandle, setNewOrgHandle] = useState("");
   const [orgToDelete, setOrgToDelete] = useState<{
     id: string;
     name: string;
@@ -158,12 +157,10 @@ export function OrganizationsPage() {
     try {
       await createOrganization({
         name: newOrgName.trim(),
-        handle: newOrgHandle.trim() || undefined,
       });
       toast.success("Organization created successfully");
       setIsCreateDialogOpen(false);
       setNewOrgName("");
-      setNewOrgHandle("");
       await mutateOrganizations();
     } catch (error) {
       toast.error("Failed to create organization. Please try again.");
@@ -171,7 +168,7 @@ export function OrganizationsPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [newOrgName, newOrgHandle, mutateOrganizations]);
+  }, [newOrgName, mutateOrganizations]);
 
   const handleDeleteOrganization = useCallback(async (): Promise<void> => {
     if (!orgToDelete) return;
@@ -250,7 +247,8 @@ export function OrganizationsPage() {
             <AlertDialogTitle>Create New Organization</AlertDialogTitle>
             <AlertDialogDescription>
               Create a new organization to manage your workflows and team
-              members.
+              members. A unique handle will be automatically generated from the
+              organization name.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4">
@@ -265,27 +263,11 @@ export function OrganizationsPage() {
                 maxLength={64}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="org-handle">Handle (Optional)</Label>
-              <Input
-                id="org-handle"
-                placeholder="my-company"
-                value={newOrgHandle}
-                onChange={(e) => setNewOrgHandle(e.target.value)}
-                disabled={isProcessing}
-                maxLength={32}
-              />
-              <p className="text-xs text-muted-foreground">
-                A URL-friendly identifier. If not provided, one will be
-                generated automatically.
-              </p>
-            </div>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => {
                 setNewOrgName("");
-                setNewOrgHandle("");
               }}
             >
               Cancel

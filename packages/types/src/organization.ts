@@ -4,7 +4,6 @@
 
 export interface CreateOrganizationRequest {
   name: string;
-  handle?: string;
 }
 
 export interface CreateOrganizationResponse {

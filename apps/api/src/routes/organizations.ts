@@ -65,7 +65,6 @@ organizationRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Organization name is required"),
-      handle: z.string().optional(),
     }) as z.ZodType<CreateOrganizationRequest>
   ),
   async (c) => {
@@ -75,10 +74,10 @@ organizationRoutes.post(
     }
 
     const db = createDatabase(c.env.DB);
-    const { name, handle } = c.req.valid("json");
+    const { name } = c.req.valid("json");
 
     try {
-      const result = await createOrganization(db, name, jwtPayload.sub, handle);
+      const result = await createOrganization(db, name, jwtPayload.sub);
 
       const response: CreateOrganizationResponse = {
         organization: {
