@@ -228,12 +228,12 @@ export function DeploymentDetailPage() {
   useEffect(() => {
     if (workflowSummary) {
       setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
+        { label: "Deployments", to: "/org/deployments" },
         { label: workflowSummary.name },
       ]);
     } else {
       setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
+        { label: "Deployments", to: "/org/deployments" },
         { label: "Detail" },
       ]);
     }
@@ -447,7 +447,7 @@ export function DeploymentDetailPage() {
           <p className="text-lg">Workflow not found</p>
           <Button
             className="mt-4"
-            onClick={() => navigate("/workflows/deployments")}
+            onClick={() => navigate("/org/deployments")}
           >
             Back to Deployments
           </Button>

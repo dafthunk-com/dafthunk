@@ -383,7 +383,7 @@ export function HomePage() {
                   size="lg"
                   className="bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 dark:from-amber-500 dark:to-pink-500 dark:hover:from-amber-600 dark:hover:to-pink-600 text-white font-medium mt-10"
                 >
-                  <Link to="/workflows/workflows">
+                  <Link to="/org/workflows">
                     Start Building Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

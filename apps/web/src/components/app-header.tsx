@@ -35,23 +35,7 @@ export function AppHeader() {
                 className={navLinkClasses}
                 activeClassName={activeNavLinkClasses}
               >
-                Dashboard
-              </NavLink>
-              {user?.developerMode && (
-                <NavLink
-                  to="/datasets"
-                  className={navLinkClasses}
-                  activeClassName={activeNavLinkClasses}
-                >
-                  Datasets
-                </NavLink>
-              )}
-              <NavLink
-                to="/workflows"
-                className={navLinkClasses}
-                activeClassName={activeNavLinkClasses}
-              >
-                Workflows
+                Organization
               </NavLink>
             </>
           ) : (
@@ -71,15 +55,6 @@ export function AppHeader() {
           >
             Documentation
           </NavLink>
-          {isAuthenticated && (
-            <NavLink
-              to="/settings"
-              className={navLinkClasses}
-              activeClassName={activeNavLinkClasses}
-            >
-              <Settings className="h-5 w-5" />
-            </NavLink>
-          )}
         </nav>
         <ThemeToggle />
         <UserProfile />

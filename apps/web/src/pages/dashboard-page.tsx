@@ -79,7 +79,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/workflows">Go to Workflows</Link>
+              <Link to="/org/workflows">Go to Workflows</Link>
             </Button>
           </CardContent>
         </Card>
@@ -101,7 +101,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/deployments">View Deployments</Link>
+              <Link to="/org/deployments">View Deployments</Link>
             </Button>
           </CardContent>
         </Card>
@@ -138,7 +138,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/executions">View All Executions</Link>
+              <Link to="/org/executions">View All Executions</Link>
             </Button>
           </CardContent>
         </Card>
@@ -148,7 +148,7 @@ export function DashboardPage() {
       <DataTableCard
         title="Recent Executions"
         viewAllLink={{
-          to: "/workflows/executions",
+          to: "/org/executions",
           text: "View All",
         }}
         columns={[

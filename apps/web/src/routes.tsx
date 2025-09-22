@@ -68,31 +68,40 @@ const dashboardSidebarItems = [
     url: "/dashboard",
     icon: LayoutDashboard,
   },
-];
-
-const organizationsSidebarItems = [
-  {
-    title: "Organizations",
-    url: "/organizations",
-    icon: Building2,
-  },
-];
-
-const workflowsSidebarItems = [
   {
     title: "Workflows",
-    url: "/workflows/workflows",
+    url: "/org/workflows",
     icon: SquareTerminal,
   },
   {
     title: "Deployments",
-    url: "/workflows/deployments",
+    url: "/org/deployments",
     icon: Target,
   },
   {
     title: "Executions",
-    url: "/workflows/executions",
+    url: "/org/executions",
     icon: Logs,
+  },
+  {
+    title: "Datasets",
+    url: "/org/datasets",
+    icon: Database,
+  },
+  {
+    title: "Usage",
+    url: "/org/usage",
+    icon: ChartNoAxesCombined,
+  },
+  {
+    title: "API Keys",
+    url: "/org/api-keys",
+    icon: KeyRound,
+  },
+  {
+    title: "Secrets",
+    url: "/org/secrets",
+    icon: Lock,
   },
 ];
 
@@ -103,27 +112,9 @@ const settingsSidebarItems = [
     icon: User,
   },
   {
-    title: "Usage",
-    url: "/settings/usage",
-    icon: ChartNoAxesCombined,
-  },
-  {
-    title: "API Keys",
-    url: "/settings/api-keys",
-    icon: KeyRound,
-  },
-  {
-    title: "Secrets",
-    url: "/settings/secrets",
-    icon: Lock,
-  },
-];
-
-const datasetsSidebarItems = [
-  {
-    title: "Datasets",
-    url: "/datasets/datasets",
-    icon: Database,
+    title: "Organizations",
+    url: "/settings/organizations",
+    icon: Building2,
   },
 ];
 
@@ -170,12 +161,12 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Profile - Settings - Dafthunk" /> },
   },
   {
-    path: "/organizations",
+    path: "/settings/organizations",
     element: (
       <AppLayout
         sidebar={{
           title: "Organizations",
-          items: organizationsSidebarItems,
+          items: settingsSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -187,12 +178,12 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Organizations - Dafthunk" /> },
   },
   {
-    path: "/settings/usage",
+    path: "/org/usage",
     element: (
       <AppLayout
         sidebar={{
           title: "Settings",
-          items: settingsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -204,12 +195,12 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Usage - Settings - Dafthunk" /> },
   },
   {
-    path: "/settings/api-keys",
+    path: "/org/api-keys",
     element: (
       <AppLayout
         sidebar={{
           title: "Settings",
-          items: settingsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -221,12 +212,12 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="API Keys - Settings - Dafthunk" /> },
   },
   {
-    path: "/settings/secrets",
+    path: "/org/secrets",
     element: (
       <AppLayout
         sidebar={{
           title: "Settings",
-          items: settingsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -336,15 +327,15 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/datasets",
-    element: <Navigate to="/datasets/datasets" replace />,
+    element: <Navigate to="/org/datasets" replace />,
   },
   {
-    path: "/datasets/datasets",
+    path: "/org/datasets",
     element: (
       <AppLayout
         sidebar={{
           title: "Datasets",
-          items: datasetsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -361,7 +352,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Datasets",
-          items: datasetsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -374,15 +365,15 @@ export const routes: AppRouteObject[] = [
   },
   {
     path: "/workflows",
-    element: <Navigate to="/workflows/workflows" replace />,
+    element: <Navigate to="/org/workflows" replace />,
   },
   {
-    path: "/workflows/workflows",
+    path: "/org/workflows",
     element: (
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -394,12 +385,12 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
   },
   {
-    path: "/workflows/deployments",
+    path: "/org/deployments",
     element: (
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -416,7 +407,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -435,7 +426,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -449,12 +440,12 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/workflows/executions",
+    path: "/org/executions",
     element: (
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -471,7 +462,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >
@@ -490,7 +481,7 @@ export const routes: AppRouteObject[] = [
       <AppLayout
         sidebar={{
           title: "Workflows",
-          items: workflowsSidebarItems,
+          items: dashboardSidebarItems,
           footerItems: footerItems,
         }}
       >

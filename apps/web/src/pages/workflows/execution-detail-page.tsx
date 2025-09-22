@@ -98,7 +98,7 @@ export function ExecutionDetailPage() {
   useEffect(() => {
     if (executionId) {
       setBreadcrumbs([
-        { label: "Executions", to: "/workflows/executions" },
+        { label: "Executions", to: "/org/executions" },
         { label: executionId },
       ]);
     }

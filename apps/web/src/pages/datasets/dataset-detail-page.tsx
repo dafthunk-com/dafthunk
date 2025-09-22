@@ -34,7 +34,7 @@ export function DatasetDetailPage() {
   useEffect(() => {
     if (datasetId) {
       setBreadcrumbs([
-        { label: "Datasets", to: "/datasets/datasets" },
+        { label: "Datasets", to: "/org/datasets" },
         { label: dataset?.name || datasetId },
       ]);
     }

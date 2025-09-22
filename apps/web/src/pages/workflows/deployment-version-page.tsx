@@ -154,7 +154,7 @@ export function DeploymentVersionPage() {
   useEffect(() => {
     if (workflow && deploymentVersion) {
       setBreadcrumbs([
-        { label: "Deployments", to: "/workflows/deployments" },
+        { label: "Deployments", to: "/org/deployments" },
         {
           label: workflow.name,
           to: `/workflows/deployments/${workflow.id}`,
