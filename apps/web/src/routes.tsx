@@ -65,7 +65,7 @@ export type AppRouteObject = RouteObject & {
 const dashboardSidebarItems = [
   {
     title: "Dashboard",
-    url: "/dashboard",
+    url: "/org/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -229,7 +229,7 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Secrets - Settings - Dafthunk" /> },
   },
   {
-    path: "/dashboard",
+    path: "/org/dashboard",
     element: (
       <AppLayout
         sidebar={{

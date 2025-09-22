@@ -48,11 +48,6 @@ export function OrganizationSwitcher() {
             )}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleAdministrationClick}>
-          <Settings className="mr-2 size-4" />
-          Administration
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

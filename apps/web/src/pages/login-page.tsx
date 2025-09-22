@@ -7,7 +7,7 @@ export function LoginPage() {
   const { user, isAuthenticated } = useAuth();
 
   if (isAuthenticated && user) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/org/dashboard" />;
   }
 
   return (

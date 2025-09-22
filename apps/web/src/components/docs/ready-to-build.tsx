@@ -59,7 +59,7 @@ export function ReadyToBuildBlock() {
             <PlusCircle className="mr-2 size-4" /> Create Workflow
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/dashboard">
+            <Link to="/org/dashboard">
               <LayoutDashboard className="mr-2 size-4" /> Dashboard
             </Link>
           </Button>

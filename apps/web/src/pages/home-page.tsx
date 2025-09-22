@@ -73,7 +73,7 @@ export function HomePage() {
   const homepagePublicExecutionUrl = `${import.meta.env.VITE_WEBSITE_URL}/public/executions/${import.meta.env.VITE_HOMEPAGE_PUBLIC_EXECUTION_ID}?fullscreen`;
 
   if (isAuthenticated && user) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/org/dashboard" />;
   }
 
   return (

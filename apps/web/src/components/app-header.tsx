@@ -1,7 +1,7 @@
 import { Bot, Settings } from "lucide-react";
 import { Link } from "react-router";
 
-import { OrganizationSwitcher } from "@/components/sidebar/organization-switcher";
+import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { UserProfile } from "@/components/user-profile";
 
 import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
@@ -31,7 +31,7 @@ export function AppHeader() {
           {isAuthenticated ? (
             <>
               <NavLink
-                to="/dashboard"
+                to="/org/dashboard"
                 className={navLinkClasses}
                 activeClassName={activeNavLinkClasses}
               >
