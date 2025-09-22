@@ -68,6 +68,9 @@ const dashboardSidebarItems = [
     url: "/dashboard",
     icon: LayoutDashboard,
   },
+];
+
+const organizationsSidebarItems = [
   {
     title: "Organizations",
     url: "/organizations",
@@ -171,8 +174,8 @@ export const routes: AppRouteObject[] = [
     element: (
       <AppLayout
         sidebar={{
-          title: "Dashboard",
-          items: dashboardSidebarItems,
+          title: "Organizations",
+          items: organizationsSidebarItems,
           footerItems: footerItems,
         }}
       >

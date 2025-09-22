@@ -1,12 +1,14 @@
 "use client";
 
-import { Building, Check, ChevronsUpDown } from "lucide-react";
+import { Building, Check, ChevronsUpDown, Settings } from "lucide-react";
+import { useNavigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,6 +20,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export function OrganizationSwitcher() {
   const { organization } = useAuth();
+  const navigate = useNavigate();
 
   // Use organization name from auth context, fallback to "Personal" if not available
   const currentOrganization = organization?.name || "Personal";
@@ -27,6 +30,10 @@ export function OrganizationSwitcher() {
   const organizations = [currentOrganization];
 
   const { open } = useSidebar();
+
+  const handleAdministrationClick = () => {
+    navigate("/organizations");
+  };
 
   return (
     <SidebarMenu>
@@ -65,6 +72,11 @@ export function OrganizationSwitcher() {
                 )}
               </DropdownMenuItem>
             ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleAdministrationClick}>
+              <Settings className="mr-2 size-4" />
+              Administration
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
