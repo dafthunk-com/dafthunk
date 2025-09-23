@@ -1,12 +1,15 @@
-import Building2 from "lucide-react/icons/building-2";
-import Database from "lucide-react/icons/database";
-import KeyRound from "lucide-react/icons/key-round";
-import LayoutDashboard from "lucide-react/icons/layout-dashboard";
-import Lock from "lucide-react/icons/lock";
-import Logs from "lucide-react/icons/logs";
-import Target from "lucide-react/icons/target";
-import SquareTerminal from "lucide-react/icons/terminal-square";
-import User from "lucide-react/icons/user";
+import {
+  Building2,
+  Database,
+  KeyRound,
+  LayoutDashboard,
+  Lock,
+  Logs,
+  SquareTerminal,
+  Target,
+  User,
+  Users,
+} from "lucide-react";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
@@ -37,6 +40,7 @@ import { ExecutionsPage } from "./pages/executions-page";
 import { HomePage } from "./pages/home-page";
 import { LegalPage } from "./pages/legal";
 import { LoginPage } from "./pages/login-page";
+import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
@@ -96,6 +100,11 @@ export const getDashboardSidebarItems = (orgHandle: string) => [
     title: "API Keys",
     url: `/org/${orgHandle}/api-keys`,
     icon: KeyRound,
+  },
+  {
+    title: "Members",
+    url: `/org/${orgHandle}/members`,
+    icon: Users,
   },
 ];
 
@@ -251,6 +260,10 @@ export const routes: AppRouteObject[] = [
     element: <OrgRedirect to="/org/:handle/api-keys" />,
   },
   {
+    path: "/members",
+    element: <OrgRedirect to="/org/:handle/members" />,
+  },
+  {
     path: "/org/:handle/api-keys",
     element: (
       <OrgLayout title="Settings">
@@ -260,6 +273,17 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="API Keys - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/members",
+    element: (
+      <OrgLayout title="Organization Members">
+        <ProtectedRoute>
+          <MembersPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Members - Organization - Dafthunk" /> },
   },
   {
     path: "/secrets",

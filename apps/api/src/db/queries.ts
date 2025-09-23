@@ -1701,3 +1701,275 @@ export async function deleteOrganization(
 
   return !!deletedOrganization;
 }
+
+/**
+ * Add or update a user's membership in an organization (only admins and owners can do this)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @param targetUserId User ID to add/update membership for
+ * @param role Role to assign (member, admin, owner)
+ * @param adminUserId User ID of the admin/owner making the change
+ * @returns The created or updated membership record, or null if permission denied
+ */
+export async function addOrUpdateMembership(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string,
+  targetUserId: string,
+  role: OrganizationRoleType,
+  adminUserId: string
+): Promise<MembershipRow | null> {
+  // First, verify the admin user has permission (admin or owner)
+  const [adminMembership] = await db
+    .select()
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(
+      and(
+        eq(memberships.userId, adminUserId),
+        getOrganizationCondition(organizationIdOrHandle),
+        inArray(memberships.role, [
+          OrganizationRole.ADMIN,
+          OrganizationRole.OWNER,
+        ])
+      )
+    )
+    .limit(1);
+
+  if (!adminMembership) {
+    return null; // Admin user doesn't have permission
+  }
+
+  // Additional check: only owners can assign the owner role
+  if (
+    role === OrganizationRole.OWNER &&
+    adminMembership.memberships.role !== OrganizationRole.OWNER
+  ) {
+    return null; // Only owners can assign owner role
+  }
+
+  const organizationId = adminMembership.organizations.id;
+  const now = new Date();
+
+  // CRITICAL: Prevent changing the role of the main owner in their personal organization
+  // Check if the target user is the main owner of their personal organization
+  const [targetUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, targetUserId))
+    .limit(1);
+
+  if (targetUser && targetUser.organizationId === organizationId) {
+    // This is the user's personal organization - their role cannot be changed
+    return null; // Cannot change role of main owner in their personal organization
+  }
+
+  // Check if the target user is already a member
+  const [existingMembership] = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, targetUserId),
+        eq(memberships.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  if (existingMembership) {
+    // Update existing membership
+    const [updatedMembership] = await db
+      .update(memberships)
+      .set({
+        role,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(memberships.userId, targetUserId),
+          eq(memberships.organizationId, organizationId)
+        )
+      )
+      .returning();
+
+    return updatedMembership;
+  } else {
+    // Create new membership
+    const newMembership: MembershipInsert = {
+      userId: targetUserId,
+      organizationId,
+      role,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const [createdMembership] = await db
+      .insert(memberships)
+      .values(newMembership)
+      .returning();
+
+    return createdMembership;
+  }
+}
+
+/**
+ * Delete a user's membership from an organization (only admins and owners can do this)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @param targetUserId User ID to remove from the organization
+ * @param adminUserId User ID of the admin/owner making the change
+ * @returns True if membership was deleted, false if permission denied or not found
+ */
+export async function deleteMembership(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string,
+  targetUserId: string,
+  adminUserId: string
+): Promise<boolean> {
+  // First, verify the admin user has permission (admin or owner)
+  const [adminMembership] = await db
+    .select()
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(
+      and(
+        eq(memberships.userId, adminUserId),
+        getOrganizationCondition(organizationIdOrHandle),
+        inArray(memberships.role, [
+          OrganizationRole.ADMIN,
+          OrganizationRole.OWNER,
+        ])
+      )
+    )
+    .limit(1);
+
+  if (!adminMembership) {
+    return false; // Admin user doesn't have permission
+  }
+
+  // Get the target user's membership to check their role
+  const [targetMembership] = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, targetUserId),
+        eq(memberships.organizationId, adminMembership.organizations.id)
+      )
+    )
+    .limit(1);
+
+  if (!targetMembership) {
+    return false; // Target user is not a member
+  }
+
+  // Additional check: only owners can delete other owners
+  if (
+    targetMembership.role === OrganizationRole.OWNER &&
+    adminMembership.memberships.role !== OrganizationRole.OWNER
+  ) {
+    return false; // Only owners can delete other owners
+  }
+
+  // Prevent users from deleting themselves
+  if (targetUserId === adminUserId) {
+    return false; // Users cannot delete their own membership
+  }
+
+  // CRITICAL: Prevent removing the main owner from their personal organization
+  // Check if the target user is the main owner of their personal organization
+  const [targetUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, targetUserId))
+    .limit(1);
+
+  if (
+    targetUser &&
+    targetUser.organizationId === adminMembership.organizations.id
+  ) {
+    // This is the user's personal organization - they cannot be removed as the main owner
+    return false; // Cannot remove main owner from their personal organization
+  }
+
+  // Delete the membership
+  const [deletedMembership] = await db
+    .delete(memberships)
+    .where(
+      and(
+        eq(memberships.userId, targetUserId),
+        eq(memberships.organizationId, adminMembership.organizations.id)
+      )
+    )
+    .returning({ id: memberships.userId });
+
+  return !!deletedMembership;
+}
+
+/**
+ * List all memberships for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of membership records
+ */
+export async function getOrganizationMemberships(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return await db
+    .select({
+      userId: memberships.userId,
+      organizationId: memberships.organizationId,
+      role: memberships.role,
+      createdAt: memberships.createdAt,
+      updatedAt: memberships.updatedAt,
+    })
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .orderBy(memberships.createdAt);
+}
+
+/**
+ * List all memberships for an organization with user information
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of membership records with user details
+ */
+export async function getOrganizationMembershipsWithUsers(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  const results = await db
+    .select({
+      userId: memberships.userId,
+      organizationId: memberships.organizationId,
+      role: memberships.role,
+      createdAt: memberships.createdAt,
+      updatedAt: memberships.updatedAt,
+      user: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+      },
+    })
+    .from(memberships)
+    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+    .innerJoin(users, eq(memberships.userId, users.id))
+    .where(getOrganizationCondition(organizationIdOrHandle))
+    .orderBy(memberships.createdAt);
+
+  // Convert null values to undefined to match TypeScript interface
+  return results.map((result) => ({
+    ...result,
+    user: {
+      ...result.user,
+      email: result.user.email ?? undefined,
+      avatarUrl: result.user.avatarUrl ?? undefined,
+    },
+  }));
+}
