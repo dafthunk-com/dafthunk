@@ -196,6 +196,7 @@ export type ParameterType =
     }
   | {
       type: "any";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       value?: any;
     };
 
@@ -396,6 +397,7 @@ export interface DeleteWorkflowResponse {
  */
 export interface ExecuteWorkflowRequest {
   monitorProgress?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters?: Record<string, any>;
 }
 

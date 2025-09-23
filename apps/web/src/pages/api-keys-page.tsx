@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createApiKey,
   deleteApiKey,
@@ -85,6 +86,7 @@ const columns: ColumnDef<ApiKey>[] = [
 ];
 
 export function ApiKeysPage() {
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { apiKeys, apiKeysError, isApiKeysLoading, mutateApiKeys } =
     useApiKeys();
   const { organization } = useAuth();
@@ -96,6 +98,10 @@ export function ApiKeysPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [createdKeyToShow, setCreatedKeyToShow] = useState<string | null>(null);
   const [isShowKeyDialogOpen, setIsShowKeyDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "API Keys" }]);
+  }, [setBreadcrumbs]);
 
   useEffect(() => {
     const handleDeleteEvent = (e: Event) => {

@@ -1,103 +1,76 @@
-import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
-import { format } from "date-fns";
 import {
   AlertCircle,
   Clock,
+  CreditCard,
+  Layers,
   Logs,
-  MoreHorizontal,
-  Plus,
   Target,
   Workflow,
 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect } from "react";
 import { Link } from "react-router";
 
-import { useAuth } from "@/components/auth-context";
-import { ExecutionStatusBadge } from "@/components/executions/execution-status-badge";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
+import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTableCard } from "@/components/ui/data-table-card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
-import type { WorkflowExecutionStatus } from "@/components/workflow/workflow-types";
-import { useDashboard } from "@/services/dashboard-service";
-import { createWorkflow } from "@/services/workflow-service";
-
-// Define a type for recent execution items, mirroring DashboardStats.recentExecutions
-interface RecentExecutionItem {
-  id: string;
-  workflowName: string;
-  status: string;
-  startedAt: number;
-  endedAt?: number;
-}
+import { useOrgUrl } from "@/hooks/use-org-url";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
+import { useDashboard, useUsageCredits } from "@/services/dashboard-service";
+import { cn } from "@/utils/utils";
 
 export function DashboardPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const navigate = useNavigate();
-  const { organization } = useAuth();
-  const orgHandle = organization?.handle || "";
-
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
+  const { usageData, usageError, isUsageLoading } = useUsageCredits();
+  const { getOrgUrl } = useOrgUrl();
 
-  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
-    if (!orgHandle) return;
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Dashboard" }]);
+  }, [setBreadcrumbs]);
 
-    try {
-      const request: CreateWorkflowRequest = {
-        name,
-        type,
-        nodes: [],
-        edges: [],
-      };
-
-      const newWorkflow = await createWorkflow(request, orgHandle);
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
-    } catch (error) {
-      console.error("Failed to create workflow:", error);
-      // Optionally show a toast here
-    }
-  };
-
-  if (isDashboardStatsLoading) {
-    return <InsetLoading />;
-  } else if (dashboardStatsError) {
-    return <InsetError errorMessage={dashboardStatsError.message} />;
-  }
-
-  if (!dashboardStats) {
+  if (isDashboardStatsLoading || isUsageLoading) {
+    return <InsetLoading title="Dashboard" />;
+  } else if (dashboardStatsError || usageError) {
     return (
-      <div className="flex flex-1 items-center justify-center p-4 md:p-6 lg:p-8">
-        No dashboard data available.
-      </div>
+      <InsetError
+        title="Dashboard"
+        errorMessage={
+          dashboardStatsError?.message ||
+          usageError?.message ||
+          "An error occurred"
+        }
+      />
     );
   }
 
-  return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8 overflow-y-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 size-4" /> Create Workflow
-        </Button>
-        <CreateWorkflowDialog
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          onCreateWorkflow={handleCreateWorkflow}
-        />
-      </div>
+  if (!dashboardStats || !usageData) {
+    return (
+      <InsetLayout title="Dashboard">
+        <div className="flex flex-1 items-center justify-center">
+          No dashboard data available.
+        </div>
+      </InsetLayout>
+    );
+  }
 
+  const { computeCredits, computeUsage, usagePercentage, remainingCredits } =
+    usageData;
+
+  // Determine progress bar color based on usage
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 90) return "bg-red-500";
+    if (percentage >= 70) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
+  return (
+    <InsetLayout title="Dashboard">
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Workflows</CardTitle>
@@ -114,7 +87,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/workflows">Go to Workflows</Link>
+              <Link to={getOrgUrl("workflows")}>Go to Workflows</Link>
             </Button>
           </CardContent>
         </Card>
@@ -136,7 +109,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/deployments">View Deployments</Link>
+              <Link to={getOrgUrl("deployments")}>View Deployments</Link>
             </Button>
           </CardContent>
         </Card>
@@ -173,141 +146,151 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/workflows/executions">View All Executions</Link>
+              <Link to={getOrgUrl("executions")}>View All Executions</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity */}
-      <DataTableCard
-        title="Recent Executions"
-        viewAllLink={{
-          to: "/workflows/executions",
-          text: "View All",
-        }}
-        columns={[
-          {
-            accessorKey: "workflowName",
-            header: "Workflow",
-            cell: ({ row }) => {
-              const execution = row.original as RecentExecutionItem;
-              return (
-                <Link
-                  to={`/workflows/executions/${execution.id}`}
-                  className="font-medium truncate hover:underline text-primary"
-                >
-                  {execution.workflowName}
-                </Link>
-              );
-            },
-          },
-          {
-            accessorKey: "status",
-            header: "Execution Status",
-            cell: ({ row }) => {
-              const execution = row.original as RecentExecutionItem;
-              const badgeStatus = execution.status as WorkflowExecutionStatus;
-              return <ExecutionStatusBadge status={badgeStatus} />;
-            },
-          },
-          {
-            accessorKey: "startedAt",
-            header: "Started At",
-            cell: ({ row }) => {
-              const execution = row.original as RecentExecutionItem;
-              return (
-                <span className="text-xs text-muted-foreground">
-                  {execution.startedAt
-                    ? format(new Date(execution.startedAt), "PPpp")
-                    : "-"}
-                </span>
-              );
-            },
-          },
-          {
-            accessorKey: "endedAt",
-            header: "Ended At",
-            cell: ({ row }) => {
-              const execution = row.original as RecentExecutionItem;
-              const formatted = execution.endedAt
-                ? format(new Date(execution.endedAt), "PPpp")
-                : "-";
-              return (
-                <span className="text-xs text-muted-foreground">
-                  {formatted}
-                </span>
-              );
-            },
-          },
-          {
-            accessorKey: "duration",
-            header: "Duration",
-            cell: ({ row }) => {
-              const execution = row.original as RecentExecutionItem;
-              const { startedAt, endedAt } = execution;
+      {/* Credits Section */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+        {/* Total Credits Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xl">Total Credits</CardTitle>
+            <CreditCard className="size-8 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-primary">
+              {computeCredits.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground pt-1">
+              Available this month
+            </p>
+            <Badge variant="secondary" className="mt-2 text-xs">
+              Monthly allocation
+            </Badge>
+          </CardContent>
+        </Card>
 
-              if (startedAt && endedAt) {
-                const durationMs =
-                  new Date(endedAt).getTime() - new Date(startedAt).getTime();
-                const seconds = Math.floor((durationMs / 1000) % 60);
-                const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
+        {/* Used Credits Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xl">Used Credits</CardTitle>
+            <Layers className="size-8 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-destructive">
+              {computeUsage.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground pt-1">
+              Credits consumed
+            </p>
+            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-1">
+              <span className="flex size-2 translate-y-px rounded-full bg-red-500" />
+              <span>{usagePercentage.toFixed(1)}% of total</span>
+            </div>
+          </CardContent>
+        </Card>
 
-                let formattedDuration = "";
-                if (minutes > 0) {
-                  formattedDuration += `${minutes}m `;
-                }
-                formattedDuration += `${seconds}s`;
-                if (
-                  formattedDuration.trim() === "0s" &&
-                  durationMs > 0 &&
-                  durationMs < 1000
-                ) {
-                  formattedDuration = "<1s";
-                } else if (
-                  formattedDuration.trim() === "0s" &&
-                  durationMs === 0
-                ) {
-                  formattedDuration = "0s";
-                }
+        {/* Remaining Credits Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xl">Remaining</CardTitle>
+            <Clock className="size-8 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-green-600">
+              {remainingCredits.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground pt-1">
+              Credits left this month
+            </p>
+            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-1">
+              <span className="flex size-2 translate-y-px rounded-full bg-green-500" />
+              <span>
+                {usagePercentage >= 90
+                  ? "Low remaining"
+                  : usagePercentage >= 70
+                    ? "Moderate usage"
+                    : "Plenty remaining"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-                return <div>{formattedDuration.trim()}</div>;
-              }
-              return <div>-</div>;
-            },
-          },
-          {
-            id: "actions",
-            cell: ({ row }) => {
-              const execution = row.original as RecentExecutionItem;
-              return (
-                <div className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/workflows/executions/${execution.id}`}>
-                          View
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              );
-            },
-          },
-        ]}
-        data={dashboardStats.recentExecutions as RecentExecutionItem[]}
-        emptyState={{
-          title: "No executions",
-          description: "There are no recent executions to display.",
-        }}
-      />
-    </div>
+      {/* Usage Progress Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Usage Progress</span>
+            <span className="text-2xl font-bold text-primary">
+              {usagePercentage.toFixed(1)}%
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="relative h-4 bg-muted rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full",
+                  getProgressColor(usagePercentage),
+                  usagePercentage >= 100 ? "rounded-full" : "rounded-l-full"
+                )}
+                style={{ width: `${Math.min(100, usagePercentage)}%` }}
+              />
+            </div>
+
+            {/* Usage Status Message */}
+            <div className="p-4 rounded-md bg-muted">
+              {usagePercentage >= 90 ? (
+                <p className="text-sm text-red-600 font-medium">
+                  ⚠️ You've used {usagePercentage.toFixed(1)}% of your compute
+                  credits. Consider upgrading your plan or contact support.
+                </p>
+              ) : usagePercentage >= 70 ? (
+                <p className="text-sm text-yellow-600 font-medium">
+                  You've used {usagePercentage.toFixed(1)}% of your compute
+                  credits. Monitor your usage to avoid hitting limits.
+                </p>
+              ) : (
+                <p className="text-sm text-green-600 font-medium">
+                  You're using {usagePercentage.toFixed(1)}% of your compute
+                  credits. You have plenty of credits remaining this month.
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* How Credits Work Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Layers className="w-4 h-4 text-blue-600" />
+            </div>
+            How Credits Work
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              Compute credits are consumed based on the individual nodes that
+              execute within your workflows. Each node type has a different
+              credit cost depending on its computational requirements.
+            </p>
+            <p>
+              The total cost of a workflow execution is the sum of all executed
+              nodes. More complex workflows with many nodes or
+              resource-intensive operations will consume more credits.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </InsetLayout>
   );
 }

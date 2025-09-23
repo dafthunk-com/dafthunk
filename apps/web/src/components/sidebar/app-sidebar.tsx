@@ -1,14 +1,7 @@
 import * as React from "react";
 
 import { NavMain, NavMainProps } from "@/components/sidebar/nav-main";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarRail,
-} from "@/components/ui/sidebar";
-
-import { OrganizationSwitcher } from "./organization-switcher";
+import { Sidebar, SidebarContent, SidebarRail } from "@/components/ui/sidebar";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & NavMainProps;
 
@@ -27,9 +20,6 @@ export function AppSidebar({
       <SidebarContent className="h-full">
         <NavMain title={title} items={items} footerItems={footerItems} />
       </SidebarContent>
-      <SidebarFooter className="pb-7 px-4">
-        <OrganizationSwitcher />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

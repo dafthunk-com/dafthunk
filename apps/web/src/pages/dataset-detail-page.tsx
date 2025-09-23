@@ -8,6 +8,7 @@ import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   deleteDatasetFile,
@@ -21,6 +22,7 @@ export function DatasetDetailPage() {
   const { datasetId } = useParams<{ datasetId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
+  const { getOrgUrl } = useOrgUrl();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { dataset, datasetError, isDatasetLoading } = useDataset(
@@ -34,11 +36,11 @@ export function DatasetDetailPage() {
   useEffect(() => {
     if (datasetId) {
       setBreadcrumbs([
-        { label: "Datasets", to: "/datasets/datasets" },
+        { label: "Datasets", to: getOrgUrl("datasets") },
         { label: dataset?.name || datasetId },
       ]);
     }
-  }, [datasetId, dataset?.name, setBreadcrumbs]);
+  }, [datasetId, dataset?.name, setBreadcrumbs, getOrgUrl]);
 
   useEffect(() => {
     if (datasetError) {

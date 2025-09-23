@@ -10,11 +10,11 @@ import { ApiContext } from "./context";
 import {
   createDatabase,
   OrganizationRole,
-  organizations,
   saveUser,
   users,
   verifyApiKey,
 } from "./db";
+import { memberships, organizations } from "./db/schema";
 
 // Constants
 export const JWT_ACCESS_TOKEN_NAME = "access_token";
@@ -168,7 +168,7 @@ export const jwtMiddleware = async (
     c.env.JWT_SECRET
   )) as JWTTokenPayload | null;
 
-  if (!payload || !payload.organization?.id) {
+  if (!payload || !payload.sub) {
     return c.json({ error: "Invalid or expired token" }, 401);
   }
 
@@ -182,7 +182,38 @@ export const jwtMiddleware = async (
   }
 
   c.set("jwtPayload", payload);
-  c.set("organizationId", payload.organization.id);
+
+  const db = createDatabase(c.env.DB);
+  const organizationIdOrHandleFromUrl = c.req.param("organizationIdOrHandle");
+
+  let organizationId: string;
+
+  if (organizationIdOrHandleFromUrl) {
+    // Resolve organization from URL param
+    const userOrgs = await db
+      .select({ id: organizations.id, handle: organizations.handle })
+      .from(organizations)
+      .innerJoin(memberships, eq(memberships.organizationId, organizations.id))
+      .where(eq(memberships.userId, payload.sub));
+
+    const targetOrg = userOrgs.find(
+      (org) => org.handle === organizationIdOrHandleFromUrl
+    );
+
+    if (!targetOrg) {
+      return c.json({ error: "Organization not found or access denied" }, 403);
+    }
+
+    organizationId = targetOrg.id;
+  } else {
+    // Fallback to default org from token if no URL param
+    if (!payload.organization?.id) {
+      return c.json({ error: "Organization required" }, 400);
+    }
+    organizationId = payload.organization.id;
+  }
+
+  c.set("organizationId", organizationId);
   await next();
 };
 
@@ -277,8 +308,7 @@ export const apiKeyOrJwtMiddleware = async (
     return apiKeyMiddleware(c, next); // apiKeyMiddleware will handle org verification
   }
 
-  // Otherwise, try JWT auth (which might not need organizationIdOrHandleFromUrl explicitly here,
-  // as JWT payload should contain organization info if needed by downstream handlers)
+  // Otherwise, try JWT auth
   return jwtMiddleware(c, next);
 };
 

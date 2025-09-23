@@ -5,6 +5,7 @@ export * from "./dataset";
 export * from "./deployment";
 export * from "./execution";
 export * from "./objects";
+export * from "./organization";
 export * from "./profile";
 export * from "./secret";
 export * from "./types";

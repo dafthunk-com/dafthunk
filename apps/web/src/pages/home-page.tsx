@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoDialog } from "@/components/video-dialog";
+import { useOrgUrl } from "@/hooks/use-org-url";
 
 const features = [
   {
@@ -69,11 +70,12 @@ const features = [
 export function HomePage() {
   const { user, isAuthenticated } = useAuth();
   const { theme } = useTheme();
+  const { getOrgUrl } = useOrgUrl();
 
   const homepagePublicExecutionUrl = `${import.meta.env.VITE_WEBSITE_URL}/public/executions/${import.meta.env.VITE_HOMEPAGE_PUBLIC_EXECUTION_ID}?fullscreen`;
 
   if (isAuthenticated && user) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to={getOrgUrl("dashboard")} />;
   }
 
   return (
@@ -383,7 +385,7 @@ export function HomePage() {
                   size="lg"
                   className="bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 dark:from-amber-500 dark:to-pink-500 dark:hover:from-amber-600 dark:hover:to-pink-600 text-white font-medium mt-10"
                 >
-                  <Link to="/workflows/workflows">
+                  <Link to={getOrgUrl("workflows")}>
                     Start Building Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>

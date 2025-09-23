@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDataset,
@@ -99,7 +100,8 @@ function useDatasetActions() {
 
 function createColumns(
   openDeleteDialog: (dataset: any) => void,
-  navigate: ReturnType<typeof useNavigate>
+  navigate: ReturnType<typeof useNavigate>,
+  getOrgUrl: (path: string) => string
 ): ColumnDef<any>[] {
   return [
     {
@@ -110,7 +112,7 @@ function createColumns(
         const datasetId = row.original.id;
         return (
           <Link
-            to={`/datasets/datasets/${datasetId}`}
+            to={getOrgUrl(`datasets/${datasetId}`)}
             className="hover:underline"
           >
             <div className="font-medium">{name || "Untitled Dataset"}</div>
@@ -126,7 +128,7 @@ function createColumns(
         const datasetId = row.original.id;
         return (
           <Link
-            to={`/datasets/datasets/${datasetId}`}
+            to={getOrgUrl(`datasets/${datasetId}`)}
             className="font-mono text-xs hover:underline"
           >
             {handle}
@@ -149,7 +151,7 @@ function createColumns(
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onClick={() => navigate(`/datasets/datasets/${dataset.id}`)}
+                  onClick={() => navigate(getOrgUrl(`datasets/${dataset.id}`))}
                 >
                   View Dataset
                 </DropdownMenuItem>
@@ -171,13 +173,14 @@ export function DatasetsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
+  const { getOrgUrl } = useOrgUrl();
 
   const { datasets, datasetsError, isDatasetsLoading, mutateDatasets } =
     useDatasets();
 
   const { deleteDialog, openDeleteDialog } = useDatasetActions();
 
-  const columns = createColumns(openDeleteDialog, navigate);
+  const columns = createColumns(openDeleteDialog, navigate, getOrgUrl);
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Datasets" }]);
@@ -189,7 +192,7 @@ export function DatasetsPage() {
     try {
       const newDataset = await createDataset({ name }, orgHandle);
       mutateDatasets();
-      navigate(`/datasets/datasets/${newDataset.id}`);
+      navigate(getOrgUrl(`datasets/${newDataset.id}`));
     } catch (error) {
       console.error("Failed to create dataset:", error);
     }

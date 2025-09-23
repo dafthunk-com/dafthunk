@@ -8,11 +8,15 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
+  useMemo,
   useState,
 } from "react";
+import { useParams } from "react-router";
 import useSWR from "swr";
 
 import { AuthError, authService } from "@/services/auth-service";
+import { useOrganizations } from "@/services/organizations-service";
 
 export const AUTH_USER_KEY = "/auth/user";
 
@@ -23,6 +27,7 @@ type AuthContextType = {
   readonly error: Error | null;
   readonly loginError: Error | null;
   readonly organization: OrganizationInfo | null;
+  setSelectedOrganization: (org: OrganizationInfo | null) => void;
   login: (provider: AuthProvider) => Promise<void>;
   logout: () => Promise<void>;
   logoutAllSessions: () => Promise<void>;
@@ -68,8 +73,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !!user?.sub;
 
   // Extract organization information with validation
-  const organization =
+  const defaultOrganization =
     user?.organization && user.organization.id ? user.organization : null;
+
+  const { organizations: orgList } = useOrganizations();
+
+  const params = useParams<{ handle?: string }>();
+  const urlHandle = params.handle;
+
+  const [selectedOrganization, setSelectedOrganizationState] =
+    useState<OrganizationInfo | null>(null);
+
+  const SELECTED_ORG_KEY = "dafthunk-selected-organization" as const;
+
+  // Set selected only for non-URL routes (e.g., /settings/organizations)
+  useEffect(() => {
+    if (urlHandle) return; // Skip if URL provides handle
+
+    const savedOrgHandle = localStorage.getItem(SELECTED_ORG_KEY);
+
+    const targetHandle = savedOrgHandle;
+
+    if (targetHandle && orgList.length > 0) {
+      const targetOrg = orgList.find((org) => org.handle === targetHandle);
+      if (targetOrg) {
+        const orgInfo: OrganizationInfo = {
+          id: targetOrg.id,
+          name: targetOrg.name,
+          handle: targetOrg.handle,
+          role: defaultOrganization?.role || "owner",
+        };
+        setSelectedOrganizationState(orgInfo);
+        return;
+      }
+    }
+
+    // Fallback to default
+    if (defaultOrganization) {
+      setSelectedOrganizationState(defaultOrganization);
+    } else {
+      setSelectedOrganizationState(null);
+    }
+  }, [defaultOrganization, orgList, urlHandle]);
+
+  const organization = useMemo<OrganizationInfo | null>(() => {
+    if (urlHandle) {
+      const targetOrg = orgList?.find((org) => org.handle === urlHandle);
+      if (targetOrg) {
+        return {
+          id: targetOrg.id,
+          name: targetOrg.name,
+          handle: urlHandle,
+          role: defaultOrganization?.role || "owner",
+        };
+      } else {
+        // Minimal stub until orgList loads
+        return {
+          id: "",
+          name: "",
+          handle: urlHandle,
+          role: "member",
+        };
+      }
+    }
+    // No URL handle: use selected or default
+    return selectedOrganization || defaultOrganization;
+  }, [urlHandle, orgList, defaultOrganization, selectedOrganization]);
+
+  // Persist current org handle to localStorage for default fallback
+  useEffect(() => {
+    if (organization?.handle) {
+      localStorage.setItem(SELECTED_ORG_KEY, organization.handle);
+    } else {
+      localStorage.removeItem(SELECTED_ORG_KEY);
+    }
+  }, [organization?.handle]);
+
+  const setSelectedOrganization = useCallback(
+    (org: OrganizationInfo | null) => {
+      setSelectedOrganizationState(org);
+      if (org) {
+        localStorage.setItem(SELECTED_ORG_KEY, org.handle);
+      } else {
+        localStorage.removeItem(SELECTED_ORG_KEY);
+      }
+    },
+    []
+  );
 
   const clearError = useCallback(() => {
     setLoginError(null);
@@ -158,6 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error: processedError,
         loginError,
         organization,
+        setSelectedOrganization,
         login,
         logout,
         logoutAllSessions,

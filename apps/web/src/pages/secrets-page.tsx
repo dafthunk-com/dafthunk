@@ -38,6 +38,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createSecret,
   deleteSecret,
@@ -114,6 +115,7 @@ const columns: ColumnDef<Secret>[] = [
 ];
 
 export function SecretsPage() {
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { secrets, secretsError, isSecretsLoading, mutateSecrets } =
     useSecrets();
   const { organization } = useAuth();
@@ -128,6 +130,10 @@ export function SecretsPage() {
   const [editSecretName, setEditSecretName] = useState("");
   const [editSecretValue, setEditSecretValue] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Secrets" }]);
+  }, [setBreadcrumbs]);
 
   useEffect(() => {
     const handleDeleteEvent = (e: Event) => {

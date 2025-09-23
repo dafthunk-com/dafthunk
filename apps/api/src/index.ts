@@ -14,6 +14,7 @@ import executionRoutes from "./routes/executions";
 import health from "./routes/health";
 import llmsRoutes from "./routes/llms";
 import objectRoutes from "./routes/objects";
+import organizationRoutes from "./routes/organizations";
 import profileRoutes from "./routes/profile";
 import publicRoutes from "./routes/public";
 import robotsRoutes from "./routes/robots";
@@ -49,6 +50,7 @@ app.use("*", async (c, next) => {
 app.route("/health", health);
 app.route("/auth", auth);
 app.route("/profile", profileRoutes);
+app.route("/organizations", organizationRoutes);
 app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 

@@ -1,10 +1,4 @@
-import {
-  ChartNoAxesCombined,
-  CircleUserRound,
-  KeyRound,
-  Lock,
-  LogOut,
-} from "lucide-react";
+import { Building2, CircleUserRound, LogOut } from "lucide-react";
 import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
@@ -60,21 +54,9 @@ export function UserProfile() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/settings/usage" className="flex items-center">
-            <ChartNoAxesCombined className="mr-2 size-4 text-muted-foreground" />
-            <span>Usage</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/settings/api-keys" className="flex items-center">
-            <KeyRound className="mr-2 size-4 text-muted-foreground" />
-            <span>API Keys</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <Link to="/settings/secrets" className="flex items-center">
-            <Lock className="mr-2 size-4 text-muted-foreground" />
-            <span>Secrets</span>
+          <Link to="/settings/organizations" className="flex items-center">
+            <Building2 className="mr-2 size-4 text-muted-foreground" />
+            <span>Organizations</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useOrgUrl } from "@/hooks/use-org-url";
 
 interface WorkflowInfoCardProps {
   id: string;
@@ -20,6 +21,7 @@ export function WorkflowInfoCard({
   name,
   description = "Details about this workflow",
 }: WorkflowInfoCardProps) {
+  const { getOrgUrl } = useOrgUrl();
   return (
     <Card>
       <CardHeader>
@@ -36,7 +38,7 @@ export function WorkflowInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/workflows/${id}`}
+                  to={getOrgUrl(`workflows/${id}`)}
                   className="hover:underline font-medium"
                 >
                   {name}
@@ -53,7 +55,7 @@ export function WorkflowInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/workflows/${id}`}
+                  to={getOrgUrl(`workflows/${id}`)}
                   className="hover:underline font-mono text-xs"
                 >
                   {id}

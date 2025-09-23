@@ -35,6 +35,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
 import type { WorkflowTemplate } from "@/components/workflow/workflow-templates";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { createDeployment } from "@/services/deployment-service";
 import {
@@ -259,7 +260,8 @@ function createColumns(
   openDeleteDialog: (workflow: WorkflowWithMetadata) => void,
   openRenameDialog: (workflow: WorkflowWithMetadata) => void,
   openDeployDialog: (workflow: WorkflowWithMetadata) => void,
-  navigate: ReturnType<typeof useNavigate>
+  navigate: ReturnType<typeof useNavigate>,
+  getOrgUrl: (path: string) => string
 ): ColumnDef<WorkflowWithMetadata>[] {
   return [
     {
@@ -270,7 +272,7 @@ function createColumns(
         const workflowId = row.original.id;
         return (
           <Link
-            to={`/workflows/workflows/${workflowId}`}
+            to={getOrgUrl(`workflows/${workflowId}`)}
             className="hover:underline"
           >
             <div className="font-medium">{name || "Untitled Workflow"}</div>
@@ -286,7 +288,7 @@ function createColumns(
         const workflowId = row.original.id;
         return (
           <Link
-            to={`/workflows/workflows/${workflowId}`}
+            to={getOrgUrl(`workflows/${workflowId}`)}
             className="font-mono text-xs hover:underline"
           >
             {handle}
@@ -328,7 +330,7 @@ function createColumns(
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() =>
-                    navigate(`/workflows/workflows/${workflow.id}`)
+                    navigate(getOrgUrl(`workflows/${workflow.id}`))
                   }
                 >
                   Edit Workflow
@@ -358,6 +360,7 @@ export function WorkflowsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
+  const { getOrgUrl } = useOrgUrl();
 
   const { workflows, workflowsError, isWorkflowsLoading, mutateWorkflows } =
     useWorkflows();
@@ -375,7 +378,8 @@ export function WorkflowsPage() {
     openDeleteDialog,
     openRenameDialog,
     openDeployDialog,
-    navigate
+    navigate,
+    getOrgUrl
   );
 
   useEffect(() => {
@@ -396,7 +400,7 @@ export function WorkflowsPage() {
       const newWorkflow = await createWorkflow(request, orgHandle);
 
       mutateWorkflows();
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
+      navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
     } catch (error) {
       console.error("Failed to create workflow:", error);
       // Optionally show a toast here
@@ -417,7 +421,7 @@ export function WorkflowsPage() {
       const newWorkflow = await createWorkflow(request, orgHandle);
 
       mutateWorkflows();
-      navigate(`/workflows/workflows/${newWorkflow.id}`);
+      navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
     } catch (error) {
       console.error("Failed to import template:", error);
       // Optionally show a toast here
