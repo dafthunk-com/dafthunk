@@ -1,4 +1,5 @@
-import { ArrowUpRight, Bot } from "lucide-react";
+import ArrowUpRight from "lucide-react/icons/arrow-up-right";
+import Bot from "lucide-react/icons/bot";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 

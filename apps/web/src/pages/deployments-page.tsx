@@ -1,10 +1,8 @@
 import type { Deployment } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpToLine,
-  GitCommitHorizontal,
-  MoreHorizontal,
-} from "lucide-react";
+import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
+import GitCommitHorizontal from "lucide-react/icons/git-commit-horizontal";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";

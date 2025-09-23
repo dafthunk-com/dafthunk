@@ -1,7 +1,8 @@
 import { Secret } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal, Plus } from "lucide-react";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Plus from "lucide-react/icons/plus";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 

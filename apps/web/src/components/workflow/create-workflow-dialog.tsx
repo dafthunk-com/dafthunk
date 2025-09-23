@@ -1,5 +1,8 @@
 import { WorkflowType } from "@dafthunk/types";
-import { Clock, Globe, Mail, Play } from "lucide-react";
+import Clock from "lucide-react/icons/clock";
+import Globe from "lucide-react/icons/globe";
+import Mail from "lucide-react/icons/mail";
+import Play from "lucide-react/icons/play";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";

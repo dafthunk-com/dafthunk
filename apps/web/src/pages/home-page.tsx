@@ -1,13 +1,11 @@
-import {
-  ArrowRight,
-  Cpu,
-  Database,
-  Github,
-  PlayCircle,
-  Rocket,
-  Share2,
-  Workflow,
-} from "lucide-react";
+import ArrowRight from "lucide-react/icons/arrow-right";
+import Cpu from "lucide-react/icons/cpu";
+import Database from "lucide-react/icons/database";
+import Github from "lucide-react/icons/github";
+import PlayCircle from "lucide-react/icons/play-circle";
+import Rocket from "lucide-react/icons/rocket";
+import Share2 from "lucide-react/icons/share-2";
+import Workflow from "lucide-react/icons/workflow";
 import { Link, Navigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";

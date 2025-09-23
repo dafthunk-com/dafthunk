@@ -1,10 +1,8 @@
 import { format } from "date-fns";
-import {
-  ArrowUpToLine,
-  Clock,
-  GitCommitHorizontal,
-  IdCard,
-} from "lucide-react";
+import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
+import Clock from "lucide-react/icons/clock";
+import GitCommitHorizontal from "lucide-react/icons/git-commit-horizontal";
+import IdCard from "lucide-react/icons/id-card";
 import { Link } from "react-router";
 
 import { Badge } from "@/components/ui/badge";

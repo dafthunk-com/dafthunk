@@ -1,4 +1,6 @@
-import { BookOpen, Code, Sparkles } from "lucide-react";
+import BookOpen from "lucide-react/icons/book-open";
+import Code from "lucide-react/icons/code";
+import Sparkles from "lucide-react/icons/sparkles";
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 

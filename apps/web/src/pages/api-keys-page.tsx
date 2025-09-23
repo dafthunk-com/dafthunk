@@ -1,7 +1,9 @@
 import { ApiKey } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Copy, MoreHorizontal, Plus } from "lucide-react";
+import Copy from "lucide-react/icons/copy";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Plus from "lucide-react/icons/plus";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 

@@ -1,4 +1,4 @@
-import { LoaderCircle } from "lucide-react";
+import LoaderCircle from "lucide-react/icons/loader-circle";
 
 import { cn } from "@/utils/utils";
 

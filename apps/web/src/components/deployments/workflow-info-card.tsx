@@ -1,4 +1,5 @@
-import { IdCard, Workflow } from "lucide-react";
+import IdCard from "lucide-react/icons/id-card";
+import Workflow from "lucide-react/icons/workflow";
 import { Link } from "react-router";
 
 import {

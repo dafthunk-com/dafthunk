@@ -1,4 +1,6 @@
-import { Mic, Square, Trash2 } from "lucide-react";
+import Mic from "lucide-react/icons/mic";
+import Square from "lucide-react/icons/square";
+import Trash2 from "lucide-react/icons/trash-2";
 import { useEffect, useRef, useState } from "react";
 
 import { Label } from "@/components/ui/label";

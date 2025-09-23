@@ -4,7 +4,9 @@ import {
   WorkflowWithMetadata,
 } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { Import, MoreHorizontal, Plus } from "lucide-react";
+import Import from "lucide-react/icons/import";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Plus from "lucide-react/icons/plus";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 

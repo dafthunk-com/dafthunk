@@ -1,4 +1,8 @@
-import { ArrowRight, BookOpen, Github, Sparkles, Workflow } from "lucide-react";
+import ArrowRight from "lucide-react/icons/arrow-right";
+import BookOpen from "lucide-react/icons/book-open";
+import Github from "lucide-react/icons/github";
+import Sparkles from "lucide-react/icons/sparkles";
+import Workflow from "lucide-react/icons/workflow";
 import { Link } from "react-router";
 
 import { ReadyToBuildBlock } from "@/components/docs/ready-to-build";

@@ -1,4 +1,5 @@
-import { Eraser, Save } from "lucide-react";
+import Eraser from "lucide-react/icons/eraser";
+import Save from "lucide-react/icons/save";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";

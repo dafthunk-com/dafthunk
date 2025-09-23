@@ -1,4 +1,6 @@
-import { Building2, CircleUserRound, LogOut } from "lucide-react";
+import Building2 from "lucide-react/icons/building-2";
+import CircleUserRound from "lucide-react/icons/circle-user-round";
+import LogOut from "lucide-react/icons/log-out";
 import { Link } from "react-router";
 
 import { useAuth } from "@/components/auth-context";

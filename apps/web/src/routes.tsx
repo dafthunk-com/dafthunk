@@ -1,14 +1,12 @@
-import {
-  Building2,
-  Database,
-  KeyRound,
-  LayoutDashboard,
-  Lock,
-  Logs,
-  SquareTerminal,
-  Target,
-  User,
-} from "lucide-react";
+import Building2 from "lucide-react/icons/building-2";
+import Database from "lucide-react/icons/database";
+import KeyRound from "lucide-react/icons/key-round";
+import LayoutDashboard from "lucide-react/icons/layout-dashboard";
+import Lock from "lucide-react/icons/lock";
+import Logs from "lucide-react/icons/logs";
+import Target from "lucide-react/icons/target";
+import SquareTerminal from "lucide-react/icons/terminal-square";
+import User from "lucide-react/icons/user";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";

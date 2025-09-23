@@ -1,4 +1,6 @@
-import { Grid, List, Loader2 } from "lucide-react";
+import Grid from "lucide-react/icons/grid";
+import List from "lucide-react/icons/list";
+import Loader2 from "lucide-react/icons/loader-2";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";

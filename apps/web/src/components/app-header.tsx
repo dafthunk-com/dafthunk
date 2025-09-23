@@ -1,4 +1,4 @@
-import { Bot } from "lucide-react";
+import Bot from "lucide-react/icons/bot";
 import { Link } from "react-router";
 
 import { OrganizationSwitcher } from "@/components/organization-switcher";

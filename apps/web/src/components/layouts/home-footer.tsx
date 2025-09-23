@@ -1,4 +1,7 @@
-import { Bot, FileText, Github, Shield } from "lucide-react";
+import Bot from "lucide-react/icons/bot";
+import FileText from "lucide-react/icons/file-text";
+import Github from "lucide-react/icons/github";
+import Shield from "lucide-react/icons/shield";
 import { Link } from "react-router";
 
 export function HomeFooter() {

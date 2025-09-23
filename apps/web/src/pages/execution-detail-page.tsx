@@ -1,6 +1,7 @@
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
-import { Eye, EyeOff } from "lucide-react";
-import { Share2 } from "lucide-react";
+import Eye from "lucide-react/icons/eye";
+import EyeOff from "lucide-react/icons/eye-off";
+import Share2 from "lucide-react/icons/share-2";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";

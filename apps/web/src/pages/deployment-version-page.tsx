@@ -1,6 +1,7 @@
 import type { DeploymentVersion } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
-import { Globe, Play } from "lucide-react";
+import Globe from "lucide-react/icons/globe";
+import Play from "lucide-react/icons/play";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";

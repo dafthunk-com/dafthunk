@@ -17,28 +17,26 @@ import {
   ReactFlow,
   ReactFlowInstance,
 } from "@xyflow/react";
-import {
-  ArrowUpToLine,
-  ClipboardPaste,
-  Clock,
-  Copy,
-  Eye,
-  EyeOff,
-  Globe,
-  Layers2,
-  Mail,
-  Maximize,
-  Network,
-  PanelLeft,
-  PanelLeftClose,
-  PencilIcon,
-  Play,
-  Plus,
-  Scissors,
-  Square,
-  Trash2,
-  X,
-} from "lucide-react";
+import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
+import ClipboardPaste from "lucide-react/icons/clipboard-paste";
+import Clock from "lucide-react/icons/clock";
+import Copy from "lucide-react/icons/copy";
+import Eye from "lucide-react/icons/eye";
+import EyeOff from "lucide-react/icons/eye-off";
+import Globe from "lucide-react/icons/globe";
+import Layers2 from "lucide-react/icons/layers-2";
+import Mail from "lucide-react/icons/mail";
+import Maximize from "lucide-react/icons/maximize";
+import Network from "lucide-react/icons/network";
+import PanelLeft from "lucide-react/icons/panel-left";
+import PanelLeftClose from "lucide-react/icons/panel-left-close";
+import PencilIcon from "lucide-react/icons/pencil";
+import Play from "lucide-react/icons/play";
+import Plus from "lucide-react/icons/plus";
+import Scissors from "lucide-react/icons/scissors";
+import Square from "lucide-react/icons/square";
+import Trash2 from "lucide-react/icons/trash-2";
+import X from "lucide-react/icons/x";
 import React, { useEffect } from "react";
 
 import { ActionBarButton, ActionBarGroup } from "@/components/ui/action-bar";

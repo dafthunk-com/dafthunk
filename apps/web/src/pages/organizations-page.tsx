@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { MoreHorizontal, Plus } from "lucide-react";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Plus from "lucide-react/icons/plus";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";

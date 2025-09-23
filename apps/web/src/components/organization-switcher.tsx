@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import Check from "lucide-react/icons/check";
+import ChevronsUpDown from "lucide-react/icons/chevrons-up-down";
 import { useLocation, useNavigate, useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";

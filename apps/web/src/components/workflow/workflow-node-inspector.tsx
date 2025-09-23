@@ -1,6 +1,8 @@
 import type { ObjectReference } from "@dafthunk/types";
 import type { Node as ReactFlowNode } from "@xyflow/react";
-import { EyeIcon, EyeOffIcon, XCircleIcon } from "lucide-react";
+import EyeIcon from "lucide-react/icons/eye";
+import EyeOffIcon from "lucide-react/icons/eye-off";
+import XCircleIcon from "lucide-react/icons/x-circle";
 import { useEffect, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

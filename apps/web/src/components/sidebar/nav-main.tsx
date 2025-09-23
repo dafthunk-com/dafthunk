@@ -1,6 +1,7 @@
 "use client";
 
-import { type LucideIcon, PanelLeft } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
+import PanelLeft from "lucide-react/icons/panel-left";
 
 import {
   SidebarGroup,

@@ -1,4 +1,5 @@
-import { Database, RefreshCw } from "lucide-react";
+import Database from "lucide-react/icons/database";
+import RefreshCw from "lucide-react/icons/refresh-cw";
 
 import { Button } from "@/components/ui/button";
 import {

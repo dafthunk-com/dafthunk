@@ -1,4 +1,4 @@
-import { Mail } from "lucide-react";
+import Mail from "lucide-react/icons/mail";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";

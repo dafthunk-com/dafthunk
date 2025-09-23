@@ -1,12 +1,10 @@
 import type { WorkflowExecution } from "@dafthunk/types";
 import type { VariantProps } from "class-variance-authority";
-import {
-  AlertCircle,
-  CheckCircle2,
-  CircleDashed,
-  CircleSlash,
-  Zap,
-} from "lucide-react";
+import AlertCircle from "lucide-react/icons/alert-circle";
+import CheckCircle2 from "lucide-react/icons/check-circle-2";
+import CircleDashed from "lucide-react/icons/circle-dashed";
+import CircleSlash from "lucide-react/icons/circle-slash";
+import Zap from "lucide-react/icons/zap";
 
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/utils/utils";

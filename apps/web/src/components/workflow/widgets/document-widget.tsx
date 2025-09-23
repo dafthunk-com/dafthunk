@@ -1,4 +1,6 @@
-import { File, Upload, X } from "lucide-react";
+import File from "lucide-react/icons/file";
+import Upload from "lucide-react/icons/upload";
+import X from "lucide-react/icons/x";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";

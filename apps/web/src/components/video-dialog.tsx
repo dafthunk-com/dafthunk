@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import X from "lucide-react/icons/x";
 import * as React from "react";
 
 import {

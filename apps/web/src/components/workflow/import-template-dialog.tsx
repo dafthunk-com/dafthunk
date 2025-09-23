@@ -1,12 +1,10 @@
-import {
-  BookOpen,
-  Calculator,
-  FileText,
-  Globe,
-  Mail,
-  Palette,
-  Search,
-} from "lucide-react";
+import BookOpen from "lucide-react/icons/book-open";
+import Calculator from "lucide-react/icons/calculator";
+import FileText from "lucide-react/icons/file-text";
+import Globe from "lucide-react/icons/globe";
+import Mail from "lucide-react/icons/mail";
+import Palette from "lucide-react/icons/palette";
+import Search from "lucide-react/icons/search";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";

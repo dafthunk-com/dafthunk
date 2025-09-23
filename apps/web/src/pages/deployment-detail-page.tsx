@@ -1,17 +1,15 @@
 import type { DeploymentVersion } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import {
-  ArrowDown,
-  ArrowUpToLine,
-  CalendarClock,
-  GitCommitHorizontal,
-  Globe,
-  History,
-  Mail,
-  MoreHorizontal,
-  Play,
-} from "lucide-react";
+import ArrowDown from "lucide-react/icons/arrow-down";
+import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
+import CalendarClock from "lucide-react/icons/calendar-clock";
+import GitCommitHorizontal from "lucide-react/icons/git-commit-horizontal";
+import Globe from "lucide-react/icons/globe";
+import History from "lucide-react/icons/history";
+import Mail from "lucide-react/icons/mail";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
+import Play from "lucide-react/icons/play";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";

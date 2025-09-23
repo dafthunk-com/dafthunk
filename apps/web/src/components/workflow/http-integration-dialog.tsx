@@ -1,5 +1,5 @@
 import type { Node } from "@xyflow/react";
-import { Terminal } from "lucide-react";
+import Terminal from "lucide-react/icons/terminal";
 
 import {
   EXECUTE_WORKFLOW_SNIPPETS,

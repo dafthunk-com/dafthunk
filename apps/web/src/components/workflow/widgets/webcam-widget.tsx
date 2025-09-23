@@ -1,4 +1,5 @@
-import { Camera, X } from "lucide-react";
+import Camera from "lucide-react/icons/camera";
+import X from "lucide-react/icons/x";
 import { useEffect, useRef, useState } from "react";
 
 import { Label } from "@/components/ui/label";

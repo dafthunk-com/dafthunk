@@ -1,12 +1,10 @@
-import {
-  AlertCircle,
-  Clock,
-  CreditCard,
-  Layers,
-  Logs,
-  Target,
-  Workflow,
-} from "lucide-react";
+import AlertCircle from "lucide-react/icons/alert-circle";
+import Clock from "lucide-react/icons/clock";
+import CreditCard from "lucide-react/icons/credit-card";
+import Layers from "lucide-react/icons/layers";
+import Logs from "lucide-react/icons/logs";
+import Target from "lucide-react/icons/target";
+import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
 import { Link } from "react-router";
 

@@ -51,14 +51,14 @@ const vite = await createServer({
 });
 app.use(vite.middlewares);
 
-let template = await fs.readFile("./index.html", "utf-8");
+const originalTemplate = await fs.readFile("./index.html", "utf-8");
 const render = (await vite.ssrLoadModule("/src/entry-server.tsx")).render;
 
 // Serve HTML
 app.use("*all", async (req, res) => {
   try {
     const pathname = req.originalUrl;
-    template = await vite.transformIndexHtml(pathname, template);
+    let html = await vite.transformIndexHtml(pathname, originalTemplate);
 
     // Construct a Fetch API Request object from the Express request
     const url = new URL(
@@ -72,7 +72,7 @@ app.use("*all", async (req, res) => {
 
     const rendered = await render(fetchRequest);
 
-    let html = template
+    html = html
       .replace(`<!--app-head-->`, rendered.headHtml ?? "")
       .replace(`<!--app-html-->`, "");
 

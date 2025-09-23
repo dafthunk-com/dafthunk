@@ -3,7 +3,9 @@ import type {
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
 } from "@xyflow/react";
-import { Eye, Sparkles, Users } from "lucide-react";
+import Eye from "lucide-react/icons/eye";
+import Sparkles from "lucide-react/icons/sparkles";
+import Users from "lucide-react/icons/users";
 
 import { WorkflowEdgeInspector } from "./workflow-edge-inspector";
 import { WorkflowNodeInspector } from "./workflow-node-inspector";

@@ -1,7 +1,9 @@
 import type { WorkflowExecution } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Eye, EyeOff, MoreHorizontal } from "lucide-react";
+import Eye from "lucide-react/icons/eye";
+import EyeOff from "lucide-react/icons/eye-off";
+import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import { useEffect } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";

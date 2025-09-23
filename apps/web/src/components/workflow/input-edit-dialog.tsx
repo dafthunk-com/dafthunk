@@ -1,4 +1,7 @@
-import { Download, File, Upload, XCircleIcon } from "lucide-react";
+import Download from "lucide-react/icons/download";
+import File from "lucide-react/icons/file";
+import Upload from "lucide-react/icons/upload";
+import XCircleIcon from "lucide-react/icons/x-circle";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";

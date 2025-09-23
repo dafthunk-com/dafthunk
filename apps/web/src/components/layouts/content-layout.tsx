@@ -1,4 +1,5 @@
-import { Bot, ChevronLeft } from "lucide-react";
+import Bot from "lucide-react/icons/bot";
+import ChevronLeft from "lucide-react/icons/chevron-left";
 import { ReactNode } from "react";
 import { useNavigate } from "react-router";
 

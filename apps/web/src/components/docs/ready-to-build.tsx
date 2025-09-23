@@ -1,12 +1,10 @@
 import { CreateWorkflowRequest, WorkflowType } from "@dafthunk/types";
-import {
-  Activity,
-  CloudUpload,
-  LayoutDashboard,
-  PlusCircle,
-  Workflow,
-  Zap,
-} from "lucide-react";
+import Activity from "lucide-react/icons/activity";
+import CloudUpload from "lucide-react/icons/cloud-upload";
+import LayoutDashboard from "lucide-react/icons/layout-dashboard";
+import PlusCircle from "lucide-react/icons/plus-circle";
+import Workflow from "lucide-react/icons/workflow";
+import Zap from "lucide-react/icons/zap";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
