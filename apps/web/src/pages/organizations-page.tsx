@@ -2,6 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { InsetError } from "@/components/inset-error";
@@ -115,6 +116,8 @@ export function OrganizationsPage() {
     name: string;
   } | null>(null);
 
+  const navigate = useNavigate();
+
   const handleCreateOrganization = useCallback(async (): Promise<void> => {
     if (!newOrgName.trim()) {
       toast.error("Organization name is required");
@@ -122,10 +125,14 @@ export function OrganizationsPage() {
     }
     setIsProcessing(true);
     try {
-      await createOrganization({
+      const response = await createOrganization({
         name: newOrgName.trim(),
       });
-      toast.success("Organization created successfully");
+      const newOrg = response.organization;
+      navigate(`/org/${newOrg.handle}/workflows`);
+      toast.success(
+        "Organization created successfully and navigated to workflows"
+      );
       setIsCreateDialogOpen(false);
       setNewOrgName("");
       await mutateOrganizations();
@@ -135,7 +142,7 @@ export function OrganizationsPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, [newOrgName, mutateOrganizations]);
+  }, [newOrgName, mutateOrganizations, navigate]);
 
   const handleDeleteOrganization = useCallback(async (): Promise<void> => {
     if (!orgToDelete) return;
