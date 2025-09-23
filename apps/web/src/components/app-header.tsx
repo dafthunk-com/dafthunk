@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { UserProfile } from "@/components/user-profile";
+import { useOrgUrl } from "@/hooks/use-org-url";
 
 import { AppHeaderBreadcrumb } from "./app-header-breadcrumb";
 import { useAuth } from "./auth-context";
@@ -11,6 +12,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 export function AppHeader() {
   const { isAuthenticated } = useAuth();
+  const { getOrgUrl } = useOrgUrl();
 
   const navLinkClasses =
     "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors";
@@ -31,7 +33,7 @@ export function AppHeader() {
           {isAuthenticated ? (
             <>
               <NavLink
-                to="/org"
+                to={getOrgUrl("dashboard")}
                 className={navLinkClasses}
                 activeClassName={activeNavLinkClasses}
               >

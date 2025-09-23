@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useOrgUrl } from "@/hooks/use-org-url";
 
 interface DeploymentInfoCardProps {
   id: string;
@@ -33,6 +34,7 @@ export function DeploymentInfoCard({
   description = "Details about this deployment version",
   workflowId,
 }: DeploymentInfoCardProps) {
+  const { getOrgUrl } = useOrgUrl();
   const formatDate = (dateString: string | Date) => {
     try {
       return format(new Date(dateString), "MMMM d, yyyy 'at' h:mm a");
@@ -58,7 +60,7 @@ export function DeploymentInfoCard({
               </p>
               <div className="mt-1">
                 <Link
-                  to={`/workflows/deployments/version/${id}`}
+                  to={getOrgUrl(`workflows/deployment/${id}`)}
                   className="hover:underline"
                 >
                   <Badge variant="secondary" className="text-xs gap-1">
@@ -73,7 +75,7 @@ export function DeploymentInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/deployments/version/${id}`}
+                  to={getOrgUrl(`workflows/deployment/${id}`)}
                   className="hover:underline font-mono text-xs"
                 >
                   {id}
@@ -97,7 +99,7 @@ export function DeploymentInfoCard({
                 </p>
                 <p className="mt-1">
                   <Link
-                    to={`/org/workflows/${workflowId}`}
+                    to={getOrgUrl(`workflows/${workflowId}`)}
                     className="hover:underline font-mono text-xs"
                   >
                     {workflowId}

@@ -2,12 +2,14 @@ import { Navigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { LoginForm } from "@/components/login-form";
+import { useOrgUrl } from "@/hooks/use-org-url";
 
 export function LoginPage() {
   const { user, isAuthenticated } = useAuth();
+  const { getOrgUrl } = useOrgUrl();
 
   if (isAuthenticated && user) {
-    return <Navigate to="/org/dashboard" />;
+    return <Navigate to={getOrgUrl("dashboard")} />;
   }
 
   return (

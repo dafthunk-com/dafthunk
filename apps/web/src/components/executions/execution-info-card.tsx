@@ -17,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { cn } from "@/utils/utils";
 
 import { Badge } from "../ui/badge";
@@ -49,6 +50,7 @@ export function ExecutionInfoCard({
   title = "Execution Information",
   description = "Details about this workflow execution",
 }: ExecutionInfoCardProps) {
+  const { getOrgUrl } = useOrgUrl();
   const formatDate = (dateString?: string | Date) => {
     if (!dateString) return "N/A";
     try {
@@ -115,7 +117,7 @@ export function ExecutionInfoCard({
               <p className="mt-1">
                 {workflowName ? (
                   <Link
-                    to={`/org/workflows/${workflowId}`}
+                    to={getOrgUrl(`workflows/${workflowId}`)}
                     className="hover:underline text-primary"
                   >
                     {workflowName}
@@ -131,7 +133,7 @@ export function ExecutionInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/org/workflows/${workflowId}`}
+                  to={getOrgUrl(`workflows/${workflowId}`)}
                   className="hover:underline font-mono text-xs"
                 >
                   {workflowId}
@@ -145,7 +147,7 @@ export function ExecutionInfoCard({
                 </p>
                 <p className="mt-1">
                   <Link
-                    to={`/workflows/deployments/version/${deploymentId}`}
+                    to={getOrgUrl(`workflows/deployment/${deploymentId}`)}
                     className="hover:underline text-primary font-mono text-xs"
                   >
                     {deploymentId}
@@ -159,7 +161,7 @@ export function ExecutionInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={`/workflows/executions/${id}`}
+                  to={getOrgUrl(`workflows/executions/${id}`)}
                   className="hover:underline font-mono text-xs"
                 >
                   {id}

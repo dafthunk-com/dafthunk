@@ -18,6 +18,7 @@ import type {
   WorkflowExecution as WorkflowBuilderExecution,
   WorkflowNodeExecution,
 } from "@/components/workflow/workflow-types";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useDeploymentVersion } from "@/services/deployment-service";
 import {
@@ -36,6 +37,7 @@ export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
+  const { getOrgUrl } = useOrgUrl();
 
   const {
     execution,
@@ -98,11 +100,11 @@ export function ExecutionDetailPage() {
   useEffect(() => {
     if (executionId) {
       setBreadcrumbs([
-        { label: "Executions", to: "/org/executions" },
+        { label: "Executions", to: getOrgUrl("executions") },
         { label: executionId },
       ]);
     }
-  }, [executionId, setBreadcrumbs]);
+  }, [executionId, setBreadcrumbs, getOrgUrl]);
 
   useEffect(() => {
     if (executionDetailsError) {

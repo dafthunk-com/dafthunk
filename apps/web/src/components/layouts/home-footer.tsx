@@ -10,7 +10,7 @@ export function HomeFooter() {
       links: [
         {
           label: "Workflows",
-          to: "/org/workflows",
+          to: "/workflows",
         },
         {
           label: "Features",

@@ -65,9 +65,10 @@ export function NavMain({ items, footerItems }: NavMainProps) {
         ))}
       </SidebarMenu>
       <SidebarMenu className="bg-transparent">
-        {footerItems && footerItems.map((item) => (
-          <NavMainItem key={item.title} item={item} open={open} />
-        ))}
+        {footerItems &&
+          footerItems.map((item) => (
+            <NavMainItem key={item.title} item={item} open={open} />
+          ))}
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Toggle sidebar"

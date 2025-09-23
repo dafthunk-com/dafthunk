@@ -20,11 +20,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { usePaginatedExecutions } from "@/services/execution-service";
 import { cn } from "@/utils/utils";
 
-export const columns: ColumnDef<WorkflowExecution>[] = [
+export const createColumns = (
+  getOrgUrl: (path: string) => string
+): ColumnDef<WorkflowExecution>[] => [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
@@ -33,7 +36,7 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
       const execution = row.original as WorkflowExecution;
       return (
         <Link
-          to={`/workflows/executions/${execution.id}`}
+          to={getOrgUrl(`workflows/executions/${execution.id}`)}
           className="hover:underline"
         >
           {workflowName}
@@ -138,7 +141,9 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/workflows/executions/${execution.id}`}>View</Link>
+                <Link to={getOrgUrl(`workflows/executions/${execution.id}`)}>
+                  View
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -150,6 +155,7 @@ export const columns: ColumnDef<WorkflowExecution>[] = [
 
 export function ExecutionsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
+  const { getOrgUrl } = useOrgUrl();
 
   const {
     paginatedExecutions,
@@ -191,7 +197,7 @@ export function ExecutionsPage() {
           Monitor the execution history of your workflows.
         </p>
         <DataTable
-          columns={columns}
+          columns={createColumns(getOrgUrl)}
           data={paginatedExecutions}
           emptyState={{
             title: executionsError

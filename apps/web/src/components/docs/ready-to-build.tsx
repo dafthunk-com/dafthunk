@@ -13,12 +13,14 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "@/components/auth-context";
 import { Button } from "@/components/ui/button";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { createWorkflow, useWorkflows } from "@/services/workflow-service";
 
 export function ReadyToBuildBlock() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { organization } = useAuth();
+  const { getOrgUrl } = useOrgUrl();
   const orgHandle = organization?.handle || "";
   const { mutateWorkflows } = useWorkflows();
 
@@ -37,7 +39,7 @@ export function ReadyToBuildBlock() {
 
       mutateWorkflows();
       setIsCreateDialogOpen(false);
-      navigate(`/org/workflows/${newWorkflow.id}`);
+      navigate(getOrgUrl(`workflows/${newWorkflow.id}`));
     } catch (error) {
       console.error("Failed to create workflow:", error);
     }
@@ -59,7 +61,7 @@ export function ReadyToBuildBlock() {
             <PlusCircle className="mr-2 size-4" /> Create Workflow
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/org/dashboard">
+            <Link to={getOrgUrl("dashboard")}>
               <LayoutDashboard className="mr-2 size-4" /> Dashboard
             </Link>
           </Button>

@@ -7,6 +7,7 @@ import {
   Target,
   Workflow,
 } from "lucide-react";
+import { useEffect } from "react";
 import { Link } from "react-router";
 
 import { InsetError } from "@/components/inset-error";
@@ -15,8 +16,7 @@ import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect } from "react";
-
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useDashboard, useUsageCredits } from "@/services/dashboard-service";
 import { cn } from "@/utils/utils";
@@ -26,6 +26,7 @@ export function DashboardPage() {
   const { dashboardStats, dashboardStatsError, isDashboardStatsLoading } =
     useDashboard();
   const { usageData, usageError, isUsageLoading } = useUsageCredits();
+  const { getOrgUrl } = useOrgUrl();
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Dashboard" }]);
@@ -86,7 +87,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/org/workflows">Go to Workflows</Link>
+              <Link to={getOrgUrl("workflows")}>Go to Workflows</Link>
             </Button>
           </CardContent>
         </Card>
@@ -108,7 +109,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/org/deployments">View Deployments</Link>
+              <Link to={getOrgUrl("deployments")}>View Deployments</Link>
             </Button>
           </CardContent>
         </Card>
@@ -145,7 +146,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to="/org/executions">View All Executions</Link>
+              <Link to={getOrgUrl("executions")}>View All Executions</Link>
             </Button>
           </CardContent>
         </Card>

@@ -24,6 +24,7 @@ import type {
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
@@ -43,6 +44,7 @@ export function EditorPage() {
   const navigate = useNavigate();
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
+  const { getOrgUrl } = useOrgUrl();
 
   const [workflowBuilderKey, setWorkflowBuilderKey] = useState(Date.now());
 
@@ -213,7 +215,7 @@ export function EditorPage() {
 
   usePageBreadcrumbs(
     [
-      { label: "Workflows", to: "/org/workflows" },
+      { label: "Workflows", to: getOrgUrl("workflows") },
       { label: currentWorkflow?.name || "Workflow" },
     ],
     [currentWorkflow?.name]
@@ -345,7 +347,7 @@ export function EditorPage() {
     return (
       <WorkflowError
         message={`Workflow with ID "${id}" not found, or could not be prepared.`}
-        onRetry={() => navigate("/org/workflows")}
+        onRetry={() => navigate(getOrgUrl("workflows"))}
       />
     );
   }

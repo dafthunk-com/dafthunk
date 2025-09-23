@@ -9,7 +9,6 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -30,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createApiKey,
   deleteApiKey,

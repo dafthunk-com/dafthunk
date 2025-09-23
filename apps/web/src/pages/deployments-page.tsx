@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
@@ -53,7 +54,9 @@ type DeploymentWithActions = Deployment & {
   onCreateDeployment?: (workflowId: string) => void;
 };
 
-const columns: ColumnDef<DeploymentWithActions>[] = [
+const createColumns = (
+  getOrgUrl: (path: string) => string
+): ColumnDef<DeploymentWithActions>[] => [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
@@ -62,7 +65,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       const workflowId = row.original.workflowId;
       return (
         <Link
-          to={`/workflows/deployments/${workflowId}`}
+          to={getOrgUrl(`workflows/${workflowId}`)}
           className="hover:underline"
         >
           {workflowName}
@@ -81,7 +84,9 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       return (
         <TooltipProvider>
           <Link
-            to={`/workflows/deployment/${deployment.latestDeploymentId}`}
+            to={getOrgUrl(
+              `workflows/deployment/${deployment.latestDeploymentId}`
+            )}
             className="hover:underline"
           >
             <Badge variant="secondary" className="text-xs gap-1">
@@ -99,7 +104,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
       const deployment = row.original;
       return (
         <Link
-          to={`/workflows/deployments/${deployment.workflowId}`}
+          to={getOrgUrl(`workflows/${deployment.workflowId}`)}
           className="hover:underline"
         >
           <Badge variant="outline">{row.getValue("deploymentCount")}</Badge>
@@ -122,7 +127,7 @@ const columns: ColumnDef<DeploymentWithActions>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/workflows/deployments/${deployment.workflowId}`}>
+                <Link to={getOrgUrl(`workflows/${deployment.workflowId}`)}>
                   View Deployed Versions
                 </Link>
               </DropdownMenuItem>
@@ -139,6 +144,7 @@ export function DeploymentsPage() {
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
+  const { getOrgUrl } = useOrgUrl();
 
   // Set breadcrumbs on component mount
   useEffect(() => {
@@ -179,7 +185,7 @@ export function DeploymentsPage() {
   };
 
   const handleViewDeployment = (workflowId: string) => {
-    navigate(`/workflows/deployments/${workflowId}`);
+    navigate(getOrgUrl(`workflows/${workflowId}`));
   };
 
   // Add actions to the deployments
@@ -215,7 +221,7 @@ export function DeploymentsPage() {
           </div>
         </div>
         <DataTable
-          columns={columns}
+          columns={createColumns(getOrgUrl)}
           data={deploymentsWithActions}
           emptyState={{
             title: "No deployments found",

@@ -9,7 +9,6 @@ import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +38,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createSecret,
   deleteSecret,

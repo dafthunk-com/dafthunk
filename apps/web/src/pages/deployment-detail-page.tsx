@@ -47,6 +47,7 @@ import {
   SetCronDialog,
 } from "@/components/workflow/set-cron-dialog";
 import type { NodeTemplate } from "@/components/workflow/workflow-types";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createDeployment,
@@ -71,7 +72,8 @@ const formatDeploymentDate = (dateString: string | Date) => {
 };
 
 function createDeploymentHistoryColumns(
-  currentDeploymentId: string
+  currentDeploymentId: string,
+  getOrgUrl: (path: string) => string
 ): ColumnDef<DeploymentVersion>[] {
   return [
     {
@@ -85,7 +87,7 @@ function createDeploymentHistoryColumns(
             {isCurrent ? (
               <div className="flex items-center">
                 <Link
-                  to={`/workflows/deployment/${deployment.id}`}
+                  to={getOrgUrl(`workflows/deployment/${deployment.id}`)}
                   className="hover:underline"
                 >
                   {deployment.id}
@@ -96,7 +98,7 @@ function createDeploymentHistoryColumns(
               </div>
             ) : (
               <Link
-                to={`/workflows/deployment/${deployment.id}`}
+                to={getOrgUrl(`workflows/deployment/${deployment.id}`)}
                 className="hover:underline"
               >
                 {deployment.id}
@@ -111,7 +113,7 @@ function createDeploymentHistoryColumns(
       header: "Deployment Version",
       cell: ({ row }) => (
         <Link
-          to={`/workflows/deployment/${row.original.id}`}
+          to={getOrgUrl(`workflows/deployment/${row.original.id}`)}
           className="hover:underline"
         >
           <Badge variant="secondary" className="gap-1">
@@ -143,7 +145,7 @@ function createDeploymentHistoryColumns(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/workflows/deployment/${row.original.id}`}>
+                <Link to={getOrgUrl(`workflows/deployment/${row.original.id}`)}>
                   View Version
                 </Link>
               </DropdownMenuItem>
@@ -160,6 +162,7 @@ export function DeploymentDetailPage() {
   const navigate = useNavigate();
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
+  const { getOrgUrl } = useOrgUrl();
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
@@ -228,16 +231,16 @@ export function DeploymentDetailPage() {
   useEffect(() => {
     if (workflowSummary) {
       setBreadcrumbs([
-        { label: "Deployments", to: "/org/deployments" },
+        { label: "Deployments", to: getOrgUrl("deployments") },
         { label: workflowSummary.name },
       ]);
     } else {
       setBreadcrumbs([
-        { label: "Deployments", to: "/org/deployments" },
+        { label: "Deployments", to: getOrgUrl("deployments") },
         { label: "Detail" },
       ]);
     }
-  }, [workflowSummary, setBreadcrumbs]);
+  }, [workflowSummary, setBreadcrumbs, getOrgUrl]);
 
   const deployWorkflow = async () => {
     if (!workflowId || !orgHandle) return;
@@ -410,7 +413,8 @@ export function DeploymentDetailPage() {
                   </div>
                 }
                 columns={createDeploymentHistoryColumns(
-                  currentDeployment?.id || ""
+                  currentDeployment?.id || "",
+                  getOrgUrl
                 )}
                 data={displayDeployments}
                 emptyState={{
@@ -445,7 +449,10 @@ export function DeploymentDetailPage() {
       ) : (
         <div className="text-center py-10">
           <p className="text-lg">Workflow not found</p>
-          <Button className="mt-4" onClick={() => navigate("/org/deployments")}>
+          <Button
+            className="mt-4"
+            onClick={() => navigate(getOrgUrl("deployments"))}
+          >
             Back to Deployments
           </Button>
         </div>

@@ -20,6 +20,7 @@ import type {
   WorkflowEdgeType,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
+import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useDeploymentVersion } from "@/services/deployment-service";
 import { useObjectService } from "@/services/object-service";
@@ -32,6 +33,7 @@ export function DeploymentVersionPage() {
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
   const { organization } = useAuth();
   const orgHandle = organization?.handle || "";
+  const { getOrgUrl } = useOrgUrl();
 
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
@@ -154,15 +156,15 @@ export function DeploymentVersionPage() {
   useEffect(() => {
     if (workflow && deploymentVersion) {
       setBreadcrumbs([
-        { label: "Deployments", to: "/org/deployments" },
+        { label: "Deployments", to: getOrgUrl("deployments") },
         {
           label: workflow.name,
-          to: `/workflows/deployments/${workflow.id}`,
+          to: getOrgUrl(`workflows/${workflow.id}`),
         },
         { label: `v${deploymentVersion.version}` },
       ]);
     }
-  }, [workflow, deploymentVersion, setBreadcrumbs]);
+  }, [workflow, deploymentVersion, setBreadcrumbs, getOrgUrl]);
 
   useEffect(() => {
     if (deploymentVersion) {
