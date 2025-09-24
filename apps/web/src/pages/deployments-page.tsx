@@ -206,17 +206,14 @@ export function DeploymentsPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Deployments">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            View and manage versioned snapshots of workflows ready for
-            execution.
+            Deploy your workflows and track their versions.
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleOpenDialog}>
-              <ArrowUpToLine className="mr-2 h-4 w-4" />
-              Deploy Workflow
-            </Button>
-          </div>
+          <Button onClick={handleOpenDialog}>
+            <ArrowUpToLine className="mr-2 h-4 w-4" />
+            Deploy Workflow
+          </Button>
         </div>
         <DataTable
           columns={createColumns(getOrgUrl)}

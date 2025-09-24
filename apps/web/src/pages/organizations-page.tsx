@@ -200,12 +200,13 @@ export function OrganizationsPage() {
 
   return (
     <InsetLayout title="Organizations">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 min-h-10">
         <div className="text-sm text-muted-foreground max-w-2xl">
-          Manage your organizations and switch between different workspaces.
+          Manage your organizations and workspaces.
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
-          <Plus /> Create Organization
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Organization
         </Button>
       </div>
 

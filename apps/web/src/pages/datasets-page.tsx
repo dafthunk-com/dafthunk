@@ -208,17 +208,14 @@ export function DatasetsPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Datasets">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6  min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create, manage, and organize your datasets. Upload, process, and
-            share your data with ease.
+            Create and manage datasets for your workflows.
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Dataset
-            </Button>
-          </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create New Dataset
+          </Button>
         </div>
         <DataTable
           columns={columns}

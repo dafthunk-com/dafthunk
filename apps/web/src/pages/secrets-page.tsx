@@ -257,13 +257,13 @@ export function SecretsPage() {
 
   return (
     <InsetLayout title="Secrets">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 min-h-10">
         <div className="text-sm text-muted-foreground max-w-2xl">
-          Store and manage encrypted secrets for your organization. These can be
-          used in workflows and accessed via API.
+          Store encrypted secrets for your workflows.
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
-          <Plus /> Create Secret
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Secret
         </Button>
       </div>
       <DataTable

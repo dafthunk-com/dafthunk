@@ -441,10 +441,9 @@ export function WorkflowsPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Workflows">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 min-h-10">
           <div className="text-sm text-muted-foreground max-w-2xl">
-            Create, manage, and run your workflows. Break it, fix it, prompt it,
-            automatic.
+            Build and test your workflows.
           </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsCreateDialogOpen(true)}>

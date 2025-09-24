@@ -195,9 +195,11 @@ export function ExecutionsPage() {
   return (
     <TooltipProvider>
       <InsetLayout title="Executions">
-        <p className="text-muted-foreground mb-4">
-          Monitor the execution history of your workflows.
-        </p>
+        <div className="flex items-center justify-between mb-6 min-h-10">
+          <div className="text-sm text-muted-foreground max-w-2xl">
+            Monitor the executions of your workflows.
+          </div>
+        </div>
         <DataTable
           columns={createColumns(getOrgUrl)}
           data={paginatedExecutions}

@@ -178,13 +178,13 @@ export function ApiKeysPage() {
 
   return (
     <InsetLayout title="API Keys">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 min-h-10">
         <div className="text-sm text-muted-foreground max-w-2xl">
-          Create, manage, and delete API keys to control access for your
-          applications.
+          Manage API keys to access your workflows programmatically.
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
-          <Plus /> Create API Key
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create API Key
         </Button>
       </div>
       <DataTable

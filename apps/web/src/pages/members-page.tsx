@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -186,6 +187,7 @@ const columns: ColumnDef<{
 
 export function MembersPage() {
   const { handle } = useParams<{ handle: string }>();
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   // Debug: Log the handle value
   console.log("MembersPage - handle:", handle);
@@ -339,6 +341,10 @@ export function MembersPage() {
     };
   }, [handleUpdateRoleEvent, handleRemoveMemberEvent]);
 
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Members" }]);
+  }, [setBreadcrumbs]);
+
   if (isMembershipsLoading && !memberships) {
     return <InsetLoading title="Organization Members" />;
   } else if (membershipsError) {
@@ -351,14 +357,14 @@ export function MembersPage() {
   }
 
   return (
-    <InsetLayout title="Organization Members">
-      <div className="flex items-center justify-between mb-6">
+    <InsetLayout title="Members">
+      <div className="flex items-center justify-between mb-6 min-h-10">
         <div className="text-sm text-muted-foreground max-w-2xl">
-          Manage your organization members and their roles. Add new members,
-          update roles, or remove members as needed.
+          Manage organization members and roles.
         </div>
-        <Button onClick={() => setIsAddMemberDialogOpen(true)} size="sm">
-          <Plus /> Add Member
+        <Button onClick={() => setIsAddMemberDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Member
         </Button>
       </div>
 
