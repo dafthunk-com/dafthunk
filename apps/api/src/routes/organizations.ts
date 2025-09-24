@@ -174,8 +174,8 @@ organizationRoutes.post(
     "json",
     z.object({
       email: z.string().email("Valid email is required"),
-      role: z.enum(["member", "admin", "owner"], {
-        errorMap: () => ({ message: "Role must be member, admin, or owner" }),
+      role: z.enum(["member", "admin"], {
+        errorMap: () => ({ message: "Role must be member or admin" }),
       }),
     }) as z.ZodType<Omit<AddMembershipRequest, "organizationId">>
   ),
@@ -222,8 +222,8 @@ organizationRoutes.put(
     "json",
     z.object({
       email: z.string().email("Valid email is required"),
-      role: z.enum(["member", "admin", "owner"], {
-        errorMap: () => ({ message: "Role must be member, admin, or owner" }),
+      role: z.enum(["member", "admin"], {
+        errorMap: () => ({ message: "Role must be member or admin" }),
       }),
     }) as z.ZodType<Omit<UpdateMembershipRequest, "organizationId">>
   ),

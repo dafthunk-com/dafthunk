@@ -206,7 +206,7 @@ export function MembersPage() {
   // Add member state
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState<
-    "member" | "admin" | "owner"
+    "member" | "admin"
   >("member");
 
   // Update role state
@@ -216,7 +216,7 @@ export function MembersPage() {
     userEmail: string;
     currentRole: string;
   } | null>(null);
-  const [newRole, setNewRole] = useState<"member" | "admin" | "owner">(
+  const [newRole, setNewRole] = useState<"member" | "admin">(
     "member"
   );
 
@@ -307,7 +307,7 @@ export function MembersPage() {
     }>;
     if (custom.detail) {
       setMemberToUpdate(custom.detail);
-      setNewRole(custom.detail.currentRole as "member" | "admin" | "owner");
+      setNewRole(custom.detail.currentRole as "member" | "admin");
       setIsUpdateRoleDialogOpen(true);
     }
   }, []);
@@ -402,7 +402,7 @@ export function MembersPage() {
               <Label htmlFor="role">Role</Label>
               <Select
                 value={newMemberRole}
-                onValueChange={(value: "member" | "admin" | "owner") =>
+                onValueChange={(value: "member" | "admin") =>
                   setNewMemberRole(value)
                 }
                 disabled={isProcessing}
@@ -413,7 +413,6 @@ export function MembersPage() {
                 <SelectContent>
                   <SelectItem value="member">Member</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="owner">Owner</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -454,7 +453,7 @@ export function MembersPage() {
               <Label htmlFor="new-role">New Role</Label>
               <Select
                 value={newRole}
-                onValueChange={(value: "member" | "admin" | "owner") =>
+                onValueChange={(value: "member" | "admin") =>
                   setNewRole(value)
                 }
                 disabled={isProcessing}
@@ -465,7 +464,6 @@ export function MembersPage() {
                 <SelectContent>
                   <SelectItem value="member">Member</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="owner">Owner</SelectItem>
                 </SelectContent>
               </Select>
             </div>
