@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   createOrganization,
   deleteOrganization,
@@ -118,6 +119,7 @@ export function OrganizationsPage() {
   } | null>(null);
 
   const navigate = useNavigate();
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const handleCreateOrganization = useCallback(async (): Promise<void> => {
     if (!newOrgName.trim()) {
@@ -180,6 +182,10 @@ export function OrganizationsPage() {
         handleDeleteEvent
       );
   }, [handleDeleteEvent]);
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Organizations" }]);
+  }, [setBreadcrumbs]);
 
   if (isOrganizationsLoading && !organizations) {
     return <InsetLoading title="Organizations" />;

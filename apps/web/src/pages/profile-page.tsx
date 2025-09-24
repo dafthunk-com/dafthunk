@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { InsetError } from "@/components/inset-error";
@@ -6,6 +6,7 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { updateProfile, useProfile } from "@/services/profile-service";
 import { getInitials } from "@/utils/user-utils";
 
@@ -26,6 +27,7 @@ export function ProfilePage() {
   const { profile, isProfileLoading, profileError, mutateProfile } =
     useProfile();
   const [isUpdating, setIsUpdating] = useState(false);
+  const { setBreadcrumbs } = usePageBreadcrumbs([]);
 
   const handleEarlyAccessToggle = useCallback(
     async (checked: boolean) => {
@@ -45,6 +47,10 @@ export function ProfilePage() {
     },
     [profile, mutateProfile]
   );
+
+  useEffect(() => {
+    setBreadcrumbs([{ label: "Profile" }]);
+  }, [setBreadcrumbs]);
 
   if (isProfileLoading) {
     return <InsetLoading title="Profile" />;

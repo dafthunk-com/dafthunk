@@ -1,4 +1,7 @@
 import Bot from "lucide-react/icons/bot";
+import Building from "lucide-react/icons/building";
+import BookOpen from "lucide-react/icons/book-open";
+import Settings from "lucide-react/icons/settings";
 import { Link } from "react-router";
 
 import { OrganizationSwitcher } from "@/components/organization-switcher";
@@ -13,7 +16,7 @@ export function AppHeader() {
   const { isAuthenticated } = useAuth();
 
   const navLinkClasses =
-    "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors";
+    "px-2.5 py-1 text-sm rounded-md hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50 transition-colors flex items-center whitespace-nowrap";
   const activeNavLinkClasses =
     "bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50";
 
@@ -35,7 +38,16 @@ export function AppHeader() {
                 className={navLinkClasses}
                 activeClassName={activeNavLinkClasses}
               >
-                Organization
+                <Building className="h-4 w-4 mr-1.5" />
+                <span>Organization</span>
+              </NavLink>
+              <NavLink
+                to={"/settings"}
+                className={navLinkClasses}
+                activeClassName={activeNavLinkClasses}
+              >
+                <Settings className="h-4 w-4 mr-1.5" />
+                <span>Settings</span>
               </NavLink>
             </>
           ) : (
@@ -53,7 +65,8 @@ export function AppHeader() {
             className={navLinkClasses}
             activeClassName={activeNavLinkClasses}
           >
-            Documentation
+            <BookOpen className="h-4 w-4 mr-1.5" />
+            <span>Documentation</span>
           </NavLink>
         </nav>
         <ThemeToggle />
