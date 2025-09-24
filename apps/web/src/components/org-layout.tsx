@@ -1,16 +1,69 @@
 import type { OrganizationInfo } from "@dafthunk/types";
+import {
+  Database,
+  KeyRound,
+  LayoutDashboard,
+  Lock,
+  Logs,
+  SquareTerminal,
+  Target,
+  Users,
+} from "lucide-react";
 import React, { useEffect } from "react";
 import { useParams } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
 import { AppLayout } from "@/components/layouts/app-layout";
-import { getDashboardSidebarItems } from "@/routes";
 import { useOrganizations } from "@/services/organizations-service";
 
 interface OrgLayoutProps {
   children: React.ReactNode;
   title: string;
 }
+
+export const getDashboardSidebarItems = (orgHandle: string) => [
+  {
+    title: "Dashboard",
+    url: `/org/${orgHandle}/dashboard`,
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Workflows",
+    url: `/org/${orgHandle}/workflows`,
+    icon: SquareTerminal,
+  },
+
+  {
+    title: "Datasets",
+    url: `/org/${orgHandle}/datasets`,
+    icon: Database,
+  },
+  {
+    title: "Secrets",
+    url: `/org/${orgHandle}/secrets`,
+    icon: Lock,
+  },
+  {
+    title: "Deployments",
+    url: `/org/${orgHandle}/deployments`,
+    icon: Target,
+  },
+  {
+    title: "Executions",
+    url: `/org/${orgHandle}/executions`,
+    icon: Logs,
+  },
+  {
+    title: "API Keys",
+    url: `/org/${orgHandle}/api-keys`,
+    icon: KeyRound,
+  },
+  {
+    title: "Members",
+    url: `/org/${orgHandle}/members`,
+    icon: Users,
+  },
+];
 
 export const OrgLayout: React.FC<OrgLayoutProps> = ({ children, title }) => {
   const params = useParams<{ handle: string }>();

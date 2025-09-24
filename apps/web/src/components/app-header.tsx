@@ -1,6 +1,6 @@
+import BookOpen from "lucide-react/icons/book-open";
 import Bot from "lucide-react/icons/bot";
 import Building from "lucide-react/icons/building";
-import BookOpen from "lucide-react/icons/book-open";
 import Settings from "lucide-react/icons/settings";
 import { Link } from "react-router";
 

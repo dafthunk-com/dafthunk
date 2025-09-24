@@ -1,15 +1,4 @@
-import {
-  Building2,
-  Database,
-  KeyRound,
-  LayoutDashboard,
-  Lock,
-  Logs,
-  SquareTerminal,
-  Target,
-  User,
-  Users,
-} from "lucide-react";
+import { Building2, User } from "lucide-react";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";
@@ -63,50 +52,6 @@ export interface RouteHandle {
 export type AppRouteObject = RouteObject & {
   handle?: RouteHandle;
 };
-
-export const getDashboardSidebarItems = (orgHandle: string) => [
-  {
-    title: "Dashboard",
-    url: `/org/${orgHandle}/dashboard`,
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Workflows",
-    url: `/org/${orgHandle}/workflows`,
-    icon: SquareTerminal,
-  },
-
-  {
-    title: "Datasets",
-    url: `/org/${orgHandle}/datasets`,
-    icon: Database,
-  },
-  {
-    title: "Secrets",
-    url: `/org/${orgHandle}/secrets`,
-    icon: Lock,
-  },
-  {
-    title: "Deployments",
-    url: `/org/${orgHandle}/deployments`,
-    icon: Target,
-  },
-  {
-    title: "Executions",
-    url: `/org/${orgHandle}/executions`,
-    icon: Logs,
-  },
-  {
-    title: "API Keys",
-    url: `/org/${orgHandle}/api-keys`,
-    icon: KeyRound,
-  },
-  {
-    title: "Members",
-    url: `/org/${orgHandle}/members`,
-    icon: Users,
-  },
-];
 
 const settingsSidebarItems = [
   {

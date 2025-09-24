@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -40,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   addMembership,
   removeMembership,
