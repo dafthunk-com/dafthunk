@@ -6,6 +6,7 @@ import {
   DeleteOrganizationResponse,
   ListMembershipsResponse,
   ListOrganizationsResponse,
+  RemoveMembershipRequest,
   RemoveMembershipResponse,
   UpdateMembershipRequest,
   UpdateMembershipResponse,
@@ -172,7 +173,7 @@ organizationRoutes.post(
   zValidator(
     "json",
     z.object({
-      userId: z.string().min(1, "User ID is required"),
+      email: z.string().email("Valid email is required"),
       role: z.enum(["member", "admin", "owner"], {
         errorMap: () => ({ message: "Role must be member, admin, or owner" }),
       }),
@@ -186,13 +187,13 @@ organizationRoutes.post(
 
     const db = createDatabase(c.env.DB);
     const organizationIdOrHandle = c.req.param("id");
-    const { userId, role } = c.req.valid("json");
+    const { email, role } = c.req.valid("json");
 
     try {
       const membership = await addOrUpdateMembership(
         db,
         organizationIdOrHandle,
-        userId,
+        email,
         role,
         jwtPayload.sub
       );
@@ -211,19 +212,20 @@ organizationRoutes.post(
 );
 
 /**
- * PUT /api/organizations/:id/memberships/:userId
+ * PUT /api/organizations/:id/memberships
  *
  * Update a user's role in an organization
  */
 organizationRoutes.put(
-  "/:id/memberships/:userId",
+  "/:id/memberships",
   zValidator(
     "json",
     z.object({
+      email: z.string().email("Valid email is required"),
       role: z.enum(["member", "admin", "owner"], {
         errorMap: () => ({ message: "Role must be member, admin, or owner" }),
       }),
-    }) as z.ZodType<Pick<UpdateMembershipRequest, "role">>
+    }) as z.ZodType<Omit<UpdateMembershipRequest, "organizationId">>
   ),
   async (c) => {
     const jwtPayload = c.get("jwtPayload");
@@ -233,14 +235,13 @@ organizationRoutes.put(
 
     const db = createDatabase(c.env.DB);
     const organizationIdOrHandle = c.req.param("id");
-    const userId = c.req.param("userId");
-    const { role } = c.req.valid("json");
+    const { email, role } = c.req.valid("json");
 
     try {
       const membership = await addOrUpdateMembership(
         db,
         organizationIdOrHandle,
-        userId,
+        email,
         role,
         jwtPayload.sub
       );
@@ -259,42 +260,51 @@ organizationRoutes.put(
 );
 
 /**
- * DELETE /api/organizations/:id/memberships/:userId
+ * DELETE /api/organizations/:id/memberships
  *
  * Remove a user from an organization
  */
-organizationRoutes.delete("/:id/memberships/:userId", async (c) => {
-  const jwtPayload = c.get("jwtPayload");
-  if (!jwtPayload) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
-  const db = createDatabase(c.env.DB);
-  const organizationIdOrHandle = c.req.param("id");
-  const userId = c.req.param("userId");
-
-  try {
-    const success = await deleteMembership(
-      db,
-      organizationIdOrHandle,
-      userId,
-      jwtPayload.sub
-    );
-
-    const response: RemoveMembershipResponse = { success };
-
-    if (success) {
-      return c.json(response);
-    } else {
-      return c.json(
-        { error: "Permission denied or membership not found" },
-        403
-      );
+organizationRoutes.delete(
+  "/:id/memberships",
+  zValidator(
+    "json",
+    z.object({
+      email: z.string().email("Valid email is required"),
+    }) as z.ZodType<Omit<RemoveMembershipRequest, "organizationId">>
+  ),
+  async (c) => {
+    const jwtPayload = c.get("jwtPayload");
+    if (!jwtPayload) {
+      return c.json({ error: "Unauthorized" }, 401);
     }
-  } catch (error) {
-    console.error("Error removing membership:", error);
-    return c.json({ error: "Failed to remove membership" }, 500);
+
+    const db = createDatabase(c.env.DB);
+    const organizationIdOrHandle = c.req.param("id");
+    const { email } = c.req.valid("json");
+
+    try {
+      const success = await deleteMembership(
+        db,
+        organizationIdOrHandle,
+        email,
+        jwtPayload.sub
+      );
+
+      const response: RemoveMembershipResponse = { success };
+
+      if (success) {
+        return c.json(response);
+      } else {
+        return c.json(
+          { error: "Permission denied or membership not found" },
+          403
+        );
+      }
+    } catch (error) {
+      console.error("Error removing membership:", error);
+      return c.json({ error: "Failed to remove membership" }, 500);
+    }
   }
-});
+);
 
 export default organizationRoutes;

@@ -150,6 +150,7 @@ const columns: ColumnDef<{
                       detail: {
                         userId: membership.userId,
                         userName: membership.user.name,
+                        userEmail: membership.user.email || "",
                         currentRole: membership.role,
                       },
                     })
@@ -166,6 +167,7 @@ const columns: ColumnDef<{
                       detail: {
                         userId: membership.userId,
                         userName: membership.user.name,
+                        userEmail: membership.user.email || "",
                       },
                     })
                   )
@@ -211,6 +213,7 @@ export function MembersPage() {
   const [memberToUpdate, setMemberToUpdate] = useState<{
     userId: string;
     userName: string;
+    userEmail: string;
     currentRole: string;
   } | null>(null);
   const [newRole, setNewRole] = useState<"member" | "admin" | "owner">(
@@ -221,6 +224,7 @@ export function MembersPage() {
   const [memberToRemove, setMemberToRemove] = useState<{
     userId: string;
     userName: string;
+    userEmail: string;
   } | null>(null);
 
   const handleAddMember = useCallback(async (): Promise<void> => {
@@ -232,7 +236,7 @@ export function MembersPage() {
     setIsProcessing(true);
     try {
       await addMembership(handle || "", {
-        userId: newMemberEmail.trim(),
+        email: newMemberEmail.trim(),
         role: newMemberRole,
       });
 
@@ -254,7 +258,8 @@ export function MembersPage() {
 
     setIsProcessing(true);
     try {
-      await updateMembership(handle || "", memberToUpdate.userId, {
+      await updateMembership(handle || "", {
+        email: memberToUpdate.userEmail,
         role: newRole,
       });
 
@@ -276,7 +281,9 @@ export function MembersPage() {
 
     setIsProcessing(true);
     try {
-      await removeMembership(handle || "", memberToRemove.userId);
+      await removeMembership(handle || "", {
+        email: memberToRemove.userEmail,
+      });
 
       toast.success("Member removed successfully");
       setIsRemoveMemberDialogOpen(false);
@@ -295,6 +302,7 @@ export function MembersPage() {
     const custom = e as CustomEvent<{
       userId: string;
       userName: string;
+      userEmail: string;
       currentRole: string;
     }>;
     if (custom.detail) {
@@ -308,6 +316,7 @@ export function MembersPage() {
     const custom = e as CustomEvent<{
       userId: string;
       userName: string;
+      userEmail: string;
     }>;
     if (custom.detail) {
       setMemberToRemove(custom.detail);

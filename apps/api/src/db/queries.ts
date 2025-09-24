@@ -29,9 +29,11 @@ import {
   executions,
   type ExecutionStatusType,
   type MembershipInsert,
+  type MembershipRow,
   memberships,
   type OrganizationInsert,
   OrganizationRole,
+  type OrganizationRoleType,
   organizations,
   Plan,
   type PlanType,
@@ -1703,66 +1705,116 @@ export async function deleteOrganization(
 }
 
 /**
- * Add or update a user's membership in an organization (only admins and owners can do this)
+ * Check if a user is the owner of an organization
+ *
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @param userId User ID to check
+ * @returns True if user is the organization owner, false otherwise
+ */
+export async function isOrganizationOwner(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string,
+  userId: string
+): Promise<boolean> {
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return user?.organizationId === organizationId;
+}
+
+/**
+ * Add or update a user's membership in an organization
+ * 
+ * Role-based permissions:
+ * - Only owners and admins can add/update memberships
+ * - Only owners can assign admin roles
+ * - Only owners can assign owner roles (but owner role cannot be changed)
+ * - Members cannot add/update memberships
  *
  * @param db Database instance
  * @param organizationIdOrHandle Organization ID or handle
- * @param targetUserId User ID to add/update membership for
+ * @param targetUserEmail Email of the user to add/update membership for
  * @param role Role to assign (member, admin, owner)
  * @param adminUserId User ID of the admin/owner making the change
- * @returns The created or updated membership record, or null if permission denied
+ * @returns The created or updated membership record, or null if permission denied or user not found
  */
 export async function addOrUpdateMembership(
   db: ReturnType<typeof createDatabase>,
   organizationIdOrHandle: string,
-  targetUserId: string,
+  targetUserEmail: string,
   role: OrganizationRoleType,
   adminUserId: string
 ): Promise<MembershipRow | null> {
-  // First, verify the admin user has permission (admin or owner)
-  const [adminMembership] = await db
+  // Get the organization ID first
+  const [organization] = await db
     .select()
-    .from(memberships)
-    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
-    .where(
-      and(
-        eq(memberships.userId, adminUserId),
-        getOrganizationCondition(organizationIdOrHandle),
-        inArray(memberships.role, [
-          OrganizationRole.ADMIN,
-          OrganizationRole.OWNER,
-        ])
-      )
-    )
+    .from(organizations)
+    .where(getOrganizationCondition(organizationIdOrHandle))
     .limit(1);
 
-  if (!adminMembership) {
-    return null; // Admin user doesn't have permission
+  if (!organization) {
+    return null; // Organization not found
   }
 
-  // Additional check: only owners can assign the owner role
-  if (
-    role === OrganizationRole.OWNER &&
-    adminMembership.memberships.role !== OrganizationRole.OWNER
-  ) {
-    return null; // Only owners can assign owner role
+  const organizationId = organization.id;
+
+  // Check if the admin user is the organization owner
+  const isAdminOwner = await isOrganizationOwner(db, organizationId, adminUserId);
+
+  // If not the owner, check if they have admin role
+  let hasAdminRole = false;
+  if (!isAdminOwner) {
+    const [adminMembership] = await db
+      .select()
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.userId, adminUserId),
+          eq(memberships.organizationId, organizationId),
+          eq(memberships.role, OrganizationRole.ADMIN)
+        )
+      )
+      .limit(1);
+    hasAdminRole = !!adminMembership;
   }
 
-  const organizationId = adminMembership.organizations.id;
-  const now = new Date();
+  // Permission check: Only owners and admins can add/update memberships
+  if (!isAdminOwner && !hasAdminRole) {
+    return null; // User doesn't have permission
+  }
 
-  // CRITICAL: Prevent changing the role of the main owner in their personal organization
-  // Check if the target user is the main owner of their personal organization
+  // Role assignment restrictions
+  if (role === OrganizationRole.OWNER) {
+    return null; // Owner role cannot be assigned - there's only one owner (the creator)
+  }
+
+  if (role === OrganizationRole.ADMIN && !isAdminOwner) {
+    return null; // Only owners can assign admin roles
+  }
+
+  // Look up the target user by email
   const [targetUser] = await db
     .select()
     .from(users)
-    .where(eq(users.id, targetUserId))
+    .where(eq(users.email, targetUserEmail))
     .limit(1);
 
-  if (targetUser && targetUser.organizationId === organizationId) {
-    // This is the user's personal organization - their role cannot be changed
-    return null; // Cannot change role of main owner in their personal organization
+  if (!targetUser) {
+    return null; // User not found with this email
   }
+
+  const targetUserId = targetUser.id;
+
+  // Prevent adding the organization owner as a member (they're already the owner)
+  if (targetUser.organizationId === organizationId) {
+    return null; // Cannot add/change role of the organization owner
+  }
+
+  const now = new Date();
 
   // Check if the target user is already a member
   const [existingMembership] = await db
@@ -1813,39 +1865,85 @@ export async function addOrUpdateMembership(
 }
 
 /**
- * Delete a user's membership from an organization (only admins and owners can do this)
+ * Delete a user's membership from an organization
+ * 
+ * Role-based permissions:
+ * - Only owners and admins can remove memberships
+ * - The organization owner cannot be removed
+ * - Users cannot remove themselves
+ * - Only owners can remove admins
  *
  * @param db Database instance
  * @param organizationIdOrHandle Organization ID or handle
- * @param targetUserId User ID to remove from the organization
+ * @param targetUserEmail Email of the user to remove from the organization
  * @param adminUserId User ID of the admin/owner making the change
  * @returns True if membership was deleted, false if permission denied or not found
  */
 export async function deleteMembership(
   db: ReturnType<typeof createDatabase>,
   organizationIdOrHandle: string,
-  targetUserId: string,
+  targetUserEmail: string,
   adminUserId: string
 ): Promise<boolean> {
-  // First, verify the admin user has permission (admin or owner)
-  const [adminMembership] = await db
+  // Get the organization ID first
+  const [organization] = await db
     .select()
-    .from(memberships)
-    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
-    .where(
-      and(
-        eq(memberships.userId, adminUserId),
-        getOrganizationCondition(organizationIdOrHandle),
-        inArray(memberships.role, [
-          OrganizationRole.ADMIN,
-          OrganizationRole.OWNER,
-        ])
-      )
-    )
+    .from(organizations)
+    .where(getOrganizationCondition(organizationIdOrHandle))
     .limit(1);
 
-  if (!adminMembership) {
-    return false; // Admin user doesn't have permission
+  if (!organization) {
+    return false; // Organization not found
+  }
+
+  const organizationId = organization.id;
+
+  // Check if the admin user is the organization owner
+  const isAdminOwner = await isOrganizationOwner(db, organizationId, adminUserId);
+
+  // If not the owner, check if they have admin role
+  let hasAdminRole = false;
+  if (!isAdminOwner) {
+    const [adminMembership] = await db
+      .select()
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.userId, adminUserId),
+          eq(memberships.organizationId, organizationId),
+          eq(memberships.role, OrganizationRole.ADMIN)
+        )
+      )
+      .limit(1);
+    hasAdminRole = !!adminMembership;
+  }
+
+  // Permission check: Only owners and admins can remove memberships
+  if (!isAdminOwner && !hasAdminRole) {
+    return false; // User doesn't have permission
+  }
+
+  // Look up the target user by email
+  const [targetUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, targetUserEmail))
+    .limit(1);
+
+  if (!targetUser) {
+    return false; // User not found with this email
+  }
+
+  const targetUserId = targetUser.id;
+
+  // Prevent removing the organization owner
+  if (targetUser.organizationId === organizationId) {
+    return false; // Cannot remove the organization owner
+  }
+
+  // Prevent users from removing themselves
+  if (targetUserId === adminUserId) {
+    return false; // Users cannot remove their own membership
   }
 
   // Get the target user's membership to check their role
@@ -1855,7 +1953,7 @@ export async function deleteMembership(
     .where(
       and(
         eq(memberships.userId, targetUserId),
-        eq(memberships.organizationId, adminMembership.organizations.id)
+        eq(memberships.organizationId, organizationId)
       )
     )
     .limit(1);
@@ -1864,33 +1962,9 @@ export async function deleteMembership(
     return false; // Target user is not a member
   }
 
-  // Additional check: only owners can delete other owners
-  if (
-    targetMembership.role === OrganizationRole.OWNER &&
-    adminMembership.memberships.role !== OrganizationRole.OWNER
-  ) {
-    return false; // Only owners can delete other owners
-  }
-
-  // Prevent users from deleting themselves
-  if (targetUserId === adminUserId) {
-    return false; // Users cannot delete their own membership
-  }
-
-  // CRITICAL: Prevent removing the main owner from their personal organization
-  // Check if the target user is the main owner of their personal organization
-  const [targetUser] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, targetUserId))
-    .limit(1);
-
-  if (
-    targetUser &&
-    targetUser.organizationId === adminMembership.organizations.id
-  ) {
-    // This is the user's personal organization - they cannot be removed as the main owner
-    return false; // Cannot remove main owner from their personal organization
+  // Only owners can remove admins
+  if (targetMembership.role === OrganizationRole.ADMIN && !isAdminOwner) {
+    return false; // Only owners can remove admins
   }
 
   // Delete the membership
@@ -1899,7 +1973,7 @@ export async function deleteMembership(
     .where(
       and(
         eq(memberships.userId, targetUserId),
-        eq(memberships.organizationId, adminMembership.organizations.id)
+        eq(memberships.organizationId, organizationId)
       )
     )
     .returning({ id: memberships.userId });

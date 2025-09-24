@@ -52,7 +52,7 @@ export interface ListMembershipsResponse {
 
 export interface AddMembershipRequest {
   organizationId: string;
-  userId: string;
+  email: string;
   role: "member" | "admin" | "owner";
 }
 
@@ -68,7 +68,7 @@ export interface AddMembershipResponse {
 
 export interface UpdateMembershipRequest {
   organizationId: string;
-  userId: string;
+  email: string;
   role: "member" | "admin" | "owner";
 }
 
@@ -84,7 +84,7 @@ export interface UpdateMembershipResponse {
 
 export interface RemoveMembershipRequest {
   organizationId: string;
-  userId: string;
+  email: string;
 }
 
 export interface RemoveMembershipResponse {

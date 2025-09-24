@@ -6,6 +6,7 @@ import {
   DeleteOrganizationResponse,
   ListMembershipsResponse,
   ListOrganizationsResponse,
+  RemoveMembershipRequest,
   RemoveMembershipResponse,
   UpdateMembershipRequest,
   UpdateMembershipResponse,
@@ -155,11 +156,10 @@ export const addMembership = async (
  */
 export const updateMembership = async (
   organizationIdOrHandle: string,
-  userId: string,
-  request: Pick<UpdateMembershipRequest, "role">
+  request: Omit<UpdateMembershipRequest, "organizationId">
 ): Promise<UpdateMembershipResponse> => {
   const response = await makeRequest<UpdateMembershipResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships/${userId}`,
+    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships`,
     {
       method: "PUT",
       body: JSON.stringify(request),
@@ -174,12 +174,13 @@ export const updateMembership = async (
  */
 export const removeMembership = async (
   organizationIdOrHandle: string,
-  userId: string
+  request: Omit<RemoveMembershipRequest, "organizationId">
 ): Promise<boolean> => {
   const response = await makeRequest<RemoveMembershipResponse>(
-    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships/${userId}`,
+    `${API_ENDPOINT_BASE}/${organizationIdOrHandle}/memberships`,
     {
       method: "DELETE",
+      body: JSON.stringify(request),
     }
   );
 
