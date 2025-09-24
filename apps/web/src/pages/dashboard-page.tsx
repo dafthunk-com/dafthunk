@@ -1,8 +1,8 @@
-import AlertCircle from "lucide-react/icons/alert-circle";
-import Clock from "lucide-react/icons/clock";
 import CreditCard from "lucide-react/icons/credit-card";
 import Layers from "lucide-react/icons/layers";
 import Logs from "lucide-react/icons/logs";
+import Minus from "lucide-react/icons/minus";
+import Plus from "lucide-react/icons/plus";
 import Target from "lucide-react/icons/target";
 import Workflow from "lucide-react/icons/workflow";
 import { useEffect } from "react";
@@ -11,7 +11,6 @@ import { Link } from "react-router";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useOrgUrl } from "@/hooks/use-org-url";
@@ -62,7 +61,7 @@ export function DashboardPage() {
   const getProgressColor = (percentage: number) => {
     if (percentage >= 90) return "bg-red-500";
     if (percentage >= 70) return "bg-yellow-500";
-    return "bg-green-500";
+    return "bg-blue-500";
   };
 
   return (
@@ -77,7 +76,7 @@ export function DashboardPage() {
           <CardContent>
             <div className="text-4xl font-bold">{dashboardStats.workflows}</div>
             <p className="text-xs text-muted-foreground pt-1">
-              Total workflows created
+              Number of workflows
             </p>
             <Button
               variant="outline"
@@ -85,7 +84,7 @@ export function DashboardPage() {
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to={getOrgUrl("workflows")}>Go to Workflows</Link>
+              <Link to={getOrgUrl("workflows")}>View Workflows</Link>
             </Button>
           </CardContent>
         </Card>
@@ -99,7 +98,7 @@ export function DashboardPage() {
               {dashboardStats.deployments}
             </div>
             <p className="text-xs text-muted-foreground pt-1">
-              Active deployments
+              Number of deployments
             </p>
             <Button
               variant="outline"
@@ -120,31 +119,16 @@ export function DashboardPage() {
             <div className="text-4xl font-bold">
               {dashboardStats.executions.total}
             </div>
-            <div className="text-xs text-muted-foreground pt-1 flex gap-3">
-              <div className="flex items-center gap-1">
-                <span className="flex size-2 translate-y-px rounded-full bg-blue-500" />
-                <span>{dashboardStats.executions.running} running</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="flex items-center gap-1">
-                  <AlertCircle className="size-3 text-red-500" />
-                  {dashboardStats.executions.failed} failed
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="size-3" />
-                <span>
-                  Avg. time: {dashboardStats.executions.avgTimeSeconds}s
-                </span>
-              </div>
-            </div>
+            <p className="text-xs text-muted-foreground pt-1">
+              Number of executions
+            </p>
             <Button
               variant="outline"
               size="sm"
               className="mt-4 text-xs h-8"
               asChild
             >
-              <Link to={getOrgUrl("executions")}>View All Executions</Link>
+              <Link to={getOrgUrl("executions")}>View Executions</Link>
             </Button>
           </CardContent>
         </Card>
@@ -152,68 +136,47 @@ export function DashboardPage() {
 
       {/* Credits Section */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        {/* Total Credits Card */}
+        {/* Credits Limit Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xl">Total Credits</CardTitle>
-            <CreditCard className="size-8 text-muted-foreground" />
+            <CardTitle className="text-xl">Credits</CardTitle>
+            <Plus className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-primary">
+            <div className="text-4xl font-bold">
               {computeCredits.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground pt-1">
-              Available this month
-            </p>
-            <Badge variant="secondary" className="mt-2 text-xs">
-              Monthly allocation
-            </Badge>
+            <p className="text-xs text-muted-foreground pt-1">Credits limit</p>
           </CardContent>
         </Card>
 
-        {/* Used Credits Card */}
+        {/* Credits Used Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-xl">Used Credits</CardTitle>
-            <Layers className="size-8 text-muted-foreground" />
+            <CardTitle className="text-xl">Used</CardTitle>
+            <Minus className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-destructive">
+            <div className="text-4xl font-bold">
               {computeUsage.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground pt-1">
-              Credits consumed
-            </p>
-            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-1">
-              <span className="flex size-2 translate-y-px rounded-full bg-red-500" />
-              <span>{usagePercentage.toFixed(1)}% of total</span>
-            </div>
+            <p className="text-xs text-muted-foreground pt-1">Credits used</p>
           </CardContent>
         </Card>
 
-        {/* Remaining Credits Card */}
+        {/* Credits Remaining Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Remaining</CardTitle>
-            <Clock className="size-8 text-muted-foreground" />
+            <CreditCard className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-green-600">
+            <div className="text-4xl font-bold">
               {remainingCredits.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground pt-1">
-              Credits left this month
+              Credits remaining
             </p>
-            <div className="text-xs text-muted-foreground pt-1 flex items-center gap-1">
-              <span className="flex size-2 translate-y-px rounded-full bg-green-500" />
-              <span>
-                {usagePercentage >= 90
-                  ? "Low remaining"
-                  : usagePercentage >= 70
-                    ? "Moderate usage"
-                    : "Plenty remaining"}
-              </span>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -223,7 +186,7 @@ export function DashboardPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Usage Progress</span>
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-bold">
               {usagePercentage.toFixed(1)}%
             </span>
           </CardTitle>
@@ -243,22 +206,9 @@ export function DashboardPage() {
 
             {/* Usage Status Message */}
             <div className="p-4 rounded-md bg-muted">
-              {usagePercentage >= 90 ? (
-                <p className="text-sm text-red-600 font-medium">
-                  ⚠️ You've used {usagePercentage.toFixed(1)}% of your compute
-                  credits. Consider upgrading your plan or contact support.
-                </p>
-              ) : usagePercentage >= 70 ? (
-                <p className="text-sm text-yellow-600 font-medium">
-                  You've used {usagePercentage.toFixed(1)}% of your compute
-                  credits. Monitor your usage to avoid hitting limits.
-                </p>
-              ) : (
-                <p className="text-sm text-green-600 font-medium">
-                  You're using {usagePercentage.toFixed(1)}% of your compute
-                  credits. You have plenty of credits remaining this month.
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                {usagePercentage.toFixed(1)}% of compute credits used
+              </p>
             </div>
           </div>
         </CardContent>
@@ -266,25 +216,20 @@ export function DashboardPage() {
 
       {/* How Credits Work Card */}
       <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Layers className="w-4 h-4 text-blue-600" />
-            </div>
-            How Credits Work
-          </CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+          <CardTitle className="text-xl">How Credits Work</CardTitle>
+          <Layers className="size-8 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>
-              Compute credits are consumed based on the individual nodes that
-              execute within your workflows. Each node type has a different
-              credit cost depending on its computational requirements.
+              Compute credits are consumed by individual nodes within your
+              workflows. Each node type has different credit costs based on
+              computational requirements.
             </p>
             <p>
               The total cost of a workflow execution is the sum of all executed
-              nodes. More complex workflows with many nodes or
-              resource-intensive operations will consume more credits.
+              nodes. More complex workflows consume more credits.
             </p>
           </div>
         </CardContent>

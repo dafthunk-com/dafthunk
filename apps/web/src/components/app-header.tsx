@@ -1,6 +1,7 @@
 import BookOpen from "lucide-react/icons/book-open";
 import Bot from "lucide-react/icons/bot";
 import Building from "lucide-react/icons/building";
+import Github from "lucide-react/icons/github";
 import Settings from "lucide-react/icons/settings";
 import { Link } from "react-router";
 
@@ -68,6 +69,15 @@ export function AppHeader() {
             <BookOpen className="h-4 w-4 mr-1.5" />
             <span>Documentation</span>
           </NavLink>
+          <a
+            href="https://github.com/dafthunk-com/dafthunk"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={navLinkClasses}
+          >
+            <Github className="h-4 w-4 mr-1.5" />
+            <span>GitHub</span>
+          </a>
         </nav>
         <ThemeToggle />
         <UserProfile />
