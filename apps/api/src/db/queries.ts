@@ -1717,13 +1717,19 @@ export async function isOrganizationOwner(
   organizationId: string,
   userId: string
 ): Promise<boolean> {
-  const [user] = await db
+  const [membership] = await db
     .select()
-    .from(users)
-    .where(eq(users.id, userId))
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, userId),
+        eq(memberships.organizationId, organizationId),
+        eq(memberships.role, OrganizationRole.OWNER)
+      )
+    )
     .limit(1);
 
-  return user?.organizationId === organizationId;
+  return !!membership;
 }
 
 /**
@@ -1810,7 +1816,8 @@ export async function addOrUpdateMembership(
   const targetUserId = targetUser.id;
 
   // Prevent adding the organization owner as a member (they're already the owner)
-  if (targetUser.organizationId === organizationId) {
+  const isTargetUserOwner = await isOrganizationOwner(db, organizationId, targetUserId);
+  if (isTargetUserOwner) {
     return null; // Cannot add/change role of the organization owner
   }
 
@@ -1937,7 +1944,8 @@ export async function deleteMembership(
   const targetUserId = targetUser.id;
 
   // Prevent removing the organization owner
-  if (targetUser.organizationId === organizationId) {
+  const isTargetUserOwner = await isOrganizationOwner(db, organizationId, targetUserId);
+  if (isTargetUserOwner) {
     return false; // Cannot remove the organization owner
   }
 
