@@ -205,9 +205,9 @@ export function MembersPage() {
 
   // Add member state
   const [newMemberEmail, setNewMemberEmail] = useState("");
-  const [newMemberRole, setNewMemberRole] = useState<
-    "member" | "admin"
-  >("member");
+  const [newMemberRole, setNewMemberRole] = useState<"member" | "admin">(
+    "member"
+  );
 
   // Update role state
   const [memberToUpdate, setMemberToUpdate] = useState<{
@@ -216,9 +216,7 @@ export function MembersPage() {
     userEmail: string;
     currentRole: string;
   } | null>(null);
-  const [newRole, setNewRole] = useState<"member" | "admin">(
-    "member"
-  );
+  const [newRole, setNewRole] = useState<"member" | "admin">("member");
 
   // Remove member state
   const [memberToRemove, setMemberToRemove] = useState<{
@@ -453,9 +451,7 @@ export function MembersPage() {
               <Label htmlFor="new-role">New Role</Label>
               <Select
                 value={newRole}
-                onValueChange={(value: "member" | "admin") =>
-                  setNewRole(value)
-                }
+                onValueChange={(value: "member" | "admin") => setNewRole(value)}
                 disabled={isProcessing}
               >
                 <SelectTrigger>

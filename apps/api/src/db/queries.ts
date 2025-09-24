@@ -1734,7 +1734,7 @@ export async function isOrganizationOwner(
 
 /**
  * Add or update a user's membership in an organization
- * 
+ *
  * Role-based permissions:
  * - Only owners and admins can add/update memberships
  * - Only owners can assign admin roles
@@ -1769,7 +1769,11 @@ export async function addOrUpdateMembership(
   const organizationId = organization.id;
 
   // Check if the admin user is the organization owner
-  const isAdminOwner = await isOrganizationOwner(db, organizationId, adminUserId);
+  const isAdminOwner = await isOrganizationOwner(
+    db,
+    organizationId,
+    adminUserId
+  );
 
   // If not the owner, check if they have admin role
   let hasAdminRole = false;
@@ -1816,7 +1820,11 @@ export async function addOrUpdateMembership(
   const targetUserId = targetUser.id;
 
   // Prevent adding the organization owner as a member (they're already the owner)
-  const isTargetUserOwner = await isOrganizationOwner(db, organizationId, targetUserId);
+  const isTargetUserOwner = await isOrganizationOwner(
+    db,
+    organizationId,
+    targetUserId
+  );
   if (isTargetUserOwner) {
     return null; // Cannot add/change role of the organization owner
   }
@@ -1873,7 +1881,7 @@ export async function addOrUpdateMembership(
 
 /**
  * Delete a user's membership from an organization
- * 
+ *
  * Role-based permissions:
  * - Only owners and admins can remove memberships
  * - The organization owner cannot be removed
@@ -1906,7 +1914,11 @@ export async function deleteMembership(
   const organizationId = organization.id;
 
   // Check if the admin user is the organization owner
-  const isAdminOwner = await isOrganizationOwner(db, organizationId, adminUserId);
+  const isAdminOwner = await isOrganizationOwner(
+    db,
+    organizationId,
+    adminUserId
+  );
 
   // If not the owner, check if they have admin role
   let hasAdminRole = false;
@@ -1944,7 +1956,11 @@ export async function deleteMembership(
   const targetUserId = targetUser.id;
 
   // Prevent removing the organization owner
-  const isTargetUserOwner = await isOrganizationOwner(db, organizationId, targetUserId);
+  const isTargetUserOwner = await isOrganizationOwner(
+    db,
+    organizationId,
+    targetUserId
+  );
   if (isTargetUserOwner) {
     return false; // Cannot remove the organization owner
   }
@@ -1987,31 +2003,6 @@ export async function deleteMembership(
     .returning({ id: memberships.userId });
 
   return !!deletedMembership;
-}
-
-/**
- * List all memberships for an organization
- *
- * @param db Database instance
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Array of membership records
- */
-export async function getOrganizationMemberships(
-  db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
-) {
-  return await db
-    .select({
-      userId: memberships.userId,
-      organizationId: memberships.organizationId,
-      role: memberships.role,
-      createdAt: memberships.createdAt,
-      updatedAt: memberships.updatedAt,
-    })
-    .from(memberships)
-    .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
-    .where(getOrganizationCondition(organizationIdOrHandle))
-    .orderBy(memberships.createdAt);
 }
 
 /**
