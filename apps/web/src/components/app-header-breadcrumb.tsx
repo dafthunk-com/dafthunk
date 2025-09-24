@@ -21,7 +21,7 @@ export function AppHeaderBreadcrumb() {
   }
 
   return (
-    <Breadcrumb className="ml-4 hidden md:flex">
+    <Breadcrumb className="hidden md:flex">
       <BreadcrumbList className="flex-nowrap">
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;
