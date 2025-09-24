@@ -32,7 +32,7 @@ export function OrganizationSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="h-8 px-2 text-sm font-medium hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50"
+          className="h-8 px-2 text-sm font-medium bg-neutral-300/50 hover:bg-neutral-300/50 dark:bg-neutral-600/50 dark:hover:bg-neutral-600/50"
         >
           <span className="font-semibold">{currentOrgName}</span>
           <ChevronsUpDown className="ml-2 size-4 text-neutral-500 dark:text-neutral-400" />
