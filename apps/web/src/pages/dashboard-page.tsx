@@ -140,7 +140,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Credits</CardTitle>
-            <Plus className="size-8 text-muted-foreground" />
+            <CreditCard className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold">
@@ -168,7 +168,7 @@ export function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-xl">Remaining</CardTitle>
-            <CreditCard className="size-8 text-muted-foreground" />
+            <Plus className="size-8 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold">
