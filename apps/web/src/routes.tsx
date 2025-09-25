@@ -1,4 +1,5 @@
-import { Building2, User } from "lucide-react";
+import Building2 from "lucide-react/icons/building-2";
+import User from "lucide-react/icons/user";
 import React from "react";
 import type { RouteObject, RouterState } from "react-router";
 import { Navigate } from "react-router";

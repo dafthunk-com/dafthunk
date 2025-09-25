@@ -1,14 +1,12 @@
 import type { OrganizationInfo } from "@dafthunk/types";
-import {
-  Database,
-  KeyRound,
-  LayoutDashboard,
-  Lock,
-  Logs,
-  SquareTerminal,
-  Target,
-  Users,
-} from "lucide-react";
+import Database from "lucide-react/icons/database";
+import KeyRound from "lucide-react/icons/key-round";
+import LayoutDashboard from "lucide-react/icons/layout-dashboard";
+import Lock from "lucide-react/icons/lock";
+import Logs from "lucide-react/icons/logs";
+import SquareTerminal from "lucide-react/icons/square-terminal";
+import Target from "lucide-react/icons/target";
+import Users from "lucide-react/icons/users";
 import React, { useEffect } from "react";
 import { useParams } from "react-router";
 
