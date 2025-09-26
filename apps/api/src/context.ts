@@ -2,6 +2,11 @@ import { JWTTokenPayload } from "@dafthunk/types";
 
 import { RuntimeParams } from "./runtime/runtime";
 
+// Pipeline binding interface for Cloudflare Pipelines
+export interface PipelineBinding {
+  send(data: any[]): Promise<void>;
+}
+
 export interface Bindings {
   DB: D1Database;
   KV: KVNamespace;
@@ -42,6 +47,7 @@ export interface Bindings {
   GEMINI_API_KEY?: string;
   HUGGINGFACE_API_KEY?: string;
   SECRET_MASTER_KEY: string;
+  DAFTHUNK_EXECUTIONS_STREAM: PipelineBinding;
 }
 
 export interface Variables {

@@ -1,0 +1,49 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "organization_id",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "workflow_id",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "deployment_id",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "data",
+      "type": "json",
+      "required": true
+    },
+    {
+      "name": "started_at",
+      "type": "timestamp",
+      "required": true
+    },
+    {
+      "name": "ended_at",
+      "type": "timestamp",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "type": "int32",
+      "required": true
+    }
+  ]
+}

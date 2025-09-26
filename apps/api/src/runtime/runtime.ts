@@ -36,6 +36,7 @@ import {
   updateOrganizationComputeUsage,
 } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
+import { ExecutionStore } from "./execution-store";
 import { ObjectStore } from "./object-store";
 
 // Basic node output value types
@@ -108,6 +109,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   private nodeRegistry: CloudflareNodeRegistry;
   private toolRegistry: CloudflareToolRegistry;
+  private executionStore: ExecutionStore;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
@@ -116,6 +118,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       this.nodeRegistry,
       this.createNodeContextForTool.bind(this)
     );
+    this.executionStore = new ExecutionStore(env);
   }
 
   /**
@@ -184,6 +187,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       httpRequest,
       emailMessage,
       computeCredits,
+      deploymentId,
     } = event.payload;
     const instanceId = event.instanceId;
 
@@ -227,6 +231,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             workflow.id,
             instanceId,
             runtimeState,
+            deploymentId,
             new Date(),
             new Date()
           )
@@ -262,6 +267,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             workflow.id,
             instanceId,
             runtimeState, // runtimeState.status is "executing", executedNodes is empty
+            deploymentId,
             initialStartedAt,
             undefined // endedAt is not yet set
           )
@@ -331,6 +337,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 workflow.id,
                 instanceId,
                 runtimeState,
+                deploymentId,
                 executionRecord.startedAt,
                 executionRecord.endedAt
               )
@@ -372,10 +379,19 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             workflow.id,
             instanceId,
             runtimeState,
+            deploymentId,
             executionRecord.startedAt,
             executionRecord.endedAt
           );
         }
+      );
+
+      // Log execution to pipeline for analytics and monitoring
+      await step.do(
+        "log execution to pipeline",
+        Runtime.defaultStepConfig,
+        async () =>
+          this.executionStore.logExecution(organizationId, executionRecord)
       );
     }
 
@@ -1197,6 +1213,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     workflowId: string,
     instanceId: string,
     runtimeState: RuntimeState,
+    deploymentId?: string,
     startedAt?: Date,
     endedAt?: Date
   ): Promise<WorkflowExecution> {
@@ -1239,6 +1256,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       return await saveExecution(db, {
         id: instanceId,
         workflowId,
+        deploymentId,
         userId,
         organizationId,
         status: executionStatus as ExecutionStatusType,
@@ -1254,9 +1272,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Continue without interrupting the workflow.
     }
 
+    // Return the exact same structure that would be stored in D1 database
     return {
       id: instanceId,
       workflowId,
+      workflowName: runtimeState.workflow.name,
+      deploymentId,
       status: executionStatus,
       nodeExecutions: nodeExecutionList,
       error: errorMsg,

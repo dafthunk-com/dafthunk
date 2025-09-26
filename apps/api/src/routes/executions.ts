@@ -21,9 +21,37 @@ import {
   updateExecutionToPrivate,
   updateExecutionToPublic,
 } from "../db";
+import { ExecutionStore } from "../runtime/execution-store";
 import { generateExecutionOgImage } from "../utils/og-image-generator";
 
 const executionRoutes = new Hono<ApiContext>();
+
+/**
+ * Get the last 10 executions from R2 Data Catalog
+ * Simple endpoint that returns recent execution analytics
+ */
+executionRoutes.get("/list", async (c) => {
+  const organizationId = c.get("organizationId")!;
+
+  // Check if R2 SQL is configured
+  if (!c.env.CLOUDFLARE_ACCOUNT_ID || !c.env.CLOUDFLARE_API_TOKEN) {
+    return c.json({ error: "R2 SQL API not configured" }, 503);
+  }
+
+  try {
+    // Create ExecutionStore with environment bindings
+    const executionStore = new ExecutionStore(c.env);
+
+    // Get executions from R2 SQL
+    const executions = await executionStore.listExecutions(organizationId, 10);
+
+    const responseData: ListExecutionsResponse = { executions };
+    return c.json(responseData);
+  } catch (error) {
+    console.error("Error fetching execution analytics:", error);
+    return c.json({ error: "Failed to fetch execution analytics" }, 500);
+  }
+});
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
