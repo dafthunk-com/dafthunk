@@ -157,28 +157,63 @@ workflowRoutes.post(
  */
 workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
-  const db = createDatabase(c.env.DB);
-
   const organizationId = c.get("organizationId")!;
-  const workflow = await getWorkflow(db, id, organizationId);
-  if (!workflow) {
-    return c.json({ error: "Workflow not found" }, 404);
+  const userId = c.var.jwtPayload?.sub;
+
+  if (!userId) {
+    return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const workflowData = workflow.data;
+  try {
+    // Get workflow from Durable Object
+    const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${id}`);
+    const workflowData = await c.env.WORKFLOW_DO.get(doId).getState();
 
-  const response: GetWorkflowResponse = {
-    id: workflow.id,
-    name: workflow.name,
-    handle: workflow.handle,
-    type: workflowData.type,
-    createdAt: workflow.createdAt,
-    updatedAt: workflow.updatedAt,
-    nodes: workflowData.nodes || [],
-    edges: workflowData.edges || [],
-  };
+    if (!workflowData) {
+      // If DO doesn't have it, fall back to database
+      const db = createDatabase(c.env.DB);
+      const workflow = await getWorkflow(db, id, organizationId);
+      if (!workflow) {
+        return c.json({ error: "Workflow not found" }, 404);
+      }
 
-  return c.json(response);
+      const workflowData = workflow.data;
+
+      const response: GetWorkflowResponse = {
+        id: workflow.id,
+        name: workflow.name,
+        handle: workflow.handle,
+        type: workflowData.type,
+        createdAt: workflow.createdAt,
+        updatedAt: workflow.updatedAt,
+        nodes: workflowData.nodes || [],
+        edges: workflowData.edges || [],
+      };
+
+      return c.json(response);
+    }
+
+    // Get metadata from database for createdAt/updatedAt
+    const db = createDatabase(c.env.DB);
+    const workflow = await getWorkflow(db, id, organizationId);
+
+    const response: GetWorkflowResponse = {
+      id: workflowData.id,
+      name: workflowData.name,
+      handle: workflowData.handle,
+      type: workflowData.type,
+      createdAt: workflow?.createdAt || new Date(),
+      updatedAt: workflow?.updatedAt || new Date(),
+      // @ts-ignore
+      nodes: workflowData.nodes || [],
+      edges: workflowData.edges || [],
+    };
+
+    return c.json(response);
+  } catch (error) {
+    console.error("Error fetching workflow:", error);
+    return c.json({ error: "Failed to fetch workflow" }, 500);
+  }
 });
 
 /**
@@ -482,9 +517,39 @@ workflowRoutes.post(
     let deploymentId: string | undefined;
 
     if (version === "dev") {
-      // Get workflow data directly
-      workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-      workflowData = workflow.data;
+      // Get workflow data from Durable Object first
+      let userId: string;
+      const jwtPayload = c.get("jwtPayload") as JWTTokenPayload | undefined;
+      if (jwtPayload) {
+        userId = jwtPayload.sub || "anonymous";
+      } else {
+        userId = "api"; // Use a placeholder for API-triggered executions
+      }
+
+      const doId = c.env.WORKFLOW_DO.idFromName(
+        `${userId}-${workflowIdOrHandle}`
+      );
+      const state = await c.env.WORKFLOW_DO.get(doId).getState();
+
+      if (state) {
+        workflowData = {
+          type: state.type,
+          nodes: state.nodes || [],
+          edges: state.edges || [],
+        };
+        workflow = {
+          id: workflowIdOrHandle,
+          name: state.name,
+          handle: state.handle,
+        };
+      } else {
+        // Fallback to database
+        workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
+        if (!workflow) {
+          return c.json({ error: "Workflow not found" }, 404);
+        }
+        workflowData = workflow.data;
+      }
     } else {
       // Get deployment based on version
       let deployment;

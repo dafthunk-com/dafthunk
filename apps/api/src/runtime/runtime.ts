@@ -1188,6 +1188,29 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
+   * Pushes execution update to the Durable Object for real-time updates
+   */
+  private async pushExecutionUpdateToDO(
+    userId: string,
+    workflowId: string,
+    execution: WorkflowExecution
+  ): Promise<void> {
+    try {
+      // Create the Durable Object ID from userId + workflowId
+      const doId = this.env.WORKFLOW_DO.idFromName(`${userId}-${workflowId}`);
+      const stub = this.env.WORKFLOW_DO.get(doId);
+
+      await stub.updateExecution(execution);
+    } catch (error) {
+      console.error(
+        "Failed to push execution update to Durable Object:",
+        error
+      );
+      // Don't throw - this is a non-critical operation
+    }
+  }
+
+  /**
    * Persists the workflow execution state to the database.
    */
   private async saveExecutionState(
@@ -1233,9 +1256,19 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         ? Array.from(runtimeState.nodeErrors.values()).join(", ")
         : undefined;
 
+    const execution: WorkflowExecution = {
+      id: instanceId,
+      workflowId,
+      status: executionStatus,
+      nodeExecutions: nodeExecutionList,
+      error: errorMsg,
+      startedAt,
+      endedAt,
+    };
+
     try {
       const db = createDatabase(this.env.DB);
-      return await saveExecution(db, {
+      await saveExecution(db, {
         id: instanceId,
         workflowId,
         userId,
@@ -1252,15 +1285,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       // Continue without interrupting the workflow.
     }
 
-    return {
-      id: instanceId,
-      workflowId,
-      status: executionStatus,
-      nodeExecutions: nodeExecutionList,
-      error: errorMsg,
-      startedAt,
-      endedAt,
-    };
+    // Push update to Durable Object for real-time updates
+    await this.pushExecutionUpdateToDO(userId, workflowId, execution);
+
+    return execution;
   }
 
   /**

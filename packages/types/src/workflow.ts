@@ -465,3 +465,77 @@ export interface GetCronTriggerResponse {
  * Returns the full trigger information.
  */
 export type UpsertCronTriggerResponse = GetCronTriggerResponse;
+
+/**
+ * WebSocket message types for Durable Object real-time sync
+ */
+
+/**
+ * Workflow state stored in Durable Object
+ */
+export interface WorkflowDOState extends Workflow {
+  timestamp: number;
+}
+
+/**
+ * Message sent from DO to client with initial state
+ */
+export interface WorkflowDOInitMessage {
+  type: "init";
+  state: WorkflowDOState;
+}
+
+/**
+ * Message sent from client to DO to update state
+ */
+export interface WorkflowDOUpdateMessage {
+  type: "update";
+  nodes: Node[];
+  edges: Edge[];
+}
+
+/**
+ * Acknowledgment message sent from DO to client
+ */
+export interface WorkflowDOAckMessage {
+  type: "ack";
+  timestamp: number;
+}
+
+/**
+ * Error message sent from DO to client
+ */
+export interface WorkflowDOErrorMessage {
+  error: string;
+  details?: string;
+}
+
+/**
+ * Message sent from client to DO to start workflow execution
+ */
+export interface WorkflowDOExecuteMessage {
+  type: "execute";
+  executionId: string;
+}
+
+/**
+ * Message sent from DO to client with execution progress updates
+ */
+export interface WorkflowDOExecutionUpdateMessage {
+  type: "execution_update";
+  executionId: string;
+  status: WorkflowExecutionStatus;
+  nodeExecutions: NodeExecution[];
+  error?: string;
+}
+
+/**
+ * All possible WebSocket messages
+ */
+export type WorkflowDOMessage =
+  | WorkflowDOInitMessage
+  | WorkflowDOUpdateMessage
+  | WorkflowDOAckMessage
+  | WorkflowDOErrorMessage
+  | WorkflowDOExecuteMessage
+  | WorkflowDOExecutionUpdateMessage;
