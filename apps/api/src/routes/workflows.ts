@@ -165,48 +165,23 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   }
 
   try {
-    // Get workflow from Durable Object
-    const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${id}`);
-    const stub = c.env.WORKFLOW_DO.get(doId);
-    // @ts-ignore
-    const workflowData = await stub.getState();
-
-    if (!workflowData) {
-      // If DO doesn't have it, fall back to database
-      const db = createDatabase(c.env.DB);
-      const workflow = await getWorkflow(db, id, organizationId);
-      if (!workflow) {
-        return c.json({ error: "Workflow not found" }, 404);
-      }
-
-      const workflowData = workflow.data;
-
-      const response: GetWorkflowResponse = {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        type: workflowData.type,
-        createdAt: workflow.createdAt,
-        updatedAt: workflow.updatedAt,
-        nodes: workflowData.nodes || [],
-        edges: workflowData.edges || [],
-      };
-
-      return c.json(response);
-    }
-
-    // Get metadata from database for createdAt/updatedAt
+    // Get workflow from database
     const db = createDatabase(c.env.DB);
     const workflow = await getWorkflow(db, id, organizationId);
 
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const workflowData = workflow.data;
+
     const response: GetWorkflowResponse = {
-      id: workflowData.id,
-      name: workflowData.name,
-      handle: workflowData.handle,
+      id: workflow.id,
+      name: workflow.name,
+      handle: workflow.handle,
       type: workflowData.type,
-      createdAt: workflow?.createdAt || new Date(),
-      updatedAt: workflow?.updatedAt || new Date(),
-      // @ts-ignore
+      createdAt: workflow.createdAt,
+      updatedAt: workflow.updatedAt,
       nodes: workflowData.nodes || [],
       edges: workflowData.edges || [],
     };
@@ -519,40 +494,12 @@ workflowRoutes.post(
     let deploymentId: string | undefined;
 
     if (version === "dev") {
-      // Get workflow data from Durable Object first
-      let userId: string;
-      const jwtPayload = c.get("jwtPayload") as JWTTokenPayload | undefined;
-      if (jwtPayload) {
-        userId = jwtPayload.sub || "anonymous";
-      } else {
-        userId = "api"; // Use a placeholder for API-triggered executions
+      // Get workflow data directly from database
+      workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
+      if (!workflow) {
+        return c.json({ error: "Workflow not found" }, 404);
       }
-
-      const doId = c.env.WORKFLOW_DO.idFromName(
-        `${userId}-${workflowIdOrHandle}`
-      );
-      const stub = c.env.WORKFLOW_DO.get(doId);
-      const state = await stub.getState();
-
-      if (state) {
-        workflowData = {
-          type: state.type,
-          nodes: state.nodes || [],
-          edges: state.edges || [],
-        };
-        workflow = {
-          id: workflowIdOrHandle,
-          name: state.name,
-          handle: state.handle,
-        };
-      } else {
-        // Fallback to database
-        workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-        if (!workflow) {
-          return c.json({ error: "Workflow not found" }, 404);
-        }
-        workflowData = workflow.data;
-      }
+      workflowData = workflow.data;
     } else {
       // Get deployment based on version
       let deployment;

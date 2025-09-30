@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-export { WorkflowDO } from "./durable-objects/workflow-do";
 export { Runtime } from "./runtime/runtime";
 import auth from "./auth";
 import { ApiContext } from "./context";

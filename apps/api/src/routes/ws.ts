@@ -1,7 +1,16 @@
+import {
+  WorkflowDOAckMessage,
+  WorkflowDOErrorMessage,
+  WorkflowDOInitMessage,
+  WorkflowDOState,
+  WorkflowDOUpdateMessage,
+  WorkflowType,
+} from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
+import { createDatabase, getWorkflow, updateWorkflow } from "../db";
 
 const wsRoutes = new Hono<ApiContext>();
 
@@ -29,16 +38,122 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
     );
   }
 
-  // Create a unique DO ID for this user + workflow combination
-  const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${workflowId}`);
-  const stub = c.env.WORKFLOW_DO.get(doId);
+  // Load workflow from database
+  const db = createDatabase(c.env.DB);
+  let workflow;
+  try {
+    workflow = await getWorkflow(db, workflowId, organizationId);
+  } catch (error) {
+    console.error("Error loading workflow:", error);
+    return c.json({ error: "Failed to load workflow" }, 500);
+  }
 
-  // Reconstruct request with required query params for DO
-  const url = new URL(c.req.url);
-  url.searchParams.set("organizationId", organizationId);
-  url.searchParams.set("workflowId", workflowId);
-  const newReq = new Request(url.toString(), c.req.raw);
-  return stub.fetch(newReq);
+  // Create WebSocket pair
+  const pair = new WebSocketPair();
+  const [client, server] = Object.values(pair);
+
+  // Accept the WebSocket connection
+  server.accept();
+
+  // Prepare initial state
+  const initialState: WorkflowDOState = workflow
+    ? {
+        id: workflow.id,
+        name: workflow.name,
+        handle: workflow.handle,
+        type: ((workflow.data as any).type || "manual") as WorkflowType,
+        nodes: (workflow.data as any).nodes || [],
+        edges: (workflow.data as any).edges || [],
+        timestamp: workflow.updatedAt
+          ? workflow.updatedAt.getTime()
+          : Date.now(),
+      }
+    : {
+        id: workflowId,
+        name: "New Workflow",
+        handle: workflowId,
+        type: "manual" as WorkflowType,
+        nodes: [],
+        edges: [],
+        timestamp: Date.now(),
+      };
+
+  // Send initial state
+  const initMessage: WorkflowDOInitMessage = {
+    type: "init",
+    state: initialState,
+  };
+  server.send(JSON.stringify(initMessage));
+
+  // Handle incoming messages
+  server.addEventListener("message", async (event: MessageEvent) => {
+    try {
+      if (typeof event.data !== "string") {
+        const errorMsg: WorkflowDOErrorMessage = {
+          error: "Expected string message",
+        };
+        server.send(JSON.stringify(errorMsg));
+        return;
+      }
+
+      const data = JSON.parse(event.data);
+
+      if ("type" in data && data.type === "update") {
+        const updateMsg = data as WorkflowDOUpdateMessage;
+
+        // Update workflow in database
+        try {
+          await updateWorkflow(db, workflowId, organizationId, {
+            data: {
+              id: workflowId,
+              name: initialState.name,
+              handle: initialState.handle,
+              type: initialState.type,
+              nodes: updateMsg.nodes,
+              edges: updateMsg.edges,
+            },
+          });
+
+          // Send acknowledgment
+          const ackMsg: WorkflowDOAckMessage = {
+            type: "ack",
+            timestamp: Date.now(),
+          };
+          server.send(JSON.stringify(ackMsg));
+        } catch (error) {
+          console.error("Error updating workflow:", error);
+          const errorMsg: WorkflowDOErrorMessage = {
+            error: "Failed to update workflow",
+            details: error instanceof Error ? error.message : "Unknown error",
+          };
+          server.send(JSON.stringify(errorMsg));
+        }
+      }
+    } catch (error) {
+      console.error("WebSocket message error:", error);
+      const errorMsg: WorkflowDOErrorMessage = {
+        error: "Failed to process message",
+        details: error instanceof Error ? error.message : "Unknown error",
+      };
+      server.send(JSON.stringify(errorMsg));
+    }
+  });
+
+  // Handle errors
+  server.addEventListener("error", (event: Event) => {
+    console.error("WebSocket error:", event);
+  });
+
+  // Handle close
+  server.addEventListener("close", (event: CloseEvent) => {
+    console.log("WebSocket closed:", event.code, event.reason);
+  });
+
+  // Return response with WebSocket
+  return new Response(null, {
+    status: 101,
+    webSocket: client,
+  });
 });
 
 export default wsRoutes;
