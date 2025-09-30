@@ -110,16 +110,6 @@ export const createObjectUrl = (
   return `${baseUrl}?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
 };
 
-export const createPublicObjectUrl = (
-  objectReference: ObjectReference
-): string => {
-  if (!objectReference?.id || !objectReference?.mimeType) {
-    throw new Error("Invalid object reference: must include id and mimeType");
-  }
-
-  return `${getApiBaseUrl()}/public/objects?id=${encodeURIComponent(objectReference.id)}&mimeType=${encodeURIComponent(objectReference.mimeType)}`;
-};
-
 /**
  * Determines if a value is an object reference
  *

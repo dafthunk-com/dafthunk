@@ -3,6 +3,7 @@ import type {
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
 } from "@xyflow/react";
+
 import type { WorkflowNodeType } from "@/components/workflow/workflow-types";
 
 export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
@@ -11,10 +12,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: -179.4695714341764, y: -323.6257684843936 },
     data: {
-        name: "Canvas Doodle",
-        icon: "pencil",
-        executionState: "completed",
-        inputs: [
+      name: "Canvas Doodle",
+      icon: "pencil",
+      executionState: "completed",
+      inputs: [
         {
           id: "value",
           name: "value",
@@ -65,10 +66,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 84.47390019675802, y: -79.01905703435875 },
     data: {
-        name: "UForm Gen2 Qwen 500M",
-        icon: "image",
-        executionState: "completed",
-        inputs: [
+      name: "UForm Gen2 Qwen 500M",
+      icon: "image",
+      executionState: "completed",
+      inputs: [
         { id: "image", name: "image", type: "image", description: "image" },
         {
           id: "prompt",
@@ -121,10 +122,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 894.3937777338549, y: -455.22969227837785 },
     data: {
-        name: "Stable Diffusion XL Base",
-        icon: "image",
-        executionState: "completed",
-        inputs: [
+      name: "Stable Diffusion XL Base",
+      icon: "image",
+      executionState: "completed",
+      inputs: [
         { id: "prompt", name: "prompt", type: "string", description: "prompt" },
         {
           id: "negative_prompt",
@@ -179,10 +180,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 372.2932063530624, y: -477.8462229058754 },
     data: {
-        name: "Single Variable String Template",
-        icon: "quote",
-        executionState: "completed",
-        inputs: [
+      name: "Single Variable String Template",
+      icon: "quote",
+      executionState: "completed",
+      inputs: [
         {
           id: "template",
           name: "template",
@@ -206,10 +207,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 74.84288256585423, y: -519.449283356264 },
     data: {
-        name: "Text Area",
-        icon: "text",
-        executionState: "completed",
-        inputs: [
+      name: "Text Area",
+      icon: "text",
+      executionState: "completed",
+      inputs: [
         {
           id: "value",
           name: "value",
@@ -244,10 +245,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 633.9627748375746, y: -379.8193303419201 },
     data: {
-        name: "Text Area",
-        icon: "text",
-        executionState: "completed",
-        inputs: [
+      name: "Text Area",
+      icon: "text",
+      executionState: "completed",
+      inputs: [
         {
           id: "value",
           name: "value",
@@ -282,10 +283,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 633.7652315068437, y: 59.99048095410136 },
     data: {
-        name: "MeloTTS",
-        icon: "mic",
-        executionState: "completed",
-        inputs: [
+      name: "MeloTTS",
+      icon: "mic",
+      executionState: "completed",
+      inputs: [
         { id: "prompt", name: "prompt", type: "string", description: "prompt" },
         { id: "lang", name: "lang", type: "string", description: "lang" },
       ],
@@ -299,10 +300,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 372.08548414825697, y: -36.8981771182756 },
     data: {
-        name: "BART Large CNN",
-        icon: "sparkles",
-        executionState: "completed",
-        inputs: [
+      name: "BART Large CNN",
+      icon: "sparkles",
+      executionState: "completed",
+      inputs: [
         {
           id: "inputText",
           name: "inputText",
@@ -332,10 +333,10 @@ export const demoNodes: ReactFlowNode<WorkflowNodeType>[] = [
     type: "workflowNode",
     position: { x: 890.7351714776828, y: -75.6100661108988 },
     data: {
-        name: "M2M100 1.2B",
-        icon: "sparkles",
-        executionState: "completed",
-        inputs: [
+      name: "M2M100 1.2B",
+      icon: "sparkles",
+      executionState: "completed",
+      inputs: [
         { id: "text", name: "text", type: "string", description: "text" },
         {
           id: "sourceLang",

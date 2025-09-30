@@ -8,9 +8,8 @@ import Share2 from "lucide-react/icons/share-2";
 import Workflow from "lucide-react/icons/workflow";
 import { Link, Navigate } from "react-router";
 
-import { DemoExecution } from "@/components/demo-execution";
-
 import { useAuth } from "@/components/auth-context";
+import { DemoExecution } from "@/components/demo-execution";
 import { HomeFooter } from "@/components/layouts/home-footer";
 import { HomeHeader } from "@/components/layouts/home-header";
 import { Badge } from "@/components/ui/badge";
@@ -73,8 +72,6 @@ export function HomePage() {
   if (isAuthenticated && user) {
     return <Navigate to={getOrgUrl("dashboard")} />;
   }
-
-
 
   return (
     <div className="overflow-x-hidden">

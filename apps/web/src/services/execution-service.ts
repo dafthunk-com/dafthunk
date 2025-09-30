@@ -1,8 +1,6 @@
 import {
   GetExecutionResponse,
-  GetPublicExecutionResponse,
   ListExecutionsResponse,
-  PublicExecutionWithStructure,
   WorkflowExecution,
 } from "@dafthunk/types";
 import useSWR from "swr";
@@ -10,7 +8,6 @@ import useSWR from "swr";
 import { useAuth } from "@/components/auth-context";
 import { useInfinatePagination } from "@/hooks/use-infinate-pagination";
 
-import { makeRequest } from "./utils";
 import { makeOrgRequest } from "./utils";
 
 // Base endpoint for executions
@@ -18,9 +15,6 @@ const API_ENDPOINT_BASE = "/executions";
 
 // Default page size for pagination
 export const EXECUTIONS_PAGE_SIZE = 20;
-
-// Re-export PublicExecutionWithStructure to maintain compatibility
-export type { PublicExecutionWithStructure } from "@dafthunk/types";
 
 //-----------------------------------------------------------------------
 // Hook Return Types
@@ -41,13 +35,6 @@ interface UseExecution {
   executionError: Error | null;
   isExecutionLoading: boolean;
   mutateExecution: () => Promise<any>;
-}
-
-interface UsePublicExecution {
-  publicExecution: PublicExecutionWithStructure | null;
-  publicExecutionError: Error | null;
-  isPublicExecutionLoading: boolean;
-  mutatePublicExecution: () => Promise<any>;
 }
 
 //-----------------------------------------------------------------------
