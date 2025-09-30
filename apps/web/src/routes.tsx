@@ -11,7 +11,6 @@ import { DocsLayout } from "./components/layouts/docs-layout";
 import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";
 import { ProtectedRoute } from "./components/protected-route";
-import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatasetDetailPage } from "./pages/dataset-detail-page";

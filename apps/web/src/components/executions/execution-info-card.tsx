@@ -2,8 +2,6 @@ import { WorkflowExecutionStatus } from "@dafthunk/types";
 import { format } from "date-fns";
 import AlertCircle from "lucide-react/icons/alert-circle";
 import Clock from "lucide-react/icons/clock";
-import Eye from "lucide-react/icons/eye";
-import EyeOff from "lucide-react/icons/eye-off";
 import IdCard from "lucide-react/icons/id-card";
 import Workflow from "lucide-react/icons/workflow";
 import { Link } from "react-router";

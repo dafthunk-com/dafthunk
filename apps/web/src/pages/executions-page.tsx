@@ -10,7 +10,6 @@ import { ExecutionStatusBadge } from "@/components/executions/execution-status-b
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -23,7 +22,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { usePaginatedExecutions } from "@/services/execution-service";
-import { cn } from "@/utils/utils";
 
 export const createColumns = (
   getOrgUrl: (path: string) => string
