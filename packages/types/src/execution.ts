@@ -39,11 +39,3 @@ export interface PublicExecutionWithStructure extends WorkflowExecution {
 export interface GetPublicExecutionResponse {
   execution: PublicExecutionWithStructure;
 }
-
-/**
- * Response when updating execution visibility
- */
-export interface UpdateExecutionVisibilityResponse {
-  success: boolean;
-  message: string;
-}

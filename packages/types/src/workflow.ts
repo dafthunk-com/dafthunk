@@ -334,7 +334,6 @@ export interface WorkflowExecution {
   status: WorkflowExecutionStatus;
   error?: string;
   nodeExecutions: NodeExecution[];
-  visibility: "public" | "private";
   /** Timestamp when execution actually started */
   startedAt?: Date;
   /** Timestamp when execution ended */

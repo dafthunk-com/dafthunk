@@ -1,18 +1,12 @@
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
-import Eye from "lucide-react/icons/eye";
-import EyeOff from "lucide-react/icons/eye-off";
-import Share2 from "lucide-react/icons/share-2";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 
-import { useAuth } from "@/components/auth-context";
 import { ExecutionInfoCard } from "@/components/executions/execution-info-card";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
-import { Button } from "@/components/ui/button";
-import { LoadingButton } from "@/components/ui/loading-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
@@ -22,11 +16,7 @@ import type {
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import { useDeploymentVersion } from "@/services/deployment-service";
-import {
-  setExecutionPrivate,
-  setExecutionPublic,
-  useExecution,
-} from "@/services/execution-service";
+import { useExecution } from "@/services/execution-service";
 import { useObjectService } from "@/services/object-service";
 import {
   convertToReactFlowEdges,
@@ -37,14 +27,12 @@ import {
 export function ExecutionDetailPage() {
   const { executionId } = useParams<{ executionId: string }>();
   const { setBreadcrumbs } = usePageBreadcrumbs([]);
-  const { organization } = useAuth();
   const { getOrgUrl } = useOrgUrl();
 
   const {
     execution,
     executionError: executionDetailsError,
     isExecutionLoading: isExecutionDetailsLoading,
-    mutateExecution: mutateExecutionDetails,
   } = useExecution(executionId || null);
 
   const { createObjectUrl } = useObjectService();
@@ -95,8 +83,6 @@ export function ExecutionDetailPage() {
 
   const [reactFlowNodes, setReactFlowNodes] = useState<any[]>([]);
   const [reactFlowEdges, setReactFlowEdges] = useState<any[]>([]);
-
-  const [isVisibilityUpdating, setIsVisibilityUpdating] = useState(false);
 
   useEffect(() => {
     if (executionId) {
@@ -182,39 +168,6 @@ export function ExecutionDetailPage() {
     [reactFlowEdges]
   );
 
-  const handleToggleVisibility = async () => {
-    if (!execution || !executionId || !organization?.handle) return;
-
-    setIsVisibilityUpdating(true);
-    const newVisibility =
-      execution.visibility === "public" ? "private" : "public";
-
-    try {
-      let success = false;
-
-      if (newVisibility === "public") {
-        success = await setExecutionPublic(executionId, organization.handle);
-      } else {
-        success = await setExecutionPrivate(executionId, organization.handle);
-      }
-
-      if (success) {
-        toast.success(`Execution successfully made ${newVisibility}.`);
-        mutateExecutionDetails();
-      } else {
-        toast.error(`Failed to update visibility.`);
-      }
-    } catch (error) {
-      toast.error(
-        `Failed to update visibility: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    }
-
-    setIsVisibilityUpdating(false);
-  };
-
   if (isExecutionDetailsLoading || isStructureOverallLoading) {
     return <InsetLoading title="Execution Details" />;
   } else if (executionDetailsError) {
@@ -245,45 +198,12 @@ export function ExecutionDetailPage() {
               <TabsTrigger value="status">Status</TabsTrigger>
               <TabsTrigger value="visualization">Visualization</TabsTrigger>
             </TabsList>
-            {execution && (
-              <div className="flex items-center space-x-2">
-                {execution.visibility === "public" && executionId && (
-                  <Button variant="outline" size="sm" asChild>
-                    <Link
-                      to={`/public/executions/${executionId}`}
-                      target="_blank"
-                    >
-                      <Share2 className="mr-1 h-4 w-4" />
-                      Share
-                    </Link>
-                  </Button>
-                )}
-                <LoadingButton
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleVisibility}
-                  className="ml-0"
-                  isLoading={isVisibilityUpdating}
-                  icon={
-                    execution.visibility === "public" ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )
-                  }
-                >
-                  {execution.visibility === "public"
-                    ? "Make Private"
-                    : "Make Public"}
-                </LoadingButton>
-              </div>
-            )}
+            {execution && <div className="flex items-center space-x-2"></div>}
           </div>
           <TabsContent value="status" className="space-y-6 mt-0">
             <ExecutionInfoCard
               id={execution.id}
               status={execution.status}
-              visibility={execution.visibility}
               startedAt={execution.startedAt}
               endedAt={execution.endedAt}
               workflowId={execution.workflowId}

@@ -3,10 +3,9 @@ import {
   GetPublicExecutionResponse,
   ListExecutionsResponse,
   PublicExecutionWithStructure,
-  UpdateExecutionVisibilityResponse,
   WorkflowExecution,
 } from "@dafthunk/types";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 
 import { useAuth } from "@/components/auth-context";
 import { useInfinatePagination } from "@/hooks/use-infinate-pagination";
@@ -168,27 +167,6 @@ export const useExecution = (executionId: string | null): UseExecution => {
 };
 
 /**
- * Hook to get public execution details
- */
-export const usePublicExecution = (
-  executionId: string | null
-): UsePublicExecution => {
-  const swrKey = `/public/executions/${executionId}`;
-
-  const { data, error, isLoading, mutate } = useSWR(
-    executionId ? swrKey : null,
-    executionId ? () => getPublicExecution(executionId) : null
-  );
-
-  return {
-    publicExecution: data || null,
-    publicExecutionError: error || null,
-    isPublicExecutionLoading: isLoading,
-    mutatePublicExecution: mutate,
-  };
-};
-
-/**
  * Get a single execution by ID
  */
 export const getExecution = async (
@@ -202,65 +180,4 @@ export const getExecution = async (
   );
 
   return response.execution;
-};
-
-/**
- * Get a public execution by ID
- */
-export const getPublicExecution = async (
-  executionId: string
-): Promise<PublicExecutionWithStructure> => {
-  const response = await makeRequest<GetPublicExecutionResponse>(
-    `/public/executions/${executionId}`
-  );
-
-  return response.execution;
-};
-
-/**
- * Set an execution's visibility to public
- */
-export const setExecutionPublic = async (
-  executionId: string,
-  orgHandle: string
-): Promise<boolean> => {
-  const response = await makeOrgRequest<UpdateExecutionVisibilityResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${executionId}/share/public`,
-    {
-      method: "PATCH",
-    }
-  );
-
-  // Invalidate all execution related queries
-  await mutate(
-    (key) => typeof key === "string" && key.includes(API_ENDPOINT_BASE)
-  );
-
-  return response.success;
-};
-
-/**
- * Set an execution's visibility to private
- */
-export const setExecutionPrivate = async (
-  executionId: string,
-  orgHandle: string
-): Promise<boolean> => {
-  const response = await makeOrgRequest<UpdateExecutionVisibilityResponse>(
-    orgHandle,
-    API_ENDPOINT_BASE,
-    `/${executionId}/share/private`,
-    {
-      method: "PATCH",
-    }
-  );
-
-  // Invalidate all execution related queries
-  await mutate(
-    (key) => typeof key === "string" && key.includes(API_ENDPOINT_BASE)
-  );
-
-  return response.success;
 };

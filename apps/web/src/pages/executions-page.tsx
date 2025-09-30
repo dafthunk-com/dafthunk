@@ -1,8 +1,6 @@
 import type { WorkflowExecution } from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import Eye from "lucide-react/icons/eye";
-import EyeOff from "lucide-react/icons/eye-off";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
 import { useEffect } from "react";
 import { Link } from "react-router";
@@ -54,33 +52,7 @@ export const createColumns = (
       return <ExecutionStatusBadge status={status} />;
     },
   },
-  {
-    accessorKey: "visibility",
-    header: "Visibility",
-    cell: ({ row }) => {
-      const visibility = row.getValue(
-        "visibility"
-      ) as WorkflowExecution["visibility"];
-      return (
-        <Badge
-          variant="outline"
-          className={cn(
-            "capitalize",
-            visibility === "public"
-              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-              : "bg-gray-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
-          )}
-        >
-          {visibility === "public" ? (
-            <Eye className="mr-1 size-3" />
-          ) : (
-            <EyeOff className="mr-1 size-3" />
-          )}
-          {visibility}
-        </Badge>
-      );
-    },
-  },
+
   {
     accessorKey: "startedAt",
     header: "Started At",

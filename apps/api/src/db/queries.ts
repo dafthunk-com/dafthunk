@@ -86,7 +86,6 @@ export type SaveExecutionRecord = {
   organizationId: string;
   status: ExecutionStatusType;
   nodeExecutions: NodeExecution[];
-  visibility: "public" | "private";
   error?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -481,7 +480,6 @@ export async function saveExecution(
     status: record.status as WorkflowExecutionStatus,
     nodeExecutions,
     error: record.error,
-    visibility: record.visibility,
     startedAt: record.startedAt,
     endedAt: record.endedAt,
   };
@@ -915,25 +913,6 @@ export async function listExecutions(
 }
 
 /**
- * Get a public execution by ID
- *
- * @param db Database instance
- * @param id Execution ID
- * @returns Execution record or undefined if not found or not public
- */
-export async function getPublicExecution(
-  db: ReturnType<typeof createDatabase>,
-  id: string
-): Promise<ExecutionRow | undefined> {
-  const [execution] = await db
-    .select()
-    .from(executions)
-    .where(and(eq(executions.id, id), eq(executions.visibility, "public")));
-
-  return execution;
-}
-
-/**
  * Get workflow names by their IDs
  *
  * @param db Database instance
@@ -975,113 +954,6 @@ export async function getWorkflowName(
     .where(getWorkflowCondition(workflowIdOrHandle));
 
   return workflow?.name;
-}
-
-/**
- * Update execution visibility to public
- *
- * @param db Database instance
- * @param executionId Execution ID
- * @param organizationId Organization ID
- * @returns The updated execution record
- */
-export async function updateExecutionToPublic(
-  db: ReturnType<typeof createDatabase>,
-  executionId: string,
-  organizationId: string
-): Promise<ExecutionRow | undefined> {
-  const [execution] = await db
-    .update(executions)
-    .set({ visibility: "public", updatedAt: new Date() })
-    .where(
-      and(
-        eq(executions.id, executionId),
-        eq(executions.organizationId, organizationId)
-      )
-    )
-    .returning();
-
-  return execution;
-}
-
-/**
- * Update execution visibility to private
- *
- * @param db Database instance
- * @param executionId Execution ID
- * @param organizationId Organization ID
- * @returns The updated execution record
- */
-export async function updateExecutionToPrivate(
-  db: ReturnType<typeof createDatabase>,
-  executionId: string,
-  organizationId: string
-): Promise<ExecutionRow | undefined> {
-  const [execution] = await db
-    .update(executions)
-    .set({ visibility: "private", updatedAt: new Date() })
-    .where(
-      and(
-        eq(executions.id, executionId),
-        eq(executions.organizationId, organizationId)
-      )
-    )
-    .returning();
-
-  return execution;
-}
-
-/**
- * Update execution OG image generation status
- *
- * @param db Database instance
- * @param executionId Execution ID
- * @returns The updated execution record
- */
-export async function updateExecutionOgImageStatus(
-  db: ReturnType<typeof createDatabase>,
-  executionId: string
-): Promise<ExecutionRow | undefined> {
-  const [execution] = await db
-    .update(executions)
-    .set({ ogImageGenerated: true, updatedAt: new Date() })
-    .where(eq(executions.id, executionId))
-    .returning();
-
-  return execution;
-}
-
-/**
- * Get execution with visibility check
- *
- * @param db Database instance
- * @param executionId Execution ID
- * @param organizationId Organization ID
- * @returns The execution record with visibility status
- */
-export async function getExecutionWithVisibility(
-  db: ReturnType<typeof createDatabase>,
-  executionId: string,
-  organizationId: string
-): Promise<
-  | { id: string; organizationId: string; ogImageGenerated: boolean | null }
-  | undefined
-> {
-  const [execution] = await db
-    .select({
-      id: executions.id,
-      organizationId: executions.organizationId,
-      ogImageGenerated: executions.ogImageGenerated,
-    })
-    .from(executions)
-    .where(
-      and(
-        eq(executions.id, executionId),
-        eq(executions.organizationId, organizationId)
-      )
-    );
-
-  return execution;
 }
 
 /**
