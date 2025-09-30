@@ -1,3 +1,4 @@
+import type { WorkflowType } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -23,7 +24,6 @@ import type {
   WorkflowExecution,
   WorkflowNodeType,
 } from "@/components/workflow/workflow-types";
-import type { WorkflowType } from "@dafthunk/types";
 import { useEditableWorkflow } from "@/hooks/use-editable-workflow";
 import { useOrgUrl } from "@/hooks/use-org-url";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
@@ -54,14 +54,6 @@ export function EditorPage() {
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
     useState(false);
 
-  // No longer fetching workflow via REST - using WebSocket in use-editable-workflow
-  // const {
-  //   workflow: currentWorkflow,
-  //   workflowError: workflowDetailsError,
-  //   isWorkflowLoading: isWorkflowDetailsLoading,
-  // } = useWorkflow(id || null, { revalidateOnFocus: false });
-
-  // We need workflowMetadata early, but useEditableWorkflow needs nodeTemplates
   // Fetch all node types initially (no filter)
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
     undefined, // Fetch all node types initially
@@ -115,7 +107,6 @@ export function EditorPage() {
   } = useEditableWorkflow({
     workflowId: id,
     nodeTemplates,
-    enableWebSocket: true,
   });
 
   // Now we can use workflowMetadata for cron trigger
@@ -297,18 +288,6 @@ export function EditorPage() {
     closeExecutionForm();
     setWorkflowBuilderKey(Date.now());
   };
-
-  // No longer using REST fetch for workflow details - handled by WebSocket
-  // if (workflowDetailsError) {
-  //   return (
-  //     <WorkflowError
-  //       message={
-  //         workflowDetailsError.message || "Failed to load workflow details."
-  //       }
-  //       onRetry={handleRetryLoading}
-  //     />
-  //   );
-  // }
 
   if (nodeTypesError) {
     return (

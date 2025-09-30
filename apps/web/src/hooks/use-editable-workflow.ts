@@ -1,4 +1,4 @@
-import type { Parameter, ParameterType, WorkflowExecution } from "@dafthunk/types";
+import type { Parameter, ParameterType } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -19,15 +19,11 @@ import { debounce } from "@/utils/utils";
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
   nodeTemplates?: NodeTemplate[];
-  enableWebSocket?: boolean;
-  onExecutionUpdate?: (execution: WorkflowExecution) => void;
 }
 
 export function useEditableWorkflow({
   workflowId,
   nodeTemplates = [],
-  enableWebSocket = true, // Enable by default now
-  onExecutionUpdate,
 }: UseEditableWorkflowProps) {
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
@@ -43,16 +39,11 @@ export function useEditableWorkflow({
     type: string;
   } | null>(null);
 
-  // Get the organization from the auth context at the hook level
   const { organization } = useAuth();
-
-  // WebSocket is now the primary source of workflow data
-  // No effect needed here - state is set via WebSocket onInit callback
 
   // WebSocket connection effect
   useEffect(() => {
-    // Don't connect if WebSocket is not enabled or missing required data
-    if (!enableWebSocket || !workflowId || !organization?.handle) {
+    if (!workflowId || !organization?.handle) {
       setIsInitializing(false);
       return;
     }
@@ -62,7 +53,6 @@ export function useEditableWorkflow({
       return;
     }
 
-    // Start initializing
     setIsInitializing(true);
 
     // Add a small delay to avoid race conditions during React strict mode double-mount
@@ -73,71 +63,63 @@ export function useEditableWorkflow({
       }
 
       const ws = connectWorkflowWS(organization.handle, workflowId, {
-      onInit: (state: WorkflowDOState) => {
-        console.log("WebSocket received initial state:", state);
-        try {
-          // Store workflow metadata - id and type are required, name and handle can be empty
-          if (state.id && state.type) {
-            setWorkflowMetadata({
-              id: state.id,
-              name: state.name || "",
-              handle: state.handle || "",
-              type: state.type,
-            });
+        onInit: (state: WorkflowDOState) => {
+          console.log("WebSocket received initial state:", state);
+          try {
+            // Store workflow metadata - id and type are required, name and handle can be empty
+            if (state.id && state.type) {
+              setWorkflowMetadata({
+                id: state.id,
+                name: state.name || "",
+                handle: state.handle || "",
+                type: state.type,
+              });
+            }
+
+            const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
+              state.nodes,
+              nodeTemplates
+            );
+            const reactFlowEdges = state.edges.map(
+              (edge: any, index: number) => ({
+                id: `e${index}`,
+                source: edge.source,
+                target: edge.target,
+                sourceHandle: edge.sourceOutput,
+                targetHandle: edge.targetInput,
+                type: "workflowEdge",
+                data: {
+                  isValid: true,
+                  sourceType: edge.sourceOutput,
+                  targetType: edge.targetInput,
+                },
+              })
+            );
+
+            setNodes(reactFlowNodes);
+            setEdges(reactFlowEdges);
+            setProcessingError(null);
+            setIsInitializing(false);
+          } catch (error) {
+            console.error("Error processing WebSocket state:", error);
+            setProcessingError("Failed to load state from WebSocket");
+            setIsInitializing(false);
           }
-
-          const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
-            state.nodes,
-            nodeTemplates
-          );
-          const reactFlowEdges = state.edges.map((edge: any, index: number) => ({
-            id: `e${index}`,
-            source: edge.source,
-            target: edge.target,
-            sourceHandle: edge.sourceOutput,
-            targetHandle: edge.targetInput,
-            type: "workflowEdge",
-            data: {
-              isValid: true,
-              sourceType: edge.sourceOutput,
-              targetType: edge.targetInput,
-            },
-          }));
-
-          setNodes(reactFlowNodes);
-          setEdges(reactFlowEdges);
-          setProcessingError(null);
+        },
+        onOpen: () => {
+          console.log("WebSocket connected");
+          setIsWSConnected(true);
+        },
+        onClose: () => {
+          console.log("WebSocket disconnected");
+          setIsWSConnected(false);
+        },
+        onError: (error) => {
+          console.error("WebSocket error:", error);
+          setSavingError(`WebSocket error: ${error}`);
+          setProcessingError(`WebSocket error: ${error}`);
           setIsInitializing(false);
-        } catch (error) {
-          console.error("Error processing WebSocket state:", error);
-          setProcessingError("Failed to load state from WebSocket");
-          setIsInitializing(false);
-        }
-      },
-      onOpen: () => {
-        console.log("WebSocket connected");
-        setIsWSConnected(true);
-      },
-      onClose: () => {
-        console.log("WebSocket disconnected");
-        setIsWSConnected(false);
-      },
-      onError: (error) => {
-        console.error("WebSocket error:", error);
-        setSavingError(`WebSocket error: ${error}`);
-        setProcessingError(`WebSocket error: ${error}`);
-        setIsInitializing(false);
-      },
-      onExecutionUpdate: (execution: WorkflowExecution) => {
-        console.log("WebSocket received execution update:", execution);
-        if (onExecutionUpdate) {
-          // Add workflowId to the execution object
-          onExecutionUpdate({
-            ...execution,
-            workflowId: workflowId,
-          });
-        }
-      },
+        },
       });
 
       wsRef.current = ws;
@@ -150,8 +132,9 @@ export function useEditableWorkflow({
         wsRef.current = null;
       }
     };
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enableWebSocket, workflowId, organization?.handle]);
+  }, [workflowId, organization?.handle]);
 
   const saveWorkflowInternal = useCallback(
     async (
@@ -164,8 +147,7 @@ export function useEditableWorkflow({
       }
       setSavingError(null);
 
-      // If WebSocket is enabled and connected, use it instead of REST API
-      if (enableWebSocket && wsRef.current?.isConnected()) {
+      if (wsRef.current?.isConnected()) {
         try {
           const workflowNodes = nodesToSave.map((node) => {
             const incomingEdges = edgesToSave.filter(
@@ -182,15 +164,16 @@ export function useEditableWorkflow({
                 const isConnected = incomingEdges.some(
                   (edge) => edge.targetHandle === input.id
                 );
-                const parameterBase: Omit<Parameter, "value"> & { value?: any } =
-                  {
-                    name: input.id,
-                    type: input.type as ParameterType["type"],
-                    description: input.name,
-                    hidden: input.hidden,
-                    required: input.required,
-                    repeated: input.repeated,
-                  };
+                const parameterBase: Omit<Parameter, "value"> & {
+                  value?: any;
+                } = {
+                  name: input.id,
+                  type: input.type as ParameterType["type"],
+                  description: input.name,
+                  hidden: input.hidden,
+                  required: input.required,
+                  repeated: input.repeated,
+                };
                 if (!isConnected && typeof input.value !== "undefined") {
                   parameterBase.value = input.value;
                 }
@@ -219,16 +202,16 @@ export function useEditableWorkflow({
           return;
         } catch (error) {
           console.error("Error saving via WebSocket:", error);
-          setSavingError("Failed to save via WebSocket, falling back to REST API");
-          // Fall through to REST API
+          setSavingError("Failed to save via WebSocket");
         }
       }
 
-      // WebSocket not available - cannot save
-      console.warn("WebSocket not available, workflow changes may not be saved");
+      console.warn(
+        "WebSocket not available, workflow changes may not be saved"
+      );
       setSavingError("WebSocket not connected. Please refresh the page.");
     },
-    [workflowId, organization, enableWebSocket]
+    [workflowId]
   );
 
   const saveWorkflow = useMemo(
@@ -241,14 +224,6 @@ export function useEditableWorkflow({
     [saveWorkflowInternal]
   );
 
-  const startExecution = useCallback((executionId: string) => {
-    if (wsRef.current?.isConnected()) {
-      wsRef.current.executeWorkflow(executionId);
-    } else {
-      console.warn("WebSocket not connected, cannot start execution via WebSocket");
-    }
-  }, []);
-
   return {
     nodes,
     edges,
@@ -257,7 +232,6 @@ export function useEditableWorkflow({
     savingError,
     saveWorkflow,
     isWSConnected,
-    startExecution,
     workflowMetadata,
   };
 }

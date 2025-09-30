@@ -1,7 +1,7 @@
 import { JWTTokenPayload } from "@dafthunk/types";
 
-import { RuntimeParams } from "./runtime/runtime";
 import { WorkflowDO } from "./durable-objects/workflow-do";
+import { RuntimeParams } from "./runtime/runtime";
 
 export interface Bindings {
   DB: D1Database;

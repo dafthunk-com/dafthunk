@@ -1,13 +1,10 @@
 import {
   WorkflowDOAckMessage,
   WorkflowDOErrorMessage,
-  WorkflowDOExecuteMessage,
-  WorkflowDOExecutionUpdateMessage,
   WorkflowDOInitMessage,
   WorkflowDOMessage,
   WorkflowDOState,
   WorkflowDOUpdateMessage,
-  WorkflowExecution,
   WorkflowType,
 } from "@dafthunk/types";
 import { DurableObject } from "cloudflare:workers";
@@ -18,8 +15,7 @@ import { getWorkflow, updateWorkflow } from "../db/queries";
 
 export class WorkflowDO extends DurableObject<Bindings> {
   private sql: SqlStorage;
-  private connectedClients: Set<WebSocket> = new Set();
-  private currentExecution: WorkflowExecution | null = null;
+
   private workflowId: string = "";
   private organizationId: string = "";
   private loaded: boolean = false;
@@ -66,65 +62,71 @@ export class WorkflowDO extends DurableObject<Bindings> {
     this.workflowId = workflowId;
     this.organizationId = organizationId;
 
-    // Ensure metadata exists
-    let metadataRow = this.sql
-      .exec("SELECT * FROM metadata WHERE id = ?", "default")
-      .toArray()[0];
+    try {
+      const db = createDatabase(this.env.DB);
+      const workflow = await getWorkflow(db, workflowId, organizationId);
 
-    if (!metadataRow) {
-      try {
-        const db = createDatabase(this.env.DB);
-        const workflow = await getWorkflow(db, workflowId, organizationId);
-        if (workflow) {
-          const workflowData = workflow.data as any;
-          this.sql.exec(
-            `INSERT INTO metadata (id, workflow_id, organization_id, workflow_name, workflow_handle, workflow_type)
-             VALUES (?, ?, ?, ?, ?, ?)
-             ON CONFLICT(id) DO UPDATE SET
-               workflow_id = excluded.workflow_id,
-               organization_id = excluded.organization_id,
-               workflow_name = excluded.workflow_name,
-               workflow_handle = excluded.workflow_handle,
-               workflow_type = excluded.workflow_type`,
-            "default",
-            workflowId,
-            organizationId,
-            workflow.name,
-            workflow.handle,
-            (workflowData.type || "manual") as WorkflowType
-          );
-        } else {
-          // Minimal metadata for new workflow
-          this.sql.exec(
-            `INSERT INTO metadata (id, workflow_id, organization_id, workflow_name, workflow_handle, workflow_type)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            "default",
-            workflowId,
-            organizationId,
-            "New Workflow",
-            workflowId,
-            "manual" as WorkflowType
-          );
-        }
-      } catch (error) {
-        console.error("Error loading workflow metadata:", error);
+      const nodes = workflow
+        ? JSON.stringify((workflow.data as any).nodes || [])
+        : JSON.stringify([]);
+      const edges = workflow
+        ? JSON.stringify((workflow.data as any).edges || [])
+        : JSON.stringify([]);
+      const timestamp = workflow
+        ? workflow.updatedAt
+          ? workflow.updatedAt.getTime()
+          : Date.now()
+        : Date.now();
+
+      // Upsert metadata
+      if (workflow) {
+        this.sql.exec(
+          `INSERT INTO metadata (id, workflow_id, organization_id, workflow_name, workflow_handle, workflow_type)
+           VALUES (?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             workflow_id = excluded.workflow_id,
+             organization_id = excluded.organization_id,
+             workflow_name = excluded.workflow_name,
+             workflow_handle = excluded.workflow_handle,
+             workflow_type = excluded.workflow_type`,
+          "default",
+          workflowId,
+          organizationId,
+          workflow.name,
+          workflow.handle,
+          ((workflow.data as any).type || "manual") as WorkflowType
+        );
+      } else {
+        // Minimal metadata for new workflow
+        this.sql.exec(
+          `INSERT INTO metadata (id, workflow_id, organization_id, workflow_name, workflow_handle, workflow_type)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          "default",
+          workflowId,
+          organizationId,
+          "New Workflow",
+          workflowId,
+          "manual" as WorkflowType
+        );
       }
-    }
 
-    // Ensure states entry exists
-    const statesRow = this.sql
-      .exec("SELECT * FROM states WHERE id = ?", "default")
-      .toArray()[0];
-    if (!statesRow) {
-      const timestamp = Date.now();
+      // Upsert states
       this.sql.exec(
         `INSERT INTO states (id, nodes, edges, timestamp)
-         VALUES (?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           nodes = excluded.nodes,
+           edges = excluded.edges,
+           timestamp = excluded.timestamp`,
         "default",
-        JSON.stringify([]),
-        JSON.stringify([]),
+        nodes,
+        edges,
         timestamp
       );
+
+      this.dirty = false;
+    } catch (error) {
+      console.error("Error loading workflow:", error);
     }
 
     this.loaded = true;
@@ -235,25 +237,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
     }
   }
 
-  private broadcastExecutionUpdate(execution: WorkflowExecution) {
-    const message: WorkflowDOExecutionUpdateMessage = {
-      type: "execution_update",
-      executionId: execution.id,
-      status: execution.status,
-      nodeExecutions: execution.nodeExecutions,
-      error: execution.error,
-    };
-
-    const messageStr = JSON.stringify(message);
-    for (const client of this.connectedClients) {
-      try {
-        client.send(messageStr);
-      } catch (error) {
-        console.error("Error broadcasting to client:", error);
-      }
-    }
-  }
-
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
@@ -289,29 +272,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
       }
     }
 
-    // Handle execution updates from the runtime
-    if (url.pathname === "/execution" && request.method === "POST") {
-      try {
-        const execution = (await request.json()) as WorkflowExecution;
-        await this.updateExecution(execution);
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (error) {
-        console.error("Error updating execution:", error);
-        return new Response(
-          JSON.stringify({
-            error: "Failed to update execution",
-            details: error instanceof Error ? error.message : "Unknown error",
-          }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-    }
-
     // Handle WebSocket connections (ensureLoaded called earlier if params present)
     const upgradeHeader = request.headers.get("Upgrade");
     if (!upgradeHeader || upgradeHeader !== "websocket") {
@@ -324,7 +284,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
     const [client, server] = Object.values(webSocketPair);
 
     this.ctx.acceptWebSocket(server);
-    this.connectedClients.add(server);
 
     // Send initial state
     let initState: WorkflowDOState;
@@ -347,11 +306,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
       state: initState,
     };
     server.send(JSON.stringify(initMessage));
-
-    // If there's an ongoing execution, send the current state
-    if (this.currentExecution) {
-      this.broadcastExecutionUpdate(this.currentExecution);
-    }
 
     return new Response(null, {
       status: 101,
@@ -381,19 +335,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
           timestamp: Date.now(),
         };
         ws.send(JSON.stringify(ackMsg));
-      } else if ("type" in data && data.type === "execute") {
-        const executeMsg = data as WorkflowDOExecuteMessage;
-
-        // Store the execution ID so we can track updates from the runtime
-        this.currentExecution = {
-          id: executeMsg.executionId,
-          workflowId: this.workflowId,
-          status: "submitted",
-          nodeExecutions: [],
-        };
-
-        // Broadcast initial execution state to all clients
-        this.broadcastExecutionUpdate(this.currentExecution);
       }
     } catch (error) {
       console.error("WebSocket message error:", error);
@@ -411,25 +352,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
     reason: string,
     _wasClean: boolean
   ) {
-    this.connectedClients.delete(ws);
     ws.close(code, reason);
-  }
-
-  /**
-   * Called by the runtime workflow to push execution updates to connected clients
-   */
-  async updateExecution(execution: WorkflowExecution) {
-    this.currentExecution = execution;
-    this.broadcastExecutionUpdate(execution);
-
-    // Clear current execution if it's in a terminal state
-    if (
-      execution.status === "completed" ||
-      execution.status === "error" ||
-      execution.status === "cancelled" ||
-      execution.status === "exhausted"
-    ) {
-      this.currentExecution = null;
-    }
   }
 }

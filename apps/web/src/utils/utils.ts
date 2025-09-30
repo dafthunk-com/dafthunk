@@ -118,7 +118,7 @@ export function adaptDeploymentNodesToReactFlowNodes(
 
     // Find the icon from nodeTemplates by matching the node type
     const template = nodeTemplates.find((t) => t.type === depNode.type);
-    const icon = depNode.icon || template?.icon || "circle"; // prefer persisted icon
+    const icon = depNode.icon || template?.icon || "circle"; // fallback icon
 
     return {
       id: depNode.id,

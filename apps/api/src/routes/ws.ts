@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 
@@ -14,18 +15,30 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
 
   const userId = c.var.jwtPayload?.sub;
   const workflowId = c.req.query("workflowId");
+  const organizationId = c.get("organizationId")!;
 
-  if (!userId || !workflowId) {
-    console.error("Missing userId or workflowId:", { userId, workflowId });
-    return c.json({ error: "Missing userId or workflowId" }, 400);
+  if (!userId || !workflowId || !organizationId) {
+    console.error("Missing userId, workflowId or organizationId:", {
+      userId,
+      workflowId,
+      organizationId,
+    });
+    return c.json(
+      { error: "Missing userId, workflowId or organizationId" },
+      400
+    );
   }
 
   // Create a unique DO ID for this user + workflow combination
   const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${workflowId}`);
   const stub = c.env.WORKFLOW_DO.get(doId);
 
-  // Proxy the WebSocket connection to the Durable Object
-  return stub.fetch(c.req.raw);
+  // Reconstruct request with required query params for DO
+  const url = new URL(c.req.url);
+  url.searchParams.set("organizationId", organizationId);
+  url.searchParams.set("workflowId", workflowId);
+  const newReq = new Request(url.toString(), c.req.raw);
+  return stub.fetch(newReq);
 });
 
 export default wsRoutes;

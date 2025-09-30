@@ -167,7 +167,9 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   try {
     // Get workflow from Durable Object
     const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${id}`);
-    const workflowData = await c.env.WORKFLOW_DO.get(doId).getState();
+    const stub = c.env.WORKFLOW_DO.get(doId);
+    // @ts-ignore
+    const workflowData = await stub.getState();
 
     if (!workflowData) {
       // If DO doesn't have it, fall back to database
@@ -529,7 +531,8 @@ workflowRoutes.post(
       const doId = c.env.WORKFLOW_DO.idFromName(
         `${userId}-${workflowIdOrHandle}`
       );
-      const state = await c.env.WORKFLOW_DO.get(doId).getState();
+      const stub = c.env.WORKFLOW_DO.get(doId);
+      const state = await stub.getState();
 
       if (state) {
         workflowData = {

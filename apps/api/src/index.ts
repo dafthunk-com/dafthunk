@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-export { Runtime } from "./runtime/runtime";
 export { WorkflowDO } from "./durable-objects/workflow-do";
+export { Runtime } from "./runtime/runtime";
 import auth from "./auth";
 import { ApiContext } from "./context";
 import { handleCronTriggers } from "./cron";
