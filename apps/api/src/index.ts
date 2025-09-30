@@ -16,7 +16,6 @@ import llmsRoutes from "./routes/llms";
 import objectRoutes from "./routes/objects";
 import organizationRoutes from "./routes/organizations";
 import profileRoutes from "./routes/profile";
-import publicRoutes from "./routes/public";
 import robotsRoutes from "./routes/robots";
 import secretRoutes from "./routes/secrets";
 import typeRoutes from "./routes/types";
@@ -55,7 +54,6 @@ app.route("/robots.txt", robotsRoutes);
 app.route("/llms.txt", llmsRoutes);
 
 // Public routes
-app.route("/public", publicRoutes);
 app.route("/types", typeRoutes);
 
 app.route("/:organizationIdOrHandle/api-keys", apiKeyRoutes);

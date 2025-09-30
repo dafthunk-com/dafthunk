@@ -73,7 +73,6 @@ async function executeWorkflow(
       userId: "cron_trigger",
       organizationId: workflowInfo.organizationId,
       status: "executing" as ExecutionStatusType,
-      visibility: "private",
       nodeExecutions,
       createdAt: new Date(),
       updatedAt: new Date(),

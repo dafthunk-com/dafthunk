@@ -9,9 +9,9 @@ import Workflow from "lucide-react/icons/workflow";
 import { Link, Navigate } from "react-router";
 
 import { useAuth } from "@/components/auth-context";
+import { DemoExecution } from "@/components/demo-execution";
 import { HomeFooter } from "@/components/layouts/home-footer";
 import { HomeHeader } from "@/components/layouts/home-header";
-import { useTheme } from "@/components/theme-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,10 +67,7 @@ const features = [
 
 export function HomePage() {
   const { user, isAuthenticated } = useAuth();
-  const { theme } = useTheme();
   const { getOrgUrl } = useOrgUrl();
-
-  const homepagePublicExecutionUrl = `${import.meta.env.VITE_WEBSITE_URL}/public/executions/${import.meta.env.VITE_HOMEPAGE_PUBLIC_EXECUTION_ID}?fullscreen`;
 
   if (isAuthenticated && user) {
     return <Navigate to={getOrgUrl("dashboard")} />;
@@ -132,11 +129,8 @@ export function HomePage() {
                 </Button>
               </VideoDialog>
             </div>
-            <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm grid place-items-center">
-              <iframe
-                src={`${homepagePublicExecutionUrl}&theme=${theme}`}
-                className="w-full h-full"
-              />
+            <div className="border-4 border-white dark:border-neutral-800 ring-1 ring-border w-full aspect-video overflow-hidden rounded-lg shadow-sm">
+              <DemoExecution />
             </div>
           </div>
         </section>
@@ -381,7 +375,7 @@ export function HomePage() {
                 <Button
                   asChild
                   size="lg"
-                  className="bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-700 dark:from-amber-500 dark:to-pink-500 dark:hover:from-amber-600 dark:hover:to-pink-600 text-white font-medium mt-10"
+                  className="bg-gradient-to-r from-amber-600 to-pink-600 hover:from-amber-700 hover:to-pink-600 dark:from-amber-500 dark:to-pink-500 dark:hover:from-amber-600 dark:hover:to-pink-600 text-white font-medium mt-10"
                 >
                   <Link to={getOrgUrl("workflows")}>
                     Start Building Now <ArrowRight className="ml-2 h-5 w-5" />

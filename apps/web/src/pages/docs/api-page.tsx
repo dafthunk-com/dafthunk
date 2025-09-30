@@ -160,7 +160,6 @@ export function DocsApiPage() {
         }
       }
     ],
-    "visibility": "private",
     "startedAt": "2024-01-15T10:30:00.000Z",
     "endedAt": "2024-01-15T10:31:23.000Z"
   }

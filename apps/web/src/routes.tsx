@@ -11,7 +11,6 @@ import { DocsLayout } from "./components/layouts/docs-layout";
 import { OrgLayout } from "./components/org-layout";
 import { OrgRedirect } from "./components/org-redirect";
 import { ProtectedRoute } from "./components/protected-route";
-import { getApiBaseUrl } from "./config/api";
 import { ApiKeysPage } from "./pages/api-keys-page";
 import { DashboardPage } from "./pages/dashboard-page";
 import { DatasetDetailPage } from "./pages/dataset-detail-page";
@@ -34,7 +33,6 @@ import { MembersPage } from "./pages/members-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { OrganizationsPage } from "./pages/organizations-page";
 import { ProfilePage } from "./pages/profile-page";
-import { PublicExecutionPage } from "./pages/public-execution-page";
 import { SecretsPage } from "./pages/secrets-page";
 import { WorkflowsPage } from "./pages/workflows-page";
 
@@ -386,39 +384,6 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Edit Workflow - Dafthunk" /> },
-  },
-  {
-    path: "/public/executions/:executionId",
-    element: <PublicExecutionPage />,
-    handle: {
-      head: (params, context) => {
-        const executionId = params.executionId!;
-        const origin = context.url.origin;
-
-        const pageTitle = `Shared Execution - Dafthunk`;
-        const pageDescription =
-          "View the details of a shared workflow execution.";
-        const ogImageUrl = `${getApiBaseUrl()}/public/images/og-execution-${executionId}.jpeg`;
-        const ogUrl = `${origin}/public/executions/${executionId}`;
-
-        return (
-          <HeadSeo
-            title={pageTitle}
-            description={pageDescription}
-            ogImage={ogImageUrl}
-            ogUrl={ogUrl}
-            ogTitle={pageTitle}
-            ogDescription={pageDescription}
-            twitterCard="summary_large_image"
-            twitterSite="https://dafthunk.com"
-            twitterTitle={pageTitle}
-            twitterDescription={pageDescription}
-            twitterImage={ogImageUrl}
-            twitterUrl={ogUrl}
-          />
-        );
-      },
-    },
   },
   {
     path: "/legal",

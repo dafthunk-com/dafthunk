@@ -48,7 +48,6 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
       const db = createDatabase(c.env.DB);
       const [execution] = await db
         .select({
-          visibility: executionsTable.visibility,
           organizationId: executionsTable.organizationId,
         })
         .from(executionsTable)
@@ -58,17 +57,13 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
         return c.text("Object not found or linked to invalid execution", 404);
       }
 
-      if (execution.visibility === "private") {
-        // For private executions, the execution's organization must match the requesting organization
-        if (execution.organizationId !== requestingOrganizationId) {
-          return c.text(
-            "Forbidden: You do not have access to this object via its execution",
-            403
-          );
-        }
+      // For private executions, the execution's organization must match the requesting organization
+      if (execution.organizationId !== requestingOrganizationId) {
+        return c.text(
+          "Forbidden: You do not have access to this object via its execution",
+          403
+        );
       }
-      // If execution is public, access is allowed for any authenticated entity (JWT user or API key).
-      // No further check against requestingOrganizationId is needed here for public executions.
     } else {
       // Object not linked to an execution, check its own organizationId
       if (metadata?.organizationId !== requestingOrganizationId) {

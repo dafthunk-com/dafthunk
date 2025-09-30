@@ -2023,7 +2023,6 @@ vi.mock("@turf/turf", () => ({
     // LineString-Polygon intersection
     if (type1 === "LineString" && type2 === "Polygon") {
       const lineCoords = coords1;
-      const _polygonCoords = coords2[0]; // Outer ring
 
       // Check if any line segment intersects with polygon
       for (let i = 0; i < lineCoords.length - 1; i++) {

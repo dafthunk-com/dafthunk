@@ -364,7 +364,6 @@ deploymentRoutes.post(
       userId,
       organizationId,
       status: executingStatus,
-      visibility: "private",
       nodeExecutions,
       createdAt: new Date(),
       updatedAt: new Date(),

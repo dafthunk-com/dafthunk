@@ -186,7 +186,6 @@ export async function handleIncomingEmail(
     userId: "email",
     organizationId: workflow.organizationId,
     status: ExecutionStatus.EXECUTING,
-    visibility: "private",
     nodeExecutions,
     createdAt: new Date(),
     updatedAt: new Date(),

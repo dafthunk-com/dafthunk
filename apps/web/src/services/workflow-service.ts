@@ -359,7 +359,6 @@ export function useWorkflowExecution(orgHandle: string) {
 
       return {
         ...response,
-        visibility: "private" as "private" | "public",
       };
     },
     [orgHandle]
@@ -468,7 +467,6 @@ export function useWorkflowExecution(orgHandle: string) {
                 workflowId: id,
                 status: "error",
                 nodeExecutions: [],
-                visibility: "private",
                 error:
                   error instanceof Error ? error.message : "Polling failed",
               });
@@ -483,7 +481,6 @@ export function useWorkflowExecution(orgHandle: string) {
             workflowId: id,
             status: "error",
             nodeExecutions: [],
-            visibility: "private",
             error: error instanceof Error ? error.message : "Failed to execute",
           });
         });
@@ -509,7 +506,6 @@ export function useWorkflowExecution(orgHandle: string) {
           workflowId: id,
           status: "error",
           nodeExecutions: [],
-          visibility: "private",
           error: "Node templates not loaded, cannot prepare execution.",
         });
         return undefined;

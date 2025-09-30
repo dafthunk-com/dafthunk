@@ -284,16 +284,10 @@ export const executions = sqliteTable(
       .$type<WorkflowExecutionType>()
       .notNull(),
     error: text("error"),
-    visibility: text("visibility", { enum: ["public", "private"] })
-      .notNull()
-      .default("private"),
     startedAt: integer("started_at", { mode: "timestamp" }),
     endedAt: integer("ended_at", { mode: "timestamp" }),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
-    ogImageGenerated: integer("og_image_generated", {
-      mode: "boolean",
-    }).default(false),
   },
   (table) => [
     index("executions_workflow_id_idx").on(table.workflowId),
@@ -303,7 +297,6 @@ export const executions = sqliteTable(
     index("executions_created_at_idx").on(table.createdAt),
     index("executions_started_at_idx").on(table.startedAt),
     index("executions_ended_at_idx").on(table.endedAt),
-    index("executions_visibility_idx").on(table.visibility),
     // Composite indexes for common query patterns
     index("executions_organization_id_status_idx").on(
       table.organizationId,
