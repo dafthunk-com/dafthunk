@@ -65,6 +65,10 @@ interface UseWorkflowStateReturn {
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   onConnectEnd: OnConnectEnd;
+  onNodeDragStop: (
+    event: React.MouseEvent,
+    node: ReactFlowNode<WorkflowNodeType>
+  ) => void;
   connectionValidationState: ConnectionValidationState;
   isValidConnection: IsValidConnection<ReactFlowEdge<WorkflowEdgeType>>;
   handleAddNode: () => void;
@@ -340,33 +344,36 @@ export function useWorkflowState({
     }
   }, [initialEdges, readonly, setEdges]);
 
-  // Effect to notify parent of changes for nodes
+  // Effect to notify parent of changes for nodes (excluding position changes during drag)
   useEffect(() => {
     if (readonly) return;
 
     const nodeCountChanged = nodes.length !== initialNodes.length;
-    const hasDataOrPositionChanges = nodes.some((node) => {
-      const initialNode = initialNodes.find((n) => n.id === node.id);
-      if (!initialNode) return true;
 
-      if (
-        node.position.x !== initialNode.position.x ||
-        node.position.y !== initialNode.position.y
-      ) {
-        return true;
+    // Check for data changes (excluding position)
+    let hasDataChanges = false;
+    nodes.forEach((node) => {
+      const initialNode = initialNodes.find((n) => n.id === node.id);
+      if (!initialNode) {
+        hasDataChanges = true;
+        return;
       }
 
+      // Check data changes (not position)
       const nodeData = stripExecutionFields(node.data);
       const initialNodeData = stripExecutionFields(initialNode.data);
-      return JSON.stringify(nodeData) !== JSON.stringify(initialNodeData);
+      if (JSON.stringify(nodeData) !== JSON.stringify(initialNodeData)) {
+        hasDataChanges = true;
+      }
     });
 
-    // Check for deleted nodes by looking for initialNodes that don't exist in the current nodes
+    // Check for deleted nodes
     const hasDeletedNodes = initialNodes.some(
       (initialNode) => !nodes.some((node) => node.id === initialNode.id)
     );
 
-    if (nodeCountChanged || hasDataOrPositionChanges || hasDeletedNodes) {
+    // Save for data changes or node add/delete (position changes handled by onNodeDragStop)
+    if (nodeCountChanged || hasDataChanges || hasDeletedNodes) {
       onNodesChangePersistCallback?.(nodes);
     }
   }, [nodes, onNodesChangePersistCallback, initialNodes, readonly]);
@@ -432,6 +439,16 @@ export function useWorkflowState({
     if (readonly) return;
     setConnectionValidationState("default");
   }, [readonly]);
+
+  // Handle node drag stop - save positions after drag completes
+  const onNodeDragStop = useCallback(
+    (event: React.MouseEvent, node: ReactFlowNode<WorkflowNodeType>) => {
+      if (readonly) return;
+      // Save with current node positions after drag completes
+      onNodesChangePersistCallback?.(nodes);
+    },
+    [readonly, nodes, onNodesChangePersistCallback]
+  );
 
   // Function to validate connection based on type compatibility
   const isValidConnection = useCallback(
@@ -1129,6 +1146,7 @@ export function useWorkflowState({
     onConnect,
     onConnectStart,
     onConnectEnd,
+    onNodeDragStop: readonly ? () => {} : onNodeDragStop,
     connectionValidationState,
     isValidConnection,
     handleAddNode,
