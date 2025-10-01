@@ -101,18 +101,44 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
       if ("type" in data && data.type === "update") {
         const updateMsg = data as WorkflowUpdateMessage;
 
+        console.log("🟢 [WS SERVER] Received update message");
+        console.log("  - Nodes:", updateMsg.nodes.length);
+        console.log("  - Edges:", updateMsg.edges.length);
+
         // Update workflow in database
         try {
+          // Fetch the latest workflow state to avoid using stale initialState
+          const currentWorkflow = await getWorkflow(
+            db,
+            workflowId,
+            organizationId
+          );
+          if (!currentWorkflow) {
+            const errorMsg: WorkflowErrorMessage = {
+              error: "Workflow not found",
+            };
+            server.send(JSON.stringify(errorMsg));
+            return;
+          }
+
+          const currentData = currentWorkflow.data as any;
+          console.log(
+            "  - Current edges in DB:",
+            currentData.edges?.length || 0
+          );
+
           await updateWorkflow(db, workflowId, organizationId, {
             data: {
               id: workflowId,
-              name: initialState.name,
-              handle: initialState.handle,
-              type: initialState.type,
+              name: currentData.name || currentWorkflow.name,
+              handle: currentData.handle || currentWorkflow.handle,
+              type: currentData.type || "manual",
               nodes: updateMsg.nodes,
               edges: updateMsg.edges,
             },
           });
+
+          console.log("  - ✅ Saved to database");
 
           // Send acknowledgment
           const ackMsg: WorkflowAckMessage = {

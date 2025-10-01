@@ -95,11 +95,11 @@ interface UseWorkflowStateReturn {
 // Helper functions to replace workflowNodeStateService
 const stripExecutionFields = (
   data: WorkflowNodeType
-): Omit<WorkflowNodeType, "executionState" | "error"> & {
+): Omit<WorkflowNodeType, "executionState" | "error" | "nodeTemplates"> & {
   outputs: Omit<WorkflowNodeType["outputs"][number], "value" | "isConnected">[];
   inputs: Omit<WorkflowNodeType["inputs"][number], "isConnected">[];
 } => {
-  const { executionState, error, ...rest } = data;
+  const { executionState, error, nodeTemplates, ...rest } = data;
 
   return {
     ...rest,

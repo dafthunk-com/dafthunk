@@ -1,7 +1,7 @@
 import type { WorkflowType } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -133,6 +133,10 @@ export function EditorPage() {
     []
   );
 
+  // Use refs to always have the latest values without causing callback recreation
+  const latestUiNodesRef = useRef<Node<WorkflowNodeType>[]>([]);
+  const latestUiEdgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
+
   const handleOpenSetCronDialog = useCallback(() => {
     mutateDeploymentHistory();
     mutateCronTrigger();
@@ -166,34 +170,54 @@ export function EditorPage() {
 
   useEffect(() => {
     if (initialNodesForUI) {
+      console.log(
+        "🔵 [EDITOR] Setting initial nodes:",
+        initialNodesForUI.length
+      );
       setLatestUiNodes(initialNodesForUI);
+      latestUiNodesRef.current = initialNodesForUI;
     }
   }, [initialNodesForUI]);
 
   useEffect(() => {
     if (initialEdgesForUI) {
+      console.log(
+        "🔵 [EDITOR] Setting initial edges:",
+        initialEdgesForUI.length
+      );
       setLatestUiEdges(initialEdgesForUI);
+      latestUiEdgesRef.current = initialEdgesForUI;
     }
   }, [initialEdgesForUI]);
 
   const handleUiNodesChanged = useCallback(
     (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
+      console.log("🔴 [EDITOR] handleUiNodesChanged");
+      console.log("  - New nodes:", updatedNodesFromUI.length);
+      console.log("  - Current edges (ref):", latestUiEdgesRef.current.length);
       setLatestUiNodes(updatedNodesFromUI);
+      latestUiNodesRef.current = updatedNodesFromUI;
       if (workflowMetadata) {
-        saveWorkflow(updatedNodesFromUI, latestUiEdges);
+        // Use ref to get latest edges, not closure variable
+        saveWorkflow(updatedNodesFromUI, latestUiEdgesRef.current);
       }
     },
-    [latestUiEdges, saveWorkflow, workflowMetadata]
+    [saveWorkflow, workflowMetadata]
   );
 
   const handleUiEdgesChanged = useCallback(
     (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
+      console.log("🟣 [EDITOR] handleUiEdgesChanged");
+      console.log("  - New edges:", updatedEdgesFromUI.length);
+      console.log("  - Current nodes (ref):", latestUiNodesRef.current.length);
       setLatestUiEdges(updatedEdgesFromUI);
+      latestUiEdgesRef.current = updatedEdgesFromUI;
       if (workflowMetadata) {
-        saveWorkflow(latestUiNodes, updatedEdgesFromUI);
+        // Use ref to get latest nodes, not closure variable
+        saveWorkflow(latestUiNodesRef.current, updatedEdgesFromUI);
       }
     },
-    [latestUiNodes, saveWorkflow, workflowMetadata]
+    [saveWorkflow, workflowMetadata]
   );
 
   const {

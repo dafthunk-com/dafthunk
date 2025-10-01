@@ -64,7 +64,9 @@ export function useEditableWorkflow({
 
       const ws = connectWorkflowWS(organization.handle, workflowId, {
         onInit: (state: WorkflowDOState) => {
-          console.log("WebSocket received initial state:", state);
+          console.log("🔵 [WS] Received initial state");
+          console.log("  - Nodes:", state.nodes.length);
+          console.log("  - Edges:", state.edges.length, state.edges);
           try {
             // Store workflow metadata - id and type are required, name and handle can be empty
             if (state.id && state.type) {
@@ -96,10 +98,16 @@ export function useEditableWorkflow({
               })
             );
 
+            console.log(
+              "  - Converted to ReactFlow edges:",
+              reactFlowEdges.length
+            );
             setNodes(reactFlowNodes);
             setEdges(reactFlowEdges);
+            console.log("  - Set edges in state");
             setProcessingError(null);
             setIsInitializing(false);
+            console.log("  - Initialization complete");
           } catch (error) {
             console.error("Error processing WebSocket state:", error);
             setProcessingError("Failed to load state from WebSocket");
@@ -141,6 +149,17 @@ export function useEditableWorkflow({
       nodesToSave: Node<WorkflowNodeType>[],
       edgesToSave: Edge<WorkflowEdgeType>[]
     ) => {
+      console.log("🟡 [SAVE] saveWorkflowInternal called");
+      console.log("  - isInitializing:", isInitializing);
+      console.log("  - Nodes to save:", nodesToSave.length);
+      console.log("  - Edges to save:", edgesToSave.length, edgesToSave);
+
+      // Don't save while still loading initial state from WebSocket
+      if (isInitializing) {
+        console.log("  - ⏸️  SKIPPED (still initializing)");
+        return;
+      }
+
       if (!workflowId) {
         setSavingError("Workflow ID is missing, cannot save.");
         return;
@@ -198,6 +217,11 @@ export function useEditableWorkflow({
             targetInput: edge.targetHandle || "",
           }));
 
+          console.log(
+            "  - 📤 Sending to WebSocket:",
+            workflowEdges.length,
+            "edges"
+          );
           wsRef.current.send(workflowNodes, workflowEdges);
           return;
         } catch (error) {
@@ -211,7 +235,7 @@ export function useEditableWorkflow({
       );
       setSavingError("WebSocket not connected. Please refresh the page.");
     },
-    [workflowId]
+    [workflowId, isInitializing]
   );
 
   const saveWorkflow = useMemo(
