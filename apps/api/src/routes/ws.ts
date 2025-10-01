@@ -1,9 +1,9 @@
 import {
-  WorkflowDOAckMessage,
-  WorkflowDOErrorMessage,
-  WorkflowDOInitMessage,
-  WorkflowDOState,
-  WorkflowDOUpdateMessage,
+  WorkflowAckMessage,
+  WorkflowErrorMessage,
+  WorkflowInitMessage,
+  WorkflowState,
+  WorkflowUpdateMessage,
   WorkflowType,
 } from "@dafthunk/types";
 import { Hono } from "hono";
@@ -56,7 +56,7 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
   server.accept();
 
   // Prepare initial state
-  const initialState: WorkflowDOState = workflow
+  const initialState: WorkflowState = workflow
     ? {
         id: workflow.id,
         name: workflow.name,
@@ -79,7 +79,7 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
       };
 
   // Send initial state
-  const initMessage: WorkflowDOInitMessage = {
+  const initMessage: WorkflowInitMessage = {
     type: "init",
     state: initialState,
   };
@@ -89,7 +89,7 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
   server.addEventListener("message", async (event: MessageEvent) => {
     try {
       if (typeof event.data !== "string") {
-        const errorMsg: WorkflowDOErrorMessage = {
+        const errorMsg: WorkflowErrorMessage = {
           error: "Expected string message",
         };
         server.send(JSON.stringify(errorMsg));
@@ -99,7 +99,7 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
       const data = JSON.parse(event.data);
 
       if ("type" in data && data.type === "update") {
-        const updateMsg = data as WorkflowDOUpdateMessage;
+        const updateMsg = data as WorkflowUpdateMessage;
 
         // Update workflow in database
         try {
@@ -115,14 +115,14 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
           });
 
           // Send acknowledgment
-          const ackMsg: WorkflowDOAckMessage = {
+          const ackMsg: WorkflowAckMessage = {
             type: "ack",
             timestamp: Date.now(),
           };
           server.send(JSON.stringify(ackMsg));
         } catch (error) {
           console.error("Error updating workflow:", error);
-          const errorMsg: WorkflowDOErrorMessage = {
+          const errorMsg: WorkflowErrorMessage = {
             error: "Failed to update workflow",
             details: error instanceof Error ? error.message : "Unknown error",
           };
@@ -131,7 +131,7 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
       }
     } catch (error) {
       console.error("WebSocket message error:", error);
-      const errorMsg: WorkflowDOErrorMessage = {
+      const errorMsg: WorkflowErrorMessage = {
         error: "Failed to process message",
         details: error instanceof Error ? error.message : "Unknown error",
       };

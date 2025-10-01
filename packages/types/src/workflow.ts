@@ -467,61 +467,61 @@ export interface GetCronTriggerResponse {
 export type UpsertCronTriggerResponse = GetCronTriggerResponse;
 
 /**
- * WebSocket message types for Durable Object real-time sync
+ * WebSocket message types for real-time sync
  */
 
 /**
- * Workflow state stored in Durable Object
+ * Workflow state stored in real-time session
  */
-export interface WorkflowDOState extends Workflow {
+export interface WorkflowState extends Workflow {
   timestamp: number;
 }
 
 /**
- * Message sent from DO to client with initial state
+ * Message sent to client with initial state
  */
-export interface WorkflowDOInitMessage {
+export interface WorkflowInitMessage {
   type: "init";
-  state: WorkflowDOState;
+  state: WorkflowState;
 }
 
 /**
- * Message sent from client to DO to update state
+ * Message sent from client to update state
  */
-export interface WorkflowDOUpdateMessage {
+export interface WorkflowUpdateMessage {
   type: "update";
   nodes: Node[];
   edges: Edge[];
 }
 
 /**
- * Acknowledgment message sent from DO to client
+ * Acknowledgment message sent to client
  */
-export interface WorkflowDOAckMessage {
+export interface WorkflowAckMessage {
   type: "ack";
   timestamp: number;
 }
 
 /**
- * Error message sent from DO to client
+ * Error message sent to client
  */
-export interface WorkflowDOErrorMessage {
+export interface WorkflowErrorMessage {
   error: string;
   details?: string;
 }
 
 /**
- * Message sent from client to DO to start workflow execution
+ * Message sent from client to start workflow execution
  */
-export interface WorkflowDOExecuteMessage {
+export interface WorkflowExecuteMessage {
   type: "execute";
   executionId: string;
 }
 
 /**
- * Message sent from DO to client with execution progress updates
+ * Message sent to client with execution progress updates
  */
-export interface WorkflowDOExecutionUpdateMessage {
+export interface WorkflowExecutionUpdateMessage {
   type: "execution_update";
   executionId: string;
   status: WorkflowExecutionStatus;
@@ -532,10 +532,10 @@ export interface WorkflowDOExecutionUpdateMessage {
 /**
  * All possible WebSocket messages
  */
-export type WorkflowDOMessage =
-  | WorkflowDOInitMessage
-  | WorkflowDOUpdateMessage
-  | WorkflowDOAckMessage
-  | WorkflowDOErrorMessage
-  | WorkflowDOExecuteMessage
-  | WorkflowDOExecutionUpdateMessage;
+export type WorkflowMessage =
+  | WorkflowInitMessage
+  | WorkflowUpdateMessage
+  | WorkflowAckMessage
+  | WorkflowErrorMessage
+  | WorkflowExecuteMessage
+  | WorkflowExecutionUpdateMessage;

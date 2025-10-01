@@ -1,28 +1,28 @@
 import type {
   Edge,
   Node,
-  WorkflowDOAckMessage,
-  WorkflowDOErrorMessage,
-  WorkflowDOExecutionUpdateMessage,
-  WorkflowDOInitMessage,
-  WorkflowDOState,
-  WorkflowDOUpdateMessage,
+  WorkflowAckMessage,
+  WorkflowErrorMessage,
+  WorkflowExecutionUpdateMessage,
+  WorkflowInitMessage,
+  WorkflowState,
+  WorkflowUpdateMessage,
   WorkflowExecution,
 } from "@dafthunk/types";
 
 import { getApiBaseUrl } from "@/config/api";
 
 // Re-export for convenience
-export type { WorkflowDOState };
+export type { WorkflowState };
 
 type WebSocketMessage =
-  | WorkflowDOInitMessage
-  | WorkflowDOAckMessage
-  | WorkflowDOErrorMessage
-  | WorkflowDOExecutionUpdateMessage;
+  | WorkflowInitMessage
+  | WorkflowAckMessage
+  | WorkflowErrorMessage
+  | WorkflowExecutionUpdateMessage;
 
 export interface WorkflowWSOptions {
-  onInit?: (state: WorkflowDOState) => void;
+  onInit?: (state: WorkflowState) => void;
   onAck?: (timestamp: number) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
@@ -130,7 +130,7 @@ export class WorkflowWebSocket {
     }
 
     try {
-      const updateMsg: WorkflowDOUpdateMessage = {
+      const updateMsg: WorkflowUpdateMessage = {
         type: "update",
         nodes,
         edges,
