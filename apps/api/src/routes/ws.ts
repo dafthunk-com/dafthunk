@@ -101,13 +101,9 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
       if ("type" in data && data.type === "update") {
         const updateMsg = data as WorkflowUpdateMessage;
 
-        console.log("🟢 [WS SERVER] Received update message");
-        console.log("  - Nodes:", updateMsg.nodes.length);
-        console.log("  - Edges:", updateMsg.edges.length);
-
         // Update workflow in database
         try {
-          // Fetch the latest workflow state to avoid using stale initialState
+          // Fetch the latest workflow to avoid using stale initialState captured at connection time
           const currentWorkflow = await getWorkflow(
             db,
             workflowId,
@@ -122,10 +118,6 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
           }
 
           const currentData = currentWorkflow.data as any;
-          console.log(
-            "  - Current edges in DB:",
-            currentData.edges?.length || 0
-          );
 
           await updateWorkflow(db, workflowId, organizationId, {
             data: {
@@ -137,8 +129,6 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
               edges: updateMsg.edges,
             },
           });
-
-          console.log("  - ✅ Saved to database");
 
           // Send acknowledgment
           const ackMsg: WorkflowAckMessage = {

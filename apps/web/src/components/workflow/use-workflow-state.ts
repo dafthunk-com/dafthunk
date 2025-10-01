@@ -99,6 +99,7 @@ const stripExecutionFields = (
   outputs: Omit<WorkflowNodeType["outputs"][number], "value" | "isConnected">[];
   inputs: Omit<WorkflowNodeType["inputs"][number], "isConnected">[];
 } => {
+  // Exclude nodeTemplates from comparison - it's UI metadata that shouldn't trigger persistence
   const { executionState, error, nodeTemplates, ...rest } = data;
 
   return {

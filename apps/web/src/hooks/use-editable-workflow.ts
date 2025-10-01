@@ -1,6 +1,6 @@
 import type { Parameter, ParameterType } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
 import type {
@@ -14,7 +14,6 @@ import {
   WorkflowWebSocket,
 } from "@/services/workflow-do-service";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { debounce } from "@/utils/utils";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
@@ -64,11 +63,8 @@ export function useEditableWorkflow({
 
       const ws = connectWorkflowWS(organization.handle, workflowId, {
         onInit: (state: WorkflowDOState) => {
-          console.log("🔵 [WS] Received initial state");
-          console.log("  - Nodes:", state.nodes.length);
-          console.log("  - Edges:", state.edges.length, state.edges);
           try {
-            // Store workflow metadata - id and type are required, name and handle can be empty
+            // Store workflow metadata
             if (state.id && state.type) {
               setWorkflowMetadata({
                 id: state.id,
@@ -78,6 +74,7 @@ export function useEditableWorkflow({
               });
             }
 
+            // Convert to ReactFlow format
             const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
               state.nodes,
               nodeTemplates
@@ -98,16 +95,10 @@ export function useEditableWorkflow({
               })
             );
 
-            console.log(
-              "  - Converted to ReactFlow edges:",
-              reactFlowEdges.length
-            );
             setNodes(reactFlowNodes);
             setEdges(reactFlowEdges);
-            console.log("  - Set edges in state");
             setProcessingError(null);
             setIsInitializing(false);
-            console.log("  - Initialization complete");
           } catch (error) {
             console.error("Error processing WebSocket state:", error);
             setProcessingError("Failed to load state from WebSocket");
@@ -115,11 +106,9 @@ export function useEditableWorkflow({
           }
         },
         onOpen: () => {
-          console.log("WebSocket connected");
           setIsWSConnected(true);
         },
         onClose: () => {
-          console.log("WebSocket disconnected");
           setIsWSConnected(false);
         },
         onError: (error) => {
@@ -149,14 +138,9 @@ export function useEditableWorkflow({
       nodesToSave: Node<WorkflowNodeType>[],
       edgesToSave: Edge<WorkflowEdgeType>[]
     ) => {
-      console.log("🟡 [SAVE] saveWorkflowInternal called");
-      console.log("  - isInitializing:", isInitializing);
-      console.log("  - Nodes to save:", nodesToSave.length);
-      console.log("  - Edges to save:", edgesToSave.length, edgesToSave);
-
-      // Don't save while still loading initial state from WebSocket
+      // Block saves during initialization to prevent race condition where
+      // nodeTemplates load before edges, causing empty edges to be saved
       if (isInitializing) {
-        console.log("  - ⏸️  SKIPPED (still initializing)");
         return;
       }
 
@@ -217,11 +201,6 @@ export function useEditableWorkflow({
             targetInput: edge.targetHandle || "",
           }));
 
-          console.log(
-            "  - 📤 Sending to WebSocket:",
-            workflowEdges.length,
-            "edges"
-          );
           wsRef.current.send(workflowNodes, workflowEdges);
           return;
         } catch (error) {
@@ -238,15 +217,8 @@ export function useEditableWorkflow({
     [workflowId, isInitializing]
   );
 
-  const saveWorkflow = useMemo(
-    () =>
-      debounce(
-        (nodes: Node<WorkflowNodeType>[], edges: Edge<WorkflowEdgeType>[]) =>
-          saveWorkflowInternal(nodes, edges),
-        1000
-      ),
-    [saveWorkflowInternal]
-  );
+  // No debouncing needed - WebSocket handles message batching naturally
+  const saveWorkflow = saveWorkflowInternal;
 
   return {
     nodes,
