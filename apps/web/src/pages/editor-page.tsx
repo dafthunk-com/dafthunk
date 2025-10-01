@@ -129,7 +129,7 @@ export function EditorPage() {
   const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
     []
   );
-  const [latestUiEdges, setLatestUiEdges] = useState<Edge<WorkflowEdgeType>[]>(
+  const [_latestUiEdges, setLatestUiEdges] = useState<Edge<WorkflowEdgeType>[]>(
     []
   );
 

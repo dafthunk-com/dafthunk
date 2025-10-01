@@ -3,8 +3,8 @@ import {
   WorkflowErrorMessage,
   WorkflowInitMessage,
   WorkflowState,
-  WorkflowUpdateMessage,
   WorkflowType,
+  WorkflowUpdateMessage,
 } from "@dafthunk/types";
 import { Hono } from "hono";
 

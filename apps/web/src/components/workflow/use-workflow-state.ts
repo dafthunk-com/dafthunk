@@ -442,7 +442,7 @@ export function useWorkflowState({
 
   // Handle node drag stop - save positions after drag completes
   const onNodeDragStop = useCallback(
-    (event: React.MouseEvent, node: ReactFlowNode<WorkflowNodeType>) => {
+    (_event: React.MouseEvent, _node: ReactFlowNode<WorkflowNodeType>) => {
       if (readonly) return;
       // Save with current node positions after drag completes
       onNodesChangePersistCallback?.(nodes);
