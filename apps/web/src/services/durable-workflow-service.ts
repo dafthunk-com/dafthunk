@@ -3,11 +3,11 @@ import type {
   Node,
   WorkflowAckMessage,
   WorkflowErrorMessage,
+  WorkflowExecution,
   WorkflowExecutionUpdateMessage,
   WorkflowInitMessage,
   WorkflowState,
   WorkflowUpdateMessage,
-  WorkflowExecution,
 } from "@dafthunk/types";
 
 import { getApiBaseUrl } from "@/config/api";

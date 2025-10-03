@@ -4,8 +4,8 @@ import {
   WorkflowInitMessage,
   WorkflowMessage,
   WorkflowState,
-  WorkflowUpdateMessage,
   WorkflowType,
+  WorkflowUpdateMessage,
 } from "@dafthunk/types";
 import { DurableObject } from "cloudflare:workers";
 
