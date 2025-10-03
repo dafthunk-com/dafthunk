@@ -1,7 +1,7 @@
 import type { WorkflowType } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -126,12 +126,14 @@ export function EditorPage() {
     [deploymentHistory]
   );
 
+  // Only track nodes since they're used by validateConnection and editorExecuteWorkflow
+  // Edges are only passed through to saveWorkflow and don't need to be stored
   const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
     []
   );
-  const [latestUiEdges, setLatestUiEdges] = useState<Edge<WorkflowEdgeType>[]>(
-    []
-  );
+
+  // Store edges in a ref to avoid stale closures without causing re-renders
+  const latestUiEdgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
 
   const handleOpenSetCronDialog = useCallback(() => {
     mutateDeploymentHistory();
@@ -172,7 +174,7 @@ export function EditorPage() {
 
   useEffect(() => {
     if (initialEdgesForUI) {
-      setLatestUiEdges(initialEdgesForUI);
+      latestUiEdgesRef.current = initialEdgesForUI;
     }
   }, [initialEdgesForUI]);
 
@@ -180,16 +182,18 @@ export function EditorPage() {
     (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
       setLatestUiNodes(updatedNodesFromUI);
       if (workflowMetadata) {
-        saveWorkflow(updatedNodesFromUI, latestUiEdges);
+        // Use ref for edges to get current value without stale closure
+        saveWorkflow(updatedNodesFromUI, latestUiEdgesRef.current);
       }
     },
-    [latestUiEdges, saveWorkflow, workflowMetadata]
+    [saveWorkflow, workflowMetadata]
   );
 
   const handleUiEdgesChanged = useCallback(
     (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
-      setLatestUiEdges(updatedEdgesFromUI);
+      latestUiEdgesRef.current = updatedEdgesFromUI;
       if (workflowMetadata) {
+        // Use state for nodes since it's always current in this callback
         saveWorkflow(latestUiNodes, updatedEdgesFromUI);
       }
     },

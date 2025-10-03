@@ -1,6 +1,6 @@
 import type { Parameter, ParameterType } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth-context";
 import type {
@@ -14,7 +14,6 @@ import {
   WorkflowWebSocket,
 } from "@/services/durable-workflow-service.ts";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
-import { debounce } from "@/utils/utils";
 
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
@@ -64,9 +63,8 @@ export function useEditableWorkflow({
 
       const ws = connectWorkflowWS(organization.handle, workflowId, {
         onInit: (state: WorkflowState) => {
-          console.log("WebSocket received initial state:", state);
           try {
-            // Store workflow metadata - id and type are required, name and handle can be empty
+            // Store workflow metadata
             if (state.id && state.type) {
               setWorkflowMetadata({
                 id: state.id,
@@ -76,6 +74,7 @@ export function useEditableWorkflow({
               });
             }
 
+            // Convert to ReactFlow format
             const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
               state.nodes,
               nodeTemplates
@@ -107,11 +106,9 @@ export function useEditableWorkflow({
           }
         },
         onOpen: () => {
-          console.log("WebSocket connected");
           setIsWSConnected(true);
         },
         onClose: () => {
-          console.log("WebSocket disconnected");
           setIsWSConnected(false);
         },
         onError: (error) => {
@@ -141,6 +138,12 @@ export function useEditableWorkflow({
       nodesToSave: Node<WorkflowNodeType>[],
       edgesToSave: Edge<WorkflowEdgeType>[]
     ) => {
+      // Block saves during initialization to prevent race condition where
+      // nodeTemplates load before edges, causing empty edges to be saved
+      if (isInitializing) {
+        return;
+      }
+
       if (!workflowId) {
         setSavingError("Workflow ID is missing, cannot save.");
         return;
@@ -211,18 +214,11 @@ export function useEditableWorkflow({
       );
       setSavingError("WebSocket not connected. Please refresh the page.");
     },
-    [workflowId]
+    [workflowId, isInitializing]
   );
 
-  const saveWorkflow = useMemo(
-    () =>
-      debounce(
-        (nodes: Node<WorkflowNodeType>[], edges: Edge<WorkflowEdgeType>[]) =>
-          saveWorkflowInternal(nodes, edges),
-        1000
-      ),
-    [saveWorkflowInternal]
-  );
+  // No debouncing needed - WebSocket handles message batching naturally
+  const saveWorkflow = saveWorkflowInternal;
 
   return {
     nodes,

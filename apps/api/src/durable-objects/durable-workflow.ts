@@ -62,6 +62,23 @@ export class DurableWorkflow extends DurableObject<Bindings> {
     this.organizationId = organizationId;
 
     try {
+      // First check if SQLite storage already has data (from previous session)
+      // This is important because SQLite storage persists across cold starts
+      const existingMetadata = this.sql
+        .exec("SELECT workflow_id FROM metadata WHERE id = ?", "default")
+        .toArray();
+
+      if (existingMetadata.length > 0) {
+        // SQLite storage has data, use it (it's more recent than D1)
+        console.log(
+          `Using existing SQLite storage for workflow ${workflowId}`
+        );
+        this.loaded = true;
+        return;
+      }
+
+      // SQLite storage is empty, load from D1 database
+      console.log(`Loading workflow ${workflowId} from D1 database`);
       const db = createDatabase(this.env.DB);
       const workflow = await getWorkflow(db, workflowId, organizationId);
 
@@ -77,17 +94,11 @@ export class DurableWorkflow extends DurableObject<Bindings> {
           : Date.now()
         : Date.now();
 
-      // Upsert metadata
+      // Insert metadata
       if (workflow) {
         this.sql.exec(
           `INSERT INTO metadata (id, workflow_id, organization_id, workflow_name, workflow_handle, workflow_type)
-           VALUES (?, ?, ?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET
-             workflow_id = excluded.workflow_id,
-             organization_id = excluded.organization_id,
-             workflow_name = excluded.workflow_name,
-             workflow_handle = excluded.workflow_handle,
-             workflow_type = excluded.workflow_type`,
+           VALUES (?, ?, ?, ?, ?, ?)`,
           "default",
           workflowId,
           organizationId,
@@ -109,14 +120,10 @@ export class DurableWorkflow extends DurableObject<Bindings> {
         );
       }
 
-      // Upsert states
+      // Insert states
       this.sql.exec(
         `INSERT INTO states (id, nodes, edges, timestamp)
-         VALUES (?, ?, ?, ?)
-         ON CONFLICT(id) DO UPDATE SET
-           nodes = excluded.nodes,
-           edges = excluded.edges,
-           timestamp = excluded.timestamp`,
+         VALUES (?, ?, ?, ?)`,
         "default",
         nodes,
         edges,
@@ -326,6 +333,8 @@ export class DurableWorkflow extends DurableObject<Bindings> {
 
       if ("type" in data && data.type === "update") {
         const updateMsg = data as WorkflowUpdateMessage;
+
+        // Update with the new state
         await this.updateState(updateMsg.nodes, updateMsg.edges);
       }
     } catch (error) {
