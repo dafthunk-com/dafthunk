@@ -50,7 +50,7 @@ export class WorkflowWebSocket {
 
     const apiBaseUrl = getApiBaseUrl();
     const wsBaseUrl = apiBaseUrl.replace(/^http/, "ws");
-    const url = `${wsBaseUrl}/${this.orgHandle}/ws?workflowId=${this.workflowId}`;
+    const url = `${wsBaseUrl}/${this.orgHandle}/ws/${this.workflowId}`;
 
     try {
       this.ws = new WebSocket(url);

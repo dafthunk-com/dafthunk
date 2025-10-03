@@ -6,7 +6,7 @@ import { ApiContext } from "../context";
 const wsRoutes = new Hono<ApiContext>();
 
 // WebSocket endpoint for real-time workflow state synchronization
-wsRoutes.get("/", jwtMiddleware, async (c) => {
+wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
   const upgradeHeader = c.req.header("Upgrade");
 
   if (!upgradeHeader || upgradeHeader !== "websocket") {
@@ -14,19 +14,11 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
   }
 
   const userId = c.var.jwtPayload?.sub;
-  const workflowId = c.req.query("workflowId");
+  const workflowId = c.req.param("workflowId");
   const organizationId = c.get("organizationId")!;
 
-  if (!userId || !workflowId || !organizationId) {
-    console.error("Missing userId, workflowId or organizationId:", {
-      userId,
-      workflowId,
-      organizationId,
-    });
-    return c.json(
-      { error: "Missing userId, workflowId or organizationId" },
-      400
-    );
+  if (!userId || !organizationId) {
+    return c.json({ error: "Unauthorized" }, 401);
   }
 
   // Create a unique DO ID for this user + workflow combination
