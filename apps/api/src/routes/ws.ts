@@ -30,8 +30,8 @@ wsRoutes.get("/", jwtMiddleware, async (c) => {
   }
 
   // Create a unique DO ID for this user + workflow combination
-  const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${workflowId}`);
-  const stub = c.env.WORKFLOW_DO.get(doId);
+  const doId = c.env.DURABLE_WORKFLOW.idFromName(`${userId}-${workflowId}`);
+  const stub = c.env.DURABLE_WORKFLOW.get(doId);
 
   // Reconstruct request with required query params for DO
   const url = new URL(c.req.url);

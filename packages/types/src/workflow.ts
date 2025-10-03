@@ -495,14 +495,6 @@ export interface WorkflowUpdateMessage {
 }
 
 /**
- * Acknowledgment message sent from server to client
- */
-export interface WorkflowAckMessage {
-  type: "ack";
-  timestamp: number;
-}
-
-/**
  * Error message sent from server to client
  */
 export interface WorkflowErrorMessage {
@@ -535,7 +527,6 @@ export interface WorkflowExecutionUpdateMessage {
 export type WorkflowMessage =
   | WorkflowInitMessage
   | WorkflowUpdateMessage
-  | WorkflowAckMessage
   | WorkflowErrorMessage
   | WorkflowExecuteMessage
   | WorkflowExecutionUpdateMessage;

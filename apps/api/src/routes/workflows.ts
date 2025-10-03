@@ -166,8 +166,8 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
 
   try {
     // Get workflow from Durable Object
-    const doId = c.env.WORKFLOW_DO.idFromName(`${userId}-${id}`);
-    const stub = c.env.WORKFLOW_DO.get(doId);
+    const doId = c.env.DURABLE_WORKFLOW.idFromName(`${userId}-${id}`);
+    const stub = c.env.DURABLE_WORKFLOW.get(doId);
     // @ts-ignore
     const workflowData = await stub.getState();
 
@@ -528,10 +528,10 @@ workflowRoutes.post(
         userId = "api"; // Use a placeholder for API-triggered executions
       }
 
-      const doId = c.env.WORKFLOW_DO.idFromName(
+      const doId = c.env.DURABLE_WORKFLOW.idFromName(
         `${userId}-${workflowIdOrHandle}`
       );
-      const stub = c.env.WORKFLOW_DO.get(doId);
+      const stub = c.env.DURABLE_WORKFLOW.get(doId);
       const state = await stub.getState();
 
       if (state) {

@@ -1,7 +1,6 @@
 import type {
   Edge,
   Node,
-  WorkflowAckMessage,
   WorkflowErrorMessage,
   WorkflowExecution,
   WorkflowExecutionUpdateMessage,
@@ -17,13 +16,11 @@ export type { WorkflowState };
 
 type WebSocketMessage =
   | WorkflowInitMessage
-  | WorkflowAckMessage
   | WorkflowErrorMessage
   | WorkflowExecutionUpdateMessage;
 
 export interface WorkflowWSOptions {
   onInit?: (state: WorkflowState) => void;
-  onAck?: (timestamp: number) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
   onOpen?: () => void;
@@ -74,8 +71,6 @@ export class WorkflowWebSocket {
             this.options.onError?.(message.error || "");
           } else if (message.type === "init") {
             this.options.onInit?.(message.state);
-          } else if (message.type === "ack") {
-            this.options.onAck?.(message.timestamp);
           } else if (message.type === "execution_update") {
             this.options.onExecutionUpdate?.({
               id: message.executionId,

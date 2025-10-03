@@ -1,5 +1,4 @@
 import {
-  WorkflowAckMessage,
   WorkflowErrorMessage,
   WorkflowInitMessage,
   WorkflowMessage,
@@ -13,7 +12,7 @@ import { Bindings } from "../context";
 import { createDatabase } from "../db/index";
 import { getWorkflow, updateWorkflow } from "../db/queries";
 
-export class WorkflowDO extends DurableObject<Bindings> {
+export class DurableWorkflow extends DurableObject<Bindings> {
   private sql: SqlStorage;
 
   private workflowId: string = "";
@@ -49,7 +48,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
   }
 
   /**
-   * Load workflow from database into DO storage if not already loaded
+   * Load workflow from database into durable storage if not already loaded
    */
   private async ensureLoaded(
     workflowId: string,
@@ -133,7 +132,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
   }
 
   /**
-   * Get state from DO storage (internal use)
+   * Get state from durable storage (internal use)
    */
   private async getStateInternal(): Promise<WorkflowState> {
     const statesCursor = this.sql.exec(
@@ -195,7 +194,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
   }
 
   /**
-   * Persist DO state back to database
+   * Persist durable state back to database
    */
   private async persistToDatabase(): Promise<void> {
     if (!this.dirty || !this.workflowId || !this.organizationId) {
@@ -228,7 +227,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
    * Alarm handler - called when alarm fires
    */
   async alarm(): Promise<void> {
-    console.log("Alarm fired for WorkflowDO");
+    console.log("Alarm fired for DurableWorkflow");
     await this.persistToDatabase();
 
     // If still dirty (updates happened during persist), schedule another alarm
@@ -328,13 +327,6 @@ export class WorkflowDO extends DurableObject<Bindings> {
       if ("type" in data && data.type === "update") {
         const updateMsg = data as WorkflowUpdateMessage;
         await this.updateState(updateMsg.nodes, updateMsg.edges);
-
-        // Optionally echo back confirmation
-        const ackMsg: WorkflowAckMessage = {
-          type: "ack",
-          timestamp: Date.now(),
-        };
-        ws.send(JSON.stringify(ackMsg));
       }
     } catch (error) {
       console.error("WebSocket message error:", error);

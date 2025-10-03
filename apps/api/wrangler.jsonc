@@ -70,8 +70,8 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "WORKFLOW_DO",
-        "class_name": "WorkflowDO",
+        "name": "DURABLE_WORKFLOW",
+        "class_name": "DurableWorkflow",
         "script_name": "dafthunk-api"
       }
     ]
@@ -79,7 +79,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["WorkflowDO"]
+      "new_sqlite_classes": ["DurableWorkflow"]
     }
   ],
   "unsafe": {
@@ -173,8 +173,8 @@
       "durable_objects": {
         "bindings": [
           {
-            "name": "WORKFLOW_DO",
-            "class_name": "WorkflowDO",
+            "name": "DURABLE_WORKFLOW",
+            "class_name": "DurableWorkflow",
             "script_name": "dafthunk-api"
           }
         ]
