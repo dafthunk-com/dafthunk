@@ -70,9 +70,7 @@ export class DurableWorkflow extends DurableObject<Bindings> {
 
       if (existingMetadata.length > 0) {
         // SQLite storage has data, use it (it's more recent than D1)
-        console.log(
-          `Using existing SQLite storage for workflow ${workflowId}`
-        );
+        console.log(`Using existing SQLite storage for workflow ${workflowId}`);
         this.loaded = true;
         return;
       }
