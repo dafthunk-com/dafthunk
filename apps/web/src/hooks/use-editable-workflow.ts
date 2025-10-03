@@ -10,9 +10,9 @@ import type {
 } from "@/components/workflow/workflow-types";
 import {
   connectWorkflowWS,
-  WorkflowDOState,
+  WorkflowState,
   WorkflowWebSocket,
-} from "@/services/workflow-do-service";
+} from "@/services/durable-workflow-service.ts";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 import { debounce } from "@/utils/utils";
 
@@ -63,7 +63,7 @@ export function useEditableWorkflow({
       }
 
       const ws = connectWorkflowWS(organization.handle, workflowId, {
-        onInit: (state: WorkflowDOState) => {
+        onInit: (state: WorkflowState) => {
           console.log("WebSocket received initial state:", state);
           try {
             // Store workflow metadata - id and type are required, name and handle can be empty

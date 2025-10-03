@@ -1,10 +1,10 @@
 import {
-  WorkflowDOAckMessage,
-  WorkflowDOErrorMessage,
-  WorkflowDOInitMessage,
-  WorkflowDOMessage,
-  WorkflowDOState,
-  WorkflowDOUpdateMessage,
+  WorkflowAckMessage,
+  WorkflowErrorMessage,
+  WorkflowInitMessage,
+  WorkflowMessage,
+  WorkflowState,
+  WorkflowUpdateMessage,
   WorkflowType,
 } from "@dafthunk/types";
 import { DurableObject } from "cloudflare:workers";
@@ -135,7 +135,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
   /**
    * Get state from DO storage (internal use)
    */
-  private async getStateInternal(): Promise<WorkflowDOState> {
+  private async getStateInternal(): Promise<WorkflowState> {
     const statesCursor = this.sql.exec(
       "SELECT nodes, edges, timestamp FROM states WHERE id = ?",
       "default"
@@ -166,7 +166,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
   /**
    * Get state (public API)
    */
-  async getState(): Promise<WorkflowDOState> {
+  async getState(): Promise<WorkflowState> {
     return await this.getStateInternal();
   }
 
@@ -286,7 +286,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
     this.ctx.acceptWebSocket(server);
 
     // Send initial state
-    let initState: WorkflowDOState;
+    let initState: WorkflowState;
     try {
       initState = await this.getState();
     } catch {
@@ -301,7 +301,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
         timestamp: Date.now(),
       };
     }
-    const initMessage: WorkflowDOInitMessage = {
+    const initMessage: WorkflowInitMessage = {
       type: "init",
       state: initState,
     };
@@ -316,21 +316,21 @@ export class WorkflowDO extends DurableObject<Bindings> {
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     try {
       if (typeof message !== "string") {
-        const errorMsg: WorkflowDOErrorMessage = {
+        const errorMsg: WorkflowErrorMessage = {
           error: "Expected string message",
         };
         ws.send(JSON.stringify(errorMsg));
         return;
       }
 
-      const data = JSON.parse(message) as WorkflowDOMessage;
+      const data = JSON.parse(message) as WorkflowMessage;
 
       if ("type" in data && data.type === "update") {
-        const updateMsg = data as WorkflowDOUpdateMessage;
+        const updateMsg = data as WorkflowUpdateMessage;
         await this.updateState(updateMsg.nodes, updateMsg.edges);
 
         // Optionally echo back confirmation
-        const ackMsg: WorkflowDOAckMessage = {
+        const ackMsg: WorkflowAckMessage = {
           type: "ack",
           timestamp: Date.now(),
         };
@@ -338,7 +338,7 @@ export class WorkflowDO extends DurableObject<Bindings> {
       }
     } catch (error) {
       console.error("WebSocket message error:", error);
-      const errorMsg: WorkflowDOErrorMessage = {
+      const errorMsg: WorkflowErrorMessage = {
         error: "Failed to process message",
         details: error instanceof Error ? error.message : "Unknown error",
       };
