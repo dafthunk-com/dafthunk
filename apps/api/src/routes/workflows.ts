@@ -164,51 +164,40 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
+  const db = createDatabase(c.env.DB);
+
   try {
-    // Get workflow from Durable Object
+    // Try Durable Object first
     const doId = c.env.DURABLE_WORKFLOW.idFromName(`${userId}-${id}`);
-    const stub = c.env.DURABLE_WORKFLOW.get(doId);
-    // @ts-ignore
-    const workflowData = await stub.getState();
-
-    if (!workflowData) {
-      // If DO doesn't have it, fall back to database
-      const db = createDatabase(c.env.DB);
-      const workflow = await getWorkflow(db, id, organizationId);
-      if (!workflow) {
-        return c.json({ error: "Workflow not found" }, 404);
-      }
-
-      const workflowData = workflow.data;
-
-      const response: GetWorkflowResponse = {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        type: workflowData.type,
-        createdAt: workflow.createdAt,
-        updatedAt: workflow.updatedAt,
-        nodes: workflowData.nodes || [],
-        edges: workflowData.edges || [],
-      };
-
-      return c.json(response);
+    const stub: any = c.env.DURABLE_WORKFLOW.get(doId);
+    let workflowData: any = null;
+    try {
+      workflowData = await stub.getState();
+    } catch {
+      // DO doesn't have data yet, will fall back to database
+      workflowData = null;
     }
 
-    // Get metadata from database for createdAt/updatedAt
-    const db = createDatabase(c.env.DB);
+    // Get metadata from database for timestamps
     const workflow = await getWorkflow(db, id, organizationId);
 
+    if (!workflowData && !workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    // Extract values to avoid deep type instantiation
+    const nodes: any = workflowData?.nodes || workflow!.data.nodes || [];
+    const edges: any = workflowData?.edges || workflow!.data.edges || [];
+
     const response: GetWorkflowResponse = {
-      id: workflowData.id,
-      name: workflowData.name,
-      handle: workflowData.handle,
-      type: workflowData.type,
+      id: workflowData?.id || workflow!.id,
+      name: workflowData?.name || workflow!.name,
+      handle: workflowData?.handle || workflow!.handle,
+      type: workflowData?.type || workflow!.data.type,
       createdAt: workflow?.createdAt || new Date(),
       updatedAt: workflow?.updatedAt || new Date(),
-      // @ts-ignore
-      nodes: workflowData.nodes || [],
-      edges: workflowData.edges || [],
+      nodes,
+      edges,
     };
 
     return c.json(response);
@@ -519,22 +508,14 @@ workflowRoutes.post(
     let deploymentId: string | undefined;
 
     if (version === "dev") {
-      // Get workflow data from Durable Object first
-      let userId: string;
-      const jwtPayload = c.get("jwtPayload") as JWTTokenPayload | undefined;
-      if (jwtPayload) {
-        userId = jwtPayload.sub || "anonymous";
-      } else {
-        userId = "api"; // Use a placeholder for API-triggered executions
-      }
-
+      // Get workflow data from Durable Object first (userId already defined above)
       const doId = c.env.DURABLE_WORKFLOW.idFromName(
         `${userId}-${workflowIdOrHandle}`
       );
-      const stub = c.env.DURABLE_WORKFLOW.get(doId);
-      const state = await stub.getState();
+      const stub: any = c.env.DURABLE_WORKFLOW.get(doId);
 
-      if (state) {
+      try {
+        const state = await stub.getState();
         workflowData = {
           type: state.type,
           nodes: state.nodes || [],
@@ -545,7 +526,7 @@ workflowRoutes.post(
           name: state.name,
           handle: state.handle,
         };
-      } else {
+      } catch {
         // Fallback to database
         workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
         if (!workflow) {
