@@ -1,4 +1,6 @@
 import {
+  Edge,
+  Node,
   WorkflowErrorMessage,
   WorkflowInitMessage,
   WorkflowMessage,
@@ -13,95 +15,40 @@ import { createDatabase } from "../db/index";
 import { getWorkflow, updateWorkflow } from "../db/queries";
 
 export class DurableWorkflow extends DurableObject<Bindings> {
-  private static readonly PERSIST_DELAY_MS = 60_000;
-  private static readonly STORAGE_ID = "current";
-
-  private sql: SqlStorage;
-  private workflowId: string = "";
-  private organizationId: string = "";
-  private loaded: boolean = false;
-  private dirty: boolean = false;
+  private state: WorkflowState | null = null;
+  private workflowId: string | null = null;
+  private organizationId: string | null = null;
 
   constructor(ctx: DurableObjectState, env: Bindings) {
     super(ctx, env);
-    this.sql = this.ctx.storage.sql;
-    this.initDatabase();
-  }
-
-  private initDatabase() {
-    this.sql.exec(`
-      CREATE TABLE IF NOT EXISTS workflow (
-        id TEXT PRIMARY KEY DEFAULT 'current',
-        workflow_id TEXT NOT NULL,
-        organization_id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        handle TEXT NOT NULL,
-        type TEXT NOT NULL,
-        nodes TEXT NOT NULL,
-        edges TEXT NOT NULL,
-        timestamp INTEGER NOT NULL
-      )
-    `);
   }
 
   /**
-   * Load workflow from database into durable storage if not already loaded
+   * Load workflow from D1 database into memory
    */
-  private async ensureLoaded(
+  private async loadState(
     workflowId: string,
     organizationId: string
   ): Promise<void> {
-    if (this.loaded) {
-      return;
-    }
-
     this.workflowId = workflowId;
     this.organizationId = organizationId;
 
-    try {
-      // First check if SQLite storage already has data (from previous session)
-      // This is important because SQLite storage persists across cold starts
-      const existing = this.sql
-        .exec(
-          "SELECT workflow_id FROM workflow WHERE id = ?",
-          DurableWorkflow.STORAGE_ID
-        )
-        .toArray();
+    console.log(`Loading workflow ${workflowId} from D1 database`);
+    const db = createDatabase(this.env.DB);
+    const workflow = await getWorkflow(db, workflowId, organizationId);
 
-      if (existing.length > 0) {
-        console.log(`Using existing SQLite storage for workflow ${workflowId}`);
-        this.loaded = true;
-        return;
-      }
+    const { name, handle, type, nodes, edges, timestamp } =
+      this.extractWorkflowData(workflow);
 
-      // SQLite storage is empty, load from D1 database
-      console.log(`Loading workflow ${workflowId} from D1 database`);
-      const db = createDatabase(this.env.DB);
-      const workflow = await getWorkflow(db, workflowId, organizationId);
-
-      const { name, handle, type, nodes, edges, timestamp } =
-        this.extractWorkflowData(workflow);
-
-      this.sql.exec(
-        `INSERT INTO workflow (id, workflow_id, organization_id, name, handle, type, nodes, edges, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        DurableWorkflow.STORAGE_ID,
-        workflowId,
-        organizationId,
-        name,
-        handle,
-        type,
-        nodes,
-        edges,
-        timestamp
-      );
-
-      this.dirty = false;
-    } catch (error) {
-      console.error("Error loading workflow:", error);
-    }
-
-    this.loaded = true;
+    this.state = {
+      id: workflowId,
+      name,
+      handle,
+      type,
+      nodes,
+      edges,
+      timestamp,
+    };
   }
 
   private extractWorkflowData(workflow: any) {
@@ -109,102 +56,65 @@ export class DurableWorkflow extends DurableObject<Bindings> {
       name: workflow?.name || "New Workflow",
       handle: workflow?.handle || this.workflowId,
       type: (workflow?.data?.type || "manual") as WorkflowType,
-      nodes: JSON.stringify(workflow?.data?.nodes || []),
-      edges: JSON.stringify(workflow?.data?.edges || []),
+      nodes: workflow?.data?.nodes || [],
+      edges: workflow?.data?.edges || [],
       timestamp: workflow?.updatedAt?.getTime() || Date.now(),
     };
   }
 
   /**
-   * Get state from durable storage
+   * Get state from memory
    */
   async getState(): Promise<WorkflowState> {
-    const row = this.sql
-      .exec(
-        `SELECT workflow_id as id, name, handle, type, nodes, edges, timestamp 
-         FROM workflow WHERE id = ?`,
-        DurableWorkflow.STORAGE_ID
-      )
-      .toArray()[0];
-
-    if (!row) {
-      throw new Error("State missing; call ensureLoaded first");
+    if (!this.state) {
+      throw new Error("State not loaded");
     }
 
-    return {
-      id: row.id as string,
-      name: row.name as string,
-      handle: row.handle as string,
-      type: row.type as WorkflowType,
-      nodes: JSON.parse(row.nodes as string),
-      edges: JSON.parse(row.edges as string),
-      timestamp: row.timestamp as number,
-    };
+    return this.state;
   }
 
-  async updateState(nodes: unknown[], edges: unknown[]): Promise<void> {
-    const timestamp = Date.now();
-    this.sql.exec(
-      `UPDATE workflow SET nodes = ?, edges = ?, timestamp = ? WHERE id = ?`,
-      JSON.stringify(nodes),
-      JSON.stringify(edges),
-      timestamp,
-      DurableWorkflow.STORAGE_ID
-    );
-
-    this.dirty = true;
-
-    // Schedule an alarm to persist to database if not already scheduled
-    const currentAlarm = await this.ctx.storage.getAlarm();
-    if (currentAlarm === null) {
-      await this.ctx.storage.setAlarm(
-        Date.now() + DurableWorkflow.PERSIST_DELAY_MS
-      );
+  async updateState(nodes: Node[], edges: Edge[]): Promise<void> {
+    if (!this.state) {
+      throw new Error("State not loaded");
     }
+
+    const timestamp = Date.now();
+    this.state = {
+      ...this.state,
+      nodes,
+      edges,
+      timestamp,
+    };
+
+    // Persist immediately to D1
+    await this.persistToDatabase();
   }
 
   /**
-   * Persist durable state back to database
+   * Persist state back to D1 database
    */
   private async persistToDatabase(): Promise<void> {
-    if (!this.dirty || !this.workflowId || !this.organizationId) {
+    if (!this.state || !this.workflowId || !this.organizationId) {
       return;
     }
 
     try {
-      const state = await this.getState();
       const db = createDatabase(this.env.DB);
       await updateWorkflow(db, this.workflowId, this.organizationId, {
-        name: state.name,
+        name: this.state.name,
         data: {
-          id: state.id,
-          name: state.name,
-          handle: state.handle,
-          type: state.type,
-          nodes: state.nodes,
-          edges: state.edges,
+          id: this.state.id,
+          name: this.state.name,
+          handle: this.state.handle,
+          type: this.state.type,
+          nodes: this.state.nodes,
+          edges: this.state.edges,
         },
       });
 
-      this.dirty = false;
-      console.log(`Persisted workflow ${this.workflowId} to database`);
+      console.log(`Persisted workflow ${this.workflowId} to D1 database`);
     } catch (error) {
       console.error("Error persisting workflow to database:", error);
-    }
-  }
-
-  /**
-   * Alarm handler - called when alarm fires
-   */
-  async alarm(): Promise<void> {
-    console.log("Alarm fired for DurableWorkflow");
-    await this.persistToDatabase();
-
-    // If still dirty (updates happened during persist), schedule another alarm
-    if (this.dirty) {
-      await this.ctx.storage.setAlarm(
-        Date.now() + DurableWorkflow.PERSIST_DELAY_MS
-      );
     }
   }
 
@@ -213,8 +123,23 @@ export class DurableWorkflow extends DurableObject<Bindings> {
     const workflowId = url.searchParams.get("workflowId") || "";
     const organizationId = url.searchParams.get("organizationId") || "";
 
-    if (workflowId && organizationId) {
-      await this.ensureLoaded(workflowId, organizationId);
+    if (!workflowId || !organizationId) {
+      return new Response("Missing workflowId or organizationId", {
+        status: 400,
+      });
+    }
+
+    try {
+      await this.loadState(workflowId, organizationId);
+    } catch (error) {
+      console.error("Error loading workflow:", error);
+      return Response.json(
+        {
+          error: "Failed to load workflow",
+          details: error instanceof Error ? error.message : "Unknown error",
+        },
+        { status: 404 }
+      );
     }
 
     if (url.pathname === "/state" && request.method === "GET") {
@@ -267,19 +192,7 @@ export class DurableWorkflow extends DurableObject<Bindings> {
   }
 
   private async getInitialState(): Promise<WorkflowState> {
-    try {
-      return await this.getState();
-    } catch {
-      return {
-        id: this.workflowId,
-        name: "New Workflow",
-        handle: this.workflowId,
-        type: "manual",
-        nodes: [],
-        edges: [],
-        timestamp: Date.now(),
-      };
-    }
+    return await this.getState();
   }
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
@@ -311,11 +224,12 @@ export class DurableWorkflow extends DurableObject<Bindings> {
   }
 
   async webSocketClose(
-    ws: WebSocket,
-    code: number,
-    reason: string,
+    _ws: WebSocket,
+    _code: number,
+    _reason: string,
     _wasClean: boolean
   ) {
-    ws.close(code, reason);
+    // Persist any pending changes to D1 before closing
+    await this.persistToDatabase();
   }
 }
