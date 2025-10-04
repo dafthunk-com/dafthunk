@@ -14,15 +14,15 @@ import { Bindings } from "../context";
 import { createDatabase } from "../db/index";
 import { getWorkflowWithUserAccess, updateWorkflow } from "../db/queries";
 
-interface WorkflowSession {
-  state: WorkflowState;
+interface WorkflowSessionPair {
+  workflowState: WorkflowState;
   organizationId: string;
 }
 
-export class UserSession extends DurableObject<Bindings> {
+export class WorkflowSession extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
 
-  private workflows: Map<string, WorkflowSession> = new Map();
+  private workflows: Map<string, WorkflowSessionPair> = new Map();
   private pendingPersist: Map<string, number> = new Map();
 
   constructor(ctx: DurableObjectState, env: Bindings) {
@@ -59,7 +59,7 @@ export class UserSession extends DurableObject<Bindings> {
       timestamp,
     };
 
-    this.workflows.set(workflowId, { state, organizationId });
+    this.workflows.set(workflowId, { workflowState: state, organizationId });
   }
 
   private extractWorkflowData(workflow: any, workflowId: string) {
@@ -82,7 +82,7 @@ export class UserSession extends DurableObject<Bindings> {
       throw new Error(`Workflow ${workflowId} not loaded`);
     }
 
-    return session.state;
+    return session.workflowState;
   }
 
   async updateState(state: WorkflowState): Promise<void> {
@@ -92,8 +92,8 @@ export class UserSession extends DurableObject<Bindings> {
     }
 
     // Validate incoming state matches session
-    if (state.id !== session.state.id) {
-      throw new Error(`Workflow ID mismatch: expected ${session.state.id}, got ${state.id}`);
+    if (state.id !== session.workflowState.id) {
+      throw new Error(`Workflow ID mismatch: expected ${session.workflowState.id}, got ${state.id}`);
     }
 
     // Validate required fields
@@ -106,7 +106,7 @@ export class UserSession extends DurableObject<Bindings> {
       throw new Error("Invalid state: nodes and edges must be arrays");
     }
 
-    this.workflows.set(state.id, { ...session, state });
+    this.workflows.set(state.id, { ...session, workflowState: state });
 
     // Debounce persistence to reduce D1 writes on rapid updates
     this.schedulePersist(state.id);
@@ -126,7 +126,7 @@ export class UserSession extends DurableObject<Bindings> {
     const timeoutId = setTimeout(() => {
       this.persistToDatabase(workflowId);
       this.pendingPersist.delete(workflowId);
-    }, UserSession.PERSIST_DEBOUNCE_MS) as unknown as number;
+    }, WorkflowSession.PERSIST_DEBOUNCE_MS) as unknown as number;
 
     this.pendingPersist.set(workflowId, timeoutId);
   }
@@ -144,14 +144,14 @@ export class UserSession extends DurableObject<Bindings> {
     try {
       const db = createDatabase(this.env.DB);
       await updateWorkflow(db, workflowId, session.organizationId, {
-        name: session.state.name,
+        name: session.workflowState.name,
         data: {
-          id: session.state.id,
-          name: session.state.name,
-          handle: session.state.handle,
-          type: session.state.type,
-          nodes: session.state.nodes,
-          edges: session.state.edges,
+          id: session.workflowState.id,
+          name: session.workflowState.name,
+          handle: session.workflowState.handle,
+          type: session.workflowState.type,
+          nodes: session.workflowState.nodes,
+          edges: session.workflowState.edges,
         },
       });
 

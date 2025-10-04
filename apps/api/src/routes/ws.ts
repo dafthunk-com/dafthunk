@@ -20,8 +20,8 @@ wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
   }
 
   // Create a unique DO ID for this user
-  const doId = c.env.USER_SESSION.idFromName(userId);
-  const stub = c.env.USER_SESSION.get(doId);
+  const doId = c.env.WORKFLOW_SESSION.idFromName(userId);
+  const stub = c.env.WORKFLOW_SESSION.get(doId);
 
   // Pass the original request with userId in a custom header
   const headers = new Headers(c.req.raw.headers);

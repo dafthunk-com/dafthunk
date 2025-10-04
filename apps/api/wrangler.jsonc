@@ -70,8 +70,8 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "USER_SESSION",
-        "class_name": "UserSession",
+        "name": "WORKFLOW_SESSION",
+        "class_name": "WorkflowSession",
         "script_name": "dafthunk-api"
       }
     ]
@@ -79,7 +79,7 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["UserSession"]
+      "new_sqlite_classes": ["WorkflowSession"]
     }
   ],
   "unsafe": {
@@ -173,8 +173,8 @@
       "durable_objects": {
         "bindings": [
           {
-            "name": "USER_SESSION",
-            "class_name": "UserSession",
+            "name": "WORKFLOW_SESSION",
+            "class_name": "WorkflowSession",
             "script_name": "dafthunk-api"
           }
         ]

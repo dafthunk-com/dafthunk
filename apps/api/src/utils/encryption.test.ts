@@ -5,7 +5,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { Bindings } from "../context";
-import { UserSession } from "../durable-objects/user-session";
+import { WorkflowSession } from "../durable-objects/workflow-session";
 import { decryptSecret, encryptSecret } from "./encryption";
 
 // Mock Bindings for testing
@@ -21,7 +21,7 @@ const createMockEnv = (masterKey?: string): Bindings => ({
   RATE_LIMIT_AUTH: {} as RateLimit,
   RATE_LIMIT_EXECUTE: {} as RateLimit,
   EXECUTE: {} as Workflow<any>,
-  USER_SESSION: {} as DurableObjectNamespace<UserSession>,
+  WORKFLOW_SESSION: {} as DurableObjectNamespace<WorkflowSession>,
   RESSOURCES: {} as R2Bucket,
   DATASETS: {} as R2Bucket,
   DATASETS_AUTORAG: "",

@@ -168,8 +168,8 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
 
   try {
     // Try Durable Object first
-    const doId = c.env.USER_SESSION.idFromName(`${userId}-${id}`);
-    const stub: any = c.env.USER_SESSION.get(doId);
+    const doId = c.env.WORKFLOW_SESSION.idFromName(`${userId}-${id}`);
+    const stub: any = c.env.WORKFLOW_SESSION.get(doId);
     let workflowData: any = null;
     try {
       workflowData = await stub.getState();
@@ -509,10 +509,10 @@ workflowRoutes.post(
 
     if (version === "dev") {
       // Get workflow data from Durable Object first (userId already defined above)
-      const doId = c.env.USER_SESSION.idFromName(
+      const doId = c.env.WORKFLOW_SESSION.idFromName(
         `${userId}-${workflowIdOrHandle}`
       );
-      const stub: any = c.env.USER_SESSION.get(doId);
+      const stub: any = c.env.WORKFLOW_SESSION.get(doId);
 
       try {
         const state = await stub.getState();

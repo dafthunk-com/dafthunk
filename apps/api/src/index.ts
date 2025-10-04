@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-export { UserSession } from "./durable-objects/user-session";
+export { WorkflowSession } from "./durable-objects/workflow-session";
 export { Runtime } from "./runtime/runtime";
 import auth from "./auth";
 import { ApiContext } from "./context";
