@@ -303,6 +303,37 @@ export async function getWorkflow(
 }
 
 /**
+ * Get a workflow that the user has access to through their organization memberships
+ *
+ * @param db Database instance
+ * @param workflowIdOrHandle Workflow ID or handle
+ * @param userId User ID to check access for
+ * @returns The workflow and organization ID if user has access, undefined otherwise
+ */
+export async function getWorkflowWithUserAccess(
+  db: ReturnType<typeof createDatabase>,
+  workflowIdOrHandle: string,
+  userId: string
+): Promise<{ workflow: WorkflowRow; organizationId: string } | undefined> {
+  const [result] = await db
+    .select({
+      workflow: workflows,
+      organizationId: workflows.organizationId,
+    })
+    .from(workflows)
+    .innerJoin(memberships, eq(workflows.organizationId, memberships.organizationId))
+    .where(
+      and(
+        eq(memberships.userId, userId),
+        getWorkflowCondition(workflowIdOrHandle)
+      )
+    )
+    .limit(1);
+
+  return result ? { workflow: result.workflow, organizationId: result.organizationId } : undefined;
+}
+
+/**
  * Get the latest deployment for a workflow
  *
  * @param db Database instance

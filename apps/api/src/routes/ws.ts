@@ -14,22 +14,24 @@ wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
   }
 
   const userId = c.var.jwtPayload?.sub;
-  const workflowId = c.req.param("workflowId");
-  const organizationId = c.get("organizationId")!;
 
-  if (!userId || !organizationId) {
+  if (!userId) {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  // Create a unique DO ID for this user + workflow combination
-  const doId = c.env.DURABLE_WORKFLOW.idFromName(`${userId}-${workflowId}`);
-  const stub = c.env.DURABLE_WORKFLOW.get(doId);
+  // Create a unique DO ID for this user
+  const doId = c.env.USER_SESSION.idFromName(userId);
+  const stub = c.env.USER_SESSION.get(doId);
 
-  // Reconstruct request with required query params for DO
-  const url = new URL(c.req.url);
-  url.searchParams.set("organizationId", organizationId);
-  url.searchParams.set("workflowId", workflowId);
-  const newReq = new Request(url.toString(), c.req.raw);
+  // Pass the original request with userId in a custom header
+  const headers = new Headers(c.req.raw.headers);
+  headers.set("X-User-Id", userId);
+  const newReq = new Request(c.req.url, {
+    method: c.req.method,
+    headers,
+    body: c.req.raw.body,
+  });
+
   return stub.fetch(newReq);
 });
 
