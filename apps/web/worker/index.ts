@@ -24,7 +24,7 @@ async function handleRequest(
 
   // Handle static assets first
   const assetPattern =
-    /\.(js|css|svg|png|jpg|jpeg|gif|ico|webmanifest|map|txt|json)$/i;
+    /\.(js|css|svg|png|jpg|jpeg|gif|ico|webmanifest|map|txt|json|mp3|mp4|webm|wav|ogg)$/i;
   if (assetPattern.test(url.pathname) || url.pathname.startsWith("/assets/")) {
     return await env.ASSETS.fetch(request);
   }
