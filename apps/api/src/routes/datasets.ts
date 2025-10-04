@@ -26,7 +26,6 @@ import {
   getDatasets,
   updateDataset,
 } from "../db";
-import { developerModeMiddleware } from "../middleware/developer-mode";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -38,7 +37,7 @@ type ExtendedApiContext = ApiContext & {
 const datasetRoutes = new Hono<ExtendedApiContext>();
 
 // Apply early access middleware to all dataset routes
-datasetRoutes.use("*", jwtMiddleware, developerModeMiddleware);
+datasetRoutes.use("*", jwtMiddleware);
 
 /**
  * List all datasets for the current organization

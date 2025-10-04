@@ -490,8 +490,7 @@ export interface WorkflowInitMessage {
  */
 export interface WorkflowUpdateMessage {
   type: "update";
-  nodes: Node[];
-  edges: Edge[];
+  state: WorkflowState;
 }
 
 /**

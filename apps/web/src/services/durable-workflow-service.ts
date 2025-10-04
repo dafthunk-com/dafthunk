@@ -33,6 +33,7 @@ export class WorkflowWebSocket {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000; // Start with 1 second
   private shouldReconnect = true;
+  private currentState: WorkflowState | null = null;
 
   constructor(
     private orgHandle: string,
@@ -70,6 +71,7 @@ export class WorkflowWebSocket {
             console.error("WebSocket error message:", message.error);
             this.options.onError?.(message.error || "");
           } else if (message.type === "init") {
+            this.currentState = message.state;
             this.options.onInit?.(message.state);
           } else if (message.type === "execution_update") {
             this.options.onExecutionUpdate?.({
@@ -124,12 +126,25 @@ export class WorkflowWebSocket {
       return;
     }
 
+    if (!this.currentState) {
+      console.warn("No current state available, cannot send update");
+      return;
+    }
+
     try {
-      const updateMsg: WorkflowUpdateMessage = {
-        type: "update",
+      const updatedState: WorkflowState = {
+        ...this.currentState,
         nodes,
         edges,
+        timestamp: Date.now(),
       };
+
+      const updateMsg: WorkflowUpdateMessage = {
+        type: "update",
+        state: updatedState,
+      };
+
+      this.currentState = updatedState;
       this.ws.send(JSON.stringify(updateMsg));
     } catch (error) {
       console.error("Failed to send WebSocket message:", error);

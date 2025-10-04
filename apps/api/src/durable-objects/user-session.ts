@@ -20,8 +20,10 @@ interface WorkflowSession {
 }
 
 export class UserSession extends DurableObject<Bindings> {
+  private static readonly PERSIST_DEBOUNCE_MS = 500;
+
   private workflows: Map<string, WorkflowSession> = new Map();
-  private webSocketWorkflows: Map<WebSocket, string> = new Map();
+  private pendingPersist: Map<string, number> = new Map();
 
   constructor(ctx: DurableObjectState, env: Bindings) {
     super(ctx, env);
@@ -83,24 +85,50 @@ export class UserSession extends DurableObject<Bindings> {
     return session.state;
   }
 
-  async updateState(workflowId: string, nodes: Node[], edges: Edge[]): Promise<void> {
-    const session = this.workflows.get(workflowId);
+  async updateState(state: WorkflowState): Promise<void> {
+    const session = this.workflows.get(state.id);
     if (!session) {
-      throw new Error(`Workflow ${workflowId} not loaded`);
+      throw new Error(`Workflow ${state.id} not loaded`);
     }
 
-    const timestamp = Date.now();
-    const updatedState: WorkflowState = {
-      ...session.state,
-      nodes,
-      edges,
-      timestamp,
-    };
+    // Validate incoming state matches session
+    if (state.id !== session.state.id) {
+      throw new Error(`Workflow ID mismatch: expected ${session.state.id}, got ${state.id}`);
+    }
 
-    this.workflows.set(workflowId, { ...session, state: updatedState });
+    // Validate required fields
+    if (!state.name || !state.handle || !state.type) {
+      throw new Error("Invalid state: missing required fields (name, handle, or type)");
+    }
 
-    // Persist immediately to D1
-    await this.persistToDatabase(workflowId);
+    // Validate arrays are present
+    if (!Array.isArray(state.nodes) || !Array.isArray(state.edges)) {
+      throw new Error("Invalid state: nodes and edges must be arrays");
+    }
+
+    this.workflows.set(state.id, { ...session, state });
+
+    // Debounce persistence to reduce D1 writes on rapid updates
+    this.schedulePersist(state.id);
+  }
+
+  /**
+   * Schedule a debounced persist for a workflow
+   */
+  private schedulePersist(workflowId: string): void {
+    // Clear any existing timeout
+    const existingTimeout = this.pendingPersist.get(workflowId);
+    if (existingTimeout !== undefined) {
+      clearTimeout(existingTimeout);
+    }
+
+    // Schedule new persist
+    const timeoutId = setTimeout(() => {
+      this.persistToDatabase(workflowId);
+      this.pendingPersist.delete(workflowId);
+    }, UserSession.PERSIST_DEBOUNCE_MS) as unknown as number;
+
+    this.pendingPersist.set(workflowId, timeoutId);
   }
 
   /**
@@ -155,17 +183,20 @@ export class UserSession extends DurableObject<Bindings> {
       });
     }
 
-    try {
-      await this.loadState(workflowId, userId);
-    } catch (error) {
-      console.error("Error loading workflow:", error);
-      return Response.json(
-        {
-          error: "Failed to load workflow",
-          details: error instanceof Error ? error.message : "Unknown error",
-        },
-        { status: 403 }
-      );
+    // Only load if not already in memory
+    if (!this.workflows.has(workflowId)) {
+      try {
+        await this.loadState(workflowId, userId);
+      } catch (error) {
+        console.error("Error loading workflow:", error);
+        return Response.json(
+          {
+            error: "Failed to load workflow",
+            details: error instanceof Error ? error.message : "Unknown error",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     if (url.pathname.endsWith("/state") && request.method === "GET") {
@@ -203,7 +234,6 @@ export class UserSession extends DurableObject<Bindings> {
     const [client, server] = Object.values(webSocketPair);
 
     this.ctx.acceptWebSocket(server);
-    this.webSocketWorkflows.set(server, workflowId);
 
     const initState = await this.getState(workflowId);
     const initMessage: WorkflowInitMessage = {
@@ -219,12 +249,6 @@ export class UserSession extends DurableObject<Bindings> {
   }
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-    const workflowId = this.webSocketWorkflows.get(ws);
-    if (!workflowId) {
-      console.error("WebSocket not associated with any workflow");
-      return;
-    }
-
     try {
       if (typeof message !== "string") {
         const errorMsg: WorkflowErrorMessage = {
@@ -240,7 +264,7 @@ export class UserSession extends DurableObject<Bindings> {
         const updateMsg = data as WorkflowUpdateMessage;
 
         // Update with the new state
-        await this.updateState(workflowId, updateMsg.nodes, updateMsg.edges);
+        await this.updateState(updateMsg.state);
       }
     } catch (error) {
       console.error("WebSocket message error:", error);
@@ -253,16 +277,20 @@ export class UserSession extends DurableObject<Bindings> {
   }
 
   async webSocketClose(
-    ws: WebSocket,
+    _ws: WebSocket,
     _code: number,
     _reason: string,
     _wasClean: boolean
   ) {
-    const workflowId = this.webSocketWorkflows.get(ws);
-    if (workflowId) {
-      // Persist any pending changes to D1 before closing
-      await this.persistToDatabase(workflowId);
-      this.webSocketWorkflows.delete(ws);
+    // Flush all pending persists when connection closes
+    const persistPromises: Promise<void>[] = [];
+
+    for (const [workflowId, timeoutId] of this.pendingPersist.entries()) {
+      clearTimeout(timeoutId);
+      persistPromises.push(this.persistToDatabase(workflowId));
+      this.pendingPersist.delete(workflowId);
     }
+
+    await Promise.all(persistPromises);
   }
 }
