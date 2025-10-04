@@ -19,8 +19,10 @@ wsRoutes.get("/:workflowId", jwtMiddleware, async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  // Create a unique DO ID for this user
-  const doId = c.env.WORKFLOW_SESSION.idFromName(userId);
+  const workflowId = c.req.param("workflowId");
+
+  // Create a unique DO ID for this workflow
+  const doId = c.env.WORKFLOW_SESSION.idFromName(workflowId);
   const stub = c.env.WORKFLOW_SESSION.get(doId);
 
   // Pass the original request with userId in a custom header

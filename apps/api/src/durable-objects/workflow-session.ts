@@ -14,16 +14,13 @@ import { Bindings } from "../context";
 import { createDatabase } from "../db/index";
 import { getWorkflowWithUserAccess, updateWorkflow } from "../db/queries";
 
-interface WorkflowSessionPair {
-  workflowState: WorkflowState;
-  organizationId: string;
-}
-
 export class WorkflowSession extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
 
-  private workflows: Map<string, WorkflowSessionPair> = new Map();
-  private pendingPersist: Map<string, number> = new Map();
+  private state: WorkflowState | null = null;
+  private organizationId: string | null = null;
+  private pendingPersistTimeout: number | undefined = undefined;
+  private connectedUsers: Set<WebSocket> = new Set();
 
   constructor(ctx: DurableObjectState, env: Bindings) {
     super(ctx, env);
@@ -49,7 +46,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
     const { name, handle, type, nodes, edges, timestamp } =
       this.extractWorkflowData(workflow, workflowId);
 
-    const state: WorkflowState = {
+    this.state = {
       id: workflowId,
       name,
       handle,
@@ -59,7 +56,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
       timestamp,
     };
 
-    this.workflows.set(workflowId, { workflowState: state, organizationId });
+    this.organizationId = organizationId;
   }
 
   private extractWorkflowData(workflow: any, workflowId: string) {
@@ -74,26 +71,24 @@ export class WorkflowSession extends DurableObject<Bindings> {
   }
 
   /**
-   * Get state from memory for a specific workflow
+   * Get state from memory
    */
-  async getState(workflowId: string): Promise<WorkflowState> {
-    const session = this.workflows.get(workflowId);
-    if (!session) {
-      throw new Error(`Workflow ${workflowId} not loaded`);
+  async getState(): Promise<WorkflowState> {
+    if (!this.state) {
+      throw new Error("Workflow not loaded");
     }
 
-    return session.workflowState;
+    return this.state;
   }
 
   async updateState(state: WorkflowState): Promise<void> {
-    const session = this.workflows.get(state.id);
-    if (!session) {
-      throw new Error(`Workflow ${state.id} not loaded`);
+    if (!this.state) {
+      throw new Error("Workflow not loaded");
     }
 
-    // Validate incoming state matches session
-    if (state.id !== session.workflowState.id) {
-      throw new Error(`Workflow ID mismatch: expected ${session.workflowState.id}, got ${state.id}`);
+    // Validate incoming state matches current state
+    if (state.id !== this.state.id) {
+      throw new Error(`Workflow ID mismatch: expected ${this.state.id}, got ${state.id}`);
     }
 
     // Validate required fields
@@ -106,56 +101,73 @@ export class WorkflowSession extends DurableObject<Bindings> {
       throw new Error("Invalid state: nodes and edges must be arrays");
     }
 
-    this.workflows.set(state.id, { ...session, workflowState: state });
+    this.state = state;
+
+    // Broadcast to all connected users
+    this.broadcast(state);
 
     // Debounce persistence to reduce D1 writes on rapid updates
-    this.schedulePersist(state.id);
+    this.schedulePersist();
   }
 
   /**
-   * Schedule a debounced persist for a workflow
+   * Broadcast state update to all connected users
    */
-  private schedulePersist(workflowId: string): void {
+  private broadcast(state: WorkflowState): void {
+    const updateMsg: WorkflowUpdateMessage = {
+      type: "update",
+      state,
+    };
+    const message = JSON.stringify(updateMsg);
+
+    for (const ws of this.connectedUsers) {
+      try {
+        ws.send(message);
+      } catch (error) {
+        console.error("Error broadcasting to WebSocket:", error);
+      }
+    }
+  }
+
+  /**
+   * Schedule a debounced persist
+   */
+  private schedulePersist(): void {
     // Clear any existing timeout
-    const existingTimeout = this.pendingPersist.get(workflowId);
-    if (existingTimeout !== undefined) {
-      clearTimeout(existingTimeout);
+    if (this.pendingPersistTimeout !== undefined) {
+      clearTimeout(this.pendingPersistTimeout);
     }
 
     // Schedule new persist
-    const timeoutId = setTimeout(() => {
-      this.persistToDatabase(workflowId);
-      this.pendingPersist.delete(workflowId);
+    this.pendingPersistTimeout = setTimeout(() => {
+      this.persistToDatabase();
+      this.pendingPersistTimeout = undefined;
     }, WorkflowSession.PERSIST_DEBOUNCE_MS) as unknown as number;
-
-    this.pendingPersist.set(workflowId, timeoutId);
   }
 
   /**
    * Persist state back to D1 database
    */
-  private async persistToDatabase(workflowId: string): Promise<void> {
-    const session = this.workflows.get(workflowId);
-
-    if (!session) {
+  private async persistToDatabase(): Promise<void> {
+    if (!this.state || !this.organizationId) {
       return;
     }
 
     try {
       const db = createDatabase(this.env.DB);
-      await updateWorkflow(db, workflowId, session.organizationId, {
-        name: session.workflowState.name,
+      await updateWorkflow(db, this.state.id, this.organizationId, {
+        name: this.state.name,
         data: {
-          id: session.workflowState.id,
-          name: session.workflowState.name,
-          handle: session.workflowState.handle,
-          type: session.workflowState.type,
-          nodes: session.workflowState.nodes,
-          edges: session.workflowState.edges,
+          id: this.state.id,
+          name: this.state.name,
+          handle: this.state.handle,
+          type: this.state.type,
+          nodes: this.state.nodes,
+          edges: this.state.edges,
         },
       });
 
-      console.log(`Persisted workflow ${workflowId} to D1 database`);
+      console.log(`Persisted workflow ${this.state.id} to D1 database`);
     } catch (error) {
       console.error("Error persisting workflow to database:", error);
     }
@@ -184,7 +196,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
 
     // Only load if not already in memory
-    if (!this.workflows.has(workflowId)) {
+    if (!this.state) {
       try {
         await this.loadState(workflowId, userId);
       } catch (error) {
@@ -200,12 +212,12 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
 
     if (url.pathname.endsWith("/state") && request.method === "GET") {
-      return this.handleStateRequest(workflowId);
+      return this.handleStateRequest();
     }
 
     const upgradeHeader = request.headers.get("Upgrade");
     if (upgradeHeader === "websocket") {
-      return this.handleWebSocketUpgrade(workflowId);
+      return this.handleWebSocketUpgrade(request);
     }
 
     return new Response("Expected /state GET or WebSocket upgrade", {
@@ -213,9 +225,9 @@ export class WorkflowSession extends DurableObject<Bindings> {
     });
   }
 
-  private async handleStateRequest(workflowId: string): Promise<Response> {
+  private async handleStateRequest(): Promise<Response> {
     try {
-      const state = await this.getState(workflowId);
+      const state = await this.getState();
       return Response.json(state);
     } catch (error) {
       console.error("Error getting workflow state:", error);
@@ -229,13 +241,14 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
   }
 
-  private async handleWebSocketUpgrade(workflowId: string): Promise<Response> {
+  private async handleWebSocketUpgrade(request: Request): Promise<Response> {
     const webSocketPair = new WebSocketPair();
     const [client, server] = Object.values(webSocketPair);
 
     this.ctx.acceptWebSocket(server);
+    this.connectedUsers.add(server);
 
-    const initState = await this.getState(workflowId);
+    const initState = await this.getState();
     const initMessage: WorkflowInitMessage = {
       type: "init",
       state: initState,
@@ -277,20 +290,19 @@ export class WorkflowSession extends DurableObject<Bindings> {
   }
 
   async webSocketClose(
-    _ws: WebSocket,
+    ws: WebSocket,
     _code: number,
     _reason: string,
     _wasClean: boolean
   ) {
-    // Flush all pending persists when connection closes
-    const persistPromises: Promise<void>[] = [];
+    // Remove WebSocket from connected users
+    this.connectedUsers.delete(ws);
 
-    for (const [workflowId, timeoutId] of this.pendingPersist.entries()) {
-      clearTimeout(timeoutId);
-      persistPromises.push(this.persistToDatabase(workflowId));
-      this.pendingPersist.delete(workflowId);
+    // Flush pending persist when connection closes
+    if (this.pendingPersistTimeout !== undefined) {
+      clearTimeout(this.pendingPersistTimeout);
+      await this.persistToDatabase();
+      this.pendingPersistTimeout = undefined;
     }
-
-    await Promise.all(persistPromises);
   }
 }

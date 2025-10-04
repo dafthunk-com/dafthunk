@@ -12,7 +12,7 @@ import {
   connectWorkflowWS,
   WorkflowState,
   WorkflowWebSocket,
-} from "@/services/durable-workflow-service.ts";
+} from "@/services/workflow-session-service.ts";
 import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 
 interface UseEditableWorkflowProps {
@@ -61,49 +61,56 @@ export function useEditableWorkflow({
         return;
       }
 
+      const handleStateUpdate = (state: WorkflowState) => {
+        try {
+          // Store workflow metadata
+          if (state.id && state.type) {
+            setWorkflowMetadata({
+              id: state.id,
+              name: state.name || "",
+              handle: state.handle || "",
+              type: state.type,
+            });
+          }
+
+          // Convert to ReactFlow format
+          const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
+            state.nodes,
+            nodeTemplates
+          );
+          const reactFlowEdges = state.edges.map(
+            (edge: any, index: number) => ({
+              id: `e${index}`,
+              source: edge.source,
+              target: edge.target,
+              sourceHandle: edge.sourceOutput,
+              targetHandle: edge.targetInput,
+              type: "workflowEdge",
+              data: {
+                isValid: true,
+                sourceType: edge.sourceOutput,
+                targetType: edge.targetInput,
+              },
+            })
+          );
+
+          setNodes(reactFlowNodes);
+          setEdges(reactFlowEdges);
+          setProcessingError(null);
+        } catch (error) {
+          console.error("Error processing WebSocket state:", error);
+          setProcessingError("Failed to load state from WebSocket");
+        }
+      };
+
       const ws = connectWorkflowWS(organization.handle, workflowId, {
         onInit: (state: WorkflowState) => {
-          try {
-            // Store workflow metadata
-            if (state.id && state.type) {
-              setWorkflowMetadata({
-                id: state.id,
-                name: state.name || "",
-                handle: state.handle || "",
-                type: state.type,
-              });
-            }
-
-            // Convert to ReactFlow format
-            const reactFlowNodes = adaptDeploymentNodesToReactFlowNodes(
-              state.nodes,
-              nodeTemplates
-            );
-            const reactFlowEdges = state.edges.map(
-              (edge: any, index: number) => ({
-                id: `e${index}`,
-                source: edge.source,
-                target: edge.target,
-                sourceHandle: edge.sourceOutput,
-                targetHandle: edge.targetInput,
-                type: "workflowEdge",
-                data: {
-                  isValid: true,
-                  sourceType: edge.sourceOutput,
-                  targetType: edge.targetInput,
-                },
-              })
-            );
-
-            setNodes(reactFlowNodes);
-            setEdges(reactFlowEdges);
-            setProcessingError(null);
-            setIsInitializing(false);
-          } catch (error) {
-            console.error("Error processing WebSocket state:", error);
-            setProcessingError("Failed to load state from WebSocket");
-            setIsInitializing(false);
-          }
+          handleStateUpdate(state);
+          setIsInitializing(false);
+        },
+        onUpdate: (state: WorkflowState) => {
+          // Handle broadcasts from other users
+          handleStateUpdate(state);
         },
         onOpen: () => {
           setIsWSConnected(true);

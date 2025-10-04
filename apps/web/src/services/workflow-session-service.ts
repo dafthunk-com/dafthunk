@@ -16,11 +16,13 @@ export type { WorkflowState };
 
 type WebSocketMessage =
   | WorkflowInitMessage
+  | WorkflowUpdateMessage
   | WorkflowErrorMessage
   | WorkflowExecutionUpdateMessage;
 
 export interface WorkflowWSOptions {
   onInit?: (state: WorkflowState) => void;
+  onUpdate?: (state: WorkflowState) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
   onOpen?: () => void;
@@ -73,6 +75,9 @@ export class WorkflowWebSocket {
           } else if (message.type === "init") {
             this.currentState = message.state;
             this.options.onInit?.(message.state);
+          } else if (message.type === "update") {
+            this.currentState = message.state;
+            this.options.onUpdate?.(message.state);
           } else if (message.type === "execution_update") {
             this.options.onExecutionUpdate?.({
               id: message.executionId,
