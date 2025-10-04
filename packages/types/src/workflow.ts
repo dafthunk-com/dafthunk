@@ -465,3 +465,68 @@ export interface GetCronTriggerResponse {
  * Returns the full trigger information.
  */
 export type UpsertCronTriggerResponse = GetCronTriggerResponse;
+
+/**
+ * WebSocket message types for websocket synchronization
+ */
+
+/**
+ * Workflow state
+ */
+export interface WorkflowState extends Workflow {
+  timestamp: number;
+}
+
+/**
+ * Message sent from server to client with initial state
+ */
+export interface WorkflowInitMessage {
+  type: "init";
+  state: WorkflowState;
+}
+
+/**
+ * Message sent from client to server to update state
+ */
+export interface WorkflowUpdateMessage {
+  type: "update";
+  nodes: Node[];
+  edges: Edge[];
+}
+
+/**
+ * Error message sent from server to client
+ */
+export interface WorkflowErrorMessage {
+  error: string;
+  details?: string;
+}
+
+/**
+ * Message sent from client to server to start workflow execution
+ */
+export interface WorkflowExecuteMessage {
+  type: "execute";
+  executionId: string;
+}
+
+/**
+ * Message sent from server to client with execution progress updates
+ */
+export interface WorkflowExecutionUpdateMessage {
+  type: "execution_update";
+  executionId: string;
+  status: WorkflowExecutionStatus;
+  nodeExecutions: NodeExecution[];
+  error?: string;
+}
+
+/**
+ * All possible WebSocket messages
+ */
+export type WorkflowMessage =
+  | WorkflowInitMessage
+  | WorkflowUpdateMessage
+  | WorkflowErrorMessage
+  | WorkflowExecuteMessage
+  | WorkflowExecutionUpdateMessage;

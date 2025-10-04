@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+export { DurableWorkflow } from "./durable-objects/durable-workflow";
 export { Runtime } from "./runtime/runtime";
 import auth from "./auth";
 import { ApiContext } from "./context";
@@ -21,6 +22,7 @@ import secretRoutes from "./routes/secrets";
 import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
+import wsRoutes from "./routes/ws";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();
@@ -65,6 +67,7 @@ app.route("/:organizationIdOrHandle/secrets", secretRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);
 app.route("/:organizationIdOrHandle/usage", usageRoutes);
+app.route("/:organizationIdOrHandle/ws", wsRoutes);
 
 export default {
   scheduled: handleCronTriggers,

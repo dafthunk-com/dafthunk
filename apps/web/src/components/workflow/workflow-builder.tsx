@@ -125,6 +125,7 @@ export function WorkflowBuilder({
     cutSelected,
     pasteFromClipboard,
     hasClipboardData,
+    onNodeDragStop,
   } = useWorkflowState({
     initialNodes,
     initialEdges,
@@ -431,6 +432,7 @@ export function WorkflowBuilder({
               onConnectStart={readonly ? () => {} : onConnectStart}
               onConnectEnd={readonly ? () => {} : onConnectEnd}
               onNodeDoubleClick={handleNodeDoubleClick}
+              onNodeDragStop={onNodeDragStop}
               onInit={setReactFlowInstance}
               onAddNode={readonly ? undefined : handleAddNode}
               onAction={

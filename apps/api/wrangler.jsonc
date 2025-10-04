@@ -67,6 +67,21 @@
   "analytics_engine_datasets": [
     { "binding": "COMPUTE", "dataset": "dafthunk-compute-development" }
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DURABLE_WORKFLOW",
+        "class_name": "DurableWorkflow",
+        "script_name": "dafthunk-api"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DurableWorkflow"]
+    }
+  ],
   "unsafe": {
     "bindings": [
       {
@@ -155,6 +170,15 @@
       "analytics_engine_datasets": [
         { "binding": "COMPUTE", "dataset": "dafthunk-compute-production" }
       ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "DURABLE_WORKFLOW",
+            "class_name": "DurableWorkflow",
+            "script_name": "dafthunk-api"
+          }
+        ]
+      },
       "unsafe": {
         "bindings": [
           {
