@@ -126,13 +126,9 @@ export function EditorPage() {
     [deploymentHistory]
   );
 
-  // Only track nodes since they're used by validateConnection and editorExecuteWorkflow
-  // Edges are only passed through to saveWorkflow and don't need to be stored
-  const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
-    []
-  );
-
-  // Store edges in a ref to avoid stale closures without causing re-renders
+  // Use refs for both nodes and edges to avoid stale closures and unnecessary re-renders
+  // Both are only used for validation, execution, and saving - no UI rendering depends on them
+  const latestUiNodesRef = useRef<Node<WorkflowNodeType>[]>([]);
   const latestUiEdgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
 
   const handleOpenSetCronDialog = useCallback(() => {
@@ -168,7 +164,7 @@ export function EditorPage() {
 
   useEffect(() => {
     if (initialNodesForUI) {
-      setLatestUiNodes(initialNodesForUI);
+      latestUiNodesRef.current = initialNodesForUI;
     }
   }, [initialNodesForUI]);
 
@@ -180,9 +176,9 @@ export function EditorPage() {
 
   const handleUiNodesChanged = useCallback(
     (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
-      setLatestUiNodes(updatedNodesFromUI);
+      latestUiNodesRef.current = updatedNodesFromUI;
       if (workflowMetadata) {
-        // Use ref for edges to get current value without stale closure
+        // Use refs for both to get current values without stale closures
         saveWorkflow(updatedNodesFromUI, latestUiEdgesRef.current);
       }
     },
@@ -193,11 +189,11 @@ export function EditorPage() {
     (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
       latestUiEdgesRef.current = updatedEdgesFromUI;
       if (workflowMetadata) {
-        // Use state for nodes since it's always current in this callback
-        saveWorkflow(latestUiNodes, updatedEdgesFromUI);
+        // Use refs for both to get current values without stale closures
+        saveWorkflow(latestUiNodesRef.current, updatedEdgesFromUI);
       }
     },
-    [latestUiNodes, saveWorkflow, workflowMetadata]
+    [saveWorkflow, workflowMetadata]
   );
 
   const {
@@ -223,10 +219,10 @@ export function EditorPage() {
 
   const validateConnection = useCallback(
     (connection: Connection) => {
-      const sourceNode = latestUiNodes.find(
+      const sourceNode = latestUiNodesRef.current.find(
         (node) => node.id === connection.source
       );
-      const targetNode = latestUiNodes.find(
+      const targetNode = latestUiNodesRef.current.find(
         (node) => node.id === connection.target
       );
       if (!sourceNode || !targetNode) return false;
@@ -246,7 +242,7 @@ export function EditorPage() {
 
       return typesMatch;
     },
-    [latestUiNodes]
+    [] // No dependencies since we're using refs
   );
 
   const editorExecuteWorkflow = useCallback(
@@ -257,12 +253,12 @@ export function EditorPage() {
       return executeWorkflow(
         workflowIdFromBuilder,
         onExecutionFromBuilder,
-        latestUiNodes,
+        latestUiNodesRef.current,
         nodeTemplates as any,
         workflowMetadata?.type
       );
     },
-    [executeWorkflow, latestUiNodes, nodeTemplates, workflowMetadata?.type]
+    [executeWorkflow, nodeTemplates, workflowMetadata?.type] // No latestUiNodes dependency since we're using refs
   );
 
   const handleRetryLoading = () => {
@@ -383,7 +379,7 @@ export function EditorPage() {
             orgHandle={orgHandle}
             workflowId={id!}
             deploymentVersion="dev"
-            nodes={latestUiNodes}
+            nodes={latestUiNodesRef.current}
             nodeTemplates={nodeTemplates}
           />
         )}
