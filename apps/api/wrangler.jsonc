@@ -7,9 +7,13 @@
   "name": "dafthunk-api",
   "main": "src/index.ts",
   "compatibility_date": "2024-10-22",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "triggers": {
-    "crons": ["* * * * *"]
+    "crons": [
+      "* * * * *"
+    ]
   },
   "observability": {
     "enabled": true,
@@ -20,7 +24,6 @@
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
    */
   // "placement": { "mode": "smart" },
-
   /**
    * Bindings
    * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
@@ -65,22 +68,28 @@
     }
   ],
   "analytics_engine_datasets": [
-    { "binding": "COMPUTE", "dataset": "dafthunk-compute-development" }
+    {
+      "binding": "COMPUTE",
+      "dataset": "dafthunk-compute-development"
+    }
   ],
   "durable_objects": {
     "bindings": [
       {
         "name": "WORKFLOW_SESSION",
-        "class_name": "WorkflowSession"
+        "class_name": "WorkflowSession",
+        "script_name": "dafthunk-api"
       }
     ],
-    "migrations": [
-      {
-        "tag": "v1",
-        "new_classes": ["WorkflowSession"]
-      }
-    ]
   },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": [
+        "WorkflowSession"
+      ]
+    }
+  ],
   "unsafe": {
     "bindings": [
       {
@@ -112,7 +121,6 @@
       }
     ]
   },
-
   /**
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
@@ -167,22 +175,28 @@
         }
       ],
       "analytics_engine_datasets": [
-        { "binding": "COMPUTE", "dataset": "dafthunk-compute-production" }
+        {
+          "binding": "COMPUTE",
+          "dataset": "dafthunk-compute-production"
+        }
       ],
       "durable_objects": {
         "bindings": [
           {
             "name": "WORKFLOW_SESSION",
-            "class_name": "WorkflowSession"
+            "class_name": "WorkflowSession",
+            "script_name": "dafthunk-api"
           }
         ],
-        "migrations": [
-          {
-            "tag": "v1",
-            "new_classes": ["WorkflowSession"]
-          }
-        ]
       },
+      "migrations": [
+        {
+          "tag": "v1",
+          "new_classes": [
+            "WorkflowSession"
+          ]
+        }
+      ],
       "unsafe": {
         "bindings": [
           {
@@ -223,13 +237,11 @@
    * Note: Use secrets to store sensitive data.
    * https://developers.cloudflare.com/workers/configuration/secrets/
    */
-
   /**
    * Static Assets
    * https://developers.cloudflare.com/workers/static-assets/binding/
    */
   // "assets": { "directory": "./public/", "binding": "ASSETS" },
-
   /**
    * Service Bindings (communicate between multiple Workers)
    * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
