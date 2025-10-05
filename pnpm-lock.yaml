@@ -120,9 +120,6 @@ importers:
       '@cloudflare/vitest-pool-workers':
         specifier: ^0.8.58
         version: 0.8.71(@cloudflare/workers-types@4.20250726.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@22.15.31)(jiti@2.5.1)(tsx@4.20.3)(yaml@2.8.0))
-      '@cloudflare/workers-types':
-        specifier: ^4.20250726.0
-        version: 4.20250726.0
       '@eslint/js':
         specifier: ^9.26.0
         version: 9.29.0

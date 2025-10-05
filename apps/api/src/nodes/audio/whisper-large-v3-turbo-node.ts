@@ -1,4 +1,3 @@
-import type { Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input } from "@cloudflare/workers-types/experimental";
 import { NodeExecution, NodeType } from "@dafthunk/types";
 
 import { NodeContext } from "../types";
@@ -106,16 +105,14 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
       const audioBase64 = btoa(String.fromCharCode(...audio.data));
 
       // Prepare the request parameters
-      const params: Ai_Cf_Openai_Whisper_Large_V3_Turbo_Input = {
+      const params = {
         audio: audioBase64,
+        ...(task && { task }),
+        ...(language && { language }),
+        ...(vad_filter !== undefined && { vad_filter }),
+        ...(initial_prompt && { initial_prompt }),
+        ...(prefix && { prefix }),
       };
-
-      // Add optional parameters if provided
-      if (task) params.task = task;
-      if (language) params.language = language;
-      if (vad_filter !== undefined) params.vad_filter = vad_filter;
-      if (initial_prompt) params.initial_prompt = initial_prompt;
-      if (prefix) params.prefix = prefix;
 
       // Call Cloudflare AI Whisper Large V3 Turbo model
       const response = await context.env.AI.run(
@@ -123,6 +120,11 @@ export class WhisperLargeV3TurboNode extends ExecutableNode {
         params,
         context.env.AI_OPTIONS
       );
+
+      // Handle streaming response
+      if (response instanceof ReadableStream) {
+        throw new Error("Streaming response not supported for whisper model");
+      }
 
       // Extract the results
       const output = {
