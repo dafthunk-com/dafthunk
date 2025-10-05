@@ -15,7 +15,7 @@ export interface Bindings {
   DATASETS: R2Bucket;
   DATASETS_AUTORAG: string;
   AI: Ai;
-  BROWSER: Fetcher;
+  BROWSER?: Fetcher;
   COMPUTE: AnalyticsEngineDataset;
   WEB_HOST: string;
   EMAIL_DOMAIN: string;
