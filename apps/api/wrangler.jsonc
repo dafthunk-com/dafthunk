@@ -71,8 +71,7 @@
     "bindings": [
       {
         "name": "WORKFLOW_SESSION",
-        "class_name": "WorkflowSession",
-        "script_name": "dafthunk-api"
+        "class_name": "WorkflowSession"
       }
     ]
   },
@@ -168,8 +167,7 @@
         "bindings": [
           {
             "name": "WORKFLOW_SESSION",
-            "class_name": "WorkflowSession",
-            "script_name": "dafthunk-api"
+            "class_name": "WorkflowSession"
           }
         ]
       },
