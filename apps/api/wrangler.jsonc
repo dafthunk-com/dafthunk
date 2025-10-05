@@ -73,6 +73,12 @@
         "name": "WORKFLOW_SESSION",
         "class_name": "WorkflowSession"
       }
+    ],
+    "migrations": [
+      {
+        "tag": "v1",
+        "new_classes": ["WorkflowSession"]
+      }
     ]
   },
   "unsafe": {
@@ -168,6 +174,12 @@
           {
             "name": "WORKFLOW_SESSION",
             "class_name": "WorkflowSession"
+          }
+        ],
+        "migrations": [
+          {
+            "tag": "v1",
+            "new_classes": ["WorkflowSession"]
           }
         ]
       },
