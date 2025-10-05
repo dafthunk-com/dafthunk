@@ -321,7 +321,10 @@ export async function getWorkflowWithUserAccess(
       organizationId: workflows.organizationId,
     })
     .from(workflows)
-    .innerJoin(memberships, eq(workflows.organizationId, memberships.organizationId))
+    .innerJoin(
+      memberships,
+      eq(workflows.organizationId, memberships.organizationId)
+    )
     .where(
       and(
         eq(memberships.userId, userId),
@@ -330,7 +333,9 @@ export async function getWorkflowWithUserAccess(
     )
     .limit(1);
 
-  return result ? { workflow: result.workflow, organizationId: result.organizationId } : undefined;
+  return result
+    ? { workflow: result.workflow, organizationId: result.organizationId }
+    : undefined;
 }
 
 /**

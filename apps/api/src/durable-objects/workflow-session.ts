@@ -1,6 +1,4 @@
 import {
-  Edge,
-  Node,
   WorkflowErrorMessage,
   WorkflowInitMessage,
   WorkflowMessage,
@@ -29,16 +27,15 @@ export class WorkflowSession extends DurableObject<Bindings> {
   /**
    * Load workflow from D1 database with user access verification
    */
-  private async loadState(
-    workflowId: string,
-    userId: string
-  ): Promise<void> {
+  private async loadState(workflowId: string, userId: string): Promise<void> {
     console.log(`Loading workflow ${workflowId} for user ${userId}`);
     const db = createDatabase(this.env.DB);
     const result = await getWorkflowWithUserAccess(db, workflowId, userId);
 
     if (!result) {
-      throw new Error(`User ${userId} does not have access to workflow ${workflowId}`);
+      throw new Error(
+        `User ${userId} does not have access to workflow ${workflowId}`
+      );
     }
 
     const { workflow, organizationId } = result;
@@ -88,12 +85,16 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
     // Validate incoming state matches current state
     if (state.id !== this.state.id) {
-      throw new Error(`Workflow ID mismatch: expected ${this.state.id}, got ${state.id}`);
+      throw new Error(
+        `Workflow ID mismatch: expected ${this.state.id}, got ${state.id}`
+      );
     }
 
     // Validate required fields
     if (!state.name || !state.handle || !state.type) {
-      throw new Error("Invalid state: missing required fields (name, handle, or type)");
+      throw new Error(
+        "Invalid state: missing required fields (name, handle, or type)"
+      );
     }
 
     // Validate arrays are present
@@ -241,7 +242,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
   }
 
-  private async handleWebSocketUpgrade(request: Request): Promise<Response> {
+  private async handleWebSocketUpgrade(_request: Request): Promise<Response> {
     const webSocketPair = new WebSocketPair();
     const [client, server] = Object.values(webSocketPair);
 
