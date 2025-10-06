@@ -1,16 +1,13 @@
 import { ObjectReference, Workflow, WorkflowExecution } from "@dafthunk/types";
 import { v7 as uuid } from "uuid";
 
+/**
+ * Manages R2 storage for objects, workflows, and executions.
+ * Uses helper methods to eliminate duplication in logging and error handling.
+ */
 export class ObjectStore {
-  private bucket: R2Bucket;
+  constructor(private bucket: R2Bucket) {}
 
-  constructor(bucket: R2Bucket) {
-    this.bucket = bucket;
-  }
-
-  /**
-   * Write a binary object to storage and return a reference
-   */
   async writeObject(
     data: Uint8Array,
     mimeType: string,
@@ -27,9 +24,6 @@ export class ObjectStore {
     );
   }
 
-  /**
-   * Write a binary object to storage and return a reference
-   */
   async writeObjectWithId(
     id: string,
     data: Uint8Array,
@@ -37,141 +31,56 @@ export class ObjectStore {
     organizationId: string,
     executionId?: string
   ): Promise<ObjectReference> {
-    try {
-      console.log(
-        `ObjectStore.writeObjectWithId: Starting to write object with id ${id}`
-      );
+    const customMetadata: Record<string, string> = {
+      id,
+      createdAt: new Date().toISOString(),
+      organizationId,
+    };
+    if (executionId) {
+      customMetadata.executionId = executionId;
+    }
 
-      if (!this.bucket) {
-        console.error(
-          "ObjectStore.writeObjectWithId: R2 bucket is not initialized"
-        );
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `objects/${id}/object.data`;
-      console.log(
-        `ObjectStore.writeObjectWithId: Attempting to store object with key ${key}`
-      );
-
-      const customMetadataForR2: { [key: string]: string } = {
-        id,
-        createdAt: new Date().toISOString(),
-        organizationId,
-      };
-
-      if (executionId) {
-        customMetadataForR2.executionId = executionId;
-      }
-
-      const writeResult = await this.bucket.put(key, data, {
+    await this.writeToR2(
+      `objects/${id}/object.data`,
+      data,
+      {
         httpMetadata: {
           contentType: mimeType,
           cacheControl: "public, max-age=31536000",
         },
-        customMetadata: customMetadataForR2,
-      });
+        customMetadata,
+      },
+      "writeObjectWithId"
+    );
 
-      console.log(
-        `ObjectStore.writeObjectWithId: Successfully stored object ${id}, etag: ${writeResult?.etag || "unknown"}`
-      );
-
-      return {
-        id,
-        mimeType: mimeType,
-      };
-    } catch (error) {
-      console.error(
-        "ObjectStore.writeObjectWithId: Failed to write object to R2:",
-        error
-      );
-      throw error;
-    }
+    return { id, mimeType };
   }
 
-  /**
-   * Read an object from storage using its reference
-   */
   async readObject(reference: ObjectReference): Promise<{
     data: Uint8Array;
     metadata: R2Object["customMetadata"];
   } | null> {
-    try {
-      console.log(
-        `ObjectStore.read: Attempting to read object with id ${reference.id}`
-      );
+    const object = await this.readFromR2(
+      `objects/${reference.id}/object.data`,
+      "readObject"
+    );
 
-      if (!this.bucket) {
-        console.error("ObjectStore.read: R2 bucket is not initialized");
-        throw new Error("R2 bucket is not initialized");
-      }
+    if (!object) return null;
 
-      const key = `objects/${reference.id}/object.data`;
-      console.log(`ObjectStore.readObject: Getting object with key ${key}`);
-
-      const object = await this.bucket.get(key);
-
-      if (!object) {
-        console.log(`ObjectStore.readObject: Object not found with key ${key}`);
-        console.error(`ObjectStore.read: Object not found: ${reference.id}`);
-        return null;
-      }
-
-      console.log(
-        `ObjectStore.readObject: Retrieved object ${reference.id}, size: ${object.size} bytes`
-      );
-
-      const data = await object.arrayBuffer();
-      console.log(
-        `ObjectStore.read: Successfully read object ${reference.id}, size: ${data.byteLength} bytes`
-      );
-      return {
-        data: new Uint8Array(data),
-        metadata: object.customMetadata,
-      };
-    } catch (error) {
-      console.error(
-        `ObjectStore.read: Failed to read object ${reference.id}:`,
-        error
-      );
-      throw error;
-    }
+    const arrayBuffer = await object.arrayBuffer();
+    return {
+      data: new Uint8Array(arrayBuffer),
+      metadata: object.customMetadata,
+    };
   }
 
-  /**
-   * Delete an object from storage using its reference
-   */
   async deleteObject(reference: ObjectReference): Promise<void> {
-    try {
-      console.log(
-        `ObjectStore.delete: Attempting to delete object with id ${reference.id}`
-      );
-
-      if (!this.bucket) {
-        console.error("ObjectStore.delete: R2 bucket is not initialized");
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `objects/${reference.id}/object.data`;
-      console.log(`ObjectStore.deleteObject: Deleting object with key ${key}`);
-
-      await this.bucket.delete(key);
-      console.log(`ObjectStore.deleteObject: Deleted object with key ${key}`);
-      console.log(
-        `ObjectStore.delete: Successfully deleted object ${reference.id}`
-      );
-    } catch (error) {
-      console.error(
-        `ObjectStore.delete: Failed to delete object ${reference.id}:`,
-        error
-      );
-      throw error;
-    }
+    await this.deleteFromR2(
+      `objects/${reference.id}/object.data`,
+      "deleteObject"
+    );
   }
 
-  /**
-   * List objects for an organization
-   */
   async listObjects(organizationId: string): Promise<
     {
       id: string;
@@ -182,81 +91,30 @@ export class ObjectStore {
       executionId?: string;
     }[]
   > {
-    try {
-      console.log(
-        `ObjectStore.listObjects: Listing objects for organization ${organizationId}`
-      );
+    const objects = await this.listFromR2("objects/", "listObjects");
 
-      if (!this.bucket) {
-        console.error("ObjectStore.listObjects: R2 bucket is not initialized");
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const prefix = "objects/";
-      const objects = await this.bucket.list({ prefix });
-
-      const filteredObjects = [];
-
-      // Filter objects by organizationId and parse metadata
-      for (const obj of objects.objects) {
-        if (obj.customMetadata?.organizationId === organizationId) {
-          // Extract object ID from the key path (objects/{id}/object.data)
-          const keyParts = obj.key.split("/");
-          const id = keyParts[1]; // The ID should be in the second position
-
-          // We don't know the MIME type from the listing, so we use the content-type from httpMetadata
-          const mimeType =
-            obj.httpMetadata?.contentType || "application/octet-stream";
-
-          filteredObjects.push({
-            id,
-            mimeType,
-            size: obj.size,
-            createdAt: obj.customMetadata?.createdAt
-              ? new Date(obj.customMetadata.createdAt)
-              : new Date(),
-            organizationId,
-            executionId: obj.customMetadata?.executionId,
-          });
-        }
-      }
-
-      console.log(
-        `ObjectStore.listObjects: Found ${filteredObjects.length} objects for organization ${organizationId}`
-      );
-
-      return filteredObjects;
-    } catch (error) {
-      console.error(
-        `ObjectStore.listObjects: Failed to list objects for organization ${organizationId}:`,
-        error
-      );
-      throw error;
-    }
+    return objects.objects
+      .filter((obj) => obj.customMetadata?.organizationId === organizationId)
+      .map((obj) => {
+        const id = obj.key.split("/")[1];
+        return {
+          id,
+          mimeType: obj.httpMetadata?.contentType || "application/octet-stream",
+          size: obj.size,
+          createdAt: obj.customMetadata?.createdAt
+            ? new Date(obj.customMetadata.createdAt)
+            : new Date(),
+          organizationId,
+          executionId: obj.customMetadata?.executionId,
+        };
+      });
   }
 
-  /**
-   * Write a workflow to storage
-   */
   async writeWorkflow(workflow: Workflow): Promise<string> {
-    try {
-      console.log(
-        `ObjectStore.writeWorkflow: Starting to write workflow ${workflow.id}`
-      );
-
-      if (!this.bucket) {
-        console.error(
-          "ObjectStore.writeWorkflow: R2 bucket is not initialized"
-        );
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `workflows/${workflow.id}/workflow.json`;
-      console.log(
-        `ObjectStore.writeWorkflow: Attempting to store workflow with key ${key}`
-      );
-
-      const writeResult = await this.bucket.put(key, JSON.stringify(workflow), {
+    await this.writeToR2(
+      `workflows/${workflow.id}/workflow.json`,
+      JSON.stringify(workflow),
+      {
         httpMetadata: {
           contentType: "application/json",
           cacheControl: "no-cache",
@@ -264,133 +122,41 @@ export class ObjectStore {
         customMetadata: {
           updatedAt: new Date().toISOString(),
         },
-      });
-
-      console.log(
-        `ObjectStore.writeWorkflow: Successfully stored workflow ${workflow.id}, etag: ${writeResult?.etag || "unknown"}`
-      );
-
-      return workflow.id;
-    } catch (error) {
-      console.error(
-        "ObjectStore.writeWorkflow: Failed to write workflow to R2:",
-        error
-      );
-      throw error;
-    }
+      },
+      "writeWorkflow"
+    );
+    return workflow.id;
   }
 
-  /**
-   * Read a workflow from storage using its id
-   */
   async readWorkflow(workflowId: string): Promise<Workflow> {
-    try {
-      console.log(
-        `ObjectStore.readWorkflow: Attempting to read workflow with id ${workflowId}`
-      );
+    const object = await this.readFromR2(
+      `workflows/${workflowId}/workflow.json`,
+      "readWorkflow"
+    );
 
-      if (!this.bucket) {
-        console.error("ObjectStore.readWorkflow: R2 bucket is not initialized");
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `workflows/${workflowId}/workflow.json`;
-      console.log(`ObjectStore.readWorkflow: Getting workflow with key ${key}`);
-
-      const object = await this.bucket.get(key);
-
-      if (!object) {
-        console.log(
-          `ObjectStore.readWorkflow: Workflow not found with key ${key}`
-        );
-        console.error(
-          `ObjectStore.readWorkflow: Workflow not found: ${workflowId}`
-        );
-        throw new Error(`Workflow not found: ${workflowId}`);
-      }
-
-      console.log(
-        `ObjectStore.readWorkflow: Retrieved workflow ${workflowId}, size: ${object.size} bytes`
-      );
-
-      const text = await object.text();
-      const workflow = JSON.parse(text) as Workflow;
-      console.log(
-        `ObjectStore.readWorkflow: Successfully read workflow ${workflowId}`
-      );
-
-      return workflow;
-    } catch (error) {
-      console.error(
-        `ObjectStore.readWorkflow: Failed to read workflow ${workflowId}:`,
-        error
-      );
-      throw error;
+    if (!object) {
+      throw new Error(`Workflow not found: ${workflowId}`);
     }
+
+    const text = await object.text();
+    return JSON.parse(text) as Workflow;
   }
 
-  /**
-   * Delete a workflow from storage using its id
-   */
   async deleteWorkflow(workflowId: string): Promise<void> {
-    try {
-      console.log(
-        `ObjectStore.deleteWorkflow: Attempting to delete workflow with id ${workflowId}`
-      );
-
-      if (!this.bucket) {
-        console.error(
-          "ObjectStore.deleteWorkflow: R2 bucket is not initialized"
-        );
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `workflows/${workflowId}/workflow.json`;
-      console.log(
-        `ObjectStore.deleteWorkflow: Deleting workflow with key ${key}`
-      );
-
-      await this.bucket.delete(key);
-      console.log(
-        `ObjectStore.deleteWorkflow: Deleted workflow with key ${key}`
-      );
-      console.log(
-        `ObjectStore.deleteWorkflow: Successfully deleted workflow ${workflowId}`
-      );
-    } catch (error) {
-      console.error(
-        `ObjectStore.deleteWorkflow: Failed to delete workflow ${workflowId}:`,
-        error
-      );
-      throw error;
-    }
+    await this.deleteFromR2(
+      `workflows/${workflowId}/workflow.json`,
+      "deleteWorkflow"
+    );
   }
 
-  /**
-   * Write a workflow to execution storage
-   */
   async writeExecutionWorkflow(
     executionId: string,
     workflow: Workflow
   ): Promise<string> {
-    try {
-      console.log(
-        `ObjectStore.writeExecutionWorkflow: Starting to write workflow for execution ${executionId}`
-      );
-
-      if (!this.bucket) {
-        console.error(
-          "ObjectStore.writeExecutionWorkflow: R2 bucket is not initialized"
-        );
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `executions/${executionId}/workflow.json`;
-      console.log(
-        `ObjectStore.writeExecutionWorkflow: Attempting to store workflow with key ${key}`
-      );
-
-      const writeResult = await this.bucket.put(key, JSON.stringify(workflow), {
+    await this.writeToR2(
+      `executions/${executionId}/workflow.json`,
+      JSON.stringify(workflow),
+      {
         httpMetadata: {
           contentType: "application/json",
           cacheControl: "no-cache",
@@ -400,247 +166,163 @@ export class ObjectStore {
           workflowId: workflow.id,
           updatedAt: new Date().toISOString(),
         },
-      });
-
-      console.log(
-        `ObjectStore.writeExecutionWorkflow: Successfully stored workflow for execution ${executionId}, etag: ${writeResult?.etag || "unknown"}`
-      );
-
-      return executionId;
-    } catch (error) {
-      console.error(
-        `ObjectStore.writeExecutionWorkflow: Failed to write workflow to R2 for execution ${executionId}:`,
-        error
-      );
-      throw error;
-    }
+      },
+      "writeExecutionWorkflow"
+    );
+    return executionId;
   }
 
-  /**
-   * Read a workflow from execution storage using its execution id
-   */
   async readExecutionWorkflow(executionId: string): Promise<Workflow> {
-    try {
-      console.log(
-        `ObjectStore.readExecutionWorkflow: Attempting to read workflow for execution ${executionId}`
-      );
+    const object = await this.readFromR2(
+      `executions/${executionId}/workflow.json`,
+      "readExecutionWorkflow"
+    );
 
-      if (!this.bucket) {
-        console.error(
-          "ObjectStore.readExecutionWorkflow: R2 bucket is not initialized"
-        );
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `executions/${executionId}/workflow.json`;
-      console.log(
-        `ObjectStore.readExecutionWorkflow: Getting workflow with key ${key}`
-      );
-
-      const object = await this.bucket.get(key);
-
-      if (!object) {
-        console.log(
-          `ObjectStore.readExecutionWorkflow: Workflow not found with key ${key}`
-        );
-        console.error(
-          `ObjectStore.readExecutionWorkflow: Workflow not found for execution: ${executionId}`
-        );
-        throw new Error(`Workflow not found for execution: ${executionId}`);
-      }
-
-      console.log(
-        `ObjectStore.readExecutionWorkflow: Retrieved workflow for execution ${executionId}, size: ${object.size} bytes`
-      );
-
-      const text = await object.text();
-      const workflow = JSON.parse(text) as Workflow;
-      console.log(
-        `ObjectStore.readExecutionWorkflow: Successfully read workflow for execution ${executionId}`
-      );
-
-      return workflow;
-    } catch (error) {
-      console.error(
-        `ObjectStore.readExecutionWorkflow: Failed to read workflow for execution ${executionId}:`,
-        error
-      );
-      throw error;
+    if (!object) {
+      throw new Error(`Workflow not found for execution: ${executionId}`);
     }
+
+    const text = await object.text();
+    return JSON.parse(text) as Workflow;
   }
 
-  /**
-   * Delete a workflow from execution storage using its execution id
-   */
   async deleteExecutionWorkflow(executionId: string): Promise<void> {
-    try {
-      console.log(
-        `ObjectStore.deleteExecutionWorkflow: Attempting to delete workflow for execution ${executionId}`
-      );
-
-      if (!this.bucket) {
-        console.error(
-          "ObjectStore.deleteExecutionWorkflow: R2 bucket is not initialized"
-        );
-        throw new Error("R2 bucket is not initialized");
-      }
-
-      const key = `executions/${executionId}/workflow.json`;
-      console.log(
-        `ObjectStore.deleteExecutionWorkflow: Deleting workflow with key ${key}`
-      );
-
-      await this.bucket.delete(key);
-      console.log(
-        `ObjectStore.deleteExecutionWorkflow: Deleted workflow with key ${key}`
-      );
-      console.log(
-        `ObjectStore.deleteExecutionWorkflow: Successfully deleted workflow for execution ${executionId}`
-      );
-    } catch (error) {
-      console.error(
-        `ObjectStore.deleteExecutionWorkflow: Failed to delete workflow for execution ${executionId}:`,
-        error
-      );
-      throw error;
-    }
+    await this.deleteFromR2(
+      `executions/${executionId}/workflow.json`,
+      "deleteExecutionWorkflow"
+    );
   }
 
-  /**
-   * Write an execution to storage
-   */
   async writeExecution(execution: WorkflowExecution): Promise<string> {
+    await this.writeToR2(
+      `executions/${execution.id}/execution.json`,
+      JSON.stringify(execution),
+      {
+        httpMetadata: {
+          contentType: "application/json",
+          cacheControl: "no-cache",
+        },
+        customMetadata: {
+          workflowId: execution.workflowId,
+          status: execution.status,
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      "writeExecution"
+    );
+    return execution.id;
+  }
+
+  async readExecution(executionId: string): Promise<WorkflowExecution> {
+    const object = await this.readFromR2(
+      `executions/${executionId}/execution.json`,
+      "readExecution"
+    );
+
+    if (!object) {
+      throw new Error(`Execution not found: ${executionId}`);
+    }
+
+    const text = await object.text();
+    return JSON.parse(text) as WorkflowExecution;
+  }
+
+  async deleteExecution(executionId: string): Promise<void> {
+    await this.deleteFromR2(
+      `executions/${executionId}/execution.json`,
+      "deleteExecution"
+    );
+  }
+
+  private async writeToR2(
+    key: string,
+    data: string | ArrayBuffer | Uint8Array,
+    options: R2PutOptions,
+    operation: string
+  ): Promise<void> {
     try {
-      console.log(
-        `ObjectStore.writeExecution: Starting to write execution ${execution.id}`
-      );
+      console.log(`ObjectStore.${operation}: Writing to ${key}`);
 
       if (!this.bucket) {
-        console.error(
-          "ObjectStore.writeExecution: R2 bucket is not initialized"
-        );
         throw new Error("R2 bucket is not initialized");
       }
 
-      const key = `executions/${execution.id}/execution.json`;
+      const result = await this.bucket.put(key, data, options);
       console.log(
-        `ObjectStore.writeExecution: Attempting to store execution with key ${key}`
+        `ObjectStore.${operation}: Success, etag: ${result?.etag || "unknown"}`
       );
-
-      const writeResult = await this.bucket.put(
-        key,
-        JSON.stringify(execution),
-        {
-          httpMetadata: {
-            contentType: "application/json",
-            cacheControl: "no-cache",
-          },
-          customMetadata: {
-            workflowId: execution.workflowId,
-            status: execution.status,
-            updatedAt: new Date().toISOString(),
-          },
-        }
-      );
-
-      console.log(
-        `ObjectStore.writeExecution: Successfully stored execution ${execution.id}, etag: ${writeResult?.etag || "unknown"}`
-      );
-
-      return execution.id;
     } catch (error) {
-      console.error(
-        `ObjectStore.writeExecution: Failed to write execution to R2:`,
-        error
-      );
+      console.error(`ObjectStore.${operation}: Failed to write ${key}:`, error);
       throw error;
     }
   }
 
-  /**
-   * Read an execution from storage using its id
-   */
-  async readExecution(executionId: string): Promise<WorkflowExecution> {
+  private async readFromR2(
+    key: string,
+    operation: string
+  ): Promise<R2ObjectBody | null> {
     try {
-      console.log(
-        `ObjectStore.readExecution: Attempting to read execution with id ${executionId}`
-      );
+      console.log(`ObjectStore.${operation}: Reading from ${key}`);
 
       if (!this.bucket) {
-        console.error(
-          "ObjectStore.readExecution: R2 bucket is not initialized"
-        );
         throw new Error("R2 bucket is not initialized");
       }
-
-      const key = `executions/${executionId}/execution.json`;
-      console.log(
-        `ObjectStore.readExecution: Getting execution with key ${key}`
-      );
 
       const object = await this.bucket.get(key);
 
       if (!object) {
-        console.log(
-          `ObjectStore.readExecution: Execution not found with key ${key}`
-        );
-        console.error(
-          `ObjectStore.readExecution: Execution not found: ${executionId}`
-        );
-        throw new Error(`Execution not found: ${executionId}`);
+        console.log(`ObjectStore.${operation}: Not found at ${key}`);
+        return null;
       }
 
       console.log(
-        `ObjectStore.readExecution: Retrieved execution ${executionId}, size: ${object.size} bytes`
+        `ObjectStore.${operation}: Success, size: ${object.size} bytes`
       );
+      return object;
+    } catch (error) {
+      console.error(`ObjectStore.${operation}: Failed to read ${key}:`, error);
+      throw error;
+    }
+  }
 
-      const text = await object.text();
-      const execution = JSON.parse(text) as WorkflowExecution;
-      console.log(
-        `ObjectStore.readExecution: Successfully read execution ${executionId}`
-      );
+  private async deleteFromR2(key: string, operation: string): Promise<void> {
+    try {
+      console.log(`ObjectStore.${operation}: Deleting ${key}`);
 
-      return execution;
+      if (!this.bucket) {
+        throw new Error("R2 bucket is not initialized");
+      }
+
+      await this.bucket.delete(key);
+      console.log(`ObjectStore.${operation}: Successfully deleted ${key}`);
     } catch (error) {
       console.error(
-        `ObjectStore.readExecution: Failed to read execution ${executionId}:`,
+        `ObjectStore.${operation}: Failed to delete ${key}:`,
         error
       );
       throw error;
     }
   }
 
-  /**
-   * Delete an execution from storage using its id
-   */
-  async deleteExecution(executionId: string): Promise<void> {
+  private async listFromR2(
+    prefix: string,
+    operation: string
+  ): Promise<R2Objects> {
     try {
-      console.log(
-        `ObjectStore.deleteExecution: Attempting to delete execution with id ${executionId}`
-      );
+      console.log(`ObjectStore.${operation}: Listing with prefix ${prefix}`);
 
       if (!this.bucket) {
-        console.error(
-          "ObjectStore.deleteExecution: R2 bucket is not initialized"
-        );
         throw new Error("R2 bucket is not initialized");
       }
 
-      const key = `executions/${executionId}/execution.json`;
+      const objects = await this.bucket.list({ prefix });
       console.log(
-        `ObjectStore.deleteExecution: Deleting execution with key ${key}`
+        `ObjectStore.${operation}: Found ${objects.objects.length} objects`
       );
-
-      await this.bucket.delete(key);
-      console.log(
-        `ObjectStore.deleteExecution: Deleted execution with key ${key}`
-      );
-      console.log(
-        `ObjectStore.deleteExecution: Successfully deleted execution ${executionId}`
-      );
+      return objects;
     } catch (error) {
       console.error(
-        `ObjectStore.deleteExecution: Failed to delete execution ${executionId}:`,
+        `ObjectStore.${operation}: Failed to list with prefix ${prefix}:`,
         error
       );
       throw error;
