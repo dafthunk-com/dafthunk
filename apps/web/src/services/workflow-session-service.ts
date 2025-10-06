@@ -81,7 +81,7 @@ export class WorkflowWebSocket {
           } else if (message.type === "execution_update") {
             this.options.onExecutionUpdate?.({
               id: message.executionId,
-              workflowId: "", // Will be filled from context
+              workflowId: this.workflowId,
               status: message.status,
               nodeExecutions: message.nodeExecutions,
               error: message.error,
@@ -157,9 +157,36 @@ export class WorkflowWebSocket {
     }
   }
 
-  executeWorkflow(executionId: string): void {
+  /**
+   * Execute workflow and receive realtime updates via WebSocket
+   */
+  executeWorkflow(options?: { parameters?: Record<string, unknown> }): void {
     if (this.ws?.readyState !== WebSocket.OPEN) {
-      console.warn("WebSocket is not open, cannot send execute message");
+      console.warn("WebSocket is not open, cannot execute workflow");
+      this.options.onError?.("WebSocket is not connected");
+      return;
+    }
+
+    try {
+      const executeMsg = {
+        type: "execute",
+        parameters: options?.parameters,
+      };
+      this.ws.send(JSON.stringify(executeMsg));
+    } catch (error) {
+      console.error("Failed to execute workflow:", error);
+      this.options.onError?.("Failed to execute workflow");
+    }
+  }
+
+  /**
+   * Register to receive updates for an existing execution
+   */
+  registerForExecutionUpdates(executionId: string): void {
+    if (this.ws?.readyState !== WebSocket.OPEN) {
+      console.warn(
+        "WebSocket is not open, cannot register for execution updates"
+      );
       return;
     }
 
@@ -170,8 +197,8 @@ export class WorkflowWebSocket {
       };
       this.ws.send(JSON.stringify(executeMsg));
     } catch (error) {
-      console.error("Failed to send execute message:", error);
-      this.options.onError?.("Failed to send execute message");
+      console.error("Failed to register for execution updates:", error);
+      this.options.onError?.("Failed to register for execution updates");
     }
   }
 
@@ -185,6 +212,10 @@ export class WorkflowWebSocket {
 
   isConnected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  getWorkflowId(): string {
+    return this.workflowId;
   }
 }
 

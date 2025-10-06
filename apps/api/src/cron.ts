@@ -50,7 +50,6 @@ async function executeWorkflow(
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },
-        monitorProgress: false,
         deploymentId: deploymentId,
       },
     });

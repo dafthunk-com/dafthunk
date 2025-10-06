@@ -94,7 +94,16 @@ export function EditorPage() {
     return templates;
   }, [nodeTypes]);
 
-  // Get workflow metadata from WebSocket connection
+  const executionCallbackRef = useRef<
+    ((execution: WorkflowExecution) => void) | null
+  >(null);
+
+  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
+    if (executionCallbackRef.current) {
+      executionCallbackRef.current(execution);
+    }
+  }, []);
+
   const {
     nodes: initialNodesForUI,
     edges: initialEdgesForUI,
@@ -104,9 +113,11 @@ export function EditorPage() {
     saveWorkflow,
     isWSConnected: _isWSConnected,
     workflowMetadata,
+    executeWorkflow: wsExecuteWorkflow,
   } = useEditableWorkflow({
     workflowId: id,
     nodeTemplates,
+    onExecutionUpdate: handleExecutionUpdate,
   });
 
   // Now we can use workflowMetadata for cron trigger
@@ -207,7 +218,7 @@ export function EditorPage() {
     closeExecutionForm,
     isEmailFormDialogVisible,
     submitEmailFormData,
-  } = useWorkflowExecution(orgHandle);
+  } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
 
   usePageBreadcrumbs(
     [
@@ -250,6 +261,8 @@ export function EditorPage() {
       workflowIdFromBuilder: string,
       onExecutionFromBuilder: (execution: WorkflowExecution) => void
     ) => {
+      executionCallbackRef.current = onExecutionFromBuilder;
+
       return executeWorkflow(
         workflowIdFromBuilder,
         onExecutionFromBuilder,
@@ -258,7 +271,7 @@ export function EditorPage() {
         workflowMetadata?.type
       );
     },
-    [executeWorkflow, nodeTemplates, workflowMetadata?.type] // No latestUiNodes dependency since we're using refs
+    [executeWorkflow, nodeTemplates, workflowMetadata?.type]
   );
 
   const handleRetryLoading = () => {

@@ -1,5 +1,15 @@
+/**
+ * WorkflowSession Durable Object
+ *
+ * Manages workflow state synchronization and execution coordination via WebSocket.
+ * Clients connect via WebSocket to sync state and receive realtime execution updates.
+ */
+
 import {
   WorkflowErrorMessage,
+  WorkflowExecuteMessage,
+  WorkflowExecution,
+  WorkflowExecutionUpdateMessage,
   WorkflowInitMessage,
   WorkflowMessage,
   WorkflowState,
@@ -9,16 +19,23 @@ import {
 import { DurableObject } from "cloudflare:workers";
 
 import { Bindings } from "../context";
-import { createDatabase } from "../db/index";
-import { getWorkflowWithUserAccess, updateWorkflow } from "../db/queries";
+import { createDatabase, ExecutionStatus, saveExecution } from "../db/index";
+import {
+  getOrganizationComputeCredits,
+  getWorkflowWithUserAccess,
+  updateWorkflow,
+} from "../db/queries";
 
 export class WorkflowSession extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
 
   private state: WorkflowState | null = null;
   private organizationId: string | null = null;
+  private userId: string | null = null;
   private pendingPersistTimeout: number | undefined = undefined;
   private connectedUsers: Set<WebSocket> = new Set();
+  private executions: Map<WebSocket, WorkflowExecution | null> = new Map();
+  private executionIdToWebSocket: Map<string, WebSocket> = new Map();
 
   constructor(ctx: DurableObjectState, env: Bindings) {
     super(ctx, env);
@@ -177,7 +194,15 @@ export class WorkflowSession extends DurableObject<Bindings> {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
-    // Extract workflowId from URL path (e.g., /ws/:workflowId)
+    // This endpoint is ONLY called by the Runtime (Cloudflare Workflow)
+    // to send execution progress updates. Clients never call this directly.
+    if (url.pathname.endsWith("/execution") && request.method === "POST") {
+      return this.handleExecutionUpdate(request);
+    }
+
+    // This endpoint is called by the api to establish a WebSocket connection.
+    // It requires authentication and userId.
+    // It extracts workflowId from the URL path.
     const pathParts = url.pathname.split("/").filter(Boolean);
     const workflowId = pathParts[pathParts.length - 1] || "";
 
@@ -196,10 +221,10 @@ export class WorkflowSession extends DurableObject<Bindings> {
       });
     }
 
-    // Only load if not already in memory
     if (!this.state) {
       try {
         await this.loadState(workflowId, userId);
+        this.userId = userId;
       } catch (error) {
         console.error("Error loading workflow:", error);
         return Response.json(
@@ -242,12 +267,53 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
   }
 
+  /**
+   * Handle execution updates from Runtime (internal endpoint)
+   */
+  private async handleExecutionUpdate(request: Request): Promise<Response> {
+    try {
+      const execution = (await request.json()) as WorkflowExecution;
+
+      const ws = this.executionIdToWebSocket.get(execution.id);
+      if (!ws) {
+        console.warn(
+          `No WebSocket connection found for execution ${execution.id}`
+        );
+        return Response.json({ ok: true });
+      }
+
+      this.executions.set(ws, execution);
+
+      const updateMessage: WorkflowExecutionUpdateMessage = {
+        type: "execution_update",
+        executionId: execution.id,
+        status: execution.status,
+        nodeExecutions: execution.nodeExecutions,
+        error: execution.error,
+      };
+
+      ws.send(JSON.stringify(updateMessage));
+
+      return Response.json({ ok: true });
+    } catch (error) {
+      console.error("Error handling execution update:", error);
+      return Response.json(
+        {
+          error: "Failed to handle execution update",
+          details: error instanceof Error ? error.message : "Unknown error",
+        },
+        { status: 500 }
+      );
+    }
+  }
+
   private async handleWebSocketUpgrade(_request: Request): Promise<Response> {
     const webSocketPair = new WebSocketPair();
     const [client, server] = Object.values(webSocketPair);
 
     this.ctx.acceptWebSocket(server);
     this.connectedUsers.add(server);
+    this.executions.set(server, null); // Initialize with no execution
 
     const initState = await this.getState();
     const initMessage: WorkflowInitMessage = {
@@ -262,6 +328,13 @@ export class WorkflowSession extends DurableObject<Bindings> {
     });
   }
 
+  /**
+   * Handle WebSocket messages from client
+   *
+   * Supports two message types:
+   * 1. WorkflowUpdateMessage - Update workflow state (nodes/edges)
+   * 2. WorkflowExecuteMessage - Trigger workflow execution or register for updates
+   */
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     try {
       if (typeof message !== "string") {
@@ -276,14 +349,136 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
       if ("type" in data && data.type === "update") {
         const updateMsg = data as WorkflowUpdateMessage;
-
-        // Update with the new state
         await this.updateState(updateMsg.state);
+      } else if ("type" in data && data.type === "execute") {
+        const executeMsg = data as WorkflowExecuteMessage;
+
+        if (executeMsg.executionId) {
+          this.executionIdToWebSocket.set(executeMsg.executionId, ws);
+          console.log(
+            `Registered execution ${executeMsg.executionId} for WebSocket updates`
+          );
+        } else {
+          await this.handleExecuteWorkflow(ws, executeMsg.parameters);
+        }
       }
     } catch (error) {
       console.error("WebSocket message error:", error);
       const errorMsg: WorkflowErrorMessage = {
         error: "Failed to process message",
+        details: error instanceof Error ? error.message : "Unknown error",
+      };
+      ws.send(JSON.stringify(errorMsg));
+    }
+  }
+
+  /**
+   * Handle workflow execution triggered via WebSocket
+   */
+  private async handleExecuteWorkflow(
+    ws: WebSocket,
+    _parameters?: Record<string, unknown>
+  ): Promise<void> {
+    if (!this.state || !this.organizationId || !this.userId) {
+      const errorMsg: WorkflowErrorMessage = {
+        error: "Workflow not initialized",
+      };
+      ws.send(JSON.stringify(errorMsg));
+      return;
+    }
+
+    try {
+      const db = createDatabase(this.env.DB);
+
+      // Get organization compute credits
+      const computeCredits = await getOrganizationComputeCredits(
+        db,
+        this.organizationId
+      );
+      if (computeCredits === undefined) {
+        const errorMsg: WorkflowErrorMessage = {
+          error: "Organization not found",
+        };
+        ws.send(JSON.stringify(errorMsg));
+        return;
+      }
+
+      // Validate workflow has nodes
+      if (!this.state.nodes || this.state.nodes.length === 0) {
+        const errorMsg: WorkflowErrorMessage = {
+          error:
+            "Cannot execute an empty workflow. Please add nodes to the workflow.",
+        };
+        ws.send(JSON.stringify(errorMsg));
+        return;
+      }
+
+      const executionParams = {
+        workflow: {
+          id: this.state.id,
+          name: this.state.name,
+          handle: this.state.handle,
+          type: this.state.type,
+          nodes: this.state.nodes,
+          edges: this.state.edges,
+        },
+        userId: this.userId,
+        organizationId: this.organizationId,
+        computeCredits,
+        workflowSessionId: this.state.id,
+      };
+
+      // Start workflow execution
+      const instance = await this.env.EXECUTE.create({
+        params: executionParams,
+      });
+      const executionId = instance.id;
+
+      // Register this WebSocket for execution updates
+      this.executionIdToWebSocket.set(executionId, ws);
+
+      // Build initial nodeExecutions
+      const nodeExecutions = this.state.nodes.map((node) => ({
+        nodeId: node.id,
+        status: "executing" as const,
+      }));
+
+      // Save initial execution record
+      const initialExecution = await saveExecution(db, {
+        id: executionId,
+        workflowId: this.state.id,
+        userId: this.userId,
+        organizationId: this.organizationId,
+        status: ExecutionStatus.EXECUTING,
+        nodeExecutions,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Store execution for this WebSocket
+      this.executions.set(ws, {
+        id: initialExecution.id,
+        workflowId: initialExecution.workflowId,
+        status: "submitted",
+        nodeExecutions: initialExecution.nodeExecutions,
+      });
+
+      // Send execution started message
+      const updateMessage: WorkflowExecutionUpdateMessage = {
+        type: "execution_update",
+        executionId: initialExecution.id,
+        status: "submitted",
+        nodeExecutions: initialExecution.nodeExecutions,
+      };
+      ws.send(JSON.stringify(updateMessage));
+
+      console.log(
+        `Started workflow execution ${executionId} for workflow ${this.state.id}`
+      );
+    } catch (error) {
+      console.error("Failed to execute workflow:", error);
+      const errorMsg: WorkflowErrorMessage = {
+        error: "Failed to execute workflow",
         details: error instanceof Error ? error.message : "Unknown error",
       };
       ws.send(JSON.stringify(errorMsg));
@@ -296,10 +491,14 @@ export class WorkflowSession extends DurableObject<Bindings> {
     _reason: string,
     _wasClean: boolean
   ) {
-    // Remove WebSocket from connected users
     this.connectedUsers.delete(ws);
 
-    // Flush pending persist when connection closes
+    const execution = this.executions.get(ws);
+    if (execution) {
+      this.executionIdToWebSocket.delete(execution.id);
+    }
+    this.executions.delete(ws);
+
     if (this.pendingPersistTimeout !== undefined) {
       clearTimeout(this.pendingPersistTimeout);
       await this.persistToDatabase();

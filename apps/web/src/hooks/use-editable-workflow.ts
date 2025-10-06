@@ -1,4 +1,8 @@
-import type { Parameter, ParameterType } from "@dafthunk/types";
+import type {
+  Parameter,
+  ParameterType,
+  WorkflowExecution,
+} from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -18,11 +22,13 @@ import { adaptDeploymentNodesToReactFlowNodes } from "@/utils/utils";
 interface UseEditableWorkflowProps {
   workflowId: string | undefined;
   nodeTemplates?: NodeTemplate[];
+  onExecutionUpdate?: (execution: WorkflowExecution) => void;
 }
 
 export function useEditableWorkflow({
   workflowId,
   nodeTemplates = [],
+  onExecutionUpdate,
 }: UseEditableWorkflowProps) {
   const [nodes, setNodes] = useState<Node<WorkflowNodeType>[]>([]);
   const [edges, setEdges] = useState<Edge<WorkflowEdgeType>[]>([]);
@@ -124,6 +130,10 @@ export function useEditableWorkflow({
           setProcessingError(`WebSocket error: ${error}`);
           setIsInitializing(false);
         },
+        onExecutionUpdate: (execution: WorkflowExecution) => {
+          // Forward execution updates to parent component
+          onExecutionUpdate?.(execution);
+        },
       });
 
       wsRef.current = ws;
@@ -224,8 +234,18 @@ export function useEditableWorkflow({
     [workflowId, isInitializing]
   );
 
-  // No debouncing needed - WebSocket handles message batching naturally
   const saveWorkflow = saveWorkflowInternal;
+
+  const executeWorkflow = useCallback(
+    (options?: { parameters?: Record<string, unknown> }) => {
+      if (!wsRef.current?.isConnected()) {
+        console.warn("WebSocket is not connected, cannot execute workflow");
+        return;
+      }
+      wsRef.current.executeWorkflow(options);
+    },
+    []
+  );
 
   return {
     nodes,
@@ -236,5 +256,6 @@ export function useEditableWorkflow({
     saveWorkflow,
     isWSConnected,
     workflowMetadata,
+    executeWorkflow,
   };
 }

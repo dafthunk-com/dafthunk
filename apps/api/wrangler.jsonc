@@ -7,13 +7,9 @@
   "name": "dafthunk-api",
   "main": "src/index.ts",
   "compatibility_date": "2024-10-22",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "triggers": {
-    "crons": [
-      "* * * * *"
-    ]
+    "crons": ["* * * * *"]
   },
   "observability": {
     "enabled": true,
@@ -80,14 +76,12 @@
         "class_name": "WorkflowSession",
         "script_name": "dafthunk-api"
       }
-    ],
+    ]
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": [
-        "WorkflowSession"
-      ]
+      "new_classes": ["WorkflowSession"]
     }
   ],
   "unsafe": {
@@ -187,14 +181,12 @@
             "class_name": "WorkflowSession",
             "script_name": "dafthunk-api"
           }
-        ],
+        ]
       },
       "migrations": [
         {
           "tag": "v1",
-          "new_classes": [
-            "WorkflowSession"
-          ]
+          "new_classes": ["WorkflowSession"]
         }
       ],
       "unsafe": {

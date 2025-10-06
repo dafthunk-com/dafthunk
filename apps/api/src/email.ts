@@ -159,7 +159,6 @@ export async function handleIncomingEmail(
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },
-      monitorProgress: false,
       deploymentId,
       emailMessage: {
         from,

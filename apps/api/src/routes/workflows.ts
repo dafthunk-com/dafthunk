@@ -476,8 +476,6 @@ workflowRoutes.post(
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const version = c.req.param("version");
     const db = createDatabase(c.env.DB);
-    const monitorProgress =
-      new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
@@ -642,7 +640,6 @@ workflowRoutes.post(
       userId,
       organizationId,
       computeCredits,
-      monitorProgress,
       deploymentId,
     };
 

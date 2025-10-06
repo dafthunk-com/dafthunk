@@ -395,7 +395,6 @@ export interface DeleteWorkflowResponse {
  * Request to execute a workflow
  */
 export interface ExecuteWorkflowRequest {
-  monitorProgress?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters?: Record<string, any>;
 }
@@ -503,10 +502,14 @@ export interface WorkflowErrorMessage {
 
 /**
  * Message sent from client to server to start workflow execution
+ * or register for execution updates
  */
 export interface WorkflowExecuteMessage {
   type: "execute";
-  executionId: string;
+  /** If provided, register for updates on this execution. If not provided, start a new execution. */
+  executionId?: string;
+  /** Additional parameters for workflow execution */
+  parameters?: Record<string, unknown>;
 }
 
 /**
