@@ -112,7 +112,7 @@ export class ObjectStore {
 
   async writeWorkflow(workflow: Workflow): Promise<string> {
     await this.writeToR2(
-      `workflows/${workflow.id}/workflow.json`,
+      `workflows/${workflow.id}.json`,
       JSON.stringify(workflow),
       {
         httpMetadata: {
@@ -130,7 +130,7 @@ export class ObjectStore {
 
   async readWorkflow(workflowId: string): Promise<Workflow> {
     const object = await this.readFromR2(
-      `workflows/${workflowId}/workflow.json`,
+      `workflows/${workflowId}.json`,
       "readWorkflow"
     );
 
@@ -143,10 +143,7 @@ export class ObjectStore {
   }
 
   async deleteWorkflow(workflowId: string): Promise<void> {
-    await this.deleteFromR2(
-      `workflows/${workflowId}/workflow.json`,
-      "deleteWorkflow"
-    );
+    await this.deleteFromR2(`workflows/${workflowId}.json`, "deleteWorkflow");
   }
 
   async writeExecutionWorkflow(
@@ -154,7 +151,7 @@ export class ObjectStore {
     workflow: Workflow
   ): Promise<string> {
     await this.writeToR2(
-      `executions/${executionId}/workflow.json`,
+      `executions/${executionId}.json`,
       JSON.stringify(workflow),
       {
         httpMetadata: {
@@ -174,7 +171,7 @@ export class ObjectStore {
 
   async readExecutionWorkflow(executionId: string): Promise<Workflow> {
     const object = await this.readFromR2(
-      `executions/${executionId}/workflow.json`,
+      `executions/${executionId}.json`,
       "readExecutionWorkflow"
     );
 
@@ -188,8 +185,52 @@ export class ObjectStore {
 
   async deleteExecutionWorkflow(executionId: string): Promise<void> {
     await this.deleteFromR2(
-      `executions/${executionId}/workflow.json`,
+      `executions/${executionId}.json`,
       "deleteExecutionWorkflow"
+    );
+  }
+
+  async writeDeploymentWorkflow(
+    deploymentId: string,
+    workflow: Workflow
+  ): Promise<string> {
+    await this.writeToR2(
+      `deployments/${deploymentId}/workflow.json`,
+      JSON.stringify(workflow),
+      {
+        httpMetadata: {
+          contentType: "application/json",
+          cacheControl: "public, max-age=31536000",
+        },
+        customMetadata: {
+          deploymentId,
+          workflowId: workflow.id,
+          createdAt: new Date().toISOString(),
+        },
+      },
+      "writeDeploymentWorkflow"
+    );
+    return deploymentId;
+  }
+
+  async readDeploymentWorkflow(deploymentId: string): Promise<Workflow> {
+    const object = await this.readFromR2(
+      `deployments/${deploymentId}/workflow.json`,
+      "readDeploymentWorkflow"
+    );
+
+    if (!object) {
+      throw new Error(`Workflow not found for deployment: ${deploymentId}`);
+    }
+
+    const text = await object.text();
+    return JSON.parse(text) as Workflow;
+  }
+
+  async deleteDeploymentWorkflow(deploymentId: string): Promise<void> {
+    await this.deleteFromR2(
+      `deployments/${deploymentId}/workflow.json`,
+      "deleteDeploymentWorkflow"
     );
   }
 

@@ -9,6 +9,7 @@ import {
   saveExecution,
   updateCronTriggerRunTimes,
 } from "./db/queries";
+import { ObjectStore } from "./runtime/object-store";
 
 // This function will now handle the actual execution triggering and initial record saving
 async function executeWorkflow(
@@ -22,7 +23,8 @@ async function executeWorkflow(
   deploymentId: string | undefined,
   db: ReturnType<typeof createDatabase>,
   env: Bindings,
-  _ctx: ExecutionContext
+  _ctx: ExecutionContext,
+  objectStore: ObjectStore
 ): Promise<void> {
   console.log(`Attempting to execute workflow ${workflowInfo.id} via cron.`);
 
@@ -64,7 +66,7 @@ async function executeWorkflow(
       status: "idle" as const,
     }));
 
-    await saveExecution(db, {
+    const initialExecution = await saveExecution(db, {
       id: executionId,
       workflowId: workflowInfo.id,
       deploymentId: deploymentId,
@@ -77,6 +79,13 @@ async function executeWorkflow(
       startedAt: new Date(),
     });
     console.log(`Initial execution record saved for ${executionId}`);
+
+    // Save execution data to R2
+    try {
+      await objectStore.writeExecution(initialExecution);
+    } catch (error) {
+      console.error(`Failed to save execution to R2: ${executionId}`, error);
+    }
   } catch (execError) {
     console.error(
       `Error executing workflow ${workflowInfo.id} or saving initial record:`,
@@ -92,6 +101,7 @@ export async function handleCronTriggers(
 ): Promise<void> {
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
   const db = createDatabase(env.DB);
+  const objectStore = new ObjectStore(env.RESSOURCES);
   const now = new Date();
 
   try {
@@ -117,9 +127,29 @@ export async function handleCronTriggers(
 
       try {
         if (versionAlias === "dev") {
-          workflowToExecute = workflow.data;
+          // Load workflow data from R2
+          try {
+            workflowToExecute = await objectStore.readWorkflow(workflow.id);
+          } catch (error) {
+            console.error(
+              `Failed to load workflow data from R2 for ${workflow.id}:`,
+              error
+            );
+            continue;
+          }
         } else if (deployment) {
-          workflowToExecute = deployment.workflowData;
+          // Load deployment workflow snapshot from R2
+          try {
+            workflowToExecute = await objectStore.readDeploymentWorkflow(
+              deployment.id
+            );
+          } catch (error) {
+            console.error(
+              `Failed to load deployment workflow data from R2 for ${deployment.id}:`,
+              error
+            );
+            continue;
+          }
           deploymentIdToExecute = deployment.id;
         } else {
           console.error(
@@ -142,7 +172,8 @@ export async function handleCronTriggers(
             deploymentIdToExecute,
             db,
             env,
-            ctx
+            ctx,
+            objectStore
           );
         } else {
           // This case should ideally not be reached due to the checks above,

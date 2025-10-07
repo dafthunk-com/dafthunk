@@ -32,17 +32,19 @@ import {
   ExecutionStatus,
   getCronTrigger,
   getDeploymentByVersion,
-  getExecution,
+  getExecutionWithData,
   getLatestDeployment,
   getOrganizationComputeCredits,
   getWorkflow,
   getWorkflows,
+  getWorkflowWithData,
   saveExecution,
   updateWorkflow,
   upsertCronTrigger as upsertDbCronTrigger,
   type WorkflowInsert,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
+import { ObjectStore } from "../runtime/object-store";
 import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
@@ -71,7 +73,7 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
       id: workflow.id,
       name: workflow.name,
       handle: workflow.handle,
-      type: workflow.data.type,
+      type: workflow.type,
       createdAt: workflow.createdAt,
       updatedAt: workflow.updatedAt,
       nodes: [],
@@ -117,35 +119,43 @@ workflowRoutes.post(
       edges: Array.isArray(data.edges) ? data.edges : [],
     };
 
-    const newWorkflowData: WorkflowInsert = {
-      id: workflowData.id,
-      name: workflowData.name,
-      handle: workflowData.handle,
-      data: workflowData,
-      organizationId: organizationId,
-      createdAt: now,
-      updatedAt: now,
-    };
-
     const validationErrors = validateWorkflow(workflowData);
     if (validationErrors.length > 0) {
       return c.json({ errors: validationErrors }, 400);
     }
 
+    // Save metadata to database
+    const newWorkflowData: WorkflowInsert = {
+      id: workflowData.id,
+      name: workflowData.name,
+      handle: workflowData.handle,
+      type: workflowData.type,
+      organizationId: organizationId,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     const db = createDatabase(c.env.DB);
     const newWorkflow = await createWorkflow(db, newWorkflowData);
 
-    const workflowDataFromDb = newWorkflow.data;
+    // Save full workflow data to R2
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    try {
+      await objectStore.writeWorkflow(workflowData);
+    } catch (error) {
+      console.error(`Failed to save workflow to R2: ${workflowId}`, error);
+      // Consider whether to rollback the database insert here
+    }
 
     const response: CreateWorkflowResponse = {
       id: newWorkflow.id,
       name: newWorkflow.name,
       handle: newWorkflow.handle,
-      type: workflowDataFromDb.type,
+      type: newWorkflow.type,
       createdAt: newWorkflow.createdAt,
       updatedAt: newWorkflow.updatedAt,
-      nodes: workflowDataFromDb.nodes,
-      edges: workflowDataFromDb.edges,
+      nodes: workflowData.nodes,
+      edges: workflowData.edges,
     };
 
     return c.json(response, 201);
@@ -165,24 +175,29 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
 
   try {
-    // Get metadata from database for timestamps
-    const workflow = await getWorkflow(db, id, organizationId);
+    const workflow = await getWorkflowWithData(
+      db,
+      objectStore,
+      id,
+      organizationId
+    );
 
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
     const response: GetWorkflowResponse = {
-      id: workflow!.id,
-      name: workflow!.name,
-      handle: workflow!.handle,
-      type: workflow!.data.type,
-      createdAt: workflow?.createdAt || new Date(),
-      updatedAt: workflow?.updatedAt || new Date(),
-      nodes: workflow?.data.nodes || [],
-      edges: workflow?.data.edges || [],
+      id: workflow.id,
+      name: workflow.name,
+      handle: workflow.handle,
+      type: workflow.type,
+      createdAt: workflow.createdAt || new Date(),
+      updatedAt: workflow.updatedAt || new Date(),
+      nodes: workflow.data.nodes || [],
+      edges: workflow.data.edges || [],
     };
 
     return c.json(response);
@@ -210,10 +225,16 @@ workflowRoutes.put(
   async (c) => {
     const id = c.req.param("id");
     const db = createDatabase(c.env.DB);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     const organizationId = c.get("organizationId")!;
 
-    const existingWorkflow = await getWorkflow(db, id, organizationId);
+    const existingWorkflow = await getWorkflowWithData(
+      db,
+      objectStore,
+      id,
+      organizationId
+    );
 
     if (!existingWorkflow) {
       return c.json({ error: "Workflow not found" }, 404);
@@ -221,6 +242,7 @@ workflowRoutes.put(
 
     const data = c.req.valid("json");
     const now = new Date();
+    const existingWorkflowData = existingWorkflow.data;
 
     // Sanitize nodes to prevent saving binary data and connected values
     const sanitizedNodes = Array.isArray(data.nodes)
@@ -249,15 +271,17 @@ workflowRoutes.put(
               : [],
           };
         })
-      : [];
+      : existingWorkflowData.nodes;
 
     const workflowToValidate = {
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
       handle: existingWorkflow.handle,
-      type: data.type || existingWorkflow.data?.type,
+      type: data.type || existingWorkflowData.type,
       nodes: sanitizedNodes,
-      edges: Array.isArray(data.edges) ? data.edges : [],
+      edges: Array.isArray(data.edges)
+        ? data.edges
+        : existingWorkflowData.edges,
     };
     const validationErrors = validateWorkflow(workflowToValidate);
     if (validationErrors.length > 0) {
@@ -268,28 +292,36 @@ workflowRoutes.put(
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
       handle: existingWorkflow.handle,
-      type: data.type || existingWorkflow.data?.type,
+      type: data.type || existingWorkflowData.type,
       nodes: sanitizedNodes,
-      edges: Array.isArray(data.edges) ? data.edges : [],
+      edges: Array.isArray(data.edges)
+        ? data.edges
+        : existingWorkflowData.edges,
     };
 
+    // Save full workflow data to R2
+    try {
+      await objectStore.writeWorkflow(updatedWorkflowData);
+    } catch (error) {
+      console.error(`Failed to save workflow to R2: ${id}`, error);
+    }
+
+    // Update metadata in database
     const updatedWorkflow = await updateWorkflow(db, id, organizationId, {
       name: data.name,
-      data: updatedWorkflowData,
+      type: updatedWorkflowData.type,
       updatedAt: now,
     });
-
-    const workflowDataFromDb = updatedWorkflow.data;
 
     const response: UpdateWorkflowResponse = {
       id: updatedWorkflow.id,
       name: updatedWorkflow.name,
       handle: updatedWorkflow.handle,
-      type: workflowDataFromDb.type,
+      type: updatedWorkflowData.type,
       createdAt: updatedWorkflow.createdAt,
       updatedAt: updatedWorkflow.updatedAt,
-      nodes: workflowDataFromDb.nodes || [],
-      edges: workflowDataFromDb.edges || [],
+      nodes: updatedWorkflowData.nodes || [],
+      edges: updatedWorkflowData.edges || [],
     };
 
     return c.json(response);
@@ -315,6 +347,15 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 
   if (!deletedWorkflow) {
     return c.json({ error: "Failed to delete workflow" }, 500);
+  }
+
+  // Delete workflow data from R2
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
+  try {
+    await objectStore.deleteWorkflow(id);
+  } catch (error) {
+    console.error(`Failed to delete workflow from R2: ${id}`, error);
+    // Continue even if R2 deletion fails
   }
 
   const response: DeleteWorkflowResponse = { id: deletedWorkflow.id };
@@ -380,7 +421,7 @@ workflowRoutes.put(
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    if (workflow.data.type !== "cron") {
+    if (workflow.type !== "cron") {
       return c.json({ error: "Workflow is not a cron workflow" }, 400);
     }
 
@@ -489,14 +530,22 @@ workflowRoutes.post(
     let workflowData;
     let workflow: any;
     let deploymentId: string | undefined;
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     if (version === "dev") {
-      // Fallback to database
-      workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-      if (!workflow) {
+      // Load workflow with data from database and R2
+      const workflowWithData = await getWorkflowWithData(
+        db,
+        objectStore,
+        workflowIdOrHandle,
+        organizationId
+      );
+      if (!workflowWithData) {
         return c.json({ error: "Workflow not found" }, 404);
       }
-      workflowData = workflow.data;
+
+      workflow = workflowWithData;
+      workflowData = workflowWithData.data;
     } else {
       // Get deployment based on version
       let deployment;
@@ -525,10 +574,23 @@ workflowRoutes.post(
       }
 
       deploymentId = deployment.id;
-      workflowData = deployment.workflowData;
+
+      // Load deployment workflow snapshot from R2
+      try {
+        workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
+      } catch (error) {
+        console.error(
+          `Failed to load deployment workflow from R2 for ${deployment.id}:`,
+          error
+        );
+        return c.json({ error: "Failed to load deployment data" }, 500);
+      }
+
       workflow = {
         id: deployment.workflowId,
         name: workflowData.name,
+        handle: workflowData.handle,
+        type: workflowData.type,
       };
     }
 
@@ -697,6 +759,13 @@ workflowRoutes.post(
       updatedAt: new Date(),
     });
 
+    // Save execution data to R2
+    try {
+      await objectStore.writeExecution(initialExecution);
+    } catch (error) {
+      console.error(`Failed to save execution to R2: ${executionId}`, error);
+    }
+
     const response: ExecuteWorkflowResponse = {
       id: initialExecution.id,
       workflowId: initialExecution.workflowId,
@@ -718,9 +787,15 @@ workflowRoutes.post(
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
     const db = createDatabase(c.env.DB);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     // Get the execution to verify it exists and belongs to this organization
-    const execution = await getExecution(db, executionId, organizationId);
+    const execution = await getExecutionWithData(
+      db,
+      objectStore,
+      executionId,
+      organizationId
+    );
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
@@ -734,6 +809,8 @@ workflowRoutes.post(
         400
       );
     }
+
+    const executionData = execution.data;
 
     try {
       // Get the workflow instance and terminate it
@@ -749,12 +826,22 @@ workflowRoutes.post(
         userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
         organizationId: execution.organizationId,
         status: ExecutionStatus.CANCELLED,
-        nodeExecutions: execution.data.nodeExecutions || [],
+        nodeExecutions: executionData.nodeExecutions || [],
         error: execution.error ?? "Execution cancelled by user",
         updatedAt: now,
         endedAt: now,
         startedAt: execution.startedAt ?? undefined,
       });
+
+      // Save updated execution to R2
+      try {
+        await objectStore.writeExecution(updatedExecution);
+      } catch (error) {
+        console.error(
+          `Failed to save updated execution to R2: ${executionId}`,
+          error
+        );
+      }
 
       const response: CancelWorkflowExecutionResponse = {
         id: updatedExecution.id,
@@ -767,19 +854,29 @@ workflowRoutes.post(
 
       // If the instance doesn't exist or can't be terminated, still update the database
       const now = new Date();
-      await saveExecution(db, {
+      const updatedExecution = await saveExecution(db, {
         id: executionId,
         workflowId: execution.workflowId,
         deploymentId: execution.deploymentId ?? undefined,
         userId: "cancelled", // Required by SaveExecutionRecord but not stored in DB
         organizationId: execution.organizationId,
         status: ExecutionStatus.CANCELLED,
-        nodeExecutions: execution.data.nodeExecutions || [],
+        nodeExecutions: executionData.nodeExecutions || [],
         error: execution.error ?? "Execution cancelled by user",
         updatedAt: now,
         endedAt: now,
         startedAt: execution.startedAt ?? undefined,
       });
+
+      // Save updated execution to R2
+      try {
+        await objectStore.writeExecution(updatedExecution);
+      } catch (error) {
+        console.error(
+          `Failed to save updated execution to R2: ${executionId}`,
+          error
+        );
+      }
 
       const response: CancelWorkflowExecutionResponse = {
         id: executionId,
