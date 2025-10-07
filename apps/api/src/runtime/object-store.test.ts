@@ -221,7 +221,7 @@ describe("ObjectStore", () => {
 
         expect(result).toBe("workflow-123");
         expect(mockBucket.put).toHaveBeenCalledWith(
-          "workflows/workflow-123/workflow.json",
+          "workflows/workflow-123.json",
           JSON.stringify(workflow),
           expect.objectContaining({
             httpMetadata: expect.objectContaining({
@@ -253,7 +253,7 @@ describe("ObjectStore", () => {
 
         expect(result).toEqual(workflow);
         expect(mockBucket.get).toHaveBeenCalledWith(
-          "workflows/workflow-123/workflow.json"
+          "workflows/workflow-123.json"
         );
       });
 
@@ -275,7 +275,7 @@ describe("ObjectStore", () => {
         await store.deleteWorkflow("workflow-123");
 
         expect(mockBucket.delete).toHaveBeenCalledWith(
-          "workflows/workflow-123/workflow.json"
+          "workflows/workflow-123.json"
         );
       });
     });
@@ -298,7 +298,7 @@ describe("ObjectStore", () => {
 
         expect(result).toBe("exec-456");
         expect(mockBucket.put).toHaveBeenCalledWith(
-          "executions/exec-456/workflow.json",
+          "executions/exec-456.json",
           JSON.stringify(workflow),
           expect.objectContaining({
             customMetadata: expect.objectContaining({
@@ -330,9 +330,7 @@ describe("ObjectStore", () => {
         const result = await store.readExecutionWorkflow("exec-456");
 
         expect(result).toEqual(workflow);
-        expect(mockBucket.get).toHaveBeenCalledWith(
-          "executions/exec-456/workflow.json"
-        );
+        expect(mockBucket.get).toHaveBeenCalledWith("executions/exec-456.json");
       });
 
       it("should throw error when execution workflow not found", async () => {
