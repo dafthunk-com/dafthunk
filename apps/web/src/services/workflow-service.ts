@@ -275,7 +275,10 @@ const wouldCreateIndirectCycle = (
 /**
  * Hook to manage workflow execution, including parameter forms and status polling.
  */
-export function useWorkflowExecution(orgHandle: string) {
+export function useWorkflowExecution(
+  orgHandle: string,
+  wsExecuteFn?: (options?: { parameters?: Record<string, unknown> }) => void
+) {
   const [isFormDialogVisible, setIsFormDialogVisible] = useState(false);
   const [isJsonBodyDialogVisible, setIsJsonBodyDialogVisible] = useState(false);
   const [isEmailFormDialogVisible, setIsEmailFormDialogVisible] =
@@ -323,7 +326,7 @@ export function useWorkflowExecution(orgHandle: string) {
       const response = await makeOrgRequest<ExecuteWorkflowResponse>(
         orgHandle,
         API_ENDPOINT_BASE,
-        `/${id}/execute/dev?monitorProgress=${request?.monitorProgress ?? true}`,
+        `/${id}/execute/dev`,
         {
           method: "POST",
           ...(request?.parameters &&
@@ -419,11 +422,31 @@ export function useWorkflowExecution(orgHandle: string) {
       cleanup();
       pollingRef.current.cancelled = false;
 
-      executeAndPollWorkflow(id, { monitorProgress: true, ...request })
+      if (wsExecuteFn) {
+        try {
+          wsExecuteFn({
+            parameters: request?.parameters,
+          });
+        } catch (error) {
+          console.error("WebSocket execution failed:", error);
+          onExecutionUpdate({
+            id: "",
+            workflowId: id,
+            status: "error",
+            nodeExecutions: [],
+            error:
+              error instanceof Error
+                ? error.message
+                : "WebSocket execution failed",
+          });
+        }
+        return cancelCurrentExecution;
+      }
+
+      executeAndPollWorkflow(id, request)
         .then((initialExecution: WorkflowExecution) => {
           if (pollingRef.current.cancelled) return;
 
-          // Track the current execution
           pollingRef.current.currentExecutionId = initialExecution.id;
           pollingRef.current.currentWorkflowId = id;
 
@@ -487,7 +510,13 @@ export function useWorkflowExecution(orgHandle: string) {
 
       return cancelCurrentExecution;
     },
-    [executeAndPollWorkflow, cancelCurrentExecution, orgHandle, cleanup]
+    [
+      wsExecuteFn,
+      executeAndPollWorkflow,
+      cancelCurrentExecution,
+      orgHandle,
+      cleanup,
+    ]
   );
 
   const executeWorkflowWithForm = useCallback(

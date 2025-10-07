@@ -395,7 +395,6 @@ export interface DeleteWorkflowResponse {
  * Request to execute a workflow
  */
 export interface ExecuteWorkflowRequest {
-  monitorProgress?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters?: Record<string, any>;
 }
@@ -465,3 +464,71 @@ export interface GetCronTriggerResponse {
  * Returns the full trigger information.
  */
 export type UpsertCronTriggerResponse = GetCronTriggerResponse;
+
+/**
+ * WebSocket message types for websocket synchronization
+ */
+
+/**
+ * Workflow state
+ */
+export interface WorkflowState extends Workflow {
+  timestamp: number;
+}
+
+/**
+ * Message sent from server to client with initial state
+ */
+export interface WorkflowInitMessage {
+  type: "init";
+  state: WorkflowState;
+}
+
+/**
+ * Message sent from client to server to update state
+ */
+export interface WorkflowUpdateMessage {
+  type: "update";
+  state: WorkflowState;
+}
+
+/**
+ * Error message sent from server to client
+ */
+export interface WorkflowErrorMessage {
+  error: string;
+  details?: string;
+}
+
+/**
+ * Message sent from client to server to start workflow execution
+ * or register for execution updates
+ */
+export interface WorkflowExecuteMessage {
+  type: "execute";
+  /** If provided, register for updates on this execution. If not provided, start a new execution. */
+  executionId?: string;
+  /** Additional parameters for workflow execution */
+  parameters?: Record<string, unknown>;
+}
+
+/**
+ * Message sent from server to client with execution progress updates
+ */
+export interface WorkflowExecutionUpdateMessage {
+  type: "execution_update";
+  executionId: string;
+  status: WorkflowExecutionStatus;
+  nodeExecutions: NodeExecution[];
+  error?: string;
+}
+
+/**
+ * All possible WebSocket messages
+ */
+export type WorkflowMessage =
+  | WorkflowInitMessage
+  | WorkflowUpdateMessage
+  | WorkflowErrorMessage
+  | WorkflowExecuteMessage
+  | WorkflowExecutionUpdateMessage;

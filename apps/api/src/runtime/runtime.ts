@@ -2,7 +2,6 @@ import {
   JsonArray,
   JsonObject,
   Node,
-  NodeExecutionStatus,
   ObjectReference,
   Workflow,
   WorkflowExecution,
@@ -74,7 +73,7 @@ export type RuntimeParams = {
   userId: string;
   organizationId: string;
   computeCredits: number;
-  monitorProgress?: boolean;
+  workflowSessionId?: string;
   deploymentId?: string;
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
@@ -180,7 +179,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       workflow,
       userId,
       organizationId,
-      monitorProgress = false,
+      workflowSessionId,
       httpRequest,
       emailMessage,
       computeCredits,
@@ -313,27 +312,19 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           );
         }
 
-        // Persist progress after each execution unit if monitoring is enabled
-        if (monitorProgress) {
-          const unitDescription =
-            executionUnit.type === "individual"
-              ? executionUnit.nodeId
-              : `inline group [${executionUnit.nodeIds.join(", ")}]`;
+        if (workflowSessionId) {
+          executionRecord = {
+            ...executionRecord,
+            status: runtimeState.status,
+            nodeExecutions: this.buildNodeExecutions(runtimeState),
+          };
 
-          executionRecord = await step.do(
-            `persist after ${unitDescription}`,
-            Runtime.defaultStepConfig,
-            async () =>
-              this.saveExecutionState(
-                userId,
-                organizationId,
-                workflow.id,
-                instanceId,
-                runtimeState,
-                executionRecord.startedAt,
-                executionRecord.endedAt
-              )
-          );
+          this.sendExecutionUpdateToSession(
+            workflowSessionId,
+            executionRecord
+          ).catch((error) => {
+            console.error("Failed to send execution update to session:", error);
+          });
         }
       }
     } catch (error) {
@@ -376,6 +367,15 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           );
         }
       );
+
+      if (workflowSessionId) {
+        this.sendExecutionUpdateToSession(
+          workflowSessionId,
+          executionRecord
+        ).catch((error) => {
+          console.error("Failed to send execution update to session:", error);
+        });
+      }
     }
 
     return executionRecord;
@@ -410,6 +410,29 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const nodeType = this.nodeRegistry.getNodeType(node.type);
       return acc + (nodeType.computeCost ?? 1);
     }, 0);
+  }
+
+  private async sendExecutionUpdateToSession(
+    workflowSessionId: string,
+    execution: WorkflowExecution
+  ): Promise<void> {
+    try {
+      const id = this.env.WORKFLOW_SESSION.idFromName(workflowSessionId);
+      const stub = this.env.WORKFLOW_SESSION.get(id);
+
+      await stub.fetch(`https://workflow-session/execution`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(execution),
+      });
+    } catch (error) {
+      console.error(
+        `Failed to send execution update to session ${workflowSessionId}:`,
+        error
+      );
+    }
   }
 
   /**
@@ -1188,6 +1211,38 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   }
 
   /**
+   * Builds node execution list from runtime state
+   */
+  private buildNodeExecutions(runtimeState: RuntimeState) {
+    return runtimeState.workflow.nodes.map((node) => {
+      if (runtimeState.executedNodes.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "completed" as const,
+          outputs: runtimeState.nodeOutputs.get(node.id) || {},
+        };
+      }
+      if (runtimeState.nodeErrors.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "error" as const,
+          error: runtimeState.nodeErrors.get(node.id),
+        };
+      }
+      if (runtimeState.skippedNodes.has(node.id)) {
+        return {
+          nodeId: node.id,
+          status: "skipped" as const,
+        };
+      }
+      return {
+        nodeId: node.id,
+        status: "executing" as const,
+      };
+    });
+  }
+
+  /**
    * Persists the workflow execution state to the database.
    */
   private async saveExecutionState(
@@ -1199,33 +1254,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     startedAt?: Date,
     endedAt?: Date
   ): Promise<WorkflowExecution> {
-    // Build node execution list with explicit status for each node.
-    const nodeExecutionList = runtimeState.workflow.nodes.map((node) => {
-      if (runtimeState.executedNodes.has(node.id)) {
-        return {
-          nodeId: node.id,
-          status: "completed" as NodeExecutionStatus,
-          outputs: runtimeState.nodeOutputs.get(node.id),
-        };
-      }
-      if (runtimeState.nodeErrors.has(node.id)) {
-        return {
-          nodeId: node.id,
-          status: "error" as NodeExecutionStatus,
-          error: runtimeState.nodeErrors.get(node.id),
-        };
-      }
-      if (runtimeState.skippedNodes.has(node.id)) {
-        return {
-          nodeId: node.id,
-          status: "skipped" as NodeExecutionStatus,
-        };
-      }
-      return {
-        nodeId: node.id,
-        status: "executing" as NodeExecutionStatus,
-      };
-    });
+    const nodeExecutionList = this.buildNodeExecutions(runtimeState);
 
     const executionStatus = runtimeState.status;
     const errorMsg =

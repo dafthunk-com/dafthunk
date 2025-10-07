@@ -1,4 +1,3 @@
-import { ExecutionContext } from "@cloudflare/workers-types";
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 import CronParser from "cron-parser";
 
@@ -51,7 +50,6 @@ async function executeWorkflow(
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },
-        monitorProgress: false,
         deploymentId: deploymentId,
       },
     });

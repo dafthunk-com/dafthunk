@@ -263,9 +263,6 @@ deploymentRoutes.post(
     const deploymentId = c.req.param("deploymentId");
     const db = createDatabase(c.env.DB);
 
-    const monitorProgress =
-      new URL(c.req.url).searchParams.get("monitorProgress") === "true";
-
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
       db,
@@ -333,7 +330,6 @@ deploymentRoutes.post(
           nodes: workflowData.nodes,
           edges: workflowData.edges,
         },
-        monitorProgress,
         deploymentId: deployment.id,
         httpRequest: {
           url,

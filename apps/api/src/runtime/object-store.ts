@@ -1,4 +1,3 @@
-import type { R2Object } from "@cloudflare/workers-types";
 import { ObjectReference, Workflow, WorkflowExecution } from "@dafthunk/types";
 import { v7 as uuid } from "uuid";
 

@@ -157,28 +157,39 @@ workflowRoutes.post(
  */
 workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
-  const db = createDatabase(c.env.DB);
-
   const organizationId = c.get("organizationId")!;
-  const workflow = await getWorkflow(db, id, organizationId);
-  if (!workflow) {
-    return c.json({ error: "Workflow not found" }, 404);
+  const userId = c.var.jwtPayload?.sub;
+
+  if (!userId) {
+    return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const workflowData = workflow.data;
+  const db = createDatabase(c.env.DB);
 
-  const response: GetWorkflowResponse = {
-    id: workflow.id,
-    name: workflow.name,
-    handle: workflow.handle,
-    type: workflowData.type,
-    createdAt: workflow.createdAt,
-    updatedAt: workflow.updatedAt,
-    nodes: workflowData.nodes || [],
-    edges: workflowData.edges || [],
-  };
+  try {
+    // Get metadata from database for timestamps
+    const workflow = await getWorkflow(db, id, organizationId);
 
-  return c.json(response);
+    if (!workflow) {
+      return c.json({ error: "Workflow not found" }, 404);
+    }
+
+    const response: GetWorkflowResponse = {
+      id: workflow!.id,
+      name: workflow!.name,
+      handle: workflow!.handle,
+      type: workflow!.data.type,
+      createdAt: workflow?.createdAt || new Date(),
+      updatedAt: workflow?.updatedAt || new Date(),
+      nodes: workflow?.data.nodes || [],
+      edges: workflow?.data.edges || [],
+    };
+
+    return c.json(response);
+  } catch (error) {
+    console.error("Error fetching workflow:", error);
+    return c.json({ error: "Failed to fetch workflow" }, 500);
+  }
 });
 
 /**
@@ -450,8 +461,6 @@ workflowRoutes.post(
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const version = c.req.param("version");
     const db = createDatabase(c.env.DB);
-    const monitorProgress =
-      new URL(c.req.url).searchParams.get("monitorProgress") === "true";
 
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
@@ -482,8 +491,11 @@ workflowRoutes.post(
     let deploymentId: string | undefined;
 
     if (version === "dev") {
-      // Get workflow data directly
+      // Fallback to database
       workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
+      if (!workflow) {
+        return c.json({ error: "Workflow not found" }, 404);
+      }
       workflowData = workflow.data;
     } else {
       // Get deployment based on version
@@ -593,7 +605,6 @@ workflowRoutes.post(
       userId,
       organizationId,
       computeCredits,
-      monitorProgress,
       deploymentId,
     };
 

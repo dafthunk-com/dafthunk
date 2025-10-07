@@ -1,6 +1,7 @@
+import type { WorkflowType } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -35,7 +36,6 @@ import { useNodeTypes } from "@/services/type-service";
 import {
   upsertCronTrigger,
   useCronTrigger,
-  useWorkflow,
   useWorkflowExecution,
 } from "@/services/workflow-service";
 
@@ -54,25 +54,9 @@ export function EditorPage() {
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
     useState(false);
 
-  const {
-    workflow: currentWorkflow,
-    workflowError: workflowDetailsError,
-    isWorkflowLoading: isWorkflowDetailsLoading,
-  } = useWorkflow(id || null, { revalidateOnFocus: false });
-
-  const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
-    useCronTrigger(currentWorkflow?.type === "cron" && id ? id : null, {
-      revalidateOnFocus: false,
-    });
-
-  const {
-    deployments: deploymentHistory,
-    isDeploymentHistoryLoading,
-    mutateHistory: mutateDeploymentHistory,
-  } = useDeploymentHistory(id!, { revalidateOnFocus: false });
-
+  // Fetch all node types initially (no filter)
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
-    currentWorkflow?.type,
+    undefined, // Fetch all node types initially
     { revalidateOnFocus: false }
   );
 
@@ -110,17 +94,53 @@ export function EditorPage() {
     return templates;
   }, [nodeTypes]);
 
+  const executionCallbackRef = useRef<
+    ((execution: WorkflowExecution) => void) | null
+  >(null);
+
+  const handleExecutionUpdate = useCallback((execution: WorkflowExecution) => {
+    if (executionCallbackRef.current) {
+      executionCallbackRef.current(execution);
+    }
+  }, []);
+
+  const {
+    nodes: initialNodesForUI,
+    edges: initialEdgesForUI,
+    isInitializing: isWorkflowInitializing,
+    processingError: workflowProcessingError,
+    savingError: workflowSavingError,
+    saveWorkflow,
+    isWSConnected: _isWSConnected,
+    workflowMetadata,
+    executeWorkflow: wsExecuteWorkflow,
+  } = useEditableWorkflow({
+    workflowId: id,
+    nodeTemplates,
+    onExecutionUpdate: handleExecutionUpdate,
+  });
+
+  // Now we can use workflowMetadata for cron trigger
+  const { cronTrigger, isCronTriggerLoading, mutateCronTrigger } =
+    useCronTrigger(workflowMetadata?.type === "cron" && id ? id : null, {
+      revalidateOnFocus: false,
+    });
+
+  const {
+    deployments: deploymentHistory,
+    isDeploymentHistoryLoading,
+    mutateHistory: mutateDeploymentHistory,
+  } = useDeploymentHistory(id!, { revalidateOnFocus: false });
+
   const deploymentVersions = useMemo(
     () => deploymentHistory.map((d) => d.version).sort((a, b) => b - a),
     [deploymentHistory]
   );
 
-  const [latestUiNodes, setLatestUiNodes] = useState<Node<WorkflowNodeType>[]>(
-    []
-  );
-  const [latestUiEdges, setLatestUiEdges] = useState<Edge<WorkflowEdgeType>[]>(
-    []
-  );
+  // Use refs for both nodes and edges to avoid stale closures and unnecessary re-renders
+  // Both are only used for validation, execution, and saving - no UI rendering depends on them
+  const latestUiNodesRef = useRef<Node<WorkflowNodeType>[]>([]);
+  const latestUiEdgesRef = useRef<Edge<WorkflowEdgeType>[]>([]);
 
   const handleOpenSetCronDialog = useCallback(() => {
     mutateDeploymentHistory();
@@ -153,51 +173,38 @@ export function EditorPage() {
     [id, orgHandle, mutateCronTrigger]
   );
 
-  const {
-    nodes: initialNodesForUI,
-    edges: initialEdgesForUI,
-    isInitializing: isWorkflowInitializing,
-    processingError: workflowProcessingError,
-    savingError: workflowSavingError,
-    saveWorkflow,
-  } = useEditableWorkflow({
-    workflowId: id,
-    currentWorkflow,
-    isWorkflowDetailsLoading,
-    workflowDetailsError,
-    nodeTemplates,
-  });
-
   useEffect(() => {
     if (initialNodesForUI) {
-      setLatestUiNodes(initialNodesForUI);
+      latestUiNodesRef.current = initialNodesForUI;
     }
   }, [initialNodesForUI]);
 
   useEffect(() => {
     if (initialEdgesForUI) {
-      setLatestUiEdges(initialEdgesForUI);
+      latestUiEdgesRef.current = initialEdgesForUI;
     }
   }, [initialEdgesForUI]);
 
   const handleUiNodesChanged = useCallback(
     (updatedNodesFromUI: Node<WorkflowNodeType>[]) => {
-      setLatestUiNodes(updatedNodesFromUI);
-      if (currentWorkflow) {
-        saveWorkflow(updatedNodesFromUI, latestUiEdges);
+      latestUiNodesRef.current = updatedNodesFromUI;
+      if (workflowMetadata) {
+        // Use refs for both to get current values without stale closures
+        saveWorkflow(updatedNodesFromUI, latestUiEdgesRef.current);
       }
     },
-    [latestUiEdges, saveWorkflow, currentWorkflow]
+    [saveWorkflow, workflowMetadata]
   );
 
   const handleUiEdgesChanged = useCallback(
     (updatedEdgesFromUI: Edge<WorkflowEdgeType>[]) => {
-      setLatestUiEdges(updatedEdgesFromUI);
-      if (currentWorkflow) {
-        saveWorkflow(latestUiNodes, updatedEdgesFromUI);
+      latestUiEdgesRef.current = updatedEdgesFromUI;
+      if (workflowMetadata) {
+        // Use refs for both to get current values without stale closures
+        saveWorkflow(latestUiNodesRef.current, updatedEdgesFromUI);
       }
     },
-    [latestUiNodes, saveWorkflow, currentWorkflow]
+    [saveWorkflow, workflowMetadata]
   );
 
   const {
@@ -211,22 +218,22 @@ export function EditorPage() {
     closeExecutionForm,
     isEmailFormDialogVisible,
     submitEmailFormData,
-  } = useWorkflowExecution(orgHandle);
+  } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
 
   usePageBreadcrumbs(
     [
       { label: "Workflows", to: getOrgUrl("workflows") },
-      { label: currentWorkflow?.name || "Workflow" },
+      { label: workflowMetadata?.name || "Workflow" },
     ],
-    [currentWorkflow?.name]
+    [workflowMetadata?.name]
   );
 
   const validateConnection = useCallback(
     (connection: Connection) => {
-      const sourceNode = latestUiNodes.find(
+      const sourceNode = latestUiNodesRef.current.find(
         (node) => node.id === connection.source
       );
-      const targetNode = latestUiNodes.find(
+      const targetNode = latestUiNodesRef.current.find(
         (node) => node.id === connection.target
       );
       if (!sourceNode || !targetNode) return false;
@@ -246,7 +253,7 @@ export function EditorPage() {
 
       return typesMatch;
     },
-    [latestUiNodes]
+    [] // No dependencies since we're using refs
   );
 
   const editorExecuteWorkflow = useCallback(
@@ -254,15 +261,17 @@ export function EditorPage() {
       workflowIdFromBuilder: string,
       onExecutionFromBuilder: (execution: WorkflowExecution) => void
     ) => {
+      executionCallbackRef.current = onExecutionFromBuilder;
+
       return executeWorkflow(
         workflowIdFromBuilder,
         onExecutionFromBuilder,
-        latestUiNodes,
+        latestUiNodesRef.current,
         nodeTemplates as any,
-        currentWorkflow?.type
+        workflowMetadata?.type
       );
     },
-    [executeWorkflow, latestUiNodes, nodeTemplates, currentWorkflow?.type]
+    [executeWorkflow, nodeTemplates, workflowMetadata?.type]
   );
 
   const handleRetryLoading = () => {
@@ -293,17 +302,6 @@ export function EditorPage() {
     setWorkflowBuilderKey(Date.now());
   };
 
-  if (workflowDetailsError) {
-    return (
-      <WorkflowError
-        message={
-          workflowDetailsError.message || "Failed to load workflow details."
-        }
-        onRetry={handleRetryLoading}
-      />
-    );
-  }
-
   if (nodeTypesError) {
     return (
       <WorkflowError
@@ -327,7 +325,6 @@ export function EditorPage() {
   }
 
   if (
-    isWorkflowDetailsLoading ||
     isNodeTypesLoading ||
     isWorkflowInitializing ||
     isCronTriggerLoading ||
@@ -337,16 +334,14 @@ export function EditorPage() {
   }
 
   if (
-    !currentWorkflow &&
-    !isWorkflowDetailsLoading &&
-    !workflowDetailsError &&
+    !workflowMetadata &&
     !isNodeTypesLoading &&
     !nodeTypesError &&
     !isWorkflowInitializing
   ) {
     return (
       <WorkflowError
-        message={`Workflow with ID "${id}" not found, or could not be prepared.`}
+        message={`Workflow with ID "${id}" not found, or could not be loaded via WebSocket.`}
         onRetry={() => navigate(getOrgUrl("workflows"))}
       />
     );
@@ -363,19 +358,19 @@ export function EditorPage() {
           <WorkflowBuilder
             key={workflowBuilderKey}
             workflowId={id || ""}
-            workflowType={currentWorkflow?.type}
+            workflowType={workflowMetadata?.type as WorkflowType | undefined}
             onSetSchedule={
-              currentWorkflow?.type === "cron"
+              workflowMetadata?.type === "cron"
                 ? handleOpenSetCronDialog
                 : undefined
             }
             onShowHttpIntegration={
-              currentWorkflow?.type === "http_request"
+              workflowMetadata?.type === "http_request"
                 ? () => setIsHttpIntegrationDialogOpen(true)
                 : undefined
             }
             onShowEmailTrigger={
-              currentWorkflow?.type === "email_message"
+              workflowMetadata?.type === "email_message"
                 ? () => setIsEmailTriggerDialogOpen(true)
                 : undefined
             }
@@ -390,18 +385,18 @@ export function EditorPage() {
             createObjectUrl={createObjectUrl}
           />
         </div>
-        {currentWorkflow?.type === "http_request" && (
+        {workflowMetadata?.type === "http_request" && (
           <HttpIntegrationDialog
             isOpen={isHttpIntegrationDialogOpen}
             onClose={() => setIsHttpIntegrationDialogOpen(false)}
             orgHandle={orgHandle}
             workflowId={id!}
             deploymentVersion="dev"
-            nodes={latestUiNodes}
+            nodes={latestUiNodesRef.current}
             nodeTemplates={nodeTemplates}
           />
         )}
-        {currentWorkflow?.type === "http_request" &&
+        {workflowMetadata?.type === "http_request" &&
           executionFormParameters.length > 0 && (
             <ExecutionFormDialog
               isOpen={isFormDialogVisible}
@@ -411,7 +406,7 @@ export function EditorPage() {
               onSubmit={submitFormData}
             />
           )}
-        {currentWorkflow?.type === "http_request" &&
+        {workflowMetadata?.type === "http_request" &&
           executionJsonBodyParameters.length > 0 && (
             <ExecutionJsonBodyDialog
               isOpen={isJsonBodyDialogVisible}
@@ -421,16 +416,16 @@ export function EditorPage() {
               onSubmit={submitJsonBody}
             />
           )}
-        {currentWorkflow?.type === "email_message" && (
+        {workflowMetadata?.type === "email_message" && (
           <EmailTriggerDialog
             isOpen={isEmailTriggerDialogOpen}
             onClose={() => setIsEmailTriggerDialogOpen(false)}
             orgHandle={orgHandle}
-            workflowHandle={currentWorkflow.handle}
+            workflowHandle={workflowMetadata.handle}
             deploymentVersion="dev"
           />
         )}
-        {currentWorkflow?.type === "email_message" && (
+        {workflowMetadata?.type === "email_message" && (
           <ExecutionEmailDialog
             isOpen={isEmailFormDialogVisible}
             onClose={closeExecutionForm}
@@ -438,7 +433,7 @@ export function EditorPage() {
             onSubmit={submitEmailFormData}
           />
         )}
-        {currentWorkflow?.type === "cron" && (
+        {workflowMetadata?.type === "cron" && (
           <SetCronDialog
             isOpen={isSetCronDialogOpen}
             onClose={handleCloseSetCronDialog}
@@ -451,7 +446,7 @@ export function EditorPage() {
               versionNumber: cronTrigger?.versionNumber,
             }}
             deploymentVersions={deploymentVersions}
-            workflowName={currentWorkflow?.name}
+            workflowName={workflowMetadata?.name}
           />
         )}
       </div>

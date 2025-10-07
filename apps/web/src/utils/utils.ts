@@ -18,17 +18,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const debounce = <T extends (...args: Parameters<T>) => ReturnType<T>>(
-  func: T,
-  wait: number
-): ((...args: Parameters<T>) => void) => {
-  let timeout: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
-
 // Helper function to extract and format parameters for the execution dialog
 export function extractDialogParametersFromNodes(
   nodes: Node<WorkflowNodeType>[],
@@ -118,7 +107,7 @@ export function adaptDeploymentNodesToReactFlowNodes(
 
     // Find the icon from nodeTemplates by matching the node type
     const template = nodeTemplates.find((t) => t.type === depNode.type);
-    const icon = template?.icon || "circle"; // fallback icon
+    const icon = depNode.icon || template?.icon || "circle"; // fallback icon
 
     return {
       id: depNode.id,

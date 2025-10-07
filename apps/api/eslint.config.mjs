@@ -6,7 +6,14 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  { ignores: ["dist", ".wrangler/**", "node_modules/**"] },
+  {
+    ignores: [
+      "dist",
+      ".wrangler/**",
+      "node_modules/**",
+      "worker-configuration.d.ts",
+    ],
+  },
   {
     files: ["**/*.{js,mjs,cjs,ts}"],
     plugins: {

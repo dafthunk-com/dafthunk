@@ -1,4 +1,3 @@
-import { ExecutionContext } from "@cloudflare/workers-types";
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
@@ -160,7 +159,6 @@ export async function handleIncomingEmail(
         nodes: workflowData.nodes,
         edges: workflowData.edges,
       },
-      monitorProgress: false,
       deploymentId,
       emailMessage: {
         from,
