@@ -25,6 +25,7 @@ import {
   updateWorkflow,
 } from "../db/queries";
 import { ObjectStore } from "../runtime/object-store";
+import { createSimulatedEmailMessage } from "../utils/email";
 
 export class WorkflowSession extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
@@ -392,7 +393,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
    */
   private async handleExecuteWorkflow(
     ws: WebSocket,
-    _parameters?: Record<string, unknown>
+    parameters?: Record<string, unknown>
   ): Promise<void> {
     if (!this.state || !this.organizationId || !this.userId) {
       const errorMsg: WorkflowErrorMessage = {
@@ -428,6 +429,26 @@ export class WorkflowSession extends DurableObject<Bindings> {
         return;
       }
 
+      // Construct emailMessage from parameters if provided
+      let emailMessage;
+      if (parameters && typeof parameters === "object") {
+        const { from, subject, body } = parameters as {
+          from?: string;
+          subject?: string;
+          body?: string;
+        };
+
+        if (from || subject || body) {
+          emailMessage = createSimulatedEmailMessage({
+            from,
+            subject,
+            body,
+            organizationId: this.organizationId,
+            workflowHandleOrId: this.state.handle || this.state.id,
+          });
+        }
+      }
+
       const executionParams = {
         workflow: {
           id: this.state.id,
@@ -441,6 +462,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
         organizationId: this.organizationId,
         computeCredits,
         workflowSessionId: this.state.id,
+        ...(emailMessage && { emailMessage }),
       };
 
       // Start workflow execution

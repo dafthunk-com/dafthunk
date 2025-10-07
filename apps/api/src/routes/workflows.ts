@@ -45,6 +45,7 @@ import {
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ObjectStore } from "../runtime/object-store";
+import { createSimulatedEmailMessage } from "../utils/email";
 import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
@@ -673,41 +674,15 @@ workflowRoutes.post(
     let finalExecutionParams: any;
 
     if (workflowData.type === "email_message") {
-      const emailFrom = body?.from || "sender@example.com";
-      const emailSubject = body?.subject || "Default Subject";
-      const emailBody = body?.body || "Default email body.";
-      const emailTo = `workflow+${organizationId}+${workflow.handle || workflow.id}@dafthunk.com`;
-
-      const simulatedHeaders = {
-        from: emailFrom,
-        to: emailTo,
-        subject: emailSubject,
-        "content-type": "text/plain; charset=us-ascii",
-        date: new Date().toUTCString(),
-        "message-id": `<${uuid()}@dafthunk.com>`,
-      };
-
-      const simulatedRaw =
-        `Received: from [127.0.0.1] (localhost [127.0.0.1])\n` +
-        `by dafthunk.com (Postfix) with ESMTP id FAKEIDFORTEST\n` +
-        `for <${emailTo}>; ${new Date().toUTCString()}\n` +
-        `From: ${emailFrom}\n` +
-        `To: ${emailTo}\n` +
-        `Subject: ${emailSubject}\n` +
-        `Date: ${new Date().toUTCString()}\n` +
-        `Message-ID: <${simulatedHeaders["message-id"]}>\n` +
-        `Content-Type: text/plain; charset=us-ascii\n` +
-        `Content-Transfer-Encoding: 7bit\n\n` +
-        `${emailBody}`;
-
       finalExecutionParams = {
         ...baseExecutionParams,
-        emailMessage: {
-          from: emailFrom,
-          to: emailTo,
-          headers: simulatedHeaders,
-          raw: simulatedRaw,
-        },
+        emailMessage: createSimulatedEmailMessage({
+          from: body?.from,
+          subject: body?.subject,
+          body: body?.body,
+          organizationId,
+          workflowHandleOrId: workflow.handle || workflow.id,
+        }),
       };
     } else if (workflowData.type === "http_request") {
       finalExecutionParams = {
