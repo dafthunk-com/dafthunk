@@ -167,37 +167,22 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   const db = createDatabase(c.env.DB);
 
   try {
-    // Try Durable Object first
-    const doId = c.env.WORKFLOW_SESSION.idFromName(`${userId}-${id}`);
-    const stub: any = c.env.WORKFLOW_SESSION.get(doId);
-    let workflowData: any = null;
-    try {
-      workflowData = await stub.getState();
-    } catch {
-      // DO doesn't have data yet, will fall back to database
-      workflowData = null;
-    }
-
     // Get metadata from database for timestamps
     const workflow = await getWorkflow(db, id, organizationId);
 
-    if (!workflowData && !workflow) {
+    if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
-    // Extract values to avoid deep type instantiation
-    const nodes: any = workflowData?.nodes || workflow!.data.nodes || [];
-    const edges: any = workflowData?.edges || workflow!.data.edges || [];
-
     const response: GetWorkflowResponse = {
-      id: workflowData?.id || workflow!.id,
-      name: workflowData?.name || workflow!.name,
-      handle: workflowData?.handle || workflow!.handle,
-      type: workflowData?.type || workflow!.data.type,
+      id: workflow!.id,
+      name: workflow!.name,
+      handle: workflow!.handle,
+      type: workflow!.data.type,
       createdAt: workflow?.createdAt || new Date(),
       updatedAt: workflow?.updatedAt || new Date(),
-      nodes,
-      edges,
+      nodes: workflow?.data.nodes || [],
+      edges: workflow?.data.edges || [],
     };
 
     return c.json(response);
@@ -506,32 +491,12 @@ workflowRoutes.post(
     let deploymentId: string | undefined;
 
     if (version === "dev") {
-      // Get workflow data from Durable Object first (userId already defined above)
-      const doId = c.env.WORKFLOW_SESSION.idFromName(
-        `${userId}-${workflowIdOrHandle}`
-      );
-      const stub: any = c.env.WORKFLOW_SESSION.get(doId);
-
-      try {
-        const state = await stub.getState();
-        workflowData = {
-          type: state.type,
-          nodes: state.nodes || [],
-          edges: state.edges || [],
-        };
-        workflow = {
-          id: workflowIdOrHandle,
-          name: state.name,
-          handle: state.handle,
-        };
-      } catch {
-        // Fallback to database
-        workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-        if (!workflow) {
-          return c.json({ error: "Workflow not found" }, 404);
-        }
-        workflowData = workflow.data;
+      // Fallback to database
+      workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
+      if (!workflow) {
+        return c.json({ error: "Workflow not found" }, 404);
       }
+      workflowData = workflow.data;
     } else {
       // Get deployment based on version
       let deployment;
