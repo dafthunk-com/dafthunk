@@ -62,7 +62,7 @@ function getSecurityHeaders(
     "connect-src":
       environment === "development"
         ? "'self' ws://localhost:* http://localhost:* https://api.dafthunk.com blob:" // Allow Vite HMR WebSocket connections in dev + blob URLs for Three.js
-        : "'self' https://api.dafthunk.com blob:", // Allow API connections + blob URLs for Three.js
+        : "'self' https://api.dafthunk.com wss://api.dafthunk.com blob:", // Allow API connections (HTTP + WebSocket) + blob URLs for Three.js
     "media-src":
       environment === "development"
         ? "'self' https://api.dafthunk.com http://localhost:*" // Allow localhost HTTP in dev
