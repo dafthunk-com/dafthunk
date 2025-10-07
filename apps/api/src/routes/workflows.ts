@@ -32,11 +32,12 @@ import {
   ExecutionStatus,
   getCronTrigger,
   getDeploymentByVersion,
-  getExecution,
+  getExecutionWithData,
   getLatestDeployment,
   getOrganizationComputeCredits,
   getWorkflow,
   getWorkflows,
+  getWorkflowWithData,
   saveExecution,
   updateWorkflow,
   upsertCronTrigger as upsertDbCronTrigger,
@@ -174,31 +175,18 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   }
 
   const db = createDatabase(c.env.DB);
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
 
   try {
-    // Get metadata from database
-    const workflow = await getWorkflow(db, id, organizationId);
+    const workflow = await getWorkflowWithData(
+      db,
+      objectStore,
+      id,
+      organizationId
+    );
 
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
-    }
-
-    // Load full workflow data from R2
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
-    let workflowData;
-    try {
-      workflowData = await objectStore.readWorkflow(id);
-    } catch (error) {
-      console.error(`Failed to load workflow data from R2 for ${id}:`, error);
-      // Fallback to empty structure if R2 read fails
-      workflowData = {
-        id: workflow.id,
-        name: workflow.name,
-        handle: workflow.handle,
-        type: workflow.type,
-        nodes: [],
-        edges: [],
-      };
     }
 
     const response: GetWorkflowResponse = {
@@ -208,8 +196,8 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
       type: workflow.type,
       createdAt: workflow.createdAt || new Date(),
       updatedAt: workflow.updatedAt || new Date(),
-      nodes: workflowData.nodes || [],
-      edges: workflowData.edges || [],
+      nodes: workflow.data.nodes || [],
+      edges: workflow.data.edges || [],
     };
 
     return c.json(response);
@@ -237,10 +225,16 @@ workflowRoutes.put(
   async (c) => {
     const id = c.req.param("id");
     const db = createDatabase(c.env.DB);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     const organizationId = c.get("organizationId")!;
 
-    const existingWorkflow = await getWorkflow(db, id, organizationId);
+    const existingWorkflow = await getWorkflowWithData(
+      db,
+      objectStore,
+      id,
+      organizationId
+    );
 
     if (!existingWorkflow) {
       return c.json({ error: "Workflow not found" }, 404);
@@ -248,24 +242,7 @@ workflowRoutes.put(
 
     const data = c.req.valid("json");
     const now = new Date();
-
-    // Load existing workflow data from R2 to get current state
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
-    let existingWorkflowData;
-    try {
-      existingWorkflowData = await objectStore.readWorkflow(id);
-    } catch (error) {
-      console.error(`Failed to load workflow data from R2 for ${id}:`, error);
-      // Fallback to empty structure
-      existingWorkflowData = {
-        id: existingWorkflow.id,
-        name: existingWorkflow.name,
-        handle: existingWorkflow.handle,
-        type: existingWorkflow.type,
-        nodes: [],
-        edges: [],
-      };
-    }
+    const existingWorkflowData = existingWorkflow.data;
 
     // Sanitize nodes to prevent saving binary data and connected values
     const sanitizedNodes = Array.isArray(data.nodes)
@@ -556,22 +533,19 @@ workflowRoutes.post(
     const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     if (version === "dev") {
-      // Load workflow metadata from database
-      workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-      if (!workflow) {
+      // Load workflow with data from database and R2
+      const workflowWithData = await getWorkflowWithData(
+        db,
+        objectStore,
+        workflowIdOrHandle,
+        organizationId
+      );
+      if (!workflowWithData) {
         return c.json({ error: "Workflow not found" }, 404);
       }
 
-      // Load full workflow data from R2
-      try {
-        workflowData = await objectStore.readWorkflow(workflow.id);
-      } catch (error) {
-        console.error(
-          `Failed to load workflow data from R2 for ${workflow.id}:`,
-          error
-        );
-        return c.json({ error: "Failed to load workflow data" }, 500);
-      }
+      workflow = workflowWithData;
+      workflowData = workflowWithData.data;
     } else {
       // Get deployment based on version
       let deployment;
@@ -813,9 +787,15 @@ workflowRoutes.post(
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
     const db = createDatabase(c.env.DB);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     // Get the execution to verify it exists and belongs to this organization
-    const execution = await getExecution(db, executionId, organizationId);
+    const execution = await getExecutionWithData(
+      db,
+      objectStore,
+      executionId,
+      organizationId
+    );
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
@@ -830,24 +810,7 @@ workflowRoutes.post(
       );
     }
 
-    // Load execution data from R2 to get nodeExecutions
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
-    let executionData;
-    try {
-      executionData = await objectStore.readExecution(executionId);
-    } catch (error) {
-      console.error(
-        `Failed to load execution data from R2 for ${executionId}:`,
-        error
-      );
-      // Fallback to empty nodeExecutions if R2 read fails
-      executionData = {
-        id: executionId,
-        workflowId: execution.workflowId,
-        status: execution.status,
-        nodeExecutions: [],
-      };
-    }
+    const executionData = execution.data;
 
     try {
       // Get the workflow instance and terminate it

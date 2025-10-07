@@ -16,9 +16,9 @@ import { ApiContext } from "../context";
 import { createDatabase, ExecutionStatus } from "../db";
 import {
   createDeployment,
-  getDeployment,
   getDeployments,
   getDeploymentsGroupedByWorkflow,
+  getDeploymentWithData,
   getLatestDeployment,
   getLatestDeploymentsVersionNumbers,
   getOrganizationComputeCredits,
@@ -66,24 +66,17 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const deploymentId = c.req.param("deploymentId");
   const db = createDatabase(c.env.DB);
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
 
-  const deployment = await getDeployment(db, deploymentId, organizationId);
+  const deployment = await getDeploymentWithData(
+    db,
+    objectStore,
+    deploymentId,
+    organizationId
+  );
 
   if (!deployment) {
     return c.json({ error: "Deployment not found" }, 404);
-  }
-
-  // Load deployment workflow snapshot from R2
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
-  let workflowData;
-  try {
-    workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
-  } catch (error) {
-    console.error(
-      `Failed to load deployment workflow from R2 for ${deployment.id}:`,
-      error
-    );
-    return c.json({ error: "Failed to load deployment data" }, 500);
   }
 
   // Transform to match WorkflowDeploymentVersion type
@@ -93,8 +86,8 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
-    nodes: workflowData.nodes || [],
-    edges: workflowData.edges || [],
+    nodes: deployment.workflowData.nodes || [],
+    edges: deployment.workflowData.edges || [],
   };
 
   return c.json(deploymentVersion);
@@ -108,12 +101,6 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
   const db = createDatabase(c.env.DB);
-
-  // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-  if (!workflow) {
-    return c.json({ error: "Workflow not found" }, 404);
-  }
 
   // Get the latest deployment
   const deployment = await getLatestDeployment(
@@ -322,6 +309,7 @@ deploymentRoutes.post(
 
     const deploymentId = c.req.param("deploymentId");
     const db = createDatabase(c.env.DB);
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
@@ -332,25 +320,19 @@ deploymentRoutes.post(
       return c.json({ error: "Organization not found" }, 404);
     }
 
-    // Get the deployment
-    const deployment = await getDeployment(db, deploymentId, organizationId);
+    // Get the deployment with workflow data
+    const deployment = await getDeploymentWithData(
+      db,
+      objectStore,
+      deploymentId,
+      organizationId
+    );
 
     if (!deployment) {
       return c.json({ error: "Deployment not found" }, 404);
     }
 
-    // Load deployment workflow snapshot from R2
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
-    let workflowData;
-    try {
-      workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
-    } catch (error) {
-      console.error(
-        `Failed to load deployment workflow from R2 for ${deployment.id}:`,
-        error
-      );
-      return c.json({ error: "Failed to load deployment data" }, 500);
-    }
+    const workflowData = deployment.workflowData;
 
     // Validate if workflow has nodes
     if (!workflowData.nodes || workflowData.nodes.length === 0) {

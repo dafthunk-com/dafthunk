@@ -4,7 +4,7 @@ import { Bindings } from "./context";
 import {
   createDatabase,
   getOrganizationComputeCredits,
-  getWorkflow,
+  getWorkflowWithData,
 } from "./db";
 import {
   ExecutionStatus,
@@ -83,27 +83,20 @@ export async function handleIncomingEmail(
   let deploymentId: string | undefined;
 
   if (version === "dev") {
-    // Get workflow metadata from DB
-    workflow = await getWorkflow(
+    // Get workflow with data from DB and R2
+    const workflowWithData = await getWorkflowWithData(
       db,
+      objectStore,
       workflowIdOrHandle,
       organizationIdOrHandle
     );
-    if (!workflow) {
+    if (!workflowWithData) {
       console.error("Workflow not found");
       return;
     }
 
-    // Load workflow data from R2
-    try {
-      workflowData = await objectStore.readWorkflow(workflow.id);
-    } catch (error) {
-      console.error(
-        `Failed to load workflow data from R2 for ${workflow.id}:`,
-        error
-      );
-      return;
-    }
+    workflow = workflowWithData;
+    workflowData = workflowWithData.data;
   } else {
     // Get deployment based on version
     let deployment;
