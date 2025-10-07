@@ -1,7 +1,3 @@
-import {
-  Workflow as WorkflowType,
-  WorkflowExecution as WorkflowExecutionType,
-} from "@dafthunk/types";
 import { sql } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 import {
@@ -201,13 +197,13 @@ export const apiKeys = sqliteTable(
 );
 
 // Workflows - Workflow definitions created and edited by users
+// Note: Full workflow data is stored in R2, only metadata is in the database
 export const workflows = sqliteTable(
   "workflows",
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     handle: text("handle").notNull(),
-    data: text("data", { mode: "json" }).$type<WorkflowType>().notNull(),
     type: text("type")
       .$type<WorkflowTriggerTypeType>()
       .notNull()
@@ -232,6 +228,7 @@ export const workflows = sqliteTable(
 );
 
 // Deployments - Versioned workflow definitions ready for execution
+// Note: Workflow snapshot is stored in R2, only metadata is in the database
 export const deployments = sqliteTable(
   "deployments",
   {
@@ -243,9 +240,6 @@ export const deployments = sqliteTable(
       onDelete: "cascade",
     }),
     version: integer("version").notNull(),
-    workflowData: text("workflow_data", { mode: "json" })
-      .$type<WorkflowType>()
-      .notNull(),
     createdAt: createCreatedAt(),
     updatedAt: createUpdatedAt(),
   },
@@ -263,6 +257,7 @@ export const deployments = sqliteTable(
 );
 
 // Executions - Records of workflow runs with status and results
+// Note: Full execution data is stored in R2, only metadata is in the database
 export const executions = sqliteTable(
   "executions",
   {
@@ -280,9 +275,6 @@ export const executions = sqliteTable(
       .$type<ExecutionStatusType>()
       .notNull()
       .default(ExecutionStatus.STARTED),
-    data: text("data", { mode: "json" })
-      .$type<WorkflowExecutionType>()
-      .notNull(),
     error: text("error"),
     startedAt: integer("started_at", { mode: "timestamp" }),
     endedAt: integer("ended_at", { mode: "timestamp" }),

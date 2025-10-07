@@ -13,7 +13,6 @@ import {
   WorkflowInitMessage,
   WorkflowMessage,
   WorkflowState,
-  WorkflowType,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
 import { DurableObject } from "cloudflare:workers";
@@ -25,6 +24,7 @@ import {
   getWorkflowWithUserAccess,
   updateWorkflow,
 } from "../db/queries";
+import { ObjectStore } from "../runtime/object-store";
 
 export class WorkflowSession extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
@@ -42,7 +42,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
   }
 
   /**
-   * Load workflow from D1 database with user access verification
+   * Load workflow from D1 database (metadata) and R2 (full data) with user access verification
    */
   private async loadState(workflowId: string, userId: string): Promise<void> {
     console.log(`Loading workflow ${workflowId} for user ${userId}`);
@@ -57,31 +57,38 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
     const { workflow, organizationId } = result;
 
-    const { name, handle, type, nodes, edges, timestamp } =
-      this.extractWorkflowData(workflow, workflowId);
+    // Load full workflow data from R2
+    const objectStore = new ObjectStore(this.env.RESSOURCES);
+    let workflowData;
+    try {
+      workflowData = await objectStore.readWorkflow(workflowId);
+    } catch (error) {
+      console.error(
+        `Failed to load workflow data from R2 for ${workflowId}:`,
+        error
+      );
+      // Fall back to empty workflow structure
+      workflowData = {
+        id: workflowId,
+        name: workflow.name,
+        handle: workflow.handle,
+        type: workflow.type,
+        nodes: [],
+        edges: [],
+      };
+    }
 
     this.state = {
       id: workflowId,
-      name,
-      handle,
-      type,
-      nodes,
-      edges,
-      timestamp,
+      name: workflowData.name,
+      handle: workflowData.handle,
+      type: workflowData.type,
+      nodes: workflowData.nodes,
+      edges: workflowData.edges,
+      timestamp: workflow?.updatedAt?.getTime() || Date.now(),
     };
 
     this.organizationId = organizationId;
-  }
-
-  private extractWorkflowData(workflow: any, workflowId: string) {
-    return {
-      name: workflow?.name || "New Workflow",
-      handle: workflow?.handle || workflowId,
-      type: (workflow?.data?.type || "manual") as WorkflowType,
-      nodes: workflow?.data?.nodes || [],
-      edges: workflow?.data?.edges || [],
-      timestamp: workflow?.updatedAt?.getTime() || Date.now(),
-    };
   }
 
   /**
@@ -164,7 +171,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
   }
 
   /**
-   * Persist state back to D1 database
+   * Persist state back to D1 database (metadata) and R2 (full data)
    */
   private async persistToDatabase(): Promise<void> {
     if (!this.state || !this.organizationId) {
@@ -173,21 +180,29 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
     try {
       const db = createDatabase(this.env.DB);
+      const objectStore = new ObjectStore(this.env.RESSOURCES);
+
+      // Save full workflow data to R2
+      const workflowData = {
+        id: this.state.id,
+        name: this.state.name,
+        handle: this.state.handle,
+        type: this.state.type,
+        nodes: this.state.nodes,
+        edges: this.state.edges,
+      };
+
+      await objectStore.writeWorkflow(workflowData);
+
+      // Save metadata to D1 database
       await updateWorkflow(db, this.state.id, this.organizationId, {
         name: this.state.name,
-        data: {
-          id: this.state.id,
-          name: this.state.name,
-          handle: this.state.handle,
-          type: this.state.type,
-          nodes: this.state.nodes,
-          edges: this.state.edges,
-        },
+        type: this.state.type,
       });
 
-      console.log(`Persisted workflow ${this.state.id} to D1 database`);
+      console.log(`Persisted workflow ${this.state.id} to D1 database and R2`);
     } catch (error) {
-      console.error("Error persisting workflow to database:", error);
+      console.error("Error persisting workflow:", error);
     }
   }
 
@@ -443,7 +458,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
         status: "executing" as const,
       }));
 
-      // Save initial execution record
+      // Save initial execution record (metadata to DB)
       const initialExecution = await saveExecution(db, {
         id: executionId,
         workflowId: this.state.id,
@@ -454,6 +469,14 @@ export class WorkflowSession extends DurableObject<Bindings> {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+
+      // Save execution data to R2
+      const objectStore = new ObjectStore(this.env.RESSOURCES);
+      try {
+        await objectStore.writeExecution(initialExecution);
+      } catch (error) {
+        console.error(`Failed to save execution to R2: ${executionId}`, error);
+      }
 
       // Store execution for this WebSocket
       this.executions.set(ws, {

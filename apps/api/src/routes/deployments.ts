@@ -6,7 +6,6 @@ import {
   GetWorkflowDeploymentsResponse,
   ListDeploymentsResponse,
   Node,
-  Workflow as WorkflowType,
 } from "@dafthunk/types";
 import { JWTTokenPayload } from "@dafthunk/types";
 import { Hono } from "hono";
@@ -27,6 +26,7 @@ import {
   saveExecution,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
+import { ObjectStore } from "../runtime/object-store";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -73,7 +73,18 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
     return c.json({ error: "Deployment not found" }, 404);
   }
 
-  const workflowData = deployment.workflowData as WorkflowType;
+  // Load deployment workflow snapshot from R2
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
+  let workflowData;
+  try {
+    workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
+  } catch (error) {
+    console.error(
+      `Failed to load deployment workflow from R2 for ${deployment.id}:`,
+      error
+    );
+    return c.json({ error: "Failed to load deployment data" }, 500);
+  }
 
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: GetDeploymentVersionResponse = {
@@ -115,7 +126,18 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
     return c.json({ error: "No deployments found for this workflow" }, 404);
   }
 
-  const workflowData = deployment.workflowData as WorkflowType;
+  // Load deployment workflow snapshot from R2
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
+  let workflowData;
+  try {
+    workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
+  } catch (error) {
+    console.error(
+      `Failed to load deployment workflow from R2 for ${deployment.id}:`,
+      error
+    );
+    return c.json({ error: "Failed to load deployment data" }, 500);
+  }
 
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: GetDeploymentVersionResponse = {
@@ -147,7 +169,18 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const workflowData = workflow.data as WorkflowType;
+  // Load full workflow data from R2
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
+  let workflowData;
+  try {
+    workflowData = await objectStore.readWorkflow(workflow.id);
+  } catch (error) {
+    console.error(
+      `Failed to load workflow data from R2 for ${workflow.id}:`,
+      error
+    );
+    return c.json({ error: "Failed to load workflow data" }, 500);
+  }
 
   // Get the latest version number and increment
   const latestVersion =
@@ -158,17 +191,28 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
     )) || 0;
   const newVersion = latestVersion + 1;
 
-  // Create new deployment
+  // Create new deployment (metadata only in DB)
   const deploymentId = uuid();
   const newDeployment = await createDeployment(db, {
     id: deploymentId,
     organizationId: organizationId,
     workflowId: workflowIdOrHandle,
     version: newVersion,
-    workflowData: workflowData,
     createdAt: now,
     updatedAt: now,
   });
+
+  // Save workflow snapshot to R2
+  try {
+    await objectStore.writeDeploymentWorkflow(deploymentId, workflowData);
+  } catch (error) {
+    console.error(
+      `Failed to save deployment workflow to R2 for ${deploymentId}:`,
+      error
+    );
+    // Consider rolling back the deployment creation here
+    return c.json({ error: "Failed to save deployment data" }, 500);
+  }
 
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: DeploymentVersion = {
@@ -209,19 +253,35 @@ deploymentRoutes.get(
       organizationId
     );
 
-    // Transform to match WorkflowDeploymentVersion type
-    const deploymentVersions = deploymentsList.map((deployment) => {
-      const workflowData = deployment.workflowData as WorkflowType;
-      return {
-        id: deployment.id,
-        workflowId: deployment.workflowId || "",
-        version: deployment.version,
-        createdAt: deployment.createdAt,
-        updatedAt: deployment.updatedAt,
-        nodes: workflowData.nodes || [],
-        edges: workflowData.edges || [],
-      };
-    });
+    // Load all deployment workflow snapshots from R2 in parallel
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    const deploymentVersions = await Promise.all(
+      deploymentsList.map(async (deployment) => {
+        let workflowData;
+        try {
+          workflowData = await objectStore.readDeploymentWorkflow(
+            deployment.id
+          );
+        } catch (error) {
+          console.error(
+            `Failed to load deployment workflow from R2 for ${deployment.id}:`,
+            error
+          );
+          // Return deployment with empty nodes/edges if R2 read fails
+          workflowData = { nodes: [], edges: [] };
+        }
+
+        return {
+          id: deployment.id,
+          workflowId: deployment.workflowId || "",
+          version: deployment.version,
+          createdAt: deployment.createdAt,
+          updatedAt: deployment.updatedAt,
+          nodes: workflowData.nodes || [],
+          edges: workflowData.edges || [],
+        };
+      })
+    );
 
     const response: GetWorkflowDeploymentsResponse = {
       workflow: {
@@ -279,7 +339,18 @@ deploymentRoutes.post(
       return c.json({ error: "Deployment not found" }, 404);
     }
 
-    const workflowData = deployment.workflowData as WorkflowType;
+    // Load deployment workflow snapshot from R2
+    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    let workflowData;
+    try {
+      workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
+    } catch (error) {
+      console.error(
+        `Failed to load deployment workflow from R2 for ${deployment.id}:`,
+        error
+      );
+      return c.json({ error: "Failed to load deployment data" }, 500);
+    }
 
     // Validate if workflow has nodes
     if (!workflowData.nodes || workflowData.nodes.length === 0) {
@@ -364,6 +435,13 @@ deploymentRoutes.post(
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Save execution data to R2
+    try {
+      await objectStore.writeExecution(initialExecution);
+    } catch (error) {
+      console.error(`Failed to save execution to R2: ${executionId}`, error);
+    }
 
     // Return the initial execution object, explicitly matching ExecuteDeploymentResponse
     const response: ExecuteDeploymentResponse = {

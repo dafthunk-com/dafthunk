@@ -11,6 +11,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
 import { Bindings } from "../context";
+import { ObjectStore } from "../runtime/object-store";
 import { encryptSecret } from "../utils/encryption";
 import {
   type ApiKeyInsert,
@@ -260,7 +261,7 @@ export async function getWorkflows(
       id: workflows.id,
       name: workflows.name,
       handle: workflows.handle,
-      data: workflows.data,
+      type: workflows.type,
       createdAt: workflows.createdAt,
       updatedAt: workflows.updatedAt,
     })
@@ -414,19 +415,20 @@ export async function createWorkflow(
 }
 
 /**
- * Update a workflow, ensuring it belongs to the specified organization
+ * Update a workflow (metadata only), ensuring it belongs to the specified organization
+ * Note: Full workflow data should be saved to R2 separately by the caller
  *
  * @param db Database instance
  * @param id Workflow ID
  * @param organizationId Organization ID
- * @param data Updated workflow data
+ * @param data Updated workflow metadata (name, type, timestamps, etc.)
  * @returns Updated workflow record
  */
 export async function updateWorkflow(
   db: ReturnType<typeof createDatabase>,
   id: string,
   organizationId: string,
-  data: Partial<WorkflowRow> & { data: WorkflowType }
+  data: Partial<WorkflowRow>
 ): Promise<WorkflowRow> {
   const [workflow] = await db
     .update(workflows)
@@ -495,7 +497,8 @@ export async function getExecution(
 }
 
 /**
- * Save an execution record
+ * Save an execution record (metadata only)
+ * Note: Full execution data should be saved to R2 separately by the caller
  *
  * @param db Database instance
  * @param record Execution data to save
@@ -508,7 +511,7 @@ export async function saveExecution(
   const now = new Date();
   const { nodeExecutions, userId, deploymentId, ...dbFields } = record;
 
-  // Create the execution object that will be stored as JSON in the data field
+  // Create the execution object that will be returned (and saved to R2 by caller)
   const executionData: WorkflowExecution = {
     id: record.id,
     workflowId: record.workflowId,
@@ -520,11 +523,10 @@ export async function saveExecution(
     endedAt: record.endedAt,
   };
 
-  // Create the record to insert into the database
+  // Create the metadata record to insert into the database (no data field)
   const dbRecord = {
     ...dbFields,
     deploymentId: deploymentId,
-    data: executionData,
     updatedAt: record.updatedAt ?? now,
     createdAt: record.createdAt ?? now,
     startedAt: record.startedAt,
@@ -1953,4 +1955,122 @@ export async function getOrganizationMembershipsWithUsers(
       avatarUrl: result.user.avatarUrl ?? undefined,
     },
   }));
+}
+
+/**
+ * Get workflow metadata from DB and full workflow data from R2
+ *
+ * @param db Database instance
+ * @param objectStore ObjectStore instance for R2 operations
+ * @param workflowIdOrHandle Workflow ID or handle
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Workflow metadata with full data from R2
+ */
+export async function getWorkflowWithData(
+  db: ReturnType<typeof createDatabase>,
+  objectStore: ObjectStore,
+  workflowIdOrHandle: string,
+  organizationIdOrHandle: string
+): Promise<(WorkflowRow & { data: WorkflowType }) | undefined> {
+  const workflow = await getWorkflow(
+    db,
+    workflowIdOrHandle,
+    organizationIdOrHandle
+  );
+
+  if (!workflow) {
+    return undefined;
+  }
+
+  try {
+    const workflowData = await objectStore.readWorkflow(workflow.id);
+    return {
+      ...workflow,
+      data: workflowData,
+    };
+  } catch (error) {
+    console.error(
+      `Failed to read workflow data from R2 for ${workflow.id}:`,
+      error
+    );
+    throw error;
+  }
+}
+
+/**
+ * Get deployment metadata from DB and workflow snapshot from R2
+ *
+ * @param db Database instance
+ * @param objectStore ObjectStore instance for R2 operations
+ * @param deploymentId Deployment ID
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Deployment metadata with workflow data from R2
+ */
+export async function getDeploymentWithData(
+  db: ReturnType<typeof createDatabase>,
+  objectStore: ObjectStore,
+  deploymentId: string,
+  organizationIdOrHandle: string
+): Promise<(DeploymentRow & { workflowData: WorkflowType }) | undefined> {
+  const deployment = await getDeployment(
+    db,
+    deploymentId,
+    organizationIdOrHandle
+  );
+
+  if (!deployment) {
+    return undefined;
+  }
+
+  try {
+    const workflowData = await objectStore.readDeploymentWorkflow(
+      deployment.id
+    );
+    return {
+      ...deployment,
+      workflowData,
+    };
+  } catch (error) {
+    console.error(
+      `Failed to read deployment workflow from R2 for ${deployment.id}:`,
+      error
+    );
+    throw error;
+  }
+}
+
+/**
+ * Get execution metadata from DB and full execution data from R2
+ *
+ * @param db Database instance
+ * @param objectStore ObjectStore instance for R2 operations
+ * @param executionId Execution ID
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Execution metadata with full data from R2
+ */
+export async function getExecutionWithData(
+  db: ReturnType<typeof createDatabase>,
+  objectStore: ObjectStore,
+  executionId: string,
+  organizationIdOrHandle: string
+): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
+  const execution = await getExecution(db, executionId, organizationIdOrHandle);
+
+  if (!execution) {
+    return undefined;
+  }
+
+  try {
+    const executionData = await objectStore.readExecution(execution.id);
+    return {
+      ...execution,
+      data: executionData,
+    };
+  } catch (error) {
+    console.error(
+      `Failed to read execution data from R2 for ${execution.id}:`,
+      error
+    );
+    throw error;
+  }
 }

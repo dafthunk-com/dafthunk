@@ -2,6 +2,7 @@ import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { createDatabase, type ExecutionStatusType, saveExecution } from "../db";
+import { ObjectStore } from "./object-store";
 import type { RuntimeState } from "./runtime";
 
 /**
@@ -9,7 +10,11 @@ import type { RuntimeState } from "./runtime";
  * Manages database storage and WebSocket updates to sessions.
  */
 export class ExecutionPersistence {
-  constructor(private env: Bindings) {}
+  private objectStore: ObjectStore;
+
+  constructor(private env: Bindings) {
+    this.objectStore = new ObjectStore(env.RESSOURCES);
+  }
 
   /**
    * Sends execution update to workflow session via WebSocket
@@ -91,7 +96,7 @@ export class ExecutionPersistence {
 
     try {
       const db = createDatabase(this.env.DB);
-      return await saveExecution(db, {
+      const execution = await saveExecution(db, {
         id: instanceId,
         workflowId,
         userId,
@@ -103,6 +108,15 @@ export class ExecutionPersistence {
         startedAt,
         endedAt,
       });
+
+      // Save execution data to R2
+      try {
+        await this.objectStore.writeExecution(execution);
+      } catch (error) {
+        console.error(`Failed to save execution to R2: ${instanceId}`, error);
+      }
+
+      return execution;
     } catch (error) {
       console.error("Failed to persist execution record:", error);
       // Continue without interrupting the workflow.

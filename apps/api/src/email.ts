@@ -12,6 +12,7 @@ import {
   getLatestDeployment,
   saveExecution,
 } from "./db";
+import { ObjectStore } from "./runtime/object-store";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>
@@ -74,6 +75,7 @@ export async function handleIncomingEmail(
   console.log(`Parsed trigger type: ${triggerType}`);
 
   const db = createDatabase(env.DB);
+  const objectStore = new ObjectStore(env.RESSOURCES);
 
   // Get workflow data either from deployment or directly from workflow
   let workflowData: WorkflowType;
@@ -81,7 +83,7 @@ export async function handleIncomingEmail(
   let deploymentId: string | undefined;
 
   if (version === "dev") {
-    // Get workflow data directly
+    // Get workflow metadata from DB
     workflow = await getWorkflow(
       db,
       workflowIdOrHandle,
@@ -91,7 +93,17 @@ export async function handleIncomingEmail(
       console.error("Workflow not found");
       return;
     }
-    workflowData = workflow.data as WorkflowType;
+
+    // Load workflow data from R2
+    try {
+      workflowData = await objectStore.readWorkflow(workflow.id);
+    } catch (error) {
+      console.error(
+        `Failed to load workflow data from R2 for ${workflow.id}:`,
+        error
+      );
+      return;
+    }
   } else {
     // Get deployment based on version
     let deployment;
@@ -119,7 +131,18 @@ export async function handleIncomingEmail(
     }
 
     deploymentId = deployment.id;
-    workflowData = deployment.workflowData as WorkflowType;
+
+    // Load deployment workflow snapshot from R2
+    try {
+      workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
+    } catch (error) {
+      console.error(
+        `Failed to load deployment workflow data from R2 for ${deployment.id}:`,
+        error
+      );
+      return;
+    }
+
     workflow = {
       id: deployment.workflowId,
       name: workflowData.name,
@@ -177,7 +200,7 @@ export async function handleIncomingEmail(
   }));
 
   // Save initial execution record
-  await saveExecution(db, {
+  const initialExecution = await saveExecution(db, {
     id: executionId,
     workflowId: workflow.id,
     deploymentId,
@@ -188,4 +211,11 @@ export async function handleIncomingEmail(
     createdAt: new Date(),
     updatedAt: new Date(),
   });
+
+  // Save execution data to R2
+  try {
+    await objectStore.writeExecution(initialExecution);
+  } catch (error) {
+    console.error(`Failed to save execution to R2: ${executionId}`, error);
+  }
 }

@@ -190,6 +190,50 @@ export class ObjectStore {
     );
   }
 
+  async writeDeploymentWorkflow(
+    deploymentId: string,
+    workflow: Workflow
+  ): Promise<string> {
+    await this.writeToR2(
+      `deployments/${deploymentId}/workflow.json`,
+      JSON.stringify(workflow),
+      {
+        httpMetadata: {
+          contentType: "application/json",
+          cacheControl: "public, max-age=31536000",
+        },
+        customMetadata: {
+          deploymentId,
+          workflowId: workflow.id,
+          createdAt: new Date().toISOString(),
+        },
+      },
+      "writeDeploymentWorkflow"
+    );
+    return deploymentId;
+  }
+
+  async readDeploymentWorkflow(deploymentId: string): Promise<Workflow> {
+    const object = await this.readFromR2(
+      `deployments/${deploymentId}/workflow.json`,
+      "readDeploymentWorkflow"
+    );
+
+    if (!object) {
+      throw new Error(`Workflow not found for deployment: ${deploymentId}`);
+    }
+
+    const text = await object.text();
+    return JSON.parse(text) as Workflow;
+  }
+
+  async deleteDeploymentWorkflow(deploymentId: string): Promise<void> {
+    await this.deleteFromR2(
+      `deployments/${deploymentId}/workflow.json`,
+      "deleteDeploymentWorkflow"
+    );
+  }
+
   async writeExecution(execution: WorkflowExecution): Promise<string> {
     await this.writeToR2(
       `executions/${execution.id}/execution.json`,
