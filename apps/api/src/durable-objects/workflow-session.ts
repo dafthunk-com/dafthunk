@@ -97,6 +97,32 @@ export class WorkflowSession extends DurableObject<Bindings> {
   }
 
   /**
+   * Ensure state is initialized, recovering from DO storage if needed
+   * Throws error if recovery fails
+   */
+  private async ensureStateInitialized(): Promise<void> {
+    if (this.state) {
+      return;
+    }
+
+    const storedWorkflowId = await this.ctx.storage.get<string>("workflowId");
+    const storedUserId = await this.ctx.storage.get<string>("userId");
+
+    if (!storedWorkflowId || !storedUserId) {
+      throw new Error("Session state lost. Please refresh the page.");
+    }
+
+    try {
+      await this.loadState(storedWorkflowId, storedUserId);
+      this.userId = storedUserId;
+      console.log(`Recovered state for workflow ${storedWorkflowId}`);
+    } catch (error) {
+      console.error("Failed to recover state from storage:", error);
+      throw new Error("Session state lost. Please refresh the page.");
+    }
+  }
+
+  /**
    * Get state from memory
    */
   async getState(): Promise<WorkflowState> {
@@ -221,19 +247,10 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
 
     // Recover state from DO storage if needed (e.g., after DO restart)
-    if (!this.state) {
-      const storedWorkflowId = await this.ctx.storage.get<string>("workflowId");
-      const storedUserId = await this.ctx.storage.get<string>("userId");
-
-      if (storedWorkflowId && storedUserId) {
-        try {
-          await this.loadState(storedWorkflowId, storedUserId);
-          this.userId = storedUserId;
-          console.log(`Recovered state for workflow ${storedWorkflowId}`);
-        } catch (error) {
-          console.error("Failed to recover state from storage:", error);
-        }
-      }
+    try {
+      await this.ensureStateInitialized();
+    } catch (error) {
+      // Ignore recovery errors - will attempt to load from request parameters below
     }
 
     // This endpoint is called by the api to establish a WebSocket connection.
@@ -387,6 +404,9 @@ export class WorkflowSession extends DurableObject<Bindings> {
         ws.send(JSON.stringify(errorMsg));
         return;
       }
+
+      // Recover state if needed (WebSocket survives DO restarts but in-memory state doesn't)
+      await this.ensureStateInitialized();
 
       const data = JSON.parse(message) as WorkflowMessage;
 
