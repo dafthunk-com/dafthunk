@@ -13,7 +13,9 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
+import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
 import { HttpIntegrationDialog } from "@/components/workflow/http-integration-dialog";
 import { WorkflowBuilder } from "@/components/workflow/workflow-builder";
 import type {
@@ -53,7 +55,9 @@ export function DeploymentVersionPage() {
     deploymentVersion?.workflowId || null
   );
 
-  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(workflow?.type);
+  const { nodeTypes, isNodeTypesLoading } = useNodeTypes(
+    deploymentVersion?.type || workflow?.type
+  );
 
   const nodeTemplates: NodeTemplate[] = useMemo(
     () =>
@@ -89,8 +93,13 @@ export function DeploymentVersionPage() {
   const {
     executeWorkflow,
     isFormDialogVisible,
+    isJsonBodyDialogVisible,
+    isEmailFormDialogVisible,
     executionFormParameters,
+    executionJsonBodyParameters,
     submitFormData,
+    submitJsonBody,
+    submitEmailFormData,
     closeExecutionForm,
   } = useWorkflowExecution(orgHandle);
 
@@ -176,7 +185,10 @@ export function DeploymentVersionPage() {
   const validateConnection = useCallback(() => false, []);
 
   const handleExecuteThisVersion = useCallback(() => {
-    if (!deploymentVersion?.workflowId || !workflow) return;
+    if (!deploymentVersion?.workflowId) return;
+    const workflowType = deploymentVersion.type || workflow?.type;
+    if (!workflowType) return;
+
     executeWorkflow(
       deploymentVersion.workflowId,
       (execution) => {
@@ -194,14 +206,15 @@ export function DeploymentVersionPage() {
       },
       nodes,
       nodeTemplates,
-      workflow.type
+      workflowType
     );
   }, [
     deploymentVersion?.workflowId,
+    deploymentVersion?.type,
     executeWorkflow,
     nodes,
     nodeTemplates,
-    workflow,
+    workflow?.type,
   ]);
 
   if (isDeploymentVersionLoading || isWorkflowLoading || isNodeTypesLoading) {
@@ -243,7 +256,8 @@ export function DeploymentVersionPage() {
                   <Play className="mr-2 h-4 w-4" />
                   Execute this Version
                 </Button>
-                {workflow?.type === "http_request" && (
+                {(deploymentVersion?.type === "http_request" ||
+                  workflow?.type === "http_request") && (
                   <Button onClick={() => setIsIntegrationDialogOpen(true)}>
                     <Globe className="mr-2 h-4 w-4" />
                     Show HTTP Integration
@@ -307,12 +321,32 @@ export function DeploymentVersionPage() {
             </TabsContent>
           </Tabs>
 
-          {isFormDialogVisible && (
-            <ExecutionFormDialog
-              isOpen={isFormDialogVisible}
+          {(deploymentVersion?.type === "http_request" ||
+            workflow?.type === "http_request") &&
+            executionFormParameters.length > 0 && (
+              <ExecutionFormDialog
+                isOpen={isFormDialogVisible}
+                onClose={closeExecutionForm}
+                parameters={executionFormParameters}
+                onSubmit={submitFormData}
+              />
+            )}
+          {(deploymentVersion?.type === "http_request" ||
+            workflow?.type === "http_request") &&
+            executionJsonBodyParameters.length > 0 && (
+              <ExecutionJsonBodyDialog
+                isOpen={isJsonBodyDialogVisible}
+                onClose={closeExecutionForm}
+                parameters={executionJsonBodyParameters}
+                onSubmit={submitJsonBody}
+              />
+            )}
+          {(deploymentVersion?.type === "email_message" ||
+            workflow?.type === "email_message") && (
+            <ExecutionEmailDialog
+              isOpen={isEmailFormDialogVisible}
               onClose={closeExecutionForm}
-              parameters={executionFormParameters}
-              onSubmit={submitFormData}
+              onSubmit={submitEmailFormData}
             />
           )}
         </div>
@@ -322,17 +356,19 @@ export function DeploymentVersionPage() {
         </div>
       )}
       {/* HTTP Integration Dialog */}
-      {workflow?.type === "http_request" && deploymentVersion && (
-        <HttpIntegrationDialog
-          isOpen={isIntegrationDialogOpen}
-          onClose={() => setIsIntegrationDialogOpen(false)}
-          nodes={nodes}
-          nodeTemplates={nodeTemplates}
-          orgHandle={orgHandle}
-          workflowId={deploymentVersion.workflowId}
-          deploymentVersion={String(deploymentVersion.version)}
-        />
-      )}
+      {(deploymentVersion?.type === "http_request" ||
+        workflow?.type === "http_request") &&
+        deploymentVersion && (
+          <HttpIntegrationDialog
+            isOpen={isIntegrationDialogOpen}
+            onClose={() => setIsIntegrationDialogOpen(false)}
+            nodes={nodes}
+            nodeTemplates={nodeTemplates}
+            orgHandle={orgHandle}
+            workflowId={deploymentVersion.workflowId}
+            deploymentVersion={String(deploymentVersion.version)}
+          />
+        )}
     </InsetLayout>
   );
 }

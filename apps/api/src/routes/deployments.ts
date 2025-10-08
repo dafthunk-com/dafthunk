@@ -83,6 +83,7 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
   const deploymentVersion: GetDeploymentVersionResponse = {
     id: deployment.id,
     workflowId: deployment.workflowId || "",
+    type: deployment.workflowData.type,
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
@@ -130,6 +131,7 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const deploymentVersion: GetDeploymentVersionResponse = {
     id: deployment.id,
     workflowId: deployment.workflowId || "",
+    type: workflowData.type,
     version: deployment.version,
     createdAt: deployment.createdAt,
     updatedAt: deployment.updatedAt,
@@ -205,6 +207,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const deploymentVersion: DeploymentVersion = {
     id: newDeployment.id,
     workflowId: newDeployment.workflowId || "",
+    type: workflowData.type,
     version: newDeployment.version,
     createdAt: newDeployment.createdAt,
     updatedAt: newDeployment.updatedAt,
@@ -261,6 +264,7 @@ deploymentRoutes.get(
         return {
           id: deployment.id,
           workflowId: deployment.workflowId || "",
+          type: workflowData.type || "manual",
           version: deployment.version,
           createdAt: deployment.createdAt,
           updatedAt: deployment.updatedAt,

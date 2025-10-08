@@ -1,4 +1,4 @@
-import { Edge, Node, Workflow } from "./workflow";
+import { Edge, Node, Workflow, WorkflowType } from "./workflow";
 
 /**
  * Represents a group of deployments for a workflow
@@ -20,6 +20,7 @@ export interface Deployment {
 export interface DeploymentVersion {
   id: string;
   workflowId: string;
+  type: WorkflowType;
   version: number;
   createdAt: string | Date;
   updatedAt: string | Date;
