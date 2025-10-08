@@ -1,6 +1,7 @@
 import type { DeploymentVersion } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import Globe from "lucide-react/icons/globe";
+import Mail from "lucide-react/icons/mail";
 import Play from "lucide-react/icons/play";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
@@ -13,6 +14,7 @@ import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
 import { ExecutionJsonBodyDialog } from "@/components/workflow/execution-json-body-dialog";
@@ -43,6 +45,8 @@ export function DeploymentVersionPage() {
   const { createObjectUrl } = useObjectService();
 
   const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+  const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
+    useState(false);
 
   const {
     deploymentVersion,
@@ -263,6 +267,13 @@ export function DeploymentVersionPage() {
                     Show HTTP Integration
                   </Button>
                 )}
+                {(deploymentVersion?.type === "email_message" ||
+                  workflow?.type === "email_message") && (
+                  <Button onClick={() => setIsEmailTriggerDialogOpen(true)}>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Show Email Trigger
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -366,6 +377,19 @@ export function DeploymentVersionPage() {
             nodeTemplates={nodeTemplates}
             orgHandle={orgHandle}
             workflowId={deploymentVersion.workflowId}
+            deploymentVersion={String(deploymentVersion.version)}
+          />
+        )}
+      {/* Email Trigger Dialog */}
+      {(deploymentVersion?.type === "email_message" ||
+        workflow?.type === "email_message") &&
+        deploymentVersion &&
+        workflow && (
+          <EmailTriggerDialog
+            isOpen={isEmailTriggerDialogOpen}
+            onClose={() => setIsEmailTriggerDialogOpen(false)}
+            orgHandle={orgHandle}
+            workflowHandle={workflow.handle}
             deploymentVersion={String(deploymentVersion.version)}
           />
         )}
