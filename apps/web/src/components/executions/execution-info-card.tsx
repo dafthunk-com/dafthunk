@@ -121,7 +121,7 @@ export function ExecutionInfoCard({
                 </p>
                 <p className="mt-1">
                   <Link
-                    to={getOrgUrl(`workflows/deployment/${deploymentId}`)}
+                    to={getOrgUrl(`deployment/${deploymentId}`)}
                     className="hover:underline text-primary font-mono text-xs"
                   >
                     {deploymentId}

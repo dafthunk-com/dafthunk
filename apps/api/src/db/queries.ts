@@ -781,6 +781,7 @@ export async function getDeploymentsGroupedByWorkflow(
     .select({
       workflowId: workflows.id,
       workflowName: workflows.name,
+      workflowType: workflows.type,
       latestDeploymentId: actualLatestDeployment.id,
       latestVersion: workflowDeploymentAggregates.maxVersion,
       deploymentCount: workflowDeploymentAggregates.deploymentCount,
@@ -817,6 +818,7 @@ export async function getDeploymentsGroupedByWorkflow(
   return results.map((row) => ({
     workflowId: row.workflowId,
     workflowName: row.workflowName,
+    workflowType: row.workflowType,
     latestDeploymentId: row.latestDeploymentId,
     latestVersion: row.latestVersion,
     deploymentCount: row.deploymentCount,

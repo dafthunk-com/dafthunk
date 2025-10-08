@@ -1,4 +1,4 @@
-import type { DeploymentVersion } from "@dafthunk/types";
+import type { DeploymentVersion, WorkflowType } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import ArrowDown from "lucide-react/icons/arrow-down";
@@ -85,7 +85,7 @@ function createDeploymentHistoryColumns(
             {isCurrent ? (
               <div className="flex items-center">
                 <Link
-                  to={getOrgUrl(`workflows/deployment/${deployment.id}`)}
+                  to={getOrgUrl(`deployment/${deployment.id}`)}
                   className="hover:underline"
                 >
                   {deployment.id}
@@ -96,7 +96,7 @@ function createDeploymentHistoryColumns(
               </div>
             ) : (
               <Link
-                to={getOrgUrl(`workflows/deployment/${deployment.id}`)}
+                to={getOrgUrl(`deployment/${deployment.id}`)}
                 className="hover:underline"
               >
                 {deployment.id}
@@ -111,7 +111,7 @@ function createDeploymentHistoryColumns(
       header: "Deployment Version",
       cell: ({ row }) => (
         <Link
-          to={getOrgUrl(`workflows/deployment/${row.original.id}`)}
+          to={getOrgUrl(`deployment/${row.original.id}`)}
           className="hover:underline"
         >
           <Badge variant="secondary" className="gap-1">
@@ -143,7 +143,7 @@ function createDeploymentHistoryColumns(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={getOrgUrl(`workflows/deployment/${row.original.id}`)}>
+                <Link to={getOrgUrl(`deployment/${row.original.id}`)}>
                   View Version
                 </Link>
               </DropdownMenuItem>
@@ -351,15 +351,27 @@ export function DeploymentDetailPage() {
     );
   }
 
+  const typeLabels: Record<WorkflowType, string> = {
+    manual: "Manual",
+    http_request: "HTTP Request",
+    email_message: "Email Message",
+    cron: "Scheduled",
+  };
+
   return (
     <InsetLayout title={workflowSummary?.name || ""}>
       {workflow ? (
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <p className="text-muted-foreground">
-                Manage deployments for this workflow
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground">
+                  Manage deployments for this workflow
+                </p>
+                <Badge variant="outline" className="text-xs">
+                  {typeLabels[workflow.type]}
+                </Badge>
+              </div>
               <div className="flex gap-2">
                 <Button onClick={handleExecuteLatestVersion}>
                   <Play className="mr-2 h-4 w-4" />

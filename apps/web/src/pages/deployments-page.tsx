@@ -1,4 +1,4 @@
-import type { Deployment } from "@dafthunk/types";
+import type { Deployment, WorkflowType } from "@dafthunk/types";
 import type { ColumnDef } from "@tanstack/react-table";
 import ArrowUpToLine from "lucide-react/icons/arrow-up-to-line";
 import GitCommitHorizontal from "lucide-react/icons/git-commit-horizontal";
@@ -63,11 +63,29 @@ const createColumns = (
       const workflowId = row.original.workflowId;
       return (
         <Link
-          to={getOrgUrl(`workflows/${workflowId}`)}
+          to={getOrgUrl(`deployments/${workflowId}`)}
           className="hover:underline"
         >
           {workflowName}
         </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "workflowType",
+    header: "Type",
+    cell: ({ row }) => {
+      const type = row.getValue("workflowType") as WorkflowType;
+      const typeLabels: Record<WorkflowType, string> = {
+        manual: "Manual",
+        http_request: "HTTP Request",
+        email_message: "Email Message",
+        cron: "Scheduled",
+      };
+      return (
+        <Badge variant="outline" className="text-xs">
+          {typeLabels[type]}
+        </Badge>
       );
     },
   },
@@ -82,9 +100,7 @@ const createColumns = (
       return (
         <TooltipProvider>
           <Link
-            to={getOrgUrl(
-              `workflows/deployment/${deployment.latestDeploymentId}`
-            )}
+            to={getOrgUrl(`deployment/${deployment.latestDeploymentId}`)}
             className="hover:underline"
           >
             <Badge variant="secondary" className="text-xs gap-1">
@@ -125,7 +141,7 @@ const createColumns = (
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={getOrgUrl(`workflows/${deployment.workflowId}`)}>
+                <Link to={getOrgUrl(`deployments/${deployment.workflowId}`)}>
                   View Deployed Versions
                 </Link>
               </DropdownMenuItem>

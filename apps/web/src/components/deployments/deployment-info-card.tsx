@@ -58,7 +58,7 @@ export function DeploymentInfoCard({
               </p>
               <div className="mt-1">
                 <Link
-                  to={getOrgUrl(`workflows/deployment/${id}`)}
+                  to={getOrgUrl(`deployment/${id}`)}
                   className="hover:underline"
                 >
                   <Badge variant="secondary" className="text-xs gap-1">
@@ -73,7 +73,7 @@ export function DeploymentInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={getOrgUrl(`workflows/deployment/${id}`)}
+                  to={getOrgUrl(`deployment/${id}`)}
                   className="hover:underline font-mono text-xs"
                 >
                   {id}

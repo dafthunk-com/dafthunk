@@ -155,21 +155,6 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Workflows - Workflows - Dafthunk" /> },
   },
   {
-    path: "/deployments",
-    element: <OrgRedirect to="/org/:handle/deployments" />,
-  },
-  {
-    path: "/org/:handle/deployments",
-    element: (
-      <OrgLayout title="Workflows">
-        <ProtectedRoute>
-          <DeploymentsPage />
-        </ProtectedRoute>
-      </OrgLayout>
-    ),
-    handle: { head: <HeadSeo title="Deployments - Workflows - Dafthunk" /> },
-  },
-  {
     path: "/executions",
     element: <OrgRedirect to="/org/:handle/executions" />,
   },
@@ -336,7 +321,22 @@ export const routes: AppRouteObject[] = [
     handle: { head: <HeadSeo title="Dataset Details - Datasets - Dafthunk" /> },
   },
   {
-    path: "/org/:handle/workflows/deployments/:workflowId",
+    path: "/deployments",
+    element: <OrgRedirect to="/org/:handle/deployments" />,
+  },
+  {
+    path: "/org/:handle/deployments",
+    element: (
+      <OrgLayout title="Workflows">
+        <ProtectedRoute>
+          <DeploymentsPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Deployments - Workflows - Dafthunk" /> },
+  },
+  {
+    path: "/org/:handle/deployments/:workflowId",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -349,7 +349,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/org/:handle/workflows/deployment/:deploymentId",
+    path: "/org/:handle/deployment/:deploymentId",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>
@@ -362,7 +362,7 @@ export const routes: AppRouteObject[] = [
     },
   },
   {
-    path: "/org/:handle/workflows/executions/:executionId",
+    path: "/org/:handle/executions/:executionId",
     element: (
       <OrgLayout title="Workflows">
         <ProtectedRoute>

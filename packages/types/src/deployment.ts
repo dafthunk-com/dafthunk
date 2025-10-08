@@ -7,6 +7,7 @@ import { Edge, Node, Workflow, WorkflowType } from "./workflow";
 export interface Deployment {
   workflowId: string;
   workflowName: string;
+  workflowType: WorkflowType;
   latestDeploymentId: string;
   latestVersion: number;
   deploymentCount: number;

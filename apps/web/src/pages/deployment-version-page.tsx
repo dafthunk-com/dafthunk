@@ -1,4 +1,4 @@
-import type { DeploymentVersion } from "@dafthunk/types";
+import type { DeploymentVersion, WorkflowType } from "@dafthunk/types";
 import type { Edge, Node } from "@xyflow/react";
 import Globe from "lucide-react/icons/globe";
 import Mail from "lucide-react/icons/mail";
@@ -12,6 +12,7 @@ import { DeploymentInfoCard } from "@/components/deployments/deployment-info-car
 import { WorkflowInfoCard } from "@/components/deployments/workflow-info-card";
 import { InsetLoading } from "@/components/inset-loading";
 import { InsetLayout } from "@/components/layouts/inset-layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
@@ -173,7 +174,7 @@ export function DeploymentVersionPage() {
         { label: "Deployments", to: getOrgUrl("deployments") },
         {
           label: workflow.name,
-          to: getOrgUrl(`workflows/${workflow.id}`),
+          to: getOrgUrl(`deployments/${workflow.id}`),
         },
         { label: `v${deploymentVersion.version}` },
       ]);
@@ -240,6 +241,15 @@ export function DeploymentVersionPage() {
     );
   }
 
+  const typeLabels: Record<WorkflowType, string> = {
+    manual: "Manual",
+    http_request: "HTTP Request",
+    email_message: "Email Message",
+    cron: "Scheduled",
+  };
+
+  const workflowType = deploymentVersion?.type || workflow?.type;
+
   return (
     <InsetLayout
       title={
@@ -252,9 +262,16 @@ export function DeploymentVersionPage() {
         <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <p className="text-muted-foreground">
-                Details for this workflow deployment version
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground">
+                  Details for this workflow deployment version
+                </p>
+                {workflowType && (
+                  <Badge variant="outline" className="text-xs">
+                    {typeLabels[workflowType]}
+                  </Badge>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button onClick={handleExecuteThisVersion}>
                   <Play className="mr-2 h-4 w-4" />
