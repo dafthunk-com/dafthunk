@@ -46,6 +46,7 @@ import {
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ObjectStore } from "../runtime/object-store";
 import { createSimulatedEmailMessage } from "../utils/email";
+import { processFormData } from "../utils/http";
 import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
@@ -642,18 +643,8 @@ workflowRoutes.post(
       contentType?.includes("application/x-www-form-urlencoded")
     ) {
       formData = Object.fromEntries(await c.req.formData());
-      // Convert form data to body for consistency
-      body = Object.fromEntries(
-        Object.entries(formData).map(([key, value]) => {
-          // Try to parse numbers and booleans
-          if (typeof value === "string") {
-            if (value.toLowerCase() === "true") return [key, true];
-            if (value.toLowerCase() === "false") return [key, false];
-            if (!isNaN(Number(value))) return [key, Number(value)];
-          }
-          return [key, value];
-        })
-      );
+      // Convert form data to body with type coercion (using utility)
+      body = processFormData(formData);
     }
 
     const baseExecutionParams = {

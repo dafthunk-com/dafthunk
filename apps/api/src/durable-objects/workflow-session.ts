@@ -26,6 +26,10 @@ import {
 } from "../db/queries";
 import { ObjectStore } from "../runtime/object-store";
 import { createSimulatedEmailMessage } from "../utils/email";
+import {
+  createSimulatedHttpRequest,
+  processHttpParameters,
+} from "../utils/http";
 
 export class WorkflowSession extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
@@ -429,16 +433,19 @@ export class WorkflowSession extends DurableObject<Bindings> {
         return;
       }
 
-      // Construct emailMessage from parameters if provided
+      // Construct emailMessage or httpRequest from parameters based on workflow type
       let emailMessage;
-      if (parameters && typeof parameters === "object") {
-        const { from, subject, body } = parameters as {
-          from?: string;
-          subject?: string;
-          body?: string;
-        };
+      let httpRequest;
 
-        if (from || subject || body) {
+      if (this.state.type === "email_message") {
+        // For email workflows, extract email parameters
+        if (parameters && typeof parameters === "object") {
+          const { from, subject, body } = parameters as {
+            from?: string;
+            subject?: string;
+            body?: string;
+          };
+
           emailMessage = createSimulatedEmailMessage({
             from,
             subject,
@@ -447,6 +454,25 @@ export class WorkflowSession extends DurableObject<Bindings> {
             workflowHandleOrId: this.state.handle || this.state.id,
           });
         }
+      } else if (this.state.type === "http_request") {
+        // For HTTP workflows, process parameters to extract body and formData
+        const { body: requestBody, formData: requestFormData } =
+          processHttpParameters(parameters as Record<string, any>);
+
+        // Create HTTP request with simulated metadata and parameters as body/formData
+        httpRequest = createSimulatedHttpRequest({
+          // Simulated HTTP metadata (defaults from createSimulatedHttpRequest)
+          url: undefined,
+          method: undefined,
+          headers: undefined,
+          query: undefined,
+          // Parameters become the body and formData
+          body: requestBody,
+          formData: requestFormData,
+        });
+      } else {
+        // For other workflow types, provide basic HTTP context without body
+        httpRequest = createSimulatedHttpRequest({});
       }
 
       const executionParams = {
@@ -463,6 +489,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
         computeCredits,
         workflowSessionId: this.state.id,
         ...(emailMessage && { emailMessage }),
+        ...(httpRequest && { httpRequest }),
       };
 
       // Start workflow execution
