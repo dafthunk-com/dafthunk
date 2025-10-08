@@ -264,6 +264,7 @@ export function useWorkflowState({
 
   const nodesRef = useRef(initialNodes);
   const edgesRef = useRef(initialEdges);
+  const lastPersistedNodesRef = useRef<string>("");
 
   // Get selected nodes and edges directly from the arrays
   const selectedNodes = nodes.filter((node) => node.selected);
@@ -344,39 +345,26 @@ export function useWorkflowState({
     }
   }, [initialEdges, readonly, setEdges]);
 
-  // Effect to notify parent of changes for nodes (excluding position changes during drag)
+  // Effect to notify parent of changes for nodes
+  // Only persists when the actual persistable data changes (strips position/execution state for comparison)
   useEffect(() => {
     if (readonly) return;
 
-    const nodeCountChanged = nodes.length !== initialNodes.length;
+    // Create normalized version for comparison (excludes position and execution state)
+    const normalizedNodes = nodes.map((node) => ({
+      id: node.id,
+      type: node.type,
+      data: stripExecutionFields(node.data),
+    }));
 
-    // Check for data changes (excluding position)
-    let hasDataChanges = false;
-    nodes.forEach((node) => {
-      const initialNode = initialNodes.find((n) => n.id === node.id);
-      if (!initialNode) {
-        hasDataChanges = true;
-        return;
-      }
+    const serialized = JSON.stringify(normalizedNodes);
 
-      // Check data changes (not position)
-      const nodeData = stripExecutionFields(node.data);
-      const initialNodeData = stripExecutionFields(initialNode.data);
-      if (JSON.stringify(nodeData) !== JSON.stringify(initialNodeData)) {
-        hasDataChanges = true;
-      }
-    });
-
-    // Check for deleted nodes
-    const hasDeletedNodes = initialNodes.some(
-      (initialNode) => !nodes.some((node) => node.id === initialNode.id)
-    );
-
-    // Save for data changes or node add/delete (position changes handled by onNodeDragStop)
-    if (nodeCountChanged || hasDataChanges || hasDeletedNodes) {
+    // Only persist if the persistable data actually changed
+    if (serialized !== lastPersistedNodesRef.current) {
+      lastPersistedNodesRef.current = serialized;
       onNodesChangePersistCallback?.(nodes);
     }
-  }, [nodes, onNodesChangePersistCallback, initialNodes, readonly]);
+  }, [nodes, onNodesChangePersistCallback, readonly]);
 
   // Effect to notify parent of changes for edges
   useEffect(() => {
@@ -440,11 +428,13 @@ export function useWorkflowState({
     setConnectionValidationState("default");
   }, [readonly]);
 
-  // Handle node drag stop - save positions after drag completes
+  // Handle node drag stop - persist positions after drag completes
   const onNodeDragStop = useCallback(
     (_event: React.MouseEvent, _node: ReactFlowNode<WorkflowNodeType>) => {
       if (readonly) return;
-      // Save with current node positions after drag completes
+      // Persist final positions after drag
+      // The persistence effect ignores position-only changes during drag,
+      // so we need to explicitly persist here with the updated positions
       onNodesChangePersistCallback?.(nodes);
     },
     [readonly, nodes, onNodesChangePersistCallback]
