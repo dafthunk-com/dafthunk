@@ -220,6 +220,22 @@ export class WorkflowSession extends DurableObject<Bindings> {
       return this.handleExecutionUpdate(request);
     }
 
+    // Recover state from DO storage if needed (e.g., after DO restart)
+    if (!this.state) {
+      const storedWorkflowId = await this.ctx.storage.get<string>("workflowId");
+      const storedUserId = await this.ctx.storage.get<string>("userId");
+
+      if (storedWorkflowId && storedUserId) {
+        try {
+          await this.loadState(storedWorkflowId, storedUserId);
+          this.userId = storedUserId;
+          console.log(`Recovered state for workflow ${storedWorkflowId}`);
+        } catch (error) {
+          console.error("Failed to recover state from storage:", error);
+        }
+      }
+    }
+
     // This endpoint is called by the api to establish a WebSocket connection.
     // It requires authentication and userId.
     // It extracts workflowId from the URL path.
@@ -330,6 +346,13 @@ export class WorkflowSession extends DurableObject<Bindings> {
   private async handleWebSocketUpgrade(_request: Request): Promise<Response> {
     const webSocketPair = new WebSocketPair();
     const [client, server] = Object.values(webSocketPair);
+
+    // Store workflow ID and user ID in DO storage for recovery after DO restarts
+    // This ensures that if the DO is evicted and restarted, we can recover the state
+    if (this.state && this.userId) {
+      await this.ctx.storage.put("workflowId", this.state.id);
+      await this.ctx.storage.put("userId", this.userId);
+    }
 
     this.ctx.acceptWebSocket(server);
     this.connectedUsers.add(server);
