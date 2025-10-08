@@ -249,7 +249,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
     // Recover state from DO storage if needed (e.g., after DO restart)
     try {
       await this.ensureStateInitialized();
-    } catch (error) {
+    } catch (_error) {
       // Ignore recovery errors - will attempt to load from request parameters below
     }
 
