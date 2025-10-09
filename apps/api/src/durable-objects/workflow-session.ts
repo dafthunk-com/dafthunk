@@ -44,6 +44,24 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
   constructor(ctx: DurableObjectState, env: Bindings) {
     super(ctx, env);
+
+    // Recover WebSocket connections after hibernation
+    // When the DO wakes up, we need to rebuild our in-memory Maps
+    const websockets = this.ctx.getWebSockets();
+    for (const ws of websockets) {
+      this.connectedUsers.add(ws);
+
+      // Deserialize execution ID if attached
+      const attachment = ws.deserializeAttachment();
+      if (attachment && typeof attachment === "object" && "executionId" in attachment) {
+        const executionId = attachment.executionId as string;
+        this.executionIdToWebSocket.set(executionId, ws);
+        this.executions.set(ws, { id: executionId, workflowId: "", status: "executing", nodeExecutions: [] });
+        console.log(`Recovered WebSocket for execution ${executionId} after hibernation`);
+      } else {
+        this.executions.set(ws, null);
+      }
+    }
   }
 
   /**
@@ -418,6 +436,8 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
         if (executeMsg.executionId) {
           this.executionIdToWebSocket.set(executeMsg.executionId, ws);
+          // Attach execution ID to WebSocket for hibernation recovery
+          ws.serializeAttachment({ executionId: executeMsg.executionId });
           console.log(
             `Registered execution ${executeMsg.executionId} for WebSocket updates`
           );
@@ -543,6 +563,8 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
       // Register this WebSocket for execution updates
       this.executionIdToWebSocket.set(executionId, ws);
+      // Attach execution ID to WebSocket for hibernation recovery
+      ws.serializeAttachment({ executionId });
 
       // Build initial nodeExecutions
       const nodeExecutions = this.state.nodes.map((node) => ({
