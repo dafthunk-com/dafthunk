@@ -45,8 +45,15 @@ import {
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ObjectStore } from "../runtime/object-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
-import { processFormData } from "../utils/http";
-import { validateWorkflow } from "../utils/workflows";
+import { getAuthContext } from "../utils/auth-context";
+import {
+  isParseError,
+  parseRequestBody,
+} from "../utils/request-parser";
+import {
+  validateWorkflow,
+  validateWorkflowForExecution,
+} from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -499,10 +506,12 @@ workflowRoutes.post(
   apiKeyOrJwtMiddleware,
   (c, next) => createRateLimitMiddleware(c.env.RATE_LIMIT_EXECUTE)(c, next),
   async (c) => {
-    const organizationId = c.get("organizationId")!;
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const version = c.req.param("version");
     const db = createDatabase(c.env.DB);
+
+    // Get auth context from either JWT or API key
+    const { organizationId, userId } = getAuthContext(c);
 
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
@@ -511,20 +520,6 @@ workflowRoutes.post(
     );
     if (computeCredits === undefined) {
       return c.json({ error: "Organization not found" }, 404);
-    }
-
-    // Get organization ID from either JWT or API key auth
-    let userId: string;
-    const jwtPayload = c.get("jwtPayload") as JWTTokenPayload | undefined;
-
-    if (jwtPayload) {
-      // Authentication was via JWT
-      // No need to re-check organization.id === organization.id, already done above.
-      userId = jwtPayload.sub || "anonymous";
-    } else {
-      // Authentication was via API key
-      // No need to re-check orgIdFromAuth === organization.id, already done above.
-      userId = "api"; // Use a placeholder for API-triggered executions
     }
 
     // Get workflow data either from deployment or directly from workflow
@@ -596,11 +591,12 @@ workflowRoutes.post(
     }
 
     // Validate if workflow has nodes
-    if (!workflowData.nodes || workflowData.nodes.length === 0) {
+    try {
+      validateWorkflowForExecution(workflowData);
+    } catch (error) {
       return c.json(
         {
-          error:
-            "Cannot execute an empty workflow. Please add nodes to the workflow.",
+          error: error instanceof Error ? error.message : "Invalid workflow",
         },
         400
       );
@@ -612,39 +608,13 @@ workflowRoutes.post(
     const method = c.req.method;
     const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
 
-    // Initialize formData variable
-    let formData: Record<string, string | File> | undefined;
-
-    // Get request body if it exists
-    let body: any = undefined;
-    const contentType = c.req.header("content-type");
-    if (contentType?.includes("application/json")) {
-      const contentLength = c.req.header("content-length");
-      if (contentLength && contentLength !== "0") {
-        try {
-          body = await c.req.json();
-        } catch (e: any) {
-          // Log the error for server-side diagnostics
-          console.error("Failed to parse JSON request body:", e.message);
-          // Return a 400 error if JSON is malformed
-          return c.json(
-            { error: "Invalid JSON in request body.", details: e.message },
-            400
-          );
-        }
-      } else {
-        // Content-Type is application/json but body is empty or content-length is 0.
-        // Set body to an empty object. Downstream logic will determine if this is acceptable.
-        body = {};
-      }
-    } else if (
-      contentType?.includes("multipart/form-data") ||
-      contentType?.includes("application/x-www-form-urlencoded")
-    ) {
-      formData = Object.fromEntries(await c.req.formData());
-      // Convert form data to body with type coercion (using utility)
-      body = processFormData(formData);
+    // Parse request body
+    const parsedRequest = await parseRequestBody(c);
+    if (isParseError(parsedRequest)) {
+      return c.json(parsedRequest, 400);
     }
+
+    const { body, formData } = parsedRequest;
 
     // Build parameters based on workflow type
     let parameters;

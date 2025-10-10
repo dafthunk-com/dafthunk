@@ -20,6 +20,7 @@ import {
   type WorkflowExecutorParameters,
 } from "../services/workflow-executor";
 import { processHttpParameters } from "../utils/http";
+import { validateWorkflowForExecution } from "../utils/workflows";
 
 interface ExecutionManagerOptions {
   env: Bindings;
@@ -56,11 +57,7 @@ export class ExecutionManager {
     }
 
     // Validate workflow has nodes
-    if (!state.nodes || state.nodes.length === 0) {
-      throw new Error(
-        "Cannot execute an empty workflow. Please add nodes to the workflow."
-      );
-    }
+    validateWorkflowForExecution(state);
 
     // Process parameters based on workflow type
     let executorParameters: WorkflowExecutorParameters = {};

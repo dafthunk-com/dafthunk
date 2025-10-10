@@ -6,13 +6,28 @@ export interface ValidationError {
     | "TYPE_MISMATCH"
     | "INVALID_CONNECTION"
     | "DUPLICATE_CONNECTION"
-    | "DUPLICATE_NODE_ID";
+    | "DUPLICATE_NODE_ID"
+    | "EMPTY_WORKFLOW";
   message: string;
   details: {
     nodeId?: string;
     connectionSource?: string;
     connectionTarget?: string;
   };
+}
+
+/**
+ * Validates that a workflow has nodes before execution
+ * @throws Error if workflow is empty or has no nodes
+ */
+export function validateWorkflowForExecution(workflow: {
+  nodes?: any[];
+}): void {
+  if (!workflow.nodes || workflow.nodes.length === 0) {
+    throw new Error(
+      "Cannot execute an empty workflow. Please add nodes to the workflow."
+    );
+  }
 }
 
 /**
