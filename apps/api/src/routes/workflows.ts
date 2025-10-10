@@ -47,13 +47,10 @@ import { ObjectStore } from "../runtime/object-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { getAuthContext } from "../utils/auth-context";
 import {
-  isParseError,
-  parseRequestBody,
-} from "../utils/request-parser";
-import {
-  validateWorkflow,
-  validateWorkflowForExecution,
-} from "../utils/workflows";
+  isExecutionPreparationError,
+  prepareWorkflowExecution,
+} from "../utils/execution-preparation";
+import { validateWorkflow } from "../utils/workflows";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -590,57 +587,16 @@ workflowRoutes.post(
       };
     }
 
-    // Validate if workflow has nodes
-    try {
-      validateWorkflowForExecution(workflowData);
-    } catch (error) {
+    // Prepare workflow for execution
+    const preparationResult = await prepareWorkflowExecution(c, workflowData);
+    if (isExecutionPreparationError(preparationResult)) {
       return c.json(
-        {
-          error: error instanceof Error ? error.message : "Invalid workflow",
-        },
-        400
+        { error: preparationResult.error },
+        preparationResult.status
       );
     }
 
-    // Extract HTTP request information
-    const headers = c.req.header();
-    const url = c.req.url;
-    const method = c.req.method;
-    const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
-
-    // Parse request body
-    const parsedRequest = await parseRequestBody(c);
-    if (isParseError(parsedRequest)) {
-      return c.json(parsedRequest, 400);
-    }
-
-    const { body, formData } = parsedRequest;
-
-    // Build parameters based on workflow type
-    let parameters;
-    if (workflowData.type === "email_message") {
-      parameters = {
-        from: body?.from,
-        subject: body?.subject,
-        body: body?.body,
-      };
-    } else if (workflowData.type === "http_request") {
-      parameters = {
-        url,
-        method,
-        headers,
-        query,
-        formData,
-        requestBody: body,
-      };
-    } else {
-      parameters = {
-        url,
-        method,
-        headers,
-        query,
-      };
-    }
+    const { parameters } = preparationResult;
 
     // Execute workflow using shared service
     const { execution } = await WorkflowExecutor.execute({

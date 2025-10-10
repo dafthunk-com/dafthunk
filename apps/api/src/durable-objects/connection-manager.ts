@@ -116,9 +116,7 @@ export class ConnectionManager {
   registerExecution(executionId: string, ws: WebSocket): void {
     this.executionIdToWebSocket.set(executionId, ws);
     ws.serializeAttachment({ executionId });
-    console.log(
-      `Registered execution ${executionId} for WebSocket updates`
-    );
+    console.log(`Registered execution ${executionId} for WebSocket updates`);
   }
 
   /**

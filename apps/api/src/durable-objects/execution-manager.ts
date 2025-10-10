@@ -113,10 +113,7 @@ export class ExecutionManager {
   /**
    * Create error message
    */
-  createErrorMessage(
-    error: string,
-    details?: string
-  ): WorkflowErrorMessage {
+  createErrorMessage(error: string, details?: string): WorkflowErrorMessage {
     return {
       error,
       ...(details && { details }),

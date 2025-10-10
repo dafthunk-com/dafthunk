@@ -46,7 +46,6 @@ export class WorkflowSession extends DurableObject<Bindings> {
     this.connectionManager.recoverConnections(websockets);
   }
 
-
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
@@ -148,7 +147,8 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
       this.connectionManager.setExecution(ws, execution);
 
-      const updateMessage = this.executionManager.createExecutionUpdateMessage(execution);
+      const updateMessage =
+        this.executionManager.createExecutionUpdateMessage(execution);
       this.connectionManager.send(ws, JSON.stringify(updateMessage));
 
       return Response.json({ ok: true });
@@ -248,12 +248,13 @@ export class WorkflowSession extends DurableObject<Bindings> {
     }
 
     try {
-      const { executionId, execution } = await this.executionManager.executeWorkflow(
-        state,
-        organizationId,
-        userId,
-        parameters
-      );
+      const { executionId, execution } =
+        await this.executionManager.executeWorkflow(
+          state,
+          organizationId,
+          userId,
+          parameters
+        );
 
       // Register this WebSocket for execution updates
       this.connectionManager.registerExecution(executionId, ws);
@@ -262,7 +263,8 @@ export class WorkflowSession extends DurableObject<Bindings> {
       this.connectionManager.setExecution(ws, execution);
 
       // Send execution started message
-      const updateMessage = this.executionManager.createExecutionUpdateMessage(execution);
+      const updateMessage =
+        this.executionManager.createExecutionUpdateMessage(execution);
       this.connectionManager.send(ws, JSON.stringify(updateMessage));
     } catch (error) {
       console.error("Failed to execute workflow:", error);
