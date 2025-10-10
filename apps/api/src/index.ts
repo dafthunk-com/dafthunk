@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import auth from "./auth";
 import { ApiContext } from "./context";
 import { handleCronTriggers } from "./cron";
-import { WorkflowSession } from "./durable-objects/workflow-session";
+import { Session } from "./session/session";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
@@ -70,7 +70,7 @@ app.route("/:organizationIdOrHandle/objects", objectRoutes);
 app.route("/:organizationIdOrHandle/usage", usageRoutes);
 app.route("/:organizationIdOrHandle/ws", wsRoutes);
 
-export { Runtime, WorkflowSession };
+export { Runtime, Session as WorkflowSession };
 
 export default {
   scheduled: handleCronTriggers,

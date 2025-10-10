@@ -18,7 +18,7 @@ import { ConnectionManager } from "./connection-manager";
 import { ExecutionManager } from "./execution-manager";
 import { StateManager } from "./state-manager";
 
-export class WorkflowSession extends DurableObject<Bindings> {
+export class Session extends DurableObject<Bindings> {
   private static readonly PERSIST_DEBOUNCE_MS = 500;
 
   private stateManager: StateManager;
@@ -32,7 +32,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
     this.stateManager = new StateManager({
       env,
       storage: this.ctx.storage,
-      persistDebounceMs: WorkflowSession.PERSIST_DEBOUNCE_MS,
+      persistDebounceMs: Session.PERSIST_DEBOUNCE_MS,
     });
 
     this.connectionManager = new ConnectionManager();
