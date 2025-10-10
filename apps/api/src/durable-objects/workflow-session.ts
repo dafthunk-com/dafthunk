@@ -6,12 +6,12 @@
  */
 
 import {
+  ClientMessage,
   WorkflowErrorMessage,
   WorkflowExecuteMessage,
   WorkflowExecution,
   WorkflowExecutionUpdateMessage,
   WorkflowInitMessage,
-  WorkflowMessage,
   WorkflowState,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
@@ -53,11 +53,22 @@ export class WorkflowSession extends DurableObject<Bindings> {
 
       // Deserialize execution ID if attached
       const attachment = ws.deserializeAttachment();
-      if (attachment && typeof attachment === "object" && "executionId" in attachment) {
+      if (
+        attachment &&
+        typeof attachment === "object" &&
+        "executionId" in attachment
+      ) {
         const executionId = attachment.executionId as string;
         this.executionIdToWebSocket.set(executionId, ws);
-        this.executions.set(ws, { id: executionId, workflowId: "", status: "executing", nodeExecutions: [] });
-        console.log(`Recovered WebSocket for execution ${executionId} after hibernation`);
+        this.executions.set(ws, {
+          id: executionId,
+          workflowId: "",
+          status: "executing",
+          nodeExecutions: [],
+        });
+        console.log(
+          `Recovered WebSocket for execution ${executionId} after hibernation`
+        );
       } else {
         this.executions.set(ws, null);
       }
@@ -426,7 +437,7 @@ export class WorkflowSession extends DurableObject<Bindings> {
       // Recover state if needed (WebSocket survives DO restarts but in-memory state doesn't)
       await this.ensureStateInitialized();
 
-      const data = JSON.parse(message) as WorkflowMessage;
+      const data = JSON.parse(message) as ClientMessage;
 
       if ("type" in data && data.type === "update") {
         const updateMsg = data as WorkflowUpdateMessage;

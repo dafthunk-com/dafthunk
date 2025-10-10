@@ -524,11 +524,15 @@ export interface WorkflowExecutionUpdateMessage {
 }
 
 /**
- * All possible WebSocket messages
+ * Messages sent from client to server
  */
-export type WorkflowMessage =
+export type ClientMessage = WorkflowUpdateMessage | WorkflowExecuteMessage;
+
+/**
+ * Messages sent from server to client
+ */
+export type ServerMessage =
   | WorkflowInitMessage
   | WorkflowUpdateMessage
   | WorkflowErrorMessage
-  | WorkflowExecuteMessage
   | WorkflowExecutionUpdateMessage;

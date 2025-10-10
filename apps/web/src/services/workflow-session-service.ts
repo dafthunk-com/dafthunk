@@ -1,10 +1,9 @@
 import type {
+  ClientMessage,
   Edge,
   Node,
-  WorkflowErrorMessage,
+  ServerMessage,
   WorkflowExecution,
-  WorkflowExecutionUpdateMessage,
-  WorkflowInitMessage,
   WorkflowState,
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
@@ -13,12 +12,6 @@ import { getApiBaseUrl } from "@/config/api";
 
 // Re-export for convenience
 export type { WorkflowState };
-
-type WebSocketMessage =
-  | WorkflowInitMessage
-  | WorkflowUpdateMessage
-  | WorkflowErrorMessage
-  | WorkflowExecutionUpdateMessage;
 
 export interface WorkflowWSOptions {
   onInit?: (state: WorkflowState) => void;
@@ -67,7 +60,7 @@ export class WorkflowWebSocket {
 
       this.ws.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data) as WebSocketMessage;
+          const message = JSON.parse(event.data) as ServerMessage;
 
           if ("error" in message) {
             console.error("WebSocket error message:", message.error);
@@ -160,7 +153,7 @@ export class WorkflowWebSocket {
   /**
    * Helper method to send a message via WebSocket
    */
-  private sendMessage(message: object, errorMessage: string): boolean {
+  private sendMessage(message: ClientMessage, errorMessage: string): boolean {
     if (this.ws?.readyState !== WebSocket.OPEN) {
       console.warn(`WebSocket is not open, cannot send message`);
       this.options.onError?.("WebSocket is not connected");
