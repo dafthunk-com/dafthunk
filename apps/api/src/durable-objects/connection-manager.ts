@@ -16,10 +16,20 @@ import type {
   WorkflowUpdateMessage,
 } from "@dafthunk/types";
 
+/**
+ * Represents a WebSocket connection with its execution state
+ */
+interface Connection {
+  ws: WebSocket;
+  execution: WorkflowExecution | null;
+  connectedAt: number;
+}
+
 export class ConnectionManager {
-  private connections: Set<WebSocket> = new Set();
-  private executions: Map<WebSocket, WorkflowExecution | null> = new Map();
-  private executionIdToWebSocket: Map<string, WebSocket> = new Map();
+  // Primary storage: WebSocket -> Connection
+  private connections: Map<WebSocket, Connection> = new Map();
+  // Index: executionId -> Connection (for fast lookup)
+  private executionIndex: Map<string, Connection> = new Map();
 
   /**
    * Recover WebSocket connections after hibernation
@@ -29,24 +39,28 @@ export class ConnectionManager {
    */
   recoverConnections(websockets: WebSocket[]): void {
     for (const ws of websockets) {
-      this.connections.add(ws);
-
       const attachment = ws.deserializeAttachment();
       const executionId = this.extractExecutionId(attachment);
 
-      if (executionId) {
-        this.executionIdToWebSocket.set(executionId, ws);
-        this.executions.set(ws, {
-          id: executionId,
-          workflowId: "",
-          status: "executing",
-          nodeExecutions: [],
-        });
-        console.log(
-          `Recovered WebSocket for execution ${executionId} after hibernation`
-        );
-      } else {
-        this.executions.set(ws, null);
+      const execution: WorkflowExecution | null = executionId
+        ? {
+            id: executionId,
+            workflowId: "",
+            status: "executing",
+            nodeExecutions: [],
+          }
+        : null;
+
+      const connection: Connection = {
+        ws,
+        execution,
+        connectedAt: Date.now(),
+      };
+
+      this.connections.set(ws, connection);
+
+      if (executionId && execution) {
+        this.executionIndex.set(executionId, connection);
       }
     }
   }
@@ -73,21 +87,23 @@ export class ConnectionManager {
    * Add a new WebSocket connection
    */
   addConnection(ws: WebSocket): void {
-    this.connections.add(ws);
-    this.executions.set(ws, null);
+    const connection: Connection = {
+      ws,
+      execution: null,
+      connectedAt: Date.now(),
+    };
+    this.connections.set(ws, connection);
   }
 
   /**
    * Remove a WebSocket connection and clean up execution tracking
    */
   removeConnection(ws: WebSocket): void {
-    this.connections.delete(ws);
-
-    const execution = this.executions.get(ws);
-    if (execution) {
-      this.executionIdToWebSocket.delete(execution.id);
+    const connection = this.connections.get(ws);
+    if (connection?.execution) {
+      this.executionIndex.delete(connection.execution.id);
     }
-    this.executions.delete(ws);
+    this.connections.delete(ws);
   }
 
   /**
@@ -100,8 +116,8 @@ export class ConnectionManager {
     };
     const message = JSON.stringify(updateMsg);
 
-    for (const ws of this.connections) {
-      this.send(ws, message);
+    for (const connection of this.connections.values()) {
+      this.send(connection.ws, message);
     }
   }
 
@@ -131,36 +147,61 @@ export class ConnectionManager {
    * Register an execution ID with a WebSocket for tracking
    */
   registerExecution(executionId: string, ws: WebSocket): void {
-    this.executionIdToWebSocket.set(executionId, ws);
+    const connection = this.connections.get(ws);
+    if (!connection) {
+      console.warn(
+        `Attempted to register execution ${executionId} for unknown WebSocket`
+      );
+      return;
+    }
+
+    this.executionIndex.set(executionId, connection);
     ws.serializeAttachment({ executionId });
-    console.log(`Registered execution ${executionId} for WebSocket updates`);
   }
 
   /**
    * Update execution data for a WebSocket
    */
   setExecution(ws: WebSocket, execution: WorkflowExecution): void {
-    this.executions.set(ws, execution);
+    const connection = this.connections.get(ws);
+    if (!connection) {
+      console.warn("Attempted to set execution for unknown WebSocket");
+      return;
+    }
+
+    connection.execution = execution;
+
+    // Update index if execution has an ID
+    if (execution.id) {
+      this.executionIndex.set(execution.id, connection);
+    }
   }
 
   /**
    * Get WebSocket for an execution ID
    */
   getWebSocketForExecution(executionId: string): WebSocket | undefined {
-    return this.executionIdToWebSocket.get(executionId);
+    return this.executionIndex.get(executionId)?.ws;
   }
 
   /**
    * Get execution for a WebSocket
    */
   getExecution(ws: WebSocket): WorkflowExecution | null | undefined {
-    return this.executions.get(ws);
+    return this.connections.get(ws)?.execution;
   }
 
   /**
-   * Get all active connections
+   * Get all active WebSocket connections
    */
-  getConnections(): Set<WebSocket> {
-    return this.connections;
+  getConnections(): WebSocket[] {
+    return Array.from(this.connections.keys());
+  }
+
+  /**
+   * Get count of active connections
+   */
+  getConnectionCount(): number {
+    return this.connections.size;
   }
 }

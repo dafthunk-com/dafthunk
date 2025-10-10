@@ -246,13 +246,25 @@ export class WorkflowSession extends DurableObject<Bindings> {
    */
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     try {
-      const parsedMessage = this.parseMessage(message);
-      if (!parsedMessage) {
+      await this.stateManager.ensureInitialized();
+
+      const parsed = this.parseMessage(message);
+      if (!parsed || !("type" in parsed)) {
+        const errorMsg = this.executionManager.createErrorMessage(
+          "Invalid message format"
+        );
+        this.connectionManager.send(ws, JSON.stringify(errorMsg));
         return;
       }
 
-      await this.stateManager.ensureInitialized();
-      await this.handleClientMessage(ws, parsedMessage);
+      switch (parsed.type) {
+        case "update":
+          this.handleUpdateMessage(parsed as WorkflowUpdateMessage);
+          break;
+        case "execute":
+          await this.handleExecuteMessage(ws, parsed as WorkflowExecuteMessage);
+          break;
+      }
     } catch (error) {
       console.error("WebSocket message error:", error);
       const errorMsg = this.executionManager.createErrorMessage(
@@ -275,27 +287,6 @@ export class WorkflowSession extends DurableObject<Bindings> {
       return JSON.parse(message) as ClientMessage;
     } catch {
       return null;
-    }
-  }
-
-  /**
-   * Handle parsed client message based on type
-   */
-  private async handleClientMessage(
-    ws: WebSocket,
-    message: ClientMessage
-  ): Promise<void> {
-    if (!("type" in message)) {
-      return;
-    }
-
-    switch (message.type) {
-      case "update":
-        this.handleUpdateMessage(message as WorkflowUpdateMessage);
-        break;
-      case "execute":
-        await this.handleExecuteMessage(ws, message as WorkflowExecuteMessage);
-        break;
     }
   }
 

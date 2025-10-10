@@ -48,43 +48,10 @@ export class StateManager {
    *
    * Steps:
    * 1. Verify user has access (via D1 metadata query)
-   * 2. Load full workflow data from R2
+   * 2. Load full workflow data from R2 (with fallback)
    * 3. Initialize in-memory state
    */
   async loadState(workflowId: string, userId: string): Promise<void> {
-    console.log(`Loading workflow ${workflowId} for user ${userId}`);
-
-    const { workflow, organizationId } = await this.verifyAccess(
-      workflowId,
-      userId
-    );
-
-    const workflowData = await this.loadWorkflowData(workflowId, workflow);
-
-    this.state = {
-      id: workflowId,
-      name: workflowData.name,
-      handle: workflowData.handle,
-      type: workflowData.type as WorkflowState["type"],
-      nodes: workflowData.nodes,
-      edges: workflowData.edges,
-      timestamp: workflow?.updatedAt?.getTime() || Date.now(),
-    };
-
-    this.organizationId = organizationId;
-    this.userId = userId;
-  }
-
-  /**
-   * Verify user has access to workflow
-   */
-  private async verifyAccess(
-    workflowId: string,
-    userId: string
-  ): Promise<{
-    workflow: { name: string; handle: string; type: string; updatedAt?: Date };
-    organizationId: string;
-  }> {
     const db = createDatabase(this.env.DB);
     const result = await getWorkflowWithUserAccess(db, workflowId, userId);
 
@@ -94,42 +61,19 @@ export class StateManager {
       );
     }
 
-    return result;
-  }
+    const { workflow, organizationId } = result;
 
-  /**
-   * Load full workflow data from R2, with fallback to empty structure
-   */
-  private async loadWorkflowData(
-    workflowId: string,
-    workflow: { name: string; handle: string; type: string }
-  ): Promise<{
-    id: string;
-    name: string;
-    handle: string;
-    type: string;
-    nodes: WorkflowState["nodes"];
-    edges: WorkflowState["edges"];
-  }> {
+    // Try to load full data from R2, fall back to empty structure if fails
     const objectStore = new ObjectStore(this.env.RESSOURCES);
-
+    let workflowData;
     try {
-      const workflowData = await objectStore.readWorkflow(workflowId);
-      return {
-        id: workflowData.id,
-        name: workflowData.name,
-        handle: workflowData.handle,
-        type: workflowData.type,
-        nodes: workflowData.nodes,
-        edges: workflowData.edges,
-      };
+      workflowData = await objectStore.readWorkflow(workflowId);
     } catch (error) {
-      console.error(
-        `Failed to load workflow data from R2 for ${workflowId}:`,
+      console.warn(
+        `Failed to load workflow data from R2 for ${workflowId}, using fallback`,
         error
       );
-      // Fallback to empty workflow structure
-      return {
+      workflowData = {
         id: workflowId,
         name: workflow.name,
         handle: workflow.handle,
@@ -138,6 +82,19 @@ export class StateManager {
         edges: [],
       };
     }
+
+    this.state = {
+      id: workflowId,
+      name: workflowData.name,
+      handle: workflowData.handle,
+      type: workflowData.type as WorkflowState["type"],
+      nodes: workflowData.nodes,
+      edges: workflowData.edges,
+      timestamp: workflow.updatedAt?.getTime() || Date.now(),
+    };
+
+    this.organizationId = organizationId;
+    this.userId = userId;
   }
 
   /**
@@ -151,18 +108,6 @@ export class StateManager {
       return;
     }
 
-    const recoveryData = await this.loadRecoveryData();
-    await this.loadState(recoveryData.workflowId, recoveryData.userId);
-    console.log(`Recovered state for workflow ${recoveryData.workflowId}`);
-  }
-
-  /**
-   * Load recovery data from DO storage
-   */
-  private async loadRecoveryData(): Promise<{
-    workflowId: string;
-    userId: string;
-  }> {
     const [workflowId, userId] = await Promise.all([
       this.storage.get<string>("workflowId"),
       this.storage.get<string>("userId"),
@@ -172,7 +117,7 @@ export class StateManager {
       throw new Error("Session state lost. Please refresh the page.");
     }
 
-    return { workflowId, userId };
+    await this.loadState(workflowId, userId);
   }
 
   /**
@@ -231,7 +176,7 @@ export class StateManager {
   }
 
   /**
-   * Persist state to D1 database (metadata) and R2 (full data)
+   * Persist state to storage (D1 metadata and R2 full data)
    */
   private async persistToDatabase(): Promise<void> {
     if (!this.state || !this.organizationId) {
@@ -242,7 +187,6 @@ export class StateManager {
       const db = createDatabase(this.env.DB);
       const objectStore = new ObjectStore(this.env.RESSOURCES);
 
-      // Save full workflow data to R2
       const workflowData = {
         id: this.state.id,
         name: this.state.name,
@@ -252,15 +196,14 @@ export class StateManager {
         edges: this.state.edges,
       };
 
-      await objectStore.writeWorkflow(workflowData);
-
-      // Save metadata to D1 database
-      await updateWorkflow(db, this.state.id, this.organizationId, {
-        name: this.state.name,
-        type: this.state.type,
-      });
-
-      console.log(`Persisted workflow ${this.state.id} to D1 database and R2`);
+      // Save to both R2 and D1
+      await Promise.all([
+        objectStore.writeWorkflow(workflowData as any),
+        updateWorkflow(db, this.state.id, this.organizationId, {
+          name: this.state.name,
+          type: this.state.type,
+        } as any),
+      ]);
     } catch (error) {
       console.error("Error persisting workflow:", error);
     }
@@ -282,8 +225,10 @@ export class StateManager {
    */
   async storeRecoveryData(): Promise<void> {
     if (this.state && this.userId) {
-      await this.storage.put("workflowId", this.state.id);
-      await this.storage.put("userId", this.userId);
+      await Promise.all([
+        this.storage.put("workflowId", this.state.id),
+        this.storage.put("userId", this.userId),
+      ]);
     }
   }
 
