@@ -13,14 +13,13 @@ import type {
 } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { createDatabase, ExecutionStatus, saveExecution } from "../db/index";
+import { createDatabase } from "../db/index";
 import { getOrganizationComputeCredits } from "../db/queries";
-import { ObjectStore } from "../runtime/object-store";
-import { createSimulatedEmailMessage } from "../utils/email";
 import {
-  createSimulatedHttpRequest,
-  processHttpParameters,
-} from "../utils/http";
+  WorkflowExecutor,
+  type WorkflowExecutorParameters,
+} from "../services/workflow-executor";
+import { processHttpParameters } from "../utils/http";
 
 interface ExecutionManagerOptions {
   env: Bindings;
@@ -63,49 +62,25 @@ export class ExecutionManager {
       );
     }
 
-    // Construct emailMessage or httpRequest from parameters based on workflow type
-    let emailMessage;
-    let httpRequest;
+    // Process parameters based on workflow type
+    let executorParameters: WorkflowExecutorParameters = {};
 
-    if (state.type === "email_message") {
-      // For email workflows, extract email parameters
-      if (parameters && typeof parameters === "object") {
-        const { from, subject, body } = parameters as {
-          from?: string;
-          subject?: string;
-          body?: string;
-        };
-
-        emailMessage = createSimulatedEmailMessage({
-          from,
-          subject,
-          body,
-          organizationId,
-          workflowHandleOrId: state.handle || state.id,
-        });
-      }
-    } else if (state.type === "http_request") {
-      // For HTTP workflows, process parameters to extract body and formData
-      const { body: requestBody, formData: requestFormData } =
-        processHttpParameters(parameters as Record<string, any>);
-
-      // Create HTTP request with simulated metadata and parameters as body/formData
-      httpRequest = createSimulatedHttpRequest({
-        // Simulated HTTP metadata (defaults from createSimulatedHttpRequest)
-        url: undefined,
-        method: undefined,
-        headers: undefined,
-        query: undefined,
-        // Parameters become the body and formData
-        body: requestBody,
-        formData: requestFormData,
-      });
-    } else {
-      // For other workflow types, provide basic HTTP context without body
-      httpRequest = createSimulatedHttpRequest({});
+    if (state.type === "email_message" && parameters) {
+      const { from, subject, body } = parameters as {
+        from?: string;
+        subject?: string;
+        body?: string;
+      };
+      executorParameters = { from, subject, body };
+    } else if (state.type === "http_request" && parameters) {
+      const { body: requestBody, formData } = processHttpParameters(
+        parameters as Record<string, any>
+      );
+      executorParameters = { requestBody, formData };
     }
 
-    const executionParams = {
+    // Execute workflow using shared service
+    return await WorkflowExecutor.execute({
       workflow: {
         id: state.id,
         name: state.name,
@@ -118,54 +93,9 @@ export class ExecutionManager {
       organizationId,
       computeCredits,
       workflowSessionId: state.id,
-      ...(emailMessage && { emailMessage }),
-      ...(httpRequest && { httpRequest }),
-    };
-
-    // Start workflow execution
-    const instance = await this.env.EXECUTE.create({
-      params: executionParams,
+      parameters: executorParameters,
+      env: this.env,
     });
-    const executionId = instance.id;
-
-    // Build initial nodeExecutions
-    const nodeExecutions = state.nodes.map((node) => ({
-      nodeId: node.id,
-      status: "executing" as const,
-    }));
-
-    // Save initial execution record (metadata to DB)
-    const initialExecution = await saveExecution(db, {
-      id: executionId,
-      workflowId: state.id,
-      userId,
-      organizationId,
-      status: ExecutionStatus.EXECUTING,
-      nodeExecutions,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Save execution data to R2
-    const objectStore = new ObjectStore(this.env.RESSOURCES);
-    try {
-      await objectStore.writeExecution(initialExecution);
-    } catch (error) {
-      console.error(`Failed to save execution to R2: ${executionId}`, error);
-    }
-
-    const execution: WorkflowExecution = {
-      id: initialExecution.id,
-      workflowId: initialExecution.workflowId,
-      status: "submitted",
-      nodeExecutions: initialExecution.nodeExecutions,
-    };
-
-    console.log(
-      `Started workflow execution ${executionId} for workflow ${state.id}`
-    );
-
-    return { executionId, execution };
   }
 
   /**

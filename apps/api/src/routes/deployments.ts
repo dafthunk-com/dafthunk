@@ -13,7 +13,7 @@ import { v7 as uuid } from "uuid";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase, ExecutionStatus } from "../db";
+import { createDatabase } from "../db";
 import {
   createDeployment,
   getDeployments,
@@ -23,10 +23,11 @@ import {
   getLatestDeploymentsVersionNumbers,
   getOrganizationComputeCredits,
   getWorkflow,
-  saveExecution,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ObjectStore } from "../runtime/object-store";
+import { WorkflowExecutor } from "../services/workflow-executor";
+import { processFormData } from "../utils/http";
 
 // Extend the ApiContext with our custom variable
 type ExtendedApiContext = ApiContext & {
@@ -355,89 +356,87 @@ deploymentRoutes.post(
     const method = c.req.method;
     const query = Object.fromEntries(new URL(c.req.url).searchParams.entries());
 
-    // Try to parse form data
+    // Initialize formData variable
     let formData: Record<string, string | File> | undefined;
-    try {
-      formData = Object.fromEntries(await c.req.formData());
-    } catch {
-      // No form data or invalid form data
-    }
 
     // Get request body if it exists
     let body: any = undefined;
-    try {
-      if (c.req.raw.headers.get("content-type")?.includes("application/json")) {
-        body = await c.req.json();
+    const contentType = c.req.header("content-type");
+    if (contentType?.includes("application/json")) {
+      const contentLength = c.req.header("content-length");
+      if (contentLength && contentLength !== "0") {
+        try {
+          body = await c.req.json();
+        } catch (e: any) {
+          console.error("Failed to parse JSON request body:", e.message);
+          return c.json(
+            { error: "Invalid JSON in request body.", details: e.message },
+            400
+          );
+        }
+      } else {
+        body = {};
       }
-    } catch {
-      // No body or invalid JSON
+    } else if (
+      contentType?.includes("multipart/form-data") ||
+      contentType?.includes("application/x-www-form-urlencoded")
+    ) {
+      formData = Object.fromEntries(await c.req.formData());
+      body = processFormData(formData);
     }
 
-    // Trigger the runtime and get the instance id
-    const instance = await c.env.EXECUTE.create({
-      params: {
-        userId,
-        organizationId,
-        computeCredits,
-        workflow: {
-          id: deployment.workflowId || "",
-          name: workflowData.name,
-          handle: workflowData.handle,
-          type: workflowData.type,
-          nodes: workflowData.nodes,
-          edges: workflowData.edges,
-        },
-        deploymentId: deployment.id,
-        httpRequest: {
-          url,
-          method,
-          headers,
-          query,
-          formData,
-          body,
-        },
+    // Build parameters based on workflow type
+    let parameters;
+    if (workflowData.type === "email_message") {
+      parameters = {
+        from: body?.from,
+        subject: body?.subject,
+        body: body?.body,
+      };
+    } else if (workflowData.type === "http_request") {
+      parameters = {
+        url,
+        method,
+        headers,
+        query,
+        formData,
+        requestBody: body,
+      };
+    } else {
+      parameters = {
+        url,
+        method,
+        headers,
+        query,
+      };
+    }
+
+    // Execute workflow using shared service
+    const { execution } = await WorkflowExecutor.execute({
+      workflow: {
+        id: deployment.workflowId || "",
+        name: workflowData.name,
+        handle: workflowData.handle,
+        type: workflowData.type,
+        nodes: workflowData.nodes,
+        edges: workflowData.edges,
       },
-    });
-    const executionId = instance.id;
-
-    // Build initial nodeExecutions (all idle)
-    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
-      nodeId: node.id,
-      status: "idle" as const,
-    }));
-
-    // Map our API type status to DB-compatible status
-    const executingStatus = ExecutionStatus.EXECUTING;
-
-    // Save initial execution record
-    const initialExecution = await saveExecution(db, {
-      id: executionId,
-      workflowId: deployment.workflowId || "",
-      deploymentId: deployment.id,
       userId,
       organizationId,
-      status: executingStatus,
-      nodeExecutions,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      computeCredits,
+      deploymentId: deployment.id,
+      parameters,
+      env: c.env,
     });
 
-    // Save execution data to R2
-    try {
-      await objectStore.writeExecution(initialExecution);
-    } catch (error) {
-      console.error(`Failed to save execution to R2: ${executionId}`, error);
-    }
-
-    // Return the initial execution object, explicitly matching ExecuteDeploymentResponse
     const response: ExecuteDeploymentResponse = {
-      id: initialExecution.id,
-      workflowId: initialExecution.workflowId,
+      id: execution.id,
+      workflowId: execution.workflowId,
       deploymentId: deployment.id,
       status: "executing",
-      nodeExecutions: workflowData.nodes.map((node) => ({
-        nodeId: node.id,
-        status: "idle",
+      nodeExecutions: execution.nodeExecutions.map((ne) => ({
+        nodeId: ne.nodeId,
+        status: "idle" as const,
       })),
     };
 

@@ -7,7 +7,6 @@ import {
   GetCronTriggerResponse,
   GetWorkflowResponse,
   ListWorkflowsResponse,
-  Node,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
   UpsertCronTriggerRequest,
@@ -45,7 +44,7 @@ import {
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ObjectStore } from "../runtime/object-store";
-import { createSimulatedEmailMessage } from "../utils/email";
+import { WorkflowExecutor } from "../services/workflow-executor";
 import { processFormData } from "../utils/http";
 import { validateWorkflow } from "../utils/workflows";
 
@@ -647,7 +646,34 @@ workflowRoutes.post(
       body = processFormData(formData);
     }
 
-    const baseExecutionParams = {
+    // Build parameters based on workflow type
+    let parameters;
+    if (workflowData.type === "email_message") {
+      parameters = {
+        from: body?.from,
+        subject: body?.subject,
+        body: body?.body,
+      };
+    } else if (workflowData.type === "http_request") {
+      parameters = {
+        url,
+        method,
+        headers,
+        query,
+        formData,
+        requestBody: body,
+      };
+    } else {
+      parameters = {
+        url,
+        method,
+        headers,
+        query,
+      };
+    }
+
+    // Execute workflow using shared service
+    const { execution } = await WorkflowExecutor.execute({
       workflow: {
         id: workflow.id,
         name: workflow.name,
@@ -660,83 +686,15 @@ workflowRoutes.post(
       organizationId,
       computeCredits,
       deploymentId,
-    };
-
-    let finalExecutionParams: any;
-
-    if (workflowData.type === "email_message") {
-      finalExecutionParams = {
-        ...baseExecutionParams,
-        emailMessage: createSimulatedEmailMessage({
-          from: body?.from,
-          subject: body?.subject,
-          body: body?.body,
-          organizationId,
-          workflowHandleOrId: workflow.handle || workflow.id,
-        }),
-      };
-    } else if (workflowData.type === "http_request") {
-      finalExecutionParams = {
-        ...baseExecutionParams,
-        httpRequest: {
-          url,
-          method,
-          headers,
-          query,
-          formData, // Will be undefined if not form-data content type
-          body, // Parsed JSON or converted form-data
-        },
-      };
-    } else {
-      // For other workflow types, include basic HTTP context without payload
-      finalExecutionParams = {
-        ...baseExecutionParams,
-        httpRequest: {
-          url,
-          method,
-          headers,
-          query,
-          // formData and body are intentionally omitted
-        },
-      };
-    }
-
-    const instance = await c.env.EXECUTE.create({
-      params: finalExecutionParams,
+      parameters,
+      env: c.env,
     });
-    const executionId = instance.id;
-
-    // Build initial nodeExecutions
-    const nodeExecutions = workflowData.nodes.map((node: Node) => ({
-      nodeId: node.id,
-      status: "executing" as const,
-    }));
-
-    // Save initial execution record
-    const initialExecution = await saveExecution(db, {
-      id: executionId,
-      workflowId: workflow.id,
-      deploymentId,
-      userId,
-      organizationId: organizationId,
-      status: ExecutionStatus.EXECUTING,
-      nodeExecutions,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    // Save execution data to R2
-    try {
-      await objectStore.writeExecution(initialExecution);
-    } catch (error) {
-      console.error(`Failed to save execution to R2: ${executionId}`, error);
-    }
 
     const response: ExecuteWorkflowResponse = {
-      id: initialExecution.id,
-      workflowId: initialExecution.workflowId,
-      status: "submitted",
-      nodeExecutions: initialExecution.nodeExecutions,
+      id: execution.id,
+      workflowId: execution.workflowId,
+      status: execution.status,
+      nodeExecutions: execution.nodeExecutions,
     };
 
     return c.json(response, 201);
