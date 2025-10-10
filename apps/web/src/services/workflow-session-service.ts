@@ -158,48 +158,49 @@ export class WorkflowWebSocket {
   }
 
   /**
-   * Execute workflow and receive realtime updates via WebSocket
+   * Helper method to send a message via WebSocket
    */
-  executeWorkflow(options?: { parameters?: Record<string, unknown> }): void {
+  private sendMessage(message: object, errorMessage: string): boolean {
     if (this.ws?.readyState !== WebSocket.OPEN) {
-      console.warn("WebSocket is not open, cannot execute workflow");
+      console.warn(`WebSocket is not open, cannot send message`);
       this.options.onError?.("WebSocket is not connected");
-      return;
+      return false;
     }
 
     try {
-      const executeMsg = {
+      this.ws.send(JSON.stringify(message));
+      return true;
+    } catch (error) {
+      console.error(`${errorMessage}:`, error);
+      this.options.onError?.(errorMessage);
+      return false;
+    }
+  }
+
+  /**
+   * Execute workflow and receive realtime updates via WebSocket
+   */
+  executeWorkflow(options?: { parameters?: Record<string, unknown> }): void {
+    this.sendMessage(
+      {
         type: "execute",
         parameters: options?.parameters,
-      };
-      this.ws.send(JSON.stringify(executeMsg));
-    } catch (error) {
-      console.error("Failed to execute workflow:", error);
-      this.options.onError?.("Failed to execute workflow");
-    }
+      },
+      "Failed to execute workflow"
+    );
   }
 
   /**
    * Register to receive updates for an existing execution
    */
   registerForExecutionUpdates(executionId: string): void {
-    if (this.ws?.readyState !== WebSocket.OPEN) {
-      console.warn(
-        "WebSocket is not open, cannot register for execution updates"
-      );
-      return;
-    }
-
-    try {
-      const executeMsg = {
+    this.sendMessage(
+      {
         type: "execute",
         executionId,
-      };
-      this.ws.send(JSON.stringify(executeMsg));
-    } catch (error) {
-      console.error("Failed to register for execution updates:", error);
-      this.options.onError?.("Failed to register for execution updates");
-    }
+      },
+      "Failed to register for execution updates"
+    );
   }
 
   disconnect(): void {
