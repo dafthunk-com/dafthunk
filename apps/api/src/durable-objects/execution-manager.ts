@@ -47,7 +47,6 @@ export class ExecutionManager {
   }> {
     const db = createDatabase(this.env.DB);
 
-    // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
       db,
       organizationId
@@ -56,27 +55,13 @@ export class ExecutionManager {
       throw new Error("Organization not found");
     }
 
-    // Validate workflow has nodes
     validateWorkflowForExecution(state);
 
-    // Process parameters based on workflow type
-    let executorParameters: WorkflowExecutorParameters = {};
+    const executorParameters = this.buildExecutorParameters(
+      state.type,
+      parameters
+    );
 
-    if (state.type === "email_message" && parameters) {
-      const { from, subject, body } = parameters as {
-        from?: string;
-        subject?: string;
-        body?: string;
-      };
-      executorParameters = { from, subject, body };
-    } else if (state.type === "http_request" && parameters) {
-      const { body: requestBody, formData } = processHttpParameters(
-        parameters as Record<string, any>
-      );
-      executorParameters = { requestBody, formData };
-    }
-
-    // Execute workflow using shared service
     return await WorkflowExecutor.execute({
       workflow: {
         id: state.id,
@@ -93,6 +78,51 @@ export class ExecutionManager {
       parameters: executorParameters,
       env: this.env,
     });
+  }
+
+  /**
+   * Build executor parameters based on workflow type
+   */
+  private buildExecutorParameters(
+    workflowType: string,
+    parameters?: Record<string, unknown>
+  ): WorkflowExecutorParameters {
+    if (!parameters) {
+      return {};
+    }
+
+    switch (workflowType) {
+      case "email_message":
+        return this.buildEmailParameters(parameters);
+      case "http_request":
+        return this.buildHttpParameters(parameters);
+      default:
+        return {};
+    }
+  }
+
+  /**
+   * Extract email-specific parameters
+   */
+  private buildEmailParameters(
+    parameters: Record<string, unknown>
+  ): WorkflowExecutorParameters {
+    const { from, subject, body } = parameters as {
+      from?: string;
+      subject?: string;
+      body?: string;
+    };
+    return { from, subject, body };
+  }
+
+  /**
+   * Extract HTTP-specific parameters
+   */
+  private buildHttpParameters(
+    parameters: Record<string, unknown>
+  ): WorkflowExecutorParameters {
+    const { body: requestBody, formData } = processHttpParameters(parameters);
+    return { requestBody, formData };
   }
 
   /**

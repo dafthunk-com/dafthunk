@@ -49,57 +49,111 @@ export class WorkflowSession extends DurableObject<Bindings> {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
 
-    // This endpoint is ONLY called by the Runtime (Cloudflare Workflow)
-    // to send execution progress updates. Clients never call this directly.
-    if (url.pathname.endsWith("/execution") && request.method === "POST") {
+    // Internal endpoint for execution updates from Cloudflare Workflows
+    if (this.isExecutionUpdateRequest(url, request)) {
       return this.handleExecutionUpdate(request);
     }
 
-    // Recover state from DO storage if needed (e.g., after DO restart)
-    try {
-      await this.stateManager.ensureInitialized();
-    } catch (_error) {
-      // Ignore recovery errors - will attempt to load from request parameters below
+    // All other endpoints require authentication and state
+    const authResult = this.extractAuthParams(url, request);
+    if (!authResult.success) {
+      return authResult.response;
     }
 
-    // This endpoint is called by the api to establish a WebSocket connection.
-    // It requires authentication and userId.
-    // It extracts workflowId from the URL path.
+    const { workflowId, userId } = authResult;
+
+    const stateResult = await this.ensureState(workflowId, userId);
+    if (!stateResult.success) {
+      return stateResult.response;
+    }
+
+    // Route to appropriate handler
+    return this.routeRequest(url, request);
+  }
+
+  /**
+   * Check if request is an execution update from Cloudflare Workflows
+   */
+  private isExecutionUpdateRequest(url: URL, request: Request): boolean {
+    return url.pathname.endsWith("/execution") && request.method === "POST";
+  }
+
+  /**
+   * Extract and validate authentication parameters
+   */
+  private extractAuthParams(
+    url: URL,
+    request: Request
+  ):
+    | { success: true; workflowId: string; userId: string }
+    | { success: false; response: Response } {
     const pathParts = url.pathname.split("/").filter(Boolean);
     const workflowId = pathParts[pathParts.length - 1] || "";
-
-    // Extract userId from custom header
     const userId = request.headers.get("X-User-Id") || "";
 
     if (!workflowId) {
-      return new Response("Missing workflowId in path", {
-        status: 400,
-      });
+      return {
+        success: false,
+        response: new Response("Missing workflowId in path", { status: 400 }),
+      };
     }
 
     if (!userId) {
-      return new Response("Missing userId header", {
-        status: 401,
-      });
+      return {
+        success: false,
+        response: new Response("Missing userId header", { status: 401 }),
+      };
     }
 
+    return { success: true, workflowId, userId };
+  }
+
+  /**
+   * Ensure state is loaded, recovering or loading as needed
+   */
+  private async ensureState(
+    workflowId: string,
+    userId: string
+  ): Promise<{ success: true } | { success: false; response: Response }> {
+    // First, try to recover from hibernation
+    try {
+      await this.stateManager.ensureInitialized();
+      return { success: true };
+    } catch {
+      // Recovery failed, try loading from parameters
+    }
+
+    // Check if state is already loaded
     try {
       this.stateManager.getState();
+      return { success: true };
     } catch {
-      try {
-        await this.stateManager.loadState(workflowId, userId);
-      } catch (error) {
-        console.error("Error loading workflow:", error);
-        return Response.json(
+      // State not loaded, load it now
+    }
+
+    // Load state from database
+    try {
+      await this.stateManager.loadState(workflowId, userId);
+      return { success: true };
+    } catch (error) {
+      console.error("Error loading workflow:", error);
+      return {
+        success: false,
+        response: Response.json(
           {
             error: "Failed to load workflow",
             details: error instanceof Error ? error.message : "Unknown error",
           },
           { status: 403 }
-        );
-      }
+        ),
+      };
     }
+  }
 
+  /**
+   * Route request to appropriate handler
+   */
+  private async routeRequest(url: URL, request: Request): Promise<Response> {
     if (url.pathname.endsWith("/state") && request.method === "GET") {
       return this.handleStateRequest();
     }
@@ -186,38 +240,19 @@ export class WorkflowSession extends DurableObject<Bindings> {
   /**
    * Handle WebSocket messages from client
    *
-   * Supports two message types:
-   * 1. WorkflowUpdateMessage - Update workflow state (nodes/edges)
-   * 2. WorkflowExecuteMessage - Trigger workflow execution or register for updates
+   * Message types:
+   * - "update": Update workflow state (nodes/edges)
+   * - "execute": Trigger workflow execution or register for updates
    */
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     try {
-      if (typeof message !== "string") {
-        const errorMsg = this.executionManager.createErrorMessage(
-          "Expected string message"
-        );
-        this.connectionManager.send(ws, JSON.stringify(errorMsg));
+      const parsedMessage = this.parseMessage(message);
+      if (!parsedMessage) {
         return;
       }
 
-      // Recover state if needed (WebSocket survives DO restarts but in-memory state doesn't)
       await this.stateManager.ensureInitialized();
-
-      const data = JSON.parse(message) as ClientMessage;
-
-      if ("type" in data && data.type === "update") {
-        const updateMsg = data as WorkflowUpdateMessage;
-        this.stateManager.updateState(updateMsg.state);
-        this.connectionManager.broadcast(updateMsg.state);
-      } else if ("type" in data && data.type === "execute") {
-        const executeMsg = data as WorkflowExecuteMessage;
-
-        if (executeMsg.executionId) {
-          this.connectionManager.registerExecution(executeMsg.executionId, ws);
-        } else {
-          await this.handleExecuteWorkflow(ws, executeMsg.parameters);
-        }
-      }
+      await this.handleClientMessage(ws, parsedMessage);
     } catch (error) {
       console.error("WebSocket message error:", error);
       const errorMsg = this.executionManager.createErrorMessage(
@@ -225,6 +260,64 @@ export class WorkflowSession extends DurableObject<Bindings> {
         error instanceof Error ? error.message : "Unknown error"
       );
       this.connectionManager.send(ws, JSON.stringify(errorMsg));
+    }
+  }
+
+  /**
+   * Parse and validate WebSocket message
+   */
+  private parseMessage(message: string | ArrayBuffer): ClientMessage | null {
+    if (typeof message !== "string") {
+      return null;
+    }
+
+    try {
+      return JSON.parse(message) as ClientMessage;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Handle parsed client message based on type
+   */
+  private async handleClientMessage(
+    ws: WebSocket,
+    message: ClientMessage
+  ): Promise<void> {
+    if (!("type" in message)) {
+      return;
+    }
+
+    switch (message.type) {
+      case "update":
+        this.handleUpdateMessage(message as WorkflowUpdateMessage);
+        break;
+      case "execute":
+        await this.handleExecuteMessage(ws, message as WorkflowExecuteMessage);
+        break;
+    }
+  }
+
+  /**
+   * Handle workflow state update
+   */
+  private handleUpdateMessage(message: WorkflowUpdateMessage): void {
+    this.stateManager.updateState(message.state);
+    this.connectionManager.broadcast(message.state);
+  }
+
+  /**
+   * Handle workflow execution request
+   */
+  private async handleExecuteMessage(
+    ws: WebSocket,
+    message: WorkflowExecuteMessage
+  ): Promise<void> {
+    if (message.executionId) {
+      this.connectionManager.registerExecution(message.executionId, ws);
+    } else {
+      await this.handleExecuteWorkflow(ws, message.parameters);
     }
   }
 

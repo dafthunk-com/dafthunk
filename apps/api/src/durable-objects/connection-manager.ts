@@ -2,7 +2,11 @@
  * ConnectionManager
  *
  * Manages WebSocket connections, broadcasting, and execution tracking.
- * Handles connection lifecycle and hibernation recovery.
+ *
+ * Execution tracking:
+ * - Each WebSocket can be associated with a workflow execution
+ * - Executions are tracked bidirectionally (ws->execution, executionId->ws)
+ * - Execution IDs are persisted via WebSocket attachments for hibernation recovery
  */
 
 import type {
@@ -13,25 +17,24 @@ import type {
 } from "@dafthunk/types";
 
 export class ConnectionManager {
-  private connectedUsers: Set<WebSocket> = new Set();
+  private connections: Set<WebSocket> = new Set();
   private executions: Map<WebSocket, WorkflowExecution | null> = new Map();
   private executionIdToWebSocket: Map<string, WebSocket> = new Map();
 
   /**
    * Recover WebSocket connections after hibernation
+   *
+   * Restores connection tracking and execution associations that were
+   * persisted via WebSocket attachments before hibernation.
    */
   recoverConnections(websockets: WebSocket[]): void {
     for (const ws of websockets) {
-      this.connectedUsers.add(ws);
+      this.connections.add(ws);
 
-      // Deserialize execution ID if attached
       const attachment = ws.deserializeAttachment();
-      if (
-        attachment &&
-        typeof attachment === "object" &&
-        "executionId" in attachment
-      ) {
-        const executionId = attachment.executionId as string;
+      const executionId = this.extractExecutionId(attachment);
+
+      if (executionId) {
         this.executionIdToWebSocket.set(executionId, ws);
         this.executions.set(ws, {
           id: executionId,
@@ -49,10 +52,28 @@ export class ConnectionManager {
   }
 
   /**
+   * Extract execution ID from WebSocket attachment
+   */
+  private extractExecutionId(attachment: unknown): string | null {
+    if (!attachment || typeof attachment !== "object") {
+      return null;
+    }
+
+    if (
+      "executionId" in attachment &&
+      typeof attachment.executionId === "string"
+    ) {
+      return attachment.executionId;
+    }
+
+    return null;
+  }
+
+  /**
    * Add a new WebSocket connection
    */
   addConnection(ws: WebSocket): void {
-    this.connectedUsers.add(ws);
+    this.connections.add(ws);
     this.executions.set(ws, null);
   }
 
@@ -60,7 +81,7 @@ export class ConnectionManager {
    * Remove a WebSocket connection and clean up execution tracking
    */
   removeConnection(ws: WebSocket): void {
-    this.connectedUsers.delete(ws);
+    this.connections.delete(ws);
 
     const execution = this.executions.get(ws);
     if (execution) {
@@ -70,7 +91,7 @@ export class ConnectionManager {
   }
 
   /**
-   * Broadcast state update to all connected users
+   * Broadcast state update to all connected clients
    */
   broadcast(state: WorkflowState): void {
     const updateMsg: WorkflowUpdateMessage = {
@@ -79,12 +100,8 @@ export class ConnectionManager {
     };
     const message = JSON.stringify(updateMsg);
 
-    for (const ws of this.connectedUsers) {
-      try {
-        ws.send(message);
-      } catch (error) {
-        console.error("Error broadcasting to WebSocket:", error);
-      }
+    for (const ws of this.connections) {
+      this.send(ws, message);
     }
   }
 
@@ -141,9 +158,9 @@ export class ConnectionManager {
   }
 
   /**
-   * Get all connected WebSockets
+   * Get all active connections
    */
-  getConnectedUsers(): Set<WebSocket> {
-    return this.connectedUsers;
+  getConnections(): Set<WebSocket> {
+    return this.connections;
   }
 }
