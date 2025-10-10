@@ -37,10 +37,7 @@ export class WorkflowWebSocket {
   ) {}
 
   connect(): void {
-    if (
-      this.ws?.readyState === WebSocket.OPEN ||
-      this.ws?.readyState === WebSocket.CONNECTING
-    ) {
+    if (this.isConnectedOrConnecting()) {
       return;
     }
 
@@ -119,7 +116,7 @@ export class WorkflowWebSocket {
   }
 
   send(nodes: Node[], edges: Edge[]): void {
-    if (this.ws?.readyState !== WebSocket.OPEN) {
+    if (!this.isConnected()) {
       console.warn("WebSocket is not open, cannot send message");
       return;
     }
@@ -154,7 +151,7 @@ export class WorkflowWebSocket {
    * Helper method to send a message via WebSocket
    */
   private sendMessage(message: ClientMessage, errorMessage: string): boolean {
-    if (this.ws?.readyState !== WebSocket.OPEN) {
+    if (!this.isConnected()) {
       console.warn(`WebSocket is not open, cannot send message`);
       this.options.onError?.("WebSocket is not connected");
       return false;
@@ -206,6 +203,13 @@ export class WorkflowWebSocket {
 
   isConnected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  private isConnectedOrConnecting(): boolean {
+    return (
+      this.ws?.readyState === WebSocket.OPEN ||
+      this.ws?.readyState === WebSocket.CONNECTING
+    );
   }
 
   getWorkflowId(): string {
