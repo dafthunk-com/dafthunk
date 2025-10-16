@@ -13,40 +13,8 @@ export class CenterOfMassNode extends ExecutableNode {
       "Takes any Feature or FeatureCollection and returns its center of mass using the centroid of polygon formula.",
     tags: ["Geo"],
     icon: "target",
-    documentation: `This node calculates the center of mass (centroid) of a GeoJSON feature or feature collection.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geojson": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-    }
-  },
-  "properties": {
-    "name": "Building Center"
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "centerOfMass": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [5, 5]
-    },
-    "properties": {
-      "name": "Building Center"
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node calculates the center of mass (centroid) of a GeoJSON feature or feature collection.",
     inlinable: true,
     inputs: [
       {

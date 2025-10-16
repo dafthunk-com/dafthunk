@@ -15,14 +15,8 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
       "Generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: `This node generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0 model.
-
-## Usage Example
-
-- **Input**: \`"A majestic dragon flying over a medieval castle at sunset"\`
-- **Output**: A high-resolution image of a dragon flying over a castle
-
-The node creates detailed, artistic images based on your text prompts with advanced AI image generation capabilities.`,
+    documentation:
+      "This node generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0 model.",
     computeCost: 10,
     inputs: [
       {

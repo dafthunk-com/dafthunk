@@ -13,42 +13,8 @@ export class TransformRotateNode extends ExecutableNode {
       "Rotates any GeoJSON geometry around a pivot point by a specified angle.",
     tags: ["Geo"],
     icon: "rotate-cw",
-    documentation: `This node rotates a GeoJSON geometry around a pivot point by a specified angle in degrees.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geojson": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-    }
-  },
-  "angle": 45,
-  "pivot": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [5, 5]
-    }
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "rotated": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[5, 0], [10, 5], [5, 10], [0, 5], [5, 0]]]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node rotates a GeoJSON geometry around a pivot point by a specified angle in degrees.",
     inlinable: true,
     inputs: [
       {

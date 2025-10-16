@@ -15,12 +15,8 @@ export class ToStringNode extends ExecutableNode {
     description: "Converts any input value to its string representation",
     tags: ["Text"],
     icon: "text",
-    documentation: `This node converts any input value to its string representation.
-
-## Usage Example
-
-- **Input**: \`{ "name": "John", "age": 30 }\`
-- **Output**: \`'{"name":"John","age":30}'\``,
+    documentation:
+      "This node converts any input value to its string representation.",
     inlinable: true,
     asTool: true,
     inputs: [

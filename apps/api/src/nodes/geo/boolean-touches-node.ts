@@ -13,14 +13,8 @@ export class BooleanTouchesNode extends ExecutableNode {
       "Returns true if none of the points common to both geometries intersect the interiors of both geometries.",
     tags: ["Geo"],
     icon: "touchpad",
-    documentation: `This node checks if two geometries touch each other at their boundaries.
-
-## Usage Example
-
-- **Input**: Two GeoJSON geometries
-- **Output**: \`true\` or \`false\`
-
-The node determines if the geometries share boundary points but do not overlap in their interiors.`,
+    documentation:
+      "This node checks if two geometries touch each other at their boundaries.",
     inlinable: true,
     inputs: [
       {

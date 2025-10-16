@@ -13,30 +13,8 @@ export class BooleanParallelNode extends ExecutableNode {
       "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
     tags: ["Geo"],
     icon: "git-compare",
-    documentation: `This node tests whether two LineString geometries are parallel to each other.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "line1": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [10, 0]]
-    }
-  },
-  "line2": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 5], [10, 5]]
-    }
-  }
-}
-\`\`\`
-- **Output**: \`true\` (both lines are horizontal and parallel)`,
+    documentation:
+      "This node tests whether two LineString geometries are parallel to each other.",
     inlinable: true,
     inputs: [
       {

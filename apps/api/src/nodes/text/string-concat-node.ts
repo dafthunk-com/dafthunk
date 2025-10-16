@@ -11,12 +11,8 @@ export class StringConcatNode extends ExecutableNode {
     description: "Concatenate multiple strings together",
     tags: ["Text"],
     icon: "link",
-    documentation: `This node concatenates multiple strings together into a single string, joining them in the order they are provided.
-
-## Usage Example
-
-- **Input**: \`["Hello", " ", "World", "!"]\`
-- **Output**: \`"Hello World!"\``,
+    documentation:
+      "This node concatenates multiple strings together into a single string, joining them in the order they are provided.",
     inlinable: true,
     asTool: true,
     inputs: [

@@ -13,23 +13,8 @@ export class BooleanConcaveNode extends ExecutableNode {
       "Takes a polygon and returns true or false as to whether it is concave or not.",
     tags: ["Geo"],
     icon: "square",
-    documentation: `This node determines whether a polygon is concave (has inward angles) or convex (all angles are outward).
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "polygon": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [10, 0], [5, 5], [0, 10], [0, 0]]]
-    }
-  }
-}
-\`\`\`
-- **Output**: \`true\` (concave polygon with inward angle at [5, 5])`,
+    documentation:
+      "This node determines whether a polygon is concave (has inward angles) or convex (all angles are outward).",
     inlinable: true,
     inputs: [
       {

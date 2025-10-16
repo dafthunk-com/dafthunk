@@ -11,13 +11,8 @@ export class RegexMatchNode extends ExecutableNode {
     description: "Test if a string matches a regular expression pattern.",
     tags: ["Text"],
     icon: "search",
-    documentation: `This node tests if a string matches a regular expression pattern.
-
-## Usage Example
-
-- **Input string**: \`"hello@example.com"\`
-- **Input pattern**: \`"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"\`
-- **Output**: \`true\``,
+    documentation:
+      "This node tests if a string matches a regular expression pattern.",
     inlinable: true,
     asTool: true,
     inputs: [

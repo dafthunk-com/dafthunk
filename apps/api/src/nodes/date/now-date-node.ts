@@ -9,10 +9,8 @@ export class NowDateNode extends ExecutableNode {
     name: "Now",
     type: "date-now",
     description: "Get the current date and time as ISO-8601 string",
-    documentation: `Returns the current timestamp in ISO-8601 format (UTC).
-
-### Outputs
-- date (date): ISO timestamp, e.g. 2024-01-01T12:34:56.789Z`,
+    documentation:
+      "Returns the current timestamp in ISO-8601 format (UTC). ### Outputs date (date): ISO timestamp, e.g. 2024-01-01T12:34:56.789Z",
     tags: ["Date"],
     icon: "calendar",
     inlinable: true,

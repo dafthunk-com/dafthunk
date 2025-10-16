@@ -12,20 +12,8 @@ export class GeoJsonNode extends ExecutableNode {
     description: "Parse any valid GeoJSON object from JSON input.",
     tags: ["Geo"],
     icon: "map",
-    documentation: `This node parses and validates GeoJSON objects from JSON input.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "type": "Point",
-  "coordinates": [longitude, latitude]
-}
-\`\`\`
-- **Output**: Validated GeoJSON object with type information
-
-The node validates that the input is proper GeoJSON format and returns the parsed object with its geometry type.`,
+    documentation:
+      "This node parses and validates GeoJSON objects from JSON input.",
     inlinable: true,
     inputs: [
       {

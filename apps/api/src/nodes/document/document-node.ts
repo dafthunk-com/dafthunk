@@ -15,12 +15,8 @@ export class DocumentNode extends ExecutableNode {
     description: "A document widget for uploading files",
     tags: ["Document"],
     icon: "file",
-    documentation: `This node provides a document widget for uploading files and outputs them as document references.
-
-## Usage Example
-
-- **Input value**: \`{ "data": [PDF_BYTES], "mimeType": "application/pdf", "name": "document.pdf" }\`
-- **Output**: \`{ "data": [PDF_BYTES], "mimeType": "application/pdf", "name": "document.pdf" }\``,
+    documentation:
+      "This node provides a document widget for uploading files and outputs them as document references.",
     inputs: [
       {
         name: "value",

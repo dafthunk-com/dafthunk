@@ -63,32 +63,8 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
       "Generates speech from text with support for single and multi-speaker audio",
     tags: ["Audio", "AI"],
     icon: "volume-2",
-    documentation: `This node uses Google's Gemini 2.5 Flash Preview TTS model to generate speech from text.
-
-## Usage Examples
-
-- **Single Speaker**: Generate audio with a specific voice and style
-- **Multi-Speaker**: Create conversations between multiple speakers with different voices
-- **Style Control**: Control tone, pace, and accent using natural language instructions
-
-## Voice Options
-
-The node supports 30 prebuilt voices including:
-- **Kore** (Firm), **Puck** (Upbeat), **Zephyr** (Bright)
-- **Charon** (Informative), **Fenrir** (Excitable), **Leda** (Youthful)
-- And many more with different characteristics
-
-## Supported Languages
-
-Automatically detects and supports 24 languages including:
-- English (US), Spanish (US), French (France), German (Germany)
-- Japanese (Japan), Korean (Korea), Chinese, Arabic, Hindi, and more
-
-## Best Practices
-
-- Use natural language to control style: "Say cheerfully: Have a wonderful day!"
-- For multi-speaker, clearly label speakers in the text
-- Keep text under 32k tokens for optimal performance`,
+    documentation:
+      "This node uses Google's Gemini 2.5 Flash Preview TTS model to generate speech from text.",
     computeCost: 20,
     asTool: true,
     inputs: [

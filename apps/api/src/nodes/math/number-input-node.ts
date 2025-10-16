@@ -18,16 +18,8 @@ export class NumberInputNode extends ExecutableNode {
     description: "A number input widget for entering numeric values",
     tags: ["Math"],
     icon: "hash",
-    documentation: `This node provides a number input widget for entering numeric values.
-
-## Usage Example
-
-- **Input value**: \`42\`
-- **Input min**: \`0\`
-- **Input max**: \`100\`
-- **Input step**: \`1\`
-- **Input placeholder**: \`"Enter a number"\`
-- **Output**: \`42\``,
+    documentation:
+      "This node provides a number input widget for entering numeric values.",
     inlinable: true,
     asTool: true,
     inputs: [

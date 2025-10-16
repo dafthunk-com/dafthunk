@@ -13,14 +13,8 @@ export class RewindNode extends ExecutableNode {
       "Rewind (Multi)LineString or (Multi)Polygon outer ring counterclockwise and inner rings clockwise (Uses Shoelace Formula).",
     tags: ["Geo"],
     icon: "rotate-ccw",
-    documentation: `This node reverses the coordinate order of a GeoJSON geometry.
-
-## Usage Example
-
-- **Input**: A GeoJSON geometry
-- **Output**: The same geometry with reversed coordinate order
-
-The node flips the direction of coordinates in the geometry, which can be useful for correcting winding order issues.`,
+    documentation:
+      "This node reverses the coordinate order of a GeoJSON geometry.",
     inlinable: true,
     inputs: [
       {

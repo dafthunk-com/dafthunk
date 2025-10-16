@@ -13,21 +13,8 @@ export class NearestPointNode extends ExecutableNode {
       "Finds the nearest point from a collection of points to a target point.",
     tags: ["Geo"],
     icon: "target",
-    documentation: `This node finds the nearest point in a collection to a target point.
-
-## Usage Example
-
-- **Input**: A target point and a collection of points
-- **Output**: 
-\`\`\`
-{
-  "type": "Point",
-  "coordinates": [nearestLng, nearestLat],
-  "distance": 150.2
-}
-\`\`\`
-
-The node identifies the closest point in the collection and calculates the distance.`,
+    documentation:
+      "This node finds the nearest point in a collection to a target point.",
     inlinable: true,
     inputs: [
       {

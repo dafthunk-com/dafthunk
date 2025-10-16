@@ -15,27 +15,8 @@ export class Aura1Node extends ExecutableNode {
       "Converts text to natural-sounding speech using Aura-1 with context-aware pacing and expressiveness",
     tags: ["Audio", "AI"],
     icon: "mic",
-    documentation: `This node converts text to natural-sounding speech using the Aura-1 model from Deepgram. Aura-1 applies natural pacing, expressiveness, and fillers based on the context of the provided text.
-
-## Usage Example
-
-- **Input**: text: \`"Hello, how are you today?"\`, speaker: \`"angus"\`
-- **Output**: MP3 audio file with synthesized speech
-
-## Available Speakers
-
-- angus (default)
-- asteria
-- arcas
-- orion
-- orpheus
-- athena
-- luna
-- zeus
-- perseus
-- helios
-- hera
-- stella`,
+    documentation:
+      "This node converts text to natural-sounding speech using the Aura-1 model from Deepgram. Aura-1 applies natural pacing, expressiveness, and fillers based on the context of the provided text.",
     computeCost: 15,
     inputs: [
       {

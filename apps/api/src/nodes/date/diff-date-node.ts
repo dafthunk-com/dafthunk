@@ -58,16 +58,8 @@ export class DiffDateNode extends ExecutableNode {
     name: "Date Difference",
     type: "date-diff",
     description: "Compute the difference between two dates in a given unit",
-    documentation: `Computes the difference a - b in a specified unit.
-
-### Inputs
-- a (date): First date (ISO)
-- b (date): Second date (ISO)
-- unit (string): milliseconds, seconds, minutes, hours, days, weeks, months, years
-- absolute (boolean): If true, returns absolute value
-
-### Outputs
-- value (number): Difference in chosen unit`,
+    documentation:
+      "Computes the difference a - b in a specified unit. ### Inputs a (date): First date (ISO) b (date): Second date (ISO) unit (string): milliseconds, seconds, minutes, hours, days, weeks, months, years absolute (boolean): If true, returns absolute value ### Outputs value (number): Difference in chosen unit",
     tags: ["Date"],
     icon: "calendar",
     inlinable: true,

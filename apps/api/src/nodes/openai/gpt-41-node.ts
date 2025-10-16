@@ -16,13 +16,8 @@ export class Gpt41Node extends ExecutableNode {
     description: "Latest GPT-4 iteration with enhanced capabilities",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node uses OpenAI's GPT-4.1 model, the latest GPT-4 iteration with enhanced capabilities.
-
-## Usage Example
-
-- **Input instructions**: \`"You are a helpful assistant."\`
-- **Input input**: \`"Write a creative story about time travel."\`
-- **Output**: \`"In the year 2157, Dr. Sarah Chen stood before her revolutionary invention..."\``,
+    documentation:
+      "This node uses OpenAI's GPT-4.1 model, the latest GPT-4 iteration with enhanced capabilities.",
     computeCost: 25,
     asTool: true,
     inputs: [

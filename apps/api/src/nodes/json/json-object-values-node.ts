@@ -11,12 +11,7 @@ export class JsonObjectValuesNode extends ExecutableNode {
     description: "Extract all values from a JSON object",
     tags: ["JSON"],
     icon: "list",
-    documentation: `This node extracts all values from a JSON object.
-
-## Usage Example
-
-- **Input object**: \`{"name": "John", "age": 30, "city": "New York"}\`
-- **Output**: \`["John", 30, "New York"]\``,
+    documentation: "This node extracts all values from a JSON object.",
     inlinable: true,
     asTool: true,
     inputs: [

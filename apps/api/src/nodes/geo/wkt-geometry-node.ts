@@ -14,20 +14,8 @@ export class WktGeometryNode extends ExecutableNode {
       "Parse a Well-Known Text (WKT) geometry string and convert to GeoJSON",
     tags: ["Geo"],
     icon: "map",
-    documentation: `This node converts between Well-Known Text (WKT) format and GeoJSON geometry.
-
-## Usage Example
-
-- **Input**: \`"POINT(-122.4194 37.7749)"\`
-- **Output**: 
-\`\`\`
-{
-  "type": "Point",
-  "coordinates": [-122.4194, 37.7749]
-}
-\`\`\`
-
-The node parses WKT strings and converts them to GeoJSON format, or vice versa.`,
+    documentation:
+      "This node converts between Well-Known Text (WKT) format and GeoJSON geometry.",
     inlinable: true,
     inputs: [
       {

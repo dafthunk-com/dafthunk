@@ -11,17 +11,8 @@ export class ImageUrlLoaderNode extends ExecutableNode {
     description: "Loads an image from a URL and converts it to a data array",
     tags: ["Image"],
     icon: "link",
-    documentation: `This node loads an image from a URL and converts it to a data array.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "url": "https://example.com/image.png"
-}
-\`\`\`
-- **Output**: \`[image data as binary array]\``,
+    documentation:
+      "This node loads an image from a URL and converts it to a data array.",
     computeCost: 10,
     inputs: [
       {

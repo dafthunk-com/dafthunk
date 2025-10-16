@@ -15,13 +15,8 @@ export class ModuloNode extends ExecutableNode {
       "Calculates the remainder when one number is divided by another",
     tags: ["Math"],
     icon: "percent",
-    documentation: `This node calculates the remainder when one number is divided by another.
-
-## Usage Example
-
-- **Input a**: \`17\`
-- **Input b**: \`5\`
-- **Output**: \`2\``,
+    documentation:
+      "This node calculates the remainder when one number is divided by another.",
     inlinable: true,
     asTool: true,
     inputs: [

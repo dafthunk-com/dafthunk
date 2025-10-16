@@ -14,55 +14,8 @@ export class ShortestPathNode extends ExecutableNode {
       "Returns the shortest path from start to end without colliding with any Feature in obstacles FeatureCollection<Polygon>",
     tags: ["Geo"],
     icon: "route",
-    documentation: `This node calculates the shortest path between two points while avoiding specified obstacle polygons.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "start": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [0, 0]
-    }
-  },
-  "end": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [10, 10]
-    }
-  },
-  "obstacles": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[[3, 3], [7, 3], [7, 7], [3, 7], [3, 3]]]
-        }
-      }
-    ]
-  },
-  "units": "kilometers",
-  "resolution": 1
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "path": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [3, 0], [3, 3], [7, 3], [7, 10], [10, 10]]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node calculates the shortest path between two points while avoiding specified obstacle polygons.",
     inlinable: true,
     inputs: [
       {

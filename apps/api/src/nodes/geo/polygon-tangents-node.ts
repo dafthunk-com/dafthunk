@@ -12,53 +12,8 @@ export class PolygonTangentsNode extends ExecutableNode {
     description: "Finds the tangents of a (Multi)Polygon from a Point.",
     tags: ["Geo"],
     icon: "compass",
-    documentation: `This node finds the tangent points on a polygon from a given external point.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "point": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [15, 5]
-    }
-  },
-  "polygon": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-    }
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "tangents": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [10, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [10, 10]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node finds the tangent points on a polygon from a given external point.",
     inlinable: true,
     inputs: [
       {

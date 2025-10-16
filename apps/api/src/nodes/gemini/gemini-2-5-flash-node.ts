@@ -17,13 +17,8 @@ export class Gemini25FlashNode extends ExecutableNode {
     description: "Fast, efficient model for most use cases",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node uses Google's Gemini 2.5 Flash model to generate text responses based on input prompts.
-
-## Usage Example
-
-- **Input instructions**: \`"You are a helpful assistant."\`
-- **Input input**: \`"Explain how AI works in a few words"\`
-- **Output**: \`"AI works by processing data through algorithms to recognize patterns and make predictions, enabling machines to learn and perform tasks that typically require human intelligence."\``,
+    documentation:
+      "This node uses Google's Gemini 2.5 Flash model to generate text responses based on input prompts.",
     computeCost: 20,
     asTool: true,
     functionCalling: true,

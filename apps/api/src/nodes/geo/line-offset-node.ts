@@ -13,36 +13,8 @@ export class LineOffsetNode extends ExecutableNode {
       "Takes a line and returns a line at offset by the specified distance.",
     tags: ["Geo"],
     icon: "move",
-    documentation: `This node creates a parallel line at a specified distance from the input line.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "line": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [10, 0]]
-    }
-  },
-  "distance": 5,
-  "units": "kilometers"
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "offset": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0.045], [10, 0.045]]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node creates a parallel line at a specified distance from the input line.",
     inlinable: true,
     inputs: [
       {

@@ -14,19 +14,8 @@ export class PhotonOilPaintingNode extends ExecutableNode {
     description: "Applies an oil painting effect to an image using Photon.",
     tags: ["Image"],
     icon: "palette",
-    documentation: `This node applies an oil painting effect to an image using Photon.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "image": [image data],
-  "radius": 4,
-  "intensity": 55.0
-}
-\`\`\`
-- **Output**: \`[oil painting-style image data in PNG format]\``,
+    documentation:
+      "This node applies an oil painting effect to an image using Photon.",
     inlinable: true,
     inputs: [
       {

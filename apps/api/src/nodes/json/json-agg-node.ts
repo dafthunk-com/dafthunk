@@ -15,17 +15,7 @@ export class JsonAggNode extends ExecutableNode {
     description: "Aggregates multiple values into a JSON array",
     tags: ["JSON"],
     icon: "list",
-    documentation: `This node aggregates multiple values into a JSON array.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "values": ["apple", "banana", "cherry"]
-}
-\`\`\`
-- **Output**: \`["apple", "banana", "cherry"]\``,
+    documentation: "This node aggregates multiple values into a JSON array.",
     inlinable: true,
     asTool: true,
     inputs: [

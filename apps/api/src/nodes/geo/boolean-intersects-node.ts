@@ -13,30 +13,8 @@ export class BooleanIntersectsNode extends ExecutableNode {
       "Returns true if the intersection results in a geometry whose dimension is equal to the maximum dimension of the two source geometries.",
     tags: ["Geo"],
     icon: "squares-intersect",
-    documentation: `This node tests whether two geometries intersect (share any common points, lines, or areas).
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "feature1": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-    }
-  },
-  "feature2": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[5, 5], [15, 5], [15, 15], [5, 15], [5, 5]]]
-    }
-  }
-}
-\`\`\`
-- **Output**: \`true\` (polygons overlap in the [5,5] to [10,10] region)`,
+    documentation:
+      "This node tests whether two geometries intersect (share any common points, lines, or areas).",
     inlinable: true,
     inputs: [
       {

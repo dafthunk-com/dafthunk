@@ -12,14 +12,8 @@ export class JsonExtractNumberNode extends ExecutableNode {
     description: "Extract a numeric value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "hash",
-    documentation: `This node extracts a numeric value from a JSON object using JSONPath.
-
-## Usage Example
-
-- **Input json**: \`{ "user": { "profile": { "age": 25, "height": 175.5 } } }\`
-- **Input path**: \`"$.user.profile.age"\`
-- **Input defaultValue**: \`0\`
-- **Output**: \`25\``,
+    documentation:
+      "This node extracts a numeric value from a JSON object using JSONPath.",
     inlinable: true,
     asTool: true,
     inputs: [

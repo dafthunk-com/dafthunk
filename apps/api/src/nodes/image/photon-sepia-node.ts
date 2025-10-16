@@ -14,17 +14,7 @@ export class PhotonSepiaNode extends ExecutableNode {
     description: "Applies a sepia tone to an image using Photon.",
     tags: ["Image"],
     icon: "coffee",
-    documentation: `This node applies a sepia tone to an image using Photon.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "image": [image data]
-}
-\`\`\`
-- **Output**: \`[sepia-toned image data in PNG format]\``,
+    documentation: "This node applies a sepia tone to an image using Photon.",
     inlinable: true,
     inputs: [
       {

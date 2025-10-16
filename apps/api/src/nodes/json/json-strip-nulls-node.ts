@@ -11,13 +11,8 @@ export class JsonStripNullsNode extends ExecutableNode {
     description: "Remove null values from JSON objects and arrays",
     tags: ["JSON"],
     icon: "filter",
-    documentation: `This node removes null values from JSON objects and arrays.
-
-## Usage Example
-
-- **Input value**: \`{"name": "John", "age": null, "city": "New York", "email": null}\`
-- **Input recursive**: \`true\`
-- **Output**: \`{"name": "John", "city": "New York"}\``,
+    documentation:
+      "This node removes null values from JSON objects and arrays.",
     inlinable: true,
     asTool: true,
     inputs: [

@@ -13,14 +13,8 @@ export class EnvelopeNode extends ExecutableNode {
       "Creates a bounding rectangle (envelope) around any GeoJSON geometry.",
     tags: ["Geo"],
     icon: "square",
-    documentation: `This node creates the minimum bounding rectangle (envelope) for a geometry.
-
-## Usage Example
-
-- **Input**: Any GeoJSON geometry
-- **Output**: A rectangular polygon that completely contains the input geometry
-
-The node creates the smallest possible rectangle that encompasses the entire input geometry.`,
+    documentation:
+      "This node creates the minimum bounding rectangle (envelope) for a geometry.",
     inlinable: true,
     inputs: [
       {

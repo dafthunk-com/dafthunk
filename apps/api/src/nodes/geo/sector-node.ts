@@ -14,45 +14,8 @@ export class SectorNode extends ExecutableNode {
       "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise.",
     tags: ["Geo"],
     icon: "chart-pie",
-    documentation: `This node creates a circular sector (pie slice) polygon from a center point, radius, and two bearing angles.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "center": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [0, 0]
-    }
-  },
-  "radius": 10,
-  "bearing1": 0,
-  "bearing2": 90,
-  "units": "kilometers",
-  "steps": 64,
-  "properties": {
-    "name": "Quarter Circle"
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "sector": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [0, 10], [10, 0], [0, 0]]]
-    },
-    "properties": {
-      "name": "Quarter Circle"
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node creates a circular sector (pie slice) polygon from a center point, radius, and two bearing angles.",
     inlinable: true,
     inputs: [
       {

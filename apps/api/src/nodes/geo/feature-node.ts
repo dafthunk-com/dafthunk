@@ -12,41 +12,8 @@ export class FeatureNode extends ExecutableNode {
     description: "Wraps a GeoJSON geometry in a GeoJSON Feature.",
     tags: ["Geo"],
     icon: "map-pin",
-    documentation: `This node wraps a GeoJSON geometry in a GeoJSON Feature with optional properties and ID.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geometry": {
-    "type": "Point",
-    "coordinates": [2.3522, 48.8566]
-  },
-  "properties": {
-    "name": "Paris",
-    "country": "France"
-  },
-  "id": "paris-point"
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "feature": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [2.3522, 48.8566]
-    },
-    "properties": {
-      "name": "Paris",
-      "country": "France"
-    },
-    "id": "paris-point"
-  }
-}
-\`\`\``,
+    documentation:
+      "This node wraps a GeoJSON geometry in a GeoJSON Feature with optional properties and ID.",
     inlinable: true,
     inputs: [
       {

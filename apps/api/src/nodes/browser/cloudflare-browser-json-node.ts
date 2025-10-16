@@ -16,24 +16,8 @@ export class CloudflareBrowserJsonNode extends ExecutableNode {
       "Fetch JSON from a rendered page using Cloudflare Browser Rendering.",
     tags: ["Browser"],
     icon: "braces",
-    documentation: `This node fetches JSON from a rendered page using Cloudflare Browser Rendering.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "url": "https://example.com",
-  "prompt": "Extract the title and description from this page"
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "title": "Example Page",
-  "description": "This is an example page"
-}
-\`\`\``,
+    documentation:
+      "This node fetches JSON from a rendered page using Cloudflare Browser Rendering.",
     computeCost: 10,
     asTool: true,
     inputs: [

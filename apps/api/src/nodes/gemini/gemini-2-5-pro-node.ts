@@ -17,26 +17,8 @@ export class Gemini25ProNode extends ExecutableNode {
     description: "Most capable model for complex reasoning and creative tasks",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node uses Google's Gemini 2.5 Pro model, the most capable model for complex reasoning and creative tasks.
-
-## Usage Example
-
-- **Input instructions**: \`"You are an expert software architect."\`
-- **Input input**: \`"Design a microservices architecture for an e-commerce platform with detailed component descriptions."\`
-- **Output**: \`"Here's a comprehensive microservices architecture for an e-commerce platform:
-
-## Core Services
-1. **User Service**: Handles authentication, profiles, and preferences
-2. **Product Service**: Manages catalog, inventory, and product metadata
-3. **Order Service**: Processes orders, payments, and fulfillment
-4. **Payment Service**: Integrates with payment gateways and processes transactions
-
-## Supporting Services
-- **Notification Service**: Handles emails, SMS, and push notifications
-- **Analytics Service**: Tracks user behavior and business metrics
-- **Search Service**: Provides product search and recommendations
-
-Each service is independently deployable with its own database and API gateway for load balancing and security."\``,
+    documentation:
+      "This node uses Google's Gemini 2.5 Pro model, the most capable model for complex reasoning and creative tasks.",
     computeCost: 40,
     asTool: true,
     functionCalling: true,

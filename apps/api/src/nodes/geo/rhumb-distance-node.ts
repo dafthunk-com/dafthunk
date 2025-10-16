@@ -13,31 +13,8 @@ export class RhumbDistanceNode extends ExecutableNode {
       "Calculates the rhumb line distance (constant bearing distance) between two points.",
     tags: ["Geo"],
     icon: "ruler",
-    documentation: `This node calculates the rhumb line distance (constant bearing) between two points on Earth's surface.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "from": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [-74.006, 40.7128]
-    }
-  },
-  "to": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [2.3522, 48.8566]
-    }
-  },
-  "units": "kilometers"
-}
-\`\`\`
-- **Output**: \`5837.5\` (rhumb line distance in kilometers)`,
+    documentation:
+      "This node calculates the rhumb line distance (constant bearing) between two points on Earth's surface.",
     inlinable: true,
     inputs: [
       {

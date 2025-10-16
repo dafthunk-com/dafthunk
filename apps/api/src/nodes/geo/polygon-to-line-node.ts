@@ -13,14 +13,8 @@ export class PolygonToLineNode extends ExecutableNode {
       "Converts a Polygon or MultiPolygon to a LineString or MultiLineString.",
     tags: ["Geo"],
     icon: "route",
-    documentation: `This node converts a polygon geometry to its boundary line.
-
-## Usage Example
-
-- **Input**: A polygon geometry
-- **Output**: A line geometry representing the polygon's boundary
-
-The node extracts the outer boundary of a polygon as a line geometry.`,
+    documentation:
+      "This node converts a polygon geometry to its boundary line.",
     inlinable: true,
     inputs: [
       {

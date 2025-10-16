@@ -17,39 +17,8 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
       "Analyzes and understands image content with description, analysis, and object detection capabilities",
     tags: ["Image", "AI"],
     icon: "eye",
-    documentation: `This node uses Google's Gemini 2.5 Flash model to analyze and understand image content.
-
-## Capabilities
-
-- **Image Description**: Generate detailed descriptions of image content
-- **Object Detection**: Identify and locate objects within images
-- **Visual Question Answering**: Answer questions about image content
-- **Image Classification**: Categorize images by content type
-- **Text Recognition**: Extract and read text from images (OCR)
-- **Scene Understanding**: Analyze scenes, activities, and contexts
-- **Enhanced Segmentation**: Precise object segmentation with bounding boxes and masks (Gemini 2.5)
-
-## Usage Examples
-
-- **Description**: "Describe what you see in this image"
-- **Object Detection**: "What objects are visible in this image?"
-- **Question Answering**: "What is the main subject of this image?"
-- **Text Recognition**: "Read any text visible in this image"
-- **Scene Analysis**: "What activity is happening in this scene?"
-- **Segmentation**: "Identify and segment the people in this image"
-
-## Supported Image Formats
-
-- PNG, JPEG, WEBP, HEIC, HEIF
-- Maximum 3,600 images per request
-- Automatic tiling for large images (768x768 pixel tiles)
-
-## Best Practices
-
-- Use specific prompts for better results: "Describe this image in detail" vs "What's in this image?"
-- For object detection, ask: "What objects can you identify in this image?"
-- For text extraction, ask: "Extract all text visible in this image"
-- Keep prompts focused on the specific analysis you need`,
+    documentation:
+      "This node uses Google's Gemini 2.5 Flash model to analyze and understand image content.",
     computeCost: 15,
     asTool: true,
     inputs: [

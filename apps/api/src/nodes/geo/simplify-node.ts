@@ -13,36 +13,8 @@ export class SimplifyNode extends ExecutableNode {
       "Simplifies a geometry by reducing the number of vertices while preserving its general shape.",
     tags: ["Geo"],
     icon: "minimize",
-    documentation: `This node simplifies a geometry by reducing the number of vertices while preserving its general shape.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geojson": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [1, 1], [2, 0], [3, 1], [4, 0], [5, 1], [6, 0]]
-    }
-  },
-  "tolerance": 1.5,
-  "highQuality": true
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "simplified": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [3, 1], [6, 0]]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node simplifies a geometry by reducing the number of vertices while preserving its general shape.",
     inlinable: true,
     inputs: [
       {

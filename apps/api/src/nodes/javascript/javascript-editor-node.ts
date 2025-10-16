@@ -19,12 +19,8 @@ export class JavaScriptEditorNode extends ExecutableNode {
       "A JavaScript Editor widget for editing and validating JavaScript code",
     tags: ["JavaScript"],
     icon: "code",
-    documentation: `This node provides a JavaScript Editor widget for editing and validating JavaScript code.
-
-## Usage Example
-
-- **Input value**: \`"function greet(name) { return 'Hello ' + name; }"\`
-- **Output**: \`"function greet(name) { return 'Hello ' + name; }"\``,
+    documentation:
+      "This node provides a JavaScript Editor widget for editing and validating JavaScript code.",
     inputs: [
       {
         name: "value",

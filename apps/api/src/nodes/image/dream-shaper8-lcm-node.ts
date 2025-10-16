@@ -15,14 +15,8 @@ export class DreamShaper8LCMNode extends ExecutableNode {
       "Generates images from text descriptions using the DreamShaper 8 LCM model",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: `This node generates images from text descriptions using the Dream Shaper 8 LCM model for fast and creative image generation.
-
-## Usage Example
-
-- **Input**: \`"A futuristic cityscape with flying cars"\`
-- **Output**: A generated image of a futuristic city with flying vehicles
-
-The node creates imaginative and artistic images quickly using the Dream Shaper model optimized for speed.`,
+    documentation:
+      "This node generates images from text descriptions using the Dream Shaper 8 LCM model for fast and creative image generation.",
     computeCost: 10,
     inputs: [
       {

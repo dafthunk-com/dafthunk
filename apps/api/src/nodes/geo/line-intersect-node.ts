@@ -13,46 +13,8 @@ export class LineIntersectNode extends ExecutableNode {
       "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
     tags: ["Geo"],
     icon: "cross",
-    documentation: `This node finds the intersection points between two LineString or Polygon geometries.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "line1": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [10, 10]]
-    }
-  },
-  "line2": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 10], [10, 0]]
-    }
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "intersections": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [5, 5]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node finds the intersection points between two LineString or Polygon geometries.",
     inlinable: true,
     inputs: [
       {

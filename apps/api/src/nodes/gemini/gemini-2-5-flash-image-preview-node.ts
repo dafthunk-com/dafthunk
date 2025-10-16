@@ -16,16 +16,8 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     description: "Generates images from text prompts and optional input images",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: `This node uses Google's Gemini 2.5 Flash Image Preview model to generate images from text prompts and optional input images.
-
-## Usage Examples
-
-- **Text-to-Image**: \`"A beautiful sunset over mountains"\` - generates image from text prompt alone
-- **Image + Text-to-Image**: Provide an image and prompt like \`"Transform this into a cartoon style"\` - uses input image as reference
-- **Multi-Image Composition**: Provide 2-3 images with a prompt like \`"Combine these images into a landscape with a person"\` - merges multiple images
-- **Style Transfer**: \`"Apply the style from image1 to the content of image2"\` - transfers artistic style between images
-
-The node works best with up to 3 input images for optimal performance and quality.`,
+    documentation:
+      "This node uses Google's Gemini 2.5 Flash Image Preview model to generate images from text prompts and optional input images.",
     computeCost: 25,
     asTool: true,
     inputs: [

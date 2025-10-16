@@ -14,26 +14,7 @@ export class ExifReaderNode extends ExecutableNode {
     description: "Extracts EXIF data from an image.",
     tags: ["Image"],
     icon: "file-text",
-    documentation: `This node extracts EXIF data from an image.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "image": [image data with EXIF metadata]
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "data": {
-    "Make": "Canon",
-    "Model": "EOS 5D Mark IV",
-    "DateTime": "2023:01:15 14:30:25"
-  }
-}
-\`\`\``,
+    documentation: "This node extracts EXIF data from an image.",
     inlinable: true,
     inputs: [
       {

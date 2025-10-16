@@ -13,14 +13,8 @@ export class RoundNode extends ExecutableNode {
       "Rounds the precision of a coordinate to a specified number of decimal places.",
     tags: ["Geo"],
     icon: "hash",
-    documentation: `This node rounds the coordinates of a GeoJSON geometry to a specified precision.
-
-## Usage Example
-
-- **Input**: A GeoJSON geometry and precision value
-- **Output**: The geometry with rounded coordinates
-
-The node reduces the precision of coordinate values, which can be useful for reducing file size or standardizing coordinate formats.`,
+    documentation:
+      "This node rounds the coordinates of a GeoJSON geometry to a specified precision.",
     inlinable: true,
     inputs: [
       {

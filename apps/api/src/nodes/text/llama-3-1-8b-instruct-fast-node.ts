@@ -13,14 +13,8 @@ export class Llama318BInstructFastNode extends ExecutableNode {
     description: "Generates text using Llama 3.1 8B Instruct Fast model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node generates text using Meta's Llama 3.1 8B Instruct Fast model.
-
-## Usage Example
-
-- **Input prompt**: \`"Write a short poem about technology."\`
-- **Input temperature**: \`0.7\`
-- **Input seed**: \`42\`
-- **Output**: \`"In circuits deep and code so bright, machines learn day and night..."\``,
+    documentation:
+      "This node generates text using Meta's Llama 3.1 8B Instruct Fast model.",
     computeCost: 10,
     asTool: true,
     inputs: [

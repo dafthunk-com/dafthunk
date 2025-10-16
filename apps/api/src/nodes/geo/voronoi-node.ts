@@ -13,73 +13,8 @@ export class VoronoiNode extends ExecutableNode {
       "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons.",
     tags: ["Geo"],
     icon: "hexagon",
-    documentation: `This node creates Voronoi polygons from a set of points, where each polygon contains all locations closest to its input point.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "points": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [0, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [10, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [5, 10]
-        }
-      }
-    ]
-  },
-  "bbox": [0, 0, 10, 10]
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "voronoi": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[[0, 0], [5, 5], [0, 10], [0, 0]]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[[10, 0], [5, 5], [10, 10], [10, 0]]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[[5, 5], [0, 10], [10, 10], [5, 5]]]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node creates Voronoi polygons from a set of points, where each polygon contains all locations closest to its input point.",
     inlinable: true,
     inputs: [
       {

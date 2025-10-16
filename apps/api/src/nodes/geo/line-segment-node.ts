@@ -13,46 +13,8 @@ export class LineSegmentNode extends ExecutableNode {
       "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon.",
     tags: ["Geo"],
     icon: "git-branch",
-    documentation: `This node breaks down a LineString or Polygon into individual 2-vertex line segments.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geojson": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [5, 5], [10, 0]]
-    }
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "segments": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[0, 0], [5, 5]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[5, 5], [10, 0]]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node breaks down a LineString or Polygon into individual 2-vertex line segments.",
     inlinable: true,
     inputs: [
       {

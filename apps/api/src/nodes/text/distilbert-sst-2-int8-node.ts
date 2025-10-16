@@ -15,12 +15,8 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
       "Analyzes the sentiment of text using Distilbert SST-2 Int8 model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node analyzes the sentiment of text using Hugging Face's Distilbert SST-2 Int8 model.
-
-## Usage Example
-
-- **Input text**: \`"I love this product, it's amazing!"\`
-- **Output**: \`{ "positive": 0.95, "negative": 0.05 }\``,
+    documentation:
+      "This node analyzes the sentiment of text using Hugging Face's Distilbert SST-2 Int8 model.",
     computeCost: 10,
     asTool: true,
     inputs: [

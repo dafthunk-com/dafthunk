@@ -14,13 +14,8 @@ export class MultiplicationNode extends ExecutableNode {
     description: "Multiplies two numbers",
     tags: ["Math"],
     icon: "x",
-    documentation: `This node multiplies two numbers together to produce their product.
-
-## Usage Example
-
-- **Input a**: \`6\`
-- **Input b**: \`7\`
-- **Output**: \`42\``,
+    documentation:
+      "This node multiplies two numbers together to produce their product.",
     inlinable: true,
     asTool: true,
     inputs: [

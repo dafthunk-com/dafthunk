@@ -11,15 +11,8 @@ export class JsonValidNode extends ExecutableNode {
     description: "Validate if a value is valid JSON",
     tags: ["JSON"],
     icon: "check-circle",
-    documentation: `This node validates if a string contains valid JSON and returns the validation result.
-
-## Usage Example
-
-- **Input**: \`'{"name": "John", "age": 30}'\`
-- **Output**: \`true\` (isValid)
-
-- **Input**: \`'{"name": "John", "age": 30,}'\`
-- **Output**: \`false\` (isValid) with error message`,
+    documentation:
+      "This node validates if a string contains valid JSON and returns the validation result.",
     inlinable: true,
     asTool: true,
     inputs: [

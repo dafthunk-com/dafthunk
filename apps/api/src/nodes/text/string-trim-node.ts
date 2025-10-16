@@ -11,12 +11,8 @@ export class StringTrimNode extends ExecutableNode {
     description: "Remove whitespace from both ends of a string",
     tags: ["Text"],
     icon: "scissors",
-    documentation: `This node removes whitespace characters (spaces, tabs, newlines) from both the beginning and end of a string.
-
-## Usage Example
-
-- **Input**: \`"  hello world  "\`
-- **Output**: \`"hello world"\``,
+    documentation:
+      "This node removes whitespace characters (spaces, tabs, newlines) from both the beginning and end of a string.",
     inlinable: true,
     asTool: true,
     inputs: [

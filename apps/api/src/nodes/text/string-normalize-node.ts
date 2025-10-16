@@ -11,12 +11,8 @@ export class StringNormalizeNode extends ExecutableNode {
     description: "Normalize a string using the Unicode Normalization forms",
     tags: ["Text"],
     icon: "text",
-    documentation: `This node normalizes a string using Unicode Normalization Form C (NFC), which combines characters and diacritical marks into their canonical form.
-
-## Usage Example
-
-- **Input**: \`"café"\` (with combining characters)
-- **Output**: \`"café"\` (normalized form)`,
+    documentation:
+      "This node normalizes a string using Unicode Normalization Form C (NFC), which combines characters and diacritical marks into their canonical form.",
     inlinable: true,
     asTool: true,
     inputs: [

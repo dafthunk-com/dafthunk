@@ -12,53 +12,8 @@ export class LineSplitNode extends ExecutableNode {
     description: "Split a LineString by another GeoJSON Feature.",
     tags: ["Geo"],
     icon: "git-merge",
-    documentation: `This node splits a LineString geometry into multiple segments using another GeoJSON feature as the splitting tool.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "line": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [10, 10]]
-    }
-  },
-  "splitter": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [5, 5]
-    }
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "split": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[0, 0], [5, 5]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[5, 5], [10, 10]]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node splits a LineString geometry into multiple segments using another GeoJSON feature as the splitting tool.",
     inlinable: true,
     inputs: [
       {

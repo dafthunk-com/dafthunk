@@ -9,13 +9,8 @@ export class ParseDateNode extends ExecutableNode {
     name: "Parse Date",
     type: "date-parse",
     description: "Parse input into a date (ISO-8601)",
-    documentation: `Parses a value into an ISO-8601 timestamp.
-
-### Inputs
-- value (any): ISO string, epoch milliseconds, or Date-like string
-
-### Outputs
-- date (date): ISO string or undefined if invalid`,
+    documentation:
+      "Parses a value into an ISO-8601 timestamp. ### Inputs value (any): ISO string, epoch milliseconds, or Date-like string ### Outputs date (date): ISO string or undefined if invalid",
     tags: ["Date"],
     icon: "calendar",
     inlinable: true,

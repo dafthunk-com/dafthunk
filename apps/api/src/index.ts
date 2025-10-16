@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import auth from "./auth";
 import { ApiContext } from "./context";
 import { handleCronTriggers } from "./cron";
-import { Session } from "./session/session";
 import { handleIncomingEmail } from "./email";
 import { corsMiddleware } from "./middleware/cors";
 import { createRateLimitMiddleware } from "./middleware/rate-limit";
@@ -24,6 +23,7 @@ import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
 import { Runtime } from "./runtime/runtime";
+import { Session } from "./session/session";
 
 // Initialize Hono app with types
 const app = new Hono<ApiContext>();

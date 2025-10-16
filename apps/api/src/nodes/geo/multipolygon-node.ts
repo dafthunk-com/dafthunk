@@ -13,14 +13,8 @@ export class MultiPolygonNode extends ExecutableNode {
       "Creates a Feature<MultiPolygon> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "layers",
-    documentation: `This node creates a MultiPolygon geometry from multiple polygon geometries.
-
-## Usage Example
-
-- **Input**: Multiple polygon geometries
-- **Output**: A single MultiPolygon containing all the polygons
-
-The node combines multiple separate polygon geometries into one MultiPolygon feature.`,
+    documentation:
+      "This node creates a MultiPolygon geometry from multiple polygon geometries.",
     inlinable: true,
     inputs: [
       {

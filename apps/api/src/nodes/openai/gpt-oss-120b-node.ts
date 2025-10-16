@@ -16,13 +16,8 @@ export class GptOss120BNode extends ExecutableNode {
       "OpenAI's open-weight model for powerful reasoning and agentic tasks",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node uses OpenAI's GPT-OSS-120B model, an open-weight model designed for powerful reasoning and agentic tasks.
-
-## Usage Example
-
-- **Input instructions**: \`"You are a helpful assistant."\`
-- **Input input**: \`"Analyze the impact of artificial intelligence on modern society."\`
-- **Output**: \`"Artificial intelligence has fundamentally transformed modern society across multiple dimensions..."\``,
+    documentation:
+      "This node uses OpenAI's GPT-OSS-120B model, an open-weight model designed for powerful reasoning and agentic tasks.",
     computeCost: 35,
     asTool: true,
     inputs: [

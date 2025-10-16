@@ -13,53 +13,8 @@ export class CenterMeanNode extends ExecutableNode {
       "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature.",
     tags: ["Geo"],
     icon: "align-center",
-    documentation: `This node calculates the mean center of a feature or feature collection by averaging all vertex coordinates.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "features": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [0, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [10, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [5, 10]
-        }
-      }
-    ]
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "center": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [5, 3.33]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node calculates the mean center of a feature or feature collection by averaging all vertex coordinates.",
     inlinable: true,
     inputs: [
       {

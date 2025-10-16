@@ -12,15 +12,8 @@ export class RegexReplaceNode extends ExecutableNode {
       "Replace all matches of a regular expression pattern in a string.",
     tags: ["Text"],
     icon: "pencil",
-    documentation: `This node replaces all matches of a regular expression pattern in a string.
-
-## Usage Example
-
-- **Input string**: \`"Hello world, hello universe"\`
-- **Input pattern**: \`"hello"\`
-- **Input replacement**: \`"hi"\`
-- **Input flags**: \`"gi"\`
-- **Output**: \`"hi world, hi universe"\``,
+    documentation:
+      "This node replaces all matches of a regular expression pattern in a string.",
     inlinable: true,
     asTool: true,
     inputs: [

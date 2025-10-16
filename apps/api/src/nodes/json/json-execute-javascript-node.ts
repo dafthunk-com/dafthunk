@@ -12,21 +12,8 @@ export class JsonExecuteJavascriptNode extends ExecutableNode {
       "Executes a JavaScript script with a JSON object as input. The input JSON is available as a global variable 'json'. The result of the last expression is returned.",
     tags: ["JSON"],
     icon: "code",
-    documentation: `This node executes JavaScript code with a JSON object as input, allowing you to transform and manipulate JSON data programmatically.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "users": [
-    {"name": "John", "age": 30},
-    {"name": "Jane", "age": 25}
-  ]
-}
-\`\`\`
-- **JavaScript**: \`json.users.filter(user => user.age > 25).map(user => user.name)\`
-- **Output**: \`["John"]\``,
+    documentation:
+      "This node executes JavaScript code with a JSON object as input, allowing you to transform and manipulate JSON data programmatically.",
     inlinable: true,
     asTool: true,
     inputs: [

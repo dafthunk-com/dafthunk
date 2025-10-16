@@ -13,14 +13,8 @@ export class DifferenceNode extends ExecutableNode {
       "Returns the difference between two (multi)polygon features as a new (multi)polygon feature.",
     tags: ["Geo"],
     icon: "square-minus",
-    documentation: `This node calculates the geometric difference between two geometries.
-
-## Usage Example
-
-- **Input**: Two GeoJSON geometries
-- **Output**: The geometry representing the area of the first geometry that is not covered by the second
-
-The node subtracts the second geometry from the first, returning the remaining area.`,
+    documentation:
+      "This node calculates the geometric difference between two geometries.",
     inlinable: true,
     inputs: [
       {

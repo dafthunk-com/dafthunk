@@ -12,19 +12,7 @@ export class DistanceNode extends ExecutableNode {
     description: "Calculates the distance between two points.",
     tags: ["Geo"],
     icon: "ruler",
-    documentation: `This node calculates the distance between two points.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "from": {"type": "Point", "coordinates": [0, 0]},
-  "to": {"type": "Point", "coordinates": [1, 1]},
-  "units": "kilometers"
-}
-\`\`\`
-- **Output**: \`157.2\` (distance in kilometers)`,
+    documentation: "This node calculates the distance between two points.",
     inlinable: true,
     inputs: [
       {

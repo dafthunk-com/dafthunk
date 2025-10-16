@@ -13,14 +13,8 @@ export class MultiLineStringNode extends ExecutableNode {
       "Creates a Feature<MultiLineString> based on a coordinate array. Properties can be added optionally.",
     tags: ["Geo"],
     icon: "route",
-    documentation: `This node creates a MultiLineString geometry from multiple line geometries.
-
-## Usage Example
-
-- **Input**: Multiple line geometries
-- **Output**: A single MultiLineString containing all the lines
-
-The node combines multiple separate line geometries into one MultiLineString feature.`,
+    documentation:
+      "This node creates a MultiLineString geometry from multiple line geometries.",
     inlinable: true,
     inputs: [
       {

@@ -13,14 +13,8 @@ export class CombineNode extends ExecutableNode {
       "Combines features into MultiPoint, MultiLineString, or MultiPolygon features.",
     tags: ["Geo"],
     icon: "layers",
-    documentation: `This node combines multiple GeoJSON geometries into a single geometry.
-
-## Usage Example
-
-- **Input**: Multiple GeoJSON geometries
-- **Output**: A single combined geometry
-
-The node merges multiple geometries into one unified geometry, handling overlaps and gaps appropriately.`,
+    documentation:
+      "This node combines multiple GeoJSON geometries into a single geometry.",
     inlinable: true,
     inputs: [
       {

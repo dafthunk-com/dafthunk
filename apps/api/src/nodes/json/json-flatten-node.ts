@@ -12,28 +12,8 @@ export class JsonFlattenNode extends ExecutableNode {
       "Flatten nested JSON structure into a flat object with dot notation",
     tags: ["JSON"],
     icon: "layers",
-    documentation: `This node flattens nested JSON objects into a single-level object using dot notation for nested keys.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "user": {
-    "profile": {
-      "name": "John",
-      "age": 30
-    }
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "user.profile.name": "John",
-  "user.profile.age": 30
-}
-\`\`\``,
+    documentation:
+      "This node flattens nested JSON objects into a single-level object using dot notation for nested keys.",
     inlinable: true,
     asTool: true,
     inputs: [

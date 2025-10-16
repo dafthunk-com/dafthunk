@@ -13,38 +13,8 @@ export class TransformTranslateNode extends ExecutableNode {
       "Moves any GeoJSON geometry by a specified distance and direction.",
     tags: ["Geo"],
     icon: "move",
-    documentation: `This node moves a GeoJSON geometry by a specified distance in a given direction.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geojson": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [0, 0]
-    }
-  },
-  "distance": 10,
-  "direction": 45,
-  "units": "kilometers",
-  "mutate": false
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "translated": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [0.063, 0.063]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node moves a GeoJSON geometry by a specified distance in a given direction.",
     inlinable: true,
     inputs: [
       {

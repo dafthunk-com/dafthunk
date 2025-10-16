@@ -12,43 +12,8 @@ export class CircleNode extends ExecutableNode {
     description: "Creates a circular polygon given a center point and radius.",
     tags: ["Geo"],
     icon: "circle",
-    documentation: `This node creates a circular polygon from a center point and radius with customizable precision.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "center": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [0, 0]
-    }
-  },
-  "radius": 10,
-  "steps": 32,
-  "units": "kilometers",
-  "properties": {
-    "name": "Search Area"
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "circle": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0.09, 0], [0.087, 0.028], [0.078, 0.054], [0.064, 0.078], [0.045, 0.098], [0.023, 0.113], [0, 0.123], [-0.023, 0.113], [-0.045, 0.098], [-0.064, 0.078], [-0.078, 0.054], [-0.087, 0.028], [-0.09, 0], [-0.087, -0.028], [-0.078, -0.054], [-0.064, -0.078], [-0.045, -0.098], [-0.023, -0.113], [0, -0.123], [0.023, -0.113], [0.045, -0.098], [0.064, -0.078], [0.078, -0.054], [0.087, -0.028], [0.09, 0]]]
-    },
-    "properties": {
-      "name": "Search Area"
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node creates a circular polygon from a center point and radius with customizable precision.",
     inlinable: true,
     inputs: [
       {

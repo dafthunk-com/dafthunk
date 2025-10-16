@@ -17,34 +17,8 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
       "Analyzes and understands audio content with transcription, description, and analysis capabilities",
     tags: ["Audio", "AI"],
     icon: "headphones",
-    documentation: `This node uses Google's Gemini 2.5 Flash model to analyze and understand audio content.
-
-## Capabilities
-
-- **Transcription**: Convert speech to text with high accuracy
-- **Audio Description**: Describe, summarize, or answer questions about audio content
-- **Segment Analysis**: Analyze specific segments of audio using timestamps
-- **Multi-language Support**: Automatically detects and supports 24+ languages
-- **Non-speech Understanding**: Understands sounds like birdsong, sirens, music, etc.
-
-## Usage Examples
-
-- **Transcription**: "Generate a transcript of the speech"
-- **Description**: "Describe what's happening in this audio clip"
-- **Question Answering**: "What is the main topic discussed in this audio?"
-- **Segment Analysis**: "Provide a transcript from 02:30 to 03:29"
-
-## Supported Audio Formats
-
-- WAV, MP3, AIFF, AAC, OGG Vorbis, FLAC
-- Maximum length: 9.5 hours per request
-- Automatic downsampling to 16 Kbps, mono channel
-
-## Best Practices
-
-- Use specific prompts for better results: "Transcribe this audio" vs "What's in this audio?"
-- Reference timestamps for segment analysis: "From 01:30 to 02:45"
-- Keep prompts focused on the specific analysis you need`,
+    documentation:
+      "This node uses Google's Gemini 2.5 Flash model to analyze and understand audio content.",
     computeCost: 15,
     asTool: true,
     inputs: [

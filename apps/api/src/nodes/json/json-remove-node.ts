@@ -11,13 +11,8 @@ export class JsonRemoveNode extends ExecutableNode {
     description: "Remove a value at a specific path in JSON",
     tags: ["JSON"],
     icon: "trash",
-    documentation: `This node removes a value at a specific path in a JSON object.
-
-## Usage Example
-
-- **Input json**: \`{"user": {"name": "John", "age": 30, "email": "john@example.com"}}\`
-- **Input path**: \`"$.user.email"\`
-- **Output**: \`{"user": {"name": "John", "age": 30}}\``,
+    documentation:
+      "This node removes a value at a specific path in a JSON object.",
     inlinable: true,
     asTool: true,
     inputs: [

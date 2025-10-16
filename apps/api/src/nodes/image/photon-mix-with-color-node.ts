@@ -19,21 +19,8 @@ export class PhotonMixWithColorNode extends ExecutableNode {
       "Blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).",
     tags: ["Image"],
     icon: "droplet",
-    documentation: `This node blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "image": [image data],
-  "mixRed": 255,
-  "mixGreen": 0,
-  "mixBlue": 0,
-  "opacity": 0.3
-}
-\`\`\`
-- **Output**: \`[image mixed with red color in PNG format]\``,
+    documentation:
+      "This node blends the image with a solid RGB color using a specified opacity (0.0 to 1.0).",
     inlinable: true,
     inputs: [
       {

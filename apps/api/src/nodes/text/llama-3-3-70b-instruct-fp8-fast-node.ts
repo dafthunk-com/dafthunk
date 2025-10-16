@@ -18,14 +18,8 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
       "Generates text using Llama 3.3 70B Instruct Fast model with fp8 precision",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node generates text using Meta's Llama 3.3 70B Instruct Fast model with fp8 precision and function calling capabilities.
-
-## Usage Example
-
-- **Input prompt**: \`"Explain the benefits of renewable energy sources."\`
-- **Input temperature**: \`0.6\`
-- **Input max_tokens**: \`256\`
-- **Output**: \`"Renewable energy sources offer numerous environmental and economic benefits..."\``,
+    documentation:
+      "This node generates text using Meta's Llama 3.3 70B Instruct Fast model with fp8 precision and function calling capabilities.",
     computeCost: 10,
     asTool: true,
     functionCalling: true,

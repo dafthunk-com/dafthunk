@@ -13,30 +13,8 @@ export class BooleanOverlapNode extends ExecutableNode {
       "Compares two geometries of the same dimension and returns true if their intersection set results in a geometry different from both but of the same dimension. Applies to Polygon/Polygon, LineString/LineString, Multipoint/Multipoint, MultiLineString/MultiLineString and MultiPolygon/MultiPolygon.",
     tags: ["Geo"],
     icon: "squares-intersect",
-    documentation: `This node tests whether two geometries of the same dimension overlap (share common area but neither contains the other).
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "feature1": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-    }
-  },
-  "feature2": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[[5, 5], [15, 5], [15, 15], [5, 15], [5, 5]]]
-    }
-  }
-}
-\`\`\`
-- **Output**: \`true\` (polygons overlap in the [5,5] to [10,10] region)`,
+    documentation:
+      "This node tests whether two geometries of the same dimension overlap (share common area but neither contains the other).",
     inlinable: true,
     inputs: [
       {

@@ -14,18 +14,8 @@ export class PhotonPixelizeNode extends ExecutableNode {
     description: "Applies a pixelization effect to an image using Photon.",
     tags: ["Image"],
     icon: "grid-3x3",
-    documentation: `This node applies a pixelization effect to an image using Photon.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "image": [image data],
-  "pixelSize": 15
-}
-\`\`\`
-- **Output**: \`[pixelized image data in PNG format]\``,
+    documentation:
+      "This node applies a pixelization effect to an image using Photon.",
     inlinable: true,
     inputs: [
       {

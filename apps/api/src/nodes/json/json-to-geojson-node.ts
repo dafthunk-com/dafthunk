@@ -14,12 +14,8 @@ export class JsonToGeojsonNode extends ExecutableNode {
     description: "Converts JSON data to valid GeoJSON format with validation.",
     tags: ["JSON", "Geo"],
     icon: "convert",
-    documentation: `This node converts JSON data to valid GeoJSON format with validation.
-
-## Usage Example
-
-- **Input json**: \`{"type": "Feature", "geometry": {"type": "Point", "coordinates": [-73.935242, 40.730610]}, "properties": {"name": "New York"}}\`
-- **Output**: \`{"type": "Feature", "geometry": {"type": "Point", "coordinates": [-73.935242, 40.730610]}, "properties": {"name": "New York"}}\``,
+    documentation:
+      "This node converts JSON data to valid GeoJSON format with validation.",
     inlinable: true,
     inputs: [
       {

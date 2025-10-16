@@ -15,14 +15,8 @@ export class BgeRerankerBaseNode extends ExecutableNode {
       "Reranks text passages based on their relevance to a query using BGE Reranker Base model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node reranks text passages based on their relevance to a query using BAAI's BGE Reranker Base model.
-
-## Usage Example
-
-- **Input query**: \`"machine learning algorithms"\`
-- **Input contexts**: \`["Introduction to neural networks", "Cooking recipes", "Machine learning basics", "Weather forecasting"]\`
-- **Input topK**: \`3\`
-- **Output**: \`[{"id": 2, "score": 0.95, "text": "Machine learning basics"}, {"id": 0, "score": 0.87, "text": "Introduction to neural networks"}]\``,
+    documentation:
+      "This node reranks text passages based on their relevance to a query using BAAI's BGE Reranker Base model.",
     computeCost: 10,
     asTool: true,
     inputs: [

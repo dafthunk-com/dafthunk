@@ -13,53 +13,8 @@ export class CenterMedianNode extends ExecutableNode {
       "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature.",
     tags: ["Geo"],
     icon: "align-center",
-    documentation: `This node calculates the median center of a feature or feature collection by finding the median of all vertex coordinates.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "features": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [0, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [10, 0]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [5, 10]
-        }
-      }
-    ]
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "center": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [5, 0]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node calculates the median center of a feature or feature collection by finding the median of all vertex coordinates.",
     inlinable: true,
     inputs: [
       {

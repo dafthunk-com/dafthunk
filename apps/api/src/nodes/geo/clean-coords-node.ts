@@ -12,35 +12,8 @@ export class CleanCoordsNode extends ExecutableNode {
     description: "Removes redundant coordinates from any GeoJSON Geometry.",
     tags: ["Geo"],
     icon: "scissors",
-    documentation: `This node removes redundant coordinates from GeoJSON geometries to optimize data size and processing.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "geojson": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [1, 1], [1, 1], [2, 2], [2, 2], [3, 3]]
-    }
-  },
-  "mutate": false
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "cleaned": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [1, 1], [2, 2], [3, 3]]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node removes redundant coordinates from GeoJSON geometries to optimize data size and processing.",
     inlinable: true,
     inputs: [
       {

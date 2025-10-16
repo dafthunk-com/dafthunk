@@ -17,23 +17,8 @@ export class RagAiSearchNode extends ExecutableNode {
     description: "AI-powered search through datasets",
     tags: ["AI"],
     icon: "search",
-    documentation: `This node performs AI-powered search through datasets using RAG (Retrieval-Augmented Generation) and generates intelligent responses.
-
-## Usage Example
-
-- **Input**: \`"What are the benefits of machine learning?"\`
-- **Output**: 
-\`\`\`
-"Based on the search results, machine learning offers several key benefits:
-
-1. Automated pattern recognition - ML algorithms can identify complex patterns in data that humans might miss
-2. Predictive capabilities - Models can forecast future trends and outcomes
-3. Scalability - Once trained, ML systems can process vast amounts of data efficiently
-
-The technology has applications across industries including healthcare, finance, and manufacturing."
-\`\`\`
-
-The node searches your dataset and uses AI to generate a comprehensive response based on the relevant content found.`,
+    documentation:
+      "This node performs AI-powered search through datasets using RAG (Retrieval-Augmented Generation) and generates intelligent responses.",
     computeCost: 10,
     asTool: true,
     inputs: [

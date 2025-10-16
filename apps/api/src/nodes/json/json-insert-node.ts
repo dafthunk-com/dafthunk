@@ -11,29 +11,8 @@ export class JsonInsertNode extends ExecutableNode {
     description: "Insert a value at a specific path only if it doesn't exist",
     tags: ["JSON"],
     icon: "plus",
-    documentation: `This node inserts a value at a specific JSONPath location only if the path doesn't already exist.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "user": {
-    "name": "John"
-  }
-}
-\`\`\`
-- **Path**: \`$.user.email\`
-- **Value**: \`"john@example.com"\`
-- **Output**: 
-\`\`\`
-{
-  "user": {
-    "name": "John",
-    "email": "john@example.com"
-  }
-}
-\`\`\``,
+    documentation:
+      "This node inserts a value at a specific JSONPath location only if the path doesn't already exist.",
     inlinable: true,
     asTool: true,
     inputs: [

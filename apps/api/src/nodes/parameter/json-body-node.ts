@@ -10,12 +10,8 @@ export class JsonBodyNode extends ExecutableNode {
     description: "Extracts JSON data from the body of the HTTP request.",
     tags: ["Parameter"],
     icon: "braces",
-    documentation: `This node extracts JSON data from the HTTP request body, supporting both required and optional JSON payloads.
-
-## Usage Example
-
-- **Input**: required: \`true\`
-- **Output**: \`{"name": "John", "age": 30}\` (from request body)`,
+    documentation:
+      "This node extracts JSON data from the HTTP request body, supporting both required and optional JSON payloads.",
     inlinable: true,
     asTool: true,
     compatibility: ["http_request"],

@@ -18,14 +18,8 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
       "Generates text with function calling support using Mistral Small 3.1 24B Instruct model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node generates text with function calling support using Mistral's Small 3.1 24B Instruct model.
-
-## Usage Example
-
-- **Input prompt**: \`"Translate 'Hello world' to French."\`
-- **Input temperature**: \`0.7\`
-- **Input max_tokens**: \`256\`
-- **Output**: \`"Bonjour le monde"\``,
+    documentation:
+      "This node generates text with function calling support using Mistral's Small 3.1 24B Instruct model.",
     computeCost: 10,
     asTool: true,
     functionCalling: true,

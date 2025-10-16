@@ -13,47 +13,8 @@ export class LineOverlapNode extends ExecutableNode {
       "Takes any LineString or Polygon and returns the overlapping lines between both features.",
     tags: ["Geo"],
     icon: "layers",
-    documentation: `This node finds overlapping line segments between two LineString or Polygon geometries.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "line1": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [10, 0], [10, 10]]
-    }
-  },
-  "line2": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[5, 0], [15, 0], [15, 10]]
-    }
-  },
-  "tolerance": 0.001
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "overlaps": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[5, 0], [10, 0]]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node finds overlapping line segments between two LineString or Polygon geometries.",
     inlinable: true,
     inputs: [
       {

@@ -13,25 +13,8 @@ export class CentroidNode extends ExecutableNode {
       "Computes the centroid as the mean of all vertices within the object.",
     tags: ["Geo"],
     icon: "target",
-    documentation: `This node computes the centroid as the mean of all vertices within the object.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "type": "Polygon",
-  "coordinates": [[[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]]
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "type": "Feature",
-  "geometry": {"type": "Point", "coordinates": [1, 1]},
-  "properties": {}
-}
-\`\`\``,
+    documentation:
+      "This node computes the centroid as the mean of all vertices within the object.",
     inlinable: true,
     inputs: [
       {

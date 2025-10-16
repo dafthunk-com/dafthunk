@@ -14,19 +14,8 @@ export class SvgToPngNode extends ExecutableNode {
     description: "Renders SVG content to PNG format using the Resvg library.",
     tags: ["Image"],
     icon: "file-image",
-    documentation: `This node renders SVG content to PNG format using the Resvg library.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "svg": [SVG image data],
-  "width": 800,
-  "height": 600
-}
-\`\`\`
-- **Output**: \`[rendered PNG image data]\``,
+    documentation:
+      "This node renders SVG content to PNG format using the Resvg library.",
     inlinable: true,
     inputs: [
       {

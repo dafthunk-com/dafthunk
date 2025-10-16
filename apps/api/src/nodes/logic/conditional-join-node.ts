@@ -20,12 +20,8 @@ export class ConditionalJoinNode extends ExecutableNode {
       "Joins two mutually exclusive branches ('a' and 'b') into a single flow. Emits the value from the active branch. Errors if both or neither are provided.",
     tags: ["Logic"],
     icon: "git-merge",
-    documentation: `This node joins two mutually exclusive workflow branches into a single flow, emitting the value from whichever branch was active.
-
-## Usage Example
-
-- **Input**: a: \`"Branch A result"\`, b: \`undefined\`
-- **Output**: \`"Branch A result"\``,
+    documentation:
+      "This node joins two mutually exclusive workflow branches into a single flow, emitting the value from whichever branch was active.",
     inlinable: true,
     inputs: [
       {

@@ -13,21 +13,8 @@ export class NearestPointOnLineNode extends ExecutableNode {
     description: "Returns the nearest point on a line to a given point.",
     tags: ["Geo"],
     icon: "map-pin",
-    documentation: `This node finds the nearest point on a line to a given point.
-
-## Usage Example
-
-- **Input**: A point and a line GeoJSON
-- **Output**: 
-\`\`\`
-{
-  "type": "Point",
-  "coordinates": [nearestLng, nearestLat],
-  "distance": 25.8
-}
-\`\`\`
-
-The node calculates the closest point on the line and the distance to it.`,
+    documentation:
+      "This node finds the nearest point on a line to a given point.",
     inlinable: true,
     inputs: [
       {

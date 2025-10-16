@@ -12,23 +12,8 @@ export class JsonExtractObjectNode extends ExecutableNode {
     description: "Extract a JSON value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "braces",
-    documentation: `This node extracts a JSON object or array from a JSON structure using JSONPath expressions.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "user": {
-    "profile": {
-      "name": "John",
-      "age": 30
-    }
-  }
-}
-\`\`\`
-- **Path**: \`$.user.profile\`
-- **Output**: \`{"name": "John", "age": 30}\``,
+    documentation:
+      "This node extracts a JSON object or array from a JSON structure using JSONPath expressions.",
     inlinable: true,
     asTool: true,
     inputs: [

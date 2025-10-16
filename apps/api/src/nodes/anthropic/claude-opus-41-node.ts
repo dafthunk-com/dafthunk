@@ -16,13 +16,8 @@ export class ClaudeOpus41Node extends ExecutableNode {
     description: "Most advanced Claude model with latest capabilities",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node uses Anthropic's Claude Opus 4.1 model, the most advanced Claude model with latest capabilities.
-
-## Usage Example
-
-- **Input instructions**: \`"You are a helpful assistant."\`
-- **Input input**: \`"Create a comprehensive business plan for a tech startup."\`
-- **Output**: \`"Here's a comprehensive business plan for your tech startup..."\``,
+    documentation:
+      "This node uses Anthropic's Claude Opus 4.1 model, the most advanced Claude model with latest capabilities.",
     computeCost: 70,
     asTool: true,
     inputs: [

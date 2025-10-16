@@ -16,13 +16,8 @@ export class Claude3OpusNode extends ExecutableNode {
     description: "Previous generation premium model, still very capable",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node uses Anthropic's Claude 3 Opus model, a previous generation premium model that is still very capable.
-
-## Usage Example
-
-- **Input instructions**: \`"You are a helpful assistant."\`
-- **Input input**: \`"Write a detailed analysis of climate change impacts."\`
-- **Output**: \`"Climate change represents one of the most significant challenges facing humanity in the 21st century..."\``,
+    documentation:
+      "This node uses Anthropic's Claude 3 Opus model, a previous generation premium model that is still very capable.",
     computeCost: 45,
     asTool: true,
     inputs: [

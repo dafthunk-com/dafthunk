@@ -13,65 +13,8 @@ export class PolygonizeNode extends ExecutableNode {
       "Takes a set of line features and returns a set of polygon features constructed from the lines.",
     tags: ["Geo"],
     icon: "square",
-    documentation: `This node converts a set of LineString features into polygon features by connecting intersecting lines.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "lines": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[0, 0], [10, 0]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[10, 0], [10, 10]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[10, 10], [0, 10]]
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": [[0, 10], [0, 0]]
-        }
-      }
-    ]
-  }
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "polygons": {
-    "type": "FeatureCollection",
-    "features": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Polygon",
-          "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]
-        }
-      }
-    ]
-  }
-}
-\`\`\``,
+    documentation:
+      "This node converts a set of LineString features into polygon features by connecting intersecting lines.",
     inlinable: true,
     inputs: [
       {

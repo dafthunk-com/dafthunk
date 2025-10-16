@@ -15,21 +15,8 @@ export class CanvasDoodleNode extends ExecutableNode {
     description: "A canvas widget for drawing and sketching",
     tags: ["Image"],
     icon: "pencil",
-    documentation: `This node provides a canvas widget that allows users to draw and outputs the drawing as an image.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "value": [canvas drawing image data],
-  "width": 300,
-  "height": 300,
-  "strokeColor": "#000000",
-  "strokeWidth": 2
-}
-\`\`\`
-- **Output**: \`[canvas drawing image data]\``,
+    documentation:
+      "This node provides a canvas widget that allows users to draw and outputs the drawing as an image.",
     inputs: [
       {
         name: "value",

@@ -14,18 +14,8 @@ export class AreaNode extends ExecutableNode {
       "Calculates the area of polygons or feature collections in square meters.",
     tags: ["Geo"],
     icon: "square",
-    documentation: `This node calculates the area of polygons or feature collections in square meters.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "type": "Polygon",
-  "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]]
-}
-\`\`\`
-- **Output**: \`123456789\` (area in square meters)`,
+    documentation:
+      "This node calculates the area of polygons or feature collections in square meters.",
     inlinable: true,
     inputs: [
       {

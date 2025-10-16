@@ -47,15 +47,8 @@ export class FormatDateNode extends ExecutableNode {
     name: "Format Date",
     type: "date-format",
     description: "Format a date into a string",
-    documentation: `Formats an ISO date using a simple pattern or locale.
-
-### Inputs
-- date (date): ISO date
-- pattern (string): Pattern tokens YYYY MM DD hh mm ss (UTC)
-- locale (string): Optional BCP47 locale for Intl formatting
-
-### Outputs
-- text (string): Formatted string`,
+    documentation:
+      "Formats an ISO date using a simple pattern or locale. ### Inputs date (date): ISO date pattern (string): Pattern tokens YYYY MM DD hh mm ss (UTC) locale (string): Optional BCP47 locale for Intl formatting ### Outputs text (string): Formatted string",
     tags: ["Date"],
     icon: "calendar",
     inlinable: true,

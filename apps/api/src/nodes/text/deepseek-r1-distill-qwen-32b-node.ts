@@ -20,14 +20,8 @@ export class DeepseekR1DistillQwen32BNode extends ExecutableNode {
     description: "Generates text using DeepSeek R1 Distill Qwen 32B model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node generates text using DeepSeek's R1 Distill Qwen 32B model.
-
-## Usage Example
-
-- **Input prompt**: \`"Explain the concept of neural networks."\`
-- **Input temperature**: \`0.6\`
-- **Input max_tokens**: \`256\`
-- **Output**: \`"Neural networks are computational models inspired by biological neural networks..."\``,
+    documentation:
+      "This node generates text using DeepSeek's R1 Distill Qwen 32B model.",
     computeCost: 10,
     asTool: true,
     inputs: [

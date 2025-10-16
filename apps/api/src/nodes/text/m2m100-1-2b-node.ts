@@ -13,14 +13,8 @@ export class M2m10012bNode extends ExecutableNode {
     description: "Translates text between languages using M2M100 1.2B model",
     tags: ["Text", "AI"],
     icon: "sparkles",
-    documentation: `This node translates text between languages using Meta's M2M100 1.2B model.
-
-## Usage Example
-
-- **Input text**: \`"Hello, how are you?"\`
-- **Input sourceLang**: \`"en"\`
-- **Input targetLang**: \`"es"\`
-- **Output**: \`"Hola, ¿cómo estás?"\``,
+    documentation:
+      "This node translates text between languages using Meta's M2M100 1.2B model.",
     computeCost: 10,
     asTool: true,
     inputs: [

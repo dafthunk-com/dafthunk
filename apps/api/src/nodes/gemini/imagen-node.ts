@@ -17,23 +17,8 @@ export class ImagenNode extends ExecutableNode {
       "Generates high-fidelity images from text prompts using Google's Imagen model",
     tags: ["Image", "AI"],
     icon: "image",
-    documentation: `This node uses Google's Imagen model to generate high-fidelity images from text prompts.
-
-## Usage Example
-
-- **Input prompt**: \`"A beautiful sunset over mountains with golden hour lighting"\`
-- **Input aspectRatio**: \`"16:9"\` (optional, default: "1:1")
-- **Input sampleImageSize**: \`"2K"\` (optional, default: "1K")
-- **Input personGeneration**: \`"allow_adult"\` (optional, default: "allow_adult")
-- **Output**: A single generated image based on the prompt
-
-## Supported Parameters
-
-- **aspectRatio**: Image aspect ratio ("1:1", "3:4", "4:3", "9:16", "16:9", default: "1:1")
-- **sampleImageSize**: Image size ("1K", "2K", default: "1K") - only for Standard and Ultra models
-- **personGeneration**: Person generation policy ("dont_allow", "allow_adult", "allow_all", default: "allow_adult")
-
-Note: "allow_all" is not available in EU, UK, CH, MENA locations.`,
+    documentation:
+      "This node uses Google's Imagen model to generate high-fidelity images from text prompts.",
     computeCost: 50,
     asTool: true,
     inputs: [

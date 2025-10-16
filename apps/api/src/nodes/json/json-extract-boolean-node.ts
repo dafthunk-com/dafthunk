@@ -12,22 +12,8 @@ export class JsonExtractBooleanNode extends ExecutableNode {
     description: "Extract a boolean value from a JSON object using JSONPath",
     tags: ["JSON"],
     icon: "check",
-    documentation: `This node extracts a boolean value from a JSON object using JSONPath expressions.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "user": {
-    "profile": {
-      "isActive": true
-    }
-  }
-}
-\`\`\`
-- **Path**: \`$.user.profile.isActive\`
-- **Output**: \`true\` (value), \`true\` (found)`,
+    documentation:
+      "This node extracts a boolean value from a JSON object using JSONPath expressions.",
     inlinable: true,
     asTool: true,
     inputs: [

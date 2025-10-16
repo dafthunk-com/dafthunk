@@ -13,36 +13,8 @@ export class AlongNode extends ExecutableNode {
       "Takes a LineString and returns a Point at a specified distance along the line.",
     tags: ["Geo"],
     icon: "map-pin",
-    documentation: `This node finds a point at a specified distance along a LineString geometry.
-
-## Usage Example
-
-- **Input**: 
-\`\`\`
-{
-  "line": {
-    "type": "Feature",
-    "geometry": {
-      "type": "LineString",
-      "coordinates": [[0, 0], [10, 0], [10, 10]]
-    }
-  },
-  "distance": 15,
-  "units": "kilometers"
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "point": {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [10, 5]
-    }
-  }
-}
-\`\`\``,
+    documentation:
+      "This node finds a point at a specified distance along a LineString geometry.",
     inlinable: true,
     inputs: [
       {

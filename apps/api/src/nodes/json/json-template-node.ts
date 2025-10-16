@@ -12,35 +12,8 @@ export class JsonTemplateNode extends ExecutableNode {
       "Create a JSON object using a template with variable injection using ${variableName} syntax",
     tags: ["JSON"],
     icon: "code",
-    documentation: `This node creates JSON objects using templates with variable injection using \${variableName} syntax.
-
-## Usage Example
-
-- **Template**: 
-\`\`\`
-{
-  "name": "\${firstName} \${lastName}",
-  "email": "\${email}",
-  "age": "\${age}"
-}
-\`\`\`
-- **Variables**: 
-\`\`\`
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john@example.com",
-  "age": 30
-}
-\`\`\`
-- **Output**: 
-\`\`\`
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "age": "30"
-}
-\`\`\``,
+    documentation:
+      "This node creates JSON objects using templates with variable injection using \\${variableName} syntax.",
     inlinable: true,
     asTool: true,
     inputs: [

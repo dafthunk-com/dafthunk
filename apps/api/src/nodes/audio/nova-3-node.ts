@@ -15,21 +15,8 @@ export class Nova3Node extends ExecutableNode {
       "Transcribes speech from audio files using Deepgram's Nova-3 model with advanced features",
     tags: ["Audio", "AI"],
     icon: "mic",
-    documentation: `This node transcribes speech from audio files using Deepgram's Nova-3 model, providing high-quality speech-to-text conversion with advanced features like speaker diarization, sentiment analysis, and topic detection.
-
-## Usage Example
-
-- **Input**: audio file (MP3, WAV, etc.)
-- **Output**: Transcribed text with optional metadata
-
-## Advanced Features
-
-- **Speaker Diarization**: Recognize speaker changes and assign speaker numbers
-- **Sentiment Analysis**: Analyze sentiment throughout the transcript
-- **Topic Detection**: Automatically detect topics in the audio
-- **Language Detection**: Automatically detect the spoken language
-- **Smart Formatting**: Apply intelligent formatting to improve readability
-- **Entity Detection**: Identify and extract key entities from content`,
+    documentation:
+      "This node transcribes speech from audio files using Deepgram's Nova-3 model, providing high-quality speech-to-text conversion with advanced features like speaker diarization, sentiment analysis, and topic detection.",
     computeCost: 5,
     inputs: [
       {

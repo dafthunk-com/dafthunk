@@ -14,12 +14,8 @@ export class SumNode extends ExecutableNode {
     description: "Sums multiple numbers together",
     tags: ["Math"],
     icon: "plus",
-    documentation: `This node sums multiple numbers together, supporting both single values and arrays of numbers.
-
-## Usage Example
-
-- **Input**: \`[5, 10, 15, 20]\`
-- **Output**: \`50\``,
+    documentation:
+      "This node sums multiple numbers together, supporting both single values and arrays of numbers.",
     inlinable: true,
     asTool: true,
     inputs: [

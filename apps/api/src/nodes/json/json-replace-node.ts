@@ -11,14 +11,8 @@ export class JsonReplaceNode extends ExecutableNode {
     description: "Replace a value at a specific path only if it exists",
     tags: ["JSON"],
     icon: "refresh",
-    documentation: `This node replaces a value at a specific path in a JSON object only if the path exists.
-
-## Usage Example
-
-- **Input json**: \`{"user": {"name": "John", "age": 30}}\`
-- **Input path**: \`"$.user.age"\`
-- **Input value**: \`31\`
-- **Output**: \`{"user": {"name": "John", "age": 31}}\``,
+    documentation:
+      "This node replaces a value at a specific path in a JSON object only if the path exists.",
     inlinable: true,
     asTool: true,
     inputs: [

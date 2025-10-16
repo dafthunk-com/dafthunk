@@ -12,20 +12,8 @@ export class CenterNode extends ExecutableNode {
     description: "Calculates the center point of any GeoJSON feature.",
     tags: ["Geo"],
     icon: "target",
-    documentation: `This node calculates the center point (centroid) of a GeoJSON geometry.
-
-## Usage Example
-
-- **Input**: A polygon or multi-polygon GeoJSON
-- **Output**: 
-\`\`\`
-{
-  "type": "Point",
-  "coordinates": [centerLongitude, centerLatitude]
-}
-\`\`\`
-
-The node finds the geometric center of polygons, lines, or point collections.`,
+    documentation:
+      "This node calculates the center point (centroid) of a GeoJSON geometry.",
     inlinable: true,
     inputs: [
       {

@@ -10,12 +10,8 @@ export class FormDataNumberNode extends ExecutableNode {
     description: "Extracts a number parameter from the HTTP request form data.",
     tags: ["Parameter"],
     icon: "calculator",
-    documentation: `This node extracts a number parameter from HTTP request form data, automatically converting string values to numbers.
-
-## Usage Example
-
-- **Input**: name: \`"age"\`, required: \`true\`
-- **Output**: \`25\` (from form data)`,
+    documentation:
+      "This node extracts a number parameter from HTTP request form data, automatically converting string values to numbers.",
     asTool: true,
     compatibility: ["http_request"],
     inlinable: true,

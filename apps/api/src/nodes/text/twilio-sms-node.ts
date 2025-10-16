@@ -11,14 +11,8 @@ export class TwilioSmsNode extends ExecutableNode {
     description: "Send an SMS using Twilio",
     tags: ["Text"],
     icon: "message-square",
-    documentation: `This node sends SMS messages using Twilio's messaging service.
-
-## Usage Example
-
-- **Input to**: \`"+1234567890"\`
-- **Input body**: \`"Hello! Your order has been confirmed."\`
-- **Input from**: \`"+0987654321"\`
-- **Output**: \`{ "sid": "SM1234567890abcdef", "status": "queued" }\``,
+    documentation:
+      "This node sends SMS messages using Twilio's messaging service.",
     computeCost: 10,
     asTool: true,
     inputs: [
