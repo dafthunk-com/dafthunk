@@ -53,51 +53,26 @@ export function NodeDocsDialog({
 
         <div className="flex-1 overflow-y-auto px-1 -mx-1">
           <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold">Basic Information</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="font-medium text-muted-foreground">
-                    Type ID:
-                  </span>
-                  <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
-                    {nodeType.type}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-muted-foreground">
-                    Unique ID:
-                  </span>
-                  <p className="font-mono text-xs bg-muted px-2 py-1 rounded mt-1">
-                    {nodeType.id}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {nodeType.documentation && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold">Documentation</h4>
-                  <div className="md">
-                    <Markdown>{nodeType.documentation}</Markdown>
-                  </div>
-                  {nodeType.referenceUrl && (
-                    <div className="pt-1">
-                      <a
-                        href={nodeType.referenceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                      >
-                        <ExternalLink className="size-4" />
-                        View reference
-                      </a>
-                    </div>
-                  )}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Documentation</h4>
+                <div className="md">
+                  <Markdown>{nodeType.documentation}</Markdown>
                 </div>
-              </>
+                {nodeType.referenceUrl && (
+                  <div className="pt-1">
+                    <a
+                      href={nodeType.referenceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    >
+                      <ExternalLink className="size-4" />
+                      View reference
+                    </a>
+                  </div>
+                )}
+              </div>
             )}
 
             {nodeType.compatibility && nodeType.compatibility.length > 0 && (
