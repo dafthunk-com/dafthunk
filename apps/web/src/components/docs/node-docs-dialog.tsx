@@ -1,6 +1,7 @@
 import type { NodeType } from "@dafthunk/types";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
+import { ExternalLink } from "lucide-react";
 import Markdown from "react-markdown";
 
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +74,31 @@ export function NodeDocsDialog({
                 </div>
               </div>
             </div>
+
+            {nodeType.documentation && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold">Documentation</h4>
+                  <div className="md">
+                    <Markdown>{nodeType.documentation}</Markdown>
+                  </div>
+                  {nodeType.referenceUrl && (
+                    <div className="pt-1">
+                      <a
+                        href={nodeType.referenceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                      >
+                        <ExternalLink className="size-4" />
+                        View reference
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {nodeType.compatibility && nodeType.compatibility.length > 0 && (
               <>
@@ -176,18 +202,6 @@ export function NodeDocsDialog({
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {nodeType.documentation && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold">Documentation</h4>
-                  <div className="md">
-                    <Markdown>{nodeType.documentation}</Markdown>
                   </div>
                 </div>
               </>

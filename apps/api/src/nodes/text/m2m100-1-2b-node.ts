@@ -15,6 +15,7 @@ export class M2m10012bNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node translates text between languages using Meta's M2M100 1.2B model.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/m2m100-1.2b/",
     computeCost: 10,
     asTool: true,
     inputs: [

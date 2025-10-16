@@ -17,6 +17,7 @@ export class DetrResnet50Node extends ExecutableNode {
     icon: "image",
     documentation:
       "This node detects and locates objects in images using the DETR-ResNet-50 model with bounding box coordinates.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/detr-resnet-50/",
     computeCost: 10,
     inputs: [
       {

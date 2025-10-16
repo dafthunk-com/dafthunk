@@ -20,6 +20,7 @@ export class Llama3370BInstructFastNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node generates text using Meta's Llama 3.3 70B Instruct Fast model with fp8 precision and function calling capabilities.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/",
     computeCost: 10,
     asTool: true,
     functionCalling: true,

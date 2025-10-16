@@ -17,6 +17,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node analyzes the sentiment of text using Hugging Face's Distilbert SST-2 Int8 model.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/distilbert-sst-2-int8/",
     computeCost: 10,
     asTool: true,
     inputs: [

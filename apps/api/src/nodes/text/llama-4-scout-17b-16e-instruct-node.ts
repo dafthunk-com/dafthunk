@@ -20,6 +20,7 @@ export class Llama4Scout17B16EInstructNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node generates text with function calling support using Meta's Llama 4 Scout 17B 16E Instruct model.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/llama-4-scout-17b-16e-instruct/",
     computeCost: 10,
     asTool: true,
     functionCalling: true,

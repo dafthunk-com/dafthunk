@@ -17,6 +17,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
     icon: "wand",
     documentation:
       "This node transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img model.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/stable-diffusion-v1-5-img2img/",
     computeCost: 10,
     inputs: [
       {

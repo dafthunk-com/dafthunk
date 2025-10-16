@@ -20,6 +20,7 @@ export class MistralSmall31_24BInstructNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node generates text with function calling support using Mistral's Small 3.1 24B Instruct model.",
+    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/mistral-small-3.1-24b-instruct/",
     computeCost: 10,
     asTool: true,
     functionCalling: true,
