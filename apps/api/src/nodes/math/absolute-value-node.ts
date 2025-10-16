@@ -15,6 +15,7 @@ export class AbsoluteValueNode extends ExecutableNode {
     tags: ["Math"],
     icon: "square-plus",
     documentation: "This node calculates the absolute value of a number.",
+    specification: "result = |value|",
     inlinable: true,
     asTool: true,
     inputs: [

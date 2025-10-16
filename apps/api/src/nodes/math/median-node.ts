@@ -17,6 +17,7 @@ export class MedianNode extends ExecutableNode {
     icon: "chart-bar-stacked",
     documentation:
       "This node returns the median value from multiple numbers (middle value when sorted).",
+    specification: "result = median(sort(numbers)), where |numbers| > 0; if n is even: (numbers[n/2-1] + numbers[n/2]) / 2, else: numbers[⌊n/2⌋]",
     inlinable: true,
     asTool: true,
     inputs: [

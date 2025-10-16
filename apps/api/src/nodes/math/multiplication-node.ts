@@ -16,6 +16,7 @@ export class MultiplicationNode extends ExecutableNode {
     icon: "x",
     documentation:
       "This node multiplies two numbers together to produce their product.",
+    specification: "result = a * b",
     inlinable: true,
     asTool: true,
     inputs: [

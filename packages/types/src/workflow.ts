@@ -223,10 +223,12 @@ export interface NodeType {
   id: string;
   name: string;
   type: string;
-  description?: string;
-  documentation?: string;
   tags: string[];
   icon: string;
+  description?: string; // Short description
+  documentation?: string; // Human readable documentation
+  specification?: string; // Machine readable specification
+  referenceUrl?: string; // URL to external reference or documentation
   computeCost?: number; // The cost of running this node in compute credits
   inlinable?: boolean; // Flag to indicate if this node can be inlined with others
   functionCalling?: boolean;

@@ -16,6 +16,7 @@ export class SumNode extends ExecutableNode {
     icon: "plus",
     documentation:
       "This node sums multiple numbers together, supporting both single values and arrays of numbers.",
+    specification: "result = Σ(numbers)",
     inlinable: true,
     asTool: true,
     inputs: [

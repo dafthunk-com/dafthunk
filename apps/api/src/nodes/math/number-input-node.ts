@@ -20,6 +20,7 @@ export class NumberInputNode extends ExecutableNode {
     icon: "hash",
     documentation:
       "This node provides a number input widget for entering numeric values.",
+    specification: "result = value, where min ≤ value ≤ max (if constraints specified)",
     inlinable: true,
     asTool: true,
     inputs: [

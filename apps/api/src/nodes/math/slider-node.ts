@@ -22,6 +22,7 @@ export class SliderNode extends ExecutableNode {
     icon: "sliders-horizontal",
     documentation:
       "This node provides a slider widget for selecting a value constrained by min, max, and step values.",
+    specification: "result = min + round((value - min) / step) * step, where min ≤ result ≤ max, step > 0, min < max",
     inlinable: true,
     asTool: true,
     inputs: [

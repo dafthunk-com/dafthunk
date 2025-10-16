@@ -17,6 +17,7 @@ export class ModuloNode extends ExecutableNode {
     icon: "percent",
     documentation:
       "This node calculates the remainder when one number is divided by another.",
+    specification: "result = a % b, where b ≠ 0",
     inlinable: true,
     asTool: true,
     inputs: [

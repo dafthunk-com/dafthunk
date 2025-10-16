@@ -15,6 +15,7 @@ export class SquareRootNode extends ExecutableNode {
     tags: ["Math"],
     icon: "radical",
     documentation: "This node calculates the square root of a number.",
+    specification: "result = √value, where value ≥ 0",
     inlinable: true,
     asTool: true,
     inputs: [

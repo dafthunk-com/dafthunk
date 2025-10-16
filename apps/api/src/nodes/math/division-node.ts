@@ -16,6 +16,7 @@ export class DivisionNode extends ExecutableNode {
     icon: "divide",
     documentation:
       "This node divides one number by another to produce their quotient.",
+    specification: "result = a / b, where b ≠ 0",
     inlinable: true,
     asTool: true,
     inputs: [

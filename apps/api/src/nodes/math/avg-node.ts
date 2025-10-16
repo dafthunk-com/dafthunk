@@ -16,6 +16,7 @@ export class AvgNode extends ExecutableNode {
     icon: "chart-bar",
     documentation:
       "This node calculates the arithmetic mean (average) of multiple numbers.",
+    specification: "result = Σ(numbers) / n, where n = |numbers| > 0",
     inlinable: true,
     asTool: true,
     inputs: [

@@ -18,6 +18,38 @@ export class CalculatorNode extends ExecutableNode {
     icon: "calculator",
     documentation:
       "Evaluates mathematical expressions with comprehensive support for arithmetic operations, mathematical functions, trigonometric functions, constants, and complex formulas.",
+    specification: `result = eval(expression)
+
+IMPORTANT: Use exact function names - no abbreviations allowed!
+
+Supported operators:
+  Arithmetic: + (addition), - (subtraction), * (multiplication), / (division), ^ (exponentiation), % (modulo)
+  Bitwise: & (AND), | (OR), ~ (NOT), < (left shift), > (right shift)
+  Parentheses: ( ) for grouping
+
+Supported functions (use exact names):
+  Trigonometric: sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y, x)
+  Hyperbolic: sinh(x), cosh(x), tanh(x), asinh(x), acosh(x), atanh(x)
+  Exponential/Logarithmic: exp(x), log(x), log10(x), pow(base, exp)
+  Rounding: floor(x), ceil(x), round(x), trunc(x)
+  Absolute/Sign: abs(x), sign(x)
+  Roots: sqrt(x) for square root, cbrt(x) for cube root
+  Min/Max: min(a, b, ...), max(a, b, ...)
+  Other: hypot(x, y, ...), random()
+
+Constants:
+  PI = 3.141592653589793
+  E = 2.718281828459045
+
+Examples:
+  sqrt(16) → 4
+  2 + 3 * 4 → 14
+  sin(PI / 2) → 1
+  pow(2, 3) → 8
+  atan2(1, 1) → 0.7853981633974483 (PI/4)
+  sqrt(100^2 - 2*9.81*300) → valid expression
+
+Expression must contain only numbers, allowed operators, exact function names, constants, whitespace, and parentheses. Result must be a finite number.`,
     inlinable: true,
     asTool: true,
     inputs: [

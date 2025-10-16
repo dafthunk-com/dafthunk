@@ -21,6 +21,7 @@ export interface JSONSchema {
 export interface ToolDefinition {
   name: string;
   description: string;
+  specification?: string;
   parameters: JSONSchema;
   function: (args: any) => Promise<string>;
 }

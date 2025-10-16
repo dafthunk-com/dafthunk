@@ -16,6 +16,7 @@ export class SubtractionNode extends ExecutableNode {
     icon: "minus",
     documentation:
       "This node subtracts one number from another to produce their difference.",
+    specification: "result = a - b",
     inlinable: true,
     asTool: true,
     inputs: [

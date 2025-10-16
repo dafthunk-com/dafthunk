@@ -76,9 +76,16 @@ export class NodeToolProvider implements ToolProvider {
         }
       };
 
+      // Build description with specification if available
+      let description = nodeType.description || `Execute ${nodeType.name} node`;
+      if (nodeType.specification) {
+        description = `${description}\n\nSpecification:\n${nodeType.specification}`;
+      }
+
       return {
         name: `node_${nodeType.type}`,
-        description: nodeType.description || `Execute ${nodeType.name} node`,
+        description,
+        specification: nodeType.specification,
         parameters,
         function: executableFunction,
       };
