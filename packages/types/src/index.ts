@@ -4,6 +4,7 @@ export * from "./dashboard";
 export * from "./dataset";
 export * from "./deployment";
 export * from "./execution";
+export * from "./integration";
 export * from "./objects";
 export * from "./organization";
 export * from "./profile";

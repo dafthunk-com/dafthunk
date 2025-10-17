@@ -71,6 +71,17 @@ export const WorkflowTriggerType = {
 export type WorkflowTriggerTypeType =
   (typeof WorkflowTriggerType)[keyof typeof WorkflowTriggerType];
 
+// Integration provider types
+export const IntegrationProvider = {
+  GOOGLE_MAIL: "google-mail",
+  GOOGLE_CALENDAR: "google-calendar",
+  DISCORD: "discord",
+  OPENAI: "openai",
+} as const;
+
+export type IntegrationProviderType =
+  (typeof IntegrationProvider)[keyof typeof IntegrationProvider];
+
 // Cron version alias types
 export const VersionAlias = {
   DEV: "dev",
@@ -382,6 +393,36 @@ export const secrets = sqliteTable(
   ]
 );
 
+// Integrations - Third-party service connections with OAuth tokens
+export const integrations = sqliteTable(
+  "integrations",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    provider: text("provider").$type<IntegrationProviderType>().notNull(),
+    encryptedToken: text("encrypted_token").notNull(),
+    encryptedRefreshToken: text("encrypted_refresh_token"),
+    tokenExpiresAt: integer("token_expires_at", { mode: "timestamp" }),
+    metadata: text("metadata"), // JSON for provider-specific data
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    createdAt: createCreatedAt(),
+    updatedAt: createUpdatedAt(),
+  },
+  (table) => [
+    index("integrations_name_idx").on(table.name),
+    index("integrations_provider_idx").on(table.provider),
+    index("integrations_organization_id_idx").on(table.organizationId),
+    index("integrations_created_at_idx").on(table.createdAt),
+    // Ensure unique integration names per organization
+    uniqueIndex("integrations_organization_id_name_unique_idx").on(
+      table.organizationId,
+      table.name
+    ),
+  ]
+);
+
 /**
  * RELATION DEFINITIONS
  */
@@ -404,6 +445,7 @@ export const organizationsRelations = relations(
     apiKeys: many(apiKeys),
     datasets: many(datasets),
     secrets: many(secrets),
+    integrations: many(integrations),
     users: one(users),
   })
 );
@@ -486,6 +528,13 @@ export const secretsRelations = relations(secrets, ({ one }) => ({
   }),
 }));
 
+export const integrationsRelations = relations(integrations, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [integrations.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
 /**
  * HELPER FUNCTIONS
  */
@@ -533,3 +582,6 @@ export type DatasetInsert = typeof datasets.$inferInsert;
 
 export type SecretRow = typeof secrets.$inferSelect;
 export type SecretInsert = typeof secrets.$inferInsert;
+
+export type IntegrationRow = typeof integrations.$inferSelect;
+export type IntegrationInsert = typeof integrations.$inferInsert;
