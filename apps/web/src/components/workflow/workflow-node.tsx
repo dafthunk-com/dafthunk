@@ -255,6 +255,28 @@ export const WorkflowNode = memo(
       "rag-ai-search": DatasetSelectorWidget,
       "rag-search": DatasetSelectorWidget,
       "send-email-google-mail": IntegrationSelectorWidget,
+      "read-inbox-google-mail": IntegrationSelectorWidget,
+      "create-reply-draft-google-mail": IntegrationSelectorWidget,
+      "check-draft-google-mail": IntegrationSelectorWidget,
+      "send-draft-google-mail": IntegrationSelectorWidget,
+      "delete-draft-google-mail": IntegrationSelectorWidget,
+      "update-draft-google-mail": IntegrationSelectorWidget,
+      "mark-message-google-mail": IntegrationSelectorWidget,
+      "modify-labels-google-mail": IntegrationSelectorWidget,
+      "search-messages-google-mail": IntegrationSelectorWidget,
+      "get-message-google-mail": IntegrationSelectorWidget,
+      "archive-message-google-mail": IntegrationSelectorWidget,
+      "trash-message-google-mail": IntegrationSelectorWidget,
+      "create-event-google-calendar": IntegrationSelectorWidget,
+      "list-events-google-calendar": IntegrationSelectorWidget,
+      "get-event-google-calendar": IntegrationSelectorWidget,
+      "update-event-google-calendar": IntegrationSelectorWidget,
+      "delete-event-google-calendar": IntegrationSelectorWidget,
+      "search-events-google-calendar": IntegrationSelectorWidget,
+      "add-attendees-google-calendar": IntegrationSelectorWidget,
+      "check-availability-google-calendar": IntegrationSelectorWidget,
+      "quick-add-google-calendar": IntegrationSelectorWidget,
+      "list-calendars-google-calendar": IntegrationSelectorWidget,
     };
 
     // Get widget configuration if this is a widget node
@@ -282,7 +304,31 @@ export const WorkflowNode = memo(
       }
 
       // Handle integration selector specifically
-      if (nodeType === "send-email-google-mail") {
+      if (
+        nodeType === "send-email-google-mail" ||
+        nodeType === "read-inbox-google-mail" ||
+        nodeType === "create-reply-draft-google-mail" ||
+        nodeType === "check-draft-google-mail" ||
+        nodeType === "send-draft-google-mail" ||
+        nodeType === "delete-draft-google-mail" ||
+        nodeType === "update-draft-google-mail" ||
+        nodeType === "mark-message-google-mail" ||
+        nodeType === "modify-labels-google-mail" ||
+        nodeType === "search-messages-google-mail" ||
+        nodeType === "get-message-google-mail" ||
+        nodeType === "archive-message-google-mail" ||
+        nodeType === "trash-message-google-mail" ||
+        nodeType === "create-event-google-calendar" ||
+        nodeType === "list-events-google-calendar" ||
+        nodeType === "get-event-google-calendar" ||
+        nodeType === "update-event-google-calendar" ||
+        nodeType === "delete-event-google-calendar" ||
+        nodeType === "search-events-google-calendar" ||
+        nodeType === "add-attendees-google-calendar" ||
+        nodeType === "check-availability-google-calendar" ||
+        nodeType === "quick-add-google-calendar" ||
+        nodeType === "list-calendars-google-calendar"
+      ) {
         const integrationIdInput = data.inputs.find((i) => i.id === "integrationId");
         if (integrationIdInput) {
           updateNodeInput(

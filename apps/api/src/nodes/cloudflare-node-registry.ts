@@ -18,6 +18,16 @@ import { WhisperLargeV3TurboNode } from "./audio/whisper-large-v3-turbo-node";
 import { WhisperNode } from "./audio/whisper-node";
 import { WhisperTinyEnNode } from "./audio/whisper-tiny-en-node";
 import { BaseNodeRegistry } from "./base-node-registry";
+import { AddAttendeesGoogleCalendarNode } from "./google-calendar/add-attendees-google-calendar-node";
+import { CheckAvailabilityGoogleCalendarNode } from "./google-calendar/check-availability-google-calendar-node";
+import { CreateEventGoogleCalendarNode } from "./google-calendar/create-event-google-calendar-node";
+import { DeleteEventGoogleCalendarNode } from "./google-calendar/delete-event-google-calendar-node";
+import { GetEventGoogleCalendarNode } from "./google-calendar/get-event-google-calendar-node";
+import { ListCalendarsGoogleCalendarNode } from "./google-calendar/list-calendars-google-calendar-node";
+import { ListEventsGoogleCalendarNode } from "./google-calendar/list-events-google-calendar-node";
+import { QuickAddGoogleCalendarNode } from "./google-calendar/quick-add-google-calendar-node";
+import { SearchEventsGoogleCalendarNode } from "./google-calendar/search-events-google-calendar-node";
+import { UpdateEventGoogleCalendarNode } from "./google-calendar/update-event-google-calendar-node";
 import { CloudflareBrowserContentNode } from "./browser/cloudflare-browser-content-node";
 import { CloudflareBrowserJsonNode } from "./browser/cloudflare-browser-json-node";
 import { CloudflareBrowserLinksNode } from "./browser/cloudflare-browser-links-node";
@@ -35,7 +45,19 @@ import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
 import { SendEmailSendgridNode } from "./email/send-emai-sendgrid-node";
-import { SendEmailGoogleMailNode } from "./email/send-email-google-mail-node";
+import { ArchiveMessageGoogleMailNode } from "./google-mail/archive-message-google-mail-node";
+import { CheckDraftGoogleMailNode } from "./google-mail/check-draft-google-mail-node";
+import { CreateReplyDraftGoogleMailNode } from "./google-mail/create-reply-draft-google-mail-node";
+import { DeleteDraftGoogleMailNode } from "./google-mail/delete-draft-google-mail-node";
+import { GetMessageGoogleMailNode } from "./google-mail/get-message-google-mail-node";
+import { MarkMessageGoogleMailNode } from "./google-mail/mark-message-google-mail-node";
+import { ModifyLabelsGoogleMailNode } from "./google-mail/modify-labels-google-mail-node";
+import { ReadInboxGoogleMailNode } from "./google-mail/read-inbox-google-mail-node";
+import { SearchMessagesGoogleMailNode } from "./google-mail/search-messages-google-mail-node";
+import { SendDraftGoogleMailNode } from "./google-mail/send-draft-google-mail-node";
+import { SendEmailGoogleMailNode } from "./google-mail/send-email-google-mail-node";
+import { TrashMessageGoogleMailNode } from "./google-mail/trash-message-google-mail-node";
+import { UpdateDraftGoogleMailNode } from "./google-mail/update-draft-google-mail-node";
 import { SendEmailResendNode } from "./email/send-email-resend-node";
 import { SendEmailSesNode } from "./email/send-email-ses-node";
 import { Gemini25FlashAudioUnderstandingNode } from "./gemini/gemini-2-5-flash-audio-understanding-node";
@@ -470,6 +492,30 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
 
     // Google Mail integration is always available
     this.registerImplementation(SendEmailGoogleMailNode);
+    this.registerImplementation(ReadInboxGoogleMailNode);
+    this.registerImplementation(CreateReplyDraftGoogleMailNode);
+    this.registerImplementation(CheckDraftGoogleMailNode);
+    this.registerImplementation(SendDraftGoogleMailNode);
+    this.registerImplementation(DeleteDraftGoogleMailNode);
+    this.registerImplementation(UpdateDraftGoogleMailNode);
+    this.registerImplementation(MarkMessageGoogleMailNode);
+    this.registerImplementation(ModifyLabelsGoogleMailNode);
+    this.registerImplementation(SearchMessagesGoogleMailNode);
+    this.registerImplementation(GetMessageGoogleMailNode);
+    this.registerImplementation(ArchiveMessageGoogleMailNode);
+    this.registerImplementation(TrashMessageGoogleMailNode);
+
+    // Google Calendar integration is always available
+    this.registerImplementation(CreateEventGoogleCalendarNode);
+    this.registerImplementation(ListEventsGoogleCalendarNode);
+    this.registerImplementation(GetEventGoogleCalendarNode);
+    this.registerImplementation(UpdateEventGoogleCalendarNode);
+    this.registerImplementation(DeleteEventGoogleCalendarNode);
+    this.registerImplementation(SearchEventsGoogleCalendarNode);
+    this.registerImplementation(AddAttendeesGoogleCalendarNode);
+    this.registerImplementation(CheckAvailabilityGoogleCalendarNode);
+    this.registerImplementation(QuickAddGoogleCalendarNode);
+    this.registerImplementation(ListCalendarsGoogleCalendarNode);
 
     // RAG nodes
     if (this.developerMode) {
