@@ -4,7 +4,6 @@ import { Bindings } from "./context";
 import {
   createDatabase,
   getOrganizationComputeCredits,
-  getWorkflowWithData,
 } from "./db";
 import {
   ExecutionStatus,
@@ -13,6 +12,7 @@ import {
 } from "./db";
 import { ExecutionStore } from "./runtime/execution-store";
 import { ObjectStore } from "./runtime/object-store";
+import { WorkflowStore } from "./runtime/workflow-store";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>
@@ -76,6 +76,7 @@ export async function handleIncomingEmail(
 
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(db, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(db, env.RESSOURCES);
   const objectStore = new ObjectStore(env.RESSOURCES);
 
   // Get workflow data either from deployment or directly from workflow
@@ -85,9 +86,7 @@ export async function handleIncomingEmail(
 
   if (version === "dev") {
     // Get workflow with data from DB and R2
-    const workflowWithData = await getWorkflowWithData(
-      db,
-      objectStore,
+    const workflowWithData = await workflowStore.getWithData(
       workflowIdOrHandle,
       organizationIdOrHandle
     );

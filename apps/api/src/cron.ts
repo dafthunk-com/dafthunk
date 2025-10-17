@@ -10,6 +10,7 @@ import {
 } from "./db/queries";
 import { ExecutionStore } from "./runtime/execution-store";
 import { ObjectStore } from "./runtime/object-store";
+import { WorkflowStore } from "./runtime/workflow-store";
 
 // This function will now handle the actual execution triggering and initial record saving
 async function executeWorkflow(
@@ -95,6 +96,7 @@ export async function handleCronTriggers(
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(db, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(db, env.RESSOURCES);
   const objectStore = new ObjectStore(env.RESSOURCES);
   const now = new Date();
 
@@ -123,7 +125,17 @@ export async function handleCronTriggers(
         if (versionAlias === "dev") {
           // Load workflow data from R2
           try {
-            workflowToExecute = await objectStore.readWorkflow(workflow.id);
+            const workflowWithData = await workflowStore.getWithData(
+              workflow.id,
+              workflow.organizationId
+            );
+            if (!workflowWithData) {
+              console.error(
+                `Failed to load workflow data for ${workflow.id}: not found`
+              );
+              continue;
+            }
+            workflowToExecute = workflowWithData.data;
           } catch (error) {
             console.error(
               `Failed to load workflow data from R2 for ${workflow.id}:`,

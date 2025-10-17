@@ -21,10 +21,10 @@ import {
   getLatestDeployment,
   getLatestDeploymentsVersionNumbers,
   getOrganizationComputeCredits,
-  getWorkflow,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
 import { ObjectStore } from "../runtime/object-store";
+import { WorkflowStore } from "../runtime/workflow-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { getAuthContext } from "../utils/auth-context";
 import {
@@ -154,26 +154,21 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
   const db = createDatabase(c.env.DB);
+  const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+  const objectStore = new ObjectStore(c.env.RESSOURCES);
   const now = new Date();
 
-  // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-  if (!workflow) {
+  // Load workflow with data from D1 and R2
+  const workflowWithData = await workflowStore.getWithData(
+    workflowIdOrHandle,
+    organizationId
+  );
+  if (!workflowWithData) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  // Load full workflow data from R2
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
-  let workflowData;
-  try {
-    workflowData = await objectStore.readWorkflow(workflow.id);
-  } catch (error) {
-    console.error(
-      `Failed to load workflow data from R2 for ${workflow.id}:`,
-      error
-    );
-    return c.json({ error: "Failed to load workflow data" }, 500);
-  }
+  const workflow = workflowWithData;
+  const workflowData = workflowWithData.data;
 
   // Get the latest version number and increment
   const latestVersion =
@@ -233,9 +228,10 @@ deploymentRoutes.get(
     const organizationId = c.get("organizationId")!;
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const db = createDatabase(c.env.DB);
+    const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
 
     // Check if workflow exists and belongs to the organization
-    const workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
+    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
