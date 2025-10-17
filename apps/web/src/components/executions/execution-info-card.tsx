@@ -135,7 +135,7 @@ export function ExecutionInfoCard({
               </p>
               <p className="mt-1">
                 <Link
-                  to={getOrgUrl(`workflows/executions/${id}`)}
+                  to={getOrgUrl(`executions/${id}`)}
                   className="hover:underline font-mono text-xs"
                 >
                   {id}
