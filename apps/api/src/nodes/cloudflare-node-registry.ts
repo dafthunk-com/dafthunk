@@ -35,6 +35,7 @@ import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
 import { SendEmailSendgridNode } from "./email/send-emai-sendgrid-node";
+import { SendEmailGoogleMailNode } from "./email/send-email-google-mail-node";
 import { SendEmailResendNode } from "./email/send-email-resend-node";
 import { SendEmailSesNode } from "./email/send-email-ses-node";
 import { Gemini25FlashAudioUnderstandingNode } from "./gemini/gemini-2-5-flash-audio-understanding-node";
@@ -466,6 +467,9 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     if (hasResendEmail) {
       this.registerImplementation(SendEmailResendNode);
     }
+
+    // Google Mail integration is always available
+    this.registerImplementation(SendEmailGoogleMailNode);
 
     // RAG nodes
     if (this.developerMode) {

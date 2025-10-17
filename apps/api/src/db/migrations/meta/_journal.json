@@ -99,6 +99,13 @@
       "when": 1760684648715,
       "tag": "0013_add_integrations_table",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1760718271260,
+      "tag": "0014_add_status_column",
+      "breakpoints": true
     }
   ]
 }

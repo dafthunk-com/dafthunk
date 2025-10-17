@@ -25,6 +25,7 @@ import { ConditionalExecutionHandler } from "./conditional-execution-handler";
 import { CreditManager } from "./credit-manager";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionPlanner } from "./execution-planner";
+import { IntegrationManager } from "./integration-manager";
 import { NodeExecutor } from "./node-executor";
 import { NodeInputMapper } from "./node-input-mapper";
 import { NodeOutputMapper } from "./node-output-mapper";
@@ -104,6 +105,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private inputMapper: NodeInputMapper;
   private outputMapper: NodeOutputMapper;
   private secretManager: SecretManager;
+  private integrationManager: IntegrationManager;
   private creditManager: CreditManager;
   private conditionalHandler: ConditionalExecutionHandler;
   private persistence: ExecutionPersistence;
@@ -122,6 +124,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     this.inputMapper = new NodeInputMapper(this.nodeRegistry);
     this.outputMapper = new NodeOutputMapper();
     this.secretManager = new SecretManager(env);
+    this.integrationManager = new IntegrationManager(env);
     this.creditManager = new CreditManager(env, this.nodeRegistry);
     this.conditionalHandler = new ConditionalExecutionHandler(
       this.nodeRegistry,
@@ -134,7 +137,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       this.toolRegistry,
       this.inputMapper,
       this.outputMapper,
-      this.conditionalHandler
+      this.conditionalHandler,
+      this.integrationManager
     );
   }
 
@@ -260,6 +264,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         async () => this.secretManager.preloadAllSecrets(organizationId)
       );
 
+      // Preload all organization integrations for synchronous access
+      const integrations = await step.do(
+        "preload organization integrations",
+        Runtime.defaultStepConfig,
+        async () => this.integrationManager.preloadAllIntegrations(organizationId)
+      );
+
       // Prepare workflow (validation + ordering).
       // @ts-ignore
       runtimeState = await step.do(
@@ -308,6 +319,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 organizationId,
                 instanceId,
                 secrets,
+                integrations,
                 httpRequest,
                 emailMessage
               )
@@ -327,6 +339,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 organizationId,
                 instanceId,
                 secrets,
+                integrations,
                 httpRequest,
                 emailMessage
               )

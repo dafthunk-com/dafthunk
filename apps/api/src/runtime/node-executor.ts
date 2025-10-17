@@ -5,6 +5,7 @@ import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
 import { ObjectStore } from "../stores/object-store";
 import type { ConditionalExecutionHandler } from "./conditional-execution-handler";
+import type { IntegrationManager } from "./integration-manager";
 import type { NodeInputMapper } from "./node-input-mapper";
 import type { NodeOutputMapper } from "./node-output-mapper";
 import type { NodeOutputs, RuntimeState } from "./runtime";
@@ -20,7 +21,8 @@ export class NodeExecutor {
     private toolRegistry: CloudflareToolRegistry,
     private inputMapper: NodeInputMapper,
     private outputMapper: NodeOutputMapper,
-    private conditionalHandler: ConditionalExecutionHandler
+    private conditionalHandler: ConditionalExecutionHandler,
+    private integrationManager: IntegrationManager
   ) {}
 
   /**
@@ -33,6 +35,7 @@ export class NodeExecutor {
     organizationId: string,
     executionId: string,
     secrets: Record<string, string>,
+    integrations: Record<string, any>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<RuntimeState> {
@@ -65,6 +68,7 @@ export class NodeExecutor {
           organizationId,
           executionId,
           secrets,
+          integrations,
           httpRequest,
           emailMessage
         );
@@ -113,6 +117,7 @@ export class NodeExecutor {
     organizationId: string,
     executionId: string,
     secrets: Record<string, string>,
+    integrations: Record<string, any>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<RuntimeState> {
@@ -181,6 +186,8 @@ export class NodeExecutor {
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
         secrets: secrets || {},
+        integrations: integrations || {},
+        integrationManager: this.integrationManager,
         env: {
           DB: this.env.DB,
           AI: this.env.AI,

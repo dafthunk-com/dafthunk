@@ -16,6 +16,7 @@ import {
   Polygon,
 } from "@dafthunk/types";
 
+import type { IntegrationManager } from "../runtime/integration-manager";
 import { BaseToolRegistry } from "./base-tool-registry";
 import { ToolReference } from "./tool-types";
 
@@ -186,6 +187,19 @@ export interface NodeContext {
   emailMessage?: EmailMessage;
   toolRegistry?: BaseToolRegistry;
   secrets?: Record<string, string>; // Preloaded secrets for synchronous access
+  integrations?: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      provider: string;
+      token: string;
+      refreshToken?: string;
+      tokenExpiresAt?: Date;
+      metadata?: Record<string, any>;
+    }
+  >; // Preloaded integrations with decrypted tokens
+  integrationManager?: IntegrationManager; // Manager for refreshing expired tokens
   env: {
     DB: D1Database;
     AI: Ai;

@@ -1013,6 +1013,7 @@ export async function getIntegrations(
       id: integrations.id,
       name: integrations.name,
       provider: integrations.provider,
+      status: integrations.status,
       tokenExpiresAt: integrations.tokenExpiresAt,
       metadata: integrations.metadata,
       createdAt: integrations.createdAt,
@@ -1044,6 +1045,7 @@ export async function getAllIntegrationsWithTokens(
       id: integrations.id,
       name: integrations.name,
       provider: integrations.provider,
+      status: integrations.status,
       encryptedToken: integrations.encryptedToken,
       encryptedRefreshToken: integrations.encryptedRefreshToken,
       tokenExpiresAt: integrations.tokenExpiresAt,
@@ -1079,8 +1081,48 @@ export async function getIntegration(
       id: integrations.id,
       name: integrations.name,
       provider: integrations.provider,
+      status: integrations.status,
       tokenExpiresAt: integrations.tokenExpiresAt,
       metadata: integrations.metadata,
+      createdAt: integrations.createdAt,
+      updatedAt: integrations.updatedAt,
+    })
+    .from(integrations)
+    .where(
+      and(
+        eq(integrations.id, id),
+        eq(integrations.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return integration || null;
+}
+
+/**
+ * Get an integration by ID (with encrypted tokens for node execution)
+ *
+ * @param db Database instance
+ * @param id Integration ID
+ * @param organizationId Organization ID
+ * @returns Integration record with encrypted tokens or null if not found
+ */
+export async function getIntegrationById(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+) {
+  const [integration] = await db
+    .select({
+      id: integrations.id,
+      name: integrations.name,
+      provider: integrations.provider,
+      status: integrations.status,
+      encryptedToken: integrations.encryptedToken,
+      encryptedRefreshToken: integrations.encryptedRefreshToken,
+      tokenExpiresAt: integrations.tokenExpiresAt,
+      metadata: integrations.metadata,
+      organizationId: integrations.organizationId,
       createdAt: integrations.createdAt,
       updatedAt: integrations.updatedAt,
     })
@@ -1112,6 +1154,7 @@ export async function updateIntegration(
   organizationId: string,
   updates: {
     name?: string;
+    status?: string;
     token?: string;
     refreshToken?: string;
     tokenExpiresAt?: Date;
@@ -1126,6 +1169,10 @@ export async function updateIntegration(
 
   if (updates.name) {
     updateData.name = updates.name;
+  }
+
+  if (updates.status) {
+    updateData.status = updates.status as any;
   }
 
   if (updates.token) {
@@ -1167,6 +1214,7 @@ export async function updateIntegration(
       id: integrations.id,
       name: integrations.name,
       provider: integrations.provider,
+      status: integrations.status,
       tokenExpiresAt: integrations.tokenExpiresAt,
       metadata: integrations.metadata,
       createdAt: integrations.createdAt,
