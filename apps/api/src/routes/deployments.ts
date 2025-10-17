@@ -145,11 +145,12 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   }
 
   const workflowData = workflowWithData.data;
+  const workflowId = workflowWithData.id;
 
   // Get the latest version number and increment
   const latestVersion =
     (await deploymentStore.getLatestVersionNumber(
-      workflowIdOrHandle,
+      workflowId,
       organizationId
     )) || 0;
   const newVersion = latestVersion + 1;
@@ -159,7 +160,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const newDeployment = await deploymentStore.create({
     id: deploymentId,
     organizationId: organizationId,
-    workflowId: workflowIdOrHandle,
+    workflowId: workflowId,
     version: newVersion,
     createdAt: now,
     updatedAt: now,
@@ -207,7 +208,7 @@ deploymentRoutes.get(
 
     // Get all deployments for this workflow
     const deploymentsList = await deploymentStore.listByWorkflow(
-      workflowIdOrHandle,
+      workflow.id,
       organizationId
     );
 
