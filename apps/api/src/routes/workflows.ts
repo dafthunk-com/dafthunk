@@ -31,18 +31,17 @@ import {
   ExecutionStatus,
   getCronTrigger,
   getDeploymentByVersion,
-  getExecutionWithData,
   getLatestDeployment,
   getOrganizationComputeCredits,
   getWorkflow,
   getWorkflows,
   getWorkflowWithData,
-  saveExecution,
   updateWorkflow,
   upsertCronTrigger as upsertDbCronTrigger,
   type WorkflowInsert,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
+import { ExecutionStore } from "../runtime/execution-store";
 import { ObjectStore } from "../runtime/object-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { getAuthContext } from "../utils/auth-context";
@@ -637,12 +636,10 @@ workflowRoutes.post(
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
     const db = createDatabase(c.env.DB);
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
 
     // Get the execution to verify it exists and belongs to this organization
-    const execution = await getExecutionWithData(
-      db,
-      objectStore,
+    const execution = await executionStore.getWithData(
       executionId,
       organizationId
     );
@@ -669,7 +666,7 @@ workflowRoutes.post(
 
       // Update the execution status in the database
       const now = new Date();
-      const updatedExecution = await saveExecution(db, {
+      const updatedExecution = await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
         deploymentId: execution.deploymentId ?? undefined,
@@ -682,16 +679,6 @@ workflowRoutes.post(
         endedAt: now,
         startedAt: execution.startedAt ?? undefined,
       });
-
-      // Save updated execution to R2
-      try {
-        await objectStore.writeExecution(updatedExecution);
-      } catch (error) {
-        console.error(
-          `Failed to save updated execution to R2: ${executionId}`,
-          error
-        );
-      }
 
       const response: CancelWorkflowExecutionResponse = {
         id: updatedExecution.id,
@@ -704,7 +691,7 @@ workflowRoutes.post(
 
       // If the instance doesn't exist or can't be terminated, still update the database
       const now = new Date();
-      const updatedExecution = await saveExecution(db, {
+      const updatedExecution = await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
         deploymentId: execution.deploymentId ?? undefined,
@@ -717,16 +704,6 @@ workflowRoutes.post(
         endedAt: now,
         startedAt: execution.startedAt ?? undefined,
       });
-
-      // Save updated execution to R2
-      try {
-        await objectStore.writeExecution(updatedExecution);
-      } catch (error) {
-        console.error(
-          `Failed to save updated execution to R2: ${executionId}`,
-          error
-        );
-      }
 
       const response: CancelWorkflowExecutionResponse = {
         id: executionId,

@@ -9,8 +9,8 @@ import {
   ExecutionStatus,
   getDeploymentsGroupedByWorkflow,
   getWorkflows,
-  listExecutions,
 } from "../db";
+import { ExecutionStore } from "../runtime/execution-store";
 
 const dashboard = new Hono<ApiContext>();
 
@@ -26,6 +26,7 @@ dashboard.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
   const db = createDatabase(c.env.DB);
+  const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
 
   try {
     // Workflows count
@@ -43,8 +44,7 @@ dashboard.get("/", async (c) => {
     );
 
     // Executions stats
-    const executions: ExecutionRow[] = await listExecutions(
-      db,
+    const executions: ExecutionRow[] = await executionStore.list(
       organizationId,
       {
         limit: 10,

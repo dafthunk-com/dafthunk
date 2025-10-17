@@ -11,12 +11,10 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import {
   createDatabase,
-  getExecutionWithData,
   getWorkflowName,
   getWorkflowNames,
-  listExecutions,
 } from "../db";
-import { ObjectStore } from "../runtime/object-store";
+import { ExecutionStore } from "../runtime/execution-store";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -24,12 +22,10 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const id = c.req.param("id");
   const db = createDatabase(c.env.DB);
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
+  const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
 
   try {
-    const execution = await getExecutionWithData(
-      db,
-      objectStore,
+    const execution = await executionStore.getWithData(
       id,
       organizationId
     );
@@ -67,6 +63,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
   const db = createDatabase(c.env.DB);
+  const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;
@@ -83,7 +80,7 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
     offset: parsedOffset,
   };
 
-  const executions = await listExecutions(db, organizationId, queryParams);
+  const executions = await executionStore.list(organizationId, queryParams);
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];

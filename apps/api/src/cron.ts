@@ -6,9 +6,9 @@ import { createDatabase, ExecutionStatusType } from "./db";
 import {
   getDueCronTriggers,
   getOrganizationComputeCredits,
-  saveExecution,
   updateCronTriggerRunTimes,
 } from "./db/queries";
+import { ExecutionStore } from "./runtime/execution-store";
 import { ObjectStore } from "./runtime/object-store";
 
 // This function will now handle the actual execution triggering and initial record saving
@@ -24,7 +24,7 @@ async function executeWorkflow(
   db: ReturnType<typeof createDatabase>,
   env: Bindings,
   _ctx: ExecutionContext,
-  objectStore: ObjectStore
+  executionStore: ExecutionStore
 ): Promise<void> {
   console.log(`Attempting to execute workflow ${workflowInfo.id} via cron.`);
 
@@ -66,7 +66,7 @@ async function executeWorkflow(
       status: "idle" as const,
     }));
 
-    const initialExecution = await saveExecution(db, {
+    const initialExecution = await executionStore.save({
       id: executionId,
       workflowId: workflowInfo.id,
       deploymentId: deploymentId,
@@ -79,13 +79,6 @@ async function executeWorkflow(
       startedAt: new Date(),
     });
     console.log(`Initial execution record saved for ${executionId}`);
-
-    // Save execution data to R2
-    try {
-      await objectStore.writeExecution(initialExecution);
-    } catch (error) {
-      console.error(`Failed to save execution to R2: ${executionId}`, error);
-    }
   } catch (execError) {
     console.error(
       `Error executing workflow ${workflowInfo.id} or saving initial record:`,
@@ -101,6 +94,7 @@ export async function handleCronTriggers(
 ): Promise<void> {
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
   const db = createDatabase(env.DB);
+  const executionStore = new ExecutionStore(db, env.RESSOURCES);
   const objectStore = new ObjectStore(env.RESSOURCES);
   const now = new Date();
 
@@ -173,7 +167,7 @@ export async function handleCronTriggers(
             db,
             env,
             ctx,
-            objectStore
+            executionStore
           );
         } else {
           // This case should ideally not be reached due to the checks above,

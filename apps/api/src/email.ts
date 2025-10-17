@@ -10,8 +10,8 @@ import {
   ExecutionStatus,
   getDeploymentByVersion,
   getLatestDeployment,
-  saveExecution,
 } from "./db";
+import { ExecutionStore } from "./runtime/execution-store";
 import { ObjectStore } from "./runtime/object-store";
 
 async function streamToString(
@@ -75,6 +75,7 @@ export async function handleIncomingEmail(
   console.log(`Parsed trigger type: ${triggerType}`);
 
   const db = createDatabase(env.DB);
+  const executionStore = new ExecutionStore(db, env.RESSOURCES);
   const objectStore = new ObjectStore(env.RESSOURCES);
 
   // Get workflow data either from deployment or directly from workflow
@@ -193,7 +194,7 @@ export async function handleIncomingEmail(
   }));
 
   // Save initial execution record
-  const initialExecution = await saveExecution(db, {
+  const initialExecution = await executionStore.save({
     id: executionId,
     workflowId: workflow.id,
     deploymentId,
@@ -204,11 +205,4 @@ export async function handleIncomingEmail(
     createdAt: new Date(),
     updatedAt: new Date(),
   });
-
-  // Save execution data to R2
-  try {
-    await objectStore.writeExecution(initialExecution);
-  } catch (error) {
-    console.error(`Failed to save execution to R2: ${executionId}`, error);
-  }
 }

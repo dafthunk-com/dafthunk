@@ -1,8 +1,8 @@
 import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { createDatabase, type ExecutionStatusType, saveExecution } from "../db";
-import { ObjectStore } from "./object-store";
+import { createDatabase, type ExecutionStatusType } from "../db";
+import { ExecutionStore } from "./execution-store";
 import type { RuntimeState } from "./runtime";
 
 /**
@@ -10,10 +10,11 @@ import type { RuntimeState } from "./runtime";
  * Manages database storage and WebSocket updates to sessions.
  */
 export class ExecutionPersistence {
-  private objectStore: ObjectStore;
+  private executionStore: ExecutionStore;
 
   constructor(private env: Bindings) {
-    this.objectStore = new ObjectStore(env.RESSOURCES);
+    const db = createDatabase(env.DB);
+    this.executionStore = new ExecutionStore(db, env.RESSOURCES);
   }
 
   /**
@@ -95,8 +96,7 @@ export class ExecutionPersistence {
         : undefined;
 
     try {
-      const db = createDatabase(this.env.DB);
-      const execution = await saveExecution(db, {
+      const execution = await this.executionStore.save({
         id: instanceId,
         workflowId,
         userId,
@@ -108,13 +108,6 @@ export class ExecutionPersistence {
         startedAt,
         endedAt,
       });
-
-      // Save execution data to R2
-      try {
-        await this.objectStore.writeExecution(execution);
-      } catch (error) {
-        console.error(`Failed to save execution to R2: ${instanceId}`, error);
-      }
 
       return execution;
     } catch (error) {
