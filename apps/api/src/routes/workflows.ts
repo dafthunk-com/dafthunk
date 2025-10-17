@@ -59,8 +59,8 @@ const workflowRoutes = new Hono<ExtendedApiContext>();
  * List all workflows for the current organization
  */
 workflowRoutes.get("/", jwtMiddleware, async (c) => {
-  const db = createDatabase(c.env.DB);
-  const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const _db = createDatabase(c.env.DB);
 
   const organizationId = c.get("organizationId")!;
 
@@ -124,8 +124,8 @@ workflowRoutes.post(
     }
 
     // Save workflow to both D1 and R2
-    const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const _db = createDatabase(c.env.DB);
 
     const savedWorkflow = await workflowStore.save({
       id: workflowData.id,
@@ -166,8 +166,8 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const db = createDatabase(c.env.DB);
-  const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const _db = createDatabase(c.env.DB);
 
   try {
     const workflow = await workflowStore.getWithData(id, organizationId);
@@ -211,12 +211,14 @@ workflowRoutes.put(
   ),
   async (c) => {
     const id = c.req.param("id");
-    const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
 
     const organizationId = c.get("organizationId")!;
 
-    const existingWorkflow = await workflowStore.getWithData(id, organizationId);
+    const existingWorkflow = await workflowStore.getWithData(
+      id,
+      organizationId
+    );
 
     if (!existingWorkflow) {
       return c.json({ error: "Workflow not found" }, 404);
@@ -305,8 +307,7 @@ workflowRoutes.put(
  */
 workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
   const id = c.req.param("id");
-  const db = createDatabase(c.env.DB);
-  const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
 
   const organizationId = c.get("organizationId")!;
 
@@ -326,8 +327,8 @@ workflowRoutes.delete("/:id", jwtMiddleware, async (c) => {
 workflowRoutes.get("/:workflowIdOrHandle/cron", jwtMiddleware, async (c) => {
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
   const organizationId = c.get("organizationId")!;
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
   const db = createDatabase(c.env.DB);
-  const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
 
   const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
   if (!workflow) {
@@ -374,9 +375,12 @@ workflowRoutes.put(
     const organizationId = c.get("organizationId")!;
     const data = c.req.valid("json");
     const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
 
-    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
@@ -478,7 +482,7 @@ workflowRoutes.post(
     let workflowData;
     let workflow: any;
     let deploymentId: string | undefined;
-    const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
     const objectStore = new ObjectStore(c.env.RESSOURCES);
 
     if (version === "dev") {
@@ -590,8 +594,7 @@ workflowRoutes.post(
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
-    const db = createDatabase(c.env.DB);
-    const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
+    const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
 
     // Get the execution to verify it exists and belongs to this organization
     const execution = await executionStore.getWithData(
@@ -646,7 +649,7 @@ workflowRoutes.post(
 
       // If the instance doesn't exist or can't be terminated, still update the database
       const now = new Date();
-      const updatedExecution = await executionStore.save({
+      const _updatedExecution = await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
         deploymentId: execution.deploymentId ?? undefined,

@@ -25,8 +25,8 @@ dashboard.use("*", jwtMiddleware);
 dashboard.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
+  const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
   const db = createDatabase(c.env.DB);
-  const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
 
   try {
     // Workflows count

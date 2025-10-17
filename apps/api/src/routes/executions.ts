@@ -9,32 +9,26 @@ import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import {
-  createDatabase,
-  getWorkflowName,
-  getWorkflowNames,
-} from "../db";
+import { createDatabase, getWorkflowName, getWorkflowNames } from "../db";
 import { ExecutionStore } from "../runtime/execution-store";
+import { ObjectStore } from "../runtime/object-store";
 
 const executionRoutes = new Hono<ApiContext>();
 
 executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const id = c.req.param("id");
-  const db = createDatabase(c.env.DB);
-  const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
+  const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
 
   try {
-    const execution = await executionStore.getWithData(
-      id,
-      organizationId
-    );
+    const execution = await executionStore.getWithData(id, organizationId);
 
     if (!execution) {
       return c.json({ error: "Execution not found" }, 404);
     }
 
     // Get workflow name
+    const db = createDatabase(c.env.DB);
     const workflowName = await getWorkflowName(
       db,
       execution.workflowId,
@@ -62,8 +56,8 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 });
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
+  const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
   const db = createDatabase(c.env.DB);
-  const executionStore = new ExecutionStore(db, c.env.RESSOURCES);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;

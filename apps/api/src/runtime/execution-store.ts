@@ -1,10 +1,10 @@
 import type { NodeExecution, WorkflowExecution } from "@dafthunk/types";
 import { and, desc, eq, SQL } from "drizzle-orm";
 
+import { createDatabase, Database } from "../db";
+import { getOrganizationCondition } from "../db/queries";
 import type { ExecutionRow, ExecutionStatusType } from "../db/schema";
 import { executions, organizations } from "../db/schema";
-import { getOrganizationCondition } from "../db/queries";
-import { Database } from "../db";
 
 /**
  * Data required to save an execution record
@@ -40,9 +40,13 @@ export interface ListExecutionsOptions {
  */
 export class ExecutionStore {
   constructor(
-    private db: Database,
+    d1: D1Database,
     private bucket: R2Bucket
-  ) {}
+  ) {
+    this.db = createDatabase(d1);
+  }
+
+  private db: Database;
 
   /**
    * Save execution metadata to D1 and full data to R2

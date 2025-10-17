@@ -1,10 +1,7 @@
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
-import {
-  createDatabase,
-  getOrganizationComputeCredits,
-} from "./db";
+import { createDatabase, getOrganizationComputeCredits } from "./db";
 import {
   ExecutionStatus,
   getDeploymentByVersion,
@@ -75,8 +72,8 @@ export async function handleIncomingEmail(
   console.log(`Parsed trigger type: ${triggerType}`);
 
   const db = createDatabase(env.DB);
-  const executionStore = new ExecutionStore(db, env.RESSOURCES);
-  const workflowStore = new WorkflowStore(db, env.RESSOURCES);
+  const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
   const objectStore = new ObjectStore(env.RESSOURCES);
 
   // Get workflow data either from deployment or directly from workflow
@@ -193,7 +190,7 @@ export async function handleIncomingEmail(
   }));
 
   // Save initial execution record
-  const initialExecution = await executionStore.save({
+  const _initialExecution = await executionStore.save({
     id: executionId,
     workflowId: workflow.id,
     deploymentId,

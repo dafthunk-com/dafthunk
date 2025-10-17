@@ -67,7 +67,7 @@ async function executeWorkflow(
       status: "idle" as const,
     }));
 
-    const initialExecution = await executionStore.save({
+    await executionStore.save({
       id: executionId,
       workflowId: workflowInfo.id,
       deploymentId: deploymentId,
@@ -95,8 +95,8 @@ export async function handleCronTriggers(
 ): Promise<void> {
   console.log(`Cron event triggered at: ${new Date(event.scheduledTime)}`);
   const db = createDatabase(env.DB);
-  const executionStore = new ExecutionStore(db, env.RESSOURCES);
-  const workflowStore = new WorkflowStore(db, env.RESSOURCES);
+  const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
   const objectStore = new ObjectStore(env.RESSOURCES);
   const now = new Date();
 

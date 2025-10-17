@@ -1,7 +1,7 @@
 import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { createDatabase, type ExecutionStatusType } from "../db";
+import { type ExecutionStatusType } from "../db";
 import { ExecutionStore } from "./execution-store";
 import type { RuntimeState } from "./runtime";
 
@@ -13,8 +13,7 @@ export class ExecutionPersistence {
   private executionStore: ExecutionStore;
 
   constructor(private env: Bindings) {
-    const db = createDatabase(env.DB);
-    this.executionStore = new ExecutionStore(db, env.RESSOURCES);
+    this.executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
   }
 
   /**

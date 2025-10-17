@@ -139,7 +139,7 @@ export class WorkflowExecutor {
 
     // Save initial execution record
     const db = createDatabase(env.DB);
-    const executionStore = new ExecutionStore(db, env.RESSOURCES);
+    const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
     const initialExecution = await executionStore.save({
       id: executionId,
       workflowId: workflow.id,

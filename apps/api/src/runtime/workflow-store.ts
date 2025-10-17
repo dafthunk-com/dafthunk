@@ -1,10 +1,10 @@
 import type { Workflow as WorkflowType } from "@dafthunk/types";
 import { and, eq } from "drizzle-orm";
 
-import type { WorkflowRow } from "../db/schema";
-import { workflows, organizations } from "../db/schema";
+import { createDatabase, Database } from "../db";
 import { getOrganizationCondition, getWorkflowCondition } from "../db/queries";
-import { Database } from "../db";
+import type { WorkflowRow } from "../db/schema";
+import { organizations, workflows } from "../db/schema";
 
 /**
  * Data required to save a workflow record
@@ -27,9 +27,13 @@ export interface SaveWorkflowRecord {
  */
 export class WorkflowStore {
   constructor(
-    private db: Database,
+    d1: D1Database,
     private bucket: R2Bucket
-  ) {}
+  ) {
+    this.db = createDatabase(d1);
+  }
+
+  private db: Database;
 
   /**
    * Save workflow metadata to D1 and full data to R2
@@ -202,7 +206,9 @@ export class WorkflowStore {
         return undefined;
       }
 
-      console.log(`WorkflowStore.readFromD1: Success for ${workflowIdOrHandle}`);
+      console.log(
+        `WorkflowStore.readFromD1: Success for ${workflowIdOrHandle}`
+      );
       return workflow.workflows;
     } catch (error) {
       console.error(

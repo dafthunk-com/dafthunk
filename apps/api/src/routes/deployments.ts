@@ -153,8 +153,8 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
 deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
   const db = createDatabase(c.env.DB);
-  const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
   const objectStore = new ObjectStore(c.env.RESSOURCES);
   const now = new Date();
 
@@ -167,7 +167,7 @@ deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  const workflow = workflowWithData;
+  const _workflow = workflowWithData;
   const workflowData = workflowWithData.data;
 
   // Get the latest version number and increment
@@ -228,10 +228,13 @@ deploymentRoutes.get(
     const organizationId = c.get("organizationId")!;
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
     const db = createDatabase(c.env.DB);
-    const workflowStore = new WorkflowStore(db, c.env.RESSOURCES);
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
 
     // Check if workflow exists and belongs to the organization
-    const workflow = await workflowStore.get(workflowIdOrHandle, organizationId);
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }

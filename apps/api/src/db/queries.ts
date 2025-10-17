@@ -6,7 +6,7 @@ import {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
@@ -44,7 +44,6 @@ import {
   type UserRoleType,
   type UserRow,
   users,
-  type WorkflowInsert,
   type WorkflowRow,
   workflows,
 } from "./index";
@@ -399,22 +398,6 @@ export async function getDeploymentByVersion(
 }
 
 /**
- * Create a new workflow
- *
- * @param db Database instance
- * @param newWorkflow Workflow data to insert
- * @returns Created workflow record
- */
-export async function createWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  newWorkflow: WorkflowInsert
-): Promise<WorkflowRow> {
-  const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
-
-  return workflow;
-}
-
-/**
  * Update a workflow (metadata only), ensuring it belongs to the specified organization
  * Note: Full workflow data should be saved to R2 separately by the caller
  *
@@ -433,29 +416,6 @@ export async function updateWorkflow(
   const [workflow] = await db
     .update(workflows)
     .set(data)
-    .where(
-      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
-    )
-    .returning();
-
-  return workflow;
-}
-
-/**
- * Delete a workflow, ensuring it belongs to the specified organization
- *
- * @param db Database instance
- * @param id Workflow ID
- * @param organizationId Organization ID
- * @returns Deleted workflow record
- */
-export async function deleteWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string
-): Promise<WorkflowRow | undefined> {
-  const [workflow] = await db
-    .delete(workflows)
     .where(
       and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
     )
@@ -881,75 +841,6 @@ export async function getLatestDeploymentsVersionNumbers(
     );
 
   return resultRow?.maxVersion ?? null;
-}
-
-/**
- * List executions with optional filtering and pagination
- *
- * @param db Database instance
- * @param organizationId Organization ID
- * @param options Optional filters: workflowId, deploymentId, limit, offset
- * @returns Array of execution records
- */
-export async function listExecutions(
-  db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string,
-  options?: {
-    workflowId?: string;
-    deploymentId?: string;
-    limit?: number;
-    offset?: number;
-  }
-): Promise<ExecutionRow[]> {
-  // Base query structure using an explicit join
-  // Explicitly select all columns from the executions table
-  let query = db
-    .select({ executions: executions })
-    .from(executions)
-    .innerJoin(organizations, eq(executions.organizationId, organizations.id))
-    .$dynamic(); // Use $dynamic() to allow for conditional query building
-
-  // Array to hold all conditions for the WHERE clause
-  const conditions = [];
-
-  // Add condition for organization (ID or Handle)
-  conditions.push(getOrganizationCondition(organizationIdOrHandle));
-
-  // Add optional condition for workflowId on the 'executions' table
-  if (options?.workflowId) {
-    conditions.push(eq(executions.workflowId, options.workflowId));
-  }
-
-  // Add optional condition for deploymentId on the 'executions' table
-  if (options?.deploymentId) {
-    conditions.push(eq(executions.deploymentId, options.deploymentId));
-  }
-
-  // Filter out any undefined conditions that might arise if optional fields are not provided
-  const validConditions = conditions.filter((c) => c !== undefined) as SQL[];
-  if (validConditions.length > 0) {
-    query = query.where(and(...validConditions));
-  }
-
-  // Apply ORDER BY to sort executions by creation date (descending)
-  query = query.orderBy(desc(executions.createdAt));
-
-  // Apply LIMIT if provided for pagination
-  if (options?.limit !== undefined) {
-    query = query.limit(options.limit);
-  }
-
-  // Apply OFFSET if provided for pagination
-  if (options?.offset !== undefined) {
-    query = query.offset(options.offset);
-  }
-
-  // Execute the query
-  const results = await query;
-
-  // Map results to return only ExecutionRow objects.
-  // Since we selected { executions: executions }, each item in 'results' will have an 'executions' property.
-  return results.map((item) => item.executions);
 }
 
 /**
@@ -1960,46 +1851,6 @@ export async function getOrganizationMembershipsWithUsers(
 }
 
 /**
- * Get workflow metadata from DB and full workflow data from R2
- *
- * @param db Database instance
- * @param objectStore ObjectStore instance for R2 operations
- * @param workflowIdOrHandle Workflow ID or handle
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Workflow metadata with full data from R2
- */
-export async function getWorkflowWithData(
-  db: ReturnType<typeof createDatabase>,
-  objectStore: ObjectStore,
-  workflowIdOrHandle: string,
-  organizationIdOrHandle: string
-): Promise<(WorkflowRow & { data: WorkflowType }) | undefined> {
-  const workflow = await getWorkflow(
-    db,
-    workflowIdOrHandle,
-    organizationIdOrHandle
-  );
-
-  if (!workflow) {
-    return undefined;
-  }
-
-  try {
-    const workflowData = await objectStore.readWorkflow(workflow.id);
-    return {
-      ...workflow,
-      data: workflowData,
-    };
-  } catch (error) {
-    console.error(
-      `Failed to read workflow data from R2 for ${workflow.id}:`,
-      error
-    );
-    throw error;
-  }
-}
-
-/**
  * Get deployment metadata from DB and workflow snapshot from R2
  *
  * @param db Database instance
@@ -2035,42 +1886,6 @@ export async function getDeploymentWithData(
   } catch (error) {
     console.error(
       `Failed to read deployment workflow from R2 for ${deployment.id}:`,
-      error
-    );
-    throw error;
-  }
-}
-
-/**
- * Get execution metadata from DB and full execution data from R2
- *
- * @param db Database instance
- * @param objectStore ObjectStore instance for R2 operations
- * @param executionId Execution ID
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Execution metadata with full data from R2
- */
-export async function getExecutionWithData(
-  db: ReturnType<typeof createDatabase>,
-  objectStore: ObjectStore,
-  executionId: string,
-  organizationIdOrHandle: string
-): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
-  const execution = await getExecution(db, executionId, organizationIdOrHandle);
-
-  if (!execution) {
-    return undefined;
-  }
-
-  try {
-    const executionData = await objectStore.readExecution(execution.id);
-    return {
-      ...execution,
-      data: executionData,
-    };
-  } catch (error) {
-    console.error(
-      `Failed to read execution data from R2 for ${execution.id}:`,
       error
     );
     throw error;
