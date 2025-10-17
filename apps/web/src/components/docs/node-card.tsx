@@ -15,8 +15,6 @@ interface NodeCardProps {
   variant?: "card" | "list";
 }
 
-// Dialog moved to reusable component
-
 export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 

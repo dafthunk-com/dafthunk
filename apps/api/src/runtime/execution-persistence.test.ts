@@ -6,12 +6,15 @@ import { ExecutionPersistence } from "./execution-persistence";
 import type { RuntimeState } from "./runtime";
 
 // Mock the db module
-vi.mock("../db", () => ({
+const { saveExecution } = vi.hoisted(() => ({
   createDatabase: vi.fn(() => ({})),
   saveExecution: vi.fn(async (_db, execution) => execution),
 }));
 
-import { saveExecution } from "../db";
+vi.mock("../db", () => ({
+  createDatabase: vi.fn(() => ({})),
+  saveExecution: vi.fn(async (_db, execution) => execution),
+}));
 
 describe("ExecutionPersistence", () => {
   const createMockEnv = (): Bindings => {

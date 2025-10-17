@@ -28,14 +28,12 @@ import {
   createHandle,
   ExecutionStatus,
   getCronTrigger,
-  getDeploymentByVersion,
-  getLatestDeployment,
   getOrganizationComputeCredits,
   upsertCronTrigger as upsertDbCronTrigger,
 } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
+import { DeploymentStore } from "../runtime/deployment-store";
 import { ExecutionStore } from "../runtime/execution-store";
-import { ObjectStore } from "../runtime/object-store";
 import { WorkflowStore } from "../runtime/workflow-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
 import { getAuthContext } from "../utils/auth-context";
@@ -60,7 +58,6 @@ const workflowRoutes = new Hono<ExtendedApiContext>();
  */
 workflowRoutes.get("/", jwtMiddleware, async (c) => {
   const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-  const _db = createDatabase(c.env.DB);
 
   const organizationId = c.get("organizationId")!;
 
@@ -125,7 +122,6 @@ workflowRoutes.post(
 
     // Save workflow to both D1 and R2
     const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-    const _db = createDatabase(c.env.DB);
 
     const savedWorkflow = await workflowStore.save({
       id: workflowData.id,
@@ -167,7 +163,6 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
   }
 
   const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-  const _db = createDatabase(c.env.DB);
 
   try {
     const workflow = await workflowStore.getWithData(id, organizationId);
@@ -479,11 +474,11 @@ workflowRoutes.post(
     }
 
     // Get workflow data either from deployment or directly from workflow
-    let workflowData;
+    let workflowData: any;
     let workflow: any;
     let deploymentId: string | undefined;
     const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
     if (version === "dev") {
       // Load workflow with data from database and R2
@@ -499,10 +494,9 @@ workflowRoutes.post(
       workflowData = workflowWithData.data;
     } else {
       // Get deployment based on version
-      let deployment;
+      let deployment: any;
       if (version === "latest") {
-        deployment = await getLatestDeployment(
-          db,
+        deployment = await deploymentStore.getLatest(
           workflowIdOrHandle,
           organizationId
         );
@@ -513,8 +507,7 @@ workflowRoutes.post(
           );
         }
       } else {
-        deployment = await getDeploymentByVersion(
-          db,
+        deployment = await deploymentStore.getByVersion(
           workflowIdOrHandle,
           organizationId,
           version
@@ -527,15 +520,7 @@ workflowRoutes.post(
       deploymentId = deployment.id;
 
       // Load deployment workflow snapshot from R2
-      try {
-        workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
-      } catch (error) {
-        console.error(
-          `Failed to load deployment workflow from R2 for ${deployment.id}:`,
-          error
-        );
-        return c.json({ error: "Failed to load deployment data" }, 500);
-      }
+      workflowData = await deploymentStore.readWorkflowSnapshot(deployment.id);
 
       workflow = {
         id: deployment.workflowId,
@@ -649,7 +634,7 @@ workflowRoutes.post(
 
       // If the instance doesn't exist or can't be terminated, still update the database
       const now = new Date();
-      const _updatedExecution = await executionStore.save({
+      await executionStore.save({
         id: executionId,
         workflowId: execution.workflowId,
         deploymentId: execution.deploymentId ?? undefined,

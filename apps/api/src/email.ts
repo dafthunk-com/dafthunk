@@ -2,13 +2,9 @@ import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
-import {
-  ExecutionStatus,
-  getDeploymentByVersion,
-  getLatestDeployment,
-} from "./db";
+import { ExecutionStatus } from "./db";
+import { DeploymentStore } from "./runtime/deployment-store";
 import { ExecutionStore } from "./runtime/execution-store";
-import { ObjectStore } from "./runtime/object-store";
 import { WorkflowStore } from "./runtime/workflow-store";
 
 async function streamToString(
@@ -74,7 +70,7 @@ export async function handleIncomingEmail(
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
   const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
-  const objectStore = new ObjectStore(env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
 
   // Get workflow data either from deployment or directly from workflow
   let workflowData: WorkflowType;
@@ -98,8 +94,7 @@ export async function handleIncomingEmail(
     // Get deployment based on version
     let deployment;
     if (version === "latest") {
-      deployment = await getLatestDeployment(
-        db,
+      deployment = await deploymentStore.getLatest(
         workflowIdOrHandle,
         organizationIdOrHandle
       );
@@ -108,8 +103,7 @@ export async function handleIncomingEmail(
         return;
       }
     } else {
-      deployment = await getDeploymentByVersion(
-        db,
+      deployment = await deploymentStore.getByVersion(
         workflowIdOrHandle,
         organizationIdOrHandle,
         version
@@ -123,15 +117,7 @@ export async function handleIncomingEmail(
     deploymentId = deployment.id;
 
     // Load deployment workflow snapshot from R2
-    try {
-      workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
-    } catch (error) {
-      console.error(
-        `Failed to load deployment workflow data from R2 for ${deployment.id}:`,
-        error
-      );
-      return;
-    }
+    workflowData = await deploymentStore.readWorkflowSnapshot(deployment.id);
 
     workflow = {
       id: deployment.workflowId,
@@ -190,7 +176,7 @@ export async function handleIncomingEmail(
   }));
 
   // Save initial execution record
-  const _initialExecution = await executionStore.save({
+  await executionStore.save({
     id: executionId,
     workflowId: workflow.id,
     deploymentId,

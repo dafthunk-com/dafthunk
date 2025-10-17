@@ -1,10 +1,10 @@
 import type { Workflow as WorkflowType } from "@dafthunk/types";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { createDatabase, Database } from "../db";
 import { getOrganizationCondition, getWorkflowCondition } from "../db/queries";
 import type { WorkflowRow } from "../db/schema";
-import { organizations, workflows } from "../db/schema";
+import { memberships, organizations, workflows } from "../db/schema";
 
 /**
  * Data required to save a workflow record
@@ -146,6 +146,161 @@ export class WorkflowStore {
     } catch (error) {
       console.error(
         `WorkflowStore.delete: Failed to delete ${workflowIdOrHandle}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update workflow metadata (name, type, timestamps)
+   */
+  async update(
+    id: string,
+    organizationId: string,
+    data: Partial<WorkflowRow>
+  ): Promise<WorkflowRow> {
+    try {
+      console.log(`WorkflowStore.update: Updating workflow ${id}`);
+      const now = new Date();
+      const updateData = {
+        ...data,
+        updatedAt: now,
+      };
+
+      const [workflow] = await this.db
+        .update(workflows)
+        .set(updateData)
+        .where(
+          and(
+            eq(workflows.id, id),
+            eq(workflows.organizationId, organizationId)
+          )
+        )
+        .returning();
+
+      console.log(`WorkflowStore.update: Success for ${id}`);
+      return workflow;
+    } catch (error) {
+      console.error(`WorkflowStore.update: Failed to update ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get workflow with user access verification via organization memberships
+   */
+  async getWithUserAccess(
+    workflowIdOrHandle: string,
+    userId: string
+  ): Promise<{ workflow: WorkflowRow; organizationId: string } | undefined> {
+    try {
+      console.log(
+        `WorkflowStore.getWithUserAccess: Checking access for workflow ${workflowIdOrHandle}`
+      );
+
+      const [result] = await this.db
+        .select({
+          workflow: workflows,
+          organizationId: workflows.organizationId,
+        })
+        .from(workflows)
+        .innerJoin(
+          organizations,
+          eq(workflows.organizationId, organizations.id)
+        )
+        .innerJoin(
+          memberships,
+          eq(workflows.organizationId, memberships.organizationId)
+        )
+        .where(
+          and(
+            eq(memberships.userId, userId),
+            getWorkflowCondition(workflowIdOrHandle)
+          )
+        )
+        .limit(1);
+
+      if (!result) {
+        console.log(
+          `WorkflowStore.getWithUserAccess: Access denied for ${workflowIdOrHandle}`
+        );
+        return undefined;
+      }
+
+      console.log(
+        `WorkflowStore.getWithUserAccess: Success for ${workflowIdOrHandle}`
+      );
+      return {
+        workflow: result.workflow,
+        organizationId: result.organizationId,
+      };
+    } catch (error) {
+      console.error(
+        `WorkflowStore.getWithUserAccess: Failed for ${workflowIdOrHandle}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get names for multiple workflows by their IDs
+   */
+  async getNames(
+    workflowIds: string[]
+  ): Promise<{ id: string; name: string }[]> {
+    try {
+      console.log(
+        `WorkflowStore.getNames: Fetching names for ${workflowIds.length} workflows`
+      );
+
+      const results = await this.db
+        .select({ id: workflows.id, name: workflows.name })
+        .from(workflows)
+        .where(inArray(workflows.id, workflowIds));
+
+      console.log(
+        `WorkflowStore.getNames: Success, found ${results.length} workflows`
+      );
+      return results;
+    } catch (error) {
+      console.error(`WorkflowStore.getNames: Failed to fetch names:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get the name of a single workflow
+   */
+  async getName(
+    workflowIdOrHandle: string,
+    organizationIdOrHandle: string
+  ): Promise<string | undefined> {
+    try {
+      console.log(
+        `WorkflowStore.getName: Fetching name for ${workflowIdOrHandle}`
+      );
+
+      const [result] = await this.db
+        .select({ name: workflows.name })
+        .from(workflows)
+        .innerJoin(
+          organizations,
+          and(
+            eq(workflows.organizationId, organizations.id),
+            getOrganizationCondition(organizationIdOrHandle)
+          )
+        )
+        .where(getWorkflowCondition(workflowIdOrHandle));
+
+      console.log(
+        `WorkflowStore.getName: ${result ? "Success" : "Not found"} for ${workflowIdOrHandle}`
+      );
+      return result?.name;
+    } catch (error) {
+      console.error(
+        `WorkflowStore.getName: Failed for ${workflowIdOrHandle}:`,
         error
       );
       throw error;

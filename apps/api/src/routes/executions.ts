@@ -9,9 +9,8 @@ import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase, getWorkflowName, getWorkflowNames } from "../db";
 import { ExecutionStore } from "../runtime/execution-store";
-import { ObjectStore } from "../runtime/object-store";
+import { WorkflowStore } from "../runtime/workflow-store";
 
 const executionRoutes = new Hono<ApiContext>();
 
@@ -28,9 +27,8 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
     }
 
     // Get workflow name
-    const db = createDatabase(c.env.DB);
-    const workflowName = await getWorkflowName(
-      db,
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const workflowName = await workflowStore.getName(
       execution.workflowId,
       organizationId
     );
@@ -57,7 +55,7 @@ executionRoutes.get("/:id", apiKeyOrJwtMiddleware, async (c) => {
 
 executionRoutes.get("/", jwtMiddleware, async (c) => {
   const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
-  const db = createDatabase(c.env.DB);
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
   const { workflowId, deploymentId, limit, offset } = c.req.query();
 
   const organizationId = c.get("organizationId")!;
@@ -78,44 +76,21 @@ executionRoutes.get("/", jwtMiddleware, async (c) => {
 
   // Get workflow names for all executions
   const workflowIds = [...new Set(executions.map((e) => e.workflowId))];
-  const workflowNames = await getWorkflowNames(db, workflowIds);
+  const workflowNames = await workflowStore.getNames(workflowIds);
   const workflowMap = new Map(workflowNames.map((w) => [w.id, w.name]));
 
-  // Load all execution data from R2 in parallel
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
-  const results = await Promise.all(
-    executions.map(async (execution) => {
-      let executionData;
-      try {
-        executionData = await objectStore.readExecution(execution.id);
-      } catch (error) {
-        console.error(
-          `Failed to load execution data from R2 for ${execution.id}:`,
-          error
-        );
-        // Fallback to empty data if R2 read fails
-        executionData = {
-          id: execution.id,
-          workflowId: execution.workflowId,
-          status: execution.status as WorkflowExecutionStatus,
-          nodeExecutions: [],
-        };
-      }
-
-      return {
-        id: execution.id,
-        workflowId: execution.workflowId,
-        workflowName:
-          workflowMap.get(execution.workflowId) || "Unknown Workflow",
-        deploymentId: execution.deploymentId ?? undefined,
-        status: execution.status as WorkflowExecutionStatus,
-        nodeExecutions: executionData.nodeExecutions || [],
-        error: execution.error || undefined,
-        startedAt: execution.startedAt ?? executionData.startedAt,
-        endedAt: execution.endedAt ?? executionData.endedAt,
-      };
-    })
-  );
+  const results = executions.map((execution) => {
+    return {
+      id: execution.id,
+      workflowId: execution.workflowId,
+      workflowName: workflowMap.get(execution.workflowId) || "Unknown Workflow",
+      deploymentId: execution.deploymentId ?? undefined,
+      status: execution.status as WorkflowExecutionStatus,
+      error: execution.error || undefined,
+      startedAt: execution.startedAt || undefined,
+      endedAt: execution.endedAt || undefined,
+    };
+  });
 
   const response: ListExecutionsResponse = { executions: results };
   return c.json(response);

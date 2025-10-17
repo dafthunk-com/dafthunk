@@ -3,14 +3,10 @@ import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import {
-  createDatabase,
-  ExecutionRow,
-  ExecutionStatus,
-  getDeploymentsGroupedByWorkflow,
-  getWorkflows,
-} from "../db";
+import { ExecutionRow, ExecutionStatus } from "../db";
+import { DeploymentStore } from "../runtime/deployment-store";
 import { ExecutionStore } from "../runtime/execution-store";
+import { WorkflowStore } from "../runtime/workflow-store";
 
 const dashboard = new Hono<ApiContext>();
 
@@ -26,18 +22,17 @@ dashboard.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
   const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
-  const db = createDatabase(c.env.DB);
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
   try {
     // Workflows count
-    const workflows = await getWorkflows(db, organizationId);
+    const workflows = await workflowStore.list(organizationId);
     const workflowsCount = workflows.length;
 
     // Deployments count
-    const deployments = await getDeploymentsGroupedByWorkflow(
-      db,
-      organizationId
-    );
+    const deployments =
+      await deploymentStore.getGroupedByWorkflow(organizationId);
     const deploymentsCount = deployments.reduce(
       (acc: number, w: { deploymentCount: number }) => acc + w.deploymentCount,
       0

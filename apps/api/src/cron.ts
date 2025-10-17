@@ -8,8 +8,8 @@ import {
   getOrganizationComputeCredits,
   updateCronTriggerRunTimes,
 } from "./db/queries";
+import { DeploymentStore } from "./runtime/deployment-store";
 import { ExecutionStore } from "./runtime/execution-store";
-import { ObjectStore } from "./runtime/object-store";
 import { WorkflowStore } from "./runtime/workflow-store";
 
 // This function will now handle the actual execution triggering and initial record saving
@@ -97,7 +97,7 @@ export async function handleCronTriggers(
   const db = createDatabase(env.DB);
   const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
   const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
-  const objectStore = new ObjectStore(env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
   const now = new Date();
 
   try {
@@ -146,7 +146,7 @@ export async function handleCronTriggers(
         } else if (deployment) {
           // Load deployment workflow snapshot from R2
           try {
-            workflowToExecute = await objectStore.readDeploymentWorkflow(
+            workflowToExecute = await deploymentStore.readWorkflowSnapshot(
               deployment.id
             );
           } catch (error) {

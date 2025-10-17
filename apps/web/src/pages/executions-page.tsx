@@ -1,4 +1,7 @@
-import type { WorkflowExecution } from "@dafthunk/types";
+import type {
+  ListExecutionsResponse,
+  WorkflowExecution,
+} from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
@@ -25,7 +28,7 @@ import { usePaginatedExecutions } from "@/services/execution-service";
 
 export const createColumns = (
   getOrgUrl: (path: string) => string
-): ColumnDef<WorkflowExecution>[] => [
+): ColumnDef<ListExecutionsResponse["executions"][0]>[] => [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
