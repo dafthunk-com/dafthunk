@@ -78,20 +78,29 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
 3. Set up environment variables:
 
    ```bash
-   cp .dev.vars.example .dev.vars
+   cp apps/api/.dev.vars.example apps/api/.dev.vars
    # Edit with custom values
    ```
+
+   Generate a master key for token encryption:
+
+   ```bash
+   node apps/api/scripts/generate-master-key.js
+   ```
+
+   Required environment variables in `apps/api/.dev.vars`:
 
    ```
    WEB_HOST=http://localhost:3000
    CLOUDFLARE_ENV=development
 
    JWT_SECRET=your_32_character_secret_here
+   SECRET_MASTER_KEY=your_64_character_hex_from_script
    ```
 
-4. Configure authentication:
+4. Configure authentication (OAuth providers for user login):
 
-   For example, using GitHub OAuth:
+   **GitHub OAuth**:
    - Go to [GitHub Settings > Developer settings > OAuth Apps](https://github.com/settings/applications/new)
    - Create new OAuth App with:
      - Application Name: `Dafthunk Dev`
@@ -105,7 +114,52 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    GITHUB_CLIENT_SECRET=your_client_secret_here
    ```
 
-5. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:
+   **Google OAuth** (optional):
+   - Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+   - Create a new OAuth 2.0 Client ID with:
+     - Application type: `Web application`
+     - Authorized redirect URIs: `http://localhost:3001/auth/login/google`
+   - Copy the Client ID and Client Secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   ```
+
+5. Configure integrations (OAuth providers for workflow integrations - optional):
+
+   **Google Mail Integration**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+   - Create a **separate** OAuth 2.0 Client ID (or use a different project):
+     - Application type: `Web application`
+     - Authorized redirect URIs: `http://localhost:3001/oauth/google-mail/connect`
+     - Enable Gmail API in [API Library](https://console.cloud.google.com/apis/library/gmail.googleapis.com)
+   - Copy the Client ID and Client Secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   INTEGRATION_GOOGLE_MAIL_CLIENT_ID=your_gmail_integration_client_id
+   INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET=your_gmail_integration_client_secret
+   ```
+
+   **Google Calendar Integration**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+   - Create a **separate** OAuth 2.0 Client ID (or use a different project):
+     - Application type: `Web application`
+     - Authorized redirect URIs: `http://localhost:3001/oauth/google-calendar/connect`
+     - Enable Google Calendar API in [API Library](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
+   - Copy the Client ID and Client Secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID=your_calendar_integration_client_id
+   INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET=your_calendar_integration_client_secret
+   ```
+
+   > **Note**: Keep authentication and integration OAuth apps separate for security isolation. They use different scopes and redirect URIs.
+
+6. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:
 
    ```bash
    # Install Wrangler globally
@@ -118,20 +172,20 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    wrangler d1 create DB
    ```
 
-6. Apply the database migration files
+7. Apply the database migration files
 
    ```bash
    cd apps/api
    pnpm db:migrate
    ```
 
-7. Start the development server and cross your fingers:
+8. Start the development server and cross your fingers:
 
    ```bash
    pnpm dev
    ```
 
-8. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
+9. Open your browser and navigate to `http://localhost:3000`. Prepare to either celebrate or debug.
 
 ## 👨‍💻 Development
 

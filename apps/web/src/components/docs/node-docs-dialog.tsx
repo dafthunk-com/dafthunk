@@ -93,94 +93,100 @@ export function NodeDocsDialog({
               </>
             )}
 
-            {(!!nodeType.inputs?.length || !!nodeType.outputs?.length) && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <h4 className="text-sm font-semibold">Parameters</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {nodeType.inputs && nodeType.inputs.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold">Parameters</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Inputs ({nodeType.inputs?.length || 0})
+                    </h5>
+                    {nodeType.inputs && nodeType.inputs.length > 0 ? (
                       <div className="space-y-2">
-                        <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Inputs ({nodeType.inputs.length})
-                        </h5>
-                        <div className="space-y-2">
-                          {nodeType.inputs.map((input, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-3 px-2.5 py-1.5 rounded border bg-blue-50/30 dark:bg-blue-950/10"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-medium text-sm">
-                                    {input.name}
-                                    {input.required ? (
-                                      <span
-                                        className="text-red-500 ml-1"
-                                        title="Required"
-                                      >
-                                        *
-                                      </span>
-                                    ) : (
-                                      <span
-                                        className="text-xs text-muted-foreground ml-1"
-                                        title="Optional"
-                                      >
-                                        (optional)
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="text-xs text-blue-600 dark:text-blue-400 font-mono">
-                                    {input.type}
-                                  </span>
-                                </div>
-                                {input.description && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {input.description}
-                                  </p>
-                                )}
+                        {nodeType.inputs.map((input, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 px-2.5 py-1.5 rounded border bg-blue-50/30 dark:bg-blue-950/10"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">
+                                  {input.name}
+                                  {input.required ? (
+                                    <span
+                                      className="text-red-500 ml-1"
+                                      title="Required"
+                                    >
+                                      *
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className="text-xs text-muted-foreground ml-1"
+                                      title="Optional"
+                                    >
+                                      (optional)
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="text-xs text-blue-600 dark:text-blue-400 font-mono">
+                                  {input.type}
+                                </span>
                               </div>
+                              {input.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {input.description}
+                                </p>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        No inputs
+                      </p>
                     )}
+                  </div>
 
-                    {nodeType.outputs && nodeType.outputs.length > 0 && (
+                  <div className="space-y-2">
+                    <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Outputs ({nodeType.outputs?.length || 0})
+                    </h5>
+                    {nodeType.outputs && nodeType.outputs.length > 0 ? (
                       <div className="space-y-2">
-                        <h5 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Outputs ({nodeType.outputs.length})
-                        </h5>
-                        <div className="space-y-2">
-                          {nodeType.outputs.map((output, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-3 px-2.5 py-1.5 rounded border bg-green-50/30 dark:bg-green-950/10"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-medium text-sm">
-                                    {output.name}
-                                  </span>
-                                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">
-                                    {output.type}
-                                  </span>
-                                </div>
-                                {output.description && (
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    {output.description}
-                                  </p>
-                                )}
+                        {nodeType.outputs.map((output, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 px-2.5 py-1.5 rounded border bg-green-50/30 dark:bg-green-950/10"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">
+                                  {output.name}
+                                </span>
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">
+                                  {output.type}
+                                </span>
                               </div>
+                              {output.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {output.description}
+                                </p>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">
+                        No outputs
+                      </p>
                     )}
                   </div>
                 </div>
-              </>
-            )}
+              </div>
+            </>
           </div>
         </div>
 

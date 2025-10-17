@@ -92,6 +92,13 @@
       "when": 1759828484317,
       "tag": "0012_migrate_to_r2",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1760684648715,
+      "tag": "0013_add_integrations_table",
+      "breakpoints": true
     }
   ]
 }

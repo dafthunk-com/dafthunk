@@ -12,7 +12,9 @@ import datasetRoutes from "./routes/datasets";
 import deploymentRoutes from "./routes/deployments";
 import executionRoutes from "./routes/executions";
 import health from "./routes/health";
+import integrationRoutes from "./routes/integrations";
 import llmsRoutes from "./routes/llms";
+import oauthRoutes from "./routes/oauth";
 import objectRoutes from "./routes/objects";
 import organizationRoutes from "./routes/organizations";
 import profileRoutes from "./routes/profile";
@@ -51,6 +53,7 @@ app.use("*", async (c, next) => {
 // Mount routes
 app.route("/health", health);
 app.route("/auth", auth);
+app.route("/oauth", oauthRoutes);
 app.route("/profile", profileRoutes);
 app.route("/organizations", organizationRoutes);
 app.route("/robots.txt", robotsRoutes);
@@ -64,6 +67,7 @@ app.route("/:organizationIdOrHandle/dashboard", dashboardRoutes);
 app.route("/:organizationIdOrHandle/datasets", datasetRoutes);
 app.route("/:organizationIdOrHandle/deployments", deploymentRoutes);
 app.route("/:organizationIdOrHandle/executions", executionRoutes);
+app.route("/:organizationIdOrHandle/integrations", integrationRoutes);
 app.route("/:organizationIdOrHandle/secrets", secretRoutes);
 app.route("/:organizationIdOrHandle/workflows", workflowRoutes);
 app.route("/:organizationIdOrHandle/objects", objectRoutes);

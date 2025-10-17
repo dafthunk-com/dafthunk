@@ -17,6 +17,14 @@ import {
   datasets,
   type DeploymentRow,
   deployments,
+<<<<<<< HEAD
+=======
+  type ExecutionRow,
+  executions,
+  type ExecutionStatusType,
+  type IntegrationInsert,
+  integrations,
+>>>>>>> ee6e4fe2 (feat: implement integration management API and UI)
   type MembershipInsert,
   type MembershipRow,
   memberships,
@@ -918,6 +926,282 @@ export async function deleteSecret(
 
   // If we got a record back, it was deleted successfully
   return !!deletedSecret;
+}
+
+/**
+ * Create a new integration for an organization
+ *
+ * @param db Database instance
+ * @param organizationId Organization ID
+ * @param name Descriptive name for the integration
+ * @param provider Integration provider type
+ * @param token The access token to encrypt
+ * @param refreshToken Optional refresh token to encrypt
+ * @param tokenExpiresAt Optional token expiration timestamp
+ * @param metadata Optional JSON metadata for provider-specific data
+ * @param env Environment variables (for encryption key)
+ * @returns Object containing the integration record and the unencrypted tokens
+ */
+export async function createIntegration(
+  db: ReturnType<typeof createDatabase>,
+  organizationId: string,
+  name: string,
+  provider: any,
+  token: string,
+  refreshToken: string | undefined,
+  tokenExpiresAt: Date | undefined,
+  metadata: string | undefined,
+  env: Bindings
+) {
+  const id = uuidv7();
+  const now = new Date();
+
+  // Encrypt the token using organization-specific key
+  const encryptedToken = await encryptSecret(token, env, organizationId);
+
+  // Encrypt refresh token if provided
+  let encryptedRefreshToken: string | undefined;
+  if (refreshToken) {
+    encryptedRefreshToken = await encryptSecret(
+      refreshToken,
+      env,
+      organizationId
+    );
+  }
+
+  // Create the integration record
+  const newIntegration: IntegrationInsert = {
+    id,
+    name,
+    provider,
+    encryptedToken,
+    encryptedRefreshToken,
+    tokenExpiresAt,
+    metadata,
+    organizationId,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  // Insert the integration record
+  const [integrationRecord] = await db
+    .insert(integrations)
+    .values(newIntegration)
+    .returning();
+
+  // Return both the unencrypted tokens (only shown once) and the record
+  return {
+    token,
+    refreshToken,
+    integration: integrationRecord,
+  };
+}
+
+/**
+ * List integrations for an organization
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of integration records (without the encrypted tokens)
+ */
+export async function getIntegrations(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return db
+    .select({
+      id: integrations.id,
+      name: integrations.name,
+      provider: integrations.provider,
+      tokenExpiresAt: integrations.tokenExpiresAt,
+      metadata: integrations.metadata,
+      createdAt: integrations.createdAt,
+      updatedAt: integrations.updatedAt,
+    })
+    .from(integrations)
+    .innerJoin(
+      organizations,
+      and(
+        eq(integrations.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get all integrations for an organization (including encrypted tokens)
+ *
+ * @param db Database instance
+ * @param organizationIdOrHandle Organization ID or handle
+ * @returns Array of integration records with encrypted tokens
+ */
+export async function getAllIntegrationsWithTokens(
+  db: ReturnType<typeof createDatabase>,
+  organizationIdOrHandle: string
+) {
+  return db
+    .select({
+      id: integrations.id,
+      name: integrations.name,
+      provider: integrations.provider,
+      encryptedToken: integrations.encryptedToken,
+      encryptedRefreshToken: integrations.encryptedRefreshToken,
+      tokenExpiresAt: integrations.tokenExpiresAt,
+      metadata: integrations.metadata,
+      createdAt: integrations.createdAt,
+      updatedAt: integrations.updatedAt,
+    })
+    .from(integrations)
+    .innerJoin(
+      organizations,
+      and(
+        eq(integrations.organizationId, organizations.id),
+        getOrganizationCondition(organizationIdOrHandle)
+      )
+    );
+}
+
+/**
+ * Get an integration by ID (without the encrypted tokens)
+ *
+ * @param db Database instance
+ * @param id Integration ID
+ * @param organizationId Organization ID
+ * @returns Integration record or null if not found
+ */
+export async function getIntegration(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+) {
+  const [integration] = await db
+    .select({
+      id: integrations.id,
+      name: integrations.name,
+      provider: integrations.provider,
+      tokenExpiresAt: integrations.tokenExpiresAt,
+      metadata: integrations.metadata,
+      createdAt: integrations.createdAt,
+      updatedAt: integrations.updatedAt,
+    })
+    .from(integrations)
+    .where(
+      and(
+        eq(integrations.id, id),
+        eq(integrations.organizationId, organizationId)
+      )
+    )
+    .limit(1);
+
+  return integration || null;
+}
+
+/**
+ * Update an integration
+ *
+ * @param db Database instance
+ * @param id Integration ID
+ * @param organizationId Organization ID
+ * @param updates Fields to update
+ * @param env Environment variables (for encryption key)
+ * @returns Updated integration record or null if not found
+ */
+export async function updateIntegration(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string,
+  updates: {
+    name?: string;
+    token?: string;
+    refreshToken?: string;
+    tokenExpiresAt?: Date;
+    metadata?: string;
+  },
+  env: Bindings
+) {
+  const now = new Date();
+  const updateData: Partial<IntegrationInsert> = {
+    updatedAt: now,
+  };
+
+  if (updates.name) {
+    updateData.name = updates.name;
+  }
+
+  if (updates.token) {
+    // Encrypt the new token using organization-specific key
+    updateData.encryptedToken = await encryptSecret(
+      updates.token,
+      env,
+      organizationId
+    );
+  }
+
+  if (updates.refreshToken) {
+    // Encrypt the new refresh token using organization-specific key
+    updateData.encryptedRefreshToken = await encryptSecret(
+      updates.refreshToken,
+      env,
+      organizationId
+    );
+  }
+
+  if (updates.tokenExpiresAt !== undefined) {
+    updateData.tokenExpiresAt = updates.tokenExpiresAt;
+  }
+
+  if (updates.metadata !== undefined) {
+    updateData.metadata = updates.metadata;
+  }
+
+  const [updatedIntegration] = await db
+    .update(integrations)
+    .set(updateData)
+    .where(
+      and(
+        eq(integrations.id, id),
+        eq(integrations.organizationId, organizationId)
+      )
+    )
+    .returning({
+      id: integrations.id,
+      name: integrations.name,
+      provider: integrations.provider,
+      tokenExpiresAt: integrations.tokenExpiresAt,
+      metadata: integrations.metadata,
+      createdAt: integrations.createdAt,
+      updatedAt: integrations.updatedAt,
+    });
+
+  return updatedIntegration || null;
+}
+
+/**
+ * Delete an integration
+ *
+ * @param db Database instance
+ * @param id Integration ID
+ * @param organizationId Organization ID
+ * @returns True if integration was deleted, false if not found
+ */
+export async function deleteIntegration(
+  db: ReturnType<typeof createDatabase>,
+  id: string,
+  organizationId: string
+): Promise<boolean> {
+  // Try to delete the integration by its ID and organization
+  const [deletedIntegration] = await db
+    .delete(integrations)
+    .where(
+      and(
+        eq(integrations.id, id),
+        eq(integrations.organizationId, organizationId)
+      )
+    )
+    .returning({ id: integrations.id });
+
+  // If we got a record back, it was deleted successfully
+  return !!deletedIntegration;
 }
 
 /**

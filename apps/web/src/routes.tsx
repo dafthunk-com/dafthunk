@@ -27,6 +27,7 @@ import { EditorPage } from "./pages/editor-page";
 import { ExecutionDetailPage } from "./pages/execution-detail-page";
 import { ExecutionsPage } from "./pages/executions-page";
 import { HomePage } from "./pages/home-page";
+import { IntegrationsPage } from "./pages/integrations-page";
 import { LegalPage } from "./pages/legal";
 import { LoginPage } from "./pages/login-page";
 import { MembersPage } from "./pages/members-page";
@@ -228,6 +229,21 @@ export const routes: AppRouteObject[] = [
       </OrgLayout>
     ),
     handle: { head: <HeadSeo title="Secrets - Settings - Dafthunk" /> },
+  },
+  {
+    path: "/integrations",
+    element: <OrgRedirect to="/org/:handle/integrations" />,
+  },
+  {
+    path: "/org/:handle/integrations",
+    element: (
+      <OrgLayout title="Settings">
+        <ProtectedRoute>
+          <IntegrationsPage />
+        </ProtectedRoute>
+      </OrgLayout>
+    ),
+    handle: { head: <HeadSeo title="Integrations - Settings - Dafthunk" /> },
   },
   {
     path: "/docs",

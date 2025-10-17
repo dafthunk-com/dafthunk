@@ -4,6 +4,7 @@ import KeyRound from "lucide-react/icons/key-round";
 import LayoutDashboard from "lucide-react/icons/layout-dashboard";
 import Lock from "lucide-react/icons/lock";
 import Logs from "lucide-react/icons/logs";
+import Plug from "lucide-react/icons/plug";
 import SquareTerminal from "lucide-react/icons/square-terminal";
 import Target from "lucide-react/icons/target";
 import Users from "lucide-react/icons/users";
@@ -40,6 +41,11 @@ export const getDashboardSidebarItems = (orgHandle: string) => [
     title: "Secrets",
     url: `/org/${orgHandle}/secrets`,
     icon: Lock,
+  },
+  {
+    title: "Integrations",
+    url: `/org/${orgHandle}/integrations`,
+    icon: Plug,
   },
   {
     title: "Deployments",
