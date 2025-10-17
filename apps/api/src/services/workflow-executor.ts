@@ -8,7 +8,7 @@
 import type { Node, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { createDatabase, ExecutionStatus } from "../db";
+import { ExecutionStatus } from "../db";
 import { ExecutionStore } from "../runtime/execution-store";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
@@ -138,7 +138,6 @@ export class WorkflowExecutor {
     }));
 
     // Save initial execution record
-    const db = createDatabase(env.DB);
     const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
     const initialExecution = await executionStore.save({
       id: executionId,

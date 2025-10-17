@@ -16,7 +16,8 @@ export class MelottsNode extends ExecutableNode {
     icon: "mic",
     documentation:
       "This node converts text to natural-sounding speech using the MeloTTS model, supporting multiple languages.",
-    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/melotts/",
+    referenceUrl:
+      "https://developers.cloudflare.com/workers-ai/models/melotts/",
     computeCost: 10,
     inputs: [
       {

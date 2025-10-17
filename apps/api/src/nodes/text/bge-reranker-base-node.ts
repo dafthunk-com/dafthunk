@@ -17,7 +17,8 @@ export class BgeRerankerBaseNode extends ExecutableNode {
     icon: "sparkles",
     documentation:
       "This node reranks text passages based on their relevance to a query using BAAI's BGE Reranker Base model.",
-    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/bge-reranker-base/",
+    referenceUrl:
+      "https://developers.cloudflare.com/workers-ai/models/bge-reranker-base/",
     computeCost: 10,
     asTool: true,
     inputs: [

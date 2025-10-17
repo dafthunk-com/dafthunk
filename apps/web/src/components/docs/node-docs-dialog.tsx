@@ -1,7 +1,7 @@
 import type { NodeType } from "@dafthunk/types";
+import { ExternalLink } from "lucide-react";
 // @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
-import { ExternalLink } from "lucide-react";
 import Markdown from "react-markdown";
 
 import { Badge } from "@/components/ui/badge";
