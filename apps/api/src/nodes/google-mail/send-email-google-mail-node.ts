@@ -108,7 +108,8 @@ export class SendEmailGoogleMailNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(integrationId);
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           // Fallback to preloaded token if integration manager is not available
           accessToken = integration.token;

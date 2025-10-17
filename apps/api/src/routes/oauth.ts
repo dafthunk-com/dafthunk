@@ -167,9 +167,7 @@ oauthRoutes.get(
       const stateParam = c.req.query("state");
 
       if (!token || !user || !stateParam) {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=oauth_failed`
-        );
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
       }
 
       // Decode and validate state
@@ -181,16 +179,12 @@ oauthRoutes.get(
       try {
         state = JSON.parse(atob(stateParam));
       } catch {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=invalid_state`
-        );
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
       }
 
       // Validate state is recent (within 10 minutes)
       if (Date.now() - state.timestamp > 10 * 60 * 1000) {
-        return c.redirect(
-          `${c.env.WEB_HOST}/integrations?error=expired_state`
-        );
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
       }
 
       // Verify user is authenticated and matches organization

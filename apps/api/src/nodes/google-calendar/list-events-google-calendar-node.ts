@@ -88,7 +88,12 @@ export class ListEventsGoogleCalendarNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, maxResults = 10, timeMin, timeMax } = context.inputs;
+      const {
+        integrationId,
+        maxResults = 10,
+        timeMin,
+        timeMax,
+      } = context.inputs;
       const { organizationId } = context;
 
       // Validate required inputs
@@ -127,9 +132,8 @@ export class ListEventsGoogleCalendarNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }

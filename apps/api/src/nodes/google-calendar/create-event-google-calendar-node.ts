@@ -35,13 +35,15 @@ export class CreateEventGoogleCalendarNode extends ExecutableNode {
       {
         name: "startDateTime",
         type: "string",
-        description: "Start date-time (ISO 8601 format, e.g., 2024-01-15T10:00:00)",
+        description:
+          "Start date-time (ISO 8601 format, e.g., 2024-01-15T10:00:00)",
         required: true,
       },
       {
         name: "endDateTime",
         type: "string",
-        description: "End date-time (ISO 8601 format, e.g., 2024-01-15T11:00:00)",
+        description:
+          "End date-time (ISO 8601 format, e.g., 2024-01-15T11:00:00)",
         required: true,
       },
       {
@@ -142,9 +144,8 @@ export class CreateEventGoogleCalendarNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }

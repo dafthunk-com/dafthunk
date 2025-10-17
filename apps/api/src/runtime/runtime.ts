@@ -268,7 +268,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       const integrations = await step.do(
         "preload organization integrations",
         Runtime.defaultStepConfig,
-        async () => this.integrationManager.preloadAllIntegrations(organizationId)
+        async () =>
+          this.integrationManager.preloadAllIntegrations(organizationId)
       );
 
       // Prepare workflow (validation + ordering).

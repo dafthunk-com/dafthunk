@@ -126,9 +126,8 @@ export class UpdateEventGoogleCalendarNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }

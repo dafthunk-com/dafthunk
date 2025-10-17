@@ -337,7 +337,8 @@ export function createWidgetConfig(
       };
     }
     case "send-email-google-mail": {
-      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
 
       return {
         type: "integration-selector",
@@ -348,7 +349,8 @@ export function createWidgetConfig(
       };
     }
     case "read-inbox-google-mail": {
-      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
 
       return {
         type: "integration-selector",
@@ -359,7 +361,8 @@ export function createWidgetConfig(
       };
     }
     case "create-reply-draft-google-mail": {
-      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
 
       return {
         type: "integration-selector",
@@ -379,7 +382,8 @@ export function createWidgetConfig(
     case "get-message-google-mail":
     case "archive-message-google-mail":
     case "trash-message-google-mail": {
-      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
 
       return {
         type: "integration-selector",
@@ -399,7 +403,8 @@ export function createWidgetConfig(
     case "check-availability-google-calendar":
     case "quick-add-google-calendar":
     case "list-calendars-google-calendar": {
-      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
 
       return {
         type: "integration-selector",

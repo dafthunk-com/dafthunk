@@ -21,8 +21,12 @@ export function IntegrationSelectorWidget({
   compact = false,
   readonly = false,
 }: IntegrationSelectorWidgetProps) {
-  const { integrations, integrationsError, isIntegrationsLoading, mutateIntegrations } =
-    useIntegrations();
+  const {
+    integrations,
+    integrationsError,
+    isIntegrationsLoading,
+    mutateIntegrations,
+  } = useIntegrations();
 
   const handleSelect = (integrationId: string) => {
     if (readonly) return;

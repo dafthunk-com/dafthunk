@@ -11,8 +11,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
-import { getApiBaseUrl } from "@/config/api";
-
 import { useAuth } from "@/components/auth-context";
 import { InsetError } from "@/components/inset-error";
 import { InsetLoading } from "@/components/inset-loading";
@@ -50,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getApiBaseUrl } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
   deleteIntegration,
@@ -217,12 +216,14 @@ export function IntegrationsPage() {
     }
   }, [integrationToDelete, organization?.handle, mutateIntegrations]);
 
-
   if (isIntegrationsLoading && !integrations) {
     return <InsetLoading title="Integrations" />;
   } else if (integrationsError) {
     return (
-      <InsetError title="Integrations" errorMessage={integrationsError.message} />
+      <InsetError
+        title="Integrations"
+        errorMessage={integrationsError.message}
+      />
     );
   }
 
@@ -280,8 +281,10 @@ export function IntegrationsPage() {
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground mt-2">
-                {OAUTH_PROVIDERS.find((p) => p.id === newIntegrationProvider)
-                  ?.description}
+                {
+                  OAUTH_PROVIDERS.find((p) => p.id === newIntegrationProvider)
+                    ?.description
+                }
               </p>
             </div>
 
@@ -290,8 +293,8 @@ export function IntegrationsPage() {
               <div className="rounded-lg border p-4 space-y-3">
                 <p className="text-sm font-medium">Secure OAuth Connection</p>
                 <p className="text-sm text-muted-foreground">
-                  Click the button below to securely connect your account. You'll
-                  be redirected to authorize access.
+                  Click the button below to securely connect your account.
+                  You'll be redirected to authorize access.
                 </p>
                 <Button
                   onClick={() => {
@@ -338,8 +341,8 @@ export function IntegrationsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Disconnect Integration?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove this integration from your organization. Workflows
-              using this integration may fail until you reconnect.
+              This will remove this integration from your organization.
+              Workflows using this integration may fail until you reconnect.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

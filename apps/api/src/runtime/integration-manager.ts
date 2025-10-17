@@ -80,7 +80,9 @@ export class IntegrationManager {
    */
   async getValidAccessToken(integrationId: string): Promise<string> {
     if (!this.organizationId) {
-      throw new Error("Organization ID not set. Call preloadAllIntegrations first.");
+      throw new Error(
+        "Organization ID not set. Call preloadAllIntegrations first."
+      );
     }
 
     const db = createDatabase(this.env.DB);
@@ -98,7 +100,8 @@ export class IntegrationManager {
 
     // Check if token has expired
     const now = new Date();
-    const isExpired = integration.tokenExpiresAt && integration.tokenExpiresAt < now;
+    const isExpired =
+      integration.tokenExpiresAt && integration.tokenExpiresAt < now;
 
     if (!isExpired) {
       // Token is still valid, decrypt and return it
@@ -107,7 +110,9 @@ export class IntegrationManager {
 
     // Token expired, need to refresh
     if (!integration.encryptedRefreshToken) {
-      throw new Error(`Integration ${integrationId} token expired and no refresh token available. User needs to reconnect.`);
+      throw new Error(
+        `Integration ${integrationId} token expired and no refresh token available. User needs to reconnect.`
+      );
     }
 
     const refreshToken = await this.decryptToken(
@@ -118,10 +123,16 @@ export class IntegrationManager {
     // Refresh the token based on provider
     let newTokenData;
     try {
-      newTokenData = await this.refreshToken(integration.provider, refreshToken);
+      newTokenData = await this.refreshToken(
+        integration.provider,
+        refreshToken
+      );
     } catch (error) {
       // Refresh token is invalid/expired/revoked
-      console.error(`Failed to refresh token for integration ${integrationId}:`, error);
+      console.error(
+        `Failed to refresh token for integration ${integrationId}:`,
+        error
+      );
 
       // Mark integration as expired
       await updateIntegration(
@@ -147,7 +158,9 @@ export class IntegrationManager {
         token: newTokenData.access_token,
         tokenExpiresAt: new Date(Date.now() + newTokenData.expires_in * 1000),
         // Only update refresh token if a new one was provided
-        ...(newTokenData.refresh_token && { refreshToken: newTokenData.refresh_token }),
+        ...(newTokenData.refresh_token && {
+          refreshToken: newTokenData.refresh_token,
+        }),
       },
       this.env
     );
@@ -161,7 +174,11 @@ export class IntegrationManager {
   private async refreshToken(
     provider: string,
     refreshToken: string
-  ): Promise<{ access_token: string; expires_in: number; refresh_token?: string }> {
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+  }> {
     if (provider === "google-mail") {
       const clientId = this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID;
       const clientSecret = this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET;
@@ -190,7 +207,11 @@ export class IntegrationManager {
     refreshToken: string,
     clientId: string,
     clientSecret: string
-  ): Promise<{ access_token: string; expires_in: number; refresh_token?: string }> {
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+  }> {
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -209,7 +230,7 @@ export class IntegrationManager {
       throw new Error(`Failed to refresh Google token: ${error}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       access_token: string;
       expires_in: number;
       refresh_token?: string;

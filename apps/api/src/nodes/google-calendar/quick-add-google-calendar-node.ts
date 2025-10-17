@@ -11,7 +11,8 @@ export class QuickAddGoogleCalendarNode extends ExecutableNode {
     id: "quick-add-google-calendar",
     name: "Quick Add (Google Calendar)",
     type: "quick-add-google-calendar",
-    description: "Create events from natural language using Google Calendar API",
+    description:
+      "Create events from natural language using Google Calendar API",
     tags: ["Calendar", "Google"],
     icon: "calendar",
     documentation:
@@ -29,7 +30,8 @@ export class QuickAddGoogleCalendarNode extends ExecutableNode {
       {
         name: "text",
         type: "string",
-        description: "Natural language event description (e.g., 'Meeting tomorrow at 3pm')",
+        description:
+          "Natural language event description (e.g., 'Meeting tomorrow at 3pm')",
         required: true,
       },
     ],
@@ -94,9 +96,8 @@ export class QuickAddGoogleCalendarNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }

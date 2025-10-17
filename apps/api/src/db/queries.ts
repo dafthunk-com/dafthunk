@@ -17,14 +17,8 @@ import {
   datasets,
   type DeploymentRow,
   deployments,
-<<<<<<< HEAD
-=======
-  type ExecutionRow,
-  executions,
-  type ExecutionStatusType,
   type IntegrationInsert,
   integrations,
->>>>>>> ee6e4fe2 (feat: implement integration management API and UI)
   type MembershipInsert,
   type MembershipRow,
   memberships,

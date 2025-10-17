@@ -79,7 +79,11 @@ export class ReadInboxGoogleMailNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, maxResults = 10, includeBody = false } = context.inputs;
+      const {
+        integrationId,
+        maxResults = 10,
+        includeBody = false,
+      } = context.inputs;
       const { organizationId } = context;
 
       // Validate required inputs
@@ -118,7 +122,8 @@ export class ReadInboxGoogleMailNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(integrationId);
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           // Fallback to preloaded token if integration manager is not available
           accessToken = integration.token;
@@ -186,7 +191,8 @@ export class ReadInboxGoogleMailNode extends ExecutableNode {
       const transformedMessages = messages.map((msg) => {
         const headers = msg.payload.headers;
         const getHeader = (name: string) =>
-          headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value || "";
+          headers.find((h) => h.name.toLowerCase() === name.toLowerCase())
+            ?.value || "";
 
         let body = "";
         if (includeBody) {

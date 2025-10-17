@@ -64,8 +64,12 @@ export class AddAttendeesGoogleCalendarNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, eventId, attendees, sendUpdates = true } =
-        context.inputs;
+      const {
+        integrationId,
+        eventId,
+        attendees,
+        sendUpdates = true,
+      } = context.inputs;
       const { organizationId } = context;
 
       // Validate required inputs
@@ -106,9 +110,8 @@ export class AddAttendeesGoogleCalendarNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }

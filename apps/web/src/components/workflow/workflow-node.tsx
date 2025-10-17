@@ -329,7 +329,9 @@ export const WorkflowNode = memo(
         nodeType === "quick-add-google-calendar" ||
         nodeType === "list-calendars-google-calendar"
       ) {
-        const integrationIdInput = data.inputs.find((i) => i.id === "integrationId");
+        const integrationIdInput = data.inputs.find(
+          (i) => i.id === "integrationId"
+        );
         if (integrationIdInput) {
           updateNodeInput(
             id,

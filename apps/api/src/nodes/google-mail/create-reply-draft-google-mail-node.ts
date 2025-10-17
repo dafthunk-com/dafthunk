@@ -70,8 +70,13 @@ export class CreateReplyDraftGoogleMailNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { integrationId, messageId, threadId, body, replyAll = false } =
-        context.inputs;
+      const {
+        integrationId,
+        messageId,
+        threadId,
+        body,
+        replyAll = false,
+      } = context.inputs;
       const { organizationId } = context;
 
       // Validate required inputs
@@ -116,9 +121,8 @@ export class CreateReplyDraftGoogleMailNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           // Fallback to preloaded token if integration manager is not available
           accessToken = integration.token;
@@ -168,7 +172,7 @@ export class CreateReplyDraftGoogleMailNode extends ExecutableNode {
 
       // Build reply headers
       const replyTo = fromHeader;
-      let replyToList = replyTo;
+      const replyToList = replyTo;
       let replyCc = "";
 
       if (replyAll) {

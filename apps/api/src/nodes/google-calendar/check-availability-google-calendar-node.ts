@@ -11,7 +11,8 @@ export class CheckAvailabilityGoogleCalendarNode extends ExecutableNode {
     id: "check-availability-google-calendar",
     name: "Check Availability (Google Calendar)",
     type: "check-availability-google-calendar",
-    description: "Check free/busy status for time slots using Google Calendar API",
+    description:
+      "Check free/busy status for time slots using Google Calendar API",
     tags: ["Calendar", "Google"],
     icon: "calendar",
     documentation:
@@ -98,9 +99,8 @@ export class CheckAvailabilityGoogleCalendarNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }

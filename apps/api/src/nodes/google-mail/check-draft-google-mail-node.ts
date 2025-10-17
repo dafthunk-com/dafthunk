@@ -100,9 +100,8 @@ export class CheckDraftGoogleMailNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           // Fallback to preloaded token if integration manager is not available
           accessToken = integration.token;
@@ -116,7 +115,9 @@ export class CheckDraftGoogleMailNode extends ExecutableNode {
       }
 
       // List drafts, optionally filtered by thread
-      const url = new URL("https://gmail.googleapis.com/gmail/v1/users/me/drafts");
+      const url = new URL(
+        "https://gmail.googleapis.com/gmail/v1/users/me/drafts"
+      );
       if (threadId && typeof threadId === "string") {
         url.searchParams.append("q", `in:drafts`);
       }

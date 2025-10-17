@@ -49,7 +49,8 @@ export class SearchMessagesGoogleMailNode extends ExecutableNode {
       {
         name: "query",
         type: "string",
-        description: "Gmail search query (e.g., 'from:user@example.com is:unread')",
+        description:
+          "Gmail search query (e.g., 'from:user@example.com is:unread')",
         required: true,
       },
       {
@@ -133,9 +134,8 @@ export class SearchMessagesGoogleMailNode extends ExecutableNode {
       let accessToken: string;
       try {
         if (context.integrationManager) {
-          accessToken = await context.integrationManager.getValidAccessToken(
-            integrationId
-          );
+          accessToken =
+            await context.integrationManager.getValidAccessToken(integrationId);
         } else {
           accessToken = integration.token;
         }
