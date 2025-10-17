@@ -347,6 +347,68 @@ export function createWidgetConfig(
         provider: "google-mail",
       };
     }
+    case "read-inbox-google-mail": {
+      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "google-mail",
+      };
+    }
+    case "create-reply-draft-google-mail": {
+      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "google-mail",
+      };
+    }
+    case "check-draft-google-mail":
+    case "send-draft-google-mail":
+    case "delete-draft-google-mail":
+    case "update-draft-google-mail":
+    case "mark-message-google-mail":
+    case "modify-labels-google-mail":
+    case "search-messages-google-mail":
+    case "get-message-google-mail":
+    case "archive-message-google-mail":
+    case "trash-message-google-mail": {
+      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "google-mail",
+      };
+    }
+    case "create-event-google-calendar":
+    case "list-events-google-calendar":
+    case "get-event-google-calendar":
+    case "update-event-google-calendar":
+    case "delete-event-google-calendar":
+    case "search-events-google-calendar":
+    case "add-attendees-google-calendar":
+    case "check-availability-google-calendar":
+    case "quick-add-google-calendar":
+    case "list-calendars-google-calendar": {
+      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "google-calendar",
+      };
+    }
     default:
       return null;
   }
