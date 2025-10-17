@@ -95,6 +95,7 @@ integrationRoutes.post(
           id: result.integration.id,
           name: result.integration.name,
           provider: result.integration.provider as any,
+          status: result.integration.status as any,
           tokenExpiresAt: result.integration.tokenExpiresAt || undefined,
           metadata: result.integration.metadata || undefined,
           createdAt: result.integration.createdAt,

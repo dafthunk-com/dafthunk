@@ -32,3 +32,13 @@ export interface DatasetSelectorWidgetProps
   extends BaseWidgetProps<DatasetSelectorWidgetConfig> {
   config: DatasetSelectorWidgetConfig;
 }
+
+export interface IntegrationSelectorWidgetConfig extends BaseWidgetConfig {
+  type: "integration-selector";
+  provider?: string; // Optional: filter by integration provider
+}
+
+export interface IntegrationSelectorWidgetProps
+  extends BaseWidgetProps<IntegrationSelectorWidgetConfig> {
+  config: IntegrationSelectorWidgetConfig;
+}

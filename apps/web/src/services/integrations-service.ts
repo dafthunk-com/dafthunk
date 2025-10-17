@@ -88,6 +88,7 @@ export const createIntegration = async (
     id: response.integration.id,
     name: response.integration.name,
     provider: response.integration.provider,
+    status: response.integration.status,
     tokenExpiresAt: response.integration.tokenExpiresAt,
     metadata: response.integration.metadata,
     createdAt: response.integration.createdAt,

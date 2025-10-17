@@ -40,6 +40,7 @@ import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
 import { DatasetSelectorWidget } from "./widgets/dataset-selector-widget";
 import { DocumentWidget } from "./widgets/document-widget";
 import { InputTextWidget } from "./widgets/input-text-widget";
+import { IntegrationSelectorWidget } from "./widgets/integration-selector-widget";
 import { JavaScriptEditorWidget } from "./widgets/javascript-editor-widget";
 import { JsonEditorWidget } from "./widgets/json-editor-widget";
 import { NumberInputWidget } from "./widgets/number-input-widget";
@@ -253,6 +254,7 @@ export const WorkflowNode = memo(
       document: DocumentWidget,
       "rag-ai-search": DatasetSelectorWidget,
       "rag-search": DatasetSelectorWidget,
+      "send-email-google-mail": IntegrationSelectorWidget,
     };
 
     // Get widget configuration if this is a widget node
@@ -271,6 +273,21 @@ export const WorkflowNode = memo(
           updateNodeInput(
             id,
             datasetIdInput.id,
+            value,
+            data.inputs,
+            updateNodeData
+          );
+        }
+        return;
+      }
+
+      // Handle integration selector specifically
+      if (nodeType === "send-email-google-mail") {
+        const integrationIdInput = data.inputs.find((i) => i.id === "integrationId");
+        if (integrationIdInput) {
+          updateNodeInput(
+            id,
+            integrationIdInput.id,
             value,
             data.inputs,
             updateNodeData

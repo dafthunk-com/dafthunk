@@ -37,8 +37,7 @@ oauthRoutes.get(
         "openid",
         "email",
         "profile",
-        "https://www.googleapis.com/auth/gmail.readonly",
-        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/gmail.modify",
       ],
       state,
     });
@@ -105,7 +104,7 @@ oauthRoutes.get(
         state.organizationId,
         integrationName,
         "google-mail",
-        token.access_token,
+        token.token, // The actual access token is in token.token, not token.access_token
         token.refresh_token,
         token.expires_in
           ? new Date(Date.now() + token.expires_in * 1000)
@@ -155,8 +154,7 @@ oauthRoutes.get(
         "openid",
         "email",
         "profile",
-        "https://www.googleapis.com/auth/calendar.readonly",
-        "https://www.googleapis.com/auth/calendar.events",
+        "https://www.googleapis.com/auth/calendar",
       ],
       state,
     });
@@ -229,7 +227,7 @@ oauthRoutes.get(
         state.organizationId,
         integrationName,
         "google-calendar",
-        token.access_token,
+        token.token, // The actual access token is in token.token, not token.access_token
         token.refresh_token,
         token.expires_in
           ? new Date(Date.now() + token.expires_in * 1000)

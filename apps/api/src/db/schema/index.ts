@@ -82,6 +82,16 @@ export const IntegrationProvider = {
 export type IntegrationProviderType =
   (typeof IntegrationProvider)[keyof typeof IntegrationProvider];
 
+// Integration status types
+export const IntegrationStatus = {
+  ACTIVE: "active",
+  EXPIRED: "expired",
+  REVOKED: "revoked",
+} as const;
+
+export type IntegrationStatusType =
+  (typeof IntegrationStatus)[keyof typeof IntegrationStatus];
+
 // Cron version alias types
 export const VersionAlias = {
   DEV: "dev",
@@ -400,6 +410,10 @@ export const integrations = sqliteTable(
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     provider: text("provider").$type<IntegrationProviderType>().notNull(),
+    status: text("status")
+      .$type<IntegrationStatusType>()
+      .notNull()
+      .default(IntegrationStatus.ACTIVE),
     encryptedToken: text("encrypted_token").notNull(),
     encryptedRefreshToken: text("encrypted_refresh_token"),
     tokenExpiresAt: integer("token_expires_at", { mode: "timestamp" }),
@@ -413,6 +427,7 @@ export const integrations = sqliteTable(
   (table) => [
     index("integrations_name_idx").on(table.name),
     index("integrations_provider_idx").on(table.provider),
+    index("integrations_status_idx").on(table.status),
     index("integrations_organization_id_idx").on(table.organizationId),
     index("integrations_created_at_idx").on(table.createdAt),
     // Ensure unique integration names per organization

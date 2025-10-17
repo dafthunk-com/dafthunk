@@ -9,11 +9,15 @@ export type IntegrationProvider =
   | "discord"
   | "openai";
 
+// Integration status types
+export type IntegrationStatus = "active" | "expired" | "revoked";
+
 // Base integration type (without sensitive token data)
 export interface Integration {
   id: string;
   name: string;
   provider: IntegrationProvider;
+  status: IntegrationStatus;
   tokenExpiresAt?: Date;
   metadata?: string; // JSON string for provider-specific data
   createdAt: Date;
@@ -25,6 +29,7 @@ export interface IntegrationWithTokens {
   id: string;
   name: string;
   provider: IntegrationProvider;
+  status: IntegrationStatus;
   token: string;
   refreshToken?: string;
   tokenExpiresAt?: Date;

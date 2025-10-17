@@ -88,6 +88,14 @@ interface DatasetSelectorConfig {
   value: string;
 }
 
+interface IntegrationSelectorConfig {
+  type: "integration-selector";
+  id: string;
+  name: string;
+  value: string;
+  provider?: string;
+}
+
 export type WidgetConfig =
   | SliderWidgetConfig
   | TextAreaWidgetConfig
@@ -99,7 +107,8 @@ export type WidgetConfig =
   | WebcamConfig
   | AudioRecorderConfig
   | DocumentConfig
-  | DatasetSelectorConfig;
+  | DatasetSelectorConfig
+  | IntegrationSelectorConfig;
 
 export function createWidgetConfig(
   nodeId: string,
@@ -325,6 +334,17 @@ export function createWidgetConfig(
         id: nodeId,
         name: "Dataset Selector",
         value: value || "",
+      };
+    }
+    case "send-email-google-mail": {
+      const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "google-mail",
       };
     }
     default:
