@@ -13,7 +13,7 @@ import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { executions as executionsTable } from "../db/schema";
-import { ObjectStore } from "../runtime/object-store";
+import { ObjectStore } from "../stores/object-store";
 
 const objectRoutes = new Hono<ApiContext>();
 

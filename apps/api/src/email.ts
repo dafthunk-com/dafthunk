@@ -1,18 +1,11 @@
 import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 
 import { Bindings } from "./context";
-import {
-  createDatabase,
-  getOrganizationComputeCredits,
-  getWorkflowWithData,
-} from "./db";
-import {
-  ExecutionStatus,
-  getDeploymentByVersion,
-  getLatestDeployment,
-  saveExecution,
-} from "./db";
-import { ObjectStore } from "./runtime/object-store";
+import { createDatabase, getOrganizationComputeCredits } from "./db";
+import { ExecutionStatus } from "./db";
+import { DeploymentStore } from "./stores/deployment-store";
+import { ExecutionStore } from "./stores/execution-store";
+import { WorkflowStore } from "./stores/workflow-store";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>
@@ -75,7 +68,9 @@ export async function handleIncomingEmail(
   console.log(`Parsed trigger type: ${triggerType}`);
 
   const db = createDatabase(env.DB);
-  const objectStore = new ObjectStore(env.RESSOURCES);
+  const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
+  const workflowStore = new WorkflowStore(env.DB, env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(env.DB, env.RESSOURCES);
 
   // Get workflow data either from deployment or directly from workflow
   let workflowData: WorkflowType;
@@ -84,9 +79,7 @@ export async function handleIncomingEmail(
 
   if (version === "dev") {
     // Get workflow with data from DB and R2
-    const workflowWithData = await getWorkflowWithData(
-      db,
-      objectStore,
+    const workflowWithData = await workflowStore.getWithData(
       workflowIdOrHandle,
       organizationIdOrHandle
     );
@@ -101,8 +94,7 @@ export async function handleIncomingEmail(
     // Get deployment based on version
     let deployment;
     if (version === "latest") {
-      deployment = await getLatestDeployment(
-        db,
+      deployment = await deploymentStore.getLatest(
         workflowIdOrHandle,
         organizationIdOrHandle
       );
@@ -111,8 +103,7 @@ export async function handleIncomingEmail(
         return;
       }
     } else {
-      deployment = await getDeploymentByVersion(
-        db,
+      deployment = await deploymentStore.getByVersion(
         workflowIdOrHandle,
         organizationIdOrHandle,
         version
@@ -126,15 +117,7 @@ export async function handleIncomingEmail(
     deploymentId = deployment.id;
 
     // Load deployment workflow snapshot from R2
-    try {
-      workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
-    } catch (error) {
-      console.error(
-        `Failed to load deployment workflow data from R2 for ${deployment.id}:`,
-        error
-      );
-      return;
-    }
+    workflowData = await deploymentStore.readWorkflowSnapshot(deployment.id);
 
     workflow = {
       id: deployment.workflowId,
@@ -193,7 +176,7 @@ export async function handleIncomingEmail(
   }));
 
   // Save initial execution record
-  const initialExecution = await saveExecution(db, {
+  await executionStore.save({
     id: executionId,
     workflowId: workflow.id,
     deploymentId,
@@ -204,11 +187,4 @@ export async function handleIncomingEmail(
     createdAt: new Date(),
     updatedAt: new Date(),
   });
-
-  // Save execution data to R2
-  try {
-    await objectStore.writeExecution(initialExecution);
-  } catch (error) {
-    console.error(`Failed to save execution to R2: ${executionId}`, error);
-  }
 }

@@ -14,7 +14,7 @@ export interface ListExecutionsRequest {
  * Response for listing executions
  */
 export interface ListExecutionsResponse {
-  executions: WorkflowExecution[];
+  executions: Omit<WorkflowExecution, "nodeExecutions">[];
 }
 
 /**

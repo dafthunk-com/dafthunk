@@ -1,17 +1,9 @@
-import {
-  Deployment,
-  NodeExecution,
-  Workflow as WorkflowType,
-  WorkflowExecution,
-  WorkflowExecutionStatus,
-} from "@dafthunk/types";
 import * as crypto from "crypto";
-import { and, desc, eq, inArray, lte, SQL, sql } from "drizzle-orm";
+import { and, eq, lte, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { v7 as uuidv7 } from "uuid";
 
 import { Bindings } from "../context";
-import { ObjectStore } from "../runtime/object-store";
 import { encryptSecret } from "../utils/encryption";
 import {
   type ApiKeyInsert,
@@ -23,12 +15,8 @@ import {
   type DatasetInsert,
   type DatasetRow,
   datasets,
-  type DeploymentInsert,
   type DeploymentRow,
   deployments,
-  type ExecutionRow,
-  executions,
-  type ExecutionStatusType,
   type MembershipInsert,
   type MembershipRow,
   memberships,
@@ -44,7 +32,6 @@ import {
   type UserRoleType,
   type UserRow,
   users,
-  type WorkflowInsert,
   type WorkflowRow,
   workflows,
 } from "./index";
@@ -75,24 +62,6 @@ export function createHandle(
 
   return cleanedHandle;
 }
-
-/**
- * Data required to save an execution record
- */
-export type SaveExecutionRecord = {
-  id: string;
-  workflowId: string;
-  deploymentId?: string;
-  userId: string;
-  organizationId: string;
-  status: ExecutionStatusType;
-  nodeExecutions: NodeExecution[];
-  error?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  startedAt?: Date;
-  endedAt?: Date;
-};
 
 /**
  * Data required to save a user record
@@ -246,100 +215,6 @@ export function getDatasetCondition(datasetIdOrHandle: string) {
 }
 
 /**
- * Get all workflows for an organization
- *
- * @param db Database instance
- * @param organizationIdOrHandle Organization ID
- * @returns Array of workflows with basic info
- */
-export async function getWorkflows(
-  db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
-) {
-  return await db
-    .select({
-      id: workflows.id,
-      name: workflows.name,
-      handle: workflows.handle,
-      type: workflows.type,
-      createdAt: workflows.createdAt,
-      updatedAt: workflows.updatedAt,
-    })
-    .from(workflows)
-    .innerJoin(
-      organizations,
-      and(
-        eq(workflows.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
-}
-
-/**
- * Get a workflow by ID, ensuring it belongs to the specified organization
- *
- * @param db Database instance
- * @param workflowIdOrHandle Workflow ID or handle
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Workflow record or undefined if not found
- */
-export async function getWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  organizationIdOrHandle: string
-): Promise<WorkflowRow | undefined> {
-  const [workflow] = await db
-    .select()
-    .from(workflows)
-    .innerJoin(
-      organizations,
-      and(
-        eq(workflows.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle),
-        getWorkflowCondition(workflowIdOrHandle)
-      )
-    )
-    .limit(1);
-  return workflow?.workflows;
-}
-
-/**
- * Get a workflow that the user has access to through their organization memberships
- *
- * @param db Database instance
- * @param workflowIdOrHandle Workflow ID or handle
- * @param userId User ID to check access for
- * @returns The workflow and organization ID if user has access, undefined otherwise
- */
-export async function getWorkflowWithUserAccess(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  userId: string
-): Promise<{ workflow: WorkflowRow; organizationId: string } | undefined> {
-  const [result] = await db
-    .select({
-      workflow: workflows,
-      organizationId: workflows.organizationId,
-    })
-    .from(workflows)
-    .innerJoin(
-      memberships,
-      eq(workflows.organizationId, memberships.organizationId)
-    )
-    .where(
-      and(
-        eq(memberships.userId, userId),
-        getWorkflowCondition(workflowIdOrHandle)
-      )
-    )
-    .limit(1);
-
-  return result
-    ? { workflow: result.workflow, organizationId: result.organizationId }
-    : undefined;
-}
-
-/**
  * Get the latest deployment for a workflow
  *
  * @param db Database instance
@@ -347,199 +222,10 @@ export async function getWorkflowWithUserAccess(
  * @param organizationIdOrHandle Organization ID or handle
  * @returns The latest deployment or undefined if none found
  */
-export async function getLatestDeployment(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  organizationIdOrHandle: string
-): Promise<DeploymentRow | undefined> {
-  const [firstResult] = await db
-    .select()
-    .from(deployments)
-    .innerJoin(
-      workflows,
-      and(
-        eq(deployments.workflowId, workflows.id),
-        getWorkflowCondition(workflowIdOrHandle)
-      )
-    )
-    .innerJoin(
-      organizations,
-      and(
-        eq(workflows.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .orderBy(desc(deployments.createdAt))
-    .limit(1);
-
-  return firstResult?.deployments;
-}
-
-export async function getDeploymentByVersion(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  organizationIdOrHandle: string,
-  version: string
-): Promise<DeploymentRow | undefined> {
-  const [firstResult] = await db
-    .select({ deployments: deployments })
-    .from(deployments)
-    .innerJoin(workflows, eq(deployments.workflowId, workflows.id))
-    .innerJoin(organizations, eq(workflows.organizationId, organizations.id))
-    .where(
-      and(
-        eq(deployments.version, parseInt(version, 10)),
-        getWorkflowCondition(workflowIdOrHandle),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .limit(1);
-
-  return firstResult?.deployments;
-}
-
-/**
- * Create a new workflow
- *
- * @param db Database instance
- * @param newWorkflow Workflow data to insert
- * @returns Created workflow record
- */
-export async function createWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  newWorkflow: WorkflowInsert
-): Promise<WorkflowRow> {
-  const [workflow] = await db.insert(workflows).values(newWorkflow).returning();
-
-  return workflow;
-}
-
-/**
- * Update a workflow (metadata only), ensuring it belongs to the specified organization
- * Note: Full workflow data should be saved to R2 separately by the caller
- *
- * @param db Database instance
- * @param id Workflow ID
- * @param organizationId Organization ID
- * @param data Updated workflow metadata (name, type, timestamps, etc.)
- * @returns Updated workflow record
- */
-export async function updateWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string,
-  data: Partial<WorkflowRow>
-): Promise<WorkflowRow> {
-  const [workflow] = await db
-    .update(workflows)
-    .set(data)
-    .where(
-      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
-    )
-    .returning();
-
-  return workflow;
-}
-
-/**
- * Delete a workflow, ensuring it belongs to the specified organization
- *
- * @param db Database instance
- * @param id Workflow ID
- * @param organizationId Organization ID
- * @returns Deleted workflow record
- */
-export async function deleteWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationId: string
-): Promise<WorkflowRow | undefined> {
-  const [workflow] = await db
-    .delete(workflows)
-    .where(
-      and(eq(workflows.id, id), eq(workflows.organizationId, organizationId))
-    )
-    .returning();
-
-  return workflow;
-}
 
 /**
  * Execution Operations
  */
-
-/**
- * Get an execution by ID, ensuring it belongs to the specified organization
- *
- * @param db Database instance
- * @param id Execution ID
- * @param organizationId Organization ID
- * @returns Execution record or undefined if not found
- */
-export async function getExecution(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationIdOrHandle: string
-): Promise<ExecutionRow | undefined> {
-  const [execution] = await db
-    .select()
-    .from(executions)
-    .innerJoin(
-      organizations,
-      and(
-        eq(executions.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .where(eq(executions.id, id))
-    .limit(1);
-  return execution?.executions;
-}
-
-/**
- * Save an execution record (metadata only)
- * Note: Full execution data should be saved to R2 separately by the caller
- *
- * @param db Database instance
- * @param record Execution data to save
- * @returns Workflow execution object
- */
-export async function saveExecution(
-  db: ReturnType<typeof createDatabase>,
-  record: SaveExecutionRecord
-): Promise<WorkflowExecution> {
-  const now = new Date();
-  const { nodeExecutions, userId, deploymentId, ...dbFields } = record;
-
-  // Create the execution object that will be returned (and saved to R2 by caller)
-  const executionData: WorkflowExecution = {
-    id: record.id,
-    workflowId: record.workflowId,
-    deploymentId: record.deploymentId,
-    status: record.status as WorkflowExecutionStatus,
-    nodeExecutions,
-    error: record.error,
-    startedAt: record.startedAt,
-    endedAt: record.endedAt,
-  };
-
-  // Create the metadata record to insert into the database (no data field)
-  const dbRecord = {
-    ...dbFields,
-    deploymentId: deploymentId,
-    updatedAt: record.updatedAt ?? now,
-    createdAt: record.createdAt ?? now,
-    startedAt: record.startedAt,
-    endedAt: record.endedAt,
-  };
-
-  await db
-    .insert(executions)
-    .values(dbRecord)
-    .onConflictDoUpdate({ target: executions.id, set: dbRecord });
-
-  return executionData;
-}
 
 /**
  * Create a new API key for an organization
@@ -696,23 +382,6 @@ export async function deleteApiKey(
  * @param organizationId Organization ID for security checks
  * @returns The deployment or undefined if not found
  */
-export async function getDeployment(
-  db: ReturnType<typeof createDatabase>,
-  id: string,
-  organizationIdOrHandle: string
-): Promise<DeploymentRow | undefined> {
-  const [resultRow] = await db
-    .select({ deployments: deployments })
-    .from(deployments)
-    .innerJoin(organizations, eq(deployments.organizationId, organizations.id))
-    .where(
-      and(
-        eq(deployments.id, id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
-  return resultRow?.deployments;
-}
 
 /**
  * Create a new deployment
@@ -721,19 +390,6 @@ export async function getDeployment(
  * @param newDeployment Deployment data
  * @returns The created deployment
  */
-export async function createDeployment(
-  db: ReturnType<typeof createDatabase>,
-  newDeployment: DeploymentInsert
-): Promise<DeploymentRow> {
-  await db.insert(deployments).values(newDeployment);
-
-  const [deployment] = await db
-    .select()
-    .from(deployments)
-    .where(eq(deployments.id, newDeployment.id));
-
-  return deployment;
-}
 
 /**
  * Get deployments grouped by workflow
@@ -742,89 +398,6 @@ export async function createDeployment(
  * @param organizationId Organization ID
  * @returns Array of WorkflowDeployment objects
  */
-export async function getDeploymentsGroupedByWorkflow(
-  db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string
-): Promise<Deployment[]> {
-  const workflowDeploymentAggregates = db
-    .$with("workflow_deployment_aggregates")
-    .as(
-      db
-        .select({
-          workflowId: deployments.workflowId,
-          maxVersion: sql<number>`MAX(${deployments.version})`
-            .mapWith(Number)
-            .as("max_version"),
-          deploymentCount: sql<number>`COUNT(${deployments.id})`
-            .mapWith(Number)
-            .as("deployment_count"),
-        })
-        .from(deployments)
-        .innerJoin(
-          organizations,
-          and(
-            eq(deployments.organizationId, organizations.id),
-            getOrganizationCondition(organizationIdOrHandle)
-          )
-        )
-        .groupBy(deployments.workflowId)
-    );
-
-  // Alias the deployments table to clearly refer to the specific deployment record
-  // that corresponds to the maxVersion. This is not strictly necessary if Drizzle handles
-  // self-joins well without it, but can improve clarity.
-  // Using a different alias name if 'latest_deployment' was used before or is confusing.
-  const actualLatestDeployment = alias(deployments, "actual_latest_deployment");
-
-  const results = await db
-    .with(workflowDeploymentAggregates)
-    .select({
-      workflowId: workflows.id,
-      workflowName: workflows.name,
-      workflowType: workflows.type,
-      latestDeploymentId: actualLatestDeployment.id,
-      latestVersion: workflowDeploymentAggregates.maxVersion,
-      deploymentCount: workflowDeploymentAggregates.deploymentCount,
-      latestCreatedAt: actualLatestDeployment.createdAt,
-    })
-    .from(workflows)
-    .innerJoin(
-      workflowDeploymentAggregates,
-      eq(workflows.id, workflowDeploymentAggregates.workflowId)
-    )
-    .innerJoin(
-      actualLatestDeployment,
-      and(
-        eq(
-          actualLatestDeployment.workflowId,
-          workflowDeploymentAggregates.workflowId
-        ),
-        eq(
-          actualLatestDeployment.version,
-          workflowDeploymentAggregates.maxVersion
-        )
-      )
-    )
-    .innerJoin(
-      // Ensure workflows themselves are filtered by the organization
-      organizations,
-      and(
-        eq(workflows.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .orderBy(desc(actualLatestDeployment.createdAt)); // Order by the actual latest deployment's creation time
-
-  return results.map((row) => ({
-    workflowId: row.workflowId,
-    workflowName: row.workflowName,
-    workflowType: row.workflowType,
-    latestDeploymentId: row.latestDeploymentId,
-    latestVersion: row.latestVersion,
-    deploymentCount: row.deploymentCount,
-    latestCreatedAt: row.latestCreatedAt,
-  }));
-}
 
 /**
  * Get deployments for a workflow, sorted by creation date
@@ -834,25 +407,6 @@ export async function getDeploymentsGroupedByWorkflow(
  * @param organizationId Organization ID
  * @returns Array of deployment records
  */
-export async function getDeployments(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationIdOrHandle: string
-): Promise<DeploymentRow[]> {
-  const results = await db
-    .select({ deployments: deployments })
-    .from(deployments)
-    .innerJoin(organizations, eq(deployments.organizationId, organizations.id))
-    .where(
-      and(
-        eq(deployments.workflowId, workflowId),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .orderBy(desc(deployments.createdAt));
-
-  return results.map((item) => item.deployments);
-}
 
 /**
  * Get the latest version number for a workflow's deployments
@@ -862,139 +416,6 @@ export async function getDeployments(
  * @param organizationId Organization ID
  * @returns The latest version number or null if no deployments exist
  */
-export async function getLatestDeploymentsVersionNumbers(
-  db: ReturnType<typeof createDatabase>,
-  workflowId: string,
-  organizationIdOrHandle: string
-): Promise<number | null> {
-  const [resultRow] = await db
-    .select({
-      maxVersion: sql<number>`MAX(${deployments.version})`.mapWith(Number),
-    })
-    .from(deployments)
-    .innerJoin(organizations, eq(deployments.organizationId, organizations.id))
-    .where(
-      and(
-        eq(deployments.workflowId, workflowId),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    );
-
-  return resultRow?.maxVersion ?? null;
-}
-
-/**
- * List executions with optional filtering and pagination
- *
- * @param db Database instance
- * @param organizationId Organization ID
- * @param options Optional filters: workflowId, deploymentId, limit, offset
- * @returns Array of execution records
- */
-export async function listExecutions(
-  db: ReturnType<typeof createDatabase>,
-  organizationIdOrHandle: string,
-  options?: {
-    workflowId?: string;
-    deploymentId?: string;
-    limit?: number;
-    offset?: number;
-  }
-): Promise<ExecutionRow[]> {
-  // Base query structure using an explicit join
-  // Explicitly select all columns from the executions table
-  let query = db
-    .select({ executions: executions })
-    .from(executions)
-    .innerJoin(organizations, eq(executions.organizationId, organizations.id))
-    .$dynamic(); // Use $dynamic() to allow for conditional query building
-
-  // Array to hold all conditions for the WHERE clause
-  const conditions = [];
-
-  // Add condition for organization (ID or Handle)
-  conditions.push(getOrganizationCondition(organizationIdOrHandle));
-
-  // Add optional condition for workflowId on the 'executions' table
-  if (options?.workflowId) {
-    conditions.push(eq(executions.workflowId, options.workflowId));
-  }
-
-  // Add optional condition for deploymentId on the 'executions' table
-  if (options?.deploymentId) {
-    conditions.push(eq(executions.deploymentId, options.deploymentId));
-  }
-
-  // Filter out any undefined conditions that might arise if optional fields are not provided
-  const validConditions = conditions.filter((c) => c !== undefined) as SQL[];
-  if (validConditions.length > 0) {
-    query = query.where(and(...validConditions));
-  }
-
-  // Apply ORDER BY to sort executions by creation date (descending)
-  query = query.orderBy(desc(executions.createdAt));
-
-  // Apply LIMIT if provided for pagination
-  if (options?.limit !== undefined) {
-    query = query.limit(options.limit);
-  }
-
-  // Apply OFFSET if provided for pagination
-  if (options?.offset !== undefined) {
-    query = query.offset(options.offset);
-  }
-
-  // Execute the query
-  const results = await query;
-
-  // Map results to return only ExecutionRow objects.
-  // Since we selected { executions: executions }, each item in 'results' will have an 'executions' property.
-  return results.map((item) => item.executions);
-}
-
-/**
- * Get workflow names by their IDs
- *
- * @param db Database instance
- * @param workflowIds Array of workflow IDs
- * @returns Array of workflow IDs and names
- */
-export async function getWorkflowNames(
-  db: ReturnType<typeof createDatabase>,
-  workflowIds: string[]
-): Promise<{ id: string; name: string }[]> {
-  return db
-    .select({ id: workflows.id, name: workflows.name })
-    .from(workflows)
-    .where(inArray(workflows.id, workflowIds));
-}
-
-/**
- * Get a single workflow name by ID
- *
- * @param db Database instance
- * @param workflowId Workflow ID
- * @returns Workflow name or undefined if not found
- */
-export async function getWorkflowName(
-  db: ReturnType<typeof createDatabase>,
-  workflowIdOrHandle: string,
-  organizationIdOrHandle: string
-): Promise<string | undefined> {
-  const [workflow] = await db
-    .select({ name: workflows.name })
-    .from(workflows)
-    .innerJoin(
-      organizations,
-      and(
-        eq(workflows.organizationId, organizations.id),
-        getOrganizationCondition(organizationIdOrHandle)
-      )
-    )
-    .where(getWorkflowCondition(workflowIdOrHandle));
-
-  return workflow?.name;
-}
 
 /**
  * Get a cron trigger.
@@ -1960,46 +1381,6 @@ export async function getOrganizationMembershipsWithUsers(
 }
 
 /**
- * Get workflow metadata from DB and full workflow data from R2
- *
- * @param db Database instance
- * @param objectStore ObjectStore instance for R2 operations
- * @param workflowIdOrHandle Workflow ID or handle
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Workflow metadata with full data from R2
- */
-export async function getWorkflowWithData(
-  db: ReturnType<typeof createDatabase>,
-  objectStore: ObjectStore,
-  workflowIdOrHandle: string,
-  organizationIdOrHandle: string
-): Promise<(WorkflowRow & { data: WorkflowType }) | undefined> {
-  const workflow = await getWorkflow(
-    db,
-    workflowIdOrHandle,
-    organizationIdOrHandle
-  );
-
-  if (!workflow) {
-    return undefined;
-  }
-
-  try {
-    const workflowData = await objectStore.readWorkflow(workflow.id);
-    return {
-      ...workflow,
-      data: workflowData,
-    };
-  } catch (error) {
-    console.error(
-      `Failed to read workflow data from R2 for ${workflow.id}:`,
-      error
-    );
-    throw error;
-  }
-}
-
-/**
  * Get deployment metadata from DB and workflow snapshot from R2
  *
  * @param db Database instance
@@ -2008,71 +1389,3 @@ export async function getWorkflowWithData(
  * @param organizationIdOrHandle Organization ID or handle
  * @returns Deployment metadata with workflow data from R2
  */
-export async function getDeploymentWithData(
-  db: ReturnType<typeof createDatabase>,
-  objectStore: ObjectStore,
-  deploymentId: string,
-  organizationIdOrHandle: string
-): Promise<(DeploymentRow & { workflowData: WorkflowType }) | undefined> {
-  const deployment = await getDeployment(
-    db,
-    deploymentId,
-    organizationIdOrHandle
-  );
-
-  if (!deployment) {
-    return undefined;
-  }
-
-  try {
-    const workflowData = await objectStore.readDeploymentWorkflow(
-      deployment.id
-    );
-    return {
-      ...deployment,
-      workflowData,
-    };
-  } catch (error) {
-    console.error(
-      `Failed to read deployment workflow from R2 for ${deployment.id}:`,
-      error
-    );
-    throw error;
-  }
-}
-
-/**
- * Get execution metadata from DB and full execution data from R2
- *
- * @param db Database instance
- * @param objectStore ObjectStore instance for R2 operations
- * @param executionId Execution ID
- * @param organizationIdOrHandle Organization ID or handle
- * @returns Execution metadata with full data from R2
- */
-export async function getExecutionWithData(
-  db: ReturnType<typeof createDatabase>,
-  objectStore: ObjectStore,
-  executionId: string,
-  organizationIdOrHandle: string
-): Promise<(ExecutionRow & { data: WorkflowExecution }) | undefined> {
-  const execution = await getExecution(db, executionId, organizationIdOrHandle);
-
-  if (!execution) {
-    return undefined;
-  }
-
-  try {
-    const executionData = await objectStore.readExecution(execution.id);
-    return {
-      ...execution,
-      data: executionData,
-    };
-  } catch (error) {
-    console.error(
-      `Failed to read execution data from R2 for ${execution.id}:`,
-      error
-    );
-    throw error;
-  }
-}

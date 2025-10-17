@@ -1,8 +1,8 @@
 import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
+import type { ObjectStore } from "../stores/object-store";
 import { NodeOutputMapper } from "./node-output-mapper";
-import type { ObjectStore } from "./object-store";
 import type { RuntimeState } from "./runtime";
 
 // Mock the parameter mapper module

@@ -17,9 +17,7 @@
 import type { WorkflowState } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { createDatabase, updateWorkflow } from "../db/index";
-import { getWorkflowWithUserAccess } from "../db/queries";
-import { ObjectStore } from "../runtime/object-store";
+import { WorkflowStore } from "../stores/workflow-store";
 
 interface StateManagerOptions {
   env: Bindings;
@@ -52,8 +50,8 @@ export class StateManager {
    * 3. Initialize in-memory state
    */
   async loadState(workflowId: string, userId: string): Promise<void> {
-    const db = createDatabase(this.env.DB);
-    const result = await getWorkflowWithUserAccess(db, workflowId, userId);
+    const workflowStore = new WorkflowStore(this.env.DB, this.env.RESSOURCES);
+    const result = await workflowStore.getWithUserAccess(workflowId, userId);
 
     if (!result) {
       throw new Error(
@@ -64,24 +62,18 @@ export class StateManager {
     const { workflow, organizationId } = result;
 
     // Try to load full data from R2, fall back to empty structure if fails
-    const objectStore = new ObjectStore(this.env.RESSOURCES);
-    let workflowData;
-    try {
-      workflowData = await objectStore.readWorkflow(workflowId);
-    } catch (error) {
-      console.warn(
-        `Failed to load workflow data from R2 for ${workflowId}, using fallback`,
-        error
-      );
-      workflowData = {
-        id: workflowId,
-        name: workflow.name,
-        handle: workflow.handle,
-        type: workflow.type,
-        nodes: [],
-        edges: [],
-      };
-    }
+    const workflowWithData = await workflowStore.getWithData(
+      workflowId,
+      organizationId
+    );
+    const workflowData = workflowWithData?.data || {
+      id: workflowId,
+      name: workflow.name,
+      handle: workflow.handle,
+      type: workflow.type,
+      nodes: [],
+      edges: [],
+    };
 
     this.state = {
       id: workflowId,
@@ -184,8 +176,7 @@ export class StateManager {
     }
 
     try {
-      const db = createDatabase(this.env.DB);
-      const objectStore = new ObjectStore(this.env.RESSOURCES);
+      const workflowStore = new WorkflowStore(this.env.DB, this.env.RESSOURCES);
 
       const workflowData = {
         id: this.state.id,
@@ -198,11 +189,13 @@ export class StateManager {
 
       // Save to both R2 and D1
       await Promise.all([
-        objectStore.writeWorkflow(workflowData as any),
-        updateWorkflow(db, this.state.id, this.organizationId, {
+        // Persist metadata updates
+        workflowStore.update(this.state.id, this.organizationId, {
           name: this.state.name,
           type: this.state.type,
         } as any),
+        // Save full data to R2 via store save()
+        workflowStore.save(workflowData as any),
       ]);
     } catch (error) {
       console.error("Error persisting workflow:", error);

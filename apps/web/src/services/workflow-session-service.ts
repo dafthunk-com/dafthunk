@@ -140,7 +140,7 @@ export class WorkflowWebSocket {
       };
 
       this.currentState = updatedState;
-      this.ws.send(JSON.stringify(updateMsg));
+      this.ws?.send(JSON.stringify(updateMsg));
     } catch (error) {
       console.error("Failed to send WebSocket message:", error);
       this.options.onError?.("Failed to send message");
@@ -158,7 +158,7 @@ export class WorkflowWebSocket {
     }
 
     try {
-      this.ws.send(JSON.stringify(message));
+      this.ws?.send(JSON.stringify(message));
       return true;
     } catch (error) {
       console.error(`${errorMessage}:`, error);

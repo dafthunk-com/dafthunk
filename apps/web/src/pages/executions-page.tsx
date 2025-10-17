@@ -1,4 +1,7 @@
-import type { WorkflowExecution } from "@dafthunk/types";
+import type {
+  ListExecutionsResponse,
+  WorkflowExecution,
+} from "@dafthunk/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import MoreHorizontal from "lucide-react/icons/more-horizontal";
@@ -25,7 +28,7 @@ import { usePaginatedExecutions } from "@/services/execution-service";
 
 export const createColumns = (
   getOrgUrl: (path: string) => string
-): ColumnDef<WorkflowExecution>[] => [
+): ColumnDef<ListExecutionsResponse["executions"][0]>[] => [
   {
     accessorKey: "workflowName",
     header: "Workflow Name",
@@ -34,7 +37,7 @@ export const createColumns = (
       const execution = row.original as WorkflowExecution;
       return (
         <Link
-          to={getOrgUrl(`workflows/executions/${execution.id}`)}
+          to={getOrgUrl(`executions/${execution.id}`)}
           className="hover:underline"
         >
           {workflowName}
@@ -55,18 +58,28 @@ export const createColumns = (
     accessorKey: "startedAt",
     header: "Started At",
     cell: ({ row }) => {
-      const date = row.getValue("startedAt") as Date;
-      const formatted = date ? format(date, "PPpp") : "Loading...";
-      return <div className="font-medium">{formatted}</div>;
+      const date = row.getValue("startedAt") as Date | string | undefined;
+      if (!date) return <div className="font-medium">-</div>;
+      try {
+        const formatted = format(new Date(date), "PPpp");
+        return <div className="font-medium">{formatted}</div>;
+      } catch {
+        return <div className="font-medium">-</div>;
+      }
     },
   },
   {
     accessorKey: "endedAt",
     header: "Ended At",
     cell: ({ row }) => {
-      const date = row.getValue("endedAt") as Date | undefined | null;
-      const formatted = date ? format(date, "PPpp") : "-";
-      return <div className="font-medium">{formatted}</div>;
+      const date = row.getValue("endedAt") as Date | string | undefined | null;
+      if (!date) return <div className="font-medium">-</div>;
+      try {
+        const formatted = format(new Date(date), "PPpp");
+        return <div className="font-medium">{formatted}</div>;
+      } catch {
+        return <div className="font-medium">-</div>;
+      }
     },
   },
   {
@@ -113,9 +126,7 @@ export const createColumns = (
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={getOrgUrl(`workflows/executions/${execution.id}`)}>
-                  View
-                </Link>
+                <Link to={getOrgUrl(`executions/${execution.id}`)}>View</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

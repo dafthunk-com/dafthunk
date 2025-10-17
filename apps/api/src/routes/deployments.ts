@@ -13,19 +13,11 @@ import { v7 as uuid } from "uuid";
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase } from "../db";
-import {
-  createDeployment,
-  getDeployments,
-  getDeploymentsGroupedByWorkflow,
-  getDeploymentWithData,
-  getLatestDeployment,
-  getLatestDeploymentsVersionNumbers,
-  getOrganizationComputeCredits,
-  getWorkflow,
-} from "../db";
+import { getOrganizationComputeCredits } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
-import { ObjectStore } from "../runtime/object-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
+import { DeploymentStore } from "../stores/deployment-store";
+import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
 import {
   isExecutionPreparationError,
@@ -48,12 +40,10 @@ const deploymentRoutes = new Hono<ExtendedApiContext>();
  */
 deploymentRoutes.get("/", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
-  const db = createDatabase(c.env.DB);
+  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
-  const groupedDeployments = await getDeploymentsGroupedByWorkflow(
-    db,
-    organizationId
-  );
+  const groupedDeployments =
+    await deploymentStore.getGroupedByWorkflow(organizationId);
 
   // Transform to match WorkflowDeployment type
   const typedDeployments: Deployment[] = groupedDeployments;
@@ -69,12 +59,9 @@ deploymentRoutes.get("/", jwtMiddleware, async (c) => {
 deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const deploymentId = c.req.param("deploymentId");
-  const db = createDatabase(c.env.DB);
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
-  const deployment = await getDeploymentWithData(
-    db,
-    objectStore,
+  const deployment = await deploymentStore.getWithData(
     deploymentId,
     organizationId
   );
@@ -105,11 +92,10 @@ deploymentRoutes.get("/version/:deploymentId", jwtMiddleware, async (c) => {
 deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-  const db = createDatabase(c.env.DB);
+  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
   // Get the latest deployment
-  const deployment = await getLatestDeployment(
-    db,
+  const deployment = await deploymentStore.getLatest(
     workflowIdOrHandle,
     organizationId
   );
@@ -119,17 +105,9 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   }
 
   // Load deployment workflow snapshot from R2
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
-  let workflowData;
-  try {
-    workflowData = await objectStore.readDeploymentWorkflow(deployment.id);
-  } catch (error) {
-    console.error(
-      `Failed to load deployment workflow from R2 for ${deployment.id}:`,
-      error
-    );
-    return c.json({ error: "Failed to load deployment data" }, 500);
-  }
+  const workflowData = await deploymentStore.readWorkflowSnapshot(
+    deployment.id
+  );
 
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: GetDeploymentVersionResponse = {
@@ -153,59 +131,43 @@ deploymentRoutes.get("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
 deploymentRoutes.post("/:workflowIdOrHandle", jwtMiddleware, async (c) => {
   const organizationId = c.get("organizationId")!;
   const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-  const db = createDatabase(c.env.DB);
+  const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+  const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
   const now = new Date();
 
-  // Check if workflow exists and belongs to the organization
-  const workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
-  if (!workflow) {
+  // Load workflow with data from D1 and R2
+  const workflowWithData = await workflowStore.getWithData(
+    workflowIdOrHandle,
+    organizationId
+  );
+  if (!workflowWithData) {
     return c.json({ error: "Workflow not found" }, 404);
   }
 
-  // Load full workflow data from R2
-  const objectStore = new ObjectStore(c.env.RESSOURCES);
-  let workflowData;
-  try {
-    workflowData = await objectStore.readWorkflow(workflow.id);
-  } catch (error) {
-    console.error(
-      `Failed to load workflow data from R2 for ${workflow.id}:`,
-      error
-    );
-    return c.json({ error: "Failed to load workflow data" }, 500);
-  }
+  const workflowData = workflowWithData.data;
+  const workflowId = workflowWithData.id;
 
   // Get the latest version number and increment
   const latestVersion =
-    (await getLatestDeploymentsVersionNumbers(
-      db,
-      workflowIdOrHandle,
+    (await deploymentStore.getLatestVersionNumber(
+      workflowId,
       organizationId
     )) || 0;
   const newVersion = latestVersion + 1;
 
   // Create new deployment (metadata only in DB)
   const deploymentId = uuid();
-  const newDeployment = await createDeployment(db, {
+  const newDeployment = await deploymentStore.create({
     id: deploymentId,
     organizationId: organizationId,
-    workflowId: workflowIdOrHandle,
+    workflowId: workflowId,
     version: newVersion,
     createdAt: now,
     updatedAt: now,
   });
 
   // Save workflow snapshot to R2
-  try {
-    await objectStore.writeDeploymentWorkflow(deploymentId, workflowData);
-  } catch (error) {
-    console.error(
-      `Failed to save deployment workflow to R2 for ${deploymentId}:`,
-      error
-    );
-    // Consider rolling back the deployment creation here
-    return c.json({ error: "Failed to save deployment data" }, 500);
-  }
+  await deploymentStore.writeWorkflowSnapshot(deploymentId, workflowData);
 
   // Transform to match WorkflowDeploymentVersion type
   const deploymentVersion: DeploymentVersion = {
@@ -232,38 +194,31 @@ deploymentRoutes.get(
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const workflowIdOrHandle = c.req.param("workflowIdOrHandle");
-    const db = createDatabase(c.env.DB);
+    const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
+    const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
     // Check if workflow exists and belongs to the organization
-    const workflow = await getWorkflow(db, workflowIdOrHandle, organizationId);
+    const workflow = await workflowStore.get(
+      workflowIdOrHandle,
+      organizationId
+    );
     if (!workflow) {
       return c.json({ error: "Workflow not found" }, 404);
     }
 
     // Get all deployments for this workflow
-    const deploymentsList = await getDeployments(
-      db,
-      workflowIdOrHandle,
+    const deploymentsList = await deploymentStore.listByWorkflow(
+      workflow.id,
       organizationId
     );
 
     // Load all deployment workflow snapshots from R2 in parallel
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    // TODO: We should not load the data from R2, instead we should have a get endpoint for this
     const deploymentVersions = await Promise.all(
       deploymentsList.map(async (deployment) => {
-        let workflowData;
-        try {
-          workflowData = await objectStore.readDeploymentWorkflow(
-            deployment.id
-          );
-        } catch (error) {
-          console.error(
-            `Failed to load deployment workflow from R2 for ${deployment.id}:`,
-            error
-          );
-          // Return deployment with empty nodes/edges if R2 read fails
-          workflowData = { nodes: [], edges: [] };
-        }
+        const workflowData = await deploymentStore.readWorkflowSnapshot(
+          deployment.id
+        );
 
         return {
           id: deployment.id,
@@ -305,7 +260,7 @@ deploymentRoutes.post(
 
     const deploymentId = c.req.param("deploymentId");
     const db = createDatabase(c.env.DB);
-    const objectStore = new ObjectStore(c.env.RESSOURCES);
+    const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
     // Get organization compute credits
     const computeCredits = await getOrganizationComputeCredits(
@@ -317,9 +272,7 @@ deploymentRoutes.post(
     }
 
     // Get the deployment with workflow data
-    const deployment = await getDeploymentWithData(
-      db,
-      objectStore,
+    const deployment = await deploymentStore.getWithData(
       deploymentId,
       organizationId
     );

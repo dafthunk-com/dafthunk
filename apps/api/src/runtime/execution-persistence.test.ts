@@ -1,17 +1,41 @@
 import type { Workflow, WorkflowExecution } from "@dafthunk/types";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Bindings } from "../context";
 import { ExecutionPersistence } from "./execution-persistence";
 import type { RuntimeState } from "./runtime";
 
-// Mock the db module
-vi.mock("../db", () => ({
-  createDatabase: vi.fn(() => ({})),
-  saveExecution: vi.fn(async (_db, execution) => execution),
+// Mock the ExecutionStore module
+const { executionStoreSave, ExecutionStoreMock } = vi.hoisted(() => {
+  const executionStoreSave = vi.fn(async (record) => ({
+    id: record.id,
+    workflowId: record.workflowId,
+    status: record.status,
+    nodeExecutions: record.nodeExecutions,
+    error: record.error,
+    startedAt: record.startedAt,
+    endedAt: record.endedAt,
+  }));
+
+  const ExecutionStoreMock = vi
+    .fn()
+    .mockImplementation(function ExecutionStore() {
+      return {
+        save: executionStoreSave,
+      };
+    });
+
+  return { executionStoreSave, ExecutionStoreMock };
+});
+
+vi.mock("../stores/execution-store", () => ({
+  ExecutionStore: ExecutionStoreMock,
 }));
 
-import { saveExecution } from "../db";
+beforeEach(() => {
+  executionStoreSave.mockClear();
+  ExecutionStoreMock.mockClear();
+});
 
 describe("ExecutionPersistence", () => {
   const createMockEnv = (): Bindings => {
@@ -21,6 +45,11 @@ describe("ExecutionPersistence", () => {
 
     return {
       DB: {} as any,
+      RESSOURCES: {
+        put: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn(),
+      } as any,
       WORKFLOW_SESSION: {
         idFromName: mockIdFromName,
         get: mockGet,
@@ -263,8 +292,7 @@ describe("ExecutionPersistence", () => {
         endedAt
       );
 
-      expect(saveExecution).toHaveBeenCalledWith(
-        {},
+      expect(executionStoreSave).toHaveBeenCalledWith(
         expect.objectContaining({
           id: "exec-456",
           workflowId: "workflow-123",
@@ -345,7 +373,7 @@ describe("ExecutionPersistence", () => {
         status: "completed",
       };
 
-      vi.mocked(saveExecution).mockRejectedValueOnce(
+      vi.mocked(executionStoreSave).mockRejectedValueOnce(
         new Error("Database error")
       );
 

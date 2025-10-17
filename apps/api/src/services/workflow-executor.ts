@@ -8,8 +8,8 @@
 import type { Node, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { createDatabase, ExecutionStatus, saveExecution } from "../db";
-import { ObjectStore } from "../runtime/object-store";
+import { ExecutionStatus } from "../db";
+import { ExecutionStore } from "../stores/execution-store";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
 
@@ -137,9 +137,9 @@ export class WorkflowExecutor {
       status: "executing" as const,
     }));
 
-    // Save initial execution record to D1
-    const db = createDatabase(env.DB);
-    const initialExecution = await saveExecution(db, {
+    // Save initial execution record
+    const executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
+    const initialExecution = await executionStore.save({
       id: executionId,
       workflowId: workflow.id,
       deploymentId,
@@ -150,14 +150,6 @@ export class WorkflowExecutor {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-
-    // Save execution data to R2
-    const objectStore = new ObjectStore(env.RESSOURCES);
-    try {
-      await objectStore.writeExecution(initialExecution);
-    } catch (error) {
-      console.error(`Failed to save execution to R2: ${executionId}`, error);
-    }
 
     const execution: WorkflowExecution = {
       id: initialExecution.id,

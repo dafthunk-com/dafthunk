@@ -2,7 +2,7 @@ import type { JsonArray, JsonObject, ObjectReference } from "@dafthunk/types";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { apiToNodeParameter } from "../nodes/parameter-mapper";
-import type { ObjectStore } from "./object-store";
+import type { ObjectStore } from "../stores/object-store";
 import type {
   BasicNodeOutputValue,
   NodeOutputs,

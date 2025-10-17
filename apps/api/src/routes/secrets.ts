@@ -111,9 +111,6 @@ secretRoutes.get("/:id", async (c) => {
   }
 });
 
-// Note: We intentionally removed the GET /:id/value endpoint for security reasons.
-// Secret values can only be retrieved once during creation, similar to GitHub's approach.
-
 /**
  * PUT /api/secrets/:id
  *

@@ -17,7 +17,8 @@ export class WhisperTinyEnNode extends ExecutableNode {
     icon: "mic",
     documentation:
       "This node transcribes English speech from audio files using OpenAI's Whisper Tiny English model, optimized specifically for English speech recognition.",
-    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/whisper-tiny-en/",
+    referenceUrl:
+      "https://developers.cloudflare.com/workers-ai/models/whisper-tiny-en/",
     computeCost: 10,
     inputs: [
       {

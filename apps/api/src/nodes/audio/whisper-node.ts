@@ -17,7 +17,8 @@ export class WhisperNode extends ExecutableNode {
     icon: "mic",
     documentation:
       "This node transcribes speech from audio files using OpenAI's Whisper model, converting spoken words to text.",
-    referenceUrl: "https://developers.cloudflare.com/workers-ai/models/whisper/",
+    referenceUrl:
+      "https://developers.cloudflare.com/workers-ai/models/whisper/",
     computeCost: 10,
     inputs: [
       {

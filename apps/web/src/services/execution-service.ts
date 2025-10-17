@@ -21,7 +21,7 @@ export const EXECUTIONS_PAGE_SIZE = 20;
 //-----------------------------------------------------------------------
 
 interface UsePaginatedExecutions {
-  paginatedExecutions: WorkflowExecution[];
+  paginatedExecutions: ListExecutionsResponse["executions"];
   executionsError: Error | null;
   isExecutionsInitialLoading: boolean;
   isExecutionsLoadingMore: boolean;
@@ -53,7 +53,7 @@ export const usePaginatedExecutions = (
 
   const getKey = (
     pageIndex: number,
-    previousPageData: WorkflowExecution[] | null
+    previousPageData: ListExecutionsResponse["executions"] | null
   ) => {
     if (
       previousPageData &&
@@ -77,7 +77,9 @@ export const usePaginatedExecutions = (
       : null;
   };
 
-  const fetcher = async (url: string): Promise<WorkflowExecution[]> => {
+  const fetcher = async (
+    url: string
+  ): Promise<ListExecutionsResponse["executions"]> => {
     if (!orgHandle) return [];
 
     const urlObj = new URL(url, window.location.origin);
@@ -101,12 +103,16 @@ export const usePaginatedExecutions = (
     mutate,
     isReachingEnd,
     observerTargetRef,
-  } = useInfinatePagination<WorkflowExecution>(getKey, fetcher, {
-    pageSize: EXECUTIONS_PAGE_SIZE,
-    revalidateFirstPage: true,
-    revalidateOnMount: true,
-    refreshInterval: 5000, // Regular refresh to see execution status updates
-  });
+  } = useInfinatePagination<ListExecutionsResponse["executions"][0]>(
+    getKey,
+    fetcher,
+    {
+      pageSize: EXECUTIONS_PAGE_SIZE,
+      revalidateFirstPage: true,
+      revalidateOnMount: true,
+      refreshInterval: 5000, // Regular refresh to see execution status updates
+    }
+  );
 
   return {
     paginatedExecutions: paginatedData,
