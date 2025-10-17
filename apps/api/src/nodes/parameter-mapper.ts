@@ -3,7 +3,7 @@ import {
   ParameterValue as ApiParameterValue,
 } from "@dafthunk/types";
 
-import { ObjectStore } from "../runtime/object-store";
+import { ObjectStore } from "../stores/object-store";
 import {
   AudioParameter as NodeAudioParameter,
   BufferGeometryParameter as NodeBufferGeometryParameter,

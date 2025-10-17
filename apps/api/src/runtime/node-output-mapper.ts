@@ -1,5 +1,5 @@
 import { nodeToApiParameter } from "../nodes/parameter-mapper";
-import type { ObjectStore } from "./object-store";
+import type { ObjectStore } from "../stores/object-store";
 import type { RuntimeState } from "./runtime";
 
 /**

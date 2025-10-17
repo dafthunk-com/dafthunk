@@ -17,7 +17,7 @@
 import type { WorkflowState } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
-import { WorkflowStore } from "../runtime/workflow-store";
+import { WorkflowStore } from "../stores/workflow-store";
 
 interface StateManagerOptions {
   env: Bindings;

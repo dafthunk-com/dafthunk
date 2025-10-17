@@ -3,9 +3,9 @@ import { Node, Workflow as WorkflowType } from "@dafthunk/types";
 import { Bindings } from "./context";
 import { createDatabase, getOrganizationComputeCredits } from "./db";
 import { ExecutionStatus } from "./db";
-import { DeploymentStore } from "./runtime/deployment-store";
-import { ExecutionStore } from "./runtime/execution-store";
-import { WorkflowStore } from "./runtime/workflow-store";
+import { DeploymentStore } from "./stores/deployment-store";
+import { ExecutionStore } from "./stores/execution-store";
+import { WorkflowStore } from "./stores/workflow-store";
 
 async function streamToString(
   stream: ReadableStream<Uint8Array>

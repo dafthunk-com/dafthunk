@@ -2,8 +2,8 @@ import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import type { ObjectStore } from "../stores/object-store";
 import { NodeInputMapper } from "./node-input-mapper";
-import type { ObjectStore } from "./object-store";
 import type { RuntimeState } from "./runtime";
 
 describe("NodeInputMapper", () => {

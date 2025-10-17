@@ -4,9 +4,9 @@ import { Hono } from "hono";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { ExecutionRow, ExecutionStatus } from "../db";
-import { DeploymentStore } from "../runtime/deployment-store";
-import { ExecutionStore } from "../runtime/execution-store";
-import { WorkflowStore } from "../runtime/workflow-store";
+import { DeploymentStore } from "../stores/deployment-store";
+import { ExecutionStore } from "../stores/execution-store";
+import { WorkflowStore } from "../stores/workflow-store";
 
 const dashboard = new Hono<ApiContext>();
 

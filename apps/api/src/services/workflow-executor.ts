@@ -9,7 +9,7 @@ import type { Node, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { ExecutionStatus } from "../db";
-import { ExecutionStore } from "../runtime/execution-store";
+import { ExecutionStore } from "../stores/execution-store";
 import { createSimulatedEmailMessage } from "../utils/email";
 import { createSimulatedHttpRequest } from "../utils/http";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { ObjectStore } from "../runtime/object-store";
+import { ObjectStore } from "../stores/object-store";
 import { apiToNodeParameter, nodeToApiParameter } from "./parameter-mapper";
 import { BufferGeometryParameter, GltfParameter } from "./types";
 

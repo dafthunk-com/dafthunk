@@ -15,9 +15,9 @@ import { ApiContext } from "../context";
 import { createDatabase } from "../db";
 import { getOrganizationComputeCredits } from "../db";
 import { createRateLimitMiddleware } from "../middleware/rate-limit";
-import { DeploymentStore } from "../runtime/deployment-store";
-import { WorkflowStore } from "../runtime/workflow-store";
 import { WorkflowExecutor } from "../services/workflow-executor";
+import { DeploymentStore } from "../stores/deployment-store";
+import { WorkflowStore } from "../stores/workflow-store";
 import { getAuthContext } from "../utils/auth-context";
 import {
   isExecutionPreparationError,

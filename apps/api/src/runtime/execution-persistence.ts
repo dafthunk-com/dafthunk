@@ -2,7 +2,7 @@ import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { type ExecutionStatusType } from "../db";
-import { ExecutionStore } from "./execution-store";
+import { ExecutionStore } from "../stores/execution-store";
 import type { RuntimeState } from "./runtime";
 
 /**

@@ -8,9 +8,9 @@ import {
   getOrganizationComputeCredits,
   updateCronTriggerRunTimes,
 } from "./db/queries";
-import { DeploymentStore } from "./runtime/deployment-store";
-import { ExecutionStore } from "./runtime/execution-store";
-import { WorkflowStore } from "./runtime/workflow-store";
+import { DeploymentStore } from "./stores/deployment-store";
+import { ExecutionStore } from "./stores/execution-store";
+import { WorkflowStore } from "./stores/workflow-store";
 
 // This function will now handle the actual execution triggering and initial record saving
 async function executeWorkflow(
