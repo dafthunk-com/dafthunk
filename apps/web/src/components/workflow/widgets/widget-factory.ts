@@ -414,6 +414,24 @@ export function createWidgetConfig(
         provider: "google-calendar",
       };
     }
+    case "send-message-discord":
+    case "send-dm-discord":
+    case "get-channel-discord":
+    case "list-guild-channels-discord":
+    case "get-guild-discord":
+    case "list-user-guilds-discord":
+    case "add-reaction-discord": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "discord",
+      };
+    }
     default:
       return null;
   }

@@ -1,4 +1,5 @@
 import { JWTTokenPayload } from "@dafthunk/types";
+import { discordAuth } from "@hono/oauth-providers/discord";
 import { googleAuth } from "@hono/oauth-providers/google";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
@@ -240,6 +241,91 @@ oauthRoutes.get(
       );
     } catch (error) {
       console.error("Google Calendar OAuth error:", error);
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+    }
+  }
+);
+
+/**
+ * GET /oauth/discord/connect
+ *
+ * Initiates Discord OAuth flow
+ */
+oauthRoutes.get(
+  "/discord/connect",
+  jwtMiddleware,
+  (c, next) => {
+    const discordAuthHandler = discordAuth({
+      client_id: c.env.INTEGRATION_DISCORD_CLIENT_ID,
+      client_secret: c.env.INTEGRATION_DISCORD_CLIENT_SECRET,
+      scope: ["identify", "email", "guilds"],
+    });
+    return discordAuthHandler(c, next);
+  },
+  async (c) => {
+    try {
+      const token = c.get("token") as any; // OAuth token from provider
+      const user = c.get("user-discord");
+
+      if (!token || !user) {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      }
+
+      // Verify user is still authenticated and get organization from JWT
+      const accessToken = getCookie(c, "access_token");
+      if (!accessToken) {
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=not_authenticated`
+        );
+      }
+
+      const secret = new TextEncoder().encode(c.env.JWT_SECRET);
+      let payload: JWTTokenPayload | null = null;
+      try {
+        const verified = await jwtVerify(accessToken, secret);
+        payload = verified.payload as JWTTokenPayload;
+      } catch {
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=not_authenticated`
+        );
+      }
+
+      if (!payload || !payload.organization?.id) {
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=organization_mismatch`
+        );
+      }
+
+      // Create integration with OAuth tokens
+      const db = createDatabase(c.env.DB);
+      const integrationName = `Discord - ${user.username || user.global_name || "User"}`;
+
+      await createIntegration(
+        db,
+        payload.organization.id,
+        integrationName,
+        "discord",
+        token.token, // The actual access token is in token.token, not token.access_token
+        token.refresh_token,
+        token.expires_in
+          ? new Date(Date.now() + token.expires_in * 1000)
+          : undefined,
+        JSON.stringify({
+          username: user.username,
+          globalName: user.global_name,
+          discriminator: user.discriminator,
+          avatar: user.avatar,
+          userId: user.id,
+        }),
+        c.env
+      );
+
+      // Redirect back to integrations page with success
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?success=discord_connected`
+      );
+    } catch (error) {
+      console.error("Discord OAuth error:", error);
       return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
     }
   }

@@ -277,6 +277,13 @@ export const WorkflowNode = memo(
       "check-availability-google-calendar": IntegrationSelectorWidget,
       "quick-add-google-calendar": IntegrationSelectorWidget,
       "list-calendars-google-calendar": IntegrationSelectorWidget,
+      "send-message-discord": IntegrationSelectorWidget,
+      "send-dm-discord": IntegrationSelectorWidget,
+      "get-channel-discord": IntegrationSelectorWidget,
+      "list-guild-channels-discord": IntegrationSelectorWidget,
+      "get-guild-discord": IntegrationSelectorWidget,
+      "list-user-guilds-discord": IntegrationSelectorWidget,
+      "add-reaction-discord": IntegrationSelectorWidget,
     };
 
     // Get widget configuration if this is a widget node
@@ -327,7 +334,14 @@ export const WorkflowNode = memo(
         nodeType === "add-attendees-google-calendar" ||
         nodeType === "check-availability-google-calendar" ||
         nodeType === "quick-add-google-calendar" ||
-        nodeType === "list-calendars-google-calendar"
+        nodeType === "list-calendars-google-calendar" ||
+        nodeType === "send-message-discord" ||
+        nodeType === "send-dm-discord" ||
+        nodeType === "get-channel-discord" ||
+        nodeType === "list-guild-channels-discord" ||
+        nodeType === "get-guild-discord" ||
+        nodeType === "list-user-guilds-discord" ||
+        nodeType === "add-reaction-discord"
       ) {
         const integrationIdInput = data.inputs.find(
           (i) => i.id === "integrationId"

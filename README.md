@@ -157,6 +157,19 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET=your_calendar_integration_client_secret
    ```
 
+   **Discord Integration**:
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create a new application
+   - Go to OAuth2 settings and add redirect URI:
+     - Redirect URI: `http://localhost:3001/oauth/discord/connect`
+   - Copy the Client ID and Client Secret from the OAuth2 page
+   - Add them to your `.dev.vars` file:
+
+   ```
+   INTEGRATION_DISCORD_CLIENT_ID=your_discord_client_id
+   INTEGRATION_DISCORD_CLIENT_SECRET=your_discord_client_secret
+   ```
+
    > **Note**: Keep authentication and integration OAuth apps separate for security isolation. They use different scopes and redirect URIs.
 
 6. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:

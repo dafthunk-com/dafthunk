@@ -104,8 +104,9 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
   {
     id: "discord",
     name: "Discord",
-    description: "Connect to Discord (coming soon)",
-    supportsOAuth: false,
+    description: "Connect your Discord account to send messages and manage servers",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/discord/connect",
   },
   {
     id: "openai",

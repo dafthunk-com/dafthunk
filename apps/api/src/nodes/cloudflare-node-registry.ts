@@ -30,6 +30,13 @@ import { AddDateNode } from "./date/add-date-node";
 import { DiffDateNode } from "./date/diff-date-node";
 import { NowDateNode } from "./date/now-date-node";
 import { ParseDateNode } from "./date/parse-date-node";
+import { AddReactionDiscordNode } from "./discord/add-reaction-discord-node";
+import { GetChannelDiscordNode } from "./discord/get-channel-discord-node";
+import { GetGuildDiscordNode } from "./discord/get-guild-discord-node";
+import { ListGuildChannelsDiscordNode } from "./discord/list-guild-channels-discord-node";
+import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-node";
+import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
+import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
 import { DocumentNode } from "./document/document-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
@@ -516,6 +523,15 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(CheckAvailabilityGoogleCalendarNode);
     this.registerImplementation(QuickAddGoogleCalendarNode);
     this.registerImplementation(ListCalendarsGoogleCalendarNode);
+
+    // Discord integration is always available
+    this.registerImplementation(SendMessageDiscordNode);
+    this.registerImplementation(SendDMDiscordNode);
+    this.registerImplementation(GetChannelDiscordNode);
+    this.registerImplementation(ListGuildChannelsDiscordNode);
+    this.registerImplementation(GetGuildDiscordNode);
+    this.registerImplementation(ListUserGuildsDiscordNode);
+    this.registerImplementation(AddReactionDiscordNode);
 
     // RAG nodes
     if (this.developerMode) {

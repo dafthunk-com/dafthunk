@@ -156,6 +156,10 @@ export function IntegrationsPage() {
       toast.success("Google Calendar integration connected successfully");
       mutateIntegrations();
       setSearchParams({});
+    } else if (success === "discord_connected") {
+      toast.success("Discord integration connected successfully");
+      mutateIntegrations();
+      setSearchParams({});
     } else if (error) {
       const errorMessages: Record<string, string> = {
         oauth_failed: "OAuth authentication failed",

@@ -197,6 +197,15 @@ export class IntegrationManager {
       return this.refreshGoogleToken(refreshToken, clientId, clientSecret);
     }
 
+    if (provider === "discord") {
+      const clientId = this.env.INTEGRATION_DISCORD_CLIENT_ID;
+      const clientSecret = this.env.INTEGRATION_DISCORD_CLIENT_SECRET;
+      if (!clientId || !clientSecret) {
+        throw new Error("Discord OAuth credentials not configured");
+      }
+      return this.refreshDiscordToken(refreshToken, clientId, clientSecret);
+    }
+
     throw new Error(`Token refresh not supported for provider: ${provider}`);
   }
 
@@ -240,6 +249,50 @@ export class IntegrationManager {
       access_token: data.access_token,
       expires_in: data.expires_in,
       // Google may return a new refresh token
+      refresh_token: data.refresh_token,
+    };
+  }
+
+  /**
+   * Refresh a Discord OAuth token
+   */
+  private async refreshDiscordToken(
+    refreshToken: string,
+    clientId: string,
+    clientSecret: string
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+  }> {
+    const response = await fetch("https://discord.com/api/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to refresh Discord token: ${error}`);
+    }
+
+    const data = (await response.json()) as {
+      access_token: string;
+      expires_in: number;
+      refresh_token: string;
+    };
+
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      // Discord always returns a new refresh token
       refresh_token: data.refresh_token,
     };
   }
