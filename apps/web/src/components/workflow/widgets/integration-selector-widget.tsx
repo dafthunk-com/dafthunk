@@ -84,7 +84,7 @@ export function IntegrationSelectorWidget({
             </SelectItem>
           ))}
           {filteredIntegrations?.length === 0 && !isIntegrationsLoading && (
-            <SelectItem disabled value="" className="text-xs">
+            <SelectItem disabled value="none" className="text-xs">
               No integrations found
             </SelectItem>
           )}
