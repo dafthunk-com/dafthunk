@@ -22,6 +22,13 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
+        name: "integrationId",
+        type: "string",
+        description: "Gemini integration to use",
+        hidden: true,
+        required: false,
+      },
+      {
         name: "prompt",
         type: "string",
         description: "Text prompt describing the image to generate",
@@ -58,13 +65,6 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
           "Thinking budget (0-1000). Higher values enable more reasoning but increase cost and latency",
         required: false,
         value: 100,
-        hidden: true,
-      },
-      {
-        name: "apiKey",
-        type: "secret",
-        description: "Gemini API key secret name",
-        required: false,
         hidden: true,
       },
     ],
@@ -109,16 +109,22 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     let response: any;
 
     try {
-      const { apiKey, prompt, image1, image2, image3, thinking_budget } =
+      const { integrationId, prompt, image1, image2, image3, thinking_budget } =
         context.inputs;
 
-      // Use provided API key secret or fallback to environment variable
-      const geminiApiKey =
-        (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      // Get API key from integration
+      let geminiApiKey: string | undefined;
+
+      if (integrationId && typeof integrationId === "string") {
+        const integration = context.integrations?.[integrationId];
+        if (integration?.provider === "gemini") {
+          geminiApiKey = integration.token;
+        }
+      }
 
       if (!geminiApiKey) {
         return this.createErrorResult(
-          "Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable"
+          "Gemini integration is required. Please connect a Gemini integration."
         );
       }
 

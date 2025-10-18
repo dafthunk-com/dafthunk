@@ -64,7 +64,14 @@ integrationRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Integration name is required"),
-      provider: z.enum(["google-mail", "google-calendar", "discord", "openai"]),
+      provider: z.enum([
+        "google-mail",
+        "google-calendar",
+        "discord",
+        "openai",
+        "anthropic",
+        "gemini",
+      ]),
       token: z.string().min(1, "Token is required"),
       refreshToken: z.string().optional(),
       tokenExpiresAt: z.coerce.date().optional(),

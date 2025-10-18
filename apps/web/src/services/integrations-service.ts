@@ -1,8 +1,8 @@
 import {
+  CreateIntegrationRequest,
   CreateIntegrationResponse,
   DeleteIntegrationResponse,
   Integration,
-  IntegrationProvider,
   ListIntegrationsResponse,
   UpdateIntegrationResponse,
 } from "@dafthunk/types";
@@ -58,12 +58,7 @@ export const useIntegrations = (): UseIntegrations => {
  * Create a new integration for the current organization
  */
 export const createIntegration = async (
-  name: string,
-  provider: IntegrationProvider,
-  token: string,
-  refreshToken: string | undefined,
-  tokenExpiresAt: Date | undefined,
-  metadata: string | undefined,
+  request: CreateIntegrationRequest,
   orgHandle: string
 ): Promise<Integration> => {
   const response = await makeOrgRequest<CreateIntegrationResponse>(
@@ -72,14 +67,7 @@ export const createIntegration = async (
     "",
     {
       method: "POST",
-      body: JSON.stringify({
-        name,
-        provider,
-        token,
-        refreshToken,
-        tokenExpiresAt,
-        metadata,
-      }),
+      body: JSON.stringify(request),
     }
   );
 

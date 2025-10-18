@@ -432,6 +432,60 @@ export function createWidgetConfig(
         provider: "discord",
       };
     }
+    // OpenAI nodes
+    case "gpt-41":
+    case "gpt-5":
+    case "gpt-5-mini":
+    case "gpt-5-nano": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "openai",
+      };
+    }
+    // Anthropic nodes
+    case "claude-3-opus":
+    case "claude-35-haiku":
+    case "claude-35-sonnet":
+    case "claude-37-sonnet":
+    case "claude-opus-4":
+    case "claude-opus-41":
+    case "claude-sonnet-4": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "anthropic",
+      };
+    }
+    // Gemini nodes
+    case "gemini-2-5-flash":
+    case "gemini-2-5-pro":
+    case "gemini-2-5-flash-image-preview":
+    case "gemini-2-5-flash-audio-understanding":
+    case "gemini-2-5-flash-image-understanding":
+    case "gemini-2-5-flash-tts":
+    case "imagen": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "gemini",
+      };
+    }
     default:
       return null;
   }

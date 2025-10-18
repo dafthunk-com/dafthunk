@@ -23,6 +23,13 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
+        name: "integrationId",
+        type: "string",
+        description: "Gemini integration to use",
+        hidden: true,
+        required: false,
+      },
+      {
         name: "image",
         type: "image",
         description: "Image file to analyze (PNG, JPEG, WEBP, HEIC, HEIF)",
@@ -45,13 +52,6 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
         value: 100,
         hidden: true,
       },
-      {
-        name: "apiKey",
-        type: "secret",
-        description: "Gemini API key secret name",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -72,15 +72,21 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { apiKey, image, prompt, thinking_budget } = context.inputs;
+      const { integrationId, image, prompt, thinking_budget } = context.inputs;
 
-      // Use provided API key secret or fallback to environment variable
-      const geminiApiKey =
-        (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      // Get API key from integration
+      let geminiApiKey: string | undefined;
+
+      if (integrationId && typeof integrationId === "string") {
+        const integration = context.integrations?.[integrationId];
+        if (integration?.provider === "gemini") {
+          geminiApiKey = integration.token;
+        }
+      }
 
       if (!geminiApiKey) {
         return this.createErrorResult(
-          "Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable"
+          "Gemini integration is required. Please connect a Gemini integration."
         );
       }
 

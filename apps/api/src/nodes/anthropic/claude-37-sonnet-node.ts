@@ -22,6 +22,13 @@ export class Claude37SonnetNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
+        name: "integrationId",
+        type: "string",
+        description: "Anthropic integration to use",
+        hidden: true,
+        required: false,
+      },
+      {
         name: "instructions",
         type: "string",
         description: "System instructions for Claude's behavior",
@@ -33,13 +40,6 @@ export class Claude37SonnetNode extends ExecutableNode {
         type: "string",
         description: "The input text or question for Claude",
         required: true,
-      },
-      {
-        name: "apiKey",
-        type: "secret",
-        description: "Anthropic API key secret name",
-        required: false,
-        hidden: true,
       },
     ],
     outputs: [
@@ -53,15 +53,21 @@ export class Claude37SonnetNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { instructions, input, apiKey } = context.inputs;
+      const { integrationId, instructions, input } = context.inputs;
 
-      // Use provided API key secret or fallback to environment variable
-      const anthropicApiKey =
-        (apiKey && context.secrets?.[apiKey]) || context.env.ANTHROPIC_API_KEY;
+      // Get API key from integration
+      let anthropicApiKey: string | undefined;
+
+      if (integrationId && typeof integrationId === "string") {
+        const integration = context.integrations?.[integrationId];
+        if (integration?.provider === "anthropic") {
+          anthropicApiKey = integration.token;
+        }
+      }
 
       if (!anthropicApiKey) {
         return this.createErrorResult(
-          "Anthropic API key is required. Provide via apiKey input or ANTHROPIC_API_KEY environment variable"
+          "Anthropic integration is required. Please connect an Anthropic integration."
         );
       }
 

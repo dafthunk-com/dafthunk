@@ -35,6 +35,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +53,7 @@ import {
 import { getApiBaseUrl } from "@/config/api";
 import { usePageBreadcrumbs } from "@/hooks/use-page";
 import {
+  createIntegration,
   deleteIntegration,
   useIntegrations,
 } from "@/services/integrations-service";
@@ -60,6 +63,8 @@ const providerLabels: Record<IntegrationProvider, string> = {
   "google-calendar": "Google Calendar",
   discord: "Discord",
   openai: "OpenAI",
+  anthropic: "Anthropic",
+  gemini: "Google Gemini",
 };
 
 const columns: ColumnDef<Integration>[] = [
@@ -138,6 +143,8 @@ export function IntegrationsPage() {
   const [newIntegrationProvider, setNewIntegrationProvider] =
     useState<IntegrationProvider>("google-mail");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [manualIntegrationName, setManualIntegrationName] = useState("");
+  const [manualIntegrationApiKey, setManualIntegrationApiKey] = useState("");
 
   useEffect(() => {
     setBreadcrumbs([{ label: "Integrations" }]);
@@ -203,6 +210,42 @@ export function IntegrationsPage() {
     window.location.href = `${apiBaseUrl}${oauthProvider.oauthEndpoint}`;
   }, []);
 
+  const handleCreateManualIntegration = useCallback(async (): Promise<void> => {
+    if (!organization?.handle || !manualIntegrationName || !manualIntegrationApiKey) return;
+    setIsProcessing(true);
+    try {
+      // Get provider label for prefixing
+      const providerLabel = providerLabels[newIntegrationProvider];
+      const integrationName = `${providerLabel} - ${manualIntegrationName}`;
+
+      await createIntegration(
+        {
+          name: integrationName,
+          provider: newIntegrationProvider,
+          token: manualIntegrationApiKey,
+        },
+        organization.handle
+      );
+      toast.success("Integration created successfully");
+      await mutateIntegrations();
+      setIsCreateDialogOpen(false);
+      setManualIntegrationName("");
+      setManualIntegrationApiKey("");
+      setNewIntegrationProvider("google-mail");
+    } catch (error) {
+      toast.error("Failed to create integration. Please try again.");
+      console.error("Create Integration Error:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [
+    organization?.handle,
+    manualIntegrationName,
+    manualIntegrationApiKey,
+    newIntegrationProvider,
+    mutateIntegrations,
+  ]);
+
   const handleDeleteIntegration = useCallback(async (): Promise<void> => {
     if (!integrationToDelete || !organization?.handle) return;
     setIsProcessing(true);
@@ -262,24 +305,20 @@ export function IntegrationsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <Label htmlFor="provider">Provider</Label>
               <Select
                 value={newIntegrationProvider}
                 onValueChange={(value) =>
                   setNewIntegrationProvider(value as IntegrationProvider)
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="provider">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {OAUTH_PROVIDERS.map((provider) => (
-                    <SelectItem
-                      key={provider.id}
-                      value={provider.id}
-                      disabled={!provider.supportsOAuth}
-                    >
+                    <SelectItem key={provider.id} value={provider.id}>
                       {provider.name}
-                      {!provider.supportsOAuth && " (Coming Soon)"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -292,34 +331,33 @@ export function IntegrationsPage() {
               </p>
             </div>
 
-            {OAUTH_PROVIDERS.find((p) => p.id === newIntegrationProvider)
-              ?.supportsOAuth ? (
-              <div className="rounded-lg border p-4 space-y-3">
-                <p className="text-sm font-medium">Secure OAuth Connection</p>
-                <p className="text-sm text-muted-foreground">
-                  Click the button below to securely connect your account.
-                  You'll be redirected to authorize access.
-                </p>
-                <Button
-                  onClick={() => {
-                    handleOAuthConnect(newIntegrationProvider);
-                    setIsCreateDialogOpen(false);
-                  }}
-                  className="w-full"
-                >
-                  Connect with{" "}
-                  {
-                    OAUTH_PROVIDERS.find((p) => p.id === newIntegrationProvider)
-                      ?.name
-                  }
-                </Button>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed p-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  This integration is not available yet. Check back soon!
-                </p>
-              </div>
+            {!OAUTH_PROVIDERS.find((p) => p.id === newIntegrationProvider)
+              ?.supportsOAuth && (
+              <>
+                <div>
+                  <Label htmlFor="integration-name">Integration Name</Label>
+                  <Input
+                    id="integration-name"
+                    placeholder="e.g., Production Key"
+                    value={manualIntegrationName}
+                    onChange={(e) => setManualIntegrationName(e.target.value)}
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Will be saved as: {providerLabels[newIntegrationProvider]} -{" "}
+                    {manualIntegrationName || "..."}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="api-key">API Key</Label>
+                  <Input
+                    id="api-key"
+                    type="password"
+                    placeholder="Enter your API key"
+                    value={manualIntegrationApiKey}
+                    onChange={(e) => setManualIntegrationApiKey(e.target.value)}
+                  />
+                </div>
+              </>
             )}
           </div>
           <DialogFooter>
@@ -328,10 +366,34 @@ export function IntegrationsPage() {
               onClick={() => {
                 setIsCreateDialogOpen(false);
                 setNewIntegrationProvider("google-mail");
+                setManualIntegrationName("");
+                setManualIntegrationApiKey("");
               }}
             >
               Cancel
             </Button>
+            {OAUTH_PROVIDERS.find((p) => p.id === newIntegrationProvider)
+              ?.supportsOAuth ? (
+              <Button
+                onClick={() => {
+                  handleOAuthConnect(newIntegrationProvider);
+                  setIsCreateDialogOpen(false);
+                }}
+              >
+                Connect
+              </Button>
+            ) : (
+              <Button
+                onClick={handleCreateManualIntegration}
+                disabled={
+                  isProcessing ||
+                  !manualIntegrationName ||
+                  !manualIntegrationApiKey
+                }
+              >
+                {isProcessing ? "Creating..." : "Add Integration"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

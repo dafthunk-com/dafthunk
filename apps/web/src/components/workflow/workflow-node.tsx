@@ -284,6 +284,27 @@ export const WorkflowNode = memo(
       "get-guild-discord": IntegrationSelectorWidget,
       "list-user-guilds-discord": IntegrationSelectorWidget,
       "add-reaction-discord": IntegrationSelectorWidget,
+      // OpenAI nodes
+      "gpt-41": IntegrationSelectorWidget,
+      "gpt-5": IntegrationSelectorWidget,
+      "gpt-5-mini": IntegrationSelectorWidget,
+      "gpt-5-nano": IntegrationSelectorWidget,
+      // Anthropic nodes
+      "claude-3-opus": IntegrationSelectorWidget,
+      "claude-35-haiku": IntegrationSelectorWidget,
+      "claude-35-sonnet": IntegrationSelectorWidget,
+      "claude-37-sonnet": IntegrationSelectorWidget,
+      "claude-opus-4": IntegrationSelectorWidget,
+      "claude-opus-41": IntegrationSelectorWidget,
+      "claude-sonnet-4": IntegrationSelectorWidget,
+      // Gemini nodes
+      "gemini-2-5-flash": IntegrationSelectorWidget,
+      "gemini-2-5-pro": IntegrationSelectorWidget,
+      "gemini-2-5-flash-image-preview": IntegrationSelectorWidget,
+      "gemini-2-5-flash-audio-understanding": IntegrationSelectorWidget,
+      "gemini-2-5-flash-image-understanding": IntegrationSelectorWidget,
+      "gemini-2-5-flash-tts": IntegrationSelectorWidget,
+      imagen: IntegrationSelectorWidget,
     };
 
     // Get widget configuration if this is a widget node
@@ -312,6 +333,7 @@ export const WorkflowNode = memo(
 
       // Handle integration selector specifically
       if (
+        // Google Mail nodes
         nodeType === "send-email-google-mail" ||
         nodeType === "read-inbox-google-mail" ||
         nodeType === "create-reply-draft-google-mail" ||
@@ -325,6 +347,7 @@ export const WorkflowNode = memo(
         nodeType === "get-message-google-mail" ||
         nodeType === "archive-message-google-mail" ||
         nodeType === "trash-message-google-mail" ||
+        // Google Calendar nodes
         nodeType === "create-event-google-calendar" ||
         nodeType === "list-events-google-calendar" ||
         nodeType === "get-event-google-calendar" ||
@@ -335,13 +358,35 @@ export const WorkflowNode = memo(
         nodeType === "check-availability-google-calendar" ||
         nodeType === "quick-add-google-calendar" ||
         nodeType === "list-calendars-google-calendar" ||
+        // Discord nodes
         nodeType === "send-message-discord" ||
         nodeType === "send-dm-discord" ||
         nodeType === "get-channel-discord" ||
         nodeType === "list-guild-channels-discord" ||
         nodeType === "get-guild-discord" ||
         nodeType === "list-user-guilds-discord" ||
-        nodeType === "add-reaction-discord"
+        nodeType === "add-reaction-discord" ||
+        // OpenAI nodes
+        nodeType === "gpt-41" ||
+        nodeType === "gpt-5" ||
+        nodeType === "gpt-5-mini" ||
+        nodeType === "gpt-5-nano" ||
+        // Anthropic nodes
+        nodeType === "claude-3-opus" ||
+        nodeType === "claude-35-haiku" ||
+        nodeType === "claude-35-sonnet" ||
+        nodeType === "claude-37-sonnet" ||
+        nodeType === "claude-opus-4" ||
+        nodeType === "claude-opus-41" ||
+        nodeType === "claude-sonnet-4" ||
+        // Gemini nodes
+        nodeType === "gemini-2-5-flash" ||
+        nodeType === "gemini-2-5-pro" ||
+        nodeType === "gemini-2-5-flash-image-preview" ||
+        nodeType === "gemini-2-5-flash-audio-understanding" ||
+        nodeType === "gemini-2-5-flash-image-understanding" ||
+        nodeType === "gemini-2-5-flash-tts" ||
+        nodeType === "imagen"
       ) {
         const integrationIdInput = data.inputs.find(
           (i) => i.id === "integrationId"
@@ -449,6 +494,21 @@ export const WorkflowNode = memo(
             </button>
           </div>
 
+          {/* Widget */}
+          {!readonly &&
+            widgetConfig &&
+            nodeType &&
+            widgetComponents[nodeType] && (
+              <div className="px-0 py-0 border-b nodrag">
+                {createElement(widgetComponents[nodeType], {
+                  config: widgetConfig,
+                  onChange: handleWidgetChange,
+                  compact: true,
+                  readonly: readonly,
+                })}
+              </div>
+            )}
+
           {/* Tools bar (between header and body) */}
           {data.functionCalling && (
             <div
@@ -498,21 +558,6 @@ export const WorkflowNode = memo(
               })()}
             </div>
           )}
-
-          {/* Widget */}
-          {!readonly &&
-            widgetConfig &&
-            nodeType &&
-            widgetComponents[nodeType] && (
-              <div className="px-0 py-0 border-b nodrag">
-                {createElement(widgetComponents[nodeType], {
-                  config: widgetConfig,
-                  onChange: handleWidgetChange,
-                  compact: true,
-                  readonly: readonly,
-                })}
-              </div>
-            )}
 
           {/* Parameters */}
           <div className="px-1 py-1 grid grid-cols-2 justify-between gap-1 nodrag">

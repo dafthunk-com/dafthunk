@@ -22,6 +22,13 @@ export class Gpt5NanoNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
+        name: "integrationId",
+        type: "string",
+        description: "OpenAI integration to use",
+        hidden: true,
+        required: false,
+      },
+      {
         name: "instructions",
         type: "string",
         description: "System instructions for GPT-5 Nano's behavior",
@@ -33,13 +40,6 @@ export class Gpt5NanoNode extends ExecutableNode {
         type: "string",
         description: "The input text or question for GPT-5 Nano",
         required: true,
-      },
-      {
-        name: "apiKey",
-        type: "secret",
-        description: "OpenAI API key secret name",
-        required: false,
-        hidden: true,
       },
     ],
     outputs: [
@@ -53,15 +53,21 @@ export class Gpt5NanoNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const { instructions, input, apiKey } = context.inputs;
+      const { integrationId, instructions, input } = context.inputs;
 
-      // Use provided API key secret or fallback to environment variable
-      const openaiApiKey =
-        (apiKey && context.secrets?.[apiKey]) || context.env.OPENAI_API_KEY;
+      // Get API key from integration
+      let openaiApiKey: string | undefined;
+
+      if (integrationId && typeof integrationId === "string") {
+        const integration = context.integrations?.[integrationId];
+        if (integration?.provider === "openai") {
+          openaiApiKey = integration.token;
+        }
+      }
 
       if (!openaiApiKey) {
         return this.createErrorResult(
-          "OpenAI API key is required. Provide via apiKey input or OPENAI_API_KEY environment variable"
+          "OpenAI integration is required. Please connect an OpenAI integration."
         );
       }
 

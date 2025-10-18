@@ -77,6 +77,8 @@ export const IntegrationProvider = {
   GOOGLE_CALENDAR: "google-calendar",
   DISCORD: "discord",
   OPENAI: "openai",
+  ANTHROPIC: "anthropic",
+  GEMINI: "gemini",
 } as const;
 
 export type IntegrationProviderType =

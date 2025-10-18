@@ -23,6 +23,13 @@ export class ImagenNode extends ExecutableNode {
     asTool: true,
     inputs: [
       {
+        name: "integrationId",
+        type: "string",
+        description: "Gemini integration to use",
+        hidden: true,
+        required: false,
+      },
+      {
         name: "prompt",
         type: "string",
         description:
@@ -61,13 +68,6 @@ export class ImagenNode extends ExecutableNode {
         hidden: true,
         value: "imagen-4.0-generate-001",
       },
-      {
-        name: "apiKey",
-        type: "secret",
-        description: "Gemini API key secret name",
-        required: false,
-        hidden: true,
-      },
     ],
     outputs: [
       {
@@ -90,7 +90,7 @@ export class ImagenNode extends ExecutableNode {
 
     try {
       const {
-        apiKey,
+        integrationId,
         prompt,
         aspectRatio,
         sampleImageSize,
@@ -98,13 +98,19 @@ export class ImagenNode extends ExecutableNode {
         model,
       } = context.inputs;
 
-      // Use provided API key secret or fallback to environment variable
-      const geminiApiKey =
-        (apiKey && context.secrets?.[apiKey]) || context.env.GEMINI_API_KEY;
+      // Get API key from integration
+      let geminiApiKey: string | undefined;
+
+      if (integrationId && typeof integrationId === "string") {
+        const integration = context.integrations?.[integrationId];
+        if (integration?.provider === "gemini") {
+          geminiApiKey = integration.token;
+        }
+      }
 
       if (!geminiApiKey) {
         return this.createErrorResult(
-          "Gemini API key is required. Provide via apiKey input or GEMINI_API_KEY environment variable"
+          "Gemini integration is required. Please connect a Gemini integration."
         );
       }
 
