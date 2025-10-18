@@ -183,6 +183,7 @@ export class StateManager {
         name: this.state.name,
         handle: this.state.handle,
         type: this.state.type,
+        organizationId: this.organizationId,
         nodes: this.state.nodes,
         edges: this.state.edges,
       };
