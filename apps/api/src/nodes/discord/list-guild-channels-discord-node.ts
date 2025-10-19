@@ -12,7 +12,7 @@ export class ListGuildChannelsDiscordNode extends ExecutableNode {
     name: "List Guild Channels (Discord)",
     type: "list-guild-channels-discord",
     description: "List all channels in a Discord guild (server)",
-    tags: ["Discord", "Guild", "Channel"],
+    tags: ["Discord"],
     icon: "list",
     documentation:
       "This node retrieves all channels in a Discord guild. Requires a connected Discord integration with guilds scope.",

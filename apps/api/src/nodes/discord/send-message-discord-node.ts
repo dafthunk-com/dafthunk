@@ -12,7 +12,7 @@ export class SendMessageDiscordNode extends ExecutableNode {
     name: "Send Message (Discord)",
     type: "send-message-discord",
     description: "Send a message to a Discord channel",
-    tags: ["Discord", "Messaging"],
+    tags: ["Discord"],
     icon: "message-circle",
     documentation:
       "This node sends messages to Discord channels using the Discord API. Requires a connected Discord integration from your organization's integrations.",

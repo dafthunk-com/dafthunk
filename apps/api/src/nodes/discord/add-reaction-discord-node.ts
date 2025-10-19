@@ -12,7 +12,7 @@ export class AddReactionDiscordNode extends ExecutableNode {
     name: "Add Reaction (Discord)",
     type: "add-reaction-discord",
     description: "Add a reaction emoji to a Discord message",
-    tags: ["Discord", "Reaction", "Emoji"],
+    tags: ["Discord"],
     icon: "smile",
     documentation:
       "This node adds a reaction emoji to a Discord message. Requires a connected Discord integration.",

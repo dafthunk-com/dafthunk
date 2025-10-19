@@ -12,7 +12,7 @@ export class GetUserRedditNode extends ExecutableNode {
     name: "Get User (Reddit)",
     type: "get-user-reddit",
     description: "Get information about a Reddit user",
-    tags: ["Reddit", "User"],
+    tags: ["Reddit"],
     icon: "user",
     documentation:
       "This node retrieves detailed information about a Reddit user. Requires a connected Reddit integration.",

@@ -12,7 +12,7 @@ export class GetSubredditRedditNode extends ExecutableNode {
     name: "Get Subreddit (Reddit)",
     type: "get-subreddit-reddit",
     description: "Get information about a subreddit",
-    tags: ["Reddit", "Subreddit"],
+    tags: ["Reddit"],
     icon: "info",
     documentation:
       "This node retrieves detailed information about a subreddit. Requires a connected Reddit integration.",

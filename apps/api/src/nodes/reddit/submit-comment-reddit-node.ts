@@ -12,7 +12,7 @@ export class SubmitCommentRedditNode extends ExecutableNode {
     name: "Submit Comment (Reddit)",
     type: "submit-comment-reddit",
     description: "Submit a comment on a Reddit post or reply to a comment",
-    tags: ["Reddit", "Comment", "Reply"],
+    tags: ["Reddit"],
     icon: "message-circle",
     documentation:
       "This node submits a comment on a Reddit post or replies to an existing comment. Requires a connected Reddit integration.",
