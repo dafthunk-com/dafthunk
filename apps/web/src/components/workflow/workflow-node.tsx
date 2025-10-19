@@ -39,7 +39,7 @@ import {
   createWidgetConfig,
   getWidgetComponent,
   getWidgetInputField,
-} from "./widgets/widget-factory";
+} from "./widgets/widget-registry";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
