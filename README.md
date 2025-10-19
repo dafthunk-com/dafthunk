@@ -170,6 +170,22 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    INTEGRATION_DISCORD_CLIENT_SECRET=your_discord_client_secret
    ```
 
+   **Reddit Integration**:
+   - Go to [Reddit App Preferences](https://www.reddit.com/prefs/apps)
+   - Click "create another app..." at the bottom
+   - Fill in the form:
+     - Name: Dafthunk (or your app name)
+     - App type: `web app`
+     - Redirect URI: `http://localhost:3001/oauth/reddit/callback`
+   - Click "create app"
+   - Copy the Client ID (shown under the app name) and Client Secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   INTEGRATION_REDDIT_CLIENT_ID=your_reddit_client_id
+   INTEGRATION_REDDIT_CLIENT_SECRET=your_reddit_client_secret
+   ```
+
    > **Note**: Keep authentication and integration OAuth apps separate for security isolation. They use different scopes and redirect URIs.
 
 6. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:

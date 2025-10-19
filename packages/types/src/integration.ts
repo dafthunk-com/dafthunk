@@ -7,6 +7,7 @@ export type IntegrationProvider =
   | "google-mail"
   | "google-calendar"
   | "discord"
+  | "reddit"
   | "openai"
   | "anthropic"
   | "gemini";
@@ -109,6 +110,13 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
     description: "Connect your Discord account to send messages and manage servers",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/discord/connect",
+  },
+  {
+    id: "reddit",
+    name: "Reddit",
+    description: "Connect your Reddit account to post, comment, and interact with communities",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/reddit/connect",
   },
   {
     id: "openai",

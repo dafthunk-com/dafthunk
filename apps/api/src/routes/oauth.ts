@@ -331,4 +331,165 @@ oauthRoutes.get(
   }
 );
 
+/**
+ * GET /oauth/reddit/connect
+ *
+ * Initiates Reddit OAuth flow
+ */
+oauthRoutes.get("/reddit/connect", jwtMiddleware, (c) => {
+  const organizationId = c.get("organizationId");
+  const state = btoa(
+    JSON.stringify({
+      organizationId,
+      provider: "reddit",
+      timestamp: Date.now(),
+    })
+  );
+
+  const clientId = c.env.INTEGRATION_REDDIT_CLIENT_ID;
+  if (!clientId) {
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=reddit_not_configured`);
+  }
+
+  // Determine redirect URI based on environment
+  // In production, this should match your deployed API URL
+  const redirectUri = c.env.CLOUDFLARE_ENV === 'production'
+    ? `https://api.dafthunk.com/oauth/reddit/callback`
+    : `http://localhost:3001/oauth/reddit/callback`;
+
+  const scopes = ["identity", "submit", "read", "vote", "mysubreddits"];
+
+  const authUrl = new URL("https://www.reddit.com/api/v1/authorize");
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("duration", "permanent");
+  authUrl.searchParams.set("scope", scopes.join(" "));
+
+  return c.redirect(authUrl.toString());
+});
+
+/**
+ * GET /oauth/reddit/callback
+ *
+ * Handles Reddit OAuth callback
+ */
+oauthRoutes.get("/reddit/callback", async (c) => {
+  try {
+    const code = c.req.query("code");
+    const stateParam = c.req.query("state");
+    const error = c.req.query("error");
+
+    if (error) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=${error}`);
+    }
+
+    if (!code || !stateParam) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+    }
+
+    // Decode and validate state
+    let state: {
+      organizationId: string;
+      provider: string;
+      timestamp: number;
+    };
+    try {
+      state = JSON.parse(atob(stateParam));
+    } catch {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
+    }
+
+    // Validate state is recent (within 10 minutes)
+    if (Date.now() - state.timestamp > 10 * 60 * 1000) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
+    }
+
+    // Exchange code for token
+    const clientId = c.env.INTEGRATION_REDDIT_CLIENT_ID;
+    const clientSecret = c.env.INTEGRATION_REDDIT_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=reddit_not_configured`);
+    }
+
+    // Determine redirect URI based on environment (must match the one used in /connect)
+    const redirectUri = c.env.CLOUDFLARE_ENV === 'production'
+      ? `https://api.dafthunk.com/oauth/reddit/callback`
+      : `http://localhost:3001/oauth/reddit/callback`;
+
+    const tokenResponse = await fetch("https://www.reddit.com/api/v1/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "web:dafthunk:v1.0.0 (by /u/dafthunk)",
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      console.error("Reddit token exchange failed:", errorData);
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=token_exchange_failed`);
+    }
+
+    const tokenData = await tokenResponse.json() as {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+    };
+
+    // Get user info
+    const userResponse = await fetch("https://oauth.reddit.com/api/v1/me", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+        "User-Agent": "Dafthunk/1.0",
+      },
+    });
+
+    if (!userResponse.ok) {
+      console.error("Reddit user info fetch failed");
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=user_fetch_failed`);
+    }
+
+    const user = await userResponse.json() as {
+      name: string;
+      id: string;
+      icon_img?: string;
+    };
+
+    // Create integration with OAuth tokens
+    const db = createDatabase(c.env.DB);
+    const integrationName = `Reddit - u/${user.name}`;
+
+    await createIntegration(
+      db,
+      state.organizationId,
+      integrationName,
+      "reddit",
+      tokenData.access_token,
+      tokenData.refresh_token,
+      new Date(Date.now() + tokenData.expires_in * 1000),
+      JSON.stringify({
+        username: user.name,
+        userId: user.id,
+        iconImg: user.icon_img,
+      }),
+      c.env
+    );
+
+    // Redirect back to integrations page with success
+    return c.redirect(`${c.env.WEB_HOST}/integrations?success=reddit_connected`);
+  } catch (error) {
+    console.error("Reddit OAuth error:", error);
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+  }
+});
+
 export default oauthRoutes;

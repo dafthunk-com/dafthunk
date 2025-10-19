@@ -206,6 +206,15 @@ export class IntegrationManager {
       return this.refreshDiscordToken(refreshToken, clientId, clientSecret);
     }
 
+    if (provider === "reddit") {
+      const clientId = this.env.INTEGRATION_REDDIT_CLIENT_ID;
+      const clientSecret = this.env.INTEGRATION_REDDIT_CLIENT_SECRET;
+      if (!clientId || !clientSecret) {
+        throw new Error("Reddit OAuth credentials not configured");
+      }
+      return this.refreshRedditToken(refreshToken, clientId, clientSecret);
+    }
+
     throw new Error(`Token refresh not supported for provider: ${provider}`);
   }
 
@@ -293,6 +302,49 @@ export class IntegrationManager {
       access_token: data.access_token,
       expires_in: data.expires_in,
       // Discord always returns a new refresh token
+      refresh_token: data.refresh_token,
+    };
+  }
+
+  /**
+   * Refresh a Reddit OAuth token
+   */
+  private async refreshRedditToken(
+    refreshToken: string,
+    clientId: string,
+    clientSecret: string
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+  }> {
+    const response = await fetch("https://www.reddit.com/api/v1/access_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to refresh Reddit token: ${error}`);
+    }
+
+    const data = (await response.json()) as {
+      access_token: string;
+      expires_in: number;
+      refresh_token?: string;
+    };
+
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      // Reddit may return a new refresh token
       refresh_token: data.refresh_token,
     };
   }

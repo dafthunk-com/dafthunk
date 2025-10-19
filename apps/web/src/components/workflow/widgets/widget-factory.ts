@@ -432,6 +432,24 @@ export function createWidgetConfig(
         provider: "discord",
       };
     }
+    // Reddit nodes
+    case "submit-post-reddit":
+    case "submit-comment-reddit":
+    case "get-subreddit-reddit":
+    case "get-user-reddit":
+    case "list-posts-reddit":
+    case "vote-reddit": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "reddit",
+      };
+    }
     // OpenAI nodes
     case "gpt-41":
     case "gpt-5":

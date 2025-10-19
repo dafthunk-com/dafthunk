@@ -284,6 +284,13 @@ export const WorkflowNode = memo(
       "get-guild-discord": IntegrationSelectorWidget,
       "list-user-guilds-discord": IntegrationSelectorWidget,
       "add-reaction-discord": IntegrationSelectorWidget,
+      // Reddit nodes
+      "submit-post-reddit": IntegrationSelectorWidget,
+      "submit-comment-reddit": IntegrationSelectorWidget,
+      "get-subreddit-reddit": IntegrationSelectorWidget,
+      "get-user-reddit": IntegrationSelectorWidget,
+      "list-posts-reddit": IntegrationSelectorWidget,
+      "vote-reddit": IntegrationSelectorWidget,
       // OpenAI nodes
       "gpt-41": IntegrationSelectorWidget,
       "gpt-5": IntegrationSelectorWidget,
@@ -366,6 +373,13 @@ export const WorkflowNode = memo(
         nodeType === "get-guild-discord" ||
         nodeType === "list-user-guilds-discord" ||
         nodeType === "add-reaction-discord" ||
+        // Reddit nodes
+        nodeType === "submit-post-reddit" ||
+        nodeType === "submit-comment-reddit" ||
+        nodeType === "get-subreddit-reddit" ||
+        nodeType === "get-user-reddit" ||
+        nodeType === "list-posts-reddit" ||
+        nodeType === "vote-reddit" ||
         // OpenAI nodes
         nodeType === "gpt-41" ||
         nodeType === "gpt-5" ||

@@ -38,6 +38,12 @@ import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-no
 import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
 import { DocumentNode } from "./document/document-node";
+import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
+import { GetUserRedditNode } from "./reddit/get-user-reddit-node";
+import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
+import { SubmitCommentRedditNode } from "./reddit/submit-comment-reddit-node";
+import { SubmitPostRedditNode } from "./reddit/submit-post-reddit-node";
+import { VoteRedditNode } from "./reddit/vote-reddit-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
@@ -532,6 +538,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(GetGuildDiscordNode);
     this.registerImplementation(ListUserGuildsDiscordNode);
     this.registerImplementation(AddReactionDiscordNode);
+
+    // Reddit integration is always available
+    this.registerImplementation(SubmitPostRedditNode);
+    this.registerImplementation(SubmitCommentRedditNode);
+    this.registerImplementation(GetSubredditRedditNode);
+    this.registerImplementation(GetUserRedditNode);
+    this.registerImplementation(ListPostsRedditNode);
+    this.registerImplementation(VoteRedditNode);
 
     // RAG nodes
     if (this.developerMode) {

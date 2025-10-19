@@ -62,6 +62,7 @@ const providerLabels: Record<IntegrationProvider, string> = {
   "google-mail": "Google Mail",
   "google-calendar": "Google Calendar",
   discord: "Discord",
+  reddit: "Reddit",
   openai: "OpenAI",
   anthropic: "Anthropic",
   gemini: "Google Gemini",
@@ -165,6 +166,10 @@ export function IntegrationsPage() {
       setSearchParams({});
     } else if (success === "discord_connected") {
       toast.success("Discord integration connected successfully");
+      mutateIntegrations();
+      setSearchParams({});
+    } else if (success === "reddit_connected") {
+      toast.success("Reddit integration connected successfully");
       mutateIntegrations();
       setSearchParams({});
     } else if (error) {
