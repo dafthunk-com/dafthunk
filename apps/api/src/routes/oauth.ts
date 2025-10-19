@@ -7,7 +7,8 @@ import { jwtVerify } from "jose";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase, createIntegration } from "../db";
+import { createDatabase, createIntegration, organizations } from "../db";
+import { eq } from "drizzle-orm";
 
 // Create a new Hono instance for OAuth endpoints
 const oauthRoutes = new Hono<ApiContext>();
@@ -119,8 +120,9 @@ oauthRoutes.get(
       );
 
       // Redirect back to integrations page with success
+      const orgHandle = payload.organization.handle;
       return c.redirect(
-        `${c.env.WEB_HOST}/integrations?success=google_mail_connected`
+        `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=google_mail_connected`
       );
     } catch (error) {
       console.error("Google Mail OAuth error:", error);
@@ -236,8 +238,9 @@ oauthRoutes.get(
       );
 
       // Redirect back to integrations page with success
+      const orgHandle = payload.organization.handle;
       return c.redirect(
-        `${c.env.WEB_HOST}/integrations?success=google_calendar_connected`
+        `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=google_calendar_connected`
       );
     } catch (error) {
       console.error("Google Calendar OAuth error:", error);
@@ -321,8 +324,9 @@ oauthRoutes.get(
       );
 
       // Redirect back to integrations page with success
+      const orgHandle = payload.organization.handle;
       return c.redirect(
-        `${c.env.WEB_HOST}/integrations?success=discord_connected`
+        `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=discord_connected`
       );
     } catch (error) {
       console.error("Discord OAuth error:", error);
@@ -502,9 +506,21 @@ oauthRoutes.get("/linkedin/callback", async (c) => {
       c.env
     );
 
+    // Get organization handle for redirect
+    const org = await db
+      .select({ handle: organizations.handle })
+      .from(organizations)
+      .where(eq(organizations.id, state.organizationId))
+      .limit(1);
+
+    const orgHandle = org[0]?.handle;
+    if (!orgHandle) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=organization_not_found`);
+    }
+
     // Redirect back to integrations page with success
     return c.redirect(
-      `${c.env.WEB_HOST}/integrations?success=linkedin_connected`
+      `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=linkedin_connected`
     );
   } catch (error) {
     console.error("LinkedIn OAuth error:", error);
@@ -678,9 +694,21 @@ oauthRoutes.get("/reddit/callback", async (c) => {
       c.env
     );
 
+    // Get organization handle for redirect
+    const org = await db
+      .select({ handle: organizations.handle })
+      .from(organizations)
+      .where(eq(organizations.id, state.organizationId))
+      .limit(1);
+
+    const orgHandle = org[0]?.handle;
+    if (!orgHandle) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=organization_not_found`);
+    }
+
     // Redirect back to integrations page with success
     return c.redirect(
-      `${c.env.WEB_HOST}/integrations?success=reddit_connected`
+      `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=reddit_connected`
     );
   } catch (error) {
     console.error("Reddit OAuth error:", error);

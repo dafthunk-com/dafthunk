@@ -173,6 +173,10 @@ export function IntegrationsPage() {
       toast.success("Reddit integration connected successfully");
       mutateIntegrations();
       setSearchParams({});
+    } else if (success === "linkedin_connected") {
+      toast.success("LinkedIn integration connected successfully");
+      mutateIntegrations();
+      setSearchParams({});
     } else if (error) {
       const errorMessages: Record<string, string> = {
         oauth_failed: "OAuth authentication failed",
