@@ -143,6 +143,18 @@ import { UnionNode } from "./geo/union-node";
 import { UnkinkPolygonNode } from "./geo/unkink-polygon-node";
 import { VoronoiNode } from "./geo/voronoi-node";
 import { WktGeometryNode } from "./geo/wkt-geometry-node";
+import { CreateUpdateFileGithubNode } from "./github/create-update-file-github-node";
+import { DeleteFileGithubNode } from "./github/delete-file-github-node";
+import { FollowUserGithubNode } from "./github/follow-user-github-node";
+import { GetFileContentsGithubNode } from "./github/get-file-contents-github-node";
+import { GetRepositoryGithubNode } from "./github/get-repository-github-node";
+import { GetUserGithubNode } from "./github/get-user-github-node";
+import { ListOrganizationRepositoriesGithubNode } from "./github/list-organization-repositories-github-node";
+import { ListUserRepositoriesGithubNode } from "./github/list-user-repositories-github-node";
+import { SearchRepositoriesGithubNode } from "./github/search-repositories-github-node";
+import { StarRepositoryGithubNode } from "./github/star-repository-github-node";
+import { UnfollowUserGithubNode } from "./github/unfollow-user-github-node";
+import { UnstarRepositoryGithubNode } from "./github/unstar-repository-github-node";
 import { AddAttendeesGoogleCalendarNode } from "./google-calendar/add-attendees-google-calendar-node";
 import { CheckAvailabilityGoogleCalendarNode } from "./google-calendar/check-availability-google-calendar-node";
 import { CreateEventGoogleCalendarNode } from "./google-calendar/create-event-google-calendar-node";
@@ -560,6 +572,20 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(LikePostLinkedInNode);
     this.registerImplementation(GetPostCommentsLinkedInNode);
     this.registerImplementation(GetPostLikesLinkedInNode);
+
+    // GitHub integration is always available
+    this.registerImplementation(GetRepositoryGithubNode);
+    this.registerImplementation(GetUserGithubNode);
+    this.registerImplementation(SearchRepositoriesGithubNode);
+    this.registerImplementation(StarRepositoryGithubNode);
+    this.registerImplementation(UnstarRepositoryGithubNode);
+    this.registerImplementation(FollowUserGithubNode);
+    this.registerImplementation(UnfollowUserGithubNode);
+    this.registerImplementation(GetFileContentsGithubNode);
+    this.registerImplementation(CreateUpdateFileGithubNode);
+    this.registerImplementation(DeleteFileGithubNode);
+    this.registerImplementation(ListUserRepositoriesGithubNode);
+    this.registerImplementation(ListOrganizationRepositoriesGithubNode);
 
     // RAG nodes
     if (this.developerMode) {

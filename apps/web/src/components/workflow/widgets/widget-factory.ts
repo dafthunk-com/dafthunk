@@ -470,6 +470,30 @@ export function createWidgetConfig(
         provider: "linkedin",
       };
     }
+    // GitHub nodes
+    case "get-repository-github":
+    case "get-user-github":
+    case "search-repositories-github":
+    case "star-repository-github":
+    case "unstar-repository-github":
+    case "follow-user-github":
+    case "unfollow-user-github":
+    case "get-file-contents-github":
+    case "create-update-file-github":
+    case "delete-file-github":
+    case "list-user-repositories-github":
+    case "list-organization-repositories-github": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "github",
+      };
+    }
     // OpenAI nodes
     case "gpt-41":
     case "gpt-5":

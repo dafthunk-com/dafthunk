@@ -300,6 +300,19 @@ export const WorkflowNode = memo(
       "get-post-likes-linkedin": IntegrationSelectorWidget,
       "get-member-profile-linkedin": IntegrationSelectorWidget,
       "get-organization-linkedin": IntegrationSelectorWidget,
+      // GitHub nodes
+      "get-repository-github": IntegrationSelectorWidget,
+      "get-user-github": IntegrationSelectorWidget,
+      "search-repositories-github": IntegrationSelectorWidget,
+      "star-repository-github": IntegrationSelectorWidget,
+      "unstar-repository-github": IntegrationSelectorWidget,
+      "follow-user-github": IntegrationSelectorWidget,
+      "unfollow-user-github": IntegrationSelectorWidget,
+      "get-file-contents-github": IntegrationSelectorWidget,
+      "create-update-file-github": IntegrationSelectorWidget,
+      "delete-file-github": IntegrationSelectorWidget,
+      "list-user-repositories-github": IntegrationSelectorWidget,
+      "list-organization-repositories-github": IntegrationSelectorWidget,
       // OpenAI nodes
       "gpt-41": IntegrationSelectorWidget,
       "gpt-5": IntegrationSelectorWidget,
@@ -398,6 +411,19 @@ export const WorkflowNode = memo(
         nodeType === "get-post-likes-linkedin" ||
         nodeType === "get-member-profile-linkedin" ||
         nodeType === "get-organization-linkedin" ||
+        // GitHub nodes
+        nodeType === "get-repository-github" ||
+        nodeType === "get-user-github" ||
+        nodeType === "search-repositories-github" ||
+        nodeType === "star-repository-github" ||
+        nodeType === "unstar-repository-github" ||
+        nodeType === "follow-user-github" ||
+        nodeType === "unfollow-user-github" ||
+        nodeType === "get-file-contents-github" ||
+        nodeType === "create-update-file-github" ||
+        nodeType === "delete-file-github" ||
+        nodeType === "list-user-repositories-github" ||
+        nodeType === "list-organization-repositories-github" ||
         // OpenAI nodes
         nodeType === "gpt-41" ||
         nodeType === "gpt-5" ||

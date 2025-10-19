@@ -9,6 +9,7 @@ export type IntegrationProvider =
   | "discord"
   | "reddit"
   | "linkedin"
+  | "github"
   | "openai"
   | "anthropic"
   | "gemini";
@@ -128,6 +129,14 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
       "Connect your LinkedIn account to share posts and manage your profile",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/linkedin/connect",
+  },
+  {
+    id: "github",
+    name: "GitHub",
+    description:
+      "Connect your GitHub account to manage repositories, issues, and pull requests",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/github/connect",
   },
   {
     id: "openai",

@@ -720,4 +720,202 @@ oauthRoutes.get("/reddit/callback", async (c) => {
   }
 });
 
+/**
+ * GET /oauth/github/connect
+ *
+ * Initiates GitHub OAuth flow or handles callback
+ */
+oauthRoutes.get("/github/connect", jwtMiddleware, async (c) => {
+  const code = c.req.query("code");
+
+  // If there's a code parameter, this is a callback from GitHub
+  if (code) {
+    try {
+      const code = c.req.query("code");
+      const stateParam = c.req.query("state");
+      const error = c.req.query("error");
+
+      if (error) {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=${error}`);
+      }
+
+      if (!code || !stateParam) {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+      }
+
+      // Decode and validate state
+      let state: {
+        organizationId: string;
+        provider: string;
+        timestamp: number;
+      };
+      try {
+        state = JSON.parse(atob(stateParam));
+      } catch {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
+      }
+
+      // Validate state is recent (within 10 minutes)
+      if (Date.now() - state.timestamp > 10 * 60 * 1000) {
+        return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
+      }
+
+      // Exchange code for token
+      const clientId = c.env.INTEGRATION_GITHUB_CLIENT_ID;
+      const clientSecret = c.env.INTEGRATION_GITHUB_CLIENT_SECRET;
+
+      if (!clientId || !clientSecret) {
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=github_not_configured`
+        );
+      }
+
+      // Determine redirect URI based on environment (must match the one used in /connect)
+      const redirectUri =
+        c.env.CLOUDFLARE_ENV === "production"
+          ? `https://api.dafthunk.com/oauth/github/connect`
+          : `http://localhost:3001/oauth/github/connect`;
+
+      const tokenResponse = await fetch(
+        "https://github.com/login/oauth/access_token",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            client_id: clientId,
+            client_secret: clientSecret,
+            code,
+            redirect_uri: redirectUri,
+          }),
+        }
+      );
+
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.text();
+        console.error("GitHub token exchange failed:", errorData);
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=token_exchange_failed`
+        );
+      }
+
+      const tokenData = (await tokenResponse.json()) as {
+        access_token: string;
+        token_type: string;
+        scope: string;
+      };
+
+      if (!tokenData.access_token) {
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=no_access_token`
+        );
+      }
+
+      // Get user info using GitHub API
+      const userResponse = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "Dafthunk/1.0",
+        },
+      });
+
+      if (!userResponse.ok) {
+        console.error("GitHub user info fetch failed");
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=user_fetch_failed`
+        );
+      }
+
+      const user = (await userResponse.json()) as {
+        id: number;
+        login: string;
+        name: string;
+        email: string;
+        avatar_url: string;
+      };
+
+      // Create integration with OAuth tokens
+      const db = createDatabase(c.env.DB);
+      const integrationName = `GitHub - ${user.login || user.name}`;
+
+      await createIntegration(
+        db,
+        state.organizationId,
+        integrationName,
+        "github",
+        tokenData.access_token,
+        undefined, // GitHub personal access tokens don't have refresh tokens
+        undefined, // GitHub personal access tokens don't expire
+        JSON.stringify({
+          userId: user.id,
+          login: user.login,
+          name: user.name,
+          email: user.email,
+          avatarUrl: user.avatar_url,
+        }),
+        c.env
+      );
+
+      // Get organization handle for redirect
+      const org = await db
+        .select({ handle: organizations.handle })
+        .from(organizations)
+        .where(eq(organizations.id, state.organizationId))
+        .limit(1);
+
+      const orgHandle = org[0]?.handle;
+      if (!orgHandle) {
+        return c.redirect(
+          `${c.env.WEB_HOST}/integrations?error=organization_not_found`
+        );
+      }
+
+      // Redirect back to integrations page with success
+      return c.redirect(
+        `${c.env.WEB_HOST}/org/${orgHandle}/integrations?success=github_connected`
+      );
+    } catch (error) {
+      console.error("GitHub OAuth error:", error);
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+    }
+  }
+
+  // No code parameter - initiate OAuth flow
+  const organizationId = c.get("organizationId");
+  const state = btoa(
+    JSON.stringify({
+      organizationId,
+      provider: "github",
+      timestamp: Date.now(),
+    })
+  );
+
+  const clientId = c.env.INTEGRATION_GITHUB_CLIENT_ID;
+  if (!clientId) {
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?error=github_not_configured`
+    );
+  }
+
+  // Determine redirect URI based on environment
+  const redirectUri =
+    c.env.CLOUDFLARE_ENV === "production"
+      ? `https://api.dafthunk.com/oauth/github/connect`
+      : `http://localhost:3001/oauth/github/connect`;
+
+  // GitHub OAuth scopes
+  const scopes = ["user", "repo", "read:org"];
+
+  const authUrl = new URL("https://github.com/login/oauth/authorize");
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("scope", scopes.join(" "));
+
+  return c.redirect(authUrl.toString());
+});
+
 export default oauthRoutes;

@@ -186,6 +186,36 @@ Our collection of carefully selected technologies, guaranteed to be outdated by 
    INTEGRATION_REDDIT_CLIENT_SECRET=your_reddit_client_secret
    ```
 
+   **LinkedIn Integration**:
+   - Go to [LinkedIn Developers](https://www.linkedin.com/developers/apps)
+   - Create a new app
+   - In the Auth tab, add redirect URL:
+     - Redirect URL: `http://localhost:3001/oauth/linkedin/callback`
+   - Request access to the "Sign In with LinkedIn using OpenID Connect" and "Share on LinkedIn" products
+   - Copy the Client ID and Client Secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   INTEGRATION_LINKEDIN_CLIENT_ID=your_linkedin_client_id
+   INTEGRATION_LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+   ```
+
+   **GitHub Integration**:
+   - Go to [GitHub Developer Settings](https://github.com/settings/developers)
+   - Click "New OAuth App"
+   - Fill in the form:
+     - Application name: Dafthunk (or your app name)
+     - Homepage URL: `http://localhost:3000`
+     - Authorization callback URL: `http://localhost:3001/oauth/github/connect`
+   - Click "Register application"
+   - Copy the Client ID and generate a Client Secret
+   - Add them to your `.dev.vars` file:
+
+   ```
+   INTEGRATION_GITHUB_CLIENT_ID=your_github_client_id
+   INTEGRATION_GITHUB_CLIENT_SECRET=your_github_client_secret
+   ```
+
    > **Note**: Keep authentication and integration OAuth apps separate for security isolation. They use different scopes and redirect URIs.
 
 6. Create a Cloudflare account and login with Wrangler, a process that's almost as straightforward as it sounds:
