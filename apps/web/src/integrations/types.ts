@@ -13,7 +13,8 @@ export interface ProviderConfig {
   supportsOAuth: boolean;
   oauthEndpoint?: string;
   successMessage?: string;
-  documentationUrl?: string;
+  apiKeyUrl?: string;
+  apiKeyInstructions?: string;
 }
 
 /**

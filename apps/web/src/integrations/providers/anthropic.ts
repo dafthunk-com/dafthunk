@@ -8,4 +8,7 @@ export const anthropicProvider: ProviderConfig = {
   description: "Connect to Anthropic Claude API with your API key",
   icon: Bot,
   supportsOAuth: false,
+  apiKeyUrl: "https://console.anthropic.com/settings/keys",
+  apiKeyInstructions:
+    "Create an API key in your Anthropic Console and paste it below.",
 };

@@ -8,4 +8,7 @@ export const geminiProvider: ProviderConfig = {
   description: "Connect to Google Gemini API with your API key",
   icon: Gem,
   supportsOAuth: false,
+  apiKeyUrl: "https://aistudio.google.com/app/apikey",
+  apiKeyInstructions:
+    "Create an API key in Google AI Studio and paste it below.",
 };

@@ -1,4 +1,5 @@
 import type { IntegrationProvider } from "@dafthunk/types";
+import ExternalLink from "lucide-react/icons/external-link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -109,6 +110,29 @@ export function IntegrationDialog({
 
           {!currentProvider?.supportsOAuth && (
             <>
+              {currentProvider?.apiKeyInstructions && (
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm text-muted-foreground">
+                    {currentProvider.apiKeyInstructions}
+                  </p>
+                  {currentProvider.apiKeyUrl && (
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 mt-2 text-xs"
+                      asChild
+                    >
+                      <a
+                        href={currentProvider.apiKeyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Get API Key
+                        <ExternalLink className="ml-1 h-3 w-3" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              )}
               <div>
                 <Label htmlFor="integration-name">Integration Name</Label>
                 <Input
