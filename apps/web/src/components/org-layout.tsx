@@ -31,22 +31,6 @@ export const getDashboardSidebarItems = (orgHandle: string) => [
     url: `/org/${orgHandle}/workflows`,
     icon: SquareTerminal,
   },
-
-  {
-    title: "Datasets",
-    url: `/org/${orgHandle}/datasets`,
-    icon: Database,
-  },
-  {
-    title: "Secrets",
-    url: `/org/${orgHandle}/secrets`,
-    icon: Lock,
-  },
-  {
-    title: "Integrations",
-    url: `/org/${orgHandle}/integrations`,
-    icon: Plug,
-  },
   {
     title: "Deployments",
     url: `/org/${orgHandle}/deployments`,
@@ -56,6 +40,21 @@ export const getDashboardSidebarItems = (orgHandle: string) => [
     title: "Executions",
     url: `/org/${orgHandle}/executions`,
     icon: Logs,
+  },
+  {
+    title: "Datasets",
+    url: `/org/${orgHandle}/datasets`,
+    icon: Database,
+  },
+  {
+    title: "Integrations",
+    url: `/org/${orgHandle}/integrations`,
+    icon: Plug,
+  },
+  {
+    title: "Secrets",
+    url: `/org/${orgHandle}/secrets`,
+    icon: Lock,
   },
   {
     title: "API Keys",
