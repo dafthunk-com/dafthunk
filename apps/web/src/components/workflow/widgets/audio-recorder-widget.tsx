@@ -6,21 +6,43 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 
-export interface AudioRecorderConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface AudioRecorderWidgetProps {
   type: "audio-recorder";
   value: any;
   sampleRate: number;
   channels: number;
+  onChange: (value: any) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
 }
 
-export interface AudioRecorderWidgetProps {
-  config: AudioRecorderConfig;
-  onChange: (value: any) => void;
-  compact?: boolean;
-}
+export type AudioRecorderConfig = Omit<
+  AudioRecorderWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+export const AudioRecorderWidgetMeta = {
+  nodeTypes: ["audio-recorder"],
+  inputField: "value",
+  createConfig: (_nodeId: string, inputs: WorkflowParameter[]): AudioRecorderConfig => {
+    const value = inputs.find((i) => i.id === "value")?.value as string;
+    const sampleRate = inputs.find((i) => i.id === "sampleRate")?.value as number;
+    const channels = inputs.find((i) => i.id === "channels")?.value as number;
+
+    return {
+      type: "audio-recorder",
+      value: value || "",
+      sampleRate: sampleRate || 44100,
+      channels: channels || 1,
+    };
+  },
+};
 
 export function AudioRecorderWidget({
-  config,
+  value,
   onChange,
   compact = false,
 }: AudioRecorderWidgetProps) {
@@ -31,9 +53,7 @@ export function AudioRecorderWidget({
   const [audioReference, setAudioReference] = useState<{
     id: string;
     mimeType: string;
-  } | null>(
-    config?.value && isObjectReference(config.value) ? config.value : null
-  );
+  } | null>(value && isObjectReference(value) ? value : null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const { uploadBinaryData, createObjectUrl } = useObjectService();
 

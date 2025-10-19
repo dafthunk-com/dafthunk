@@ -7,36 +7,61 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 
-export interface CanvasDoodleConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface CanvasDoodleWidgetProps {
   type: "canvas-doodle";
   value: any;
   width: number;
   height: number;
   strokeColor: string;
   strokeWidth: number;
+  onChange: (value: any) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
 }
 
-export interface CanvasDoodleWidgetProps {
-  config: CanvasDoodleConfig;
-  onChange: (value: any) => void;
-  compact?: boolean;
-}
+export type CanvasDoodleConfig = Omit<
+  CanvasDoodleWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+export const CanvasDoodleWidgetMeta = {
+  nodeTypes: ["canvas-doodle"],
+  inputField: "value",
+  createConfig: (_nodeId: string, inputs: WorkflowParameter[]): CanvasDoodleConfig => {
+    const value = inputs.find((i) => i.id === "value")?.value as string;
+    const width = inputs.find((i) => i.id === "width")?.value as number;
+    const height = inputs.find((i) => i.id === "height")?.value as number;
+    const strokeColor = inputs.find((i) => i.id === "strokeColor")?.value as string;
+    const strokeWidth = inputs.find((i) => i.id === "strokeWidth")?.value as number;
+
+    return {
+      type: "canvas-doodle",
+      value: value || "",
+      width: width || 400,
+      height: height || 300,
+      strokeColor: strokeColor || "#000000",
+      strokeWidth: strokeWidth || 2,
+    };
+  },
+};
 
 export function CanvasDoodleWidget({
-  config,
+  value,
+  strokeColor,
+  strokeWidth,
   onChange,
   compact = false,
 }: CanvasDoodleWidgetProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const { strokeColor, strokeWidth } = config;
   const [imageReference, setImageReference] = useState<{
     id: string;
     mimeType: string;
-  } | null>(
-    config?.value && isObjectReference(config.value) ? config.value : null
-  );
+  } | null>(value && isObjectReference(value) ? value : null);
   const { createObjectUrl, uploadBinaryData } = useObjectService();
   const { isAuthenticated, organization } = useAuth();
   const [currentColor, setCurrentColor] = useState(strokeColor);

@@ -8,27 +8,47 @@ import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
-export interface DocumentConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface DocumentWidgetProps {
   type: "document";
   value: any;
   mimeType: string;
+  onChange: (value: any) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
 }
 
-export interface DocumentWidgetProps {
-  config: DocumentConfig;
-  onChange: (value: any) => void;
-  compact?: boolean;
-}
+export type DocumentConfig = Omit<
+  DocumentWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+export const DocumentWidgetMeta = {
+  nodeTypes: ["document"],
+  inputField: "value",
+  createConfig: (_nodeId: string, inputs: WorkflowParameter[]): DocumentConfig => {
+    const value = inputs.find((i) => i.id === "value")?.value as string;
+    const mimeType = inputs.find((i) => i.id === "mimeType")?.value as string;
+
+    return {
+      type: "document",
+      value: value || "",
+      mimeType: mimeType || "application/pdf",
+    };
+  },
+};
 
 export function DocumentWidget({
-  config,
+  value,
   onChange,
   compact = false,
 }: DocumentWidgetProps) {
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(() => {
-    // Initialize fileName from config if it exists and has a value
-    if (config?.value && isObjectReference(config.value)) {
+    // Initialize fileName from value if it exists
+    if (value && isObjectReference(value)) {
       return "Uploaded Document";
     }
     return null;

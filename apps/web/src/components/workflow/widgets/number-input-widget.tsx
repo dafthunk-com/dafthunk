@@ -2,7 +2,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/utils";
 
-export interface NumberInputWidgetConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface NumberInputWidgetProps {
   type: "number-input";
   id: string;
   name: string;
@@ -11,18 +13,71 @@ export interface NumberInputWidgetConfig {
   max?: number;
   step?: number;
   placeholder?: string;
-}
-
-export interface NumberInputWidgetProps {
-  config: NumberInputWidgetConfig;
   onChange: (value: number) => void;
   className?: string;
   compact?: boolean;
   readonly?: boolean;
 }
 
+export type NumberInputWidgetConfig = Omit<
+  NumberInputWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+export const NumberInputWidgetMeta = {
+  nodeTypes: ["number-input"],
+  inputField: "value",
+  createConfig: (nodeId: string, inputs: WorkflowParameter[]): NumberInputWidgetConfig => {
+    const valueInput = inputs.find((i) => i.id === "value");
+    const minInput = inputs.find((i) => i.id === "min");
+    const maxInput = inputs.find((i) => i.id === "max");
+    const stepInput = inputs.find((i) => i.id === "step");
+    const placeholderInput = inputs.find((i) => i.id === "placeholder");
+
+    if (!valueInput) {
+      console.warn(`Missing required inputs for number input widget in node ${nodeId}`);
+      return null as any;
+    }
+
+    let min: number | undefined;
+    if (minInput?.value !== undefined) {
+      min = Number(minInput.value);
+    }
+
+    let max: number | undefined;
+    if (maxInput?.value !== undefined) {
+      max = Number(maxInput.value);
+    }
+
+    let step: number | undefined;
+    if (stepInput?.value !== undefined) {
+      step = Number(stepInput.value);
+    }
+
+    let placeholder: string | undefined;
+    if (placeholderInput?.value !== undefined) {
+      placeholder = String(placeholderInput.value);
+    }
+
+    return {
+      type: "number-input",
+      id: nodeId,
+      name: "Number Input",
+      value: Number(valueInput.value) || 0,
+      min,
+      max,
+      step,
+      placeholder,
+    };
+  },
+};
+
 export function NumberInputWidget({
-  config,
+  value,
+  min,
+  max,
+  step,
+  placeholder,
   onChange,
   className,
   compact = false,
@@ -31,9 +86,9 @@ export function NumberInputWidget({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (readonly) return;
 
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value)) {
-      onChange(value);
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val)) {
+      onChange(val);
     }
   };
 
@@ -42,12 +97,12 @@ export function NumberInputWidget({
       {!compact && <Label>Number Input</Label>}
       <Input
         type="number"
-        value={config.value || ""}
+        value={value || ""}
         onChange={handleChange}
-        min={config.min}
-        max={config.max}
-        step={config.step}
-        placeholder={config.placeholder || "Enter number..."}
+        min={min}
+        max={max}
+        step={step}
+        placeholder={placeholder || "Enter number..."}
         className={cn(compact && "h-8 text-sm")}
         disabled={readonly}
       />

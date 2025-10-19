@@ -5,21 +5,43 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { useObjectService } from "@/services/object-service";
 
-export interface WebcamConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface WebcamWidgetProps {
   type: "webcam";
   value: any;
   width: number;
   height: number;
+  onChange: (value: any) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
 }
 
-export interface WebcamWidgetProps {
-  config: WebcamConfig;
-  onChange: (value: any) => void;
-  compact?: boolean;
-}
+export type WebcamConfig = Omit<
+  WebcamWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+export const WebcamWidgetMeta = {
+  nodeTypes: ["webcam"],
+  inputField: "value",
+  createConfig: (_nodeId: string, inputs: WorkflowParameter[]): WebcamConfig => {
+    const value = inputs.find((i) => i.id === "value")?.value as string;
+    const width = inputs.find((i) => i.id === "width")?.value as number;
+    const height = inputs.find((i) => i.id === "height")?.value as number;
+
+    return {
+      type: "webcam",
+      value: value || "",
+      width: width || 640,
+      height: height || 480,
+    };
+  },
+};
 
 export function WebcamWidget({
-  config,
+  value,
   onChange,
   compact = false,
 }: WebcamWidgetProps) {
@@ -28,11 +50,7 @@ export function WebcamWidget({
   const [imageReference, setImageReference] = useState<{
     id: string;
     mimeType: string;
-  } | null>(
-    config?.value && typeof config.value === "object" && config.value.id
-      ? config.value
-      : null
-  );
+  } | null>(value && typeof value === "object" && value.id ? value : null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const objectService = useObjectService();
   const { uploadBinaryData } = objectService;

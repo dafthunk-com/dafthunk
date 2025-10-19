@@ -12,23 +12,41 @@ import {
 import { useDatasets } from "@/services/dataset-service";
 import { cn } from "@/utils/utils";
 
-export interface DatasetSelectorConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface DatasetSelectorWidgetProps {
   type: "dataset-selector";
   id: string;
   name: string;
   value: string;
-}
-
-export interface DatasetSelectorWidgetProps {
-  config: DatasetSelectorConfig;
   onChange: (value: string) => void;
   className?: string;
   compact?: boolean;
   readonly?: boolean;
 }
 
+export type DatasetSelectorConfig = Omit<
+  DatasetSelectorWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+export const DatasetSelectorWidgetMeta = {
+  nodeTypes: ["rag-ai-search", "rag-search"],
+  inputField: "datasetId",
+  createConfig: (nodeId: string, inputs: WorkflowParameter[]): DatasetSelectorConfig => {
+    const value = inputs.find((i) => i.id === "datasetId")?.value as string;
+
+    return {
+      type: "dataset-selector",
+      id: nodeId,
+      name: "Dataset Selector",
+      value: value || "",
+    };
+  },
+};
+
 export function DatasetSelectorWidget({
-  config,
+  value,
   onChange,
   className,
   compact = false,
@@ -66,7 +84,7 @@ export function DatasetSelectorWidget({
   return (
     <div className={cn("p-2", className)}>
       <Select
-        value={config.value || ""}
+        value={value || ""}
         onValueChange={handleSelect}
         disabled={readonly || isDatasetsLoading}
       >

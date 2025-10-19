@@ -12,24 +12,45 @@ import {
 import { useIntegrations } from "@/integrations";
 import { cn } from "@/utils/utils";
 
-export interface IntegrationSelectorConfig {
+import type { WorkflowParameter } from "../workflow-types";
+
+export interface IntegrationSelectorWidgetProps {
   type: "integration-selector";
   id: string;
   name: string;
   value: string;
   provider?: string;
-}
-
-export interface IntegrationSelectorWidgetProps {
-  config: IntegrationSelectorConfig;
   onChange: (value: string) => void;
   className?: string;
   compact?: boolean;
   readonly?: boolean;
 }
 
+export type IntegrationSelectorConfig = Omit<
+  IntegrationSelectorWidgetProps,
+  "onChange" | "className" | "compact" | "readonly"
+>;
+
+// Factory function to create metadata for integration widgets with different providers
+export const createIntegrationSelectorMeta = (nodeTypes: string[], provider: string) => ({
+  nodeTypes,
+  inputField: "integrationId",
+  createConfig: (nodeId: string, inputs: WorkflowParameter[]): IntegrationSelectorConfig => {
+    const value = inputs.find((i) => i.id === "integrationId")?.value as string;
+
+    return {
+      type: "integration-selector",
+      id: nodeId,
+      name: "Integration Selector",
+      value: value || "",
+      provider,
+    };
+  },
+});
+
 export function IntegrationSelectorWidget({
-  config,
+  value,
+  provider,
   onChange,
   className,
   compact = false,
@@ -43,8 +64,8 @@ export function IntegrationSelectorWidget({
   };
 
   // Filter integrations by provider if specified
-  const filteredIntegrations = config.provider
-    ? integrations?.filter((i) => i.provider === config.provider)
+  const filteredIntegrations = provider
+    ? integrations?.filter((i) => i.provider === provider)
     : integrations;
 
   if (error) {
@@ -71,7 +92,7 @@ export function IntegrationSelectorWidget({
   return (
     <div className={cn("p-2", className)}>
       <Select
-        value={config.value || ""}
+        value={value || ""}
         onValueChange={handleSelect}
         disabled={readonly || isLoading}
       >
