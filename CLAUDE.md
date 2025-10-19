@@ -131,6 +131,7 @@ const { data } = useSWR(['/users', '/posts'], fetchAll)  // consolidate
 // Styling
 <div className={cn('base-class', isActive && 'active')} />
 
+// Direct imports preferred - no barrel exports needed for components
 // Avoid useEffect - prefer derived state or move logic outside React
 ```
 
@@ -149,6 +150,11 @@ const users = sqliteTable('users', {
   createdAt: text('created_at'),  // snake_case in DB
 })
 export type User = InferModel<typeof users>
+
+// Module organization (API & packages only, not React components)
+// Use barrel exports (index.ts) to control public API surface
+// Export from module files, only re-export public functions in index.ts
+// Keeps internal utilities accessible via direct paths but hidden from main entry
 ```
 
 ### Testing
