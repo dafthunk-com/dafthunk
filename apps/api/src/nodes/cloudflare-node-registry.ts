@@ -344,6 +344,30 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.env.AWS_REGION &&
       this.env.SES_DEFAULT_FROM
     );
+    const hasGoogleMail = !!(
+      this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID &&
+      this.env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET
+    );
+    const hasGoogleCalendar = !!(
+      this.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID &&
+      this.env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET
+    );
+    const hasDiscord = !!(
+      this.env.INTEGRATION_DISCORD_CLIENT_ID &&
+      this.env.INTEGRATION_DISCORD_CLIENT_SECRET
+    );
+    const hasGitHub = !!(
+      this.env.INTEGRATION_GITHUB_CLIENT_ID &&
+      this.env.INTEGRATION_GITHUB_CLIENT_SECRET
+    );
+    const hasReddit = !!(
+      this.env.INTEGRATION_REDDIT_CLIENT_ID &&
+      this.env.INTEGRATION_REDDIT_CLIENT_SECRET
+    );
+    const hasLinkedIn = !!(
+      this.env.INTEGRATION_LINKEDIN_CLIENT_ID &&
+      this.env.INTEGRATION_LINKEDIN_CLIENT_SECRET
+    );
 
     // Register all core nodes
     this.registerImplementation(FormDataStringNode);
@@ -521,71 +545,77 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(SendEmailResendNode);
     }
 
-    // Google Mail integration is always available
-    this.registerImplementation(SendEmailGoogleMailNode);
-    this.registerImplementation(ReadInboxGoogleMailNode);
-    this.registerImplementation(CreateReplyDraftGoogleMailNode);
-    this.registerImplementation(CheckDraftGoogleMailNode);
-    this.registerImplementation(SendDraftGoogleMailNode);
-    this.registerImplementation(DeleteDraftGoogleMailNode);
-    this.registerImplementation(UpdateDraftGoogleMailNode);
-    this.registerImplementation(MarkMessageGoogleMailNode);
-    this.registerImplementation(ModifyLabelsGoogleMailNode);
-    this.registerImplementation(SearchMessagesGoogleMailNode);
-    this.registerImplementation(GetMessageGoogleMailNode);
-    this.registerImplementation(ArchiveMessageGoogleMailNode);
-    this.registerImplementation(TrashMessageGoogleMailNode);
+    if (hasGoogleMail) {
+      this.registerImplementation(SendEmailGoogleMailNode);
+      this.registerImplementation(ReadInboxGoogleMailNode);
+      this.registerImplementation(CreateReplyDraftGoogleMailNode);
+      this.registerImplementation(CheckDraftGoogleMailNode);
+      this.registerImplementation(SendDraftGoogleMailNode);
+      this.registerImplementation(DeleteDraftGoogleMailNode);
+      this.registerImplementation(UpdateDraftGoogleMailNode);
+      this.registerImplementation(MarkMessageGoogleMailNode);
+      this.registerImplementation(ModifyLabelsGoogleMailNode);
+      this.registerImplementation(SearchMessagesGoogleMailNode);
+      this.registerImplementation(GetMessageGoogleMailNode);
+      this.registerImplementation(ArchiveMessageGoogleMailNode);
+      this.registerImplementation(TrashMessageGoogleMailNode);
+    }
 
-    // Google Calendar integration is always available
-    this.registerImplementation(CreateEventGoogleCalendarNode);
-    this.registerImplementation(ListEventsGoogleCalendarNode);
-    this.registerImplementation(GetEventGoogleCalendarNode);
-    this.registerImplementation(UpdateEventGoogleCalendarNode);
-    this.registerImplementation(DeleteEventGoogleCalendarNode);
-    this.registerImplementation(SearchEventsGoogleCalendarNode);
-    this.registerImplementation(AddAttendeesGoogleCalendarNode);
-    this.registerImplementation(CheckAvailabilityGoogleCalendarNode);
-    this.registerImplementation(QuickAddGoogleCalendarNode);
-    this.registerImplementation(ListCalendarsGoogleCalendarNode);
+    if (hasGoogleCalendar) {
+      this.registerImplementation(CreateEventGoogleCalendarNode);
+      this.registerImplementation(ListEventsGoogleCalendarNode);
+      this.registerImplementation(GetEventGoogleCalendarNode);
+      this.registerImplementation(UpdateEventGoogleCalendarNode);
+      this.registerImplementation(DeleteEventGoogleCalendarNode);
+      this.registerImplementation(SearchEventsGoogleCalendarNode);
+      this.registerImplementation(AddAttendeesGoogleCalendarNode);
+      this.registerImplementation(CheckAvailabilityGoogleCalendarNode);
+      this.registerImplementation(QuickAddGoogleCalendarNode);
+      this.registerImplementation(ListCalendarsGoogleCalendarNode);
+    }
 
-    // Discord integration is always available
-    this.registerImplementation(SendMessageDiscordNode);
-    this.registerImplementation(SendDMDiscordNode);
-    this.registerImplementation(GetChannelDiscordNode);
-    this.registerImplementation(ListGuildChannelsDiscordNode);
-    this.registerImplementation(GetGuildDiscordNode);
-    this.registerImplementation(ListUserGuildsDiscordNode);
-    this.registerImplementation(AddReactionDiscordNode);
+    if (hasDiscord) {
+      this.registerImplementation(SendMessageDiscordNode);
+      this.registerImplementation(SendDMDiscordNode);
+      this.registerImplementation(GetChannelDiscordNode);
+      this.registerImplementation(ListGuildChannelsDiscordNode);
+      this.registerImplementation(GetGuildDiscordNode);
+      this.registerImplementation(ListUserGuildsDiscordNode);
+      this.registerImplementation(AddReactionDiscordNode);
+    }
 
-    // Reddit integration is always available
-    this.registerImplementation(SubmitPostRedditNode);
-    this.registerImplementation(SubmitCommentRedditNode);
-    this.registerImplementation(GetSubredditRedditNode);
-    this.registerImplementation(GetUserRedditNode);
-    this.registerImplementation(ListPostsRedditNode);
-    this.registerImplementation(VoteRedditNode);
+    if (hasReddit) {
+      this.registerImplementation(SubmitPostRedditNode);
+      this.registerImplementation(SubmitCommentRedditNode);
+      this.registerImplementation(GetSubredditRedditNode);
+      this.registerImplementation(GetUserRedditNode);
+      this.registerImplementation(ListPostsRedditNode);
+      this.registerImplementation(VoteRedditNode);
+    }
 
-    // LinkedIn integration is always available
-    this.registerImplementation(SharePostLinkedInNode);
-    this.registerImplementation(GetProfileLinkedInNode);
-    this.registerImplementation(CommentOnPostLinkedInNode);
-    this.registerImplementation(LikePostLinkedInNode);
-    this.registerImplementation(GetPostCommentsLinkedInNode);
-    this.registerImplementation(GetPostLikesLinkedInNode);
+    if (hasLinkedIn) {
+      this.registerImplementation(SharePostLinkedInNode);
+      this.registerImplementation(GetProfileLinkedInNode);
+      this.registerImplementation(CommentOnPostLinkedInNode);
+      this.registerImplementation(LikePostLinkedInNode);
+      this.registerImplementation(GetPostCommentsLinkedInNode);
+      this.registerImplementation(GetPostLikesLinkedInNode);
+    }
 
-    // GitHub integration is always available
-    this.registerImplementation(GetRepositoryGithubNode);
-    this.registerImplementation(GetUserGithubNode);
-    this.registerImplementation(SearchRepositoriesGithubNode);
-    this.registerImplementation(StarRepositoryGithubNode);
-    this.registerImplementation(UnstarRepositoryGithubNode);
-    this.registerImplementation(FollowUserGithubNode);
-    this.registerImplementation(UnfollowUserGithubNode);
-    this.registerImplementation(GetFileContentsGithubNode);
-    this.registerImplementation(CreateUpdateFileGithubNode);
-    this.registerImplementation(DeleteFileGithubNode);
-    this.registerImplementation(ListUserRepositoriesGithubNode);
-    this.registerImplementation(ListOrganizationRepositoriesGithubNode);
+    if (hasGitHub) {
+      this.registerImplementation(GetRepositoryGithubNode);
+      this.registerImplementation(GetUserGithubNode);
+      this.registerImplementation(SearchRepositoriesGithubNode);
+      this.registerImplementation(StarRepositoryGithubNode);
+      this.registerImplementation(UnstarRepositoryGithubNode);
+      this.registerImplementation(FollowUserGithubNode);
+      this.registerImplementation(UnfollowUserGithubNode);
+      this.registerImplementation(GetFileContentsGithubNode);
+      this.registerImplementation(CreateUpdateFileGithubNode);
+      this.registerImplementation(DeleteFileGithubNode);
+      this.registerImplementation(ListUserRepositoriesGithubNode);
+      this.registerImplementation(ListOrganizationRepositoriesGithubNode);
+    }
 
     // RAG nodes
     if (this.developerMode) {
