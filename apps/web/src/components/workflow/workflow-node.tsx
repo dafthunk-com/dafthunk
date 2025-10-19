@@ -35,19 +35,11 @@ import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
 import { InputEditDialog } from "./input-edit-dialog";
-import { AudioRecorderWidget } from "./widgets/audio-recorder-widget";
-import { CanvasDoodleWidget } from "./widgets/canvas-doodle-widget";
-import { DatasetSelectorWidget } from "./widgets/dataset-selector-widget";
-import { DocumentWidget } from "./widgets/document-widget";
-import { InputTextWidget } from "./widgets/input-text-widget";
-import { IntegrationSelectorWidget } from "./widgets/integration-selector-widget";
-import { JavaScriptEditorWidget } from "./widgets/javascript-editor-widget";
-import { JsonEditorWidget } from "./widgets/json-editor-widget";
-import { NumberInputWidget } from "./widgets/number-input-widget";
-import { SliderWidget } from "./widgets/slider-widget";
-import { TextAreaWidget } from "./widgets/text-area-widget";
-import { WebcamWidget } from "./widgets/webcam-widget";
-import { createWidgetConfig } from "./widgets/widget-factory";
+import {
+  createWidgetConfig,
+  getWidgetComponent,
+  getWidgetInputField,
+} from "./widgets/widget-factory";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
@@ -232,239 +224,22 @@ export const WorkflowNode = memo(
       return nodeTypes.find((t) => t.name === data.name) || null;
     })();
 
-    // Widget mapping
-    const widgetComponents: Record<
-      string,
-      React.FC<{
-        config: any;
-        onChange: (value: any) => void;
-        compact?: boolean;
-        readonly?: boolean;
-      }>
-    > = {
-      slider: SliderWidget,
-      "text-area": TextAreaWidget,
-      "input-text": InputTextWidget,
-      "number-input": NumberInputWidget,
-      "json-editor": JsonEditorWidget,
-      "javascript-editor": JavaScriptEditorWidget,
-      "canvas-doodle": CanvasDoodleWidget,
-      webcam: WebcamWidget,
-      "audio-recorder": AudioRecorderWidget,
-      document: DocumentWidget,
-      "rag-ai-search": DatasetSelectorWidget,
-      "rag-search": DatasetSelectorWidget,
-      "send-email-google-mail": IntegrationSelectorWidget,
-      "read-inbox-google-mail": IntegrationSelectorWidget,
-      "create-reply-draft-google-mail": IntegrationSelectorWidget,
-      "check-draft-google-mail": IntegrationSelectorWidget,
-      "send-draft-google-mail": IntegrationSelectorWidget,
-      "delete-draft-google-mail": IntegrationSelectorWidget,
-      "update-draft-google-mail": IntegrationSelectorWidget,
-      "mark-message-google-mail": IntegrationSelectorWidget,
-      "modify-labels-google-mail": IntegrationSelectorWidget,
-      "search-messages-google-mail": IntegrationSelectorWidget,
-      "get-message-google-mail": IntegrationSelectorWidget,
-      "archive-message-google-mail": IntegrationSelectorWidget,
-      "trash-message-google-mail": IntegrationSelectorWidget,
-      "create-event-google-calendar": IntegrationSelectorWidget,
-      "list-events-google-calendar": IntegrationSelectorWidget,
-      "get-event-google-calendar": IntegrationSelectorWidget,
-      "update-event-google-calendar": IntegrationSelectorWidget,
-      "delete-event-google-calendar": IntegrationSelectorWidget,
-      "search-events-google-calendar": IntegrationSelectorWidget,
-      "add-attendees-google-calendar": IntegrationSelectorWidget,
-      "check-availability-google-calendar": IntegrationSelectorWidget,
-      "quick-add-google-calendar": IntegrationSelectorWidget,
-      "list-calendars-google-calendar": IntegrationSelectorWidget,
-      "send-message-discord": IntegrationSelectorWidget,
-      "send-dm-discord": IntegrationSelectorWidget,
-      "get-channel-discord": IntegrationSelectorWidget,
-      "list-guild-channels-discord": IntegrationSelectorWidget,
-      "get-guild-discord": IntegrationSelectorWidget,
-      "list-user-guilds-discord": IntegrationSelectorWidget,
-      "add-reaction-discord": IntegrationSelectorWidget,
-      // Reddit nodes
-      "submit-post-reddit": IntegrationSelectorWidget,
-      "submit-comment-reddit": IntegrationSelectorWidget,
-      "get-subreddit-reddit": IntegrationSelectorWidget,
-      "get-user-reddit": IntegrationSelectorWidget,
-      "list-posts-reddit": IntegrationSelectorWidget,
-      "vote-reddit": IntegrationSelectorWidget,
-      // LinkedIn nodes
-      "share-post-linkedin": IntegrationSelectorWidget,
-      "get-profile-linkedin": IntegrationSelectorWidget,
-      "comment-on-post-linkedin": IntegrationSelectorWidget,
-      "like-post-linkedin": IntegrationSelectorWidget,
-      "get-post-comments-linkedin": IntegrationSelectorWidget,
-      "get-post-likes-linkedin": IntegrationSelectorWidget,
-      "get-member-profile-linkedin": IntegrationSelectorWidget,
-      "get-organization-linkedin": IntegrationSelectorWidget,
-      // GitHub nodes
-      "get-repository-github": IntegrationSelectorWidget,
-      "get-user-github": IntegrationSelectorWidget,
-      "search-repositories-github": IntegrationSelectorWidget,
-      "star-repository-github": IntegrationSelectorWidget,
-      "unstar-repository-github": IntegrationSelectorWidget,
-      "follow-user-github": IntegrationSelectorWidget,
-      "unfollow-user-github": IntegrationSelectorWidget,
-      "get-file-contents-github": IntegrationSelectorWidget,
-      "create-update-file-github": IntegrationSelectorWidget,
-      "delete-file-github": IntegrationSelectorWidget,
-      "list-user-repositories-github": IntegrationSelectorWidget,
-      "list-organization-repositories-github": IntegrationSelectorWidget,
-      // OpenAI nodes
-      "gpt-41": IntegrationSelectorWidget,
-      "gpt-5": IntegrationSelectorWidget,
-      "gpt-5-mini": IntegrationSelectorWidget,
-      "gpt-5-nano": IntegrationSelectorWidget,
-      // Anthropic nodes
-      "claude-3-opus": IntegrationSelectorWidget,
-      "claude-35-haiku": IntegrationSelectorWidget,
-      "claude-35-sonnet": IntegrationSelectorWidget,
-      "claude-37-sonnet": IntegrationSelectorWidget,
-      "claude-opus-4": IntegrationSelectorWidget,
-      "claude-opus-41": IntegrationSelectorWidget,
-      "claude-sonnet-4": IntegrationSelectorWidget,
-      // Gemini nodes
-      "gemini-2-5-flash": IntegrationSelectorWidget,
-      "gemini-2-5-pro": IntegrationSelectorWidget,
-      "gemini-2-5-flash-image-preview": IntegrationSelectorWidget,
-      "gemini-2-5-flash-audio-understanding": IntegrationSelectorWidget,
-      "gemini-2-5-flash-image-understanding": IntegrationSelectorWidget,
-      "gemini-2-5-flash-tts": IntegrationSelectorWidget,
-      imagen: IntegrationSelectorWidget,
-    };
-
-    // Get widget configuration if this is a widget node
+    // Get widget component and config if this is a widget node
+    const WidgetComponent = nodeType ? getWidgetComponent(nodeType) : null;
     const widgetConfig =
-      nodeType && widgetComponents[nodeType]
+      nodeType && WidgetComponent
         ? createWidgetConfig(id, data.inputs, nodeType)
         : null;
 
     const handleWidgetChange = (value: any) => {
-      if (readonly || !updateNodeData || !widgetConfig) return;
+      if (readonly || !updateNodeData || !widgetConfig || !nodeType) return;
 
-      // Handle dataset selector specifically
-      if (nodeType === "rag-ai-search" || nodeType === "rag-search") {
-        const datasetIdInput = data.inputs.find((i) => i.id === "datasetId");
-        if (datasetIdInput) {
-          updateNodeInput(
-            id,
-            datasetIdInput.id,
-            value,
-            data.inputs,
-            updateNodeData
-          );
-        }
-        return;
-      }
+      // Get the input field ID for this widget type
+      const inputFieldId = getWidgetInputField(nodeType);
+      const input = data.inputs.find((i) => i.id === inputFieldId);
 
-      // Handle integration selector specifically
-      if (
-        // Google Mail nodes
-        nodeType === "send-email-google-mail" ||
-        nodeType === "read-inbox-google-mail" ||
-        nodeType === "create-reply-draft-google-mail" ||
-        nodeType === "check-draft-google-mail" ||
-        nodeType === "send-draft-google-mail" ||
-        nodeType === "delete-draft-google-mail" ||
-        nodeType === "update-draft-google-mail" ||
-        nodeType === "mark-message-google-mail" ||
-        nodeType === "modify-labels-google-mail" ||
-        nodeType === "search-messages-google-mail" ||
-        nodeType === "get-message-google-mail" ||
-        nodeType === "archive-message-google-mail" ||
-        nodeType === "trash-message-google-mail" ||
-        // Google Calendar nodes
-        nodeType === "create-event-google-calendar" ||
-        nodeType === "list-events-google-calendar" ||
-        nodeType === "get-event-google-calendar" ||
-        nodeType === "update-event-google-calendar" ||
-        nodeType === "delete-event-google-calendar" ||
-        nodeType === "search-events-google-calendar" ||
-        nodeType === "add-attendees-google-calendar" ||
-        nodeType === "check-availability-google-calendar" ||
-        nodeType === "quick-add-google-calendar" ||
-        nodeType === "list-calendars-google-calendar" ||
-        // Discord nodes
-        nodeType === "send-message-discord" ||
-        nodeType === "send-dm-discord" ||
-        nodeType === "get-channel-discord" ||
-        nodeType === "list-guild-channels-discord" ||
-        nodeType === "get-guild-discord" ||
-        nodeType === "list-user-guilds-discord" ||
-        nodeType === "add-reaction-discord" ||
-        // Reddit nodes
-        nodeType === "submit-post-reddit" ||
-        nodeType === "submit-comment-reddit" ||
-        nodeType === "get-subreddit-reddit" ||
-        nodeType === "get-user-reddit" ||
-        nodeType === "list-posts-reddit" ||
-        nodeType === "vote-reddit" ||
-        // LinkedIn nodes
-        nodeType === "share-post-linkedin" ||
-        nodeType === "get-profile-linkedin" ||
-        nodeType === "comment-on-post-linkedin" ||
-        nodeType === "like-post-linkedin" ||
-        nodeType === "get-post-comments-linkedin" ||
-        nodeType === "get-post-likes-linkedin" ||
-        nodeType === "get-member-profile-linkedin" ||
-        nodeType === "get-organization-linkedin" ||
-        // GitHub nodes
-        nodeType === "get-repository-github" ||
-        nodeType === "get-user-github" ||
-        nodeType === "search-repositories-github" ||
-        nodeType === "star-repository-github" ||
-        nodeType === "unstar-repository-github" ||
-        nodeType === "follow-user-github" ||
-        nodeType === "unfollow-user-github" ||
-        nodeType === "get-file-contents-github" ||
-        nodeType === "create-update-file-github" ||
-        nodeType === "delete-file-github" ||
-        nodeType === "list-user-repositories-github" ||
-        nodeType === "list-organization-repositories-github" ||
-        // OpenAI nodes
-        nodeType === "gpt-41" ||
-        nodeType === "gpt-5" ||
-        nodeType === "gpt-5-mini" ||
-        nodeType === "gpt-5-nano" ||
-        // Anthropic nodes
-        nodeType === "claude-3-opus" ||
-        nodeType === "claude-35-haiku" ||
-        nodeType === "claude-35-sonnet" ||
-        nodeType === "claude-37-sonnet" ||
-        nodeType === "claude-opus-4" ||
-        nodeType === "claude-opus-41" ||
-        nodeType === "claude-sonnet-4" ||
-        // Gemini nodes
-        nodeType === "gemini-2-5-flash" ||
-        nodeType === "gemini-2-5-pro" ||
-        nodeType === "gemini-2-5-flash-image-preview" ||
-        nodeType === "gemini-2-5-flash-audio-understanding" ||
-        nodeType === "gemini-2-5-flash-image-understanding" ||
-        nodeType === "gemini-2-5-flash-tts" ||
-        nodeType === "imagen"
-      ) {
-        const integrationIdInput = data.inputs.find(
-          (i) => i.id === "integrationId"
-        );
-        if (integrationIdInput) {
-          updateNodeInput(
-            id,
-            integrationIdInput.id,
-            value,
-            data.inputs,
-            updateNodeData
-          );
-        }
-        return;
-      }
-
-      // Handle other widgets
-      const valueInput = data.inputs.find((i) => i.id === "value");
-      if (valueInput) {
-        updateNodeInput(id, valueInput.id, value, data.inputs, updateNodeData);
+      if (input) {
+        updateNodeInput(id, input.id, value, data.inputs, updateNodeData);
       }
     };
 
@@ -553,19 +328,16 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {!readonly &&
-            widgetConfig &&
-            nodeType &&
-            widgetComponents[nodeType] && (
-              <div className="px-0 py-0 border-b nodrag">
-                {createElement(widgetComponents[nodeType], {
-                  config: widgetConfig,
-                  onChange: handleWidgetChange,
-                  compact: true,
-                  readonly: readonly,
-                })}
-              </div>
-            )}
+          {!readonly && widgetConfig && WidgetComponent && (
+            <div className="px-0 py-0 border-b nodrag">
+              {createElement(WidgetComponent, {
+                config: widgetConfig,
+                onChange: handleWidgetChange,
+                compact: true,
+                readonly: readonly,
+              })}
+            </div>
+          )}
 
           {/* Tools bar (between header and body) */}
           {data.functionCalling && (

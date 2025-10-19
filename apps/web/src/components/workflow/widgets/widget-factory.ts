@@ -1,15 +1,29 @@
+import type * as React from "react";
+
 import type { WorkflowParameter } from "../workflow-types";
+import { AudioRecorderWidget } from "./audio-recorder-widget";
 import type { AudioRecorderConfig } from "./audio-recorder-widget";
+import { CanvasDoodleWidget } from "./canvas-doodle-widget";
 import type { CanvasDoodleConfig } from "./canvas-doodle-widget";
+import { DatasetSelectorWidget } from "./dataset-selector-widget";
 import type { DatasetSelectorConfig } from "./dataset-selector-widget";
+import { DocumentWidget } from "./document-widget";
 import type { DocumentConfig } from "./document-widget";
+import { InputTextWidget } from "./input-text-widget";
 import type { InputTextWidgetConfig } from "./input-text-widget";
+import { IntegrationSelectorWidget } from "./integration-selector-widget";
 import type { IntegrationSelectorConfig } from "./integration-selector-widget";
+import { JavaScriptEditorWidget } from "./javascript-editor-widget";
 import type { JavaScriptEditorWidgetConfig } from "./javascript-editor-widget";
+import { JsonEditorWidget } from "./json-editor-widget";
 import type { JsonEditorWidgetConfig } from "./json-editor-widget";
+import { NumberInputWidget } from "./number-input-widget";
 import type { NumberInputWidgetConfig } from "./number-input-widget";
+import { SliderWidget } from "./slider-widget";
 import type { SliderWidgetConfig } from "./slider-widget";
+import { TextAreaWidget } from "./text-area-widget";
 import type { TextAreaWidgetConfig } from "./text-area-widget";
+import { WebcamWidget } from "./webcam-widget";
 import type { WebcamConfig } from "./webcam-widget";
 
 export type {
@@ -482,4 +496,211 @@ export function createWidgetConfig(
     default:
       return null;
   }
+}
+
+// Widget component mapping
+const widgetComponents: Record<
+  string,
+  React.FC<{
+    config: any;
+    onChange: (value: any) => void;
+    compact?: boolean;
+    readonly?: boolean;
+  }>
+> = {
+  slider: SliderWidget,
+  "text-area": TextAreaWidget,
+  "input-text": InputTextWidget,
+  "number-input": NumberInputWidget,
+  "json-editor": JsonEditorWidget,
+  "javascript-editor": JavaScriptEditorWidget,
+  "canvas-doodle": CanvasDoodleWidget,
+  webcam: WebcamWidget,
+  "audio-recorder": AudioRecorderWidget,
+  document: DocumentWidget,
+  "rag-ai-search": DatasetSelectorWidget,
+  "rag-search": DatasetSelectorWidget,
+  "send-email-google-mail": IntegrationSelectorWidget,
+  "read-inbox-google-mail": IntegrationSelectorWidget,
+  "create-reply-draft-google-mail": IntegrationSelectorWidget,
+  "check-draft-google-mail": IntegrationSelectorWidget,
+  "send-draft-google-mail": IntegrationSelectorWidget,
+  "delete-draft-google-mail": IntegrationSelectorWidget,
+  "update-draft-google-mail": IntegrationSelectorWidget,
+  "mark-message-google-mail": IntegrationSelectorWidget,
+  "modify-labels-google-mail": IntegrationSelectorWidget,
+  "search-messages-google-mail": IntegrationSelectorWidget,
+  "get-message-google-mail": IntegrationSelectorWidget,
+  "archive-message-google-mail": IntegrationSelectorWidget,
+  "trash-message-google-mail": IntegrationSelectorWidget,
+  "create-event-google-calendar": IntegrationSelectorWidget,
+  "list-events-google-calendar": IntegrationSelectorWidget,
+  "get-event-google-calendar": IntegrationSelectorWidget,
+  "update-event-google-calendar": IntegrationSelectorWidget,
+  "delete-event-google-calendar": IntegrationSelectorWidget,
+  "search-events-google-calendar": IntegrationSelectorWidget,
+  "add-attendees-google-calendar": IntegrationSelectorWidget,
+  "check-availability-google-calendar": IntegrationSelectorWidget,
+  "quick-add-google-calendar": IntegrationSelectorWidget,
+  "list-calendars-google-calendar": IntegrationSelectorWidget,
+  "send-message-discord": IntegrationSelectorWidget,
+  "send-dm-discord": IntegrationSelectorWidget,
+  "get-channel-discord": IntegrationSelectorWidget,
+  "list-guild-channels-discord": IntegrationSelectorWidget,
+  "get-guild-discord": IntegrationSelectorWidget,
+  "list-user-guilds-discord": IntegrationSelectorWidget,
+  "add-reaction-discord": IntegrationSelectorWidget,
+  "submit-post-reddit": IntegrationSelectorWidget,
+  "submit-comment-reddit": IntegrationSelectorWidget,
+  "get-subreddit-reddit": IntegrationSelectorWidget,
+  "get-user-reddit": IntegrationSelectorWidget,
+  "list-posts-reddit": IntegrationSelectorWidget,
+  "vote-reddit": IntegrationSelectorWidget,
+  "share-post-linkedin": IntegrationSelectorWidget,
+  "get-profile-linkedin": IntegrationSelectorWidget,
+  "comment-on-post-linkedin": IntegrationSelectorWidget,
+  "like-post-linkedin": IntegrationSelectorWidget,
+  "get-post-comments-linkedin": IntegrationSelectorWidget,
+  "get-post-likes-linkedin": IntegrationSelectorWidget,
+  "get-member-profile-linkedin": IntegrationSelectorWidget,
+  "get-organization-linkedin": IntegrationSelectorWidget,
+  "get-repository-github": IntegrationSelectorWidget,
+  "get-user-github": IntegrationSelectorWidget,
+  "search-repositories-github": IntegrationSelectorWidget,
+  "star-repository-github": IntegrationSelectorWidget,
+  "unstar-repository-github": IntegrationSelectorWidget,
+  "follow-user-github": IntegrationSelectorWidget,
+  "unfollow-user-github": IntegrationSelectorWidget,
+  "get-file-contents-github": IntegrationSelectorWidget,
+  "create-update-file-github": IntegrationSelectorWidget,
+  "delete-file-github": IntegrationSelectorWidget,
+  "list-user-repositories-github": IntegrationSelectorWidget,
+  "list-organization-repositories-github": IntegrationSelectorWidget,
+  "gpt-41": IntegrationSelectorWidget,
+  "gpt-5": IntegrationSelectorWidget,
+  "gpt-5-mini": IntegrationSelectorWidget,
+  "gpt-5-nano": IntegrationSelectorWidget,
+  "claude-3-opus": IntegrationSelectorWidget,
+  "claude-35-haiku": IntegrationSelectorWidget,
+  "claude-35-sonnet": IntegrationSelectorWidget,
+  "claude-37-sonnet": IntegrationSelectorWidget,
+  "claude-opus-4": IntegrationSelectorWidget,
+  "claude-opus-41": IntegrationSelectorWidget,
+  "claude-sonnet-4": IntegrationSelectorWidget,
+  "gemini-2-5-flash": IntegrationSelectorWidget,
+  "gemini-2-5-pro": IntegrationSelectorWidget,
+  "gemini-2-5-flash-image-preview": IntegrationSelectorWidget,
+  "gemini-2-5-flash-audio-understanding": IntegrationSelectorWidget,
+  "gemini-2-5-flash-image-understanding": IntegrationSelectorWidget,
+  "gemini-2-5-flash-tts": IntegrationSelectorWidget,
+  imagen: IntegrationSelectorWidget,
+};
+
+/**
+ * Get the widget component for a given node type
+ */
+export function getWidgetComponent(nodeType: string) {
+  return widgetComponents[nodeType];
+}
+
+/**
+ * Get the input field ID that a widget should update
+ */
+export function getWidgetInputField(nodeType: string): string {
+  // Dataset selector widgets
+  if (nodeType === "rag-ai-search" || nodeType === "rag-search") {
+    return "datasetId";
+  }
+
+  // Integration selector widgets
+  if (
+    // Google Mail nodes
+    nodeType === "send-email-google-mail" ||
+    nodeType === "read-inbox-google-mail" ||
+    nodeType === "create-reply-draft-google-mail" ||
+    nodeType === "check-draft-google-mail" ||
+    nodeType === "send-draft-google-mail" ||
+    nodeType === "delete-draft-google-mail" ||
+    nodeType === "update-draft-google-mail" ||
+    nodeType === "mark-message-google-mail" ||
+    nodeType === "modify-labels-google-mail" ||
+    nodeType === "search-messages-google-mail" ||
+    nodeType === "get-message-google-mail" ||
+    nodeType === "archive-message-google-mail" ||
+    nodeType === "trash-message-google-mail" ||
+    // Google Calendar nodes
+    nodeType === "create-event-google-calendar" ||
+    nodeType === "list-events-google-calendar" ||
+    nodeType === "get-event-google-calendar" ||
+    nodeType === "update-event-google-calendar" ||
+    nodeType === "delete-event-google-calendar" ||
+    nodeType === "search-events-google-calendar" ||
+    nodeType === "add-attendees-google-calendar" ||
+    nodeType === "check-availability-google-calendar" ||
+    nodeType === "quick-add-google-calendar" ||
+    nodeType === "list-calendars-google-calendar" ||
+    // Discord nodes
+    nodeType === "send-message-discord" ||
+    nodeType === "send-dm-discord" ||
+    nodeType === "get-channel-discord" ||
+    nodeType === "list-guild-channels-discord" ||
+    nodeType === "get-guild-discord" ||
+    nodeType === "list-user-guilds-discord" ||
+    nodeType === "add-reaction-discord" ||
+    // Reddit nodes
+    nodeType === "submit-post-reddit" ||
+    nodeType === "submit-comment-reddit" ||
+    nodeType === "get-subreddit-reddit" ||
+    nodeType === "get-user-reddit" ||
+    nodeType === "list-posts-reddit" ||
+    nodeType === "vote-reddit" ||
+    // LinkedIn nodes
+    nodeType === "share-post-linkedin" ||
+    nodeType === "get-profile-linkedin" ||
+    nodeType === "comment-on-post-linkedin" ||
+    nodeType === "like-post-linkedin" ||
+    nodeType === "get-post-comments-linkedin" ||
+    nodeType === "get-post-likes-linkedin" ||
+    nodeType === "get-member-profile-linkedin" ||
+    nodeType === "get-organization-linkedin" ||
+    // GitHub nodes
+    nodeType === "get-repository-github" ||
+    nodeType === "get-user-github" ||
+    nodeType === "search-repositories-github" ||
+    nodeType === "star-repository-github" ||
+    nodeType === "unstar-repository-github" ||
+    nodeType === "follow-user-github" ||
+    nodeType === "unfollow-user-github" ||
+    nodeType === "get-file-contents-github" ||
+    nodeType === "create-update-file-github" ||
+    nodeType === "delete-file-github" ||
+    nodeType === "list-user-repositories-github" ||
+    nodeType === "list-organization-repositories-github" ||
+    // OpenAI nodes
+    nodeType === "gpt-41" ||
+    nodeType === "gpt-5" ||
+    nodeType === "gpt-5-mini" ||
+    nodeType === "gpt-5-nano" ||
+    // Anthropic nodes
+    nodeType === "claude-3-opus" ||
+    nodeType === "claude-35-haiku" ||
+    nodeType === "claude-35-sonnet" ||
+    nodeType === "claude-37-sonnet" ||
+    nodeType === "claude-opus-4" ||
+    nodeType === "claude-opus-41" ||
+    nodeType === "claude-sonnet-4" ||
+    // Gemini nodes
+    nodeType === "gemini-2-5-flash" ||
+    nodeType === "gemini-2-5-pro" ||
+    nodeType === "gemini-2-5-flash-image-preview" ||
+    nodeType === "gemini-2-5-flash-audio-understanding" ||
+    nodeType === "gemini-2-5-flash-image-understanding" ||
+    nodeType === "gemini-2-5-flash-tts" ||
+    nodeType === "imagen"
+  ) {
+    return "integrationId";
+  }
+
+  // Default: most widgets use "value"
+  return "value";
 }
