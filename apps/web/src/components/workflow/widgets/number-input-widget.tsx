@@ -2,14 +2,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils/utils";
 
-interface NumberInputWidgetProps {
-  config: {
-    value: number;
-    min?: number;
-    max?: number;
-    step?: number;
-    placeholder?: string;
-  };
+export interface NumberInputWidgetConfig {
+  type: "number-input";
+  id: string;
+  name: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  placeholder?: string;
+}
+
+export interface NumberInputWidgetProps {
+  config: NumberInputWidgetConfig;
   onChange: (value: number) => void;
   className?: string;
   compact?: boolean;

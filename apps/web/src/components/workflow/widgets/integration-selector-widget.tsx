@@ -12,7 +12,21 @@ import {
 import { useIntegrations } from "@/integrations";
 import { cn } from "@/utils/utils";
 
-import { IntegrationSelectorWidgetProps } from "./types";
+export interface IntegrationSelectorConfig {
+  type: "integration-selector";
+  id: string;
+  name: string;
+  value: string;
+  provider?: string;
+}
+
+export interface IntegrationSelectorWidgetProps {
+  config: IntegrationSelectorConfig;
+  onChange: (value: string) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
+}
 
 export function IntegrationSelectorWidget({
   config,

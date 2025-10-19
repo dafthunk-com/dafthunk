@@ -9,10 +9,12 @@ import { isObjectReference, useObjectService } from "@/services/object-service";
 import { cn } from "@/utils/utils";
 
 export interface DocumentConfig {
-  value: any; // Now stores an object reference
+  type: "document";
+  value: any;
+  mimeType: string;
 }
 
-interface DocumentWidgetProps {
+export interface DocumentWidgetProps {
   config: DocumentConfig;
   onChange: (value: any) => void;
   compact?: boolean;

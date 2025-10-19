@@ -12,7 +12,20 @@ import {
 import { useDatasets } from "@/services/dataset-service";
 import { cn } from "@/utils/utils";
 
-import { DatasetSelectorWidgetProps } from "./types";
+export interface DatasetSelectorConfig {
+  type: "dataset-selector";
+  id: string;
+  name: string;
+  value: string;
+}
+
+export interface DatasetSelectorWidgetProps {
+  config: DatasetSelectorConfig;
+  onChange: (value: string) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
+}
 
 export function DatasetSelectorWidget({
   config,

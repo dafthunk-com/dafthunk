@@ -2,11 +2,14 @@ import { Editor } from "@monaco-editor/react";
 
 import { Label } from "@/components/ui/label";
 
-interface JsonEditorWidgetConfig {
+export interface JsonEditorWidgetConfig {
+  type: "json-editor";
+  id: string;
+  name: string;
   value: string;
 }
 
-interface JsonEditorWidgetProps {
+export interface JsonEditorWidgetProps {
   config: JsonEditorWidgetConfig;
   onChange: (value: string) => void;
   compact?: boolean;

@@ -2,11 +2,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
-interface TextAreaWidgetProps {
-  config: {
-    value: string;
-    placeholder?: string;
-  };
+export interface TextAreaWidgetConfig {
+  type: "text-area";
+  id: string;
+  name: string;
+  value: string;
+  placeholder?: string;
+  rows: number;
+}
+
+export interface TextAreaWidgetProps {
+  config: TextAreaWidgetConfig;
   onChange: (value: string) => void;
   className?: string;
   compact?: boolean;

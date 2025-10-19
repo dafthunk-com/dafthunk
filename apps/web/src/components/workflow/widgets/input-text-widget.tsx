@@ -1,12 +1,15 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface InputTextWidgetConfig {
+export interface InputTextWidgetConfig {
+  type: "input-text";
+  id: string;
+  name: string;
   value: string;
   placeholder?: string;
 }
 
-interface InputTextWidgetProps {
+export interface InputTextWidgetProps {
   config: InputTextWidgetConfig;
   onChange: (value: string) => void;
   compact?: boolean;

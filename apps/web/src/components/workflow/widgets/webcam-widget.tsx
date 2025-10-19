@@ -5,11 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { useObjectService } from "@/services/object-service";
 
-interface WebcamConfig {
-  value: any; // Stores an object reference with id and mimeType or null
+export interface WebcamConfig {
+  type: "webcam";
+  value: any;
+  width: number;
+  height: number;
 }
 
-interface WebcamWidgetProps {
+export interface WebcamWidgetProps {
   config: WebcamConfig;
   onChange: (value: any) => void;
   compact?: boolean;

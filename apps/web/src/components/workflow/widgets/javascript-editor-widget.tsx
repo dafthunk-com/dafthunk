@@ -2,11 +2,14 @@ import { Editor } from "@monaco-editor/react";
 
 import { Label } from "@/components/ui/label";
 
-interface JavaScriptEditorWidgetConfig {
+export interface JavaScriptEditorWidgetConfig {
+  type: "javascript-editor";
+  id: string;
+  name: string;
   value: string;
 }
 
-interface JavaScriptEditorWidgetProps {
+export interface JavaScriptEditorWidgetProps {
   config: JavaScriptEditorWidgetConfig;
   onChange: (value: string) => void;
   compact?: boolean;

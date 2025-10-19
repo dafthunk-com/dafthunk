@@ -6,11 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 
-interface AudioRecorderConfig {
-  value: any; // Now stores an object reference
+export interface AudioRecorderConfig {
+  type: "audio-recorder";
+  value: any;
+  sampleRate: number;
+  channels: number;
 }
 
-interface AudioRecorderWidgetProps {
+export interface AudioRecorderWidgetProps {
   config: AudioRecorderConfig;
   onChange: (value: any) => void;
   compact?: boolean;

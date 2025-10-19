@@ -1,7 +1,23 @@
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/utils/utils";
 
-import { SliderWidgetProps } from "./types";
+export interface SliderWidgetConfig {
+  type: "slider";
+  id: string;
+  name: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+}
+
+export interface SliderWidgetProps {
+  config: SliderWidgetConfig;
+  onChange: (value: number) => void;
+  className?: string;
+  compact?: boolean;
+  readonly?: boolean;
+}
 
 export function SliderWidget({
   config,

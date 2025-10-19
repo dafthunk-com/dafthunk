@@ -1,100 +1,31 @@
-import { WorkflowParameter } from "../workflow-types";
+import type { WorkflowParameter } from "../workflow-types";
+import type { AudioRecorderConfig } from "./audio-recorder-widget";
+import type { CanvasDoodleConfig } from "./canvas-doodle-widget";
+import type { DatasetSelectorConfig } from "./dataset-selector-widget";
+import type { DocumentConfig } from "./document-widget";
+import type { InputTextWidgetConfig } from "./input-text-widget";
+import type { IntegrationSelectorConfig } from "./integration-selector-widget";
+import type { JavaScriptEditorWidgetConfig } from "./javascript-editor-widget";
+import type { JsonEditorWidgetConfig } from "./json-editor-widget";
+import type { NumberInputWidgetConfig } from "./number-input-widget";
+import type { SliderWidgetConfig } from "./slider-widget";
+import type { TextAreaWidgetConfig } from "./text-area-widget";
+import type { WebcamConfig } from "./webcam-widget";
 
-export interface SliderWidgetConfig {
-  type: "slider";
-  id: string;
-  name: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-}
-
-export interface TextAreaWidgetConfig {
-  type: "text-area";
-  id: string;
-  name: string;
-  value: string;
-  placeholder?: string;
-  rows: number;
-}
-
-export interface InputTextWidgetConfig {
-  type: "input-text";
-  id: string;
-  name: string;
-  value: string;
-  placeholder?: string;
-}
-
-export interface NumberInputWidgetConfig {
-  type: "number-input";
-  id: string;
-  name: string;
-  value: number;
-  min?: number;
-  max?: number;
-  step?: number;
-  placeholder?: string;
-}
-
-export interface JsonEditorWidgetConfig {
-  type: "json-editor";
-  id: string;
-  name: string;
-  value: string;
-}
-
-export interface JavaScriptEditorWidgetConfig {
-  type: "javascript-editor";
-  id: string;
-  name: string;
-  value: string;
-}
-
-interface CanvasDoodleConfig {
-  type: "canvas-doodle";
-  value: string;
-  width: number;
-  height: number;
-  strokeColor: string;
-  strokeWidth: number;
-}
-
-interface WebcamConfig {
-  type: "webcam";
-  value: string;
-  width: number;
-  height: number;
-}
-
-interface AudioRecorderConfig {
-  type: "audio-recorder";
-  value: string;
-  sampleRate: number;
-  channels: number;
-}
-
-interface DocumentConfig {
-  type: "document";
-  value: string;
-  mimeType: string;
-}
-
-interface DatasetSelectorConfig {
-  type: "dataset-selector";
-  id: string;
-  name: string;
-  value: string;
-}
-
-interface IntegrationSelectorConfig {
-  type: "integration-selector";
-  id: string;
-  name: string;
-  value: string;
-  provider?: string;
-}
+export type {
+  SliderWidgetConfig,
+  TextAreaWidgetConfig,
+  InputTextWidgetConfig,
+  NumberInputWidgetConfig,
+  JsonEditorWidgetConfig,
+  JavaScriptEditorWidgetConfig,
+  CanvasDoodleConfig,
+  WebcamConfig,
+  AudioRecorderConfig,
+  DocumentConfig,
+  DatasetSelectorConfig,
+  IntegrationSelectorConfig,
+};
 
 export type WidgetConfig =
   | SliderWidgetConfig

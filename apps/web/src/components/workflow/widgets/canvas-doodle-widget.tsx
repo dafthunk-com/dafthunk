@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 
-interface CanvasDoodleConfig {
-  value: any; // Now stores an object reference
+export interface CanvasDoodleConfig {
+  type: "canvas-doodle";
+  value: any;
+  width: number;
+  height: number;
   strokeColor: string;
   strokeWidth: number;
 }
 
-interface CanvasDoodleWidgetProps {
+export interface CanvasDoodleWidgetProps {
   config: CanvasDoodleConfig;
   onChange: (value: any) => void;
   compact?: boolean;
