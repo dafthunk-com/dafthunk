@@ -1,6 +1,7 @@
 import { JWTTokenPayload } from "@dafthunk/types";
 import { discordAuth } from "@hono/oauth-providers/discord";
 import { googleAuth } from "@hono/oauth-providers/google";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { jwtVerify } from "jose";
@@ -8,7 +9,6 @@ import { jwtVerify } from "jose";
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
 import { createDatabase, createIntegration, organizations } from "../db";
-import { eq } from "drizzle-orm";
 
 // Create a new Hono instance for OAuth endpoints
 const oauthRoutes = new Hono<ApiContext>();
@@ -515,7 +515,9 @@ oauthRoutes.get("/linkedin/callback", async (c) => {
 
     const orgHandle = org[0]?.handle;
     if (!orgHandle) {
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=organization_not_found`);
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=organization_not_found`
+      );
     }
 
     // Redirect back to integrations page with success
@@ -703,7 +705,9 @@ oauthRoutes.get("/reddit/callback", async (c) => {
 
     const orgHandle = org[0]?.handle;
     if (!orgHandle) {
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=organization_not_found`);
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=organization_not_found`
+      );
     }
 
     // Redirect back to integrations page with success
