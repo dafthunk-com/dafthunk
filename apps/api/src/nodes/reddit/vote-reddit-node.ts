@@ -36,7 +36,8 @@ export class VoteRedditNode extends ExecutableNode {
       {
         name: "direction",
         type: "number",
-        description: "Vote direction: 1 for upvote, -1 for downvote, 0 to unvote",
+        description:
+          "Vote direction: 1 for upvote, -1 for downvote, 0 to unvote",
         required: true,
       },
     ],
@@ -67,11 +68,15 @@ export class VoteRedditNode extends ExecutableNode {
       }
 
       if (typeof direction !== "number") {
-        return this.createErrorResult("Direction is required and must be a number");
+        return this.createErrorResult(
+          "Direction is required and must be a number"
+        );
       }
 
       if (![1, -1, 0].includes(direction as number)) {
-        return this.createErrorResult("Direction must be 1 (upvote), -1 (downvote), or 0 (unvote)");
+        return this.createErrorResult(
+          "Direction must be 1 (upvote), -1 (downvote), or 0 (unvote)"
+        );
       }
 
       if (!organizationId || typeof organizationId !== "string") {

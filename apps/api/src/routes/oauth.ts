@@ -332,6 +332,187 @@ oauthRoutes.get(
 );
 
 /**
+ * GET /oauth/linkedin/connect
+ *
+ * Initiates LinkedIn OAuth flow
+ */
+oauthRoutes.get("/linkedin/connect", jwtMiddleware, (c) => {
+  const organizationId = c.get("organizationId");
+  const state = btoa(
+    JSON.stringify({
+      organizationId,
+      provider: "linkedin",
+      timestamp: Date.now(),
+    })
+  );
+
+  const clientId = c.env.INTEGRATION_LINKEDIN_CLIENT_ID;
+  if (!clientId) {
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?error=linkedin_not_configured`
+    );
+  }
+
+  // Determine redirect URI based on environment
+  const redirectUri =
+    c.env.CLOUDFLARE_ENV === "production"
+      ? `https://api.dafthunk.com/oauth/linkedin/callback`
+      : `http://localhost:3001/oauth/linkedin/callback`;
+
+  // LinkedIn OAuth scopes for posting and profile access
+  const scopes = ["openid", "profile", "email", "w_member_social"];
+
+  const authUrl = new URL("https://www.linkedin.com/oauth/v2/authorization");
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("state", state);
+  authUrl.searchParams.set("scope", scopes.join(" "));
+
+  return c.redirect(authUrl.toString());
+});
+
+/**
+ * GET /oauth/linkedin/callback
+ *
+ * Handles LinkedIn OAuth callback
+ */
+oauthRoutes.get("/linkedin/callback", async (c) => {
+  try {
+    const code = c.req.query("code");
+    const stateParam = c.req.query("state");
+    const error = c.req.query("error");
+
+    if (error) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=${error}`);
+    }
+
+    if (!code || !stateParam) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+    }
+
+    // Decode and validate state
+    let state: {
+      organizationId: string;
+      provider: string;
+      timestamp: number;
+    };
+    try {
+      state = JSON.parse(atob(stateParam));
+    } catch {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=invalid_state`);
+    }
+
+    // Validate state is recent (within 10 minutes)
+    if (Date.now() - state.timestamp > 10 * 60 * 1000) {
+      return c.redirect(`${c.env.WEB_HOST}/integrations?error=expired_state`);
+    }
+
+    // Exchange code for token
+    const clientId = c.env.INTEGRATION_LINKEDIN_CLIENT_ID;
+    const clientSecret = c.env.INTEGRATION_LINKEDIN_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=linkedin_not_configured`
+      );
+    }
+
+    // Determine redirect URI based on environment (must match the one used in /connect)
+    const redirectUri =
+      c.env.CLOUDFLARE_ENV === "production"
+        ? `https://api.dafthunk.com/oauth/linkedin/callback`
+        : `http://localhost:3001/oauth/linkedin/callback`;
+
+    const tokenResponse = await fetch(
+      "https://www.linkedin.com/oauth/v2/accessToken",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: redirectUri,
+          client_id: clientId,
+          client_secret: clientSecret,
+        }),
+      }
+    );
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      console.error("LinkedIn token exchange failed:", errorData);
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=token_exchange_failed`
+      );
+    }
+
+    const tokenData = (await tokenResponse.json()) as {
+      access_token: string;
+      expires_in: number;
+      refresh_token?: string;
+      refresh_token_expires_in?: number;
+    };
+
+    // Get user info using the new LinkedIn API v2
+    const userResponse = await fetch("https://api.linkedin.com/v2/userinfo", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    if (!userResponse.ok) {
+      console.error("LinkedIn user info fetch failed");
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=user_fetch_failed`
+      );
+    }
+
+    const user = (await userResponse.json()) as {
+      sub: string;
+      name?: string;
+      given_name?: string;
+      family_name?: string;
+      email?: string;
+      picture?: string;
+    };
+
+    // Create integration with OAuth tokens
+    const db = createDatabase(c.env.DB);
+    const integrationName = `LinkedIn - ${user.name || user.email || "User"}`;
+
+    await createIntegration(
+      db,
+      state.organizationId,
+      integrationName,
+      "linkedin",
+      tokenData.access_token,
+      tokenData.refresh_token,
+      new Date(Date.now() + tokenData.expires_in * 1000),
+      JSON.stringify({
+        userId: user.sub,
+        name: user.name,
+        givenName: user.given_name,
+        familyName: user.family_name,
+        email: user.email,
+        picture: user.picture,
+      }),
+      c.env
+    );
+
+    // Redirect back to integrations page with success
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?success=linkedin_connected`
+    );
+  } catch (error) {
+    console.error("LinkedIn OAuth error:", error);
+    return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);
+  }
+});
+
+/**
  * GET /oauth/reddit/connect
  *
  * Initiates Reddit OAuth flow
@@ -348,14 +529,17 @@ oauthRoutes.get("/reddit/connect", jwtMiddleware, (c) => {
 
   const clientId = c.env.INTEGRATION_REDDIT_CLIENT_ID;
   if (!clientId) {
-    return c.redirect(`${c.env.WEB_HOST}/integrations?error=reddit_not_configured`);
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?error=reddit_not_configured`
+    );
   }
 
   // Determine redirect URI based on environment
   // In production, this should match your deployed API URL
-  const redirectUri = c.env.CLOUDFLARE_ENV === 'production'
-    ? `https://api.dafthunk.com/oauth/reddit/callback`
-    : `http://localhost:3001/oauth/reddit/callback`;
+  const redirectUri =
+    c.env.CLOUDFLARE_ENV === "production"
+      ? `https://api.dafthunk.com/oauth/reddit/callback`
+      : `http://localhost:3001/oauth/reddit/callback`;
 
   const scopes = ["identity", "submit", "read", "vote", "mysubreddits"];
 
@@ -411,35 +595,43 @@ oauthRoutes.get("/reddit/callback", async (c) => {
     const clientSecret = c.env.INTEGRATION_REDDIT_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=reddit_not_configured`);
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=reddit_not_configured`
+      );
     }
 
     // Determine redirect URI based on environment (must match the one used in /connect)
-    const redirectUri = c.env.CLOUDFLARE_ENV === 'production'
-      ? `https://api.dafthunk.com/oauth/reddit/callback`
-      : `http://localhost:3001/oauth/reddit/callback`;
+    const redirectUri =
+      c.env.CLOUDFLARE_ENV === "production"
+        ? `https://api.dafthunk.com/oauth/reddit/callback`
+        : `http://localhost:3001/oauth/reddit/callback`;
 
-    const tokenResponse = await fetch("https://www.reddit.com/api/v1/access_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "web:dafthunk:v1.0.0 (by /u/dafthunk)",
-        Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-      },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri,
-      }),
-    });
+    const tokenResponse = await fetch(
+      "https://www.reddit.com/api/v1/access_token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "web:dafthunk:v1.0.0 (by /u/dafthunk)",
+          Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+        },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: redirectUri,
+        }),
+      }
+    );
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error("Reddit token exchange failed:", errorData);
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=token_exchange_failed`);
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=token_exchange_failed`
+      );
     }
 
-    const tokenData = await tokenResponse.json() as {
+    const tokenData = (await tokenResponse.json()) as {
       access_token: string;
       refresh_token: string;
       expires_in: number;
@@ -455,10 +647,12 @@ oauthRoutes.get("/reddit/callback", async (c) => {
 
     if (!userResponse.ok) {
       console.error("Reddit user info fetch failed");
-      return c.redirect(`${c.env.WEB_HOST}/integrations?error=user_fetch_failed`);
+      return c.redirect(
+        `${c.env.WEB_HOST}/integrations?error=user_fetch_failed`
+      );
     }
 
-    const user = await userResponse.json() as {
+    const user = (await userResponse.json()) as {
       name: string;
       id: string;
       icon_img?: string;
@@ -485,7 +679,9 @@ oauthRoutes.get("/reddit/callback", async (c) => {
     );
 
     // Redirect back to integrations page with success
-    return c.redirect(`${c.env.WEB_HOST}/integrations?success=reddit_connected`);
+    return c.redirect(
+      `${c.env.WEB_HOST}/integrations?success=reddit_connected`
+    );
   } catch (error) {
     console.error("Reddit OAuth error:", error);
     return c.redirect(`${c.env.WEB_HOST}/integrations?error=oauth_failed`);

@@ -35,14 +35,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -61,11 +61,12 @@ import {
 const providerLabels: Record<IntegrationProvider, string> = {
   "google-mail": "Google Mail",
   "google-calendar": "Google Calendar",
-  discord: "Discord",
-  reddit: "Reddit",
-  openai: "OpenAI",
-  anthropic: "Anthropic",
-  gemini: "Google Gemini",
+  "discord": "Discord",
+  "reddit": "Reddit",
+  "linkedin": "LinkedIn",
+  "openai": "OpenAI",
+  "anthropic": "Anthropic",
+  "gemini": "Google Gemini",
 };
 
 const columns: ColumnDef<Integration>[] = [
@@ -216,7 +217,12 @@ export function IntegrationsPage() {
   }, []);
 
   const handleCreateManualIntegration = useCallback(async (): Promise<void> => {
-    if (!organization?.handle || !manualIntegrationName || !manualIntegrationApiKey) return;
+    if (
+      !organization?.handle ||
+      !manualIntegrationName ||
+      !manualIntegrationApiKey
+    )
+      return;
     setIsProcessing(true);
     try {
       // Get provider label for prefixing

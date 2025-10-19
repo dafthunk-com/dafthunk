@@ -8,6 +8,7 @@ export type IntegrationProvider =
   | "google-calendar"
   | "discord"
   | "reddit"
+  | "linkedin"
   | "openai"
   | "anthropic"
   | "gemini";
@@ -107,16 +108,26 @@ export const OAUTH_PROVIDERS: OAuthProvider[] = [
   {
     id: "discord",
     name: "Discord",
-    description: "Connect your Discord account to send messages and manage servers",
+    description:
+      "Connect your Discord account to send messages and manage servers",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/discord/connect",
   },
   {
     id: "reddit",
     name: "Reddit",
-    description: "Connect your Reddit account to post, comment, and interact with communities",
+    description:
+      "Connect your Reddit account to post, comment, and interact with communities",
     supportsOAuth: true,
     oauthEndpoint: "/oauth/reddit/connect",
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    description:
+      "Connect your LinkedIn account to share posts and manage your profile",
+    supportsOAuth: true,
+    oauthEndpoint: "/oauth/linkedin/connect",
   },
   {
     id: "openai",

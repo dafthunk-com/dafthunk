@@ -38,12 +38,6 @@ import { ListUserGuildsDiscordNode } from "./discord/list-user-guilds-discord-no
 import { SendDMDiscordNode } from "./discord/send-dm-discord-node";
 import { SendMessageDiscordNode } from "./discord/send-message-discord-node";
 import { DocumentNode } from "./document/document-node";
-import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
-import { GetUserRedditNode } from "./reddit/get-user-reddit-node";
-import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
-import { SubmitCommentRedditNode } from "./reddit/submit-comment-reddit-node";
-import { SubmitPostRedditNode } from "./reddit/submit-post-reddit-node";
-import { VoteRedditNode } from "./reddit/vote-reddit-node";
 import { ToMarkdownNode } from "./document/to-markdown-node";
 import { ParseEmailNode } from "./email/parse-email-node";
 import { ReceiveEmailNode } from "./email/receive-email-node";
@@ -241,6 +235,12 @@ import { JsonTemplateNode } from "./json/json-template-node";
 import { JsonToGeojsonNode } from "./json/json-to-geojson-node";
 import { JsonTypeofNode } from "./json/json-typeof-node";
 import { JsonValidNode } from "./json/json-valid-node";
+import { CommentOnPostLinkedInNode } from "./linkedin/comment-on-post-linkedin-node";
+import { GetPostCommentsLinkedInNode } from "./linkedin/get-post-comments-linkedin-node";
+import { GetPostLikesLinkedInNode } from "./linkedin/get-post-likes-linkedin-node";
+import { GetProfileLinkedInNode } from "./linkedin/get-profile-linkedin-node";
+import { LikePostLinkedInNode } from "./linkedin/like-post-linkedin-node";
+import { SharePostLinkedInNode } from "./linkedin/share-post-linkedin-node";
 import { ConditionalForkNode } from "./logic/conditional-fork-node";
 import { ConditionalJoinNode } from "./logic/conditional-join-node";
 import { AbsoluteValueNode } from "./math/absolute-value-node";
@@ -272,6 +272,12 @@ import { FormDataStringNode } from "./parameter/form-data-string-node";
 import { JsonBodyNode } from "./parameter/json-body-node";
 import { RagAiSearchNode } from "./rag/rag-ai-search-node";
 import { RagSearchNode } from "./rag/rag-search-node";
+import { GetSubredditRedditNode } from "./reddit/get-subreddit-reddit-node";
+import { GetUserRedditNode } from "./reddit/get-user-reddit-node";
+import { ListPostsRedditNode } from "./reddit/list-posts-reddit-node";
+import { SubmitCommentRedditNode } from "./reddit/submit-comment-reddit-node";
+import { SubmitPostRedditNode } from "./reddit/submit-post-reddit-node";
+import { VoteRedditNode } from "./reddit/vote-reddit-node";
 import { BartLargeCnnNode } from "./text/bart-large-cnn-node";
 import { BgeRerankerBaseNode } from "./text/bge-reranker-base-node";
 import { DeepseekR1DistillQwen32BNode } from "./text/deepseek-r1-distill-qwen-32b-node";
@@ -546,6 +552,14 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
     this.registerImplementation(GetUserRedditNode);
     this.registerImplementation(ListPostsRedditNode);
     this.registerImplementation(VoteRedditNode);
+
+    // LinkedIn integration is always available
+    this.registerImplementation(SharePostLinkedInNode);
+    this.registerImplementation(GetProfileLinkedInNode);
+    this.registerImplementation(CommentOnPostLinkedInNode);
+    this.registerImplementation(LikePostLinkedInNode);
+    this.registerImplementation(GetPostCommentsLinkedInNode);
+    this.registerImplementation(GetPostLikesLinkedInNode);
 
     // RAG nodes
     if (this.developerMode) {

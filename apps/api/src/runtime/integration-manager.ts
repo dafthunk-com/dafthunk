@@ -215,6 +215,15 @@ export class IntegrationManager {
       return this.refreshRedditToken(refreshToken, clientId, clientSecret);
     }
 
+    if (provider === "linkedin") {
+      const clientId = this.env.INTEGRATION_LINKEDIN_CLIENT_ID;
+      const clientSecret = this.env.INTEGRATION_LINKEDIN_CLIENT_SECRET;
+      if (!clientId || !clientSecret) {
+        throw new Error("LinkedIn OAuth credentials not configured");
+      }
+      return this.refreshLinkedInToken(refreshToken, clientId, clientSecret);
+    }
+
     throw new Error(`Token refresh not supported for provider: ${provider}`);
   }
 
@@ -345,6 +354,53 @@ export class IntegrationManager {
       access_token: data.access_token,
       expires_in: data.expires_in,
       // Reddit may return a new refresh token
+      refresh_token: data.refresh_token,
+    };
+  }
+
+  /**
+   * Refresh a LinkedIn OAuth token
+   */
+  private async refreshLinkedInToken(
+    refreshToken: string,
+    clientId: string,
+    clientSecret: string
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+  }> {
+    const response = await fetch(
+      "https://www.linkedin.com/oauth/v2/accessToken",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+          client_id: clientId,
+          client_secret: clientSecret,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to refresh LinkedIn token: ${error}`);
+    }
+
+    const data = (await response.json()) as {
+      access_token: string;
+      expires_in: number;
+      refresh_token?: string;
+    };
+
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      // LinkedIn may return a new refresh token
       refresh_token: data.refresh_token,
     };
   }

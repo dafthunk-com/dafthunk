@@ -450,6 +450,26 @@ export function createWidgetConfig(
         provider: "reddit",
       };
     }
+    // LinkedIn nodes
+    case "share-post-linkedin":
+    case "get-profile-linkedin":
+    case "comment-on-post-linkedin":
+    case "like-post-linkedin":
+    case "get-post-comments-linkedin":
+    case "get-post-likes-linkedin":
+    case "get-member-profile-linkedin":
+    case "get-organization-linkedin": {
+      const value = inputs.find((i) => i.id === "integrationId")
+        ?.value as string;
+
+      return {
+        type: "integration-selector",
+        id: nodeId,
+        name: "Integration Selector",
+        value: value || "",
+        provider: "linkedin",
+      };
+    }
     // OpenAI nodes
     case "gpt-41":
     case "gpt-5":

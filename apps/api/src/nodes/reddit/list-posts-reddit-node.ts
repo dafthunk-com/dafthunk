@@ -136,7 +136,10 @@ export class ListPostsRedditNode extends ExecutableNode {
       );
 
       if (limit && typeof limit === "number") {
-        url.searchParams.set("limit", Math.min(100, Math.max(1, limit)).toString());
+        url.searchParams.set(
+          "limit",
+          Math.min(100, Math.max(1, limit)).toString()
+        );
       } else {
         url.searchParams.set("limit", "25");
       }
@@ -146,7 +149,14 @@ export class ListPostsRedditNode extends ExecutableNode {
         timeFilter &&
         typeof timeFilter === "string"
       ) {
-        const validTimeFilters = ["hour", "day", "week", "month", "year", "all"];
+        const validTimeFilters = [
+          "hour",
+          "day",
+          "week",
+          "month",
+          "year",
+          "all",
+        ];
         if (validTimeFilters.includes(timeFilter)) {
           url.searchParams.set("t", timeFilter);
         }

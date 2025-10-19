@@ -291,6 +291,15 @@ export const WorkflowNode = memo(
       "get-user-reddit": IntegrationSelectorWidget,
       "list-posts-reddit": IntegrationSelectorWidget,
       "vote-reddit": IntegrationSelectorWidget,
+      // LinkedIn nodes
+      "share-post-linkedin": IntegrationSelectorWidget,
+      "get-profile-linkedin": IntegrationSelectorWidget,
+      "comment-on-post-linkedin": IntegrationSelectorWidget,
+      "like-post-linkedin": IntegrationSelectorWidget,
+      "get-post-comments-linkedin": IntegrationSelectorWidget,
+      "get-post-likes-linkedin": IntegrationSelectorWidget,
+      "get-member-profile-linkedin": IntegrationSelectorWidget,
+      "get-organization-linkedin": IntegrationSelectorWidget,
       // OpenAI nodes
       "gpt-41": IntegrationSelectorWidget,
       "gpt-5": IntegrationSelectorWidget,
@@ -380,6 +389,15 @@ export const WorkflowNode = memo(
         nodeType === "get-user-reddit" ||
         nodeType === "list-posts-reddit" ||
         nodeType === "vote-reddit" ||
+        // LinkedIn nodes
+        nodeType === "share-post-linkedin" ||
+        nodeType === "get-profile-linkedin" ||
+        nodeType === "comment-on-post-linkedin" ||
+        nodeType === "like-post-linkedin" ||
+        nodeType === "get-post-comments-linkedin" ||
+        nodeType === "get-post-likes-linkedin" ||
+        nodeType === "get-member-profile-linkedin" ||
+        nodeType === "get-organization-linkedin" ||
         // OpenAI nodes
         nodeType === "gpt-41" ||
         nodeType === "gpt-5" ||
