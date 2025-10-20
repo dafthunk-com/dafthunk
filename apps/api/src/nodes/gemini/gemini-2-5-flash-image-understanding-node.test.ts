@@ -37,12 +37,28 @@ describe("Gemini25FlashImageUnderstandingNode", () => {
     nodeId,
   } as unknown as Node);
 
-  const createContext = (inputs: Record<string, any>): NodeContext =>
+  const createContext = (
+    inputs: Record<string, any>,
+    includeIntegration = true
+  ): NodeContext =>
     ({
       nodeId: "test",
-      inputs,
+      inputs: {
+        integrationId: includeIntegration ? "test-integration" : undefined,
+        ...inputs,
+      },
       workflowId: "test",
       organizationId: "test-org",
+      integrations: includeIntegration
+        ? {
+            "test-integration": {
+              id: "test-integration",
+              name: "Test Gemini",
+              provider: "gemini",
+              token: "test-api-key",
+            },
+          }
+        : undefined,
       env: {
         DB: {} as any,
         AI: {} as any,
@@ -67,7 +83,6 @@ describe("Gemini25FlashImageUnderstandingNode", () => {
         SES_DEFAULT_FROM: "",
         OPENAI_API_KEY: "",
         ANTHROPIC_API_KEY: "",
-        GEMINI_API_KEY: "test",
       },
     }) as unknown as NodeContext;
 
@@ -151,17 +166,19 @@ describe("Gemini25FlashImageUnderstandingNode", () => {
       expect(result.error).toContain("Prompt is required");
     });
 
-    it("should return error when API key is missing", async () => {
-      const context = createContext({
-        image: createMockImage(),
-        prompt: "Describe this image",
-      });
-      context.env.GEMINI_API_KEY = "";
-
-      const result = await node.execute(context);
+    it("should return error when integration is missing", async () => {
+      const result = await node.execute(
+        createContext(
+          {
+            image: createMockImage(),
+            prompt: "Describe this image",
+          },
+          false
+        )
+      );
 
       expect(result.status).toBe("error");
-      expect(result.error).toContain("Gemini API key is required");
+      expect(result.error).toContain("Gemini integration is required");
     });
 
     it("should handle different image formats", async () => {

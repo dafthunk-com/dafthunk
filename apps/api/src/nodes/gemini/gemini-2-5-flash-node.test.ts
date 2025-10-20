@@ -44,12 +44,28 @@ describe("Gemini25FlashNode", () => {
     nodeId,
   } as unknown as Node);
 
-  const createContext = (inputs: Record<string, any>): NodeContext =>
+  const createContext = (
+    inputs: Record<string, any>,
+    includeIntegration = true
+  ): NodeContext =>
     ({
       nodeId: "test",
-      inputs,
+      inputs: {
+        integrationId: includeIntegration ? "test-integration" : undefined,
+        ...inputs,
+      },
       workflowId: "test",
       organizationId: "test-org",
+      integrations: includeIntegration
+        ? {
+            "test-integration": {
+              id: "test-integration",
+              name: "Test Gemini",
+              provider: "gemini",
+              token: "test-api-key",
+            },
+          }
+        : undefined,
       env: {
         DB: {} as any,
         AI: {} as any,
@@ -74,7 +90,6 @@ describe("Gemini25FlashNode", () => {
         SES_DEFAULT_FROM: "",
         OPENAI_API_KEY: "",
         ANTHROPIC_API_KEY: "",
-        GEMINI_API_KEY: "test",
       },
     }) as unknown as NodeContext;
 

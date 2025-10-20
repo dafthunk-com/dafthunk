@@ -22,13 +22,29 @@ describe("Gpt5MiniNode", () => {
     nodeId,
   } as unknown as Node);
 
-  const createContext = (inputs: Record<string, any>): NodeContext =>
+  const createContext = (
+    inputs: Record<string, any>,
+    includeIntegration = true
+  ): NodeContext =>
     ({
       nodeId: "test",
-      inputs,
+      inputs: {
+        integrationId: includeIntegration ? "test-integration" : undefined,
+        ...inputs,
+      },
       workflowId: "test",
       organizationId: "test-org",
       secrets: {},
+      integrations: includeIntegration
+        ? {
+            "test-integration": {
+              id: "test-integration",
+              name: "Test OpenAI",
+              provider: "openai",
+              token: "test-api-key",
+            },
+          }
+        : undefined,
       env: {
         DB: {} as any,
         AI: {} as any,
@@ -51,7 +67,6 @@ describe("Gpt5MiniNode", () => {
         AWS_SECRET_ACCESS_KEY: "",
         AWS_REGION: "",
         SES_DEFAULT_FROM: "",
-        OPENAI_API_KEY: "test",
         ANTHROPIC_API_KEY: "",
       },
     }) as unknown as NodeContext;

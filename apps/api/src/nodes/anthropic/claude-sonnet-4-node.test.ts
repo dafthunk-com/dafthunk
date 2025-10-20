@@ -21,12 +21,28 @@ describe("ClaudeSonnet4Node", () => {
     nodeId,
   } as unknown as Node);
 
-  const createContext = (inputs: Record<string, any>): NodeContext =>
+  const createContext = (
+    inputs: Record<string, any>,
+    includeIntegration = true
+  ): NodeContext =>
     ({
       nodeId: "test",
-      inputs,
+      inputs: {
+        integrationId: includeIntegration ? "test-integration" : undefined,
+        ...inputs,
+      },
       workflowId: "test",
       organizationId: "test-org",
+      integrations: includeIntegration
+        ? {
+            "test-integration": {
+              id: "test-integration",
+              name: "Test Anthropic",
+              provider: "anthropic",
+              token: "test-api-key",
+            },
+          }
+        : undefined,
       secrets: {},
       env: {
         DB: {} as any,
@@ -51,7 +67,6 @@ describe("ClaudeSonnet4Node", () => {
         AWS_REGION: "",
         SES_DEFAULT_FROM: "",
         OPENAI_API_KEY: "",
-        ANTHROPIC_API_KEY: "test",
       },
     }) as unknown as NodeContext;
 
