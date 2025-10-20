@@ -15,7 +15,7 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
     tags: ["GitHub"],
     icon: "file-edit",
     documentation:
-      "This node creates a new file or updates an existing file in a GitHub repository. For updates, you must provide the file's current SHA. Requires a connected GitHub integration with repo scope.",
+      "This node creates a new file or updates an existing file in a GitHub repository. Requires a connected GitHub integration with repo scope.",
     computeCost: 10,
     asTool: true,
     inputs: [
@@ -62,12 +62,6 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
         description: "Branch to commit to (defaults to default branch)",
         required: false,
       },
-      {
-        name: "sha",
-        type: "string",
-        description: "SHA of the file being updated (required for updates)",
-        required: false,
-      },
     ],
     outputs: [
       {
@@ -101,7 +95,6 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
         content,
         message,
         branch,
-        sha,
       } = context.inputs;
       const { organizationId } = context;
 
@@ -168,6 +161,34 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
         );
       }
 
+      // Try to get existing file to determine if we're creating or updating
+      let existingSha: string | undefined;
+      const getResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${path}${branch ? `?ref=${branch}` : ""}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/vnd.github.v3+json",
+            "User-Agent": "Dafthunk/1.0",
+          },
+        }
+      );
+
+      if (getResponse.ok) {
+        const existingFile = (await getResponse.json()) as {
+          sha: string;
+        };
+        existingSha = existingFile.sha;
+      } else if (getResponse.status !== 404) {
+        // If error is not 404 (file not found), something else went wrong
+        const errorData = await getResponse.text();
+        return this.createErrorResult(
+          `Failed to check for existing file via GitHub API: ${errorData}`
+        );
+      }
+      // If 404, file doesn't exist - we'll create it (existingSha remains undefined)
+
       // Encode content to base64
       const encodedContent = btoa(content);
 
@@ -186,8 +207,8 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
         payload.branch = branch;
       }
 
-      if (sha && typeof sha === "string") {
-        payload.sha = sha;
+      if (existingSha) {
+        payload.sha = existingSha;
       }
 
       // Create or update file via GitHub API
