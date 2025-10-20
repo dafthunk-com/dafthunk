@@ -1,7 +1,5 @@
-// @ts-ignore - https://github.com/lucide-icons/lucide/issues/2867#issuecomment-2847105863
-import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import Search from "lucide-react/icons/search";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   Dialog,
@@ -13,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
-import { useSearch } from "@/hooks/use-search";
 import { useTagCounts } from "@/hooks/use-tag-counts";
+import { normalizeText } from "@/utils/text-normalization";
 import { cn } from "@/utils/utils";
 
 import { NodeTags } from "./node-tags";
@@ -25,6 +23,8 @@ export interface WorkflowNodeSelectorProps {
   onClose: () => void;
   onSelect: (template: NodeTemplate) => void;
   templates?: NodeTemplate[];
+  workflowName?: string;
+  workflowDescription?: string;
 }
 
 export function WorkflowNodeSelector({
@@ -32,6 +32,8 @@ export function WorkflowNodeSelector({
   onClose,
   onSelect,
   templates = [],
+  workflowName,
+  workflowDescription,
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -39,25 +41,128 @@ export function WorkflowNodeSelector({
   // Get tag counts (using all tags, not just the first one)
   const tagCounts = useTagCounts(templates);
 
-  // Use the search hook with intelligent search
-  const searchResults = useSearch({
-    items: templates,
-    searchQuery: searchTerm,
-    searchFields: (template) => [
-      template.name,
-      template.description,
-      ...template.tags,
-    ],
-  });
+  // Combined scoring using substring matching (not fuzzy)
+  const scoredAndFilteredTemplates = useMemo(() => {
+    // Normalize workflow context (for scoring only)
+    const workflowKeywords = normalizeText(
+      [workflowName, workflowDescription].filter(Boolean).join(" "),
+      {
+        removeStopWords: true,
+        useLemmatization: true,
+        minTokenLength: 2,
+      }
+    );
 
-  // Filter templates based on search results and selected tag
-  const filteredTemplates = searchResults.filter((template) => {
-    if (selectedTag === "Tools") {
-      return !!template.functionCalling;
+    // Normalize search query (for scoring only - no filtering)
+    const searchKeywords = normalizeText(searchTerm, {
+      removeStopWords: true,
+      useLemmatization: true,
+      minTokenLength: 2,
+    });
+
+    // Also keep original search term for partial matching
+    const rawSearchTerm = searchTerm.toLowerCase().trim();
+
+    // Helper function for partial word matching
+    const containsPartialMatch = (text: string, searchTerm: string): boolean => {
+      if (!searchTerm) return false;
+      return text.toLowerCase().includes(searchTerm);
+    };
+
+    // Score each template
+    const scored = templates
+      .map((template) => {
+        let score = 0;
+
+        // Normalize template fields
+        const nameTokens = new Set(
+          normalizeText(template.name, {
+            removeStopWords: false, // Keep all words in name
+            useLemmatization: true,
+            minTokenLength: 2,
+          })
+        );
+        const descTokens = new Set(
+          normalizeText(template.description, {
+            removeStopWords: true,
+            useLemmatization: true,
+            minTokenLength: 2,
+          })
+        );
+        const tagTokens = new Set(
+          template.tags.flatMap((tag) =>
+            normalizeText(tag, {
+              removeStopWords: false,
+              useLemmatization: true,
+              minTokenLength: 2,
+            })
+          )
+        );
+
+        // Score based on workflow keywords (always applied)
+        workflowKeywords.forEach((keyword) => {
+          if (nameTokens.has(keyword)) score += 10;
+          if (descTokens.has(keyword)) score += 5;
+          if (tagTokens.has(keyword)) score += 7;
+        });
+
+        // Score based on search keywords (if present) - exact token match
+        searchKeywords.forEach((keyword) => {
+          if (nameTokens.has(keyword)) score += 20; // Search is higher priority
+          if (descTokens.has(keyword)) score += 10;
+          if (tagTokens.has(keyword)) score += 15;
+        });
+
+        // Bonus scoring for partial matches in search term (substring matching)
+        if (rawSearchTerm) {
+          if (containsPartialMatch(template.name, rawSearchTerm)) score += 15;
+          if (containsPartialMatch(template.description, rawSearchTerm))
+            score += 8;
+          template.tags.forEach((tag) => {
+            if (containsPartialMatch(tag, rawSearchTerm)) score += 12;
+          });
+        }
+
+        // Check if matches search filter (partial or exact match)
+        const matchesSearch =
+          !rawSearchTerm ||
+          containsPartialMatch(template.name, rawSearchTerm) ||
+          containsPartialMatch(template.description, rawSearchTerm) ||
+          template.tags.some((tag) =>
+            containsPartialMatch(tag, rawSearchTerm)
+          ) ||
+          searchKeywords.some(
+            (keyword) =>
+              nameTokens.has(keyword) ||
+              descTokens.has(keyword) ||
+              tagTokens.has(keyword)
+          );
+
+        return { template, score, matchesSearch };
+      })
+      .filter((s) => s.matchesSearch) // Filter by search query
+      .sort((a, b) => {
+        // Sort by score (highest first), then alphabetically
+        if (b.score !== a.score) return b.score - a.score;
+        return a.template.name.localeCompare(b.template.name);
+      });
+
+    return {
+      sorted: scored.map((s) => s.template),
+      scores: scored,
+    };
+  }, [templates, workflowName, workflowDescription, searchTerm]);
+
+  // Filter templates based on selected tag
+  const filteredTemplates = scoredAndFilteredTemplates.sorted.filter(
+    (template) => {
+      if (selectedTag === "Tools") {
+        return !!template.functionCalling;
+      }
+      const matchesTag = !selectedTag || template.tags.includes(selectedTag);
+      return matchesTag;
     }
-    const matchesTag = !selectedTag || template.tags.includes(selectedTag);
-    return matchesTag;
-  });
+  );
 
   // Use keyboard navigation hook
   const {
@@ -157,27 +262,23 @@ export function WorkflowNodeSelector({
                   }}
                   onKeyDown={(e) => handleItemKeyDown(e, index)}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-4">
+                    <div className="h-4 w-4 rounded-full bg-blue-500/20 shrink-0 mt-1" />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <DynamicIcon
-                          name={template.icon as any}
-                          className="h-4 w-4 text-blue-500 shrink-0 [&svg>path]:stroke-2"
-                        />
-                        <h3 className="font-semibold text-base leading-tight truncate">
-                          {template.name}
-                        </h3>
-                        <NodeTags
-                          tags={template.tags}
-                          functionCalling={template.functionCalling}
-                        />
-                      </div>
+                      <h3 className="font-semibold text-base leading-tight mb-2">
+                        {template.name}
+                      </h3>
                       {template.description && (
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {template.description}
                         </p>
                       )}
                     </div>
+                    <NodeTags
+                      tags={template.tags}
+                      functionCalling={template.functionCalling}
+                      className="shrink-0 ml-auto"
+                    />
                   </div>
                 </div>
               );

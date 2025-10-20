@@ -1,4 +1,4 @@
-import type { WorkflowType } from "@dafthunk/types";
+import type { WorkflowType, WorkflowWithMetadata } from "@dafthunk/types";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -58,9 +58,8 @@ export function EditorPage() {
     useState(false);
   const [isEditMetadataDialogOpen, setIsEditMetadataDialogOpen] =
     useState(false);
-  const [localWorkflowName, setLocalWorkflowName] = useState<string>("");
-  const [localWorkflowDescription, setLocalWorkflowDescription] =
-    useState<string>();
+  const [httpWorkflowMetadata, setHttpWorkflowMetadata] =
+    useState<WorkflowWithMetadata | null>(null);
 
   // Fetch all node types initially (no filter)
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
@@ -228,20 +227,31 @@ export function EditorPage() {
     submitEmailFormData,
   } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
 
-  // Sync local workflow name from metadata
+  // Fetch workflow metadata via HTTP (for description and other metadata)
   useEffect(() => {
-    if (workflowMetadata?.name && !localWorkflowName) {
-      setLocalWorkflowName(workflowMetadata.name);
-      setLocalWorkflowDescription((workflowMetadata as any).description);
-    }
-  }, [workflowMetadata, localWorkflowName]);
+    const fetchWorkflowMetadata = async () => {
+      if (!id || !orgHandle) return;
+      try {
+        const metadata = await getWorkflow(id, orgHandle);
+        setHttpWorkflowMetadata(metadata);
+      } catch (error) {
+        console.error("Failed to fetch workflow metadata:", error);
+      }
+    };
+    fetchWorkflowMetadata();
+  }, [id, orgHandle]);
 
   usePageBreadcrumbs(
     [
       { label: "Workflows", to: getOrgUrl("workflows") },
-      { label: localWorkflowName || workflowMetadata?.name || "Workflow" },
+      {
+        label:
+          httpWorkflowMetadata?.name ||
+          workflowMetadata?.name ||
+          "Workflow",
+      },
     ],
-    [localWorkflowName, workflowMetadata?.name]
+    [httpWorkflowMetadata?.name, workflowMetadata?.name]
   );
 
   const validateConnection = useCallback(
@@ -321,9 +331,9 @@ export function EditorPage() {
         );
         toast.success("Workflow metadata updated");
 
-        // Update local state for display
-        setLocalWorkflowName(name);
-        setLocalWorkflowDescription(description);
+        // Refresh HTTP metadata to get updated description
+        const updatedMetadata = await getWorkflow(id, orgHandle);
+        setHttpWorkflowMetadata(updatedMetadata);
       } catch (error) {
         console.error("Error updating workflow metadata:", error);
         toast.error("Failed to update workflow metadata");
@@ -436,6 +446,10 @@ export function EditorPage() {
             onDeployWorkflow={handleDeployWorkflow}
             onEditMetadata={handleEditMetadata}
             createObjectUrl={createObjectUrl}
+            workflowName={
+              httpWorkflowMetadata?.name || workflowMetadata?.name || ""
+            }
+            workflowDescription={httpWorkflowMetadata?.description}
           />
         </div>
         {workflowMetadata?.type === "http_request" && (
@@ -506,8 +520,10 @@ export function EditorPage() {
           <EditMetadataDialog
             open={isEditMetadataDialogOpen}
             onOpenChange={setIsEditMetadataDialogOpen}
-            initialName={localWorkflowName || workflowMetadata.name}
-            initialDescription={localWorkflowDescription}
+            initialName={
+              httpWorkflowMetadata?.name || workflowMetadata.name || ""
+            }
+            initialDescription={httpWorkflowMetadata?.description}
             onSave={handleSaveMetadata}
           />
         )}
