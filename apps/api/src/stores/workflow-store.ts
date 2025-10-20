@@ -12,6 +12,7 @@ import { memberships, organizations, workflows } from "../db/schema";
 export interface SaveWorkflowRecord {
   id: string;
   name: string;
+  description?: string;
   handle: string;
   type: string;
   organizationId: string;
@@ -46,6 +47,7 @@ export class WorkflowStore {
     const workflowData: WorkflowType = {
       id: record.id,
       name: record.name,
+      description: record.description,
       handle: record.handle,
       type: record.type as any,
       nodes,
@@ -389,6 +391,7 @@ export class WorkflowStore {
         .select({
           id: workflows.id,
           name: workflows.name,
+          description: workflows.description,
           handle: workflows.handle,
           type: workflows.type,
           organizationId: workflows.organizationId,

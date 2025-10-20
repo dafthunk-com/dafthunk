@@ -226,6 +226,7 @@ export const workflows = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    description: text("description"),
     handle: text("handle").notNull(),
     type: text("type")
       .$type<WorkflowTriggerTypeType>()

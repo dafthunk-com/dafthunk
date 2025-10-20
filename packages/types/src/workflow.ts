@@ -278,6 +278,7 @@ export interface Edge {
 export interface Workflow {
   id: string;
   name: string;
+  description?: string;
   handle: string;
   type: WorkflowType;
   nodes: Node[];
@@ -349,6 +350,7 @@ export interface WorkflowExecution {
  */
 export interface CreateWorkflowRequest {
   name: string;
+  description?: string;
   type: WorkflowType;
   nodes: Node[];
   edges: Edge[];
@@ -376,6 +378,7 @@ export type GetWorkflowResponse = WorkflowWithMetadata;
  */
 export interface UpdateWorkflowRequest {
   name: string;
+  description?: string;
   type: WorkflowType;
   nodes: Node[];
   edges: Edge[];

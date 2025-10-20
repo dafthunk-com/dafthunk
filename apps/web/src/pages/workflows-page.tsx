@@ -89,6 +89,7 @@ function useWorkflowActions() {
         workflowToRename.id,
         {
           name: renameWorkflowName,
+          description: workflowToRename.description,
           type: workflowToRename.type,
           nodes: workflowToRename.nodes,
           edges: workflowToRename.edges,
@@ -388,12 +389,17 @@ export function WorkflowsPage() {
     setBreadcrumbs([{ label: "Workflows" }]);
   }, [setBreadcrumbs]);
 
-  const handleCreateWorkflow = async (name: string, type: WorkflowType) => {
+  const handleCreateWorkflow = async (
+    name: string,
+    type: WorkflowType,
+    description?: string
+  ) => {
     if (!orgHandle) return;
 
     try {
       const request: CreateWorkflowRequest = {
         name,
+        description,
         type,
         nodes: [],
         edges: [],

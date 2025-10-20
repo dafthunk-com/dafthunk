@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils/utils";
 
 const workflowTypes = [
@@ -46,7 +47,11 @@ const workflowTypes = [
 export type CreateWorkflowDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateWorkflow: (name: string, type: WorkflowType) => Promise<void>;
+  onCreateWorkflow: (
+    name: string,
+    type: WorkflowType,
+    description?: string
+  ) => Promise<void>;
 };
 
 export function CreateWorkflowDialog({
@@ -55,14 +60,20 @@ export function CreateWorkflowDialog({
   onCreateWorkflow,
 }: CreateWorkflowDialogProps) {
   const [newWorkflowName, setNewWorkflowName] = useState("");
+  const [newWorkflowDescription, setNewWorkflowDescription] = useState("");
   const [workflowType, setWorkflowType] = useState<WorkflowType>("manual");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateWorkflow = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await onCreateWorkflow(newWorkflowName, workflowType);
+    await onCreateWorkflow(
+      newWorkflowName,
+      workflowType,
+      newWorkflowDescription || undefined
+    );
     setNewWorkflowName("");
+    setNewWorkflowDescription("");
     setWorkflowType("manual");
     setIsSubmitting(false);
     onOpenChange(false);
@@ -87,6 +98,18 @@ export function CreateWorkflowDialog({
               minLength={2}
               maxLength={64}
               autoFocus
+            />
+          </div>
+          <div>
+            <Label htmlFor="description">Description (Optional)</Label>
+            <Textarea
+              id="description"
+              value={newWorkflowDescription}
+              onChange={(e) => setNewWorkflowDescription(e.target.value)}
+              placeholder="Describe what you are building"
+              className="mt-2"
+              maxLength={256}
+              rows={3}
             />
           </div>
           <div>

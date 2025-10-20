@@ -68,6 +68,7 @@ workflowRoutes.get("/", jwtMiddleware, async (c) => {
     return {
       id: workflow.id,
       name: workflow.name,
+      description: workflow.description ?? undefined,
       handle: workflow.handle,
       type: workflow.type,
       createdAt: workflow.createdAt,
@@ -91,6 +92,7 @@ workflowRoutes.post(
     "json",
     z.object({
       name: z.string().min(1, "Workflow name is required"),
+      description: z.string().optional(),
       type: z.string(),
       nodes: z.array(z.any()).optional(),
       edges: z.array(z.any()).optional(),
@@ -126,6 +128,7 @@ workflowRoutes.post(
     const savedWorkflow = await workflowStore.save({
       id: workflowData.id,
       name: workflowData.name,
+      description: data.description,
       handle: workflowData.handle,
       type: workflowData.type,
       organizationId: organizationId,
@@ -138,6 +141,7 @@ workflowRoutes.post(
     const response: CreateWorkflowResponse = {
       id: savedWorkflow.id,
       name: savedWorkflow.name,
+      description: savedWorkflow.description,
       handle: savedWorkflow.handle,
       type: savedWorkflow.type,
       createdAt: now,
@@ -174,6 +178,7 @@ workflowRoutes.get("/:id", jwtMiddleware, async (c) => {
     const response: GetWorkflowResponse = {
       id: workflow.id,
       name: workflow.name,
+      description: workflow.description ?? undefined,
       handle: workflow.handle,
       type: workflow.type,
       createdAt: workflow.createdAt || new Date(),
@@ -199,6 +204,7 @@ workflowRoutes.put(
     "json",
     z.object({
       name: z.string().min(1, "Workflow name is required"),
+      description: z.string().optional(),
       type: z.string().optional(),
       nodes: z.array(z.any()).optional(),
       edges: z.array(z.any()).optional(),
@@ -271,6 +277,8 @@ workflowRoutes.put(
     const updatedWorkflowData = await workflowStore.save({
       id: existingWorkflow.id,
       name: data.name ?? existingWorkflow.name,
+      description:
+        data.description ?? existingWorkflow.description ?? undefined,
       handle: existingWorkflow.handle,
       type: data.type || existingWorkflowData.type,
       organizationId: organizationId,
@@ -285,6 +293,7 @@ workflowRoutes.put(
     const response: UpdateWorkflowResponse = {
       id: updatedWorkflowData.id,
       name: updatedWorkflowData.name,
+      description: updatedWorkflowData.description ?? undefined,
       handle: updatedWorkflowData.handle,
       type: updatedWorkflowData.type,
       createdAt: existingWorkflow.createdAt,
