@@ -3,6 +3,7 @@ import { DemToBufferGeometryNode } from "./3d/dem-to-buffergeometry-node";
 import { GeoTiffDemQueryNode } from "./3d/geotiff-dem-query-node";
 import { GeoTiffMetadataReaderNode } from "./3d/geotiff-metadata-reader-node";
 import { GeoTiffQueryNode } from "./3d/geotiff-query-node";
+import { GeoTiffTransformNode } from "./3d/geotiff-transform-node";
 import { Claude3OpusNode } from "./anthropic/claude-3-opus-node";
 import { Claude35HaikuNode } from "./anthropic/claude-35-haiku-node";
 import { Claude35SonnetNode } from "./anthropic/claude-35-sonnet-node";
@@ -480,6 +481,7 @@ export class CloudflareNodeRegistry extends BaseNodeRegistry {
       this.registerImplementation(GeoTiffDemQueryNode);
       this.registerImplementation(GeoTiffMetadataReaderNode);
       this.registerImplementation(GeoTiffQueryNode);
+      this.registerImplementation(GeoTiffTransformNode);
     }
 
     // Geo nodes
