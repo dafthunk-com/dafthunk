@@ -4,19 +4,18 @@
  */
 
 // Types
-export type { OAuthCallbackParams, ProviderConfig } from "./types";
+export type { ProviderConfig } from "./types";
 
 // Provider registry
 export {
-  getAllProviders,
-  getApiKeyProviders,
-  getOAuthProviders,
+  getAvailableProviders,
   getProvider,
   getProviderLabel,
   PROVIDER_REGISTRY,
 } from "./providers";
 
 // Hooks
+export { useAvailableProviders } from "./hooks/use-available-providers";
 export { useIntegrationActions } from "./hooks/use-integration-actions";
 export { useIntegrations } from "./hooks/use-integrations";
 export { useOAuthCallback } from "./hooks/use-oauth-callback";

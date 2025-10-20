@@ -16,16 +16,3 @@ export interface ProviderConfig {
   apiKeyUrl?: string;
   apiKeyInstructions?: string;
 }
-
-/**
- * OAuth callback parameters
- */
-export interface OAuthCallbackParams {
-  success?: string;
-  error?: string;
-}
-
-/**
- * Integration action types
- */
-export type IntegrationAction = "connect" | "disconnect" | "refresh";

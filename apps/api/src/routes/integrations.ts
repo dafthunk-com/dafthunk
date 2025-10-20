@@ -3,6 +3,7 @@ import {
   CreateIntegrationResponse,
   DeleteIntegrationResponse,
   GetIntegrationResponse,
+  IntegrationProvider,
   ListIntegrationsResponse,
   UpdateIntegrationRequest,
   UpdateIntegrationResponse,
@@ -27,6 +28,61 @@ const integrationRoutes = new Hono<ApiContext>();
 
 // Apply authentication middleware to all routes
 integrationRoutes.use("*", jwtMiddleware);
+
+/**
+ * GET /api/integrations/providers
+ *
+ * List all available integration providers based on environment configuration
+ */
+integrationRoutes.get("/providers", async (c) => {
+  const env = c.env;
+  const availableProviders: IntegrationProvider[] = [];
+
+  // Check for OAuth providers
+  if (
+    env.INTEGRATION_GOOGLE_MAIL_CLIENT_ID &&
+    env.INTEGRATION_GOOGLE_MAIL_CLIENT_SECRET
+  ) {
+    availableProviders.push("google-mail");
+  }
+  if (
+    env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_ID &&
+    env.INTEGRATION_GOOGLE_CALENDAR_CLIENT_SECRET
+  ) {
+    availableProviders.push("google-calendar");
+  }
+  if (
+    env.INTEGRATION_DISCORD_CLIENT_ID &&
+    env.INTEGRATION_DISCORD_CLIENT_SECRET
+  ) {
+    availableProviders.push("discord");
+  }
+  if (
+    env.INTEGRATION_REDDIT_CLIENT_ID &&
+    env.INTEGRATION_REDDIT_CLIENT_SECRET
+  ) {
+    availableProviders.push("reddit");
+  }
+  if (
+    env.INTEGRATION_LINKEDIN_CLIENT_ID &&
+    env.INTEGRATION_LINKEDIN_CLIENT_SECRET
+  ) {
+    availableProviders.push("linkedin");
+  }
+  if (
+    env.INTEGRATION_GITHUB_CLIENT_ID &&
+    env.INTEGRATION_GITHUB_CLIENT_SECRET
+  ) {
+    availableProviders.push("github");
+  }
+
+  // API key providers are always available (users can provide their own keys)
+  availableProviders.push("openai");
+  availableProviders.push("anthropic");
+  availableProviders.push("gemini");
+
+  return c.json({ providers: availableProviders });
+});
 
 /**
  * GET /api/integrations

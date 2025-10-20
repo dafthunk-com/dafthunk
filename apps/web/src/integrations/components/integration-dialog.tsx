@@ -1,6 +1,6 @@
 import type { IntegrationProvider } from "@dafthunk/types";
 import ExternalLink from "lucide-react/icons/external-link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { useAvailableProviders } from "../hooks/use-available-providers";
 import { useIntegrationActions } from "../hooks/use-integration-actions";
-import { getAllProviders, getProviderLabel } from "../providers";
+import { getAvailableProviders, getProviderLabel } from "../providers";
 
 interface IntegrationDialogProps {
   open: boolean;
@@ -34,60 +35,96 @@ export function IntegrationDialog({
   onOpenChange,
 }: IntegrationDialogProps) {
   const { isProcessing, connectOAuth, createManual } = useIntegrationActions();
+  const { providers: availableProviderIds, isLoading: isLoadingProviders } =
+    useAvailableProviders();
+
   const [selectedProvider, setSelectedProvider] =
-    useState<IntegrationProvider>("google-mail");
+    useState<IntegrationProvider | null>(null);
   const [integrationName, setIntegrationName] = useState("");
   const [apiKey, setApiKey] = useState("");
 
-  const providers = getAllProviders();
-  const currentProvider = providers.find((p) => p.id === selectedProvider);
+  // Memoize providers list
+  const providers = useMemo(
+    () =>
+      availableProviderIds && availableProviderIds.length > 0
+        ? getAvailableProviders(availableProviderIds)
+        : [],
+    [availableProviderIds]
+  );
 
-  const handleConnect = () => {
-    if (!currentProvider) return;
+  // Memoize current provider
+  const currentProvider = useMemo(
+    () => providers.find((p) => p.id === selectedProvider),
+    [providers, selectedProvider]
+  );
+
+  // Set default provider when providers load
+  useEffect(() => {
+    if (!selectedProvider && providers.length > 0) {
+      setSelectedProvider(providers[0].id);
+    }
+  }, [providers, selectedProvider]);
+
+  // Reset form state
+  const resetForm = () => {
+    setIntegrationName("");
+    setApiKey("");
+    setSelectedProvider(providers.length > 0 ? providers[0].id : null);
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    resetForm();
+  };
+
+  const handleConnect = async () => {
+    if (!currentProvider || !selectedProvider) return;
 
     if (currentProvider.supportsOAuth) {
       connectOAuth(selectedProvider);
-      onOpenChange(false);
+      handleClose();
     } else {
-      handleCreateManual();
+      if (!integrationName || !apiKey) return;
+
+      try {
+        await createManual(selectedProvider, integrationName, apiKey);
+        handleClose();
+      } catch {
+        // Error is already handled in the hook
+      }
     }
   };
 
-  const handleCreateManual = async () => {
-    if (!integrationName || !apiKey) return;
+  // Determine dialog content based on state
+  let content: React.ReactNode;
+  let footer: React.ReactNode;
 
-    try {
-      await createManual(selectedProvider, integrationName, apiKey);
-      onOpenChange(false);
-      setIntegrationName("");
-      setApiKey("");
-      setSelectedProvider("google-mail");
-    } catch {
-      // Error is already handled in the hook
-    }
-  };
+  if (isLoadingProviders) {
+    content = (
+      <DialogDescription>Loading available providers...</DialogDescription>
+    );
+  } else if (providers.length === 0) {
+    content = (
+      <DialogDescription>
+        No integration providers are currently configured. Please contact your
+        administrator.
+      </DialogDescription>
+    );
+    footer = <Button onClick={handleClose}>Close</Button>;
+  } else {
+    const isOAuth = currentProvider?.supportsOAuth;
+    const canSubmit = isOAuth || (integrationName && apiKey);
 
-  const handleCancel = () => {
-    onOpenChange(false);
-    setSelectedProvider("google-mail");
-    setIntegrationName("");
-    setApiKey("");
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Integration</DialogTitle>
-          <DialogDescription>
-            Connect a third-party service to your organization.
-          </DialogDescription>
-        </DialogHeader>
+    content = (
+      <>
+        <DialogDescription>
+          Connect a third-party service to your organization.
+        </DialogDescription>
         <div className="space-y-4">
           <div>
             <Label htmlFor="provider">Provider</Label>
             <Select
-              value={selectedProvider}
+              value={selectedProvider || undefined}
               onValueChange={(value) =>
                 setSelectedProvider(value as IntegrationProvider)
               }
@@ -108,7 +145,7 @@ export function IntegrationDialog({
             </p>
           </div>
 
-          {!currentProvider?.supportsOAuth && (
+          {!isOAuth && (
             <>
               {currentProvider?.apiKeyInstructions && (
                 <div className="rounded-lg border bg-muted/50 p-3">
@@ -142,8 +179,11 @@ export function IntegrationDialog({
                   onChange={(e) => setIntegrationName(e.target.value)}
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Will be saved as: {getProviderLabel(selectedProvider)} -{" "}
-                  {integrationName || "..."}
+                  Will be saved as:{" "}
+                  {selectedProvider
+                    ? getProviderLabel(selectedProvider)
+                    : "..."}{" "}
+                  - {integrationName || "..."}
                 </p>
               </div>
               <div>
@@ -159,24 +199,33 @@ export function IntegrationDialog({
             </>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConnect}
-            disabled={
-              isProcessing ||
-              (!currentProvider?.supportsOAuth && (!integrationName || !apiKey))
-            }
-          >
-            {isProcessing
-              ? "Processing..."
-              : currentProvider?.supportsOAuth
-                ? "Connect"
-                : "Add Integration"}
-          </Button>
-        </DialogFooter>
+      </>
+    );
+
+    footer = (
+      <>
+        <Button variant="outline" onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button onClick={handleConnect} disabled={isProcessing || !canSubmit}>
+          {isProcessing
+            ? "Processing..."
+            : isOAuth
+              ? "Connect"
+              : "Add Integration"}
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Integration</DialogTitle>
+          {content}
+        </DialogHeader>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );

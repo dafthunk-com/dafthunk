@@ -37,24 +37,14 @@ export function getProvider(
 }
 
 /**
- * Get all providers as an array
+ * Get only available providers based on backend configuration
  */
-export function getAllProviders(): ProviderConfig[] {
-  return Object.values(PROVIDER_REGISTRY);
-}
-
-/**
- * Get OAuth providers only
- */
-export function getOAuthProviders(): ProviderConfig[] {
-  return getAllProviders().filter((p) => p.supportsOAuth);
-}
-
-/**
- * Get API key providers only
- */
-export function getApiKeyProviders(): ProviderConfig[] {
-  return getAllProviders().filter((p) => !p.supportsOAuth);
+export function getAvailableProviders(
+  availableProviderIds: IntegrationProvider[]
+): ProviderConfig[] {
+  return availableProviderIds
+    .map((id) => PROVIDER_REGISTRY[id])
+    .filter((p): p is ProviderConfig => p !== undefined);
 }
 
 /**

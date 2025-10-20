@@ -87,15 +87,8 @@ export class CreateUpdateFileGithubNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
-      const {
-        integrationId,
-        owner,
-        repo,
-        path,
-        content,
-        message,
-        branch,
-      } = context.inputs;
+      const { integrationId, owner, repo, path, content, message, branch } =
+        context.inputs;
       const { organizationId } = context;
 
       // Validate required inputs
