@@ -32,10 +32,16 @@ export type IntegrationSelectorConfig = Omit<
 >;
 
 // Factory function to create metadata for integration widgets with different providers
-export const createIntegrationSelectorMeta = (nodeTypes: string[], provider: string) => ({
+export const createIntegrationSelectorMeta = (
+  nodeTypes: string[],
+  provider: string
+) => ({
   nodeTypes,
   inputField: "integrationId",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): IntegrationSelectorConfig => {
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): IntegrationSelectorConfig => {
     const value = inputs.find((i) => i.id === "integrationId")?.value as string;
 
     return {

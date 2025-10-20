@@ -12,43 +12,14 @@ import {
 import { useDatasets } from "@/services/dataset-service";
 import { cn } from "@/utils/utils";
 
-import type { WorkflowParameter } from "../workflow-types";
+import type { BaseWidgetProps } from "./widget";
+import { createWidget, getInputValue } from "./widget";
 
-export interface DatasetSelectorWidgetProps {
-  type: "dataset-selector";
-  id: string;
-  name: string;
+interface DatasetSelectorWidgetProps extends BaseWidgetProps {
   value: string;
-  onChange: (value: string) => void;
-  className?: string;
-  compact?: boolean;
-  readonly?: boolean;
 }
 
-export type DatasetSelectorConfig = Omit<
-  DatasetSelectorWidgetProps,
-  "onChange" | "className" | "compact" | "readonly"
->;
-
-export const DatasetSelectorWidgetMeta = {
-  nodeTypes: ["rag-ai-search", "rag-search"],
-  inputField: "datasetId",
-  createConfig: (
-    nodeId: string,
-    inputs: WorkflowParameter[]
-  ): DatasetSelectorConfig => {
-    const value = inputs.find((i) => i.id === "datasetId")?.value as string;
-
-    return {
-      type: "dataset-selector",
-      id: nodeId,
-      name: "Dataset Selector",
-      value: value || "",
-    };
-  },
-};
-
-export function DatasetSelectorWidget({
+function DatasetSelectorWidget({
   value,
   onChange,
   className,
@@ -59,8 +30,9 @@ export function DatasetSelectorWidget({
     useDatasets();
 
   const handleSelect = (datasetId: string) => {
-    if (readonly) return;
-    onChange(datasetId);
+    if (!readonly) {
+      onChange(datasetId);
+    }
   };
 
   if (datasetsError) {
@@ -103,7 +75,7 @@ export function DatasetSelectorWidget({
             </SelectItem>
           ))}
           {datasets?.length === 0 && !isDatasetsLoading && (
-            <SelectItem disabled value="" className="text-xs">
+            <SelectItem disabled value="none" className="text-xs">
               No datasets found
             </SelectItem>
           )}
@@ -112,3 +84,12 @@ export function DatasetSelectorWidget({
     </div>
   );
 }
+
+export const datasetSelectorWidget = createWidget({
+  component: DatasetSelectorWidget,
+  nodeTypes: ["rag-ai-search", "rag-search"],
+  inputField: "datasetId",
+  extractConfig: (_nodeId, inputs) => ({
+    value: getInputValue(inputs, "datasetId", ""),
+  }),
+});

@@ -1,4 +1,4 @@
-import { Editor} from "@monaco-editor/react";
+import { Editor } from "@monaco-editor/react";
 
 import { Label } from "@/components/ui/label";
 
@@ -23,11 +23,16 @@ export type JavaScriptEditorWidgetConfig = Omit<
 export const JavaScriptEditorWidgetMeta = {
   nodeTypes: ["javascript-editor"],
   inputField: "value",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): JavaScriptEditorWidgetConfig => {
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): JavaScriptEditorWidgetConfig => {
     const valueInput = inputs.find((i) => i.id === "value");
 
     if (!valueInput) {
-      console.warn(`Missing required inputs for JavaScript Editor widget in node ${nodeId}`);
+      console.warn(
+        `Missing required inputs for JavaScript Editor widget in node ${nodeId}`
+      );
       return null as any;
     }
 
@@ -45,7 +50,6 @@ export function JavaScriptEditorWidget({
   onChange,
   compact = false,
 }: JavaScriptEditorWidgetProps) {
-
   const handleEditorChange = (value: string | undefined) => {
     if (!value) {
       onChange("// Write your JavaScript code here");

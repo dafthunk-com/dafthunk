@@ -23,11 +23,16 @@ export type JsonEditorWidgetConfig = Omit<
 export const JsonEditorWidgetMeta = {
   nodeTypes: ["json-editor"],
   inputField: "value",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): JsonEditorWidgetConfig => {
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): JsonEditorWidgetConfig => {
     const valueInput = inputs.find((i) => i.id === "value");
 
     if (!valueInput) {
-      console.warn(`Missing required inputs for JSON Editor widget in node ${nodeId}`);
+      console.warn(
+        `Missing required inputs for JSON Editor widget in node ${nodeId}`
+      );
       return null as any;
     }
 
@@ -45,7 +50,6 @@ export function JsonEditorWidget({
   onChange,
   compact = false,
 }: JsonEditorWidgetProps) {
-
   const handleEditorChange = (value: string | undefined) => {
     if (!value) {
       onChange("{}");

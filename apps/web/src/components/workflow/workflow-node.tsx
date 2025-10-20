@@ -35,11 +35,7 @@ import { useNodeTypes } from "@/services/type-service";
 import { cn } from "@/utils/utils";
 
 import { InputEditDialog } from "./input-edit-dialog";
-import {
-  createWidgetConfig,
-  getWidgetComponent,
-  getWidgetInputField,
-} from "./widgets/widget-registry";
+import { registry } from "./widgets";
 import { updateNodeInput, useWorkflow } from "./workflow-context";
 import { WorkflowOutputRenderer } from "./workflow-output-renderer";
 import { ToolReference, WorkflowToolSelector } from "./workflow-tool-selector";
@@ -224,20 +220,13 @@ export const WorkflowNode = memo(
       return nodeTypes.find((t) => t.name === data.name) || null;
     })();
 
-    // Get widget component and config if this is a widget node
-    const WidgetComponent = nodeType ? getWidgetComponent(nodeType) : null;
-    const widgetConfig =
-      nodeType && WidgetComponent
-        ? createWidgetConfig(id, data.inputs, nodeType)
-        : null;
+    // Get widget for this node type
+    const widget = nodeType ? registry.for(nodeType, id, data.inputs) : null;
 
     const handleWidgetChange = (value: any) => {
-      if (readonly || !updateNodeData || !widgetConfig || !nodeType) return;
+      if (readonly || !updateNodeData || !widget) return;
 
-      // Get the input field ID for this widget type
-      const inputFieldId = getWidgetInputField(nodeType);
-      const input = data.inputs.find((i) => i.id === inputFieldId);
-
+      const input = data.inputs.find((i) => i.id === widget.inputField);
       if (input) {
         updateNodeInput(id, input.id, value, data.inputs, updateNodeData);
       }
@@ -328,10 +317,10 @@ export const WorkflowNode = memo(
           </div>
 
           {/* Widget */}
-          {!readonly && widgetConfig && WidgetComponent && (
+          {!readonly && widget && (
             <div className="px-0 py-0 border-b nodrag">
-              {createElement(WidgetComponent, {
-                ...widgetConfig,
+              {createElement(widget.Component, {
+                ...widget.config,
                 onChange: handleWidgetChange,
                 compact: true,
                 readonly: readonly,

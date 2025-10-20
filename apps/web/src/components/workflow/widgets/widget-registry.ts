@@ -1,50 +1,62 @@
 import type * as React from "react";
 
 import type { WorkflowParameter } from "../workflow-types";
-import { AudioRecorderWidget, AudioRecorderWidgetMeta } from "./audio-recorder-widget";
 import type { AudioRecorderConfig } from "./audio-recorder-widget";
-import { CanvasDoodleWidget, CanvasDoodleWidgetMeta } from "./canvas-doodle-widget";
+import {
+  AudioRecorderWidget,
+  AudioRecorderWidgetMeta,
+} from "./audio-recorder-widget";
 import type { CanvasDoodleConfig } from "./canvas-doodle-widget";
-import { DatasetSelectorWidget, DatasetSelectorWidgetMeta } from "./dataset-selector-widget";
+import {
+  CanvasDoodleWidget,
+  CanvasDoodleWidgetMeta,
+} from "./canvas-doodle-widget";
 import type { DatasetSelectorConfig } from "./dataset-selector-widget";
-import { DocumentWidget, DocumentWidgetMeta } from "./document-widget";
+import {
+  DatasetSelectorWidget,
+  DatasetSelectorWidgetMeta,
+} from "./dataset-selector-widget";
 import type { DocumentConfig } from "./document-widget";
-import { InputTextWidget, InputTextWidgetMeta } from "./input-text-widget";
+import { DocumentWidget, DocumentWidgetMeta } from "./document-widget";
 import type { InputTextWidgetConfig } from "./input-text-widget";
+import { InputTextWidget, InputTextWidgetMeta } from "./input-text-widget";
+import type { IntegrationSelectorConfig } from "./integration-selector-widget";
 import {
   createIntegrationSelectorMeta,
   IntegrationSelectorWidget,
 } from "./integration-selector-widget";
-import type { IntegrationSelectorConfig } from "./integration-selector-widget";
+import type { JavaScriptEditorWidgetConfig } from "./javascript-editor-widget";
 import {
   JavaScriptEditorWidget,
   JavaScriptEditorWidgetMeta,
 } from "./javascript-editor-widget";
-import type { JavaScriptEditorWidgetConfig } from "./javascript-editor-widget";
-import { JsonEditorWidget, JsonEditorWidgetMeta } from "./json-editor-widget";
 import type { JsonEditorWidgetConfig } from "./json-editor-widget";
-import { NumberInputWidget, NumberInputWidgetMeta } from "./number-input-widget";
+import { JsonEditorWidget, JsonEditorWidgetMeta } from "./json-editor-widget";
 import type { NumberInputWidgetConfig } from "./number-input-widget";
-import { SliderWidget, SliderWidgetMeta } from "./slider-widget";
+import {
+  NumberInputWidget,
+  NumberInputWidgetMeta,
+} from "./number-input-widget";
 import type { SliderWidgetConfig } from "./slider-widget";
-import { TextAreaWidget, TextAreaWidgetMeta } from "./text-area-widget";
+import { SliderWidget, SliderWidgetMeta } from "./slider-widget";
 import type { TextAreaWidgetConfig } from "./text-area-widget";
-import { WebcamWidget, WebcamWidgetMeta } from "./webcam-widget";
+import { TextAreaWidget, TextAreaWidgetMeta } from "./text-area-widget";
 import type { WebcamConfig } from "./webcam-widget";
+import { WebcamWidget, WebcamWidgetMeta } from "./webcam-widget";
 
 export type {
+  AudioRecorderConfig,
+  CanvasDoodleConfig,
+  DatasetSelectorConfig,
+  DocumentConfig,
+  InputTextWidgetConfig,
+  IntegrationSelectorConfig,
+  JavaScriptEditorWidgetConfig,
+  JsonEditorWidgetConfig,
+  NumberInputWidgetConfig,
   SliderWidgetConfig,
   TextAreaWidgetConfig,
-  InputTextWidgetConfig,
-  NumberInputWidgetConfig,
-  JsonEditorWidgetConfig,
-  JavaScriptEditorWidgetConfig,
-  CanvasDoodleConfig,
   WebcamConfig,
-  AudioRecorderConfig,
-  DocumentConfig,
-  DatasetSelectorConfig,
-  IntegrationSelectorConfig,
 };
 
 export type WidgetConfig =
@@ -64,7 +76,9 @@ export type WidgetConfig =
 /**
  * Get the widget component for a given node type
  */
-export function getWidgetComponent(nodeType: string): React.FC<any> | undefined {
+export function getWidgetComponent(
+  nodeType: string
+): React.FC<any> | undefined {
   switch (nodeType) {
     case "slider":
       return SliderWidget;
@@ -89,7 +103,7 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "rag-ai-search":
     case "rag-search":
       return DatasetSelectorWidget;
-    // Google Mail
+    // Integration nodes: Google Mail, Google Calendar, Discord, Reddit, LinkedIn, GitHub, OpenAI, Anthropic, Gemini
     case "send-email-google-mail":
     case "read-inbox-google-mail":
     case "create-reply-draft-google-mail":
@@ -103,7 +117,6 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "get-message-google-mail":
     case "archive-message-google-mail":
     case "trash-message-google-mail":
-    // Google Calendar
     case "create-event-google-calendar":
     case "list-events-google-calendar":
     case "get-event-google-calendar":
@@ -114,7 +127,6 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "check-availability-google-calendar":
     case "quick-add-google-calendar":
     case "list-calendars-google-calendar":
-    // Discord
     case "send-message-discord":
     case "send-dm-discord":
     case "get-channel-discord":
@@ -122,14 +134,12 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "get-guild-discord":
     case "list-user-guilds-discord":
     case "add-reaction-discord":
-    // Reddit
     case "submit-post-reddit":
     case "submit-comment-reddit":
     case "get-subreddit-reddit":
     case "get-user-reddit":
     case "list-posts-reddit":
     case "vote-reddit":
-    // LinkedIn
     case "share-post-linkedin":
     case "get-profile-linkedin":
     case "comment-on-post-linkedin":
@@ -138,7 +148,6 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "get-post-likes-linkedin":
     case "get-member-profile-linkedin":
     case "get-organization-linkedin":
-    // GitHub
     case "get-repository-github":
     case "get-user-github":
     case "search-repositories-github":
@@ -151,12 +160,10 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "delete-file-github":
     case "list-user-repositories-github":
     case "list-organization-repositories-github":
-    // OpenAI
     case "gpt-41":
     case "gpt-5":
     case "gpt-5-mini":
     case "gpt-5-nano":
-    // Anthropic
     case "claude-3-opus":
     case "claude-35-haiku":
     case "claude-35-sonnet":
@@ -164,7 +171,6 @@ export function getWidgetComponent(nodeType: string): React.FC<any> | undefined 
     case "claude-opus-4":
     case "claude-opus-41":
     case "claude-sonnet-4":
-    // Gemini
     case "gemini-2-5-flash":
     case "gemini-2-5-pro":
     case "gemini-2-5-flash-image-preview":
@@ -258,7 +264,10 @@ export function createWidgetConfig(
     case "get-message-google-mail":
     case "archive-message-google-mail":
     case "trash-message-google-mail":
-      return createIntegrationSelectorMeta([], "google-mail").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "google-mail").createConfig(
+        nodeId,
+        inputs
+      );
     // Google Calendar
     case "create-event-google-calendar":
     case "list-events-google-calendar":
@@ -270,7 +279,10 @@ export function createWidgetConfig(
     case "check-availability-google-calendar":
     case "quick-add-google-calendar":
     case "list-calendars-google-calendar":
-      return createIntegrationSelectorMeta([], "google-calendar").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "google-calendar").createConfig(
+        nodeId,
+        inputs
+      );
     // Discord
     case "send-message-discord":
     case "send-dm-discord":
@@ -279,7 +291,10 @@ export function createWidgetConfig(
     case "get-guild-discord":
     case "list-user-guilds-discord":
     case "add-reaction-discord":
-      return createIntegrationSelectorMeta([], "discord").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "discord").createConfig(
+        nodeId,
+        inputs
+      );
     // Reddit
     case "submit-post-reddit":
     case "submit-comment-reddit":
@@ -287,7 +302,10 @@ export function createWidgetConfig(
     case "get-user-reddit":
     case "list-posts-reddit":
     case "vote-reddit":
-      return createIntegrationSelectorMeta([], "reddit").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "reddit").createConfig(
+        nodeId,
+        inputs
+      );
     // LinkedIn
     case "share-post-linkedin":
     case "get-profile-linkedin":
@@ -297,7 +315,10 @@ export function createWidgetConfig(
     case "get-post-likes-linkedin":
     case "get-member-profile-linkedin":
     case "get-organization-linkedin":
-      return createIntegrationSelectorMeta([], "linkedin").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "linkedin").createConfig(
+        nodeId,
+        inputs
+      );
     // GitHub
     case "get-repository-github":
     case "get-user-github":
@@ -311,13 +332,19 @@ export function createWidgetConfig(
     case "delete-file-github":
     case "list-user-repositories-github":
     case "list-organization-repositories-github":
-      return createIntegrationSelectorMeta([], "github").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "github").createConfig(
+        nodeId,
+        inputs
+      );
     // OpenAI
     case "gpt-41":
     case "gpt-5":
     case "gpt-5-mini":
     case "gpt-5-nano":
-      return createIntegrationSelectorMeta([], "openai").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "openai").createConfig(
+        nodeId,
+        inputs
+      );
     // Anthropic
     case "claude-3-opus":
     case "claude-35-haiku":
@@ -326,7 +353,10 @@ export function createWidgetConfig(
     case "claude-opus-4":
     case "claude-opus-41":
     case "claude-sonnet-4":
-      return createIntegrationSelectorMeta([], "anthropic").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "anthropic").createConfig(
+        nodeId,
+        inputs
+      );
     // Gemini
     case "gemini-2-5-flash":
     case "gemini-2-5-pro":
@@ -335,7 +365,10 @@ export function createWidgetConfig(
     case "gemini-2-5-flash-image-understanding":
     case "gemini-2-5-flash-tts":
     case "imagen":
-      return createIntegrationSelectorMeta([], "gemini").createConfig(nodeId, inputs);
+      return createIntegrationSelectorMeta([], "gemini").createConfig(
+        nodeId,
+        inputs
+      );
     default:
       return null;
   }

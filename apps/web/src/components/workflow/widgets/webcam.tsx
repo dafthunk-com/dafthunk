@@ -2,51 +2,21 @@ import Camera from "lucide-react/icons/camera";
 import X from "lucide-react/icons/x";
 import { useEffect, useRef, useState } from "react";
 
-import { Label } from "@/components/ui/label";
 import { useObjectService } from "@/services/object-service";
 
-import type { WorkflowParameter } from "../workflow-types";
+import type { BaseWidgetProps } from "./widget";
+import { createWidget, getInputValue } from "./widget";
 
-export interface WebcamWidgetProps {
-  type: "webcam";
+interface WebcamWidgetProps extends BaseWidgetProps {
   value: any;
   width: number;
   height: number;
-  onChange: (value: any) => void;
-  className?: string;
-  compact?: boolean;
-  readonly?: boolean;
 }
 
-export type WebcamConfig = Omit<
-  WebcamWidgetProps,
-  "onChange" | "className" | "compact" | "readonly"
->;
-
-export const WebcamWidgetMeta = {
-  nodeTypes: ["webcam"],
-  inputField: "value",
-  createConfig: (
-    _nodeId: string,
-    inputs: WorkflowParameter[]
-  ): WebcamConfig => {
-    const value = inputs.find((i) => i.id === "value")?.value as string;
-    const width = inputs.find((i) => i.id === "width")?.value as number;
-    const height = inputs.find((i) => i.id === "height")?.value as number;
-
-    return {
-      type: "webcam",
-      value: value || "",
-      width: width || 640,
-      height: height || 480,
-    };
-  },
-};
-
-export function WebcamWidget({
+function WebcamWidget({
   value,
   onChange,
-  compact = false,
+  readonly = false,
 }: WebcamWidgetProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,15 +25,14 @@ export function WebcamWidget({
     mimeType: string;
   } | null>(value && typeof value === "object" && value.id ? value : null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const objectService = useObjectService();
-  const { uploadBinaryData } = objectService;
+  const { uploadBinaryData, createObjectUrl } = useObjectService();
 
   useEffect(() => {
-    if (!imageReference) {
+    if (!imageReference && !readonly) {
       startWebcam();
     }
     return () => stopWebcam();
-  }, [imageReference]);
+  }, [imageReference, readonly]);
 
   const startWebcam = async () => {
     try {
@@ -86,7 +55,7 @@ export function WebcamWidget({
   };
 
   const captureImage = async () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || readonly) return;
 
     try {
       setIsUploading(true);
@@ -98,42 +67,22 @@ export function WebcamWidget({
       canvas.height = video.videoHeight;
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        throw new Error("Could not get canvas context");
-      }
+      if (!ctx) throw new Error("Could not get canvas context");
 
-      // Draw the video frame to the canvas
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
-          (b) => {
-            if (b) resolve(b);
-            else reject(new Error("Failed to create image blob"));
-          },
+          (b) => (b ? resolve(b) : reject(new Error("Failed to create blob"))),
           "image/jpeg",
           1.0
         );
       });
 
-      // Convert blob to array buffer
       const arrayBuffer = await blob.arrayBuffer();
-
-      // Upload to objects endpoint
       const reference = await uploadBinaryData(arrayBuffer, "image/png");
 
-      if (
-        !reference ||
-        typeof reference.id !== "string" ||
-        typeof reference.mimeType !== "string"
-      ) {
-        throw new Error("Invalid reference from uploadBinaryData");
-      }
-
-      // Update state and pass the reference to parent
       setImageReference(reference);
       onChange(reference);
-
-      // Stop the webcam after successful capture
       stopWebcam();
       setIsUploading(false);
     } catch (err) {
@@ -143,29 +92,30 @@ export function WebcamWidget({
   };
 
   const clearImage = () => {
+    if (readonly) return;
     setImageReference(null);
     onChange(null);
   };
 
   return (
-    <div className="space-y-2">
-      {!compact && <Label>Webcam Capture</Label>}
-      <div className="relative w-full mx-auto">
+    <div className="p-2">
+      <div className="relative w-full">
         <div className="absolute top-2 right-2 z-10">
           {imageReference ? (
             <button
               onClick={clearImage}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
               aria-label="Clear image"
+              disabled={readonly}
             >
               <X className="h-3 w-3" />
             </button>
           ) : (
             <button
               onClick={captureImage}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
               aria-label="Capture image"
-              disabled={isUploading}
+              disabled={isUploading || readonly}
             >
               <Camera className="h-3 w-3" />
             </button>
@@ -175,7 +125,7 @@ export function WebcamWidget({
           <div className="relative aspect-video bg-neutral-100">
             {imageReference ? (
               <img
-                src={objectService.createObjectUrl(imageReference)}
+                src={createObjectUrl(imageReference)}
                 alt="Captured"
                 className="w-full h-full object-cover"
               />
@@ -194,7 +144,7 @@ export function WebcamWidget({
             )}
             {isUploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
-                <span>Uploading...</span>
+                Uploading...
               </div>
             )}
           </div>
@@ -203,3 +153,14 @@ export function WebcamWidget({
     </div>
   );
 }
+
+export const webcamWidget = createWidget({
+  component: WebcamWidget,
+  nodeTypes: ["webcam"],
+  inputField: "value",
+  extractConfig: (_nodeId, inputs) => ({
+    value: getInputValue(inputs, "value", ""),
+    width: getInputValue(inputs, "width", 640),
+    height: getInputValue(inputs, "height", 480),
+  }),
+});

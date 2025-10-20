@@ -27,7 +27,10 @@ export type NumberInputWidgetConfig = Omit<
 export const NumberInputWidgetMeta = {
   nodeTypes: ["number-input"],
   inputField: "value",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): NumberInputWidgetConfig => {
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): NumberInputWidgetConfig => {
     const valueInput = inputs.find((i) => i.id === "value");
     const minInput = inputs.find((i) => i.id === "min");
     const maxInput = inputs.find((i) => i.id === "max");
@@ -35,7 +38,9 @@ export const NumberInputWidgetMeta = {
     const placeholderInput = inputs.find((i) => i.id === "placeholder");
 
     if (!valueInput) {
-      console.warn(`Missing required inputs for number input widget in node ${nodeId}`);
+      console.warn(
+        `Missing required inputs for number input widget in node ${nodeId}`
+      );
       return null as any;
     }
 

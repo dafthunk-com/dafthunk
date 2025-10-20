@@ -28,7 +28,10 @@ export type DocumentConfig = Omit<
 export const DocumentWidgetMeta = {
   nodeTypes: ["document"],
   inputField: "value",
-  createConfig: (_nodeId: string, inputs: WorkflowParameter[]): DocumentConfig => {
+  createConfig: (
+    _nodeId: string,
+    inputs: WorkflowParameter[]
+  ): DocumentConfig => {
     const value = inputs.find((i) => i.id === "value")?.value as string;
     const mimeType = inputs.find((i) => i.id === "mimeType")?.value as string;
 

@@ -25,13 +25,18 @@ export type TextAreaWidgetConfig = Omit<
 export const TextAreaWidgetMeta = {
   nodeTypes: ["text-area"],
   inputField: "value",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): TextAreaWidgetConfig => {
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): TextAreaWidgetConfig => {
     const valueInput = inputs.find((i) => i.id === "value");
     const placeholderInput = inputs.find((i) => i.id === "placeholder");
     const rowsInput = inputs.find((i) => i.id === "rows");
 
     if (!valueInput || !rowsInput) {
-      console.warn(`Missing required inputs for text area widget in node ${nodeId}`);
+      console.warn(
+        `Missing required inputs for text area widget in node ${nodeId}`
+      );
       return null as any;
     }
 

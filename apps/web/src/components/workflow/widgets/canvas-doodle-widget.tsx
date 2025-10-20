@@ -30,12 +30,17 @@ export type CanvasDoodleConfig = Omit<
 export const CanvasDoodleWidgetMeta = {
   nodeTypes: ["canvas-doodle"],
   inputField: "value",
-  createConfig: (_nodeId: string, inputs: WorkflowParameter[]): CanvasDoodleConfig => {
+  createConfig: (
+    _nodeId: string,
+    inputs: WorkflowParameter[]
+  ): CanvasDoodleConfig => {
     const value = inputs.find((i) => i.id === "value")?.value as string;
     const width = inputs.find((i) => i.id === "width")?.value as number;
     const height = inputs.find((i) => i.id === "height")?.value as number;
-    const strokeColor = inputs.find((i) => i.id === "strokeColor")?.value as string;
-    const strokeWidth = inputs.find((i) => i.id === "strokeWidth")?.value as number;
+    const strokeColor = inputs.find((i) => i.id === "strokeColor")
+      ?.value as string;
+    const strokeWidth = inputs.find((i) => i.id === "strokeWidth")
+      ?.value as number;
 
     return {
       type: "canvas-doodle",

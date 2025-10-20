@@ -23,12 +23,17 @@ export type InputTextWidgetConfig = Omit<
 export const InputTextWidgetMeta = {
   nodeTypes: ["input-text"],
   inputField: "value",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): InputTextWidgetConfig => {
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): InputTextWidgetConfig => {
     const valueInput = inputs.find((i) => i.id === "value");
     const placeholderInput = inputs.find((i) => i.id === "placeholder");
 
     if (!valueInput) {
-      console.warn(`Missing required inputs for input text widget in node ${nodeId}`);
+      console.warn(
+        `Missing required inputs for input text widget in node ${nodeId}`
+      );
       return null as any;
     }
 

@@ -3,52 +3,21 @@ import Square from "lucide-react/icons/square";
 import Trash2 from "lucide-react/icons/trash-2";
 import { useEffect, useRef, useState } from "react";
 
-import { Label } from "@/components/ui/label";
 import { isObjectReference, useObjectService } from "@/services/object-service";
 
-import type { WorkflowParameter } from "../workflow-types";
+import type { BaseWidgetProps } from "./widget";
+import { createWidget, getInputValue } from "./widget";
 
-export interface AudioRecorderWidgetProps {
-  type: "audio-recorder";
+interface AudioRecorderWidgetProps extends BaseWidgetProps {
   value: any;
   sampleRate: number;
   channels: number;
-  onChange: (value: any) => void;
-  className?: string;
-  compact?: boolean;
-  readonly?: boolean;
 }
 
-export type AudioRecorderConfig = Omit<
-  AudioRecorderWidgetProps,
-  "onChange" | "className" | "compact" | "readonly"
->;
-
-export const AudioRecorderWidgetMeta = {
-  nodeTypes: ["audio-recorder"],
-  inputField: "value",
-  createConfig: (
-    _nodeId: string,
-    inputs: WorkflowParameter[]
-  ): AudioRecorderConfig => {
-    const value = inputs.find((i) => i.id === "value")?.value as string;
-    const sampleRate = inputs.find((i) => i.id === "sampleRate")
-      ?.value as number;
-    const channels = inputs.find((i) => i.id === "channels")?.value as number;
-
-    return {
-      type: "audio-recorder",
-      value: value || "",
-      sampleRate: sampleRate || 44100,
-      channels: channels || 1,
-    };
-  },
-};
-
-export function AudioRecorderWidget({
+function AudioRecorderWidget({
   value,
   onChange,
-  compact = false,
+  readonly = false,
 }: AudioRecorderWidgetProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -73,6 +42,8 @@ export function AudioRecorderWidget({
   }, []);
 
   const startRecording = async () => {
+    if (readonly) return;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, {
@@ -97,13 +68,9 @@ export function AudioRecorderWidget({
             type: "audio/webm",
           });
 
-          // Convert blob to array buffer
           const arrayBuffer = await audioBlob.arrayBuffer();
-
-          // Upload to objects endpoint
           const reference = await uploadBinaryData(arrayBuffer, "audio/webm");
 
-          // Update state and pass the reference to parent
           setAudioReference(reference);
           onChange(reference);
 
@@ -141,39 +108,39 @@ export function AudioRecorderWidget({
   };
 
   const clearRecording = () => {
+    if (readonly) return;
     setAudioReference(null);
     onChange(null);
   };
 
   return (
-    <div className="space-y-2">
-      {!compact && <Label>Audio Recorder</Label>}
-      <div className="relative w-full mx-auto">
+    <div className="p-2">
+      <div className="relative w-full">
         <div className="absolute top-2 right-2 z-10 flex gap-2">
           {audioReference ? (
             <button
               onClick={clearRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
               aria-label="Clear recording"
-              disabled={isUploading}
+              disabled={isUploading || readonly}
             >
               <Trash2 className="h-3 w-3" />
             </button>
           ) : isRecording ? (
             <button
               onClick={stopRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-red-600 hover:text-red-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-red-600"
               aria-label="Stop recording"
-              disabled={isUploading}
+              disabled={isUploading || readonly}
             >
               <Square className="h-3 w-3" />
             </button>
           ) : (
             <button
               onClick={startRecording}
-              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/90 hover:bg-white text-neutral-600"
               aria-label="Start recording"
-              disabled={isUploading}
+              disabled={isUploading || readonly}
             >
               <Mic className="h-3 w-3" />
             </button>
@@ -208,7 +175,7 @@ export function AudioRecorderWidget({
             )}
             {isUploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white">
-                <span>Uploading...</span>
+                Uploading...
               </div>
             )}
           </div>
@@ -217,3 +184,14 @@ export function AudioRecorderWidget({
     </div>
   );
 }
+
+export const audioRecorderWidget = createWidget({
+  component: AudioRecorderWidget,
+  nodeTypes: ["audio-recorder"],
+  inputField: "value",
+  extractConfig: (_nodeId, inputs) => ({
+    value: getInputValue(inputs, "value", ""),
+    sampleRate: getInputValue(inputs, "sampleRate", 44100),
+    channels: getInputValue(inputs, "channels", 1),
+  }),
+});

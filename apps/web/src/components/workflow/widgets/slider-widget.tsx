@@ -25,7 +25,10 @@ export type SliderWidgetConfig = Omit<
 export const SliderWidgetMeta = {
   nodeTypes: ["slider"],
   inputField: "value",
-  createConfig: (nodeId: string, inputs: WorkflowParameter[]): SliderWidgetConfig => ({
+  createConfig: (
+    nodeId: string,
+    inputs: WorkflowParameter[]
+  ): SliderWidgetConfig => ({
     type: "slider",
     id: nodeId,
     name: "Slider",
