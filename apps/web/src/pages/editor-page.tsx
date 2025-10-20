@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth-context";
 import { InsetLoading } from "@/components/inset-loading";
+import { EditMetadataDialog } from "@/components/workflow/edit-metadata-dialog";
 import { EmailTriggerDialog } from "@/components/workflow/email-trigger-dialog";
 import { ExecutionEmailDialog } from "@/components/workflow/execution-email-dialog";
 import { ExecutionFormDialog } from "@/components/workflow/execution-form-dialog";
@@ -34,6 +35,8 @@ import {
 import { useObjectService } from "@/services/object-service";
 import { useNodeTypes } from "@/services/type-service";
 import {
+  getWorkflow,
+  updateWorkflow,
   upsertCronTrigger,
   useCronTrigger,
   useWorkflowExecution,
@@ -53,6 +56,11 @@ export function EditorPage() {
     useState(false);
   const [isEmailTriggerDialogOpen, setIsEmailTriggerDialogOpen] =
     useState(false);
+  const [isEditMetadataDialogOpen, setIsEditMetadataDialogOpen] =
+    useState(false);
+  const [localWorkflowName, setLocalWorkflowName] = useState<string>("");
+  const [localWorkflowDescription, setLocalWorkflowDescription] =
+    useState<string>();
 
   // Fetch all node types initially (no filter)
   const { nodeTypes, nodeTypesError, isNodeTypesLoading } = useNodeTypes(
@@ -220,12 +228,20 @@ export function EditorPage() {
     submitEmailFormData,
   } = useWorkflowExecution(orgHandle, wsExecuteWorkflow);
 
+  // Sync local workflow name from metadata
+  useEffect(() => {
+    if (workflowMetadata?.name && !localWorkflowName) {
+      setLocalWorkflowName(workflowMetadata.name);
+      setLocalWorkflowDescription((workflowMetadata as any).description);
+    }
+  }, [workflowMetadata, localWorkflowName]);
+
   usePageBreadcrumbs(
     [
       { label: "Workflows", to: getOrgUrl("workflows") },
-      { label: workflowMetadata?.name || "Workflow" },
+      { label: localWorkflowName || workflowMetadata?.name || "Workflow" },
     ],
-    [workflowMetadata?.name]
+    [localWorkflowName, workflowMetadata?.name]
   );
 
   const validateConnection = useCallback(
@@ -279,6 +295,42 @@ export function EditorPage() {
       navigate(0);
     }
   };
+
+  const handleEditMetadata = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsEditMetadataDialogOpen(true);
+  }, []);
+
+  const handleSaveMetadata = useCallback(
+    async (name: string, description?: string) => {
+      if (!id || !orgHandle || !workflowMetadata) return;
+
+      try {
+        const fullWorkflow = await getWorkflow(id, orgHandle);
+        await updateWorkflow(
+          id,
+          {
+            name,
+            description,
+            type: fullWorkflow.type,
+            nodes: fullWorkflow.nodes,
+            edges: fullWorkflow.edges,
+          },
+          orgHandle
+        );
+        toast.success("Workflow metadata updated");
+
+        // Update local state for display
+        setLocalWorkflowName(name);
+        setLocalWorkflowDescription(description);
+      } catch (error) {
+        console.error("Error updating workflow metadata:", error);
+        toast.error("Failed to update workflow metadata");
+      }
+    },
+    [id, orgHandle, workflowMetadata]
+  );
 
   const handleDeployWorkflow = useCallback(
     async (e: React.MouseEvent) => {
@@ -382,6 +434,7 @@ export function EditorPage() {
             validateConnection={validateConnection}
             executeWorkflow={editorExecuteWorkflow}
             onDeployWorkflow={handleDeployWorkflow}
+            onEditMetadata={handleEditMetadata}
             createObjectUrl={createObjectUrl}
           />
         </div>
@@ -447,6 +500,15 @@ export function EditorPage() {
             }}
             deploymentVersions={deploymentVersions}
             workflowName={workflowMetadata?.name}
+          />
+        )}
+        {workflowMetadata && (
+          <EditMetadataDialog
+            open={isEditMetadataDialogOpen}
+            onOpenChange={setIsEditMetadataDialogOpen}
+            initialName={localWorkflowName || workflowMetadata.name}
+            initialDescription={localWorkflowDescription}
+            onSave={handleSaveMetadata}
           />
         )}
       </div>

@@ -48,6 +48,7 @@ export interface WorkflowBuilderProps {
   initialWorkflowExecution?: WorkflowExecution;
   readonly?: boolean;
   onDeployWorkflow?: (e: React.MouseEvent) => void;
+  onEditMetadata?: (e: React.MouseEvent) => void;
   onSetSchedule?: () => void;
   onShowHttpIntegration?: () => void;
   onShowEmailTrigger?: () => void;
@@ -68,6 +69,7 @@ export function WorkflowBuilder({
   initialWorkflowExecution,
   readonly = false,
   onDeployWorkflow,
+  onEditMetadata,
   onSetSchedule,
   onShowHttpIntegration,
   onShowEmailTrigger,
@@ -442,6 +444,9 @@ export function WorkflowBuilder({
               }
               onDeploy={
                 !readonly && onDeployWorkflow ? onDeployWorkflow : undefined
+              }
+              onEditMetadata={
+                !readonly && onEditMetadata ? onEditMetadata : undefined
               }
               workflowStatus={workflowStatus}
               workflowType={workflowType}

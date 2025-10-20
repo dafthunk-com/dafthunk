@@ -65,7 +65,8 @@ function useWorkflowActions() {
   const [workflowToDeploy, setWorkflowToDeploy] =
     useState<WorkflowWithMetadata | null>(null);
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
-  const [renameWorkflowDescription, setRenameWorkflowDescription] = useState("");
+  const [renameWorkflowDescription, setRenameWorkflowDescription] =
+    useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -163,7 +164,7 @@ function useWorkflowActions() {
     <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Workflow</DialogTitle>
+          <DialogTitle>Edit Metadata</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleRenameWorkflow} className="space-y-4">
           <div>
