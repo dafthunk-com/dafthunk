@@ -161,6 +161,20 @@ export const updateWorkflow = async (
 };
 
 /**
+ * Get a workflow by ID
+ */
+export const getWorkflow = async (
+  id: string,
+  orgHandle: string
+): Promise<WorkflowWithMetadata> => {
+  return await makeOrgRequest<GetWorkflowResponse>(
+    orgHandle,
+    API_ENDPOINT_BASE,
+    `/${id}`
+  );
+};
+
+/**
  * Delete a workflow by ID
  */
 export const deleteWorkflow = async (

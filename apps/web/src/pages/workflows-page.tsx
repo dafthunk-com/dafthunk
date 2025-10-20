@@ -44,6 +44,7 @@ import { createDeployment } from "@/services/deployment-service";
 import {
   createWorkflow,
   deleteWorkflow,
+  getWorkflow,
   updateWorkflow,
   useWorkflows,
 } from "@/services/workflow-service";
@@ -87,20 +88,27 @@ function useWorkflowActions() {
     if (!workflowToRename || !orgHandle) return;
     setIsRenaming(true);
     try {
+      // Fetch the full workflow data with nodes and edges from the server
+      const fullWorkflow = await getWorkflow(workflowToRename.id, orgHandle);
+
       await updateWorkflow(
         workflowToRename.id,
         {
           name: renameWorkflowName,
           description: renameWorkflowDescription || undefined,
-          type: workflowToRename.type,
-          nodes: workflowToRename.nodes,
-          edges: workflowToRename.edges,
+          type: fullWorkflow.type,
+          nodes: fullWorkflow.nodes,
+          edges: fullWorkflow.edges,
         },
         orgHandle
       );
       setRenameDialogOpen(false);
       setWorkflowToRename(null);
       mutateWorkflows();
+    } catch (error) {
+      console.error("Error updating workflow metadata:", error);
+      // Re-throw to show user there was an error
+      throw error;
     } finally {
       setIsRenaming(false);
     }
