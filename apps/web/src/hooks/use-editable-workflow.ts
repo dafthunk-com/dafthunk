@@ -40,6 +40,7 @@ export function useEditableWorkflow({
   const [workflowMetadata, setWorkflowMetadata] = useState<{
     id: string;
     name: string;
+    description?: string;
     handle: string;
     type: string;
   } | null>(null);
@@ -74,6 +75,7 @@ export function useEditableWorkflow({
             setWorkflowMetadata({
               id: state.id,
               name: state.name || "",
+              description: state.description,
               handle: state.handle || "",
               type: state.type,
             });

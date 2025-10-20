@@ -54,6 +54,8 @@ export interface WorkflowBuilderProps {
   onShowEmailTrigger?: () => void;
   createObjectUrl: (objectReference: ObjectReference) => string;
   expandedOutputs?: boolean;
+  workflowName?: string;
+  workflowDescription?: string;
 }
 
 export function WorkflowBuilder({
@@ -75,6 +77,8 @@ export function WorkflowBuilder({
   onShowEmailTrigger,
   createObjectUrl,
   expandedOutputs = false,
+  workflowName,
+  workflowDescription,
 }: WorkflowBuilderProps) {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<WorkflowExecutionStatus>(
@@ -493,6 +497,8 @@ export function WorkflowBuilder({
             onSelect={handleNodeSelect}
             onClose={() => handleSetIsNodeSelectorOpen(false)}
             templates={nodeTemplates}
+            workflowName={workflowName}
+            workflowDescription={workflowDescription}
           />
         </div>
 
