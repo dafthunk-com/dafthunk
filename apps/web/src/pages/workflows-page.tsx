@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CreateWorkflowDialog } from "@/components/workflow/create-workflow-dialog";
 import { ImportTemplateDialog } from "@/components/workflow/import-template-dialog";
@@ -63,6 +64,7 @@ function useWorkflowActions() {
   const [workflowToDeploy, setWorkflowToDeploy] =
     useState<WorkflowWithMetadata | null>(null);
   const [renameWorkflowName, setRenameWorkflowName] = useState("");
+  const [renameWorkflowDescription, setRenameWorkflowDescription] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
@@ -89,7 +91,7 @@ function useWorkflowActions() {
         workflowToRename.id,
         {
           name: renameWorkflowName,
-          description: workflowToRename.description,
+          description: renameWorkflowDescription || undefined,
           type: workflowToRename.type,
           nodes: workflowToRename.nodes,
           edges: workflowToRename.edges,
@@ -153,7 +155,7 @@ function useWorkflowActions() {
     <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rename Workflow</DialogTitle>
+          <DialogTitle>Edit Workflow</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleRenameWorkflow} className="space-y-4">
           <div>
@@ -164,6 +166,18 @@ function useWorkflowActions() {
               onChange={(e) => setRenameWorkflowName(e.target.value)}
               placeholder="Enter workflow name"
               className="mt-2"
+            />
+          </div>
+          <div>
+            <Label htmlFor="rename-description">Description (Optional)</Label>
+            <Textarea
+              id="rename-description"
+              value={renameWorkflowDescription}
+              onChange={(e) => setRenameWorkflowDescription(e.target.value)}
+              placeholder="Describe what you are building"
+              className="mt-2"
+              maxLength={256}
+              rows={3}
             />
           </div>
           <DialogFooter>
@@ -177,7 +191,7 @@ function useWorkflowActions() {
             </Button>
             <Button type="submit" disabled={isRenaming}>
               {isRenaming ? <Spinner className="h-4 w-4 mr-2" /> : null}
-              Rename
+              Save
             </Button>
           </DialogFooter>
         </form>
@@ -223,6 +237,7 @@ function useWorkflowActions() {
     openRenameDialog: (workflow: WorkflowWithMetadata) => {
       setWorkflowToRename(workflow);
       setRenameWorkflowName(workflow.name || "");
+      setRenameWorkflowDescription(workflow.description || "");
       setRenameDialogOpen(true);
     },
     openDeployDialog: (workflow: WorkflowWithMetadata) => {
@@ -339,7 +354,7 @@ function createColumns(
                   Edit Workflow
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openRenameDialog(workflow)}>
-                  Rename Workflow
+                  Edit Metadata
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => openDeployDialog(workflow)}>
                   Deploy Workflow
