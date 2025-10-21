@@ -203,24 +203,3 @@ export function normalizeText(
 
   return tokens;
 }
-
-/**
- * Create a searchable index from text
- * Returns a Set of normalized tokens for fast lookup
- */
-export function createSearchIndex(
-  text: string,
-  options?: NormalizeOptions
-): Set<string> {
-  return new Set(normalizeText(text, options));
-}
-
-/**
- * Check if any tokens from query match any tokens in target
- */
-export function matchesQuery(
-  targetTokens: Set<string>,
-  queryTokens: string[]
-): boolean {
-  return queryTokens.some((token) => targetTokens.has(token));
-}
