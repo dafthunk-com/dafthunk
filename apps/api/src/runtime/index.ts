@@ -17,6 +17,3 @@ export type {
   RuntimeState,
   WorkflowOutputs,
 } from "./runtime";
-
-// Test utilities
-export { getTestNodeRegistry, initializeTestEnvironment } from "./test-runtime";

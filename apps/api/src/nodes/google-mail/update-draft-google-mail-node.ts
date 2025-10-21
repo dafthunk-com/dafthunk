@@ -102,12 +102,6 @@ export class UpdateDraftGoogleMailNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
-      if (integration.provider !== "google-mail") {
-        return this.createErrorResult(
-          "Invalid integration type. This node requires a Google Mail integration."
-        );
-      }
-
       const accessToken = integration.token;
 
       // Create RFC 2822 formatted email
