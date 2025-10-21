@@ -41,14 +41,9 @@ export function TagFilterButtons({
   const selectedArray = selectedTags ?? (selectedTag ? [selectedTag] : []);
   const isHierarchical = selectedTags !== undefined;
 
-  // Sort selected tags by count (descending) and then alphabetically
+  // Use selectedTagCounts order (already sorted by parent component)
   const sortedSelectedTags = isHierarchical && selectedTagCounts
-    ? selectedTagCounts
-        .sort((a, b) => {
-          if (b.count !== a.count) return b.count - a.count;
-          return a.tag.localeCompare(b.tag);
-        })
-        .map(tc => tc.tag)
+    ? selectedTagCounts.map(tc => tc.tag)
     : selectedArray;
 
   let buttonIndex = 0;

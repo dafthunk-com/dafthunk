@@ -193,16 +193,41 @@ export function WorkflowNodeSelector({
     }
   );
 
-  // Get tag counts for currently filtered templates (hierarchical)
-  // Show top 20 most common tags in the current filtered set
-  const tagCounts = useTagCounts(filteredTemplates, 20);
+  // Get overall tag counts (for display)
+  const overallTagCounts = useTagCounts(scoredAndFilteredTemplates.sorted);
 
-  // Get counts for selected tags - should show count from CURRENT filtered set
-  // This ensures displayed counts always match the current node selection
-  const allTagCounts = useTagCounts(filteredTemplates);
-  const selectedTagCounts = allTagCounts.filter((tc) =>
-    selectedTags.includes(tc.tag)
-  );
+  // Get filtered tag counts (for discrimination/ordering)
+  const filteredTagCounts = useTagCounts(filteredTemplates);
+
+  // Combine: use filtered counts for ordering, but display overall counts
+  // Show top 20 tags by filtered count
+  const tagCounts = filteredTagCounts
+    .slice(0, 20)
+    .map(({ tag }) => {
+      const overallCount = overallTagCounts.find(tc => tc.tag === tag)?.count ?? 0;
+      return { tag, count: overallCount };
+    });
+
+  // Get overall counts for selected tags (sorted by count desc, then alphabetically)
+  const selectedTagCounts = overallTagCounts
+    .filter((tc) => selectedTags.includes(tc.tag))
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.tag.localeCompare(b.tag);
+    });
+
+  // Handle tag change (both keyboard and mouse)
+  const handleTagChange = (tag: string | null) => {
+    if (tag === null) {
+      setSelectedTags([]);
+    } else if (selectedTags.includes(tag)) {
+      // Remove tag if already selected
+      setSelectedTags(selectedTags.filter(t => t !== tag));
+    } else {
+      // Add tag if not selected
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
 
   // Use keyboard navigation hook
   const {
@@ -219,19 +244,13 @@ export function WorkflowNodeSelector({
   } = useKeyboardNavigation({
     open,
     itemsCount: filteredTemplates.length,
-    categoriesCount: tagCounts.length + 1, // +1 for "All" button
+    categoriesCount: selectedTags.length + tagCounts.length + 1, // selected tags + available tags + "All" button
     onClose,
     onSelectItem: (index) => {
       onSelect(filteredTemplates[index]);
       onClose();
     },
-    onCategoryChange: (tag) => {
-      if (tag === null) {
-        setSelectedTags([]);
-      } else {
-        setSelectedTags([...selectedTags, tag]);
-      }
-    },
+    onCategoryChange: handleTagChange,
     categories: tagCounts,
   });
 
@@ -334,18 +353,8 @@ export function WorkflowNodeSelector({
                   categories={tagCounts}
                   selectedTags={selectedTags}
                   selectedTagCounts={selectedTagCounts}
-                  onTagChange={(tag) => {
-                    if (tag === null) {
-                      setSelectedTags([]);
-                    } else if (selectedTags.includes(tag)) {
-                      // Remove tag if already selected
-                      setSelectedTags(selectedTags.filter(t => t !== tag));
-                    } else {
-                      // Add tag if not selected
-                      setSelectedTags([...selectedTags, tag]);
-                    }
-                  }}
-                  totalCount={filteredTemplates.length}
+                  onTagChange={handleTagChange}
+                  totalCount={scoredAndFilteredTemplates.sorted.length}
                   onKeyDown={handleCategoryKeyDown}
                   setCategoryButtonRef={setCategoryButtonRef}
                   activeElement={activeElement}
