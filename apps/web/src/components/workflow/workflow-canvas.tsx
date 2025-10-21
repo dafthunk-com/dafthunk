@@ -873,9 +873,6 @@ export function WorkflowCanvas({
                       disabled={nodes.length === 0}
                     />
                   )}
-                  {onEditMetadata && (
-                    <EditMetadataButton onClick={onEditMetadata} />
-                  )}
                   {onSetSchedule && workflowType === "cron" && (
                     <SetScheduleButton
                       onClick={onSetSchedule}
@@ -897,6 +894,10 @@ export function WorkflowCanvas({
             {(onToggleExpandedOutputs ||
               (onToggleSidebar && isSidebarVisible !== undefined)) && (
               <ActionBarGroup>
+                {onEditMetadata && (
+                  <EditMetadataButton onClick={onEditMetadata} />
+                )}
+                
                 {onToggleExpandedOutputs && (
                   <OutputsToggle
                     onClick={onToggleExpandedOutputs}
