@@ -16,6 +16,9 @@ describe("ToStringNode", () => {
       inputs: {
         value: 123,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -36,6 +39,9 @@ describe("ToStringNode", () => {
       inputs: {
         value: true,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("ToStringNode", () => {
       nodeId,
       inputs: {
         value: "Hello World",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -74,6 +83,9 @@ describe("ToStringNode", () => {
       inputs: {
         value: { name: "John", age: 30 },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -93,6 +105,9 @@ describe("ToStringNode", () => {
       inputs: {
         value: null,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -111,6 +126,9 @@ describe("ToStringNode", () => {
       nodeId,
       inputs: {
         value: undefined,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

@@ -16,6 +16,9 @@ describe("StringTrimNode", () => {
       inputs: {
         string: "  Hello World  ",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -36,6 +39,9 @@ describe("StringTrimNode", () => {
       inputs: {
         string: "HelloWorld",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -55,6 +61,9 @@ describe("StringTrimNode", () => {
       inputs: {
         string: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -73,6 +82,9 @@ describe("StringTrimNode", () => {
       nodeId,
       inputs: {
         string: "   \n\t  ",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

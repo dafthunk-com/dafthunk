@@ -17,6 +17,9 @@ describe("AudioRecorderNode", () => {
       inputs: {
         value: testAudioData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -37,6 +40,9 @@ describe("AudioRecorderNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -56,6 +62,9 @@ describe("AudioRecorderNode", () => {
       inputs: {
         value: null,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("AudioRecorderNode", () => {
       nodeId,
       inputs: {
         value: undefined,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

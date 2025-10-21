@@ -18,6 +18,9 @@ describe("StringSubstringNode", () => {
         start: 0,
         end: 5,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -40,6 +43,9 @@ describe("StringSubstringNode", () => {
         start: 6,
         end: 11,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -61,6 +67,9 @@ describe("StringSubstringNode", () => {
         start: 6,
         end: 11,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -81,6 +90,9 @@ describe("StringSubstringNode", () => {
         haystack: "",
         start: 0,
         end: 0,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

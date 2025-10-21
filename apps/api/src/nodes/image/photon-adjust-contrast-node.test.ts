@@ -18,6 +18,9 @@ describe("PhotonAdjustContrastNode", () => {
         image: testImageData,
         amount: 1.5,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -39,6 +42,9 @@ describe("PhotonAdjustContrastNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

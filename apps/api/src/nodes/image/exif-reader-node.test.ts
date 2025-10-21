@@ -17,6 +17,9 @@ describe("ExifReaderNode", () => {
       inputs: {
         image: testImageData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -36,6 +39,9 @@ describe("ExifReaderNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -60,6 +66,9 @@ describe("ExifReaderNode", () => {
       nodeId,
       inputs: {
         image: simpleImageData,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

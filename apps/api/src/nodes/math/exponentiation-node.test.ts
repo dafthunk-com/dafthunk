@@ -17,6 +17,9 @@ describe("ExponentiationNode", () => {
         base: 2,
         exponent: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -36,6 +39,9 @@ describe("ExponentiationNode", () => {
       inputs: {
         base: -2,
         exponent: 3,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -57,6 +63,9 @@ describe("ExponentiationNode", () => {
         base: 5,
         exponent: 0,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -76,6 +85,9 @@ describe("ExponentiationNode", () => {
       inputs: {
         base: 2,
         exponent: -2,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -97,6 +109,9 @@ describe("ExponentiationNode", () => {
         base: 2.5,
         exponent: 2,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -116,6 +131,9 @@ describe("ExponentiationNode", () => {
       inputs: {
         base: "3",
         exponent: "4",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -137,6 +155,9 @@ describe("ExponentiationNode", () => {
         base: "invalid",
         exponent: 2,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -156,10 +177,55 @@ describe("ExponentiationNode", () => {
         base: 2,
         exponent: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Both inputs must be numbers");
+  });
+
+  it("should return error for missing base input", async () => {
+    const nodeId = "exponentiation";
+    const node = new ExponentiationNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        exponent: 2,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'base' is required");
+  });
+
+  it("should return error for missing exponent input", async () => {
+    const nodeId = "exponentiation";
+    const node = new ExponentiationNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        base: 2,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'exponent' is required");
   });
 });

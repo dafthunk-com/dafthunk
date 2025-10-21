@@ -146,37 +146,10 @@ export class SubmitPostRedditNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Get integration from preloaded context
-      const integration = context.integrations?.[integrationId];
+      // Get integration with auto-refreshed token
+      const integration = await context.getIntegration(integrationId);
 
-      if (!integration) {
-        return this.createErrorResult(
-          "Integration not found or access denied. Please check your integration settings."
-        );
-      }
-
-      if (integration.provider !== "reddit") {
-        return this.createErrorResult(
-          "Invalid integration type. This node requires a Reddit integration."
-        );
-      }
-
-      // Use integration manager to get a valid access token
-      let accessToken: string;
-      try {
-        if (context.integrationManager) {
-          accessToken =
-            await context.integrationManager.getValidAccessToken(integrationId);
-        } else {
-          accessToken = integration.token;
-        }
-      } catch (error) {
-        return this.createErrorResult(
-          error instanceof Error
-            ? error.message
-            : "Failed to get valid access token"
-        );
-      }
+      const accessToken = integration.token;
 
       // Prepare form data for submission
       const formData = new URLSearchParams({

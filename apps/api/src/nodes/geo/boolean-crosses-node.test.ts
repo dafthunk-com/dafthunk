@@ -10,6 +10,9 @@ describe("BooleanCrossesNode", () => {
     workflowId: "test-workflow",
     organizationId: "test-org",
     inputs,
+    getIntegration: async () => {
+      throw new Error("No integrations in test");
+    },
     env: {} as any,
   });
 

@@ -44,6 +44,16 @@ export class ExponentiationNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      if (context.inputs.base === undefined || context.inputs.base === null) {
+        return this.createErrorResult("Input 'base' is required");
+      }
+      if (
+        context.inputs.exponent === undefined ||
+        context.inputs.exponent === null
+      ) {
+        return this.createErrorResult("Input 'exponent' is required");
+      }
+
       const base = Number(context.inputs.base);
       const exponent = Number(context.inputs.exponent);
 

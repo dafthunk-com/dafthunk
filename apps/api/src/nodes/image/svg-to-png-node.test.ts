@@ -23,6 +23,9 @@ describe("SvgToPngNode", () => {
       inputs: {
         svg: simpleSvgImage,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -48,6 +51,9 @@ describe("SvgToPngNode", () => {
         width: 200,
         height: 150,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -67,6 +73,9 @@ describe("SvgToPngNode", () => {
       inputs: {
         svg: simpleSvgImage,
         scale: 2.0,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -88,6 +97,9 @@ describe("SvgToPngNode", () => {
         svg: simpleSvgImage,
         backgroundColor: "white",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -106,6 +118,9 @@ describe("SvgToPngNode", () => {
       nodeId,
       inputs: {
         svg: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -127,6 +142,9 @@ describe("SvgToPngNode", () => {
         svg: simpleSvgImage,
         width: -10,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -147,6 +165,9 @@ describe("SvgToPngNode", () => {
         svg: simpleSvgImage,
         height: 10000,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -166,6 +187,9 @@ describe("SvgToPngNode", () => {
       inputs: {
         svg: simpleSvgImage,
         scale: 15,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -190,6 +214,9 @@ describe("SvgToPngNode", () => {
       nodeId,
       inputs: {
         svg: nonSvgImage,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

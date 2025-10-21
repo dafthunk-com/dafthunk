@@ -18,6 +18,9 @@ describe("PhotonApplyFilterNode", () => {
         image: testImageData,
         filterName: "vintage",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -39,6 +42,9 @@ describe("PhotonApplyFilterNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

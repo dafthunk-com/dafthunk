@@ -17,6 +17,9 @@ describe("JsonEditorNode", () => {
       inputs: {
         value: validJson,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -41,6 +44,9 @@ describe("JsonEditorNode", () => {
       inputs: {
         value: emptyJson,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -60,6 +66,9 @@ describe("JsonEditorNode", () => {
       nodeId,
       inputs: {
         value: arrayJson,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -87,6 +96,9 @@ describe("JsonEditorNode", () => {
       inputs: {
         value: primitiveJson,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -107,6 +119,9 @@ describe("JsonEditorNode", () => {
       inputs: {
         value: invalidJson,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -125,6 +140,9 @@ describe("JsonEditorNode", () => {
       nodeId,
       inputs: {
         value: malformedJson,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -145,6 +163,9 @@ describe("JsonEditorNode", () => {
       inputs: {
         value: emptyString,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -163,6 +184,9 @@ describe("JsonEditorNode", () => {
       inputs: {
         value: null,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -180,6 +204,9 @@ describe("JsonEditorNode", () => {
       nodeId,
       inputs: {
         value: undefined,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -220,6 +247,9 @@ describe("JsonEditorNode", () => {
       nodeId,
       inputs: {
         value: complexJson,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

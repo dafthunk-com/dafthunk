@@ -20,6 +20,9 @@ describe("PhotonWatermarkNode", () => {
         y: 10,
         mainImage: testImageData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -41,6 +44,9 @@ describe("PhotonWatermarkNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

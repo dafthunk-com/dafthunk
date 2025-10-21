@@ -23,6 +23,9 @@ describe("FormDataBooleanNode", () => {
           testParam: "true",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -50,6 +53,9 @@ describe("FormDataBooleanNode", () => {
           testParam: "false",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -75,6 +81,9 @@ describe("FormDataBooleanNode", () => {
         formData: {
           testParam: "1",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -102,6 +111,9 @@ describe("FormDataBooleanNode", () => {
           testParam: "0",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -127,6 +139,9 @@ describe("FormDataBooleanNode", () => {
         formData: {
           testParam: "yes",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -154,6 +169,9 @@ describe("FormDataBooleanNode", () => {
           testParam: "no",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -179,6 +197,9 @@ describe("FormDataBooleanNode", () => {
         formData: {
           testParam: true,
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -206,6 +227,9 @@ describe("FormDataBooleanNode", () => {
           testParam: 5,
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -231,6 +255,9 @@ describe("FormDataBooleanNode", () => {
         formData: {
           testParam: 0,
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -258,6 +285,9 @@ describe("FormDataBooleanNode", () => {
           testParam: "TRUE",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -281,6 +311,9 @@ describe("FormDataBooleanNode", () => {
       inputs: {},
       httpRequest: {
         formData: {},
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -307,6 +340,9 @@ describe("FormDataBooleanNode", () => {
       httpRequest: {
         formData: {},
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -328,6 +364,9 @@ describe("FormDataBooleanNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -349,6 +388,9 @@ describe("FormDataBooleanNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -375,6 +417,9 @@ describe("FormDataBooleanNode", () => {
           testParam: "invalid",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -397,6 +442,9 @@ describe("FormDataBooleanNode", () => {
         formData: {
           testParam: "true",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

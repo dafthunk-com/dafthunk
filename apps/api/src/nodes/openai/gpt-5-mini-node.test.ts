@@ -45,6 +45,17 @@ describe("Gpt5MiniNode", () => {
             },
           }
         : undefined,
+      getIntegration: async (id: string) => {
+        if (includeIntegration && id === "test-integration") {
+          return {
+            id: "test-integration",
+            name: "Test OpenAI",
+            provider: "openai",
+            token: "test-api-key",
+          };
+        }
+        throw new Error(`Integration ${id} not found`);
+      },
       env: {
         DB: {} as any,
         AI: {} as any,

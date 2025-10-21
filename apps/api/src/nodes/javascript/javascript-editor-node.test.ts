@@ -16,6 +16,9 @@ describe("JavaScriptEditorNode", () => {
       inputs: {
         value: "// Write your JavaScript code here",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -41,6 +44,9 @@ console.log(greet("World"));`;
       inputs: {
         value: customCode,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -61,6 +67,9 @@ console.log(greet("World"));`;
       inputs: {
         value: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -79,6 +88,9 @@ console.log(greet("World"));`;
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -108,6 +120,9 @@ console.log("Result:", result); // Should output: Result: 8`;
       nodeId,
       inputs: {
         value: complexCode,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

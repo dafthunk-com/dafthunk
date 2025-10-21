@@ -16,6 +16,9 @@ describe("JsonAggNode", () => {
       inputs: {
         values: "test",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -33,6 +36,9 @@ describe("JsonAggNode", () => {
       nodeId,
       inputs: {
         values: ["a", "b", "c"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -75,6 +81,9 @@ describe("JsonAggNode", () => {
       inputs: {
         values: ["a", null, "b", undefined, "c"],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -92,6 +101,9 @@ describe("JsonAggNode", () => {
       nodeId,
       inputs: {
         values: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -111,6 +123,9 @@ describe("JsonAggNode", () => {
       inputs: {
         values: undefined,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -128,6 +143,9 @@ describe("JsonAggNode", () => {
       nodeId,
       inputs: {
         values: [],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

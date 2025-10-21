@@ -16,6 +16,9 @@ describe("MaxNode", () => {
       inputs: {
         numbers: 42,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -35,6 +38,9 @@ describe("MaxNode", () => {
       nodeId,
       inputs: {
         numbers: [1, 5, 3, 9, 2],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -56,6 +62,9 @@ describe("MaxNode", () => {
       inputs: {
         numbers: [1.5, 2.3, 0.2, 3.7],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("MaxNode", () => {
       nodeId,
       inputs: {
         numbers: [-10, -5, -20, -1],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -94,6 +106,9 @@ describe("MaxNode", () => {
       inputs: {
         numbers: [-5, 10, -3, 7, -1],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -112,6 +127,9 @@ describe("MaxNode", () => {
       nodeId,
       inputs: {
         numbers: [1, 5, 5, 3, 2],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -132,6 +150,9 @@ describe("MaxNode", () => {
       inputs: {
         numbers: [],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -149,6 +170,9 @@ describe("MaxNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -167,6 +191,9 @@ describe("MaxNode", () => {
       nodeId,
       inputs: {
         numbers: [1, "not-a-number", 3],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -188,6 +215,9 @@ describe("MaxNode", () => {
       nodeId,
       inputs: {
         numbers: ["1", "5", "3"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -211,6 +241,9 @@ describe("MaxNode", () => {
       inputs: {
         numbers,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -229,6 +262,9 @@ describe("MaxNode", () => {
       nodeId,
       inputs: {
         numbers: [0, -5, 10, 0],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

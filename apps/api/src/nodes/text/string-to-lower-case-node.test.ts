@@ -16,6 +16,9 @@ describe("StringToLowerCaseNode", () => {
       inputs: {
         string: "Hello World",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -36,6 +39,9 @@ describe("StringToLowerCaseNode", () => {
       inputs: {
         string: "hello world",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("StringToLowerCaseNode", () => {
       nodeId,
       inputs: {
         string: "",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

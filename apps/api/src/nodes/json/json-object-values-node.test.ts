@@ -16,6 +16,9 @@ describe("JsonObjectValuesNode", () => {
       inputs,
       workflowId: "test",
       organizationId: "test-org",
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     }) as unknown as NodeContext;
 

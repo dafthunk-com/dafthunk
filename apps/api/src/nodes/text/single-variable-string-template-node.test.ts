@@ -17,6 +17,9 @@ describe("SingleVariableStringTemplateNode", () => {
         template: "Hello ${variable}!",
         variable: "John",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -38,6 +41,9 @@ describe("SingleVariableStringTemplateNode", () => {
         template: "Hello World!",
         variable: "John",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -58,6 +64,9 @@ describe("SingleVariableStringTemplateNode", () => {
         template: "Hello ${variable}!",
         variable: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -77,6 +86,9 @@ describe("SingleVariableStringTemplateNode", () => {
       inputs: {
         template: "Hello ${variable}, how are you ${variable}?",
         variable: "John",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

@@ -20,6 +20,9 @@ describe("MultiVariableStringTemplateNode", () => {
           age: "30",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -44,6 +47,9 @@ describe("MultiVariableStringTemplateNode", () => {
           age: "30",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -63,6 +69,9 @@ describe("MultiVariableStringTemplateNode", () => {
       inputs: {
         template: "Hello ${name}!",
         variables: {},
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -85,6 +94,9 @@ describe("MultiVariableStringTemplateNode", () => {
         variables: {
           name: "John",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

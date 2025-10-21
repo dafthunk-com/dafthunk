@@ -38,6 +38,9 @@ describe("ConditionalForkNode", () => {
     workflowId: "test-workflow-id",
     organizationId: "test-organization-id",
     inputs,
+    getIntegration: async () => {
+      throw new Error("No integrations in test");
+    },
     env: {} as any,
   });
 

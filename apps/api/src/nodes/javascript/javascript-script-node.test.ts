@@ -16,6 +16,9 @@ describe("JavascriptScriptNode", () => {
       inputs: {
         script: "2 + 2",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -40,6 +43,9 @@ describe("JavascriptScriptNode", () => {
           "Script completed"
         `,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -61,6 +67,9 @@ describe("JavascriptScriptNode", () => {
       inputs: {
         script: "args",
         args: ["arg1", "arg2"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -84,6 +93,9 @@ describe("JavascriptScriptNode", () => {
           args.map(x => x.toUpperCase())
         `,
         args: ["hello", "world", "javascript"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -124,6 +136,9 @@ describe("JavascriptScriptNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);

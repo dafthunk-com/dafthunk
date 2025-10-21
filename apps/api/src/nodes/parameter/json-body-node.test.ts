@@ -19,6 +19,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: testData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -41,6 +44,9 @@ describe("JsonBodyNode", () => {
       inputs: {},
       httpRequest: {
         body: testData,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -78,6 +84,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: testData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -100,6 +109,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: testData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -120,6 +132,9 @@ describe("JsonBodyNode", () => {
       inputs: {},
       httpRequest: {
         body: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -142,6 +157,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: undefined,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -163,6 +181,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: undefined,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -181,6 +202,9 @@ describe("JsonBodyNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -199,6 +223,9 @@ describe("JsonBodyNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -271,6 +298,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: testData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -292,6 +322,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: {},
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -312,6 +345,9 @@ describe("JsonBodyNode", () => {
       inputs: {},
       httpRequest: {
         body: [],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -342,6 +378,9 @@ describe("JsonBodyNode", () => {
       httpRequest: {
         body: testData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -368,6 +407,9 @@ describe("JsonBodyNode", () => {
       inputs: {},
       httpRequest: {
         body: testData,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

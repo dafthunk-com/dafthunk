@@ -17,6 +17,9 @@ describe("StringNormalizeNode", () => {
         string: "café",
         form: "NFC",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -37,6 +40,9 @@ describe("StringNormalizeNode", () => {
       inputs: {
         string: "café",
         form: "NFD",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -59,6 +65,9 @@ describe("StringNormalizeNode", () => {
         string: "",
         form: "NFC",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -78,6 +87,9 @@ describe("StringNormalizeNode", () => {
       inputs: {
         string: "Hello World",
         form: "NFC",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

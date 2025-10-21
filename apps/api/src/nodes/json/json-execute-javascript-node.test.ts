@@ -23,6 +23,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -60,6 +63,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -91,6 +97,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -121,6 +130,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -147,6 +159,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json: null,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -166,6 +181,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json: undefined,
         javascript,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -187,6 +205,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -207,6 +228,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript: null,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -226,6 +250,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json,
         javascript: undefined,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -248,6 +275,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -268,6 +298,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json,
         javascript,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -301,6 +334,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -329,6 +365,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -351,6 +390,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json,
         javascript,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -382,6 +424,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -406,6 +451,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json,
         javascript,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -437,6 +485,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json,
         javascript,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -477,6 +528,9 @@ describe("JsonJavascriptProcessorNode", () => {
         json,
         javascript,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -515,6 +569,9 @@ describe("JsonJavascriptProcessorNode", () => {
       inputs: {
         json,
         javascript,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

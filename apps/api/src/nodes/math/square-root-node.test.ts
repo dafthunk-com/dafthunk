@@ -16,6 +16,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: 16,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -34,6 +37,9 @@ describe("SquareRootNode", () => {
       nodeId,
       inputs: {
         value: 0,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: 2.25,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -73,6 +82,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: "25",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -91,6 +103,9 @@ describe("SquareRootNode", () => {
       nodeId,
       inputs: {
         value: -4,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -112,10 +127,32 @@ describe("SquareRootNode", () => {
       inputs: {
         value: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Input must be a number");
+  });
+
+  it("should return error for missing value input", async () => {
+    const nodeId = "square-root";
+    const node = new SquareRootNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'value' is required");
   });
 });

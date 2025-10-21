@@ -19,6 +19,9 @@ describe("CalculatorNode", () => {
       workflowId: "test-workflow",
       executionId: "test-execution",
       organizationId: "test-org",
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       nodeRegistry: null,
       toolRegistry: null,

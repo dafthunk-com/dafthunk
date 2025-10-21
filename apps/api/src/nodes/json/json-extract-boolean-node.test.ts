@@ -22,6 +22,9 @@ describe("JsonExtractBooleanNode", () => {
         json,
         path: "$.active",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -54,6 +57,9 @@ describe("JsonExtractBooleanNode", () => {
         json,
         path: "$.user.profile.settings.notifications",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -80,6 +86,9 @@ describe("JsonExtractBooleanNode", () => {
       inputs: {
         json,
         path: "$.settings.enabled",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -109,6 +118,9 @@ describe("JsonExtractBooleanNode", () => {
         json,
         path: "$.flags[1].enabled",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -135,6 +147,9 @@ describe("JsonExtractBooleanNode", () => {
         path: "$.active",
         defaultValue: true,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -159,6 +174,9 @@ describe("JsonExtractBooleanNode", () => {
       inputs: {
         json,
         path: "$.active",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -189,6 +207,9 @@ describe("JsonExtractBooleanNode", () => {
         json,
         path: "$.items[*].value",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -210,6 +231,9 @@ describe("JsonExtractBooleanNode", () => {
         json: null,
         path: "$.active",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -228,6 +252,9 @@ describe("JsonExtractBooleanNode", () => {
       inputs: {
         json: "not an object",
         path: "$.active",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -249,6 +276,9 @@ describe("JsonExtractBooleanNode", () => {
         json,
         path: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -268,6 +298,9 @@ describe("JsonExtractBooleanNode", () => {
       inputs: {
         json,
         path: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -293,6 +326,9 @@ describe("JsonExtractBooleanNode", () => {
       inputs: {
         json,
         path: "$.active",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -343,6 +379,9 @@ describe("JsonExtractBooleanNode", () => {
         json,
         path: "$.data.users[0].profile.settings.emailVerified",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -364,6 +403,9 @@ describe("JsonExtractBooleanNode", () => {
       inputs: {
         json,
         path: "$.active",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

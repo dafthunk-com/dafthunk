@@ -124,7 +124,7 @@ export class NodeInputMapper {
       const { name, type, required } = definition;
       const value = inputValues[name];
 
-      if (required && value === undefined) {
+      if (required && (value === undefined || value === null)) {
         throw new Error(
           `Required input '${name}' missing for node ${nodeIdentifier}`
         );

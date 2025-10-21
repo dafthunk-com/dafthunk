@@ -26,6 +26,35 @@ export class NodeExecutor {
   ) {}
 
   /**
+   * Determines the final workflow status based on execution state
+   */
+  private determineWorkflowStatus(runtimeState: RuntimeState): void {
+    const allNodesVisited = runtimeState.executionPlan.every((unit) =>
+      unit.type === "individual"
+        ? runtimeState.executedNodes.has(unit.nodeId) ||
+          runtimeState.skippedNodes.has(unit.nodeId) ||
+          runtimeState.nodeErrors.has(unit.nodeId)
+        : unit.type === "inline"
+          ? unit.nodeIds.every(
+              (id: string) =>
+                runtimeState.executedNodes.has(id) ||
+                runtimeState.skippedNodes.has(id) ||
+                runtimeState.nodeErrors.has(id)
+            )
+          : false
+    );
+
+    if (allNodesVisited) {
+      // If all nodes are visited, set final status based on whether there were errors
+      runtimeState.status =
+        runtimeState.nodeErrors.size === 0 ? "completed" : "error";
+    } else {
+      // Still executing
+      runtimeState.status = "executing";
+    }
+  }
+
+  /**
    * Executes a group of inlinable nodes sequentially in a single step.
    */
   async executeInlineGroup(
@@ -91,10 +120,7 @@ export class NodeExecutor {
         // Handle errors at the group level
         const message = error instanceof Error ? error.message : String(error);
         currentState.nodeErrors.set(nodeId, message);
-        currentState.status = "error";
-        console.log(
-          `Fatal error in node ${nodeId} within inline group: ${message}`
-        );
+        console.log(`Error in node ${nodeId} within inline group: ${message}`);
         break;
       }
     }
@@ -185,9 +211,31 @@ export class NodeExecutor {
         emailMessage,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
-        secrets: secrets || {},
-        integrations: integrations || {},
-        integrationManager: this.integrationManager,
+        // Callback-based access to secrets (lazy, secure)
+        getSecret: async (secretName: string) => {
+          return secrets?.[secretName];
+        },
+        // Callback-based access to integrations (lazy, auto-refreshing)
+        getIntegration: async (integrationId: string) => {
+          const integration = integrations?.[integrationId];
+          if (!integration) {
+            throw new Error(
+              `Integration '${integrationId}' not found or access denied. Please check your integration settings.`
+            );
+          }
+
+          // Automatically refresh token if needed
+          const token =
+            await this.integrationManager.getValidAccessToken(integrationId);
+
+          return {
+            id: integration.id,
+            name: integration.name,
+            provider: integration.provider,
+            token,
+            metadata: integration.metadata,
+          };
+        },
         env: {
           DB: this.env.DB,
           AI: this.env.AI,
@@ -244,65 +292,21 @@ export class NodeExecutor {
       } else {
         const failureMessage = result.error ?? "Unknown error";
         runtimeState.nodeErrors.set(nodeIdentifier, failureMessage);
-        runtimeState.status = "error";
+        // Don't set workflow status to "error" - let the workflow continue
+        // The workflow will be marked as having errors at the end if any nodes failed
       }
 
-      // Determine final workflow status.
-      if (runtimeState.status !== "error") {
-        const allNodesVisited = runtimeState.executionPlan.every((unit) =>
-          unit.type === "individual"
-            ? runtimeState.executedNodes.has(unit.nodeId) ||
-              runtimeState.skippedNodes.has(unit.nodeId) ||
-              runtimeState.nodeErrors.has(unit.nodeId)
-            : unit.type === "inline"
-              ? unit.nodeIds.every(
-                  (id: string) =>
-                    runtimeState.executedNodes.has(id) ||
-                    runtimeState.skippedNodes.has(id) ||
-                    runtimeState.nodeErrors.has(id)
-                )
-              : false
-        );
-        runtimeState.status =
-          allNodesVisited && runtimeState.nodeErrors.size === 0
-            ? "completed"
-            : "executing";
-      }
+      // Determine final workflow status
+      this.determineWorkflowStatus(runtimeState);
 
       return runtimeState;
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.startsWith("Required input")
-      ) {
-        runtimeState.skippedNodes.add(nodeIdentifier);
-
-        // Determine final workflow status.
-        if (runtimeState.status !== "error") {
-          const allNodesVisited = runtimeState.executionPlan.every((unit) =>
-            unit.type === "individual"
-              ? runtimeState.executedNodes.has(unit.nodeId) ||
-                runtimeState.skippedNodes.has(unit.nodeId) ||
-                runtimeState.nodeErrors.has(unit.nodeId)
-              : unit.type === "inline"
-                ? unit.nodeIds.every(
-                    (id: string) =>
-                      runtimeState.executedNodes.has(id) ||
-                      runtimeState.skippedNodes.has(id) ||
-                      runtimeState.nodeErrors.has(id)
-                  )
-                : false
-          );
-          runtimeState.status =
-            allNodesVisited && runtimeState.nodeErrors.size === 0
-              ? "completed"
-              : "executing";
-        }
-        return runtimeState;
-      }
       const message = error instanceof Error ? error.message : String(error);
       runtimeState.nodeErrors.set(nodeIdentifier, message);
-      runtimeState.status = "error";
+
+      // Determine final workflow status
+      this.determineWorkflowStatus(runtimeState);
+
       return runtimeState;
     }
   }

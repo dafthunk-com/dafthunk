@@ -16,6 +16,9 @@ describe("ToJsonNode", () => {
       inputs: {
         value: 123,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -36,6 +39,9 @@ describe("ToJsonNode", () => {
       inputs: {
         value: true,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("ToJsonNode", () => {
       nodeId,
       inputs: {
         value: "Hello World",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -74,6 +83,9 @@ describe("ToJsonNode", () => {
       inputs: {
         value: [1, 2, 3, "test"],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -92,6 +104,9 @@ describe("ToJsonNode", () => {
       nodeId,
       inputs: {
         value: { name: "John", age: 30, active: true },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -114,6 +129,9 @@ describe("ToJsonNode", () => {
       inputs: {
         value: null,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -133,6 +151,9 @@ describe("ToJsonNode", () => {
       inputs: {
         value: { name: "John", age: 30 },
         prettyPrint: true,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -160,6 +181,9 @@ describe("ToJsonNode", () => {
           },
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -179,6 +203,9 @@ describe("ToJsonNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -201,6 +228,9 @@ describe("ToJsonNode", () => {
       nodeId,
       inputs: {
         value: obj,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -225,6 +255,9 @@ describe("ToJsonNode", () => {
             return "hello";
           },
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

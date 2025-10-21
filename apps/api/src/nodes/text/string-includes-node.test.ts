@@ -17,6 +17,9 @@ describe("StringIncludesNode", () => {
         haystack: "Hello World",
         needle: "World",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -38,6 +41,9 @@ describe("StringIncludesNode", () => {
         haystack: "Hello World",
         needle: "Test",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -58,6 +64,9 @@ describe("StringIncludesNode", () => {
         haystack: "Hello World",
         needle: "world",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -77,6 +86,9 @@ describe("StringIncludesNode", () => {
       inputs: {
         haystack: "Hello World",
         needle: "",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

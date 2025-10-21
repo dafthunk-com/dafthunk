@@ -20,6 +20,9 @@ describe("PhotonAlterRGBChannelsNode", () => {
         greenAmount: -5,
         blueAmount: 15,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -41,6 +44,9 @@ describe("PhotonAlterRGBChannelsNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

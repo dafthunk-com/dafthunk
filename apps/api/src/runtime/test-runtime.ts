@@ -2,6 +2,7 @@ import { env } from "cloudflare:test";
 
 import type { Bindings } from "../context";
 import { TestNodeRegistry } from "../nodes/test-node-registry";
+import type { NodeContext } from "../nodes/types";
 
 /**
  * Initialize the test environment with a minimal NodeRegistry
@@ -43,4 +44,30 @@ export function getTestNodeRegistry() {
   // For backward compatibility, we'll create a new instance each time
   // In a real implementation, you might want to store this in a module-level variable
   return new TestNodeRegistry(env as Bindings, true);
+}
+
+/**
+ * Create a mock NodeContext for testing.
+ * Provides required fields including callbacks for secrets and integrations.
+ *
+ * Note: Not exported from module - import directly from test-runtime.ts if needed.
+ * Currently unused as tests create contexts inline.
+ */
+function _createMockContext(overrides: Partial<NodeContext> = {}): NodeContext {
+  return {
+    nodeId: "test-node",
+    workflowId: "test-workflow",
+    organizationId: "test-org",
+    inputs: {},
+    getSecret: async (secretName: string) => {
+      throw new Error(`Secret '${secretName}' not configured in test context`);
+    },
+    getIntegration: async (integrationId: string) => {
+      throw new Error(
+        `Integration '${integrationId}' not configured in test context`
+      );
+    },
+    env: env as any,
+    ...overrides,
+  };
 }

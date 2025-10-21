@@ -17,6 +17,9 @@ describe("RegexMatchNode", () => {
         string: "Hello 123 World",
         pattern: "\\d+",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -38,6 +41,9 @@ describe("RegexMatchNode", () => {
         string: "Hello World",
         pattern: "\\d+",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -58,6 +64,9 @@ describe("RegexMatchNode", () => {
         string: "Hello World",
         pattern: "hello",
         flags: "i",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

@@ -16,6 +16,9 @@ describe("TextAreaNode", () => {
       inputs: {
         value: "Hello World\nThis is a multi-line text.",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -38,6 +41,9 @@ describe("TextAreaNode", () => {
       inputs: {
         value: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -55,6 +61,9 @@ describe("TextAreaNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("TextAreaNode", () => {
       nodeId,
       inputs: {
         value: multiLineText,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

@@ -16,6 +16,9 @@ describe("AbsoluteValueNode", () => {
       inputs: {
         value: 5,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -34,6 +37,9 @@ describe("AbsoluteValueNode", () => {
       nodeId,
       inputs: {
         value: -7,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("AbsoluteValueNode", () => {
       inputs: {
         value: 0,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -72,6 +81,9 @@ describe("AbsoluteValueNode", () => {
       nodeId,
       inputs: {
         value: "-3.5",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -92,10 +104,32 @@ describe("AbsoluteValueNode", () => {
       inputs: {
         value: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
     expect(result.status).toBe("error");
     expect(result.error).toBe("Input must be a number");
+  });
+
+  it("should return error for missing value input", async () => {
+    const nodeId = "absolute-value";
+    const node = new AbsoluteValueNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'value' is required");
   });
 });

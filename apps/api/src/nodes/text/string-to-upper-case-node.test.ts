@@ -16,6 +16,9 @@ describe("StringToUpperCaseNode", () => {
       inputs: {
         string: "Hello World",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -36,6 +39,9 @@ describe("StringToUpperCaseNode", () => {
       inputs: {
         string: "HELLO WORLD",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("StringToUpperCaseNode", () => {
       nodeId,
       inputs: {
         string: "",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

@@ -19,6 +19,9 @@ describe("RegexReplaceNode", () => {
         replacement: "XXX",
         flags: "g",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -42,6 +45,9 @@ describe("RegexReplaceNode", () => {
         replacement: "WORLD",
         flags: "gi",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -63,6 +69,9 @@ describe("RegexReplaceNode", () => {
         pattern: "\\d+",
         replacement: "XXX",
         flags: "g",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

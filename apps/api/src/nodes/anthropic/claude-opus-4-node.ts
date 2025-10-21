@@ -60,9 +60,13 @@ export class ClaudeOpus4Node extends ExecutableNode {
       let anthropicApiKey: string | undefined;
 
       if (integrationId && typeof integrationId === "string") {
-        const integration = context.integrations?.[integrationId];
-        if (integration?.provider === "anthropic") {
-          anthropicApiKey = integration.token;
+        try {
+          const integration = await context.getIntegration(integrationId);
+          if (integration.provider === "anthropic") {
+            anthropicApiKey = integration.token;
+          }
+        } catch {
+          // Integration not found, will fall back to env vars or error below
         }
       }
 

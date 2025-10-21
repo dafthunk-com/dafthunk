@@ -25,6 +25,9 @@ describe("GeoTiffMetadataReaderNode", () => {
         workflowId: "test-workflow",
         organizationId: "test-org",
         inputs: {},
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 
@@ -38,6 +41,9 @@ describe("GeoTiffMetadataReaderNode", () => {
         workflowId: "test-workflow",
         organizationId: "test-org",
         inputs: { url: 123 },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 
@@ -51,6 +57,9 @@ describe("GeoTiffMetadataReaderNode", () => {
         workflowId: "test-workflow",
         organizationId: "test-org",
         inputs: { url: "not-a-valid-url" },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 
@@ -67,6 +76,9 @@ describe("GeoTiffMetadataReaderNode", () => {
         workflowId: "test-workflow",
         organizationId: "test-org",
         inputs: { url: "https://example.com/test.tif" },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 
@@ -102,6 +114,9 @@ describe("GeoTiffMetadataReaderNode", () => {
         workflowId: "test-workflow",
         organizationId: "test-org",
         inputs: { url: "https://example.com/test.tif" },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 

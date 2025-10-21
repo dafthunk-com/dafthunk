@@ -22,6 +22,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.age",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -54,6 +57,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.user.profile.stats.height",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -81,6 +87,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.settings.count",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -105,6 +114,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json,
         path: "$.balance",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -134,6 +146,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.scores[1].score",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -160,6 +175,9 @@ describe("JsonExtractNumberNode", () => {
         path: "$.score",
         defaultValue: 100,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -184,6 +202,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json,
         path: "$.score",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -214,6 +235,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.items[*].value",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -235,6 +259,9 @@ describe("JsonExtractNumberNode", () => {
         json: null,
         path: "$.age",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -253,6 +280,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json: "not an object",
         path: "$.age",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -274,6 +304,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -293,6 +326,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json,
         path: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -319,6 +355,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.age",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -342,6 +381,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json,
         path: "$.values[2]",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -392,6 +434,9 @@ describe("JsonExtractNumberNode", () => {
         json,
         path: "$.data.users[0].profile.stats.engagement",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -413,6 +458,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json,
         path: "$.age",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -437,6 +485,9 @@ describe("JsonExtractNumberNode", () => {
       inputs: {
         json,
         path: "$.values[2]",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

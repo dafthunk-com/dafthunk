@@ -19,6 +19,9 @@ describe("PhotonBlendImagesNode", () => {
         blendMode: "overlay",
         baseImage: testImageData,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -40,6 +43,9 @@ describe("PhotonBlendImagesNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
