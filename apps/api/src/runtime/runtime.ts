@@ -208,6 +208,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   /**
    * The main entrypoint called by the Workflows engine.
+   *
+   * Error handling strategy:
+   * - Workflow-level errors (validation, cycles) → throw NonRetryableError
+   * - Node execution failures → stored in nodeErrors, workflow continues
+   * - Exceptions during node execution → caught, workflow status set to "error"
+   * - All errors transmitted to client via sendExecutionUpdateToSession callbacks
    */
   async run(event: WorkflowEvent<RuntimeParams>, step: WorkflowStep) {
     const {
