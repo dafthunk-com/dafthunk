@@ -11,7 +11,7 @@ export class UnionNode extends ExecutableNode {
     type: "union",
     description:
       "Takes a collection of input polygons and returns a combined polygon. If the input polygons are not contiguous, this function returns a multi-polygon feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Union"],
     icon: "circle-plus",
     documentation:
       "This node combines multiple polygon features into a single unified geometry using the union operation.",

@@ -14,7 +14,7 @@ export class CloudflareBrowserScrapeNode extends ExecutableNode {
     type: "cloudflare-browser-scrape",
     description:
       "Scrape elements from a rendered page using Cloudflare Browser Rendering.",
-    tags: ["Browser"],
+    tags: ["Browser", "Web", "Cloudflare", "Scrape"],
     icon: "search",
     documentation:
       "This node scrapes elements from a rendered page using Cloudflare Browser Rendering.",

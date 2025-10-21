@@ -13,7 +13,7 @@ export class ToJsonNode extends ExecutableNode {
     name: "To JSON",
     type: "to-json",
     description: "Converts any input value to its JSON representation",
-    tags: ["Text"],
+    tags: ["Data", "Convert", "JSON"],
     icon: "code",
     documentation:
       "This node converts any input value to its JSON representation.",

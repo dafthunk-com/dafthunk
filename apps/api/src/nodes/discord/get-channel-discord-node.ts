@@ -12,7 +12,7 @@ export class GetChannelDiscordNode extends ExecutableNode {
     name: "Get Channel (Discord)",
     type: "get-channel-discord",
     description: "Get information about a Discord channel",
-    tags: ["Discord"],
+    tags: ["Social", "Discord", "Channel", "Get"],
     icon: "hash",
     documentation:
       "This node retrieves detailed information about a Discord channel. Requires a connected Discord integration.",

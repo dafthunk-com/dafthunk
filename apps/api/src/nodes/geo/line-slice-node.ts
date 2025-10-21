@@ -11,7 +11,7 @@ export class LineSliceNode extends ExecutableNode {
     type: "line-slice",
     description:
       "Takes a line, a start Point, and a stop point and returns a subsection of the line in-between those points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "LineSlice"],
     icon: "scissors",
     documentation:
       "This node extracts a portion of a LineString between two specified points.",

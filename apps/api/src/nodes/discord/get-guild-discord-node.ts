@@ -12,7 +12,7 @@ export class GetGuildDiscordNode extends ExecutableNode {
     name: "Get Guild (Discord)",
     type: "get-guild-discord",
     description: "Get information about a Discord guild (server)",
-    tags: ["Discord"],
+    tags: ["Social", "Discord", "Guild", "Get"],
     icon: "server",
     documentation:
       "This node retrieves detailed information about a Discord guild. Requires a connected Discord integration with guilds scope.",

@@ -12,7 +12,7 @@ export class SubmitPostRedditNode extends ExecutableNode {
     name: "Submit Post (Reddit)",
     type: "submit-post-reddit",
     description: "Submit a new post to a subreddit",
-    tags: ["Reddit"],
+    tags: ["Social", "Reddit", "Post", "Submit"],
     icon: "send",
     documentation:
       "This node submits a new post to a specified subreddit. Supports both text posts and link posts. Requires a connected Reddit integration.",

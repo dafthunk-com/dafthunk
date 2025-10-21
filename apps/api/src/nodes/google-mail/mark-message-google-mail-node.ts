@@ -12,7 +12,7 @@ export class MarkMessageGoogleMailNode extends ExecutableNode {
     name: "Mark Message (Google Mail)",
     type: "mark-message-google-mail",
     description: "Mark a message as read or unread using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Mark"],
     icon: "mail",
     documentation:
       "This node marks a message as read or unread using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

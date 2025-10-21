@@ -11,7 +11,7 @@ export class CenterMedianNode extends ExecutableNode {
     type: "center-median",
     description:
       "Takes a Feature or FeatureCollection and returns the median center, using the median of the vertices of each feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "CenterMedian"],
     icon: "align-center",
     documentation:
       "This node calculates the median center of a feature or feature collection by finding the median of all vertex coordinates.",

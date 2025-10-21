@@ -12,7 +12,7 @@ export class SharePostLinkedInNode extends ExecutableNode {
     name: "Share Post (LinkedIn)",
     type: "share-post-linkedin",
     description: "Share a post to your LinkedIn profile",
-    tags: ["LinkedIn"],
+    tags: ["Social", "LinkedIn", "Post", "Share"],
     icon: "send",
     documentation:
       "This node shares a post to your LinkedIn profile. Supports text content and optional URLs. Requires a connected LinkedIn integration.",

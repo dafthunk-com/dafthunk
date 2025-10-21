@@ -11,7 +11,7 @@ export class GeometryCollectionNode extends ExecutableNode {
     type: "geometry-collection",
     description:
       "Creates a Feature<GeometryCollection> based on a coordinate array. Properties can be added optionally.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "GeometryCollection"],
     icon: "layers",
     documentation:
       "This node creates a GeometryCollection GeoJSON feature from an array of different geometry types.",

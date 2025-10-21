@@ -12,7 +12,7 @@ export class TrashMessageGoogleMailNode extends ExecutableNode {
     name: "Trash Message (Google Mail)",
     type: "trash-message-google-mail",
     description: "Move a message to trash using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Trash"],
     icon: "mail",
     documentation:
       "This node moves a message to trash using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

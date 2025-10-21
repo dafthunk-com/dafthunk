@@ -12,7 +12,7 @@ export class ArchiveMessageGoogleMailNode extends ExecutableNode {
     name: "Archive Message (Google Mail)",
     type: "archive-message-google-mail",
     description: "Archive a message (remove from inbox) using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Archive"],
     icon: "mail",
     documentation:
       "This node archives a message by removing the INBOX label using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

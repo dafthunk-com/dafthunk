@@ -11,7 +11,7 @@ export class LineIntersectNode extends ExecutableNode {
     type: "line-intersect",
     description:
       "Takes any LineString or Polygon GeoJSON and returns the intersecting point(s).",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "LineIntersect"],
     icon: "cross",
     documentation:
       "This node finds the intersection points between two LineString or Polygon geometries.",

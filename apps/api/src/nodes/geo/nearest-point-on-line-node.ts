@@ -11,7 +11,7 @@ export class NearestPointOnLineNode extends ExecutableNode {
     name: "Nearest Point On Line",
     type: "nearest-point-on-line",
     description: "Returns the nearest point on a line to a given point.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "NearestPointOnLine"],
     icon: "map-pin",
     documentation:
       "This node finds the nearest point on a line to a given point.",

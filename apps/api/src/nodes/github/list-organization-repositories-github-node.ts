@@ -12,7 +12,7 @@ export class ListOrganizationRepositoriesGithubNode extends ExecutableNode {
     name: "List Organization Repositories (GitHub)",
     type: "list-organization-repositories-github",
     description: "List repositories for a GitHub organization",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "Repository", "List"],
     icon: "building",
     documentation:
       "This node lists all repositories for a specific GitHub organization. Can filter by type (all, public, private, etc.) and sort by various criteria. Requires a connected GitHub integration.",

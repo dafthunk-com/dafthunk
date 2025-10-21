@@ -12,7 +12,7 @@ export class SubtractionNode extends ExecutableNode {
     name: "Subtraction",
     type: "subtraction",
     description: "Subtracts one number from another",
-    tags: ["Math"],
+    tags: ["Math", "Subtraction"],
     icon: "minus",
     documentation:
       "This node subtracts one number from another to produce their difference.",

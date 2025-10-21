@@ -32,7 +32,7 @@ export class GetMessageGoogleMailNode extends ExecutableNode {
     name: "Get Message (Google Mail)",
     type: "get-message-google-mail",
     description: "Get a specific message by ID using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Get"],
     icon: "mail",
     documentation:
       "This node retrieves a specific message by ID using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

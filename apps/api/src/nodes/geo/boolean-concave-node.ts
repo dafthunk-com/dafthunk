@@ -11,7 +11,7 @@ export class BooleanConcaveNode extends ExecutableNode {
     type: "boolean-concave",
     description:
       "Takes a polygon and returns true or false as to whether it is concave or not.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "Concave"],
     icon: "square",
     documentation:
       "This node determines whether a polygon is concave (has inward angles) or convex (all angles are outward).",

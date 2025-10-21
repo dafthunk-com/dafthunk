@@ -13,7 +13,7 @@ export class ModuloNode extends ExecutableNode {
     type: "modulo",
     description:
       "Calculates the remainder when one number is divided by another",
-    tags: ["Math"],
+    tags: ["Math", "Modulo"],
     icon: "percent",
     documentation:
       "This node calculates the remainder when one number is divided by another.",

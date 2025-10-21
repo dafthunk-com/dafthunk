@@ -11,7 +11,7 @@ export class AlongNode extends ExecutableNode {
     type: "along",
     description:
       "Takes a LineString and returns a Point at a specified distance along the line.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "Along"],
     icon: "map-pin",
     documentation:
       "This node finds a point at a specified distance along a LineString geometry.",

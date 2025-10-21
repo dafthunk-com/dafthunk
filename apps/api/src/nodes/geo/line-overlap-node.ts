@@ -11,7 +11,7 @@ export class LineOverlapNode extends ExecutableNode {
     type: "line-overlap",
     description:
       "Takes any LineString or Polygon and returns the overlapping lines between both features.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "LineOverlap"],
     icon: "layers",
     documentation:
       "This node finds overlapping line segments between two LineString or Polygon geometries.",

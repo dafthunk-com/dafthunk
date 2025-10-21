@@ -11,7 +11,7 @@ export class AngleNode extends ExecutableNode {
     type: "angle",
     description:
       "Calculates the angle between three points, with the middle point as the vertex.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Angle"],
     icon: "triangle",
     documentation:
       "This node calculates the angle between three points, with the middle point serving as the vertex.",

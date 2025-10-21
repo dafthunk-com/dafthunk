@@ -13,7 +13,7 @@ export class Resnet50Node extends ExecutableNode {
     type: "resnet-50",
     description:
       "Classifies images using the ResNet-50 model trained on ImageNet",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Cloudflare", "Classification"],
     icon: "image",
     documentation:
       "This node classifies images using the ResNet-50 model trained on ImageNet dataset.",

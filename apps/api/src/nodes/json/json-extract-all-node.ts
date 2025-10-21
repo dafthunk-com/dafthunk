@@ -9,7 +9,7 @@ export class JsonExtractAllNode extends ExecutableNode {
     name: "JSON Extract All",
     type: "json-extract-all",
     description: "Extract all values matching a JSON path (not just first)",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Extract"],
     icon: "list",
     documentation:
       "This node extracts all values matching a JSON path (not just the first match).",

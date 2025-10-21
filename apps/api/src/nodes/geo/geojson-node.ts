@@ -10,7 +10,7 @@ export class GeoJsonNode extends ExecutableNode {
     name: "GeoJSON",
     type: "geojson",
     description: "Parse any valid GeoJSON object from JSON input.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON"],
     icon: "map",
     documentation:
       "This node parses and validates GeoJSON objects from JSON input.",

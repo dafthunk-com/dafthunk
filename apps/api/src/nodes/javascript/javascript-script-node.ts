@@ -10,7 +10,7 @@ export class JavascriptScriptNode extends ExecutableNode {
     type: "javascript-script",
     description:
       "Executes a JavaScript script similar to running a Node.js script from command line. Provides arguments as a global 'args' array and console output capture.",
-    tags: ["JavaScript", "Script"],
+    tags: ["Code", "JavaScript", "Execute"],
     icon: "terminal",
     documentation:
       "This node executes a JavaScript script similar to running a Node.js script from command line. Provides arguments as a global 'args' array and console output capture.",

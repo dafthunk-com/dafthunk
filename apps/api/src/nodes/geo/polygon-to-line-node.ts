@@ -11,7 +11,7 @@ export class PolygonToLineNode extends ExecutableNode {
     type: "polygon-to-line",
     description:
       "Converts a Polygon or MultiPolygon to a LineString or MultiLineString.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "PolygonToLine"],
     icon: "route",
     documentation:
       "This node converts a polygon geometry to its boundary line.",

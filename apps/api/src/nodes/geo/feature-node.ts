@@ -10,7 +10,7 @@ export class FeatureNode extends ExecutableNode {
     name: "Feature",
     type: "feature",
     description: "Wraps a GeoJSON geometry in a GeoJSON Feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Feature"],
     icon: "map-pin",
     documentation:
       "This node wraps a GeoJSON geometry in a GeoJSON Feature with optional properties and ID.",

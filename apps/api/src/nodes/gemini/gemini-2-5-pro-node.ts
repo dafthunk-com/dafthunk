@@ -15,7 +15,7 @@ export class Gemini25ProNode extends ExecutableNode {
     name: "Gemini 2.5 Pro",
     type: "gemini-2-5-pro",
     description: "Most capable model for complex reasoning and creative tasks",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Chat", "Google", "Gemini"],
     icon: "sparkles",
     documentation:
       "This node uses Google's Gemini 2.5 Pro model, the most capable model for complex reasoning and creative tasks.",

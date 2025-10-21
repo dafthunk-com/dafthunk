@@ -14,7 +14,7 @@ export class ClaudeOpus41Node extends ExecutableNode {
     name: "Claude Opus 4.1",
     type: "claude-opus-41",
     description: "Most advanced Claude model with latest capabilities",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Chat", "Anthropic", "Claude", "Opus"],
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude Opus 4.1 model, the most advanced Claude model with latest capabilities.",

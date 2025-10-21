@@ -11,7 +11,7 @@ export class RhumbBearingNode extends ExecutableNode {
     type: "rhumbBearing",
     description:
       "Calculates the rhumb line bearing (constant bearing) between two points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "RhumbBearing"],
     icon: "navigation",
     documentation:
       "This node calculates the rhumb line bearing (constant bearing) between two points on Earth's surface.",

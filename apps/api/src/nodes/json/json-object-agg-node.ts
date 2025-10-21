@@ -13,7 +13,7 @@ export class JsonObjectAggNode extends ExecutableNode {
     name: "JSON Object Aggregate",
     type: "json-object-agg",
     description: "Aggregates key-value pairs into a JSON object",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Aggregate", "Object"],
     icon: "hash",
     documentation:
       "This node aggregates key-value pairs into a JSON object, similar to SQLite/PostgreSQL's json_object_agg function.",

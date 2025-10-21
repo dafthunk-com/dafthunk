@@ -13,7 +13,7 @@ export class StableDiffusionXLLightningNode extends ExecutableNode {
     type: "stable-diffusion-xl-lightning",
     description:
       "Generates images from text descriptions using Stable Diffusion XL Lightning",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Cloudflare", "StableDiffusion", "Generate"],
     icon: "wand",
     documentation:
       "This node generates images rapidly from text descriptions using Stable Diffusion XL Lightning model for fast image generation.",

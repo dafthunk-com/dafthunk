@@ -11,7 +11,7 @@ export class M2m10012bNode extends ExecutableNode {
     name: "M2M100 1.2B",
     type: "m2m100-1-2b",
     description: "Translates text between languages using M2M100 1.2B model",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Text", "Cloudflare", "Translate"],
     icon: "sparkles",
     documentation:
       "This node translates text between languages using Meta's M2M100 1.2B model.",

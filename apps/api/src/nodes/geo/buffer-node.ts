@@ -11,7 +11,7 @@ export class BufferNode extends ExecutableNode {
     type: "buffer",
     description:
       "Calculates a buffer for input features for a given radius. Units supported are miles, kilometers, and degrees.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Buffer"],
     icon: "circle",
     documentation:
       "This node creates a buffer zone around a geometry by expanding it outward (or inward with negative radius) by a specified distance.",

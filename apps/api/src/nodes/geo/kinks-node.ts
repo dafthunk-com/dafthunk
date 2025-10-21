@@ -11,7 +11,7 @@ export class KinksNode extends ExecutableNode {
     type: "kinks",
     description:
       "Takes a LineString or Polygon and returns the points at all self-intersections.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "Kinks"],
     icon: "zap",
     documentation:
       "This node finds self-intersection points (kinks) in LineString or Polygon geometries.",

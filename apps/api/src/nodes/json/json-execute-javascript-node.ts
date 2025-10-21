@@ -10,7 +10,7 @@ export class JsonExecuteJavascriptNode extends ExecutableNode {
     type: "json-execute-javascript",
     description:
       "Executes a JavaScript script with a JSON object as input. The input JSON is available as a global variable 'json'. The result of the last expression is returned.",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Execute", "JavaScript"],
     icon: "code",
     documentation:
       "This node executes JavaScript code with a JSON object as input, allowing you to transform and manipulate JSON data programmatically.",

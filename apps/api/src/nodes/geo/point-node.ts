@@ -11,7 +11,7 @@ export class PointNode extends ExecutableNode {
     type: "point",
     description:
       "Creates a Point feature from x, y coordinates with optional z.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Point"],
     icon: "map-pin",
     documentation:
       "This node creates a Point feature from x, y coordinates with optional z elevation.",

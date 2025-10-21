@@ -12,7 +12,7 @@ export class AreaNode extends ExecutableNode {
     type: "area",
     description:
       "Calculates the area of polygons or feature collections in square meters.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Area"],
     icon: "square",
     documentation:
       "This node calculates the area of polygons or feature collections in square meters.",

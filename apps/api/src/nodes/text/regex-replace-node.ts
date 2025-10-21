@@ -10,7 +10,7 @@ export class RegexReplaceNode extends ExecutableNode {
     type: "regex-replace",
     description:
       "Replace all matches of a regular expression pattern in a string.",
-    tags: ["Text"],
+    tags: ["Text", "Regex", "Replace"],
     icon: "pencil",
     documentation:
       "This node replaces all matches of a regular expression pattern in a string.",

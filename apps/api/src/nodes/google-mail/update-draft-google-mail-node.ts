@@ -12,7 +12,7 @@ export class UpdateDraftGoogleMailNode extends ExecutableNode {
     name: "Update Draft (Google Mail)",
     type: "update-draft-google-mail",
     description: "Update an existing draft using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Draft", "Update"],
     icon: "mail",
     documentation:
       "This node updates an existing draft using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

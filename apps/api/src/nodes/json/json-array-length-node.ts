@@ -9,7 +9,7 @@ export class JsonArrayLengthNode extends ExecutableNode {
     name: "JSON Array Length",
     type: "json-array-length",
     description: "Get the length of a JSON array",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Array", "Length"],
     icon: "hash",
     documentation: "This node gets the length of a JSON array.",
     inlinable: true,

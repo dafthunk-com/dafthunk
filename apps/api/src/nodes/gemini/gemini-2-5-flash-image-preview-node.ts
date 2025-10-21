@@ -14,7 +14,7 @@ export class Gemini25FlashImagePreviewNode extends ExecutableNode {
     name: "Gemini 2.5 Flash Image Preview",
     type: "gemini-2-5-flash-image-preview",
     description: "Generates images from text prompts and optional input images",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Google", "Gemini", "Preview"],
     icon: "image",
     documentation:
       "This node uses Google's Gemini 2.5 Flash Image Preview model to generate images from text prompts and optional input images.",

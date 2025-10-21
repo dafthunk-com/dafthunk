@@ -9,7 +9,7 @@ export class StringNormalizeNode extends ExecutableNode {
     name: "Normalize",
     type: "string-normalize",
     description: "Normalize a string using the Unicode Normalization forms",
-    tags: ["Text"],
+    tags: ["Text", "Transform", "Normalize"],
     icon: "text",
     documentation:
       "This node normalizes a string using Unicode Normalization Form C (NFC), which combines characters and diacritical marks into their canonical form.",

@@ -11,7 +11,7 @@ export class LineStringNode extends ExecutableNode {
     type: "lineString",
     description:
       "Creates a LineString feature from an array of coordinate pairs.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "LineString"],
     icon: "route",
     documentation:
       "This node creates a LineString feature from an array of coordinate pairs.",

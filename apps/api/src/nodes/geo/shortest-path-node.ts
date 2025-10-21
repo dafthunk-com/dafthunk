@@ -12,7 +12,7 @@ export class ShortestPathNode extends ExecutableNode {
     type: "shortest-path",
     description:
       "Returns the shortest path from start to end without colliding with any Feature in obstacles FeatureCollection<Polygon>",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "ShortestPath"],
     icon: "route",
     documentation:
       "This node calculates the shortest path between two points while avoiding specified obstacle polygons.",

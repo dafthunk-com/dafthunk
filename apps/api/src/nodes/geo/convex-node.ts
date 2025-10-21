@@ -11,7 +11,7 @@ export class ConvexNode extends ExecutableNode {
     type: "convex",
     description:
       "Creates a convex hull polygon that encompasses all input points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Convex"],
     icon: "hexagon",
     documentation:
       "This node creates a convex hull polygon that encompasses all input points with the smallest possible convex area.",

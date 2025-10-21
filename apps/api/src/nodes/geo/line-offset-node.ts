@@ -11,7 +11,7 @@ export class LineOffsetNode extends ExecutableNode {
     type: "line-offset",
     description:
       "Takes a line and returns a line at offset by the specified distance.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "LineOffset"],
     icon: "move",
     documentation:
       "This node creates a parallel line at a specified distance from the input line.",

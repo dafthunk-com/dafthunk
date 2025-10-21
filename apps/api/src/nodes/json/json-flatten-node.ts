@@ -10,7 +10,7 @@ export class JsonFlattenNode extends ExecutableNode {
     type: "json-flatten",
     description:
       "Flatten nested JSON structure into a flat object with dot notation",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Transform", "Flatten"],
     icon: "layers",
     documentation:
       "This node flattens nested JSON objects into a single-level object using dot notation for nested keys.",

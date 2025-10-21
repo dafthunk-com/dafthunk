@@ -12,7 +12,7 @@ export class SumNode extends ExecutableNode {
     name: "Sum",
     type: "sum",
     description: "Sums multiple numbers together",
-    tags: ["Math"],
+    tags: ["Math", "Sum"],
     icon: "plus",
     documentation:
       "This node sums multiple numbers together, supporting both single values and arrays of numbers.",

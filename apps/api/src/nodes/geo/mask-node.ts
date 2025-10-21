@@ -11,7 +11,7 @@ export class MaskNode extends ExecutableNode {
     type: "mask",
     description:
       "Takes polygons or multipolygons and an optional mask, and returns an exterior ring polygon with holes.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Mask"],
     icon: "eye-off",
     documentation:
       "This node masks one geometry using another geometry as a clipping boundary.",

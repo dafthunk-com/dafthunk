@@ -10,7 +10,7 @@ export class CleanCoordsNode extends ExecutableNode {
     name: "Clean Coordinates",
     type: "clean-coords",
     description: "Removes redundant coordinates from any GeoJSON Geometry.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "CleanCoords"],
     icon: "scissors",
     documentation:
       "This node removes redundant coordinates from GeoJSON geometries to optimize data size and processing.",

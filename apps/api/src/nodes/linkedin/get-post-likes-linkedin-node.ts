@@ -12,7 +12,7 @@ export class GetPostLikesLinkedInNode extends ExecutableNode {
     name: "Get Post Likes (LinkedIn)",
     type: "get-post-likes-linkedin",
     description: "Retrieve likes on a LinkedIn post, share, or comment",
-    tags: ["LinkedIn"],
+    tags: ["Social", "LinkedIn", "Post", "Likes", "Get"],
     icon: "heart",
     documentation:
       "This node retrieves likes on a LinkedIn post, share, or comment. Requires the r_member_social scope (note: this scope has restricted access and may require partner approval). Use with posts you have access to. Requires a connected LinkedIn integration.",

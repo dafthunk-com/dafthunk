@@ -11,7 +11,7 @@ export class LengthNode extends ExecutableNode {
     type: "length",
     description:
       "Calculates the length of LineString or MultiLineString features.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Length"],
     icon: "ruler",
     documentation:
       "This node calculates the length of LineString or MultiLineString geometries in specified units.",

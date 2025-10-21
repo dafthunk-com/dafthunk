@@ -11,7 +11,7 @@ export class MultiLineStringNode extends ExecutableNode {
     type: "multi-line-string",
     description:
       "Creates a Feature<MultiLineString> based on a coordinate array. Properties can be added optionally.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "MultiLineString"],
     icon: "route",
     documentation:
       "This node creates a MultiLineString geometry from multiple line geometries.",

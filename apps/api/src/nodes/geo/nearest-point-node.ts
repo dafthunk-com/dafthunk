@@ -11,7 +11,7 @@ export class NearestPointNode extends ExecutableNode {
     type: "nearestPoint",
     description:
       "Finds the nearest point from a collection of points to a target point.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "NearestPoint"],
     icon: "target",
     documentation:
       "This node finds the nearest point in a collection to a target point.",

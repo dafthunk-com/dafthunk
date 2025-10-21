@@ -42,9 +42,10 @@ export function TagFilterButtons({
   const isHierarchical = selectedTags !== undefined;
 
   // Use selectedTagCounts order (already sorted by parent component)
-  const sortedSelectedTags = isHierarchical && selectedTagCounts
-    ? selectedTagCounts.map(tc => tc.tag)
-    : selectedArray;
+  const sortedSelectedTags =
+    isHierarchical && selectedTagCounts
+      ? selectedTagCounts.map((tc) => tc.tag)
+      : selectedArray;
 
   let buttonIndex = 0;
 
@@ -63,7 +64,9 @@ export function TagFilterButtons({
             : selectedArray.length === 0
               ? "bg-accent"
               : "bg-secondary hover:bg-secondary/80",
-          activeElement === "categories" && focusedIndex === 0 && "ring-2 ring-ring",
+          activeElement === "categories" &&
+            focusedIndex === 0 &&
+            "ring-2 ring-ring",
           disabled && "opacity-50 cursor-not-allowed"
         )}
         onClick={() => !disabled && onTagChange(null)}
@@ -75,45 +78,50 @@ export function TagFilterButtons({
       </button>
 
       {/* Selected tags - inline on the left */}
-      {isHierarchical && sortedSelectedTags.map((tag) => {
-        const tagCount = selectedTagCounts?.find(tc => tc.tag === tag);
-        const currentButtonIndex = buttonIndex++;
-        return (
-          <button
-            key={`selected-${tag}`}
-            ref={(el) => setCategoryButtonRef?.(el, currentButtonIndex)}
-            className={cn(
-              "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-              "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-              "border-transparent bg-blue-100 text-secondary-foreground",
-              "dark:bg-blue-900 dark:text-secondary-foreground",
-              "cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800",
-              activeElement === "categories" &&
-                focusedIndex === currentButtonIndex &&
-                "ring-2 ring-ring",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-            onClick={() => {
-              if (!disabled) {
-                onTagChange(tag);
+      {isHierarchical &&
+        sortedSelectedTags.map((tag) => {
+          const tagCount = selectedTagCounts?.find((tc) => tc.tag === tag);
+          const currentButtonIndex = buttonIndex++;
+          return (
+            <button
+              key={`selected-${tag}`}
+              ref={(el) => setCategoryButtonRef?.(el, currentButtonIndex)}
+              className={cn(
+                "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
+                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                "border-transparent bg-blue-100 text-secondary-foreground",
+                "dark:bg-blue-900 dark:text-secondary-foreground",
+                "cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800",
+                activeElement === "categories" &&
+                  focusedIndex === currentButtonIndex &&
+                  "ring-2 ring-ring",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
+              onClick={() => {
+                if (!disabled) {
+                  onTagChange(tag);
+                }
+              }}
+              onKeyDown={(e) => onKeyDown?.(e, currentButtonIndex)}
+              tabIndex={
+                activeElement === "categories" &&
+                focusedIndex === currentButtonIndex
+                  ? 0
+                  : -1
               }
-            }}
-            onKeyDown={(e) => onKeyDown?.(e, currentButtonIndex)}
-            tabIndex={
-              activeElement === "categories" && focusedIndex === currentButtonIndex
-                ? 0
-                : -1
-            }
-            disabled={disabled}
-          >
-            {tag} <span className="opacity-70 ml-1">({tagCount?.count ?? 0})</span>
-          </button>
-        );
-      })}
+              disabled={disabled}
+            >
+              {tag}{" "}
+              <span className="opacity-70 ml-1">({tagCount?.count ?? 0})</span>
+            </button>
+          );
+        })}
 
       {/* Available tags - filtered to exclude selected ones in hierarchical mode */}
       {categories
-        .filter(({ tag }) => (isHierarchical ? !selectedArray.includes(tag) : true))
+        .filter(({ tag }) =>
+          isHierarchical ? !selectedArray.includes(tag) : true
+        )
         .map(({ tag, count }) => {
           const isSelected = selectedArray.includes(tag);
           const currentButtonIndex = buttonIndex++;
@@ -132,11 +140,13 @@ export function TagFilterButtons({
                 disabled && "opacity-30 cursor-not-allowed"
               )}
               onClick={() =>
-                !disabled && onTagChange(isHierarchical ? tag : isSelected ? null : tag)
+                !disabled &&
+                onTagChange(isHierarchical ? tag : isSelected ? null : tag)
               }
               onKeyDown={(e) => onKeyDown?.(e, currentButtonIndex)}
               tabIndex={
-                activeElement === "categories" && focusedIndex === currentButtonIndex
+                activeElement === "categories" &&
+                focusedIndex === currentButtonIndex
                   ? 0
                   : -1
               }

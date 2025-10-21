@@ -10,7 +10,7 @@ export class FeatureCollectionNode extends ExecutableNode {
     name: "Feature Collection",
     type: "feature-collection",
     description: "Takes one or more Features and creates a FeatureCollection.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "FeatureCollection"],
     icon: "layers",
     documentation:
       "This node creates a FeatureCollection from an array of GeoJSON features.",

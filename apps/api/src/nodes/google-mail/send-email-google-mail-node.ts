@@ -12,7 +12,7 @@ export class SendEmailGoogleMailNode extends ExecutableNode {
     name: "Send Email (Google Mail)",
     type: "send-email-google-mail",
     description: "Send an email using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Send"],
     icon: "mail",
     documentation:
       "This node sends emails using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

@@ -9,7 +9,7 @@ export class JsonRemoveNode extends ExecutableNode {
     name: "JSON Remove",
     type: "json-remove",
     description: "Remove a value at a specific path in JSON",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Modify", "Remove"],
     icon: "trash",
     documentation:
       "This node removes a value at a specific path in a JSON object.",

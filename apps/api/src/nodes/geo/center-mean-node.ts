@@ -11,7 +11,7 @@ export class CenterMeanNode extends ExecutableNode {
     type: "center-mean",
     description:
       "Takes a Feature or FeatureCollection and returns the mean center, using the mean of the vertices of each feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "CenterMean"],
     icon: "align-center",
     documentation:
       "This node calculates the mean center of a feature or feature collection by averaging all vertex coordinates.",

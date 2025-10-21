@@ -12,7 +12,7 @@ export class JsonToGeojsonNode extends ExecutableNode {
     name: "JSON to GeoJSON",
     type: "json-to-geojson",
     description: "Converts JSON data to valid GeoJSON format with validation.",
-    tags: ["JSON", "Geo"],
+    tags: ["Data", "JSON", "Convert", "GeoJSON"],
     icon: "convert",
     documentation:
       "This node converts JSON data to valid GeoJSON format with validation.",

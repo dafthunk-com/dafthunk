@@ -11,7 +11,7 @@ export class RoundNode extends ExecutableNode {
     type: "round",
     description:
       "Rounds the precision of a coordinate to a specified number of decimal places.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Round"],
     icon: "hash",
     documentation:
       "This node rounds the coordinates of a GeoJSON geometry to a specified precision.",

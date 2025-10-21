@@ -897,7 +897,7 @@ export function WorkflowCanvas({
                 {onEditMetadata && (
                   <EditMetadataButton onClick={onEditMetadata} />
                 )}
-                
+
                 {onToggleExpandedOutputs && (
                   <OutputsToggle
                     onClick={onToggleExpandedOutputs}

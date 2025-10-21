@@ -12,7 +12,7 @@ export class GetUserGithubNode extends ExecutableNode {
     name: "Get User (GitHub)",
     type: "get-user-github",
     description: "Get information about a GitHub user",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "User", "Get"],
     icon: "user",
     documentation:
       "This node retrieves detailed information about a GitHub user including followers, public repos, bio, and more. Requires a connected GitHub integration.",

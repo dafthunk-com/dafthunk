@@ -13,7 +13,7 @@ export class PhotonAdjustContrastNode extends ExecutableNode {
     type: "photon-adjust-contrast",
     description:
       "Adjusts image contrast. Values typically range from -100 to 100.",
-    tags: ["Image"],
+    tags: ["Image", "Photon", "Adjust", "Contrast"],
     icon: "contrast",
     documentation:
       "This node adjusts image contrast. Values typically range from -100 to 100.",

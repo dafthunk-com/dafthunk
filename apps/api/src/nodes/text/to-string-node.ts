@@ -13,7 +13,7 @@ export class ToStringNode extends ExecutableNode {
     name: "To String",
     type: "to-string",
     description: "Converts any input value to its string representation",
-    tags: ["Text"],
+    tags: ["Text", "Convert"],
     icon: "text",
     documentation:
       "This node converts any input value to its string representation.",

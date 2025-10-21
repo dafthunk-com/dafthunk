@@ -13,7 +13,7 @@ export class StableDiffusionV15Img2ImgNode extends ExecutableNode {
     type: "stable-diffusion-v1-5-img2img",
     description:
       "Transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Cloudflare", "StableDiffusion", "Transform"],
     icon: "wand",
     documentation:
       "This node transforms existing images based on text descriptions using Stable Diffusion v1.5 img2img model.",

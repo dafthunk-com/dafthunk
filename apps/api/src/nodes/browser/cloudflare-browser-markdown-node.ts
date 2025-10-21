@@ -14,7 +14,7 @@ export class CloudflareBrowserMarkdownNode extends ExecutableNode {
     type: "cloudflare-browser-markdown",
     description:
       "Fetch markdown from a rendered page using Cloudflare Browser Rendering.",
-    tags: ["Browser"],
+    tags: ["Browser", "Web", "Cloudflare", "Markdown"],
     icon: "file-text",
     documentation:
       "This node converts web pages to Markdown format using Cloudflare's Browser Rendering API.",

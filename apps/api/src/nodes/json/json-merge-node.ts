@@ -9,7 +9,7 @@ export class JsonMergeNode extends ExecutableNode {
     name: "JSON Merge",
     type: "json-merge",
     description: "Merge multiple JSON objects",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Transform", "Merge"],
     icon: "merge",
     documentation: "This node merges multiple JSON objects.",
     inlinable: true,

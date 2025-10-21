@@ -12,7 +12,7 @@ export class MaxNode extends ExecutableNode {
     name: "Max",
     type: "max",
     description: "Returns the maximum value from multiple numbers",
-    tags: ["Math"],
+    tags: ["Math", "Maximum"],
     icon: "arrow-up",
     documentation: "This node returns the maximum value from multiple numbers.",
     specification: "result = max(numbers), where |numbers| > 0",

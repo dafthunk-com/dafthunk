@@ -10,7 +10,7 @@ export class SingleVariableStringTemplateNode extends ExecutableNode {
     type: "single-variable-string-template",
     description:
       "Create a string using a template with a single variable injection using ${variable} syntax",
-    tags: ["Text"],
+    tags: ["Text", "Template"],
     icon: "quote",
     documentation:
       "This node creates a string using a template with a single variable injection using \\${variable} syntax.",

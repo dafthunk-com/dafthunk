@@ -14,7 +14,7 @@ export class CloudflareBrowserLinksNode extends ExecutableNode {
     type: "cloudflare-browser-links",
     description:
       "Fetch all links from a rendered page using Cloudflare Browser Rendering.",
-    tags: ["Browser"],
+    tags: ["Browser", "Web", "Cloudflare", "Links"],
     icon: "link",
     documentation:
       "This node extracts all links from a web page using Cloudflare's Browser Rendering API.",

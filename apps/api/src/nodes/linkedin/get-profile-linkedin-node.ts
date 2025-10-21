@@ -12,7 +12,7 @@ export class GetProfileLinkedInNode extends ExecutableNode {
     name: "Get Profile (LinkedIn)",
     type: "get-profile-linkedin",
     description: "Get your LinkedIn profile information",
-    tags: ["LinkedIn"],
+    tags: ["Social", "LinkedIn", "Profile", "Get"],
     icon: "user",
     documentation:
       "This node retrieves your LinkedIn profile information including name, headline, and profile URL. Requires a connected LinkedIn integration.",

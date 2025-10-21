@@ -12,7 +12,7 @@ export class DeleteDraftGoogleMailNode extends ExecutableNode {
     name: "Delete Draft (Google Mail)",
     type: "delete-draft-google-mail",
     description: "Delete a draft using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Draft", "Delete"],
     icon: "mail",
     documentation:
       "This node deletes a draft using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

@@ -65,7 +65,7 @@ export class BufferGeometryToGltfNode extends ExecutableNode {
     type: "buffergeometry-to-gltf",
     description:
       "Convert 3D BufferGeometry and texture to GLB binary format for 3D Tiles",
-    tags: ["3D", "Geo"],
+    tags: ["3D", "BufferGeometry", "GLTF", "Convert"],
     icon: "box",
     documentation:
       "Converts BufferGeometry data with optional texture to glTF/GLB binary format optimized for 3D Tiles.",

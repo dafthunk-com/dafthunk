@@ -8,7 +8,7 @@ export class HttpRequestNode extends ExecutableNode {
     name: "HTTP Request",
     type: "http-request",
     description: "Make a customizable HTTP request to a third-party service.",
-    tags: ["Net"],
+    tags: ["Network", "HTTP", "Request"],
     icon: "globe",
     documentation:
       "This node makes a customizable HTTP request to a third-party service.",

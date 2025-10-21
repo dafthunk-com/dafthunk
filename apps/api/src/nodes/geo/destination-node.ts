@@ -11,7 +11,7 @@ export class DestinationNode extends ExecutableNode {
     type: "destination",
     description:
       "Calculates a destination point given an origin point, distance, and bearing.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Destination"],
     icon: "navigation",
     documentation:
       "This node calculates a destination point given an origin point, distance, and bearing direction.",

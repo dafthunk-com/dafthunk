@@ -12,7 +12,7 @@ export class ExponentiationNode extends ExecutableNode {
     name: "Exponentiation",
     type: "exponentiation",
     description: "Raises a base number to the power of an exponent",
-    tags: ["Math"],
+    tags: ["Math", "Power"],
     icon: "superscript",
     documentation:
       "This node raises a base number to the power of an exponent.",

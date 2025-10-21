@@ -11,7 +11,7 @@ export class BooleanPointOnLineNode extends ExecutableNode {
     type: "boolean-point-on-line",
     description:
       "Returns true if a point is on a line. Accepts optional parameters to ignore start/end vertices and set epsilon tolerance.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "PointOnLine"],
     icon: "mouse-pointer",
     documentation:
       "This node tests whether a point lies exactly on a LineString geometry.",

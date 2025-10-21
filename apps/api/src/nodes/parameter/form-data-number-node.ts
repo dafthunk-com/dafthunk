@@ -8,7 +8,7 @@ export class FormDataNumberNode extends ExecutableNode {
     name: "Number Form Data",
     type: "form-data-number",
     description: "Extracts a number parameter from the HTTP request form data.",
-    tags: ["Parameter"],
+    tags: ["Data", "Parameter", "Number"],
     icon: "calculator",
     documentation:
       "This node extracts a number parameter from HTTP request form data, automatically converting string values to numbers.",

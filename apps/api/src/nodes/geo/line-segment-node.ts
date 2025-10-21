@@ -11,7 +11,7 @@ export class LineSegmentNode extends ExecutableNode {
     type: "line-segment",
     description:
       "Creates a FeatureCollection of 2-vertex LineString segments from a (Multi)LineString or (Multi)Polygon.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "LineSegment"],
     icon: "git-branch",
     documentation:
       "This node breaks down a LineString or Polygon into individual 2-vertex line segments.",

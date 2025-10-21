@@ -11,7 +11,7 @@ export class SimplifyNode extends ExecutableNode {
     type: "simplify",
     description:
       "Simplifies a geometry by reducing the number of vertices while preserving its general shape.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Simplify"],
     icon: "minimize",
     documentation:
       "This node simplifies a geometry by reducing the number of vertices while preserving its general shape.",

@@ -9,7 +9,7 @@ export class JsonObjectValuesNode extends ExecutableNode {
     name: "JSON Object Values",
     type: "json-object-values",
     description: "Extract all values from a JSON object",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Query", "Values"],
     icon: "list",
     documentation: "This node extracts all values from a JSON object.",
     inlinable: true,

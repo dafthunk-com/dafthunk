@@ -12,7 +12,7 @@ export class ListUserRepositoriesGithubNode extends ExecutableNode {
     name: "List User Repositories (GitHub)",
     type: "list-user-repositories-github",
     description: "List repositories for a GitHub user",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "Repository", "List"],
     icon: "folder-git",
     documentation:
       "This node lists all repositories for a specific GitHub user. Can filter by type (all, owner, member) and sort by various criteria. Requires a connected GitHub integration.",

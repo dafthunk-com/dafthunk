@@ -59,7 +59,7 @@ export class AddDateNode extends ExecutableNode {
     description: "Add an amount of time to a date",
     documentation:
       "Adds a time offset to an ISO date. ### Inputs date (date): Base date in ISO amount (number): Amount to add (negative to subtract) unit (string): One of milliseconds, seconds, minutes, hours, days, weeks, months, years ### Outputs date (date): Resulting ISO date",
-    tags: ["Date"],
+    tags: ["Time", "Date", "Add"],
     icon: "calendar",
     inlinable: true,
     asTool: true,

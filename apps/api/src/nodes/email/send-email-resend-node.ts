@@ -9,7 +9,7 @@ export class SendEmailResendNode extends ExecutableNode {
     name: "Send Email (Resend)",
     type: "send-email-resend",
     description: "Send an email using Resend",
-    tags: ["Email"],
+    tags: ["Social", "Email", "Resend", "Send"],
     icon: "mail",
     documentation:
       "This node sends emails using the Resend email service, supporting HTML content and multiple recipients.",

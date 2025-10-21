@@ -32,7 +32,7 @@ export class ReadInboxGoogleMailNode extends ExecutableNode {
     name: "Read Inbox (Google Mail)",
     type: "read-inbox-google-mail",
     description: "Read the last N messages from Gmail inbox",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Inbox"],
     icon: "mail",
     documentation:
       "This node reads messages from Gmail inbox using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

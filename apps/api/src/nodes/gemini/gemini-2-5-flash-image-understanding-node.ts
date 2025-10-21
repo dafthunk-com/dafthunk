@@ -15,7 +15,7 @@ export class Gemini25FlashImageUnderstandingNode extends ExecutableNode {
     type: "gemini-2-5-flash-image-understanding",
     description:
       "Analyzes and understands image content with description, analysis, and object detection capabilities",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Google", "Gemini", "Understanding"],
     icon: "eye",
     documentation:
       "This node uses Google's Gemini 2.5 Flash model to analyze and understand image content.",

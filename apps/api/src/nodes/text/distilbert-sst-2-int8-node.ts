@@ -13,7 +13,7 @@ export class DistilbertSst2Int8Node extends ExecutableNode {
     type: "distilbert-sst-2-int8",
     description:
       "Analyzes the sentiment of text using Distilbert SST-2 Int8 model",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Text", "Cloudflare", "Sentiment"],
     icon: "sparkles",
     documentation:
       "This node analyzes the sentiment of text using Hugging Face's Distilbert SST-2 Int8 model.",

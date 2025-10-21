@@ -9,7 +9,7 @@ export class RegexMatchNode extends ExecutableNode {
     name: "Regex Match",
     type: "regex-match",
     description: "Test if a string matches a regular expression pattern.",
-    tags: ["Text"],
+    tags: ["Text", "Regex", "Match"],
     icon: "search",
     documentation:
       "This node tests if a string matches a regular expression pattern.",

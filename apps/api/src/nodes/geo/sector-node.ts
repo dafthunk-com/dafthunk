@@ -12,7 +12,7 @@ export class SectorNode extends ExecutableNode {
     type: "sector",
     description:
       "Creates a circular sector of a circle of given radius and center Point, between (clockwise) bearing1 and bearing2; 0 bearing is North of center point, positive clockwise.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "Sector"],
     icon: "chart-pie",
     documentation:
       "This node creates a circular sector (pie slice) polygon from a center point, radius, and two bearing angles.",

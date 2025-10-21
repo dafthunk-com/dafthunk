@@ -9,7 +9,7 @@ export class SendEmailSendgridNode extends ExecutableNode {
     name: "Send Email (Sendgrid)",
     type: "send-email-sendgrid",
     description: "Send an email using Sendgrid",
-    tags: ["Email"],
+    tags: ["Social", "Email", "SendGrid", "Send"],
     icon: "mail",
     documentation:
       "This node sends emails using the SendGrid email service, supporting HTML content and providing delivery status.",

@@ -10,7 +10,7 @@ export class DistanceNode extends ExecutableNode {
     name: "Distance",
     type: "distance",
     description: "Calculates the distance between two points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Distance"],
     icon: "ruler",
     documentation: "This node calculates the distance between two points.",
     inlinable: true,
