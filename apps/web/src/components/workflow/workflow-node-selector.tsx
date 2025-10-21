@@ -265,8 +265,10 @@ export function WorkflowNodeSelector({
             ref={searchInputRef}
             placeholder="Search nodes..."
             className={cn(
-              "pl-14 text-xl h-16 border rounded-lg border-primary/20 bg-accent",
+              "pl-14 text-xl h-16 border rounded-lg bg-accent",
               activeElement === "search"
+                ? "border-primary"
+                : "border-primary/20"
             )}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -283,10 +285,10 @@ export function WorkflowNodeSelector({
                   key={template.id}
                   ref={(el) => setItemRef(el, index)}
                   className={cn(
-                    "border rounded-lg cursor-pointer hover:border-primary/50",
+                    "border rounded-lg cursor-pointer bg-card",
                     focusedIndex === index && activeElement === "items"
-                      ? "bg-accent border-primary/50"
-                      : "hover:bg-accent/50"
+                      ? "border-primary"
+                      : "border-border hover:border-primary/50",
                   )}
                   onClick={() => {
                     onSelect(template);

@@ -32,8 +32,12 @@ export function useKeyboardNavigation({
 
   // Reset focused index when filters change
   useEffect(() => {
-    setFocusedIndex(0);
-  }, [itemsCount]);
+    if (activeElement === "items" && focusedIndex >= itemsCount) {
+      setFocusedIndex(Math.max(0, itemsCount - 1));
+    } else if (activeElement === "categories" && focusedIndex >= categoriesCount) {
+      setFocusedIndex(Math.max(0, categoriesCount - 1));
+    }
+  }, [itemsCount, categoriesCount, activeElement, focusedIndex]);
 
   // Focus search input when dialog opens
   useEffect(() => {
@@ -160,7 +164,7 @@ export function useKeyboardNavigation({
     (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
       switch (e.key) {
         case "ArrowRight":
-          if (index < categoriesCount) {
+          if (index < categoriesCount - 1) {
             e.preventDefault();
             focusElement("categories", index + 1);
           }
@@ -174,18 +178,35 @@ export function useKeyboardNavigation({
           break;
 
         case "ArrowDown":
-          if (itemsCount > 0) {
-            e.preventDefault();
+          e.preventDefault();
+          if (index < categoriesCount - 1) {
+            focusElement("categories", index + 1);
+          } else if (itemsCount > 0) {
             focusElement("items", 0);
           }
           break;
 
         case "ArrowUp":
           e.preventDefault();
-          focusElement("search");
+          if (index > 0) {
+            focusElement("categories", index - 1);
+          } else {
+            focusElement("search");
+          }
+          break;
+
+        case "Home":
+          e.preventDefault();
+          focusElement("categories", 0);
+          break;
+
+        case "End":
+          e.preventDefault();
+          focusElement("categories", categoriesCount - 1);
           break;
 
         case "Enter":
+        case " ":
           e.preventDefault();
           if (onCategoryChange) {
             const category = index === 0 ? null : categories[index - 1]?.tag;
@@ -213,10 +234,20 @@ export function useKeyboardNavigation({
           if (index > 0) {
             focusElement("items", index - 1);
           } else if (categoriesCount > 0) {
-            focusElement("categories", 0);
+            focusElement("categories", categoriesCount - 1);
           } else {
             focusElement("search");
           }
+          break;
+
+        case "Home":
+          e.preventDefault();
+          focusElement("items", 0);
+          break;
+
+        case "End":
+          e.preventDefault();
+          focusElement("items", itemsCount - 1);
           break;
 
         case "Enter":
