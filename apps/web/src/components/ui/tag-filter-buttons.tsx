@@ -38,7 +38,7 @@ export function TagFilterButtons({
       <button
         ref={(el) => setCategoryButtonRef?.(el, 0)}
         className={cn(
-          "border rounded-md px-3 py-1.5 text-sm transition-colors",
+          "border rounded-md px-2 py-1 text-xs transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
           selectedTag === null ? "bg-accent" : "hover:bg-accent/50",
           activeElement === "categories" && focusedIndex === 0 && "bg-accent",
@@ -56,7 +56,7 @@ export function TagFilterButtons({
           key={tag}
           ref={(el) => setCategoryButtonRef?.(el, index + 1)}
           className={cn(
-            "border rounded-md px-3 py-1.5 text-sm transition-colors",
+            "border rounded-md px-2 py-1 text-xs transition-colors",
             "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
             selectedTag === tag ? "bg-accent" : "hover:bg-accent/50",
             activeElement === "categories" &&
