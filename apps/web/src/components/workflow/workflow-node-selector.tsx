@@ -1,12 +1,9 @@
 import { DynamicIcon } from "lucide-react/dynamic.mjs";
-import Search from "lucide-react/icons/search";
 import { useMemo, useState } from "react";
 
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +15,7 @@ import { cn } from "@/utils/utils";
 
 import { NodeTags } from "./node-tags";
 import type { NodeTemplate } from "./workflow-types";
+import { Wand } from "lucide-react";
 
 export interface WorkflowNodeSelectorProps {
   open: boolean;
@@ -261,18 +259,14 @@ export function WorkflowNodeSelector({
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
-        <DialogHeader className="px-4 pt-4">
-          <DialogTitle>Add Node</DialogTitle>
-        </DialogHeader>
-
-        <div className="relative px-4">
-          <Search className="absolute left-6 top-3 h-4 w-4 text-muted-foreground" />
+        <div className="relative px-4 pt-4">
+          <Wand className="absolute left-8 top-9 h-6 w-6 text-muted-foreground" />
           <Input
             ref={searchInputRef}
             placeholder="Search nodes..."
             className={cn(
-              "pl-8 border rounded-md",
-              activeElement === "search" && "bg-accent"
+              "pl-14 text-xl h-16 border rounded-lg border-primary/20 bg-accent",
+              activeElement === "search"
             )}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -280,7 +274,7 @@ export function WorkflowNodeSelector({
           />
         </div>
 
-        <div className="flex-1 flex gap-4 px-4 pb-4 min-h-0">
+        <div className="flex-1 flex gap-2 px-4 pb-4 min-h-0">
           <ScrollArea className="flex-1">
             <div className="space-y-3 pr-4">
             {filteredTemplates.map((template, index) => {
@@ -289,7 +283,7 @@ export function WorkflowNodeSelector({
                   key={template.id}
                   ref={(el) => setItemRef(el, index)}
                   className={cn(
-                    "border rounded-lg cursor-pointer transition-all hover:border-primary/50",
+                    "border rounded-lg cursor-pointer hover:border-primary/50",
                     focusedIndex === index && activeElement === "items"
                       ? "bg-accent border-primary/50"
                       : "hover:bg-accent/50"
@@ -347,8 +341,8 @@ export function WorkflowNodeSelector({
           </ScrollArea>
 
           {tagCounts.length > 0 && (
-            <div className="w-80 shrink-0">
-              <div className="sticky top-0">
+            <div className="w-80 shrink-0 flex flex-col">
+              <div className="sticky top-0 flex-1">
                 <TagFilterButtons
                   categories={tagCounts}
                   selectedTags={selectedTags}
@@ -360,6 +354,9 @@ export function WorkflowNodeSelector({
                   activeElement={activeElement}
                   focusedIndex={focusedIndex}
                 />
+              </div>
+              <div className="text-xs text-muted-foreground/60 pt-4 text-right">
+                {filteredTemplates.length} of {templates.length} nodes
               </div>
             </div>
           )}
