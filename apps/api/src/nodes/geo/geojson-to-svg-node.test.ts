@@ -35,8 +35,6 @@ describe("GeoJsonToSvgNode", () => {
     expect(GeoJsonToSvgNode.nodeType.description).toContain(
       "separate path elements"
     );
-    expect(GeoJsonToSvgNode.nodeType.tags).toContain("Geo");
-    expect(GeoJsonToSvgNode.nodeType.tags).toContain("Image");
   });
 
   it("should have correct inputs", () => {

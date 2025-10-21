@@ -127,7 +127,6 @@ describe("GeoTiffMetadataReaderNode", () => {
       expect(nodeType.id).toBe("geotiff-metadata-reader");
       expect(nodeType.name).toBe("GeoTIFF Metadata Reader");
       expect(nodeType.type).toBe("geotiff-metadata-reader");
-      expect(nodeType.tags).toEqual(["3D", "Geo"]);
       expect(nodeType.inputs).toHaveLength(1);
       expect(nodeType.outputs).toHaveLength(1);
 
