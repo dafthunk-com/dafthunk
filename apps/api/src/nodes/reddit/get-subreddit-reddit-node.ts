@@ -108,12 +108,6 @@ export class GetSubredditRedditNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
-      if (integration.provider !== "reddit") {
-        return this.createErrorResult(
-          "Invalid integration type. This node requires a Reddit integration."
-        );
-      }
-
       const accessToken = integration.token;
 
       // Get subreddit info via Reddit API

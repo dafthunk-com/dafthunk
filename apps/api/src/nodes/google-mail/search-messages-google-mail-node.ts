@@ -118,12 +118,6 @@ export class SearchMessagesGoogleMailNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
-      if (integration.provider !== "google-mail") {
-        return this.createErrorResult(
-          "Invalid integration type. This node requires a Google Mail integration."
-        );
-      }
-
       const accessToken = integration.token;
 
       // Search messages via Gmail API
