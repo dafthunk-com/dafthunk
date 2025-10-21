@@ -40,7 +40,9 @@ export function NodeCard({
                   className="h-4 w-4 text-blue-500 shrink-0"
                 />
                 <CardTitle className="text-base font-semibold leading-tight truncate">
-                  {highlightMatch ? highlightMatch(nodeType.name, searchQuery) : nodeType.name}
+                  {highlightMatch
+                    ? highlightMatch(nodeType.name, searchQuery)
+                    : nodeType.name}
                 </CardTitle>
                 {nodeType.tags.map((tag, index) => (
                   <Badge
@@ -57,7 +59,9 @@ export function NodeCard({
               {nodeType.description && (
                 <div className="hidden md:block flex-1 min-w-0">
                   <p className="text-sm text-muted-foreground leading-relaxed truncate">
-                    {highlightMatch ? highlightMatch(nodeType.description, searchQuery) : nodeType.description}
+                    {highlightMatch
+                      ? highlightMatch(nodeType.description, searchQuery)
+                      : nodeType.description}
                   </p>
                 </div>
               )}
@@ -100,7 +104,9 @@ export function NodeCard({
                 className="h-4 w-4 text-blue-500 shrink-0"
               />
               <CardTitle className="text-base font-semibold leading-tight truncate">
-                {highlightMatch ? highlightMatch(nodeType.name, searchQuery) : nodeType.name}
+                {highlightMatch
+                  ? highlightMatch(nodeType.name, searchQuery)
+                  : nodeType.name}
               </CardTitle>
             </div>
             <NodeTags
@@ -112,7 +118,9 @@ export function NodeCard({
         <CardContent className="pt-0">
           {nodeType.description && (
             <p className="text-sm text-muted-foreground leading-relaxed max-h-16 overflow-hidden">
-              {highlightMatch ? highlightMatch(nodeType.description, searchQuery) : nodeType.description}
+              {highlightMatch
+                ? highlightMatch(nodeType.description, searchQuery)
+                : nodeType.description}
             </p>
           )}
           {nodeType.compatibility && nodeType.compatibility.length > 0 && (

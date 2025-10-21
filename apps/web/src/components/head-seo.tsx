@@ -200,8 +200,6 @@ export const HeadSeo = (props: HeadSeoProps) => {
       tag.setAttribute(MANAGED_TAG_ATTRIBUTE, MANAGED_TAG_VALUE);
       document.head.appendChild(tag);
     });
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     title,
     description,
