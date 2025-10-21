@@ -13,7 +13,6 @@ export interface TagFilterButtonsProps {
   selectedTag?: string | null;
   selectedTagCounts?: TagCount[];
   onTagChange: (tag: string | null) => void;
-  onResetToTag?: (tag: string) => void;
   totalCount: number;
   className?: string;
   disabled?: boolean;
@@ -30,7 +29,6 @@ export function TagFilterButtons({
   selectedTag,
   selectedTagCounts,
   onTagChange,
-  onResetToTag,
   totalCount,
   className,
   disabled = false,
@@ -43,38 +41,45 @@ export function TagFilterButtons({
   const selectedArray = selectedTags ?? (selectedTag ? [selectedTag] : []);
   const isHierarchical = selectedTags !== undefined;
 
-  // Sort selected tags by occurrence (using selectedTagCounts)
+  // Sort selected tags by count (descending) and then alphabetically
   const sortedSelectedTags = isHierarchical && selectedTagCounts
-    ? selectedTagCounts.map(tc => tc.tag)
+    ? selectedTagCounts
+        .sort((a, b) => {
+          if (b.count !== a.count) return b.count - a.count;
+          return a.tag.localeCompare(b.tag);
+        })
+        .map(tc => tc.tag)
     : selectedArray;
 
   let buttonIndex = 0;
 
   return (
     <div className={cn("flex gap-1.5 flex-wrap", className)}>
-      {/* All button - only show when no tags selected in hierarchical mode */}
-      {(!isHierarchical || selectedArray.length === 0) && (
-        <button
-          ref={(el) => setCategoryButtonRef?.(el, buttonIndex++)}
-          className={cn(
-            "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-            "border-transparent bg-secondary text-secondary-foreground",
-            "cursor-pointer",
-            selectedArray.length === 0 ? "bg-accent" : "hover:bg-secondary/80",
-            activeElement === "categories" && focusedIndex === 0 && "ring-2 ring-ring",
-            disabled && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={() => !disabled && onTagChange(null)}
-          onKeyDown={(e) => onKeyDown?.(e, 0)}
-          tabIndex={activeElement === "categories" && focusedIndex === 0 ? 0 : -1}
-          disabled={disabled}
-        >
-          All <span className="text-muted-foreground ml-1">({totalCount})</span>
-        </button>
-      )}
+      {/* All button - always show, clears selection in hierarchical mode */}
+      <button
+        ref={(el) => setCategoryButtonRef?.(el, buttonIndex++)}
+        className={cn(
+          "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "border-transparent text-secondary-foreground",
+          "cursor-pointer",
+          isHierarchical && selectedArray.length > 0
+            ? "bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800"
+            : selectedArray.length === 0
+              ? "bg-accent"
+              : "bg-secondary hover:bg-secondary/80",
+          activeElement === "categories" && focusedIndex === 0 && "ring-2 ring-ring",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+        onClick={() => !disabled && onTagChange(null)}
+        onKeyDown={(e) => onKeyDown?.(e, 0)}
+        tabIndex={activeElement === "categories" && focusedIndex === 0 ? 0 : -1}
+        disabled={disabled}
+      >
+        All <span className="opacity-70 ml-1">({totalCount})</span>
+      </button>
 
-      {/* Selected tags - inline on the left, sorted by occurrence */}
+      {/* Selected tags - inline on the left */}
       {isHierarchical && sortedSelectedTags.map((tag) => {
         const tagCount = selectedTagCounts?.find(tc => tc.tag === tag);
         const currentButtonIndex = buttonIndex++;
@@ -94,8 +99,8 @@ export function TagFilterButtons({
               disabled && "opacity-50 cursor-not-allowed"
             )}
             onClick={() => {
-              if (!disabled && onResetToTag) {
-                onResetToTag(tag);
+              if (!disabled) {
+                onTagChange(tag);
               }
             }}
             onKeyDown={(e) => onKeyDown?.(e, currentButtonIndex)}

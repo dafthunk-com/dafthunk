@@ -197,21 +197,12 @@ export function WorkflowNodeSelector({
   // Show top 20 most common tags in the current filtered set
   const tagCounts = useTagCounts(filteredTemplates, 20);
 
-  // Get counts for selected tags (for sorting by occurrence)
-  const selectedTagCounts = useTagCounts(
-    scoredAndFilteredTemplates.sorted.filter((template) => {
-      // Filter by all tags EXCEPT the last one to get counts at previous level
-      if (selectedTags.length === 0) return true;
-      const tagsToCheck = selectedTags.slice(0, -1);
-      if (tagsToCheck.length === 0) return true;
-      return tagsToCheck.every((selectedTag) => {
-        if (selectedTag === "Tools") {
-          return !!template.functionCalling;
-        }
-        return template.tags.includes(selectedTag);
-      });
-    })
-  ).filter((tc) => selectedTags.includes(tc.tag));
+  // Get counts for selected tags - should show count from CURRENT filtered set
+  // This ensures displayed counts always match the current node selection
+  const allTagCounts = useTagCounts(filteredTemplates);
+  const selectedTagCounts = allTagCounts.filter((tc) =>
+    selectedTags.includes(tc.tag)
+  );
 
   // Use keyboard navigation hook
   const {
@@ -346,14 +337,13 @@ export function WorkflowNodeSelector({
                   onTagChange={(tag) => {
                     if (tag === null) {
                       setSelectedTags([]);
+                    } else if (selectedTags.includes(tag)) {
+                      // Remove tag if already selected
+                      setSelectedTags(selectedTags.filter(t => t !== tag));
                     } else {
+                      // Add tag if not selected
                       setSelectedTags([...selectedTags, tag]);
                     }
-                  }}
-                  onResetToTag={(tag) => {
-                    const tagIndex = selectedTags.indexOf(tag);
-                    // Remove this tag and all tags after it
-                    setSelectedTags(selectedTags.slice(0, tagIndex));
                   }}
                   totalCount={filteredTemplates.length}
                   onKeyDown={handleCategoryKeyDown}
