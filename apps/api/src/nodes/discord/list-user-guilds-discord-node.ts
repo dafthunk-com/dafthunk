@@ -12,7 +12,7 @@ export class ListUserGuildsDiscordNode extends ExecutableNode {
     name: "List User Guilds (Discord)",
     type: "list-user-guilds-discord",
     description: "List all guilds (servers) the user is a member of",
-    tags: ["Discord"],
+    tags: ["Social", "Discord", "Guild", "List"],
     icon: "server",
     documentation:
       "This node retrieves all guilds the authenticated user is a member of. Requires a connected Discord integration with guilds scope.",

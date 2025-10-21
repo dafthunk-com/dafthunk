@@ -13,7 +13,7 @@ export class Nova3Node extends ExecutableNode {
     type: "nova-3",
     description:
       "Transcribes speech from audio files using Deepgram's Nova-3 model with advanced features",
-    tags: ["Audio", "AI"],
+    tags: ["Audio", "TTS", "Deepgram", "Nova"],
     icon: "mic",
     documentation:
       "This node transcribes speech from audio files using Deepgram's Nova-3 model, providing high-quality speech-to-text conversion with advanced features like speaker diarization, sentiment analysis, and topic detection.",

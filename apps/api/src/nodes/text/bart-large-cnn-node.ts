@@ -11,7 +11,7 @@ export class BartLargeCnnNode extends ExecutableNode {
     name: "BART Large CNN",
     type: "bart-large-cnn",
     description: "Summarizes text using BART-large-CNN model",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Text", "Cloudflare", "Summarize"],
     icon: "sparkles",
     documentation:
       "This node summarizes text using Facebook's BART-large-CNN model.",

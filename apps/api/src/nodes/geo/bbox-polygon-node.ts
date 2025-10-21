@@ -10,7 +10,7 @@ export class BboxPolygonNode extends ExecutableNode {
     name: "Bbox Polygon",
     type: "bboxPolygon",
     description: "Takes a bbox and returns an equivalent polygon.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "BBox", "Polygon"],
     icon: "square",
     documentation:
       "This node creates a bounding box polygon from a GeoJSON geometry.",

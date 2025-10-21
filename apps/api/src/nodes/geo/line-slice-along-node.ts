@@ -12,7 +12,7 @@ export class LineSliceAlongNode extends ExecutableNode {
     type: "line-slice-along",
     description:
       "Takes a line, a specified distance along the line to a start Point, and a specified distance along the line to a stop point and returns a subsection of the line in-between those points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "LineSliceAlong"],
     icon: "ruler",
     documentation:
       "This node extracts a portion of a line between two points along the line.",

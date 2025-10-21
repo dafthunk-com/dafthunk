@@ -11,7 +11,7 @@ export class BooleanParallelNode extends ExecutableNode {
     type: "boolean-parallel",
     description:
       "Returns True if each segment of line1 is parallel to the correspondent segment of line2.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "Parallel"],
     icon: "git-compare",
     documentation:
       "This node tests whether two LineString geometries are parallel to each other.",

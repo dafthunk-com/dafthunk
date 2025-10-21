@@ -14,7 +14,7 @@ export class CloudflareBrowserPdfNode extends ExecutableNode {
     type: "cloudflare-browser-pdf",
     description:
       "Fetch a PDF from a rendered page using Cloudflare Browser Rendering.",
-    tags: ["Browser"],
+    tags: ["Browser", "Web", "Cloudflare", "PDF"],
     icon: "file-text",
     documentation:
       "This node generates PDF documents from web pages using Cloudflare's Browser Rendering API.",

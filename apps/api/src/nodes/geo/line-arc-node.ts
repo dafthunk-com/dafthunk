@@ -11,7 +11,7 @@ export class LineArcNode extends ExecutableNode {
     type: "line-arc",
     description:
       "Creates a circular arc, of a circle of the given radius and center point, between bearing1 and bearing2.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "LineArc"],
     icon: "circle",
     documentation: "This node creates a circular arc line between two points.",
     inlinable: true,

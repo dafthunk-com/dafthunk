@@ -12,7 +12,7 @@ export class VoteRedditNode extends ExecutableNode {
     name: "Vote (Reddit)",
     type: "vote-reddit",
     description: "Vote on a Reddit post or comment",
-    tags: ["Reddit"],
+    tags: ["Social", "Reddit", "Vote"],
     icon: "arrow-up",
     documentation:
       "This node casts a vote (upvote, downvote, or unvote) on a Reddit post or comment. Requires a connected Reddit integration.",

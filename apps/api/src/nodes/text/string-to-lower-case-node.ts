@@ -9,7 +9,7 @@ export class StringToLowerCaseNode extends ExecutableNode {
     name: "To Lower Case",
     type: "string-to-lower-case",
     description: "Convert a string to lowercase",
-    tags: ["Text"],
+    tags: ["Text", "Transform", "LowerCase"],
     icon: "text",
     documentation: "This node converts any string to lowercase letters.",
     inlinable: true,

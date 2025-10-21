@@ -61,7 +61,7 @@ export class Gemini25FlashTtsNode extends ExecutableNode {
     type: "gemini-2-5-flash-tts",
     description:
       "Generates speech from text with support for single and multi-speaker audio",
-    tags: ["Audio", "AI"],
+    tags: ["AI", "TTS", "Google", "Gemini"],
     icon: "volume-2",
     documentation:
       "This node uses Google's Gemini 2.5 Flash Preview TTS model to generate speech from text.",

@@ -11,7 +11,7 @@ export class UnkinkPolygonNode extends ExecutableNode {
     type: "unkink-polygon",
     description:
       "Takes a kinked polygon and returns a feature collection of polygons that have no kinks.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "UnkinkPolygon"],
     icon: "scissors",
     documentation:
       "This node removes self-intersections (kinks) from a polygon by splitting it into multiple valid polygons.",

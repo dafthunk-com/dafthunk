@@ -11,7 +11,7 @@ export class GeoJsonToSvgNode extends ExecutableNode {
     type: "geojson-to-svg",
     description:
       "Renders GeoJSON data into an SVG file using d3-geo with identity projection. Creates separate path elements for each geometry with appropriate styling.",
-    tags: ["Geo", "Image"],
+    tags: ["Geo", "GeoJSON", "SVG", "Convert"],
     icon: "map",
     documentation:
       "This node converts GeoJSON data into an SVG image with customizable styling and dimensions.",

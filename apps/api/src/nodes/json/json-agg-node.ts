@@ -13,7 +13,7 @@ export class JsonAggNode extends ExecutableNode {
     name: "JSON Aggregate",
     type: "json-agg",
     description: "Aggregates multiple values into a JSON array",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Aggregate"],
     icon: "list",
     documentation: "This node aggregates multiple values into a JSON array.",
     inlinable: true,

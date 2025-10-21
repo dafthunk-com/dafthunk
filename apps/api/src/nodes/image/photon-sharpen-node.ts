@@ -12,7 +12,7 @@ export class PhotonSharpenNode extends ExecutableNode {
     name: "Sharpen",
     type: "photon-sharpen",
     description: "Sharpens an image using Photon.",
-    tags: ["Image"],
+    tags: ["Image", "Photon", "Effect", "Sharpen"],
     icon: "trending-up",
     documentation: "This node sharpens an image using Photon.",
     inlinable: true,

@@ -13,7 +13,7 @@ export class StableDiffusionXLBase10Node extends ExecutableNode {
     type: "stable-diffusion-xl-base-1-0",
     description:
       "Generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Cloudflare", "StableDiffusion", "Generate"],
     icon: "image",
     documentation:
       "This node generates high-quality images from text descriptions using Stable Diffusion XL Base 1.0 model.",

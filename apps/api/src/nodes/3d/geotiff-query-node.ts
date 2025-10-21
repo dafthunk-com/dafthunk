@@ -13,7 +13,7 @@ export class GeoTiffQueryNode extends ExecutableNode {
     type: "geotiff-query",
     description:
       "Query a Cloud Optimized GeoTIFF with an optional bounding box and return an image. Uses full GeoTIFF bounds if bbox not provided.",
-    tags: ["3D", "Geo"],
+    tags: ["3D", "GeoTIFF", "Query"],
     icon: "search",
     inputs: [
       {

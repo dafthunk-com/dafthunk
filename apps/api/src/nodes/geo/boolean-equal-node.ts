@@ -11,7 +11,7 @@ export class BooleanEqualNode extends ExecutableNode {
     type: "boolean-equal",
     description:
       "Determines whether two geometries of the same type have identical X,Y coordinate values.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "Equal"],
     icon: "equal",
     documentation:
       "This node tests whether two geometries have identical coordinate values.",

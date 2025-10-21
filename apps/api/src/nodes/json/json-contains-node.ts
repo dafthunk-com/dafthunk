@@ -9,7 +9,7 @@ export class JsonContainsNode extends ExecutableNode {
     name: "JSON Contains",
     type: "json-contains",
     description: "Check if JSON contains another JSON value",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Query", "Contains"],
     icon: "search",
     documentation:
       "This node checks if a JSON value contains another JSON value, supporting deep comparison and optional path-based searching.",

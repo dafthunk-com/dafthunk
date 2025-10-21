@@ -36,7 +36,7 @@ export class SearchEventsGoogleCalendarNode extends ExecutableNode {
     name: "Search Events (Google Calendar)",
     type: "search-events-google-calendar",
     description: "Search for events using text query with Google Calendar API",
-    tags: ["Calendar", "Google"],
+    tags: ["Social", "Calendar", "Google", "Event", "Search"],
     icon: "calendar",
     documentation:
       "This node searches for calendar events using a text query (searches summary, description, location, attendee names/emails). Requires a connected Google Calendar integration from your organization's integrations.",

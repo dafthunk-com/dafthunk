@@ -13,7 +13,7 @@ export class DetrResnet50Node extends ExecutableNode {
     type: "detr-resnet50",
     description:
       "Detects and classifies objects in images using DETR-ResNet-50 model",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Cloudflare", "ObjectDetection"],
     icon: "image",
     documentation:
       "This node detects and locates objects in images using the DETR-ResNet-50 model with bounding box coordinates.",

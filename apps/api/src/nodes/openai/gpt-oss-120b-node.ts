@@ -14,7 +14,7 @@ export class GptOss120BNode extends ExecutableNode {
     type: "gpt-oss-120b",
     description:
       "OpenAI's open-weight model for powerful reasoning and agentic tasks",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Chat", "OpenAI", "GPT"],
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-OSS-120B model, an open-weight model designed for powerful reasoning and agentic tasks.",

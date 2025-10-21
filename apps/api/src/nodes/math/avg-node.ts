@@ -12,7 +12,7 @@ export class AvgNode extends ExecutableNode {
     name: "Average",
     type: "avg",
     description: "Returns the average (mean) value from multiple numbers",
-    tags: ["Math"],
+    tags: ["Math", "Average"],
     icon: "chart-bar",
     documentation:
       "This node calculates the arithmetic mean (average) of multiple numbers.",

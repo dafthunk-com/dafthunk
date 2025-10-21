@@ -15,7 +15,7 @@ export class RagAiSearchNode extends ExecutableNode {
     name: "RAG AI Search",
     type: "rag-ai-search",
     description: "AI-powered search through datasets",
-    tags: ["AI"],
+    tags: ["AI", "RAG", "Vector", "Search"],
     icon: "search",
     documentation:
       "This node performs AI-powered search through datasets using RAG (Retrieval-Augmented Generation) and generates intelligent responses.",

@@ -12,7 +12,7 @@ export class DivisionNode extends ExecutableNode {
     name: "Division",
     type: "division",
     description: "Divides one number by another",
-    tags: ["Math"],
+    tags: ["Math", "Division"],
     icon: "divide",
     documentation:
       "This node divides one number by another to produce their quotient.",

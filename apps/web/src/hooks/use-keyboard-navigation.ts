@@ -34,7 +34,10 @@ export function useKeyboardNavigation({
   useEffect(() => {
     if (activeElement === "items" && focusedIndex >= itemsCount) {
       setFocusedIndex(Math.max(0, itemsCount - 1));
-    } else if (activeElement === "categories" && focusedIndex >= categoriesCount) {
+    } else if (
+      activeElement === "categories" &&
+      focusedIndex >= categoriesCount
+    ) {
       setFocusedIndex(Math.max(0, categoriesCount - 1));
     }
   }, [itemsCount, categoriesCount, activeElement, focusedIndex]);

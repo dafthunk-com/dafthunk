@@ -11,7 +11,7 @@ export class AdditionNode extends ExecutableNode {
     name: "Addition",
     type: "addition",
     description: "Adds two numbers together",
-    tags: ["Math"],
+    tags: ["Math", "Addition"],
     icon: "plus",
     documentation: "This node adds two numbers together to produce their sum.",
     specification: "result = a + b",

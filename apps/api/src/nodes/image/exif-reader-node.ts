@@ -12,7 +12,7 @@ export class ExifReaderNode extends ExecutableNode {
     name: "EXIF Reader",
     type: "exif-reader",
     description: "Extracts EXIF data from an image.",
-    tags: ["Image"],
+    tags: ["Image", "EXIF", "Metadata"],
     icon: "file-text",
     documentation: "This node extracts EXIF data from an image.",
     inlinable: true,

@@ -12,7 +12,7 @@ export class MinNode extends ExecutableNode {
     name: "Min",
     type: "min",
     description: "Returns the minimum value from multiple numbers",
-    tags: ["Math"],
+    tags: ["Math", "Minimum"],
     icon: "arrow-down",
     documentation: "This node returns the minimum value from multiple numbers.",
     specification: "result = min(numbers), where |numbers| > 0",

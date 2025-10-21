@@ -12,7 +12,7 @@ export class MelottsNode extends ExecutableNode {
     name: "Text to Speech (MeloTTS)",
     type: "melotts",
     description: "Converts text to natural-sounding speech using MeloTTS",
-    tags: ["Audio", "AI"],
+    tags: ["Audio", "TTS", "Cloudflare", "MeloTTS"],
     icon: "mic",
     documentation:
       "This node converts text to natural-sounding speech using the MeloTTS model, supporting multiple languages.",

@@ -12,7 +12,7 @@ export class SendDMDiscordNode extends ExecutableNode {
     name: "Send Direct Message (Discord)",
     type: "send-dm-discord",
     description: "Send a direct message to a Discord user",
-    tags: ["Discord"],
+    tags: ["Social", "Discord", "Message", "Send"],
     icon: "mail",
     documentation:
       "This node sends a direct message to a Discord user. Requires a connected Discord integration. Note: The bot must share a server with the user to DM them.",

@@ -12,7 +12,7 @@ export class PhotonOilPaintingNode extends ExecutableNode {
     name: "Oil Painting Effect",
     type: "photon-oil-painting",
     description: "Applies an oil painting effect to an image using Photon.",
-    tags: ["Image"],
+    tags: ["Image", "Photon", "Effect", "OilPainting"],
     icon: "palette",
     documentation:
       "This node applies an oil painting effect to an image using Photon.",

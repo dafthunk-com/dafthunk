@@ -9,7 +9,7 @@ export class JsonSetNode extends ExecutableNode {
     name: "JSON Set",
     type: "json-set",
     description: "Set a value at a specific path in JSON",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Modify", "Set"],
     icon: "edit",
     documentation:
       "This node sets a value at a specific path within a JSON object, creating the path if it doesn't exist.",

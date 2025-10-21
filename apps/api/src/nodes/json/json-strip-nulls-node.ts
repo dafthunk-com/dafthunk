@@ -9,7 +9,7 @@ export class JsonStripNullsNode extends ExecutableNode {
     name: "JSON Strip Nulls",
     type: "json-strip-nulls",
     description: "Remove null values from JSON objects and arrays",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Transform", "StripNulls"],
     icon: "filter",
     documentation:
       "This node removes null values from JSON objects and arrays.",

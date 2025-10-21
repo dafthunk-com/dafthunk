@@ -12,7 +12,7 @@ export class UpdateEventGoogleCalendarNode extends ExecutableNode {
     name: "Update Event (Google Calendar)",
     type: "update-event-google-calendar",
     description: "Update an existing calendar event using Google Calendar API",
-    tags: ["Calendar", "Google"],
+    tags: ["Social", "Calendar", "Google", "Event", "Update"],
     icon: "calendar",
     documentation:
       "This node updates an existing calendar event using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",

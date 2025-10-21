@@ -10,7 +10,7 @@ export class PolygonTangentsNode extends ExecutableNode {
     name: "Polygon Tangents",
     type: "polygon-tangents",
     description: "Finds the tangents of a (Multi)Polygon from a Point.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "PolygonTangents"],
     icon: "compass",
     documentation:
       "This node finds the tangent points on a polygon from a given external point.",

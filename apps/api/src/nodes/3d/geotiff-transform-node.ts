@@ -13,7 +13,7 @@ export class GeoTiffTransformNode extends ExecutableNode {
     type: "geotiff-transform",
     description:
       "Transform GeoTIFF metadata from WGS84 (EPSG:4326) to Web Mercator (EPSG:3857)",
-    tags: ["3D", "Geo"],
+    tags: ["3D", "GeoTIFF", "Transform"],
     icon: "map",
     inputs: [
       {

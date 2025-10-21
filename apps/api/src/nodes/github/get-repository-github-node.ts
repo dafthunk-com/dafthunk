@@ -12,7 +12,7 @@ export class GetRepositoryGithubNode extends ExecutableNode {
     name: "Get Repository (GitHub)",
     type: "get-repository-github",
     description: "Get information about a GitHub repository",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "Repository", "Get"],
     icon: "git-branch",
     documentation:
       "This node retrieves detailed information about a GitHub repository including stars, forks, description, and more. Requires a connected GitHub integration.",

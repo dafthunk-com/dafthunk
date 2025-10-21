@@ -13,7 +13,7 @@ export class PhotonAdjustHslLightnessNode extends ExecutableNode {
     type: "photon-adjust-hsl-lightness",
     description:
       "Adjusts image lightness using HSL. Amount from -1.0 (max darken) to 1.0 (max lighten).",
-    tags: ["Image"],
+    tags: ["Image", "Photon", "Adjust", "Lightness"],
     icon: "sun",
     documentation:
       "This node adjusts image lightness using HSL. Amount from -1.0 (max darken) to 1.0 (max lighten).",

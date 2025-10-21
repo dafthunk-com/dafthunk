@@ -11,7 +11,7 @@ export class CenterOfMassNode extends ExecutableNode {
     type: "centerOfMass",
     description:
       "Takes any Feature or FeatureCollection and returns its center of mass using the centroid of polygon formula.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "CenterOfMass"],
     icon: "target",
     documentation:
       "This node calculates the center of mass (centroid) of a GeoJSON feature or feature collection.",

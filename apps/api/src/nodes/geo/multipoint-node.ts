@@ -11,7 +11,7 @@ export class MultiPointNode extends ExecutableNode {
     type: "multipoint",
     description:
       "Creates a Feature<MultiPoint> based on a coordinate array. Properties can be added optionally.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "MultiPoint"],
     icon: "map-pin",
     documentation:
       "This node creates a MultiPoint GeoJSON feature from an array of coordinate pairs.",

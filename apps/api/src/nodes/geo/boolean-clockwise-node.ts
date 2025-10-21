@@ -11,7 +11,7 @@ export class BooleanClockwiseNode extends ExecutableNode {
     type: "boolean-clockwise",
     description:
       "Takes a ring and returns true or false whether or not the ring is clockwise or counter-clockwise.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "Clockwise"],
     icon: "rotate-cw",
     documentation:
       "This node determines whether a LineString or polygon ring follows a clockwise or counter-clockwise direction.",

@@ -14,7 +14,7 @@ export class Gpt41Node extends ExecutableNode {
     name: "GPT-4.1",
     type: "gpt-4.1",
     description: "Latest GPT-4 iteration with enhanced capabilities",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Chat", "OpenAI", "GPT"],
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-4.1 model, the latest GPT-4 iteration with enhanced capabilities.",

@@ -11,7 +11,7 @@ export class PointOnFeatureNode extends ExecutableNode {
     type: "point-on-feature",
     description:
       "Takes a Feature or FeatureCollection and returns a Point guaranteed to be on the surface of the feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "PointOnFeature"],
     icon: "map-pin",
     documentation:
       "This node finds a random point that lies within a given polygon or on a line.",

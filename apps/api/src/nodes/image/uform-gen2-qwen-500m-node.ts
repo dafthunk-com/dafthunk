@@ -13,7 +13,7 @@ export class UformGen2Qwen500mNode extends ExecutableNode {
     type: "uform-gen2-qwen-500m",
     description:
       "Generates text descriptions from images using UForm-Gen2 model (smaller and faster than LLaVA)",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Cloudflare", "Caption"],
     icon: "image",
     documentation:
       "This node generates images from text descriptions using the UForm Gen2 Qwen 500M model for efficient image creation.",

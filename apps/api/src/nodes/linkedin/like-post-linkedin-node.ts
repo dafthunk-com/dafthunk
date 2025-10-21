@@ -12,7 +12,7 @@ export class LikePostLinkedInNode extends ExecutableNode {
     name: "Like Post (LinkedIn)",
     type: "like-post-linkedin",
     description: "Like a LinkedIn post, share, or comment",
-    tags: ["LinkedIn"],
+    tags: ["Social", "LinkedIn", "Post", "Like"],
     icon: "heart",
     documentation:
       "This node likes a post, share, or comment on behalf of the authenticated member. Requires the w_member_social scope. Requires a connected LinkedIn integration.",

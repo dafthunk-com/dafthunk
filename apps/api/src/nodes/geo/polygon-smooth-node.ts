@@ -11,7 +11,7 @@ export class PolygonSmoothNode extends ExecutableNode {
     type: "polygon-smooth",
     description:
       "Smooths a Polygon or MultiPolygon. Based on Chaikin's algorithm. Warning: may create degenerate polygons.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "PolygonSmooth"],
     icon: "circle",
     documentation:
       "This node smooths polygon geometries using Chaikin's algorithm to create more rounded shapes.",

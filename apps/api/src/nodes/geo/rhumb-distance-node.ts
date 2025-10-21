@@ -11,7 +11,7 @@ export class RhumbDistanceNode extends ExecutableNode {
     type: "rhumbDistance",
     description:
       "Calculates the rhumb line distance (constant bearing distance) between two points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "RhumbDistance"],
     icon: "ruler",
     documentation:
       "This node calculates the rhumb line distance (constant bearing) between two points on Earth's surface.",

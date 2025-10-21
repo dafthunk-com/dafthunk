@@ -10,7 +10,7 @@ export class LineSplitNode extends ExecutableNode {
     name: "Line Split",
     type: "line-split",
     description: "Split a LineString by another GeoJSON Feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "LineSplit"],
     icon: "git-merge",
     documentation:
       "This node splits a LineString geometry into multiple segments using another GeoJSON feature as the splitting tool.",

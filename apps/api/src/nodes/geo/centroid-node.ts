@@ -11,7 +11,7 @@ export class CentroidNode extends ExecutableNode {
     type: "centroid",
     description:
       "Computes the centroid as the mean of all vertices within the object.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Centroid"],
     icon: "target",
     documentation:
       "This node computes the centroid as the mean of all vertices within the object.",

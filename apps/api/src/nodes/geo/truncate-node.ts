@@ -11,7 +11,7 @@ export class TruncateNode extends ExecutableNode {
     type: "truncate",
     description:
       "Truncates the precision of a coordinate to a specified number of decimal places.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Truncate"],
     icon: "scissors",
     documentation:
       "This node truncates coordinate precision in GeoJSON geometries to a specified number of decimal places.",

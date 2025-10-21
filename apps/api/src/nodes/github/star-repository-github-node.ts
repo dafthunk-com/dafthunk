@@ -12,7 +12,7 @@ export class StarRepositoryGithubNode extends ExecutableNode {
     name: "Star Repository (GitHub)",
     type: "star-repository-github",
     description: "Star a GitHub repository",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "Repository", "Star"],
     icon: "star",
     documentation:
       "This node stars a GitHub repository on behalf of the authenticated user. Requires a connected GitHub integration with repo scope.",

@@ -11,7 +11,7 @@ export class EnvelopeNode extends ExecutableNode {
     type: "envelope",
     description:
       "Creates a bounding rectangle (envelope) around any GeoJSON geometry.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "Envelope"],
     icon: "square",
     documentation:
       "This node creates the minimum bounding rectangle (envelope) for a geometry.",

@@ -10,7 +10,7 @@ export class BearingNode extends ExecutableNode {
     name: "Bearing",
     type: "bearing",
     description: "Calculates the bearing in degrees between two points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Measurement", "Bearing"],
     icon: "compass",
     documentation:
       "This node calculates the bearing in degrees between two points.",

@@ -12,7 +12,7 @@ export class SendDraftGoogleMailNode extends ExecutableNode {
     name: "Send Draft (Google Mail)",
     type: "send-draft-google-mail",
     description: "Send an existing draft using Google Mail API",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Draft", "Send"],
     icon: "mail",
     documentation:
       "This node sends an existing draft using Google Mail API. Requires a connected Google Mail integration from your organization's integrations.",

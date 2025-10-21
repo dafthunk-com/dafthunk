@@ -11,7 +11,7 @@ export class VoronoiNode extends ExecutableNode {
     type: "voronoi",
     description:
       "Takes a collection of points and a bounding box, and returns a collection of Voronoi polygons.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "Voronoi"],
     icon: "hexagon",
     documentation:
       "This node creates Voronoi polygons from a set of points, where each polygon contains all locations closest to its input point.",

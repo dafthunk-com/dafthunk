@@ -11,7 +11,7 @@ export class PolygonizeNode extends ExecutableNode {
     type: "polygonize",
     description:
       "Takes a set of line features and returns a set of polygon features constructed from the lines.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Polygonize"],
     icon: "square",
     documentation:
       "This node converts a set of LineString features into polygon features by connecting intersecting lines.",

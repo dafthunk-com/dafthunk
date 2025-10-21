@@ -9,7 +9,7 @@ export class JsonObjectKeysNode extends ExecutableNode {
     name: "JSON Object Keys",
     type: "json-object-keys",
     description: "Extract all keys from a JSON object",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Query", "Keys"],
     icon: "key",
     documentation:
       "This node extracts all property keys from a JSON object and returns them as an array.",

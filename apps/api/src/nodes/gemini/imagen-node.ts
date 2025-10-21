@@ -15,7 +15,7 @@ export class ImagenNode extends ExecutableNode {
     type: "imagen",
     description:
       "Generates high-fidelity images from text prompts using Google's Imagen model",
-    tags: ["Image", "AI"],
+    tags: ["AI", "Image", "Google", "Gemini", "Generate"],
     icon: "image",
     documentation:
       "This node uses Google's Imagen model to generate high-fidelity images from text prompts.",

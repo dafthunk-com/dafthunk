@@ -11,7 +11,7 @@ export class FlattenNode extends ExecutableNode {
     type: "flatten",
     description:
       "Flattens any GeoJSON to a FeatureCollection of Point, LineString, or Polygon features.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Flatten"],
     icon: "layers",
     documentation:
       "This node flattens complex GeoJSON structures into a FeatureCollection of simple Point, LineString, or Polygon features.",

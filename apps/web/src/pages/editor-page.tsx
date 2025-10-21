@@ -246,9 +246,7 @@ export function EditorPage() {
       { label: "Workflows", to: getOrgUrl("workflows") },
       {
         label:
-          httpWorkflowMetadata?.name ||
-          workflowMetadata?.name ||
-          "Workflow",
+          httpWorkflowMetadata?.name || workflowMetadata?.name || "Workflow",
       },
     ],
     [httpWorkflowMetadata?.name, workflowMetadata?.name]

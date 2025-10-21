@@ -14,7 +14,7 @@ export class Gpt5Node extends ExecutableNode {
     name: "GPT-5",
     type: "gpt-5",
     description: "Next-generation flagship model",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Chat", "OpenAI", "GPT"],
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-5 model to generate text responses based on input prompts.",

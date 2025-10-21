@@ -12,7 +12,7 @@ export class SvgToPngNode extends ExecutableNode {
     name: "SVG to PNG",
     type: "svg-to-png",
     description: "Renders SVG content to PNG format using the Resvg library.",
-    tags: ["Image"],
+    tags: ["Image", "SVG", "Convert", "PNG"],
     icon: "file-image",
     documentation:
       "This node renders SVG content to PNG format using the Resvg library.",

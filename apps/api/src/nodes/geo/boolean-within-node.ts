@@ -11,7 +11,7 @@ export class BooleanWithinNode extends ExecutableNode {
     type: "boolean-within",
     description:
       "Returns true if the first geometry is completely within the second geometry.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "Within"],
     icon: "mouse-pointer-2",
     documentation:
       "This node checks if one geometry is completely within another geometry.",

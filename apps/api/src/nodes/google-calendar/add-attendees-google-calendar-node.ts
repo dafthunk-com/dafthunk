@@ -12,7 +12,7 @@ export class AddAttendeesGoogleCalendarNode extends ExecutableNode {
     name: "Add Attendees (Google Calendar)",
     type: "add-attendees-google-calendar",
     description: "Add attendees to an existing event using Google Calendar API",
-    tags: ["Calendar", "Google"],
+    tags: ["Social", "Calendar", "Google", "Attendee", "Add"],
     icon: "calendar",
     documentation:
       "This node adds attendees to an existing calendar event using Google Calendar API. Requires a connected Google Calendar integration from your organization's integrations.",

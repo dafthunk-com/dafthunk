@@ -22,7 +22,7 @@ export class CheckDraftGoogleMailNode extends ExecutableNode {
     name: "Check Draft (Google Mail)",
     type: "check-draft-google-mail",
     description: "Check if a draft exists for a thread or message",
-    tags: ["Email", "Google"],
+    tags: ["Social", "Email", "Google", "Draft", "Check"],
     icon: "mail",
     documentation:
       "This node checks if drafts exist in Gmail. Can check by thread ID or search all drafts. Requires a connected Google Mail integration from your organization's integrations.",

@@ -11,7 +11,7 @@ export class GreatCircleNode extends ExecutableNode {
     type: "greatCircle",
     description:
       "Calculate great circles routes as LineString or MultiLineString between two points.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Geometry", "GreatCircle"],
     icon: "globe",
     documentation:
       "This node calculates a great circle route between two points on Earth's surface, following the shortest path along the globe.",

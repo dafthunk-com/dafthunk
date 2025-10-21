@@ -14,7 +14,7 @@ export class CalculatorNode extends ExecutableNode {
     type: "calculator",
     description:
       "Evaluates mathematical expressions with support for arithmetic, functions, and constants.",
-    tags: ["Math"],
+    tags: ["Math", "Calculate"],
     icon: "calculator",
     documentation:
       "Evaluates mathematical expressions with comprehensive support for arithmetic operations, mathematical functions, trigonometric functions, constants, and complex formulas.",

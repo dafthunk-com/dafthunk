@@ -9,7 +9,7 @@ export class JsonInsertNode extends ExecutableNode {
     name: "JSON Insert",
     type: "json-insert",
     description: "Insert a value at a specific path only if it doesn't exist",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Modify", "Insert"],
     icon: "plus",
     documentation:
       "This node inserts a value at a specific JSONPath location only if the path doesn't already exist.",

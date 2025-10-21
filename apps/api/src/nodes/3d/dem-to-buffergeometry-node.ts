@@ -49,7 +49,7 @@ export class DemToBufferGeometryNode extends ExecutableNode {
     type: "dem-to-buffergeometry",
     description:
       "Convert Digital Elevation Model (DEM) image data to 3D BufferGeometry using Martini triangulation",
-    tags: ["3D", "Geo"],
+    tags: ["3D", "DEM", "BufferGeometry", "Convert"],
     icon: "mountain",
     documentation:
       "Converts PNG elevation tiles to 3D mesh geometry suitable for terrain visualization.",

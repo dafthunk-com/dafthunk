@@ -9,7 +9,7 @@ export class JsonContainsPathNode extends ExecutableNode {
     name: "JSON Contains Path",
     type: "json-contains-path",
     description: "Check if JSON contains a specific path",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Query", "ContainsPath"],
     icon: "map-pin",
     documentation:
       "This node checks if a JSON object contains a specific path.",

@@ -11,7 +11,7 @@ export class BooleanValidNode extends ExecutableNode {
     type: "boolean-valid",
     description:
       "Checks if the geometry is valid according to the OGC Simple Feature Specification.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Boolean", "Valid"],
     icon: "check-circle",
     documentation:
       "This node validates whether a GeoJSON geometry conforms to the OGC Simple Feature Specification.",

@@ -11,7 +11,7 @@ export class DifferenceNode extends ExecutableNode {
     type: "difference",
     description:
       "Returns the difference between two (multi)polygon features as a new (multi)polygon feature.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Difference"],
     icon: "square-minus",
     documentation:
       "This node calculates the geometric difference between two geometries.",

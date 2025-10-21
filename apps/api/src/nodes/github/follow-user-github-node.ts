@@ -12,7 +12,7 @@ export class FollowUserGithubNode extends ExecutableNode {
     name: "Follow User (GitHub)",
     type: "follow-user-github",
     description: "Follow a GitHub user",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "User", "Follow"],
     icon: "user-plus",
     documentation:
       "This node follows a GitHub user on behalf of the authenticated user. Requires a connected GitHub integration with user scope.",

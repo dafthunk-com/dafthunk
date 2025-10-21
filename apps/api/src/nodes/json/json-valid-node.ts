@@ -9,7 +9,7 @@ export class JsonValidNode extends ExecutableNode {
     name: "JSON Valid",
     type: "json-valid",
     description: "Validate if a value is valid JSON",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Validate"],
     icon: "check-circle",
     documentation:
       "This node validates if a string contains valid JSON and returns the validation result.",

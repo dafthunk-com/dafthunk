@@ -14,7 +14,7 @@ export class Claude35SonnetNode extends ExecutableNode {
     name: "Claude 3.5 Sonnet",
     type: "claude-35-sonnet",
     description: "Well-tested model with excellent performance/cost balance",
-    tags: ["Text", "AI"],
+    tags: ["AI", "Chat", "Anthropic", "Claude", "Sonnet"],
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude 3.5 Sonnet model with excellent performance/cost balance.",

@@ -9,7 +9,7 @@ export class IntersectNode extends ExecutableNode {
     name: "Intersect",
     type: "intersect",
     description: "Finds the intersection of two polygons.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Intersect"],
     icon: "squares-intersect",
     documentation:
       "This node finds the geometric intersection (overlapping area) between two polygon geometries.",

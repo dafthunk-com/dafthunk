@@ -8,7 +8,7 @@ export class JsonBodyNode extends ExecutableNode {
     name: "JSON Body",
     type: "body-json",
     description: "Extracts JSON data from the body of the HTTP request.",
-    tags: ["Parameter"],
+    tags: ["Data", "Parameter", "JSON"],
     icon: "braces",
     documentation:
       "This node extracts JSON data from the HTTP request body, supporting both required and optional JSON payloads.",

@@ -9,7 +9,7 @@ export class RegexSplitNode extends ExecutableNode {
     name: "Regex Split",
     type: "regex-split",
     description: "Split a string by a regular expression pattern.",
-    tags: ["Text"],
+    tags: ["Text", "Regex", "Split"],
     icon: "divide",
     documentation: "This node splits a string by a regular expression pattern.",
     inlinable: true,

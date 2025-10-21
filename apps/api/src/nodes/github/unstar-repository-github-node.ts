@@ -12,7 +12,7 @@ export class UnstarRepositoryGithubNode extends ExecutableNode {
     name: "Unstar Repository (GitHub)",
     type: "unstar-repository-github",
     description: "Unstar a GitHub repository",
-    tags: ["GitHub"],
+    tags: ["Social", "GitHub", "Repository", "Unstar"],
     icon: "star-off",
     documentation:
       "This node unstars a GitHub repository on behalf of the authenticated user. Requires a connected GitHub integration with repo scope.",

@@ -11,7 +11,7 @@ export class MultiPolygonNode extends ExecutableNode {
     type: "multipolygon",
     description:
       "Creates a Feature<MultiPolygon> based on a coordinate array. Properties can be added optionally.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "MultiPolygon"],
     icon: "layers",
     documentation:
       "This node creates a MultiPolygon geometry from multiple polygon geometries.",

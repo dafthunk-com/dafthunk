@@ -11,7 +11,7 @@ export class ConcaveNode extends ExecutableNode {
     type: "concave",
     description:
       "Takes a set of points and returns a concave hull polygon. Internally, this uses turf-tin to generate geometries.",
-    tags: ["Geo"],
+    tags: ["Geo", "GeoJSON", "Transform", "Concave"],
     icon: "square",
     documentation:
       "This node creates a concave hull (alpha shape) from a set of points.",

@@ -9,7 +9,7 @@ export class JsonKeysNode extends ExecutableNode {
     name: "JSON Keys",
     type: "json-keys",
     description: "Get all keys at a specific JSON path",
-    tags: ["JSON"],
+    tags: ["Data", "JSON", "Query", "Keys"],
     icon: "key",
     documentation: "This node gets all keys at a specific JSON path.",
     inlinable: true,
