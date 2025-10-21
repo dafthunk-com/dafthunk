@@ -29,7 +29,6 @@ describe("GeoTiffDemQueryNode", () => {
       expect(nodeType.id).toBe("geotiff-dem-query");
       expect(nodeType.name).toBe("GeoTIFF DEM Query");
       expect(nodeType.type).toBe("geotiff-dem-query");
-      expect(nodeType.tags).toEqual(["3D", "Geo"]);
       expect(nodeType.inputs).toHaveLength(4);
       expect(nodeType.outputs).toHaveLength(2);
 

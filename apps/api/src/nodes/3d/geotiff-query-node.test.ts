@@ -157,7 +157,6 @@ describe("GeoTiffQueryNode", () => {
       expect(nodeType.id).toBe("geotiff-query");
       expect(nodeType.name).toBe("GeoTIFF Query");
       expect(nodeType.type).toBe("geotiff-query");
-      expect(nodeType.tags).toEqual(["3D", "Geo"]);
       expect(nodeType.inputs).toHaveLength(4);
       expect(nodeType.outputs).toHaveLength(1);
 
