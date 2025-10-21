@@ -135,6 +135,10 @@ export class NodeExecutor {
 
   /**
    * Executes a single node and stores its outputs.
+   *
+   * Error handling modes:
+   * 1. Node returns status: "failed" → error stored in nodeErrors, execution continues
+   * 2. Node throws exception → execution stops, workflow status set to "error"
    */
   async executeNode(
     runtimeState: RuntimeState,
@@ -155,7 +159,8 @@ export class NodeExecutor {
         nodeIdentifier,
         `Node not found: ${nodeIdentifier}`
       );
-      return { ...runtimeState, status: "error" };
+      this.determineWorkflowStatus(runtimeState);
+      return runtimeState;
     }
 
     const nodeType = this.nodeRegistry.getNodeType(node.type);
@@ -172,7 +177,8 @@ export class NodeExecutor {
         nodeIdentifier,
         `Node type not implemented: ${node.type}`
       );
-      return { ...runtimeState, status: "error" };
+      this.determineWorkflowStatus(runtimeState);
+      return runtimeState;
     }
 
     // Gather inputs by reading connections and default values.
@@ -290,10 +296,10 @@ export class NodeExecutor {
           result.outputs ?? {}
         );
       } else {
+        // Node returned status="failed" - store error and continue execution
+        // Final workflow status will be determined by determineWorkflowStatus()
         const failureMessage = result.error ?? "Unknown error";
         runtimeState.nodeErrors.set(nodeIdentifier, failureMessage);
-        // Don't set workflow status to "error" - let the workflow continue
-        // The workflow will be marked as having errors at the end if any nodes failed
       }
 
       // Determine final workflow status
