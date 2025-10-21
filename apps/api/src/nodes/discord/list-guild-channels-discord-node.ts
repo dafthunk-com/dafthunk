@@ -69,14 +69,8 @@ export class ListGuildChannelsDiscordNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Get integration from preloaded context
-      const integration = context.integrations?.[integrationId];
-
-      if (!integration) {
-        return this.createErrorResult(
-          "Integration not found or access denied. Please check your integration settings."
-        );
-      }
+      // Get integration with auto-refreshed token
+      const integration = await context.getIntegration(integrationId);
 
       if (integration.provider !== "discord") {
         return this.createErrorResult(
@@ -84,22 +78,7 @@ export class ListGuildChannelsDiscordNode extends ExecutableNode {
         );
       }
 
-      // Use integration manager to get a valid access token
-      let accessToken: string;
-      try {
-        if (context.integrationManager) {
-          accessToken =
-            await context.integrationManager.getValidAccessToken(integrationId);
-        } else {
-          accessToken = integration.token;
-        }
-      } catch (error) {
-        return this.createErrorResult(
-          error instanceof Error
-            ? error.message
-            : "Failed to get valid access token"
-        );
-      }
+      const accessToken = integration.token;
 
       // List guild channels via Discord API
       const response = await fetch(

@@ -33,6 +33,9 @@ describe("GeoTiffQueryNode", () => {
           width: 256,
           height: 256,
         },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 
@@ -50,6 +53,9 @@ describe("GeoTiffQueryNode", () => {
           bbox: [-10, -10, 10], // Invalid: only 3 values
           width: 256,
           height: 256,
+        },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
         },
         env: {} as any,
       });
@@ -71,6 +77,9 @@ describe("GeoTiffQueryNode", () => {
           width: "256", // Invalid: string instead of number
           height: 256,
         },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
+        },
         env: {} as any,
       });
 
@@ -91,6 +100,9 @@ describe("GeoTiffQueryNode", () => {
           bbox: [-10, -10, 10, 10],
           width: 256,
           height: 256,
+        },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
         },
         env: {} as any,
       });
@@ -128,6 +140,9 @@ describe("GeoTiffQueryNode", () => {
           bbox: [-10, -10, 10, 10],
           width: 2,
           height: 2,
+        },
+        getIntegration: async () => {
+          throw new Error("No integrations in test");
         },
         env: {} as any,
       });

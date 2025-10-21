@@ -16,6 +16,9 @@ describe("StringConcatNode", () => {
       inputs: {
         strings: "Hello World",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -35,6 +38,9 @@ describe("StringConcatNode", () => {
       nodeId,
       inputs: {
         strings: ["Hello", " ", "World", "!"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -56,6 +62,9 @@ describe("StringConcatNode", () => {
       inputs: {
         strings: ["", "test", ""],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -73,6 +82,9 @@ describe("StringConcatNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -91,6 +103,9 @@ describe("StringConcatNode", () => {
       nodeId,
       inputs: {
         strings: ["Hello", 123, "World"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

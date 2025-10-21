@@ -18,6 +18,9 @@ describe("PhotonAddNoiseNode", () => {
         image: testImageData,
         amount: 10,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -39,6 +42,9 @@ describe("PhotonAddNoiseNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

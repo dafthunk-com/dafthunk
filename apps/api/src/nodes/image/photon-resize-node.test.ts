@@ -19,6 +19,9 @@ describe("PhotonResizeNode", () => {
         width: 200,
         height: 200,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -40,6 +43,9 @@ describe("PhotonResizeNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

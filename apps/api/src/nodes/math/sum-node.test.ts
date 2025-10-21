@@ -16,6 +16,9 @@ describe("SumNode", () => {
       inputs: {
         numbers: 42,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -35,6 +38,9 @@ describe("SumNode", () => {
       nodeId,
       inputs: {
         numbers: [1, 2, 3, 4, 5],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -56,6 +62,9 @@ describe("SumNode", () => {
       inputs: {
         numbers: [1.5, 2.3, 0.2],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("SumNode", () => {
       nodeId,
       inputs: {
         numbers: [-1, -2, 3, 4],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -94,6 +106,9 @@ describe("SumNode", () => {
       inputs: {
         numbers: [],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -111,6 +126,9 @@ describe("SumNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -129,6 +147,9 @@ describe("SumNode", () => {
       nodeId,
       inputs: {
         numbers: [1, "not-a-number", 3],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -151,6 +172,9 @@ describe("SumNode", () => {
       inputs: {
         numbers: ["1", "2", "3"],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -172,6 +196,9 @@ describe("SumNode", () => {
       nodeId,
       inputs: {
         numbers,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

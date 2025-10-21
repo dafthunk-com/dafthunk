@@ -22,6 +22,9 @@ describe("JsonStringExtractorNode", () => {
         json,
         path: "$.name",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -54,6 +57,9 @@ describe("JsonStringExtractorNode", () => {
         json,
         path: "$.user.profile.name",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -81,6 +87,9 @@ describe("JsonStringExtractorNode", () => {
         json,
         path: "$.books[0].title",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -107,6 +116,9 @@ describe("JsonStringExtractorNode", () => {
         path: "$.email",
         defaultValue: "default@example.com",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -132,6 +144,9 @@ describe("JsonStringExtractorNode", () => {
         json,
         path: "$.email",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -152,6 +167,9 @@ describe("JsonStringExtractorNode", () => {
       inputs: {
         json: null,
         path: "$.name",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -174,6 +192,9 @@ describe("JsonStringExtractorNode", () => {
         json: "not an object",
         path: "$.name",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -194,6 +215,9 @@ describe("JsonStringExtractorNode", () => {
         json,
         path: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -213,6 +237,9 @@ describe("JsonStringExtractorNode", () => {
       inputs: {
         json,
         path: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -240,6 +267,9 @@ describe("JsonStringExtractorNode", () => {
       inputs: {
         json,
         path: "$.items[*].value",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -288,6 +318,9 @@ describe("JsonStringExtractorNode", () => {
         json,
         path: "$.data.users[1].profile.contact.email",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -314,6 +347,9 @@ describe("JsonStringExtractorNode", () => {
       inputs: {
         json,
         path: "$.age",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

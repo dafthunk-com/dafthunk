@@ -17,6 +17,9 @@ describe("DivisionNode", () => {
         a: 10,
         b: 2,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -36,6 +39,9 @@ describe("DivisionNode", () => {
       inputs: {
         a: 7,
         b: 2,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -57,6 +63,9 @@ describe("DivisionNode", () => {
         a: -10,
         b: 2,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -76,6 +85,9 @@ describe("DivisionNode", () => {
       inputs: {
         a: "15",
         b: "3",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -97,6 +109,9 @@ describe("DivisionNode", () => {
         a: 10,
         b: 0,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -115,6 +130,9 @@ describe("DivisionNode", () => {
       inputs: {
         a: "invalid",
         b: 2,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -135,6 +153,9 @@ describe("DivisionNode", () => {
         a: 10,
         b: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -153,6 +174,9 @@ describe("DivisionNode", () => {
       inputs: {
         b: 2,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -170,6 +194,9 @@ describe("DivisionNode", () => {
       nodeId,
       inputs: {
         a: 10,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

@@ -28,6 +28,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -75,6 +78,9 @@ describe("JsonTemplateNode", () => {
       inputs: {
         template,
         variables,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -128,6 +134,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -168,6 +177,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -204,6 +216,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -234,6 +249,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -259,6 +277,9 @@ describe("JsonTemplateNode", () => {
       inputs: {
         template,
         variables,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -346,6 +367,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables: null,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -366,6 +390,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables: undefined,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -385,6 +412,9 @@ describe("JsonTemplateNode", () => {
       inputs: {
         template,
         variables: "not an object",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -413,6 +443,9 @@ describe("JsonTemplateNode", () => {
       inputs: {
         template,
         variables,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -475,6 +508,9 @@ describe("JsonTemplateNode", () => {
         template,
         variables,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -529,6 +565,9 @@ describe("JsonTemplateNode", () => {
       inputs: {
         template,
         variables,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

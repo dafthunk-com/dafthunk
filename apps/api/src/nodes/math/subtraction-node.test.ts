@@ -17,6 +17,9 @@ describe("SubtractionNode", () => {
         a: 10,
         b: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -36,6 +39,9 @@ describe("SubtractionNode", () => {
       inputs: {
         a: 3,
         b: 10,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -57,6 +63,9 @@ describe("SubtractionNode", () => {
         a: -5,
         b: -3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -76,6 +85,9 @@ describe("SubtractionNode", () => {
       inputs: {
         a: 5.5,
         b: 2.25,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -97,6 +109,9 @@ describe("SubtractionNode", () => {
         a: 5,
         b: 0,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -116,6 +131,9 @@ describe("SubtractionNode", () => {
       inputs: {
         a: "15",
         b: "7",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -137,6 +155,9 @@ describe("SubtractionNode", () => {
         a: "invalid",
         b: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -156,6 +177,9 @@ describe("SubtractionNode", () => {
         a: 10,
         b: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -174,6 +198,9 @@ describe("SubtractionNode", () => {
       inputs: {
         b: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -191,6 +218,9 @@ describe("SubtractionNode", () => {
       nodeId,
       inputs: {
         a: 10,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

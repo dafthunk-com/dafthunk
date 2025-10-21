@@ -17,6 +17,9 @@ describe("ModuloNode", () => {
         a: 7,
         b: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -36,6 +39,9 @@ describe("ModuloNode", () => {
       inputs: {
         a: 8,
         b: 2,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -57,6 +63,9 @@ describe("ModuloNode", () => {
         a: -7,
         b: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -76,6 +85,9 @@ describe("ModuloNode", () => {
       inputs: {
         a: 7,
         b: -3,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -97,6 +109,9 @@ describe("ModuloNode", () => {
         a: 7.5,
         b: 2.5,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -116,6 +131,9 @@ describe("ModuloNode", () => {
       inputs: {
         a: "10",
         b: "3",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -137,6 +155,9 @@ describe("ModuloNode", () => {
         a: 10,
         b: 0,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -155,6 +176,9 @@ describe("ModuloNode", () => {
       inputs: {
         a: "invalid",
         b: 3,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -175,6 +199,9 @@ describe("ModuloNode", () => {
         a: 10,
         b: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -193,6 +220,9 @@ describe("ModuloNode", () => {
       inputs: {
         b: 3,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -210,6 +240,9 @@ describe("ModuloNode", () => {
       nodeId,
       inputs: {
         a: 10,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

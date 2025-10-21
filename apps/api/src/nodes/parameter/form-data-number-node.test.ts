@@ -23,6 +23,9 @@ describe("FormDataNumberNode", () => {
           testParam: "42",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -50,6 +53,9 @@ describe("FormDataNumberNode", () => {
           testParam: "3.14",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -75,6 +81,9 @@ describe("FormDataNumberNode", () => {
         formData: {
           testParam: "-10.5",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -102,6 +111,9 @@ describe("FormDataNumberNode", () => {
           testParam: "0",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -128,6 +140,9 @@ describe("FormDataNumberNode", () => {
           testParam: 123,
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -151,6 +166,9 @@ describe("FormDataNumberNode", () => {
       inputs: {},
       httpRequest: {
         formData: {},
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -177,6 +195,9 @@ describe("FormDataNumberNode", () => {
       httpRequest: {
         formData: {},
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -198,6 +219,9 @@ describe("FormDataNumberNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -219,6 +243,9 @@ describe("FormDataNumberNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -244,6 +271,9 @@ describe("FormDataNumberNode", () => {
         formData: {
           testParam: "not-a-number",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -271,6 +301,9 @@ describe("FormDataNumberNode", () => {
           testParam: "",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -293,6 +326,9 @@ describe("FormDataNumberNode", () => {
         formData: {
           testParam: "42",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -320,6 +356,9 @@ describe("FormDataNumberNode", () => {
           testParam: "1.23e-4",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -346,6 +385,9 @@ describe("FormDataNumberNode", () => {
           testParam: "Infinity",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -371,6 +413,9 @@ describe("FormDataNumberNode", () => {
         formData: {
           testParam: "-Infinity",
         },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

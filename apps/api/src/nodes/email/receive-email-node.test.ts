@@ -25,6 +25,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;
@@ -62,6 +65,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;
@@ -93,6 +99,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;
@@ -115,6 +124,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       // No emailMessage provided
     } as unknown as NodeContext;
@@ -142,6 +154,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;
@@ -173,6 +188,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;
@@ -206,6 +224,9 @@ describe("ReceiveEmailNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;
@@ -249,6 +270,9 @@ Content-Disposition: attachment; filename="document.pdf"
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
       emailMessage: mockEmailMessage,
     } as unknown as NodeContext;

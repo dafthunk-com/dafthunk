@@ -19,6 +19,9 @@ describe("PhotonOilPaintingNode", () => {
         radius: 3,
         intensity: 55,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -40,6 +43,9 @@ describe("PhotonOilPaintingNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 

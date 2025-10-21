@@ -24,7 +24,7 @@ import typeRoutes from "./routes/types";
 import usageRoutes from "./routes/usage";
 import workflowRoutes from "./routes/workflows";
 import wsRoutes from "./routes/ws";
-import { Runtime } from "./runtime/runtime";
+import { Runtime } from "./runtime";
 import { Session } from "./session/session";
 
 // Initialize Hono app with types

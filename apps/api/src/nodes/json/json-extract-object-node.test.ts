@@ -28,6 +28,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "$.profile",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -60,6 +63,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json,
         path: "$.scores",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -108,6 +114,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "$.data.users[0].profile",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -141,6 +150,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json,
         path: "$.books",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -197,6 +209,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "$.profile",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -226,6 +241,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "$.items[*].value",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -247,6 +265,9 @@ describe("JsonExtractObjectNode", () => {
         json: null,
         path: "$.profile",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -265,6 +286,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json: "not an object",
         path: "$.profile",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -286,6 +310,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -305,6 +332,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json,
         path: null,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -331,6 +361,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "$.name",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -352,6 +385,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json,
         path: "$.profile",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -380,6 +416,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json,
         path: "$.items",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -444,6 +483,9 @@ describe("JsonExtractObjectNode", () => {
         json,
         path: "$.data.users[0]",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -486,6 +528,9 @@ describe("JsonExtractObjectNode", () => {
       inputs: {
         json,
         path: "$.items[0]",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

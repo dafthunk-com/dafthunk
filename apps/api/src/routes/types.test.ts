@@ -3,10 +3,7 @@ import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiContext } from "../context";
-import {
-  getTestNodeRegistry,
-  initializeTestEnvironment,
-} from "../runtime/test-runtime";
+import { getTestNodeRegistry, initializeTestEnvironment } from "../runtime";
 import typeRoutes from "./types";
 
 // Mock the CloudflareNodeRegistry to use TestNodeRegistry instead

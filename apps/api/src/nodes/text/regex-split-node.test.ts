@@ -17,6 +17,9 @@ describe("RegexSplitNode", () => {
         string: "Hello,World,Test",
         pattern: ",",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -40,6 +43,9 @@ describe("RegexSplitNode", () => {
         string: "Hello   World\tTest",
         pattern: "\\s+",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -59,6 +65,9 @@ describe("RegexSplitNode", () => {
       inputs: {
         string: "",
         pattern: ",",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

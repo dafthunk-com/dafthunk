@@ -16,6 +16,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers: 42,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -35,6 +38,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: [1, 2, 3, 4, 5],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -56,6 +62,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers: [1.5, 2.5, 3.5],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: [-10, -5, -15],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -94,6 +106,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers: [-5, 10, -3, 7, -1],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -112,6 +127,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: [5, 5, 5, 5],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -132,6 +150,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers: [0, 5, -10, 0],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -150,6 +171,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: [0, 0, 0],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -170,6 +194,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers: [],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -187,6 +214,9 @@ describe("AvgNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -205,6 +235,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: [1, "not-a-number", 3],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -226,6 +259,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: ["1", "2", "3"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -249,6 +285,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -268,6 +307,9 @@ describe("AvgNode", () => {
       inputs: {
         numbers: [10, 20],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -286,6 +328,9 @@ describe("AvgNode", () => {
       nodeId,
       inputs: {
         numbers: [1.1, 2.2, 3.3],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

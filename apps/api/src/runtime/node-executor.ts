@@ -211,9 +211,31 @@ export class NodeExecutor {
         emailMessage,
         onProgress: () => {},
         toolRegistry: this.toolRegistry,
-        secrets: secrets || {},
-        integrations: integrations || {},
-        integrationManager: this.integrationManager,
+        // Callback-based access to secrets (lazy, secure)
+        getSecret: async (secretName: string) => {
+          return secrets?.[secretName];
+        },
+        // Callback-based access to integrations (lazy, auto-refreshing)
+        getIntegration: async (integrationId: string) => {
+          const integration = integrations?.[integrationId];
+          if (!integration) {
+            throw new Error(
+              `Integration '${integrationId}' not found or access denied. Please check your integration settings.`
+            );
+          }
+
+          // Automatically refresh token if needed
+          const token =
+            await this.integrationManager.getValidAccessToken(integrationId);
+
+          return {
+            id: integration.id,
+            name: integration.name,
+            provider: integration.provider,
+            token,
+            metadata: integration.metadata,
+          };
+        },
         env: {
           DB: this.env.DB,
           AI: this.env.AI,

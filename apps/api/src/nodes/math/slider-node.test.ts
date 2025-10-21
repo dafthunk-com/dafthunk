@@ -14,6 +14,9 @@ describe("SliderNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -32,6 +35,9 @@ describe("SliderNode", () => {
       nodeId,
       inputs: {
         value: 50,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("SliderNode", () => {
         min: 0,
         max: 100,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -74,6 +83,9 @@ describe("SliderNode", () => {
         value: 150,
         min: 0,
         max: 100,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -97,6 +109,9 @@ describe("SliderNode", () => {
         max: 100,
         step: 10,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -118,6 +133,9 @@ describe("SliderNode", () => {
         min: 0,
         max: 10,
         step: 0.5,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -141,6 +159,9 @@ describe("SliderNode", () => {
         max: "100",
         step: "5",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -161,6 +182,9 @@ describe("SliderNode", () => {
         min: "invalid",
         max: 100,
         step: 1,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -184,6 +208,9 @@ describe("SliderNode", () => {
         max: 5,
         step: 1,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -203,6 +230,9 @@ describe("SliderNode", () => {
         min: 0,
         max: 100,
         step: 0,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 

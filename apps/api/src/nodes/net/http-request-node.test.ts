@@ -38,6 +38,9 @@ describe("HttpRequestNode", () => {
         url: "https://httpbin.org/get",
         method: "GET",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -78,6 +81,9 @@ describe("HttpRequestNode", () => {
         method: "POST",
         body: JSON.stringify({ test: "data" }),
         headers: { "Content-Type": "application/json" },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -122,6 +128,9 @@ describe("HttpRequestNode", () => {
         url: "https://httpbin.org/get",
         method: "GET",
         query: { param1: "value1", param2: "value2" },
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -171,6 +180,9 @@ describe("HttpRequestNode", () => {
           "User-Agent": "test-agent",
         },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -204,6 +216,9 @@ describe("HttpRequestNode", () => {
         method: "GET",
         timeout: 1000, // 1 second timeout
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -226,6 +241,9 @@ describe("HttpRequestNode", () => {
         url: "invalid-url",
         method: "GET",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -244,6 +262,9 @@ describe("HttpRequestNode", () => {
       nodeId,
       inputs: {
         method: "GET",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -281,6 +302,9 @@ describe("HttpRequestNode", () => {
         body: JSON.stringify({ update: "data" }),
         headers: { "Content-Type": "application/json" },
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -317,6 +341,9 @@ describe("HttpRequestNode", () => {
         url: "https://httpbin.org/delete",
         method: "DELETE",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -350,6 +377,9 @@ describe("HttpRequestNode", () => {
         url: "https://httpbin.org/status/404",
         method: "GET",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -382,6 +412,9 @@ describe("HttpRequestNode", () => {
       inputs: {
         url: "https://httpbin.org/status/500",
         method: "GET",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

@@ -81,14 +81,8 @@ export class CheckDraftGoogleMailNode extends ExecutableNode {
         return this.createErrorResult("Organization ID is required");
       }
 
-      // Get integration from preloaded context
-      const integration = context.integrations?.[integrationId];
-
-      if (!integration) {
-        return this.createErrorResult(
-          "Integration not found or access denied. Please check your integration settings."
-        );
-      }
+      // Get integration with auto-refreshed token
+      const integration = await context.getIntegration(integrationId);
 
       if (integration.provider !== "google-mail") {
         return this.createErrorResult(
@@ -96,23 +90,7 @@ export class CheckDraftGoogleMailNode extends ExecutableNode {
         );
       }
 
-      // Use integration manager to get a valid access token (automatically refreshes if expired)
-      let accessToken: string;
-      try {
-        if (context.integrationManager) {
-          accessToken =
-            await context.integrationManager.getValidAccessToken(integrationId);
-        } else {
-          // Fallback to preloaded token if integration manager is not available
-          accessToken = integration.token;
-        }
-      } catch (error) {
-        return this.createErrorResult(
-          error instanceof Error
-            ? error.message
-            : "Failed to get valid access token"
-        );
-      }
+      const accessToken = integration.token;
 
       // List drafts, optionally filtered by thread
       const url = new URL(

@@ -18,6 +18,9 @@ describe("RegexExtractNode", () => {
         pattern: "\\d+",
         flags: "g",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -42,6 +45,9 @@ describe("RegexExtractNode", () => {
         pattern: "hello",
         flags: "gi",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -63,6 +69,9 @@ describe("RegexExtractNode", () => {
         pattern: "\\d+",
         flags: "g",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -83,6 +92,9 @@ describe("RegexExtractNode", () => {
         string: "Hello World",
         pattern: "[",
         flags: "g",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

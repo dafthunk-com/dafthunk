@@ -78,9 +78,13 @@ export class Gemini25FlashAudioUnderstandingNode extends ExecutableNode {
       let geminiApiKey: string | undefined;
 
       if (integrationId && typeof integrationId === "string") {
-        const integration = context.integrations?.[integrationId];
-        if (integration?.provider === "gemini") {
-          geminiApiKey = integration.token;
+        try {
+          const integration = await context.getIntegration(integrationId);
+          if (integration.provider === "gemini") {
+            geminiApiKey = integration.token;
+          }
+        } catch {
+          // Integration not found, will fall back to env vars or error below
         }
       }
 

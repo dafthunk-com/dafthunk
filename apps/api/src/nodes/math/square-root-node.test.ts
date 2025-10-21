@@ -16,6 +16,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: 16,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -34,6 +37,9 @@ describe("SquareRootNode", () => {
       nodeId,
       inputs: {
         value: 0,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: 2.25,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -73,6 +82,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: "25",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -91,6 +103,9 @@ describe("SquareRootNode", () => {
       nodeId,
       inputs: {
         value: -4,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -112,6 +127,9 @@ describe("SquareRootNode", () => {
       inputs: {
         value: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -128,6 +146,9 @@ describe("SquareRootNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);

@@ -23,6 +23,9 @@ This is the email body.`;
       inputs: {
         raw: rawEmail,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -58,6 +61,9 @@ Content-Type: text/html
       inputs: {
         raw: rawEmail,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -84,6 +90,9 @@ Email body.`;
       nodeId,
       inputs: {
         raw: rawEmail,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -125,6 +134,9 @@ Content-Disposition: attachment; filename="document.pdf
       inputs: {
         raw: rawEmail,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -143,6 +155,9 @@ Content-Disposition: attachment; filename="document.pdf
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -161,6 +176,9 @@ Content-Disposition: attachment; filename="document.pdf
       nodeId,
       inputs: {
         raw: "",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -191,6 +209,9 @@ This email has complex headers.`;
       nodeId,
       inputs: {
         raw: rawEmail,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -224,6 +245,9 @@ Email with BCC recipients.`;
       inputs: {
         raw: rawEmail,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -252,6 +276,9 @@ This is a reply.`;
       nodeId,
       inputs: {
         raw: rawEmail,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

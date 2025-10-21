@@ -32,6 +32,9 @@ describe("ImageUrlLoaderNode", () => {
       inputs: {
         url: "https://example.com/test.png",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -55,6 +58,9 @@ describe("ImageUrlLoaderNode", () => {
       inputs: {
         url: "invalid-url",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -72,6 +78,9 @@ describe("ImageUrlLoaderNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -98,6 +107,9 @@ describe("ImageUrlLoaderNode", () => {
       inputs: {
         url: "https://example.com/test.html",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -118,6 +130,9 @@ describe("ImageUrlLoaderNode", () => {
       nodeId,
       inputs: {
         url: "https://example.com/test.png",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

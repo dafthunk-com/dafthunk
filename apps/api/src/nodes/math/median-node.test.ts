@@ -16,6 +16,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: 42,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -35,6 +38,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [1, 3, 5, 7, 9],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -56,6 +62,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [1, 2, 3, 4],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [9, 1, 5, 3, 7],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -94,6 +106,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [5, 2, 5, 8, 5],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -112,6 +127,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [-10, -5, -15, -20],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -132,6 +150,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [-5, 10, -3, 7, -1],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -150,6 +171,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [1.5, 2.5, 3.5, 4.5],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -170,6 +194,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [10, 20],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -188,6 +215,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [15, 5, 25],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -208,6 +238,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [5, 5, 5, 5, 5],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -226,6 +259,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [0, 5, -10, 0],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -249,6 +285,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -271,6 +310,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -289,6 +331,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: ["1", "3", "2", "4"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -309,6 +354,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -326,6 +374,9 @@ describe("MedianNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -344,6 +395,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [1, "not-a-number", 3],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -366,6 +420,9 @@ describe("MedianNode", () => {
       inputs: {
         numbers: [1.1, 2.2, 3.3, 4.4],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -385,6 +442,9 @@ describe("MedianNode", () => {
       nodeId,
       inputs: {
         numbers: [42],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

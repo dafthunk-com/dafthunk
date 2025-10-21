@@ -16,6 +16,9 @@ describe("MinNode", () => {
       inputs: {
         numbers: 42,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -35,6 +38,9 @@ describe("MinNode", () => {
       nodeId,
       inputs: {
         numbers: [5, 1, 9, 3, 2],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -56,6 +62,9 @@ describe("MinNode", () => {
       inputs: {
         numbers: [2.3, 1.5, 3.7, 0.2],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("MinNode", () => {
       nodeId,
       inputs: {
         numbers: [-1, -5, -20, -10],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -94,6 +106,9 @@ describe("MinNode", () => {
       inputs: {
         numbers: [7, -5, 10, -3, -1],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -112,6 +127,9 @@ describe("MinNode", () => {
       nodeId,
       inputs: {
         numbers: [5, 1, 1, 3, 2],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -132,6 +150,9 @@ describe("MinNode", () => {
       inputs: {
         numbers: [],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -149,6 +170,9 @@ describe("MinNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -167,6 +191,9 @@ describe("MinNode", () => {
       nodeId,
       inputs: {
         numbers: [3, "not-a-number", 1],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -188,6 +215,9 @@ describe("MinNode", () => {
       nodeId,
       inputs: {
         numbers: ["5", "1", "3"],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;
@@ -211,6 +241,9 @@ describe("MinNode", () => {
       inputs: {
         numbers,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -230,6 +263,9 @@ describe("MinNode", () => {
       inputs: {
         numbers: [0, 5, -10, 0],
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
       env: {},
     } as unknown as NodeContext;
 
@@ -248,6 +284,9 @@ describe("MinNode", () => {
       nodeId,
       inputs: {
         numbers: [0, 0, 0],
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
       env: {},
     } as unknown as NodeContext;

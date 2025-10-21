@@ -16,6 +16,9 @@ describe("AbsoluteValueNode", () => {
       inputs: {
         value: 5,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -34,6 +37,9 @@ describe("AbsoluteValueNode", () => {
       nodeId,
       inputs: {
         value: -7,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -54,6 +60,9 @@ describe("AbsoluteValueNode", () => {
       inputs: {
         value: 0,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -72,6 +81,9 @@ describe("AbsoluteValueNode", () => {
       nodeId,
       inputs: {
         value: "-3.5",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -92,6 +104,9 @@ describe("AbsoluteValueNode", () => {
       inputs: {
         value: "invalid",
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -108,6 +123,9 @@ describe("AbsoluteValueNode", () => {
     const context = {
       nodeId,
       inputs: {},
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);

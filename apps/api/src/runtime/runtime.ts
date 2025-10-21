@@ -165,7 +165,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       organizationId: "system", // Tool executions are system-level
       inputs,
       toolRegistry: this.toolRegistry,
-      secrets: {}, // Tool executions don't have access to organization secrets
+      // Tool executions don't have access to organization secrets/integrations
+      getSecret: async (secretName: string) => {
+        throw new Error(
+          `Secret access not available in tool execution context. Secret '${secretName}' cannot be accessed.`
+        );
+      },
+      getIntegration: async (integrationId: string) => {
+        throw new Error(
+          `Integration access not available in tool execution context. Integration '${integrationId}' cannot be accessed.`
+        );
+      },
       env: {
         DB: this.env.DB,
         AI: this.env.AI,

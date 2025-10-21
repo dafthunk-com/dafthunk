@@ -16,6 +16,9 @@ describe("NumberInputNode", () => {
       inputs: {
         value: 42,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -35,6 +38,9 @@ describe("NumberInputNode", () => {
       inputs: {
         value: 3.14,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -53,6 +59,9 @@ describe("NumberInputNode", () => {
       nodeId,
       inputs: {
         value: -10,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -74,6 +83,9 @@ describe("NumberInputNode", () => {
         value: 5,
         min: 10,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -92,6 +104,9 @@ describe("NumberInputNode", () => {
       inputs: {
         value: 15,
         max: 10,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -113,6 +128,9 @@ describe("NumberInputNode", () => {
         min: 5,
         max: 10,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -132,6 +150,9 @@ describe("NumberInputNode", () => {
       inputs: {
         value: 5,
         min: 5,
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
@@ -153,6 +174,9 @@ describe("NumberInputNode", () => {
         value: 10,
         max: 10,
       },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
+      },
     } as unknown as NodeContext;
 
     const result = await node.execute(context);
@@ -171,6 +195,9 @@ describe("NumberInputNode", () => {
       nodeId,
       inputs: {
         value: "42",
+      },
+      getIntegration: async () => {
+        throw new Error("No integrations in test");
       },
     } as unknown as NodeContext;
 
