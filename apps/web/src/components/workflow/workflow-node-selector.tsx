@@ -1,3 +1,4 @@
+import { DynamicIcon } from "lucide-react/dynamic.mjs";
 import Search from "lucide-react/icons/search";
 import { useMemo, useState } from "react";
 
@@ -25,6 +26,32 @@ export interface WorkflowNodeSelectorProps {
   templates?: NodeTemplate[];
   workflowName?: string;
   workflowDescription?: string;
+}
+
+// Helper function to highlight matching text
+function highlightMatch(text: string, searchTerm: string) {
+  if (!searchTerm.trim()) return text;
+
+  // Split search term into individual words and escape special regex characters
+  const words = searchTerm
+    .trim()
+    .split(/\s+/)
+    .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .filter(word => word.length > 0);
+
+  if (words.length === 0) return text;
+
+  // Create a regex that matches any of the words
+  const regex = new RegExp(`(${words.join('|')})`, 'gi');
+  const parts = text.split(regex);
+
+  return parts.map((part, index) => {
+    // Check if this part matches any of the search words
+    if (words.some(word => new RegExp(`^${word}$`, 'i').test(part))) {
+      return <mark key={index} className="bg-yellow-200 dark:bg-yellow-900 font-semibold">{part}</mark>;
+    }
+    return part;
+  });
 }
 
 export function WorkflowNodeSelector({
@@ -194,7 +221,7 @@ export function WorkflowNodeSelector({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent
-        className="sm:max-w-[700px] h-[80vh] flex flex-col p-0"
+        className="w-[80vw] h-[80vh] max-w-[1400px] flex flex-col p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
@@ -217,30 +244,16 @@ export function WorkflowNodeSelector({
           />
         </div>
 
-        {tagCounts.length > 0 && (
-          <div className="px-4">
-            <TagFilterButtons
-              categories={tagCounts}
-              selectedTag={selectedTag}
-              onTagChange={setSelectedTag}
-              totalCount={templates.length}
-              onKeyDown={handleCategoryKeyDown}
-              setCategoryButtonRef={setCategoryButtonRef}
-              activeElement={activeElement}
-              focusedIndex={focusedIndex}
-            />
-          </div>
-        )}
-
-        <ScrollArea className="flex-1 px-4 pb-4">
-          <div className="space-y-3">
+        <div className="flex-1 flex gap-4 px-4 pb-4 min-h-0">
+          <ScrollArea className="flex-1">
+            <div className="space-y-3 pr-4">
             {filteredTemplates.map((template, index) => {
               return (
                 <div
                   key={template.id}
                   ref={(el) => setItemRef(el, index)}
                   className={cn(
-                    "border rounded-lg p-4 cursor-pointer transition-all hover:border-primary/50",
+                    "border rounded-lg cursor-pointer transition-all hover:border-primary/50",
                     focusedIndex === index && activeElement === "items"
                       ? "bg-accent border-primary/50"
                       : "hover:bg-accent/50"
@@ -262,34 +275,58 @@ export function WorkflowNodeSelector({
                   }}
                   onKeyDown={(e) => handleItemKeyDown(e, index)}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="h-4 w-4 rounded-full bg-blue-500/20 shrink-0 mt-1" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base leading-tight mb-2">
-                        {template.name}
-                      </h3>
-                      {template.description && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {template.description}
-                        </p>
-                      )}
+                  <div className="grid grid-cols-[1fr_auto] gap-6 p-4">
+                    <div className="flex items-start gap-4 min-w-0">
+                      <DynamicIcon
+                        name={template.icon as any}
+                        className="h-5 w-5 text-blue-500 shrink-0 mt-0.5"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base leading-tight mb-2">
+                          {highlightMatch(template.name, searchTerm)}
+                        </h3>
+                        {template.description && (
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {highlightMatch(template.description, searchTerm)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <NodeTags
-                      tags={template.tags}
-                      functionCalling={template.functionCalling}
-                      className="shrink-0 ml-auto"
-                    />
+                    <div className="flex items-start pt-1">
+                      <NodeTags
+                        tags={template.tags}
+                        functionCalling={template.functionCalling}
+                      />
+                    </div>
                   </div>
                 </div>
               );
             })}
-            {filteredTemplates.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="text-sm">No nodes found matching your search</p>
+              {filteredTemplates.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p className="text-sm">No nodes found matching your search</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          {tagCounts.length > 0 && (
+            <div className="w-80 shrink-0">
+              <div className="sticky top-0">
+                <TagFilterButtons
+                  categories={tagCounts}
+                  selectedTag={selectedTag}
+                  onTagChange={setSelectedTag}
+                  totalCount={templates.length}
+                  onKeyDown={handleCategoryKeyDown}
+                  setCategoryButtonRef={setCategoryButtonRef}
+                  activeElement={activeElement}
+                  focusedIndex={focusedIndex}
+                />
               </div>
-            )}
-          </div>
-        </ScrollArea>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
