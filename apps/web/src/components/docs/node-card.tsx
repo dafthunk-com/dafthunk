@@ -12,9 +12,16 @@ import { NodeDocsDialog } from "./node-docs-dialog";
 interface NodeCardProps {
   nodeType: NodeType;
   variant?: "card" | "list";
+  searchQuery?: string;
+  highlightMatch?: (text: string, searchTerm: string) => React.ReactNode;
 }
 
-export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
+export function NodeCard({
+  nodeType,
+  variant = "card",
+  searchQuery = "",
+  highlightMatch,
+}: NodeCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   if (variant === "list") {
@@ -33,7 +40,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                   className="h-4 w-4 text-blue-500 shrink-0"
                 />
                 <CardTitle className="text-base font-semibold leading-tight truncate">
-                  {nodeType.name}
+                  {highlightMatch ? highlightMatch(nodeType.name, searchQuery) : nodeType.name}
                 </CardTitle>
                 {nodeType.tags.map((tag, index) => (
                   <Badge
@@ -50,7 +57,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
               {nodeType.description && (
                 <div className="hidden md:block flex-1 min-w-0">
                   <p className="text-sm text-muted-foreground leading-relaxed truncate">
-                    {nodeType.description}
+                    {highlightMatch ? highlightMatch(nodeType.description, searchQuery) : nodeType.description}
                   </p>
                 </div>
               )}
@@ -93,7 +100,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                 className="h-4 w-4 text-blue-500 shrink-0"
               />
               <CardTitle className="text-base font-semibold leading-tight truncate">
-                {nodeType.name}
+                {highlightMatch ? highlightMatch(nodeType.name, searchQuery) : nodeType.name}
               </CardTitle>
             </div>
             <NodeTags
@@ -105,7 +112,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
         <CardContent className="pt-0">
           {nodeType.description && (
             <p className="text-sm text-muted-foreground leading-relaxed max-h-16 overflow-hidden">
-              {nodeType.description}
+              {highlightMatch ? highlightMatch(nodeType.description, searchQuery) : nodeType.description}
             </p>
           )}
           {nodeType.compatibility && nodeType.compatibility.length > 0 && (
