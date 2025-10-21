@@ -73,6 +73,12 @@ export class DeleteEventGoogleCalendarNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
+      if (integration.provider !== "google-calendar") {
+        return this.createErrorResult(
+          "Invalid integration type. This node requires a Google Calendar integration."
+        );
+      }
+
       const accessToken = integration.token;
 
       // Build URL with sendUpdates parameter

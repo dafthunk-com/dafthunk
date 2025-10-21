@@ -100,6 +100,12 @@ export class SendMessageDiscordNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
+      if (integration.provider !== "discord") {
+        return this.createErrorResult(
+          "Invalid integration type. This node requires a Discord integration."
+        );
+      }
+
       const accessToken = integration.token;
 
       // Prepare message payload

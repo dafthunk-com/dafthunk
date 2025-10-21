@@ -72,6 +72,12 @@ export class UnfollowUserGithubNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
+      if (integration.provider !== "github") {
+        return this.createErrorResult(
+          "Invalid integration type. This node requires a Github integration."
+        );
+      }
+
       const accessToken = integration.token;
 
       // Unfollow user via GitHub API

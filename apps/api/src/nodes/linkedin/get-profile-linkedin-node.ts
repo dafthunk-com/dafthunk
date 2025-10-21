@@ -86,6 +86,12 @@ export class GetProfileLinkedInNode extends ExecutableNode {
       // Get integration with auto-refreshed token
       const integration = await context.getIntegration(integrationId);
 
+      if (integration.provider !== "linkedin") {
+        return this.createErrorResult(
+          "Invalid integration type. This node requires a Linkedin integration."
+        );
+      }
+
       const accessToken = integration.token;
 
       // Get user profile information
