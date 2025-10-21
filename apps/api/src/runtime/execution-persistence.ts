@@ -89,9 +89,12 @@ export class ExecutionPersistence {
     const nodeExecutionList = this.buildNodeExecutions(runtimeState);
 
     const executionStatus = runtimeState.status;
+
+    // Set generic workflow-level error message when there are node failures
+    // Specific node errors are captured in nodeExecutions array
     const errorMsg =
       runtimeState.nodeErrors.size > 0
-        ? Array.from(runtimeState.nodeErrors.values()).join(", ")
+        ? "Workflow execution failed"
         : undefined;
 
     try {

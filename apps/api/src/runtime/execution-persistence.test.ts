@@ -352,7 +352,16 @@ describe("ExecutionPersistence", () => {
         runtimeState
       );
 
-      expect(result.error).toBe("Error 1, Error 2");
+      // Workflow-level error should have generic message for node failures
+      expect(result.error).toBe("Workflow execution failed");
+
+      // Verify node errors are in nodeExecutions
+      const nodeAExec = result.nodeExecutions.find((n) => n.nodeId === "A");
+      const nodeBExec = result.nodeExecutions.find((n) => n.nodeId === "B");
+      expect(nodeAExec?.status).toBe("error");
+      expect(nodeAExec?.error).toBe("Error 1");
+      expect(nodeBExec?.status).toBe("error");
+      expect(nodeBExec?.error).toBe("Error 2");
     });
 
     it("should handle database save failure gracefully", async () => {

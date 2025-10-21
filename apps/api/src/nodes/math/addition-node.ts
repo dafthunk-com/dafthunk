@@ -42,6 +42,13 @@ export class AdditionNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      if (context.inputs.a === undefined || context.inputs.a === null) {
+        return this.createErrorResult("Input 'a' is required");
+      }
+      if (context.inputs.b === undefined || context.inputs.b === null) {
+        return this.createErrorResult("Input 'b' is required");
+      }
+
       const a = Number(context.inputs.a);
       const b = Number(context.inputs.b);
 

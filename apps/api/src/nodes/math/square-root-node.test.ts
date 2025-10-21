@@ -118,4 +118,20 @@ describe("SquareRootNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Input must be a number");
   });
+
+  it("should return error for missing value input", async () => {
+    const nodeId = "square-root";
+    const node = new SquareRootNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {},
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'value' is required");
+  });
 });

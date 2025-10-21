@@ -37,6 +37,10 @@ export class AbsoluteValueNode extends ExecutableNode {
 
   async execute(context: NodeContext): Promise<NodeExecution> {
     try {
+      if (context.inputs.value === undefined || context.inputs.value === null) {
+        return this.createErrorResult("Input 'value' is required");
+      }
+
       const value = Number(context.inputs.value);
 
       if (isNaN(value)) {

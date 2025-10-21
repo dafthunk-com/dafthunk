@@ -162,4 +162,40 @@ describe("MultiplicationNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Both inputs must be numbers");
   });
+
+  it("should return error for missing first input", async () => {
+    const nodeId = "multiplication";
+    const node = new MultiplicationNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        b: 3,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'a' is required");
+  });
+
+  it("should return error for missing second input", async () => {
+    const nodeId = "multiplication";
+    const node = new MultiplicationNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        a: 5,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'b' is required");
+  });
 });

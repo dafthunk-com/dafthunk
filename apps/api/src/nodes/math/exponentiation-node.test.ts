@@ -162,4 +162,40 @@ describe("ExponentiationNode", () => {
     expect(result.status).toBe("error");
     expect(result.error).toBe("Both inputs must be numbers");
   });
+
+  it("should return error for missing base input", async () => {
+    const nodeId = "exponentiation";
+    const node = new ExponentiationNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        exponent: 2,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'base' is required");
+  });
+
+  it("should return error for missing exponent input", async () => {
+    const nodeId = "exponentiation";
+    const node = new ExponentiationNode({
+      nodeId,
+    } as unknown as Node);
+
+    const context = {
+      nodeId,
+      inputs: {
+        base: 2,
+      },
+    } as unknown as NodeContext;
+
+    const result = await node.execute(context);
+    expect(result.status).toBe("error");
+    expect(result.error).toBe("Input 'exponent' is required");
+  });
 });
