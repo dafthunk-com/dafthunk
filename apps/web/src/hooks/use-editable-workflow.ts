@@ -128,8 +128,12 @@ export function useEditableWorkflow({
         },
         onError: (error) => {
           console.error("WebSocket error:", error);
+          // Don't treat execution failures as fatal processing errors
+          // The execution update will contain the actual node errors
+          if (error !== "Workflow execution failed") {
+            setProcessingError(`WebSocket error: ${error}`);
+          }
           setSavingError(`WebSocket error: ${error}`);
-          setProcessingError(`WebSocket error: ${error}`);
           setIsInitializing(false);
         },
         onExecutionUpdate: (execution: WorkflowExecution) => {
