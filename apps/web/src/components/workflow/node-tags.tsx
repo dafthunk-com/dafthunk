@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { getTagColor } from "@/utils/tag-colors";
 import { cn } from "@/utils/utils";
 
 export interface NodeTagsProps {
@@ -25,10 +24,7 @@ export function NodeTags({
         <Badge
           key={`${tag}-${index}`}
           variant="secondary"
-          className={cn(
-            getTagColor(tag),
-            size === "xs" ? "text-xs" : "text-sm"
-          )}
+          className={cn(size === "xs" ? "text-xs" : "text-sm")}
         >
           {tag}
         </Badge>

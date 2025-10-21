@@ -63,10 +63,7 @@ export function WorkflowNodeSelector({
   workflowDescription,
 }: WorkflowNodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
-  // Get tag counts (using all tags, not just the first one)
-  const tagCounts = useTagCounts(templates);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Combined scoring using substring matching (not fuzzy)
   const scoredAndFilteredTemplates = useMemo(() => {
@@ -180,16 +177,41 @@ export function WorkflowNodeSelector({
     };
   }, [templates, workflowName, workflowDescription, searchTerm]);
 
-  // Filter templates based on selected tag
+  // Filter templates based on selected tags (all must match)
   const filteredTemplates = scoredAndFilteredTemplates.sorted.filter(
     (template) => {
-      if (selectedTag === "Tools") {
-        return !!template.functionCalling;
-      }
-      const matchesTag = !selectedTag || template.tags.includes(selectedTag);
-      return matchesTag;
+      // If no tags selected, show all
+      if (selectedTags.length === 0) return true;
+
+      // Check if all selected tags match
+      return selectedTags.every((selectedTag) => {
+        if (selectedTag === "Tools") {
+          return !!template.functionCalling;
+        }
+        return template.tags.includes(selectedTag);
+      });
     }
   );
+
+  // Get tag counts for currently filtered templates (hierarchical)
+  // Show top 20 most common tags in the current filtered set
+  const tagCounts = useTagCounts(filteredTemplates, 20);
+
+  // Get counts for selected tags (for sorting by occurrence)
+  const selectedTagCounts = useTagCounts(
+    scoredAndFilteredTemplates.sorted.filter((template) => {
+      // Filter by all tags EXCEPT the last one to get counts at previous level
+      if (selectedTags.length === 0) return true;
+      const tagsToCheck = selectedTags.slice(0, -1);
+      if (tagsToCheck.length === 0) return true;
+      return tagsToCheck.every((selectedTag) => {
+        if (selectedTag === "Tools") {
+          return !!template.functionCalling;
+        }
+        return template.tags.includes(selectedTag);
+      });
+    })
+  ).filter((tc) => selectedTags.includes(tc.tag));
 
   // Use keyboard navigation hook
   const {
@@ -213,7 +235,11 @@ export function WorkflowNodeSelector({
       onClose();
     },
     onCategoryChange: (tag) => {
-      setSelectedTag(tag);
+      if (tag === null) {
+        setSelectedTags([]);
+      } else {
+        setSelectedTags([...selectedTags, tag]);
+      }
     },
     categories: tagCounts,
   });
@@ -315,9 +341,21 @@ export function WorkflowNodeSelector({
               <div className="sticky top-0">
                 <TagFilterButtons
                   categories={tagCounts}
-                  selectedTag={selectedTag}
-                  onTagChange={setSelectedTag}
-                  totalCount={templates.length}
+                  selectedTags={selectedTags}
+                  selectedTagCounts={selectedTagCounts}
+                  onTagChange={(tag) => {
+                    if (tag === null) {
+                      setSelectedTags([]);
+                    } else {
+                      setSelectedTags([...selectedTags, tag]);
+                    }
+                  }}
+                  onResetToTag={(tag) => {
+                    const tagIndex = selectedTags.indexOf(tag);
+                    // Remove this tag and all tags after it
+                    setSelectedTags(selectedTags.slice(0, tagIndex));
+                  }}
+                  totalCount={filteredTemplates.length}
                   onKeyDown={handleCategoryKeyDown}
                   setCategoryButtonRef={setCategoryButtonRef}
                   activeElement={activeElement}

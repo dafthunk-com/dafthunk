@@ -15,7 +15,7 @@ export interface ItemWithCategory {
 
 export function useTagCounts<
   T extends ItemWithTags & { functionCalling?: boolean },
->(items: T[]): TagCount[] {
+>(items: T[], topN?: number): TagCount[] {
   return useMemo(() => {
     const counts: Record<string, number> = {};
 
@@ -33,10 +33,17 @@ export function useTagCounts<
       }
     });
 
-    return Object.entries(counts)
-      .sort(([a], [b]) => a.localeCompare(b))
+    const sorted = Object.entries(counts)
+      .sort(([a, countA], [b, countB]) => {
+        // Sort by count descending, then alphabetically
+        if (countB !== countA) return countB - countA;
+        return a.localeCompare(b);
+      })
       .map(([tag, count]) => ({ tag, count }));
-  }, [items]);
+
+    // If topN is specified, return only top N tags
+    return topN !== undefined ? sorted.slice(0, topN) : sorted;
+  }, [items, topN]);
 }
 
 export function useCategoryCounts<T extends ItemWithCategory>(
