@@ -19,7 +19,6 @@ import { TagFilterButtons } from "@/components/ui/tag-filter-buttons";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useSearch } from "@/hooks/use-search";
 import { useTagCounts } from "@/hooks/use-tag-counts";
-import { getTagColor } from "@/utils/tag-colors";
 import { cn } from "@/utils/utils";
 
 import type { NodeTemplate } from "./workflow-types";
@@ -233,7 +232,7 @@ export function WorkflowToolSelector({
                             <Badge
                               key={tagIndex}
                               variant="secondary"
-                              className={`${getTagColor([tag])} text-xs`}
+                              className="text-xs"
                             >
                               {tag}
                             </Badge>

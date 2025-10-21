@@ -6,7 +6,6 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NodeTags } from "@/components/workflow/node-tags";
-import { getTagColor } from "@/utils/tag-colors";
 
 import { NodeDocsDialog } from "./node-docs-dialog";
 
@@ -40,7 +39,7 @@ export function NodeCard({ nodeType, variant = "card" }: NodeCardProps) {
                   <Badge
                     key={index}
                     variant="secondary"
-                    className={`${getTagColor([tag])} shrink-0 text-xs`}
+                    className="shrink-0 text-xs"
                   >
                     {tag}
                   </Badge>
