@@ -15,7 +15,7 @@ export class GptOss20BNode extends ExecutableNode {
     type: "gpt-oss-20b",
     description:
       "OpenAI's open-weight model for lower latency and specialized use cases",
-    tags: ["AI", "Chat", "OpenAI", "GPT"],
+    tags: ["AI", "LLM", "OpenAI", "GPT"],
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-OSS-20B model, an open-weight model designed for lower latency and specialized use cases.",

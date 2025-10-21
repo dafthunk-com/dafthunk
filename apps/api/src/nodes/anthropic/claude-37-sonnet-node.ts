@@ -14,7 +14,7 @@ export class Claude37SonnetNode extends ExecutableNode {
     name: "Claude 3.7 Sonnet",
     type: "claude-37-sonnet",
     description: "Mid-tier model between 3.5 and 4.0 generations",
-    tags: ["AI", "Chat", "Anthropic", "Claude", "Sonnet"],
+    tags: ["AI", "LLM", "Anthropic", "Claude", "Sonnet"],
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude 3.7 Sonnet model, a mid-tier model between 3.5 and 4.0 generations.",

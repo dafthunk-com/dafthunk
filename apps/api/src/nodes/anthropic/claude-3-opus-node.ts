@@ -14,7 +14,7 @@ export class Claude3OpusNode extends ExecutableNode {
     name: "Claude 3 Opus",
     type: "claude-3-opus",
     description: "Previous generation premium model, still very capable",
-    tags: ["AI", "Chat", "Anthropic", "Claude", "Opus"],
+    tags: ["AI", "LLM", "Anthropic", "Claude", "Opus"],
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude 3 Opus model, a previous generation premium model that is still very capable.",

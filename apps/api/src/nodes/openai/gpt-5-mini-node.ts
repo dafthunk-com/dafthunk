@@ -14,7 +14,7 @@ export class Gpt5MiniNode extends ExecutableNode {
     name: "GPT-5 Mini",
     type: "gpt-5-mini",
     description: "Faster, cost-effective version of GPT-5",
-    tags: ["AI", "Chat", "OpenAI", "GPT"],
+    tags: ["AI", "LLM", "OpenAI", "GPT"],
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-5 Mini model, a faster, cost-effective version of GPT-5.",

@@ -14,7 +14,7 @@ export class ClaudeSonnet4Node extends ExecutableNode {
     name: "Claude Sonnet 4",
     type: "claude-sonnet-4",
     description: "Latest Claude Sonnet model with advanced capabilities",
-    tags: ["AI", "Chat", "Anthropic", "Claude", "Sonnet"],
+    tags: ["AI", "LLM", "Anthropic", "Claude", "Sonnet"],
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude Sonnet 4 model to generate text responses based on input prompts.",

@@ -15,7 +15,7 @@ export class Gemini25FlashNode extends ExecutableNode {
     name: "Gemini 2.5 Flash",
     type: "gemini-2-5-flash",
     description: "Fast, efficient model for most use cases",
-    tags: ["AI", "Chat", "Google", "Gemini"],
+    tags: ["AI", "LLM", "Google", "Gemini"],
     icon: "sparkles",
     documentation:
       "This node uses Google's Gemini 2.5 Flash model to generate text responses based on input prompts.",

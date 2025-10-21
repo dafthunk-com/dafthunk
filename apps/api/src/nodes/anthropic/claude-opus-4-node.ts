@@ -15,7 +15,7 @@ export class ClaudeOpus4Node extends ExecutableNode {
     type: "claude-opus-4",
     description:
       "Most powerful Claude 4 model for complex reasoning and advanced analysis",
-    tags: ["AI", "Chat", "Anthropic", "Claude", "Opus"],
+    tags: ["AI", "LLM", "Anthropic", "Claude", "Opus"],
     icon: "sparkles",
     documentation:
       "This node uses Anthropic's Claude Opus 4 model, the most powerful Claude 4 model for complex reasoning and advanced analysis.",

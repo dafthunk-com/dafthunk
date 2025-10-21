@@ -14,7 +14,7 @@ export class Gpt5NanoNode extends ExecutableNode {
     name: "GPT-5 Nano",
     type: "gpt-5-nano",
     description: "Ultra-lightweight, high-speed model",
-    tags: ["AI", "Chat", "OpenAI", "GPT"],
+    tags: ["AI", "LLM", "OpenAI", "GPT"],
     icon: "sparkles",
     documentation:
       "This node uses OpenAI's GPT-5 Nano model, an ultra-lightweight, high-speed model.",
