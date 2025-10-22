@@ -10,10 +10,9 @@ export type { RuntimeParams } from "./runtime";
 export { Runtime } from "./runtime";
 
 // Types used by external modules
+export type { ExecutionPlan, RuntimeState } from "./runtime";
 export type {
-  ExecutionPlan,
-  NodeOutputs,
-  NodeOutputValue,
-  RuntimeState,
-  WorkflowOutputs,
-} from "./runtime";
+  NodeRuntimeValues,
+  RuntimeValue,
+  WorkflowRuntimeState,
+} from "./types";

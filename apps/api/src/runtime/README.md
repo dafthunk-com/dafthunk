@@ -23,8 +23,9 @@ The main entry point for workflow execution. This class coordinates all executio
 
 - **ExecutionPlanner** (`execution-planner.ts`) - Determines the order to run nodes and groups nodes that can run together
 - **NodeExecutor** (`node-executor.ts`) - Runs individual nodes or groups of nodes
-- **NodeInputMapper** (`node-input-mapper.ts`) - Connects outputs from one node to inputs of another node
-- **NodeOutputMapper** (`node-output-mapper.ts`) - Validates and formats node outputs
+- **InputCollector** (`input-collector.ts`) - Collects input values from workflow graph (edges and defaults)
+- **InputTransformer** (`input-transformer.ts`) - Transforms runtime format to node execution format (resolves ObjectReferences)
+- **OutputTransformer** (`output-transformer.ts`) - Transforms node outputs to runtime format (converts binary data to ObjectReferences)
 - **ExecutionPersistence** (`execution-persistence.ts`) - Saves execution state to D1 database
 - **ExecutionMonitoring** (`execution-monitoring.ts`) - Sends real-time updates to workflow session Durable Object
 - **ConditionalExecutionHandler** (`conditional-execution-handler.ts`) - Decides whether to skip nodes based on conditional logic
@@ -40,15 +41,20 @@ The runtime creates initial state for tracking the workflow execution:
 
 ```typescript
 {
-  workflow: Workflow,              // The workflow definition
-  nodeOutputs: Map<string, NodeOutputs>,  // Stores output from each node
-  executedNodes: Set<string>,      // Tracks which nodes have run
-  skippedNodes: Set<string>,       // Tracks which nodes were skipped
-  nodeErrors: Map<string, string>, // Stores errors from failed nodes
-  executionPlan: ExecutionPlan,    // List of nodes to execute in order
-  status: "submitted"              // Current execution status
+  workflow: Workflow,                      // The workflow definition
+  nodeOutputs: WorkflowRuntimeState,       // Stores outputs from each node (Map<nodeId, NodeRuntimeValues>)
+  executedNodes: Set<string>,              // Tracks which nodes have run
+  skippedNodes: Set<string>,               // Tracks which nodes were skipped
+  nodeErrors: Map<string, string>,         // Stores errors from failed nodes
+  executionPlan: ExecutionPlan,            // List of nodes to execute in order
+  status: "submitted"                      // Current execution status
 }
 ```
+
+**Runtime value types** (`types.ts`):
+- `RuntimeValue` - JSON-serializable values (string, number, boolean, ObjectReference, JsonArray, JsonObject)
+- `NodeRuntimeValues` - Values for a single node (Record<parameterName, RuntimeValue | RuntimeValue[]>)
+- `WorkflowRuntimeState` - Values across entire workflow (Map<nodeId, NodeRuntimeValues>)
 
 ### Step 2: Credit Check
 
