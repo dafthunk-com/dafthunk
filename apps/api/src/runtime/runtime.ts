@@ -23,6 +23,7 @@ import { updateOrganizationComputeUsage } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
 import { ConditionalExecutionHandler } from "./conditional-execution-handler";
 import { CreditManager } from "./credit-manager";
+import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionPlanner } from "./execution-planner";
 import { IntegrationManager } from "./integration-manager";
@@ -109,6 +110,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private creditManager: CreditManager;
   private conditionalHandler: ConditionalExecutionHandler;
   private persistence: ExecutionPersistence;
+  private monitoring: ExecutionMonitoring;
   private executor: NodeExecutor;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
@@ -131,6 +133,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       this.inputMapper
     );
     this.persistence = new ExecutionPersistence(env);
+    // Monitoring is initialized per execution with sessionId
+    this.monitoring = new ExecutionMonitoring(env);
     this.executor = new NodeExecutor(
       env,
       this.nodeRegistry,
@@ -227,6 +231,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     } = event.payload;
     const instanceId = event.instanceId;
 
+    // Initialize monitoring with session ID for this execution
+    this.monitoring = new ExecutionMonitoring(this.env, workflowSessionId);
+
     // Initialise state and execution records.
     let runtimeState: RuntimeState = {
       workflow,
@@ -296,23 +303,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         async () => this.initialiseWorkflow(workflow)
       );
 
-      const initialStartedAt = new Date();
-
-      // Persist the "executing" status and startedAt time immediately
-      executionRecord = await step.do(
-        "persist initial execution status",
-        Runtime.defaultStepConfig,
-        async () =>
-          this.persistence.saveExecutionState(
-            userId,
-            organizationId,
-            workflow.id,
-            instanceId,
-            runtimeState, // runtimeState.status is "executing", executedNodes is empty
-            initialStartedAt,
-            undefined // endedAt is not yet set
-          )
-      );
+      executionRecord.startedAt = new Date();
 
       // Execute nodes sequentially.
       for (const executionUnit of runtimeState.executionPlan) {
@@ -368,22 +359,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           runtimeState = { ...runtimeState, status: "error" };
         }
 
-        if (workflowSessionId) {
-          executionRecord = {
-            ...executionRecord,
-            status: runtimeState.status,
-            nodeExecutions: this.persistence.buildNodeExecutions(runtimeState),
-          };
+        // Send progress update
+        executionRecord = {
+          ...executionRecord,
+          status: runtimeState.status,
+          nodeExecutions: this.persistence.buildNodeExecutions(runtimeState),
+        };
 
-          this.persistence
-            .sendExecutionUpdateToSession(workflowSessionId, executionRecord)
-            .catch((error) => {
-              console.error(
-                "Failed to send execution update to session:",
-                error
-              );
-            });
-        }
+        await this.monitoring.sendUpdate(executionRecord);
       }
     } catch (error) {
       // Capture unexpected failure.
@@ -426,13 +409,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         }
       );
 
-      if (workflowSessionId) {
-        this.persistence
-          .sendExecutionUpdateToSession(workflowSessionId, executionRecord)
-          .catch((error) => {
-            console.error("Failed to send execution update to session:", error);
-          });
-      }
+      // Send final update
+      await this.monitoring.sendUpdate(executionRecord);
     }
 
     return executionRecord;
