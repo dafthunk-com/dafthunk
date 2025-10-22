@@ -6,40 +6,14 @@ import { ExecutionStore } from "../stores/execution-store";
 import type { RuntimeState } from "./runtime";
 
 /**
- * Handles persistence and updates for workflow executions.
- * Manages database storage and WebSocket updates to sessions.
+ * Handles persistence for workflow executions.
+ * Manages database storage of execution state.
  */
 export class ExecutionPersistence {
   private executionStore: ExecutionStore;
 
-  constructor(private env: Bindings) {
+  constructor(env: Bindings) {
     this.executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
-  }
-
-  /**
-   * Sends execution update to workflow session via WebSocket
-   */
-  async sendExecutionUpdateToSession(
-    workflowSessionId: string,
-    execution: WorkflowExecution
-  ): Promise<void> {
-    try {
-      const id = this.env.WORKFLOW_SESSION.idFromName(workflowSessionId);
-      const stub = this.env.WORKFLOW_SESSION.get(id);
-
-      await stub.fetch(`https://workflow-session/execution`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(execution),
-      });
-    } catch (error) {
-      console.error(
-        `Failed to send execution update to session ${workflowSessionId}:`,
-        error
-      );
-    }
   }
 
   /**

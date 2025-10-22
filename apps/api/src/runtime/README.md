@@ -1,100 +1,120 @@
 # Workflow Runtime
 
-The runtime system executes workflows using Cloudflare's durable workflow engine. It orchestrates node execution, manages state persistence, handles errors, and tracks compute credit usage.
+The runtime system executes workflows on Cloudflare's durable workflow engine. It runs nodes, saves state to the database, handles errors, and tracks compute credits.
+
+**Live monitoring**: The optional `workflowSessionId` parameter enables real-time updates to a workflow session Durable Object. When provided, the runtime sends progress updates after each node execution. When omitted, the workflow runs without sending updates. Updates never block or interrupt execution.
 
 ## Core Components
 
 ### Runtime (`runtime.ts`)
 
-The main workflow entrypoint that coordinates execution through Cloudflare Workers.
+The main entry point for workflow execution. This class coordinates all execution through Cloudflare Workers.
 
-**Key responsibilities:**
-- Validates workflows and creates execution plans
-- Manages compute credits and resource limits
-- Executes nodes according to dependency graph
-- Persists execution state
-- Handles errors and ensures durability
-- Sends real-time updates
+**What it does:**
+- Checks if workflows are valid before running
+- Creates a plan for which nodes to run and in what order
+- Checks if the organization has enough compute credits
+- Runs each node in the workflow
+- Saves execution state to the database
+- Handles errors without stopping the workflow
+- Sends live updates to connected clients
 
 ### Specialized Components
 
-- **ExecutionPlanner** (`execution-planner.ts`) - Creates topological execution order and groups nodes
-- **NodeExecutor** (`node-executor.ts`) - Executes individual nodes and inline groups
-- **NodeInputMapper** (`node-input-mapper.ts`) - Maps outputs to inputs between nodes
-- **NodeOutputMapper** (`node-output-mapper.ts`) - Processes and validates node outputs
-- **ExecutionPersistence** (`execution-persistence.ts`) - Saves state to D1 and sends WebSocket updates
-- **ConditionalExecutionHandler** (`conditional-execution-handler.ts`) - Evaluates conditional logic
-- **IntegrationManager** (`integration-manager.ts`) - Securely handles third-party integrations tokens
-- **SecretManager** (`secret-manager.ts`) - Securely handles organization secrets
-- **CreditManager** (`credit-manager.ts`) - Tracks and enforces compute credit limits
+- **ExecutionPlanner** (`execution-planner.ts`) - Determines the order to run nodes and groups nodes that can run together
+- **NodeExecutor** (`node-executor.ts`) - Runs individual nodes or groups of nodes
+- **NodeInputMapper** (`node-input-mapper.ts`) - Connects outputs from one node to inputs of another node
+- **NodeOutputMapper** (`node-output-mapper.ts`) - Validates and formats node outputs
+- **ExecutionPersistence** (`execution-persistence.ts`) - Saves execution state to D1 database
+- **ExecutionMonitoring** (`execution-monitoring.ts`) - Sends real-time updates to workflow session Durable Object
+- **ConditionalExecutionHandler** (`conditional-execution-handler.ts`) - Decides whether to skip nodes based on conditional logic
+- **IntegrationManager** (`integration-manager.ts`) - Manages OAuth tokens for third-party services
+- **SecretManager** (`secret-manager.ts`) - Manages encrypted organization secrets
+- **CreditManager** (`credit-manager.ts`) - Calculates and enforces compute credit limits
 
-## Runtime.run() Algorithm
+## How Runtime.run() Works
 
-### 1. Initialization
-Extract workflow parameters and initialize state:
+### Step 1: Initialization
+
+The runtime creates initial state for tracking the workflow execution:
+
 ```typescript
 {
-  workflow: Workflow,
-  nodeOutputs: Map<string, NodeOutputs>,
-  executedNodes: Set<string>,
-  skippedNodes: Set<string>,
-  nodeErrors: Map<string, string>,
-  executionPlan: ExecutionPlan,
-  status: "submitted"
+  workflow: Workflow,              // The workflow definition
+  nodeOutputs: Map<string, NodeOutputs>,  // Stores output from each node
+  executedNodes: Set<string>,      // Tracks which nodes have run
+  skippedNodes: Set<string>,       // Tracks which nodes were skipped
+  nodeErrors: Map<string, string>, // Stores errors from failed nodes
+  executionPlan: ExecutionPlan,    // List of nodes to execute in order
+  status: "submitted"              // Current execution status
 }
 ```
 
-### 2. Credit Check
-Verify organization has sufficient compute credits for workflow execution. If insufficient, mark as "exhausted" and terminate.
+### Step 2: Credit Check
 
-### 3. Preparation (durable steps)
-- **Preload secrets**: Load all organization secrets
-- **Preload integrations**: Load all organization integrations
-- **Initialize workflow**:
-  - Validate structure (no cycles, valid connections)
-  - Create topological order from dependency graph
-  - Group independent nodes into "inline" execution units
-  - Throws `NonRetryableError` on validation failure
+The runtime checks if the organization has enough compute credits to run all nodes in the workflow. If credits are insufficient, the runtime marks the execution as "exhausted" and stops.
 
-### 4. Initial Persistence
-Persist execution record with `status: "executing"` and `startedAt` timestamp.
+### Step 3: Preparation
 
-### 5. Node Execution
-Iterate through execution plan:
+The runtime loads data and validates the workflow. Each operation is wrapped in `step.do()` for durability:
 
-**Individual nodes**: Execute one node per step
+1. **Preload secrets**: Load all organization secrets into memory
+2. **Preload integrations**: Load all organization integration tokens into memory
+3. **Initialize workflow**:
+   - Check that the workflow structure is valid
+   - Check that there are no circular dependencies between nodes
+   - Create an ordered list of nodes based on their dependencies
+   - Group independent nodes into "inline" execution units
+   - Throw `NonRetryableError` if validation fails
+
+### Step 4: Record Start Time
+
+The runtime records the start time in the execution record.
+
+### Step 5: Execute Nodes
+
+The runtime processes each item in the execution plan:
+
+**For individual nodes:**
 ```typescript
 await step.do(`run node ${nodeId}`, async () =>
   executor.executeNode(state, ...)
 )
 ```
 
-**Inline groups**: Execute multiple nodes in one step
+**For inline groups (multiple nodes at once):**
 ```typescript
 await step.do(`run inline group [${nodeIds}]`, async () =>
   executor.executeInlineGroup(state, ...)
 )
 ```
 
-After each execution unit:
-- Update status to "error" if any node failed
-- Send live progress update via WebSocket (if session exists)
+After each execution unit completes:
 
-### 6. Error Handling
-- **Node failures**: Stored in `nodeErrors`, execution continues
-- **Unexpected errors**: Caught in catch block, status set to "error"
-- **Finally block**: Always executes cleanup and finalization
+1. The runtime checks if any nodes have errors. If `nodeErrors.size > 0`, it changes the workflow status to "error".
+2. The runtime sends a progress update to the workflow session Durable Object
 
-### 7. Finalization
-In `finally` block (always runs):
-- Set `endedAt` timestamp
-- Update organization compute usage (production only)
-- Persist final execution state
-- Send final update to client
+### Step 6: Error Handling
+
+The runtime handles errors at three levels:
+
+- **Node execution errors**: The runtime stores the error in `nodeErrors` but continues running other nodes
+- **Unexpected errors**: A catch block captures any unexpected errors and sets the status to "error"
+- **Cleanup**: A finally block always runs to save final state, even if errors occurred
+
+### Step 7: Finalization
+
+The finally block always runs at the end of execution:
+
+1. The runtime records the end time
+2. The runtime saves final state (wrapped in `step.do()` for durability):
+   - In production mode, it updates the organization's compute credit usage
+   - It saves the complete execution record to the database
+3. The runtime sends a final update to the workflow session Durable Object
 
 ## Execution Plan
 
-The execution plan is a sequence of execution units created by `ExecutionPlanner`:
+The execution plan is a list of execution units. Each unit is either a single node or a group of nodes.
 
 ```typescript
 type ExecutionUnit =
@@ -104,40 +124,53 @@ type ExecutionUnit =
 type ExecutionPlan = ExecutionUnit[]
 ```
 
-**Inline groups** optimize execution by running independent nodes together in a single durable step, reducing step overhead for workflows with parallel branches.
+Inline groups improve performance. When multiple nodes have no dependencies on each other, they can run together in a single durable step instead of separate steps.
 
-## Error Strategy
+## Error Handling Strategy
 
-| Error Type | Handling | Result |
-|------------|----------|--------|
-| Workflow validation error | `NonRetryableError` thrown | Execution terminates immediately |
-| Node execution failure | Stored in `nodeErrors` map | Execution continues, status → "error" |
-| UnexpecCoted exception | Caught in catch block | Status → "error", message captured |
-| WebSocket send failure | Logged, not thrown | Execution continues |
+| Error Type | What Happens | Result |
+|------------|--------------|--------|
+| Workflow validation error | Runtime throws `NonRetryableError` | Execution stops immediately |
+| Node execution error | Runtime stores error in `nodeErrors` map | Execution continues, workflow status becomes "error" |
+| Unexpected exception | Catch block captures the error | Workflow status becomes "error", error message is saved |
+| WebSocket send error | Error is logged only | Execution continues normally |
 
-## State Persistence
+## When State is Saved
 
-Execution state is persisted at three points:
+The runtime saves execution state to the database at two points:
 
-1. **Credit exhaustion**: Immediate save with "exhausted" status
-2. **Execution start**: Save "executing" status with `startedAt`
-3. **Execution end**: Always save final state in `finally` block
+1. **After credit check fails**: The runtime immediately saves state with status "exhausted"
+2. **After execution completes**: The runtime always saves final state in the finally block
 
-All persistence operations are wrapped in `step.do()` for durability.
+All save operations are wrapped in `step.do()` to ensure they complete even if the workflow crashes.
 
-## Real-time Updates
+Intermediate execution state is not persisted to the database. Instead, progress updates are sent to the workflow session Durable Object for real-time monitoring.
 
-If `workflowSessionId` is provided, execution updates are sent via WebSocket after each execution unit and at finalization. Failures to send updates are logged but don't affect execution.
+## Real-Time Updates
+
+Updates are sent to the workflow session Durable Object when `workflowSessionId` is provided:
+
+- **Progress updates**: Sent after each execution unit
+- **Final update**: Sent in the finally block
+
+Each update contains:
+- Current execution status: `submitted`, `executing`, `error`, `completed`, or `exhausted`
+- Results from all executed nodes (outputs and errors)
+- Start and end timestamps (when available)
 
 ## Credit Management
 
-- **Upfront validation**: Check total credits needed before execution
-- **Post-execution tracking**: Deduct credits only for executed nodes
-- **Development mode**: Credit tracking disabled when `CLOUDFLARE_ENV === "development"`
+The runtime manages compute credits in two phases:
+
+1. **Before execution**: The runtime checks that the organization has enough credits for all nodes in the workflow
+2. **After execution**: The runtime deducts credits only for nodes that actually ran
+
+In development mode (when `CLOUDFLARE_ENV === "development"`), the runtime does not track or deduct credits.
 
 ## Durability
 
-All async operations are wrapped in `step.do()` with retry configuration:
+All async operations are wrapped in `step.do()` with this configuration:
+
 ```typescript
 {
   retries: { limit: 0, delay: 10_000, backoff: "exponential" },
@@ -145,7 +178,7 @@ All async operations are wrapped in `step.do()` with retry configuration:
 }
 ```
 
-This ensures:
-- Automatic retry on transient failures
-- State recovery after crashes
-- Exactly-once execution semantics
+This configuration provides:
+- Automatic retry if a step fails due to temporary issues
+- State recovery if the worker crashes during execution
+- Exactly-once execution semantics (each step runs exactly once)
