@@ -90,12 +90,11 @@ export function WorkflowBuilder({
     open: boolean;
     message: string;
   }>({
-    open:
-      initialWorkflowExecution?.status === "error" &&
-      !!initialWorkflowExecution.nodeExecutions.find((n) => n.error),
+    open: initialWorkflowExecution?.status === "exhausted",
     message:
-      initialWorkflowExecution?.nodeExecutions.find((n) => n.error)?.error ||
-      "",
+      initialWorkflowExecution?.status === "exhausted"
+        ? "You have run out of compute credits. Thanks for checking out the preview. The code is available at https://github.com/dafthunk-com/dafthunk."
+        : "",
   });
   const cleanupRef = useRef<(() => void | Promise<void>) | null>(null);
   const initializedRef = useRef(false);
@@ -258,18 +257,8 @@ export function WorkflowBuilder({
         });
       });
 
-      // Handle error dialog if execution failed
-      if (initialWorkflowExecution.status === "error") {
-        const errorNode = initialWorkflowExecution.nodeExecutions.find(
-          (n) => n.error
-        );
-        if (errorNode) {
-          setErrorDialogState({
-            open: true,
-            message: errorNode.error || "Unknown error",
-          });
-        }
-      } else if (initialWorkflowExecution.status === "exhausted") {
+      // Handle error dialog only for workflow-level errors (not node errors)
+      if (initialWorkflowExecution.status === "exhausted") {
         setErrorDialogState({
           open: true,
           message:
@@ -328,14 +317,8 @@ export function WorkflowBuilder({
         });
       });
 
-      if (execution.status === "error") {
-        setErrorDialogState({
-          open: true,
-          message:
-            execution.nodeExecutions.find((n) => n.error)?.error ||
-            "Unknown error",
-        });
-      } else if (execution.status === "exhausted") {
+      // Only show dialog for workflow-level errors (not node errors)
+      if (execution.status === "exhausted") {
         setErrorDialogState({
           open: true,
           message:

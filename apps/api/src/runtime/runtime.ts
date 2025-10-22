@@ -363,6 +363,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           );
         }
 
+        // Update workflow status to error if any nodes have failed
+        if (runtimeState.nodeErrors.size > 0 && runtimeState.status === "executing") {
+          runtimeState = { ...runtimeState, status: "error" };
+        }
+
         if (workflowSessionId) {
           executionRecord = {
             ...executionRecord,
