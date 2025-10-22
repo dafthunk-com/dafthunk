@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { ConditionalExecutionHandler } from "./conditional-execution-handler";
-import type { NodeInputMapper } from "./node-input-mapper";
-import type { RuntimeState, WorkflowOutputs } from "./runtime";
+import type { InputCollector } from "./input-collector";
+import type { RuntimeState } from "./runtime";
+import type { WorkflowRuntimeState } from "./types";
 
 describe("ConditionalExecutionHandler", () => {
   const createMockRegistry = (
@@ -22,11 +23,11 @@ describe("ConditionalExecutionHandler", () => {
     } as any;
   };
 
-  const createMockInputMapper = (
+  const createMockInputCollector = (
     inputResults: Record<string, Record<string, any>>
-  ): NodeInputMapper => {
+  ): InputCollector => {
     return {
-      collectNodeInputs: vi.fn((_runtimeState, nodeId) => {
+      collectNodeInputs: vi.fn((_workflow, _nodeOutputs, nodeId) => {
         return inputResults[nodeId] || {};
       }),
     } as any;
@@ -80,10 +81,10 @@ describe("ConditionalExecutionHandler", () => {
         },
         text: { inputs: [{ name: "input", required: true }] },
       });
-      const inputMapper = createMockInputMapper({
+      const inputCollector = createMockInputCollector({
         B: { input: "yes" },
       });
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,
@@ -151,11 +152,11 @@ describe("ConditionalExecutionHandler", () => {
         conditional: { inputs: [] },
         text: { inputs: [{ name: "input", required: true }] },
       });
-      const inputMapper = createMockInputMapper({
+      const inputCollector = createMockInputCollector({
         B: { input: "yes" },
         C: {}, // No input from A's false output
       });
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,
@@ -224,11 +225,11 @@ describe("ConditionalExecutionHandler", () => {
         conditional: { inputs: [] },
         text: { inputs: [{ name: "input", required: true }] },
       });
-      const inputMapper = createMockInputMapper({
+      const inputCollector = createMockInputCollector({
         B: {}, // No input
         C: {}, // No input (because B will be skipped)
       });
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,
@@ -286,10 +287,10 @@ describe("ConditionalExecutionHandler", () => {
         conditional: { inputs: [] },
         text: { inputs: [{ name: "input", required: false }] }, // Optional!
       });
-      const inputMapper = createMockInputMapper({
+      const inputCollector = createMockInputCollector({
         B: {}, // No input, but it's optional
       });
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,
@@ -352,7 +353,7 @@ describe("ConditionalExecutionHandler", () => {
         nodeOutputs: new Map([
           ["A", { true: "yes" }],
           ["B", { output: "from B" }],
-        ]) as unknown as WorkflowOutputs,
+        ]) as unknown as WorkflowRuntimeState,
         executedNodes: new Set(["A", "B"]),
         skippedNodes: new Set(),
         nodeErrors: new Map(),
@@ -370,10 +371,10 @@ describe("ConditionalExecutionHandler", () => {
           ],
         },
       });
-      const inputMapper = createMockInputMapper({
+      const inputCollector = createMockInputCollector({
         C: { input1: "from B" }, // Has required input from B
       });
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,
@@ -404,8 +405,8 @@ describe("ConditionalExecutionHandler", () => {
       };
 
       const registry = createMockRegistry({});
-      const inputMapper = createMockInputMapper({});
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const inputCollector = createMockInputCollector({});
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,
@@ -444,8 +445,8 @@ describe("ConditionalExecutionHandler", () => {
       const registry = createMockRegistry({
         text: { inputs: [] },
       });
-      const inputMapper = createMockInputMapper({});
-      const handler = new ConditionalExecutionHandler(registry, inputMapper);
+      const inputCollector = createMockInputCollector({});
+      const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
         runtimeState,

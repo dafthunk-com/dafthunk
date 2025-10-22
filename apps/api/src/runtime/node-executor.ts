@@ -5,10 +5,12 @@ import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
 import { ObjectStore } from "../stores/object-store";
 import type { ConditionalExecutionHandler } from "./conditional-execution-handler";
+import type { InputCollector } from "./input-collector";
+import type { InputTransformer } from "./input-transformer";
 import type { IntegrationManager } from "./integration-manager";
-import type { NodeInputMapper } from "./node-input-mapper";
-import type { NodeOutputMapper } from "./node-output-mapper";
-import type { NodeOutputs, RuntimeState } from "./runtime";
+import type { OutputTransformer } from "./output-transformer";
+import type { RuntimeState } from "./runtime";
+import type { NodeRuntimeValues } from "./types";
 
 /**
  * Executes workflow nodes.
@@ -19,8 +21,9 @@ export class NodeExecutor {
     private env: Bindings,
     private nodeRegistry: CloudflareNodeRegistry,
     private toolRegistry: CloudflareToolRegistry,
-    private inputMapper: NodeInputMapper,
-    private outputMapper: NodeOutputMapper,
+    private inputCollector: InputCollector,
+    private inputTransformer: InputTransformer,
+    private outputTransformer: OutputTransformer,
     private conditionalHandler: ConditionalExecutionHandler,
     private integrationManager: IntegrationManager
   ) {}
@@ -182,15 +185,16 @@ export class NodeExecutor {
     }
 
     // Gather inputs by reading connections and default values.
-    const inputValues = this.inputMapper.collectNodeInputs(
-      runtimeState,
+    const inputValues = this.inputCollector.collectNodeInputs(
+      runtimeState.workflow,
+      runtimeState.nodeOutputs,
       nodeIdentifier
     );
 
     try {
       const objectStore = new ObjectStore(this.env.RESSOURCES);
-      const processedInputs = await this.inputMapper.mapRuntimeToNodeInputs(
-        runtimeState,
+      const processedInputs = await this.inputTransformer.transformInputs(
+        runtimeState.workflow,
         nodeIdentifier,
         inputValues,
         objectStore
@@ -274,18 +278,17 @@ export class NodeExecutor {
       const result = await executable.execute(context);
 
       if (result.status === "completed") {
-        const outputsForRuntime =
-          await this.outputMapper.mapNodeToRuntimeOutputs(
-            runtimeState,
-            nodeIdentifier,
-            result.outputs ?? {},
-            objectStore,
-            organizationId,
-            executionId
-          );
+        const outputsForRuntime = await this.outputTransformer.transformOutputs(
+          runtimeState.workflow,
+          nodeIdentifier,
+          result.outputs ?? {},
+          objectStore,
+          organizationId,
+          executionId
+        );
         runtimeState.nodeOutputs.set(
           nodeIdentifier,
-          outputsForRuntime as NodeOutputs
+          outputsForRuntime as NodeRuntimeValues
         );
         runtimeState.executedNodes.add(nodeIdentifier);
 

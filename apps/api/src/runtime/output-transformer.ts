@@ -1,29 +1,32 @@
+import type { Workflow } from "@dafthunk/types";
+
 import { nodeToApiParameter } from "../nodes/parameter-mapper";
 import type { ObjectStore } from "../stores/object-store";
-import type { RuntimeState } from "./runtime";
+import type { NodeRuntimeValues } from "./types";
 
 /**
- * Handles transformation of node outputs to runtime format.
- * Converts node outputs to serializable representations for storage.
+ * Transforms node outputs from execution format to runtime format.
+ * Converts binary data to ObjectReferences for storage/transmission.
  */
-export class NodeOutputMapper {
+export class OutputTransformer {
   /**
-   * Converts node outputs to a serialisable runtime representation.
+   * Converts node outputs to a serializable runtime representation.
+   * - Converts binary data (Uint8Array) to ObjectReferences
+   * - Stores large objects in R2
+   * - Returns JSON-serializable values
    */
-  async mapNodeToRuntimeOutputs(
-    runtimeState: RuntimeState,
+  async transformOutputs(
+    workflow: Workflow,
     nodeIdentifier: string,
     outputsFromNode: Record<string, unknown>,
     objectStore: ObjectStore,
     organizationId: string,
     executionId: string
-  ): Promise<Record<string, unknown>> {
-    const node = runtimeState.workflow.nodes.find(
-      (n) => n.id === nodeIdentifier
-    );
+  ): Promise<NodeRuntimeValues> {
+    const node = workflow.nodes.find((n) => n.id === nodeIdentifier);
     if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
 
-    const processed: Record<string, unknown> = {};
+    const processed: NodeRuntimeValues = {};
 
     for (const definition of node.outputs) {
       const { name, type } = definition;

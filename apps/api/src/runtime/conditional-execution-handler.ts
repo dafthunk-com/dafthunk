@@ -1,5 +1,5 @@
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import type { NodeInputMapper } from "./node-input-mapper";
+import type { InputCollector } from "./input-collector";
 import type { RuntimeState } from "./runtime";
 
 /**
@@ -9,7 +9,7 @@ import type { RuntimeState } from "./runtime";
 export class ConditionalExecutionHandler {
   constructor(
     private nodeRegistry: CloudflareNodeRegistry,
-    private inputMapper: NodeInputMapper
+    private inputCollector: InputCollector
   ) {}
 
   /**
@@ -105,8 +105,9 @@ export class ConditionalExecutionHandler {
     const nodeTypeDefinition = (executable.constructor as any).nodeType;
     if (!nodeTypeDefinition) return false;
 
-    const inputValues = this.inputMapper.collectNodeInputs(
-      runtimeState,
+    const inputValues = this.inputCollector.collectNodeInputs(
+      runtimeState.workflow,
+      runtimeState.nodeOutputs,
       nodeId
     );
 

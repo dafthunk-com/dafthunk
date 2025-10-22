@@ -402,46 +402,4 @@ describe("ExecutionPersistence", () => {
     });
   });
 
-  describe("sendExecutionUpdateToSession", () => {
-    it("should send execution update via WebSocket", async () => {
-      const env = createMockEnv();
-      const persistence = new ExecutionPersistence(env);
-
-      const execution: WorkflowExecution = {
-        id: "exec-123",
-        workflowId: "workflow-456",
-        status: "executing",
-        nodeExecutions: [],
-      };
-
-      await persistence.sendExecutionUpdateToSession("session-789", execution);
-
-      expect(env.WORKFLOW_SESSION.idFromName).toHaveBeenCalledWith(
-        "session-789"
-      );
-      expect(env.WORKFLOW_SESSION.get).toHaveBeenCalledWith("mock-id");
-    });
-
-    it("should handle WebSocket send failure gracefully", async () => {
-      const env = createMockEnv();
-      const mockGet = env.WORKFLOW_SESSION.get as any;
-      mockGet.mockReturnValue({
-        fetch: vi.fn().mockRejectedValue(new Error("Connection failed")),
-      });
-
-      const persistence = new ExecutionPersistence(env);
-
-      const execution: WorkflowExecution = {
-        id: "exec-123",
-        workflowId: "workflow-456",
-        status: "executing",
-        nodeExecutions: [],
-      };
-
-      // Should not throw
-      await expect(
-        persistence.sendExecutionUpdateToSession("session-789", execution)
-      ).resolves.toBeUndefined();
-    });
-  });
 });

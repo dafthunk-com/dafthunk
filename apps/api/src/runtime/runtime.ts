@@ -1,7 +1,4 @@
 import {
-  JsonArray,
-  JsonObject,
-  ObjectReference,
   Workflow,
   WorkflowExecution,
   WorkflowExecutionStatus,
@@ -26,27 +23,15 @@ import { CreditManager } from "./credit-manager";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionPlanner } from "./execution-planner";
+import { InputCollector } from "./input-collector";
+import { InputTransformer } from "./input-transformer";
 import { IntegrationManager } from "./integration-manager";
 import { NodeExecutor } from "./node-executor";
-import { NodeInputMapper } from "./node-input-mapper";
-import { NodeOutputMapper } from "./node-output-mapper";
+import { OutputTransformer } from "./output-transformer";
 import { SecretManager } from "./secret-manager";
+import type { WorkflowRuntimeState } from "./types";
 
-// Basic node output value types
-export type BasicNodeOutputValue =
-  | string
-  | number
-  | boolean
-  | ObjectReference
-  | JsonArray
-  | JsonObject;
-
-// Node output value can be a single value or array of values (for repeated parameters)
-export type NodeOutputValue = BasicNodeOutputValue | BasicNodeOutputValue[];
-
-export type NodeOutputs = Record<string, NodeOutputValue>;
 export type NodeErrors = Map<string, string>;
-export type WorkflowOutputs = Map<string, NodeOutputs>;
 export type ExecutedNodeSet = Set<string>;
 
 // Inline execution types
@@ -76,7 +61,7 @@ export type RuntimeParams = {
 
 export type RuntimeState = {
   workflow: Workflow;
-  nodeOutputs: WorkflowOutputs;
+  nodeOutputs: WorkflowRuntimeState;
   executedNodes: ExecutedNodeSet;
   skippedNodes: ExecutedNodeSet;
   nodeErrors: NodeErrors;
@@ -103,8 +88,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private nodeRegistry: CloudflareNodeRegistry;
   private toolRegistry: CloudflareToolRegistry;
   private planner: ExecutionPlanner;
-  private inputMapper: NodeInputMapper;
-  private outputMapper: NodeOutputMapper;
+  private inputCollector: InputCollector;
+  private inputTransformer: InputTransformer;
+  private outputTransformer: OutputTransformer;
   private secretManager: SecretManager;
   private integrationManager: IntegrationManager;
   private creditManager: CreditManager;
@@ -123,14 +109,15 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // Initialize specialized components
     this.planner = new ExecutionPlanner(this.nodeRegistry);
-    this.inputMapper = new NodeInputMapper(this.nodeRegistry);
-    this.outputMapper = new NodeOutputMapper();
+    this.inputCollector = new InputCollector(this.nodeRegistry);
+    this.inputTransformer = new InputTransformer(this.nodeRegistry);
+    this.outputTransformer = new OutputTransformer();
     this.secretManager = new SecretManager(env);
     this.integrationManager = new IntegrationManager(env);
     this.creditManager = new CreditManager(env, this.nodeRegistry);
     this.conditionalHandler = new ConditionalExecutionHandler(
       this.nodeRegistry,
-      this.inputMapper
+      this.inputCollector
     );
     this.persistence = new ExecutionPersistence(env);
     // Monitoring is initialized per execution with sessionId
@@ -139,8 +126,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       env,
       this.nodeRegistry,
       this.toolRegistry,
-      this.inputMapper,
-      this.outputMapper,
+      this.inputCollector,
+      this.inputTransformer,
+      this.outputTransformer,
       this.conditionalHandler,
       this.integrationManager
     );
