@@ -31,29 +31,12 @@ import { NodeExecutor } from "./node-executor";
 import { OutputTransformer } from "./output-transformer";
 import { SecretManager } from "./secret-manager";
 import type {
+  ExecutionPlan,
   ExecutionState,
   WorkflowExecutionContext,
-  WorkflowRuntimeState,
 } from "./types";
 
-export type NodeErrors = Map<string, string>;
-export type ExecutedNodeSet = Set<string>;
-
-// Inline execution types
-export type InlineGroup = {
-  type: "inline";
-  nodeIds: string[];
-};
-
-export type IndividualNode = {
-  type: "individual";
-  nodeId: string;
-};
-
-export type ExecutionUnit = InlineGroup | IndividualNode;
-export type ExecutionPlan = ExecutionUnit[];
-
-export type RuntimeParams = {
+export interface RuntimeParams {
   workflow: Workflow;
   userId: string;
   organizationId: string;
@@ -62,17 +45,7 @@ export type RuntimeParams = {
   deploymentId?: string;
   httpRequest?: HttpRequest;
   emailMessage?: EmailMessage;
-};
-
-export type RuntimeState = {
-  workflow: Workflow;
-  nodeOutputs: WorkflowRuntimeState;
-  executedNodes: ExecutedNodeSet;
-  skippedNodes: ExecutedNodeSet;
-  nodeErrors: NodeErrors;
-  executionPlan: ExecutionPlan;
-  status: WorkflowExecutionStatus;
-};
+}
 
 /**
  * Executes a `Workflow` instance from start to finish.
