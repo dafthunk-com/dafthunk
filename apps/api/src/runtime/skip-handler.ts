@@ -1,5 +1,4 @@
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import type { InputCollector } from "./input-collector";
 import { getNodeType } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
@@ -8,10 +7,16 @@ import type { ExecutionState, WorkflowExecutionContext } from "./types";
  * Determines which nodes should be skipped based on inactive outputs and missing inputs.
  */
 export class SkipHandler {
-  constructor(
-    private nodeRegistry: CloudflareNodeRegistry,
-    private inputCollector: InputCollector
-  ) {}
+  private executionEngine: any = null;
+
+  constructor(private nodeRegistry: CloudflareNodeRegistry) {}
+
+  /**
+   * Set the execution engine (called after construction to break circular dependency)
+   */
+  setExecutionEngine(executionEngine: any): void {
+    this.executionEngine = executionEngine;
+  }
 
   /**
    * Marks nodes connected to inactive outputs as skipped.
@@ -105,7 +110,7 @@ export class SkipHandler {
     const nodeType = getNodeType(executable);
     if (!nodeType) return false;
 
-    const inputValues = this.inputCollector.collectNodeInputs(
+    const inputValues = this.executionEngine.collectNodeInputs(
       context.workflow,
       state.nodeOutputs,
       nodeId

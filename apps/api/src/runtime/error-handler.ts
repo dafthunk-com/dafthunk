@@ -1,6 +1,6 @@
 import type { WorkflowExecutionStatus } from "@dafthunk/types";
 
-import { NodeExecutionError, WorkflowValidationError } from "./error-types";
+import { NodeExecutionError, WorkflowValidationError } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 /**
