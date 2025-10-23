@@ -90,14 +90,14 @@ export interface ExecutionState {
 
 /** A group of inlinable nodes executed together in a single step */
 export interface InlineGroup {
-  type: "inline";
-  nodeIds: string[];
+  readonly type: "inline";
+  readonly nodeIds: readonly string[];
 }
 
 /** A single node executed as an individual step */
 export interface IndividualNode {
-  type: "individual";
-  nodeId: string;
+  readonly type: "individual";
+  readonly nodeId: string;
 }
 
 /** A unit of execution - either a single node or a group of inlinable nodes */
@@ -112,13 +112,13 @@ export type ExecutionPlan = ExecutionUnit[];
  * All fields are JSON-serializable for Cloudflare Workflows compatibility.
  */
 export interface IntegrationData {
-  id: string;
-  name: string;
-  provider: string;
-  token: string;
-  refreshToken?: string;
-  tokenExpiresAt?: string; // ISO 8601 timestamp string for serialization
-  metadata?: Record<string, unknown>;
+  readonly id: string;
+  readonly name: string;
+  readonly provider: string;
+  readonly token: string;
+  readonly refreshToken?: string;
+  readonly tokenExpiresAt?: string; // ISO 8601 timestamp string for serialization
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 /**

@@ -41,7 +41,7 @@ export class NodeExecutor {
   async executeInlineGroup(
     context: WorkflowExecutionContext,
     state: ExecutionState,
-    nodeIds: string[],
+    nodeIds: readonly string[],
     secrets: Record<string, string>,
     integrations: Record<string, IntegrationData>,
     httpRequest?: HttpRequest,
