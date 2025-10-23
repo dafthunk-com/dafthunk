@@ -19,10 +19,10 @@ export class SkipHandler {
   skipInactiveOutputs(
     context: WorkflowExecutionContext,
     state: ExecutionState,
-    nodeIdentifier: string,
+    nodeId: string,
     nodeOutputs: Record<string, unknown>
   ): ExecutionState {
-    const node = context.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) return state;
 
     // Find outputs that were NOT produced
@@ -35,7 +35,7 @@ export class SkipHandler {
     // Find all edges from this node's inactive outputs
     const inactiveEdges = context.workflow.edges.filter(
       (edge) =>
-        edge.source === nodeIdentifier &&
+        edge.source === nodeId &&
         inactiveOutputs.includes(edge.sourceOutput)
     );
 
@@ -101,8 +101,8 @@ export class SkipHandler {
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) return false;
 
-    const nodeTypeDefinition = (executable.constructor as any).nodeType;
-    if (!nodeTypeDefinition) return false;
+    const nodeType = (executable.constructor as any).nodeType;
+    if (!nodeType) return false;
 
     const inputValues = this.inputCollector.collectNodeInputs(
       context.workflow,
@@ -111,7 +111,7 @@ export class SkipHandler {
     );
 
     // Check each required input based on the node type definition (not workflow node definition)
-    for (const input of nodeTypeDefinition.inputs) {
+    for (const input of nodeType.inputs) {
       if (input.required && inputValues[input.name] === undefined) {
         return false; // Found a required input that's missing
       }

@@ -120,18 +120,18 @@ export class NodeExecutor {
   async executeNode(
     context: WorkflowExecutionContext,
     state: ExecutionState,
-    nodeIdentifier: string,
+    nodeId: string,
     secrets: Record<string, string>,
     integrations: Record<string, any>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<ExecutionState> {
     const node = context.workflow.nodes.find(
-      (n): boolean => n.id === nodeIdentifier
+      (n): boolean => n.id === nodeId
     );
     if (!node) {
-      const error = new NodeNotFoundError(nodeIdentifier);
-      state = this.errorHandler.recordNodeError(state, nodeIdentifier, error);
+      const error = new NodeNotFoundError(nodeId);
+      state = this.errorHandler.recordNodeError(state, nodeId, error);
       state = this.errorHandler.updateStatus(context, state);
       return state;
     }
@@ -146,8 +146,8 @@ export class NodeExecutor {
     // Resolve the runnable implementation.
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
-      const error = new NodeTypeNotImplementedError(nodeIdentifier, node.type);
-      state = this.errorHandler.recordNodeError(state, nodeIdentifier, error);
+      const error = new NodeTypeNotImplementedError(nodeId, node.type);
+      state = this.errorHandler.recordNodeError(state, nodeId, error);
       state = this.errorHandler.updateStatus(context, state);
       return state;
     }
@@ -156,14 +156,14 @@ export class NodeExecutor {
     const inputValues = this.inputCollector.collectNodeInputs(
       context.workflow,
       state.nodeOutputs,
-      nodeIdentifier
+      nodeId
     );
 
     try {
       const objectStore = new ObjectStore(this.env.RESSOURCES);
       const processedInputs = await this.inputTransformer.transformInputs(
         context.workflow,
-        nodeIdentifier,
+        nodeId,
         inputValues,
         objectStore
       );
@@ -181,7 +181,7 @@ export class NodeExecutor {
       }
 
       const nodeContext: NodeContext = {
-        nodeId: nodeIdentifier,
+        nodeId: nodeId,
         workflowId: context.workflowId,
         organizationId: context.organizationId,
         inputs: processedInputs,
@@ -248,23 +248,23 @@ export class NodeExecutor {
       if (result.status === "completed") {
         const outputsForRuntime = await this.outputTransformer.transformOutputs(
           context.workflow,
-          nodeIdentifier,
+          nodeId,
           result.outputs ?? {},
           objectStore,
           context.organizationId,
           context.executionId
         );
         state.nodeOutputs.set(
-          nodeIdentifier,
+          nodeId,
           outputsForRuntime as NodeRuntimeValues
         );
-        state.executedNodes.add(nodeIdentifier);
+        state.executedNodes.add(nodeId);
 
         // After successful execution, mark nodes connected to inactive outputs as skipped
         state = this.skipHandler.skipInactiveOutputs(
           context,
           state,
-          nodeIdentifier,
+          nodeId,
           result.outputs ?? {}
         );
       } else {
@@ -272,7 +272,7 @@ export class NodeExecutor {
         const failureMessage = result.error ?? "Unknown error";
         state = this.errorHandler.recordNodeError(
           state,
-          nodeIdentifier,
+          nodeId,
           failureMessage
         );
       }
@@ -285,7 +285,7 @@ export class NodeExecutor {
       // Record the error
       state = this.errorHandler.recordNodeError(
         state,
-        nodeIdentifier,
+        nodeId,
         error instanceof Error ? error : new Error(String(error))
       );
 
