@@ -5,6 +5,11 @@ import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
 import { ObjectStore } from "../stores/object-store";
 import type { ConditionalExecutionHandler } from "./conditional-execution-handler";
+import type { ErrorHandler } from "./error-handler";
+import {
+  NodeNotFoundError,
+  NodeTypeNotImplementedError,
+} from "./error-types";
 import type { InputCollector } from "./input-collector";
 import type { InputTransformer } from "./input-transformer";
 import type { IntegrationManager } from "./integration-manager";
@@ -25,37 +30,10 @@ export class NodeExecutor {
     private inputTransformer: InputTransformer,
     private outputTransformer: OutputTransformer,
     private conditionalHandler: ConditionalExecutionHandler,
-    private integrationManager: IntegrationManager
+    private integrationManager: IntegrationManager,
+    private errorHandler: ErrorHandler
   ) {}
 
-  /**
-   * Determines the final workflow status based on execution state
-   */
-  private determineWorkflowStatus(runtimeState: RuntimeState): void {
-    const allNodesVisited = runtimeState.executionPlan.every((unit) =>
-      unit.type === "individual"
-        ? runtimeState.executedNodes.has(unit.nodeId) ||
-          runtimeState.skippedNodes.has(unit.nodeId) ||
-          runtimeState.nodeErrors.has(unit.nodeId)
-        : unit.type === "inline"
-          ? unit.nodeIds.every(
-              (id: string) =>
-                runtimeState.executedNodes.has(id) ||
-                runtimeState.skippedNodes.has(id) ||
-                runtimeState.nodeErrors.has(id)
-            )
-          : false
-    );
-
-    if (allNodesVisited) {
-      // If all nodes are visited, set final status based on whether there were errors
-      runtimeState.status =
-        runtimeState.nodeErrors.size === 0 ? "completed" : "error";
-    } else {
-      // Still executing
-      runtimeState.status = "executing";
-    }
-  }
 
   /**
    * Executes a group of inlinable nodes sequentially in a single step.
@@ -80,10 +58,7 @@ export class NodeExecutor {
     // Execute each node in the group sequentially
     for (const nodeId of nodeIds) {
       // Skip nodes that were already marked as failed or skipped
-      if (
-        currentState.nodeErrors.has(nodeId) ||
-        currentState.skippedNodes.has(nodeId)
-      ) {
+      if (this.errorHandler.shouldSkipNode(currentState, nodeId)) {
         console.log(
           `Skipping node ${nodeId} in inline group (already failed/skipped)`
         );
@@ -121,8 +96,12 @@ export class NodeExecutor {
         );
       } catch (error) {
         // Handle errors at the group level
+        currentState = this.errorHandler.recordNodeError(
+          currentState,
+          nodeId,
+          error instanceof Error ? error : new Error(String(error))
+        );
         const message = error instanceof Error ? error.message : String(error);
-        currentState.nodeErrors.set(nodeId, message);
         console.log(`Error in node ${nodeId} within inline group: ${message}`);
         break;
       }
@@ -158,11 +137,13 @@ export class NodeExecutor {
       (n): boolean => n.id === nodeIdentifier
     );
     if (!node) {
-      runtimeState.nodeErrors.set(
+      const error = new NodeNotFoundError(nodeIdentifier);
+      runtimeState = this.errorHandler.recordNodeError(
+        runtimeState,
         nodeIdentifier,
-        `Node not found: ${nodeIdentifier}`
+        error
       );
-      this.determineWorkflowStatus(runtimeState);
+      runtimeState = this.errorHandler.updateStatus(runtimeState);
       return runtimeState;
     }
 
@@ -176,11 +157,13 @@ export class NodeExecutor {
     // Resolve the runnable implementation.
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
-      runtimeState.nodeErrors.set(
+      const error = new NodeTypeNotImplementedError(nodeIdentifier, node.type);
+      runtimeState = this.errorHandler.recordNodeError(
+        runtimeState,
         nodeIdentifier,
-        `Node type not implemented: ${node.type}`
+        error
       );
-      this.determineWorkflowStatus(runtimeState);
+      runtimeState = this.errorHandler.updateStatus(runtimeState);
       return runtimeState;
     }
 
@@ -300,21 +283,28 @@ export class NodeExecutor {
         );
       } else {
         // Node returned status="failed" - store error and continue execution
-        // Final workflow status will be determined by determineWorkflowStatus()
         const failureMessage = result.error ?? "Unknown error";
-        runtimeState.nodeErrors.set(nodeIdentifier, failureMessage);
+        runtimeState = this.errorHandler.recordNodeError(
+          runtimeState,
+          nodeIdentifier,
+          failureMessage
+        );
       }
 
-      // Determine final workflow status
-      this.determineWorkflowStatus(runtimeState);
+      // Update workflow status based on current state
+      runtimeState = this.errorHandler.updateStatus(runtimeState);
 
       return runtimeState;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      runtimeState.nodeErrors.set(nodeIdentifier, message);
+      // Record the error
+      runtimeState = this.errorHandler.recordNodeError(
+        runtimeState,
+        nodeIdentifier,
+        error instanceof Error ? error : new Error(String(error))
+      );
 
-      // Determine final workflow status
-      this.determineWorkflowStatus(runtimeState);
+      // Update workflow status
+      runtimeState = this.errorHandler.updateStatus(runtimeState);
 
       return runtimeState;
     }
