@@ -25,12 +25,12 @@ export class InputTransformer {
    */
   async transformInputs(
     workflow: Workflow,
-    nodeIdentifier: string,
+    nodeId: string,
     inputValues: NodeRuntimeValues,
     objectStore: ObjectStore
   ): Promise<Record<string, unknown>> {
-    const node = workflow.nodes.find((n) => n.id === nodeIdentifier);
-    if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
+    const node = workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) throw new Error(`Node ${nodeId} not found`);
 
     const processed: Record<string, unknown> = {};
 
@@ -40,17 +40,17 @@ export class InputTransformer {
 
       if (required && (value === undefined || value === null)) {
         throw new Error(
-          `Required input '${name}' missing for node ${nodeIdentifier}`
+          `Required input '${name}' missing for node ${nodeId}`
         );
       }
       if (value === undefined || value === null) continue;
 
       // Check if this parameter accepts multiple connections
       const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeTypeDefinition = executable
+      const nodeType = executable
         ? (executable.constructor as any).nodeType
         : null;
-      const nodeTypeInput = nodeTypeDefinition?.inputs?.find(
+      const nodeTypeInput = nodeType?.inputs?.find(
         (input: any) => input.name === name
       );
       const acceptsMultiple = nodeTypeInput?.repeated || false;

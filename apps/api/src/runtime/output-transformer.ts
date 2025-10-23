@@ -17,14 +17,14 @@ export class OutputTransformer {
    */
   async transformOutputs(
     workflow: Workflow,
-    nodeIdentifier: string,
+    nodeId: string,
     outputsFromNode: Record<string, unknown>,
     objectStore: ObjectStore,
     organizationId: string,
     executionId: string
   ): Promise<NodeRuntimeValues> {
-    const node = workflow.nodes.find((n) => n.id === nodeIdentifier);
-    if (!node) throw new Error(`Node ${nodeIdentifier} not found`);
+    const node = workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) throw new Error(`Node ${nodeId} not found`);
 
     const processed: NodeRuntimeValues = {};
 

@@ -17,10 +17,10 @@ export class InputCollector {
   collectNodeInputs(
     workflow: Workflow,
     nodeOutputs: Map<string, NodeRuntimeValues>,
-    nodeIdentifier: string
+    nodeId: string
   ): NodeRuntimeValues {
     const inputs: NodeRuntimeValues = {};
-    const node = workflow.nodes.find((n): boolean => n.id === nodeIdentifier);
+    const node = workflow.nodes.find((n): boolean => n.id === nodeId);
     if (!node) return inputs;
 
     // Defaults declared directly on the node.
@@ -39,7 +39,7 @@ export class InputCollector {
 
     // Values coming from connected nodes.
     const inboundEdges = workflow.edges.filter(
-      (edge): boolean => edge.target === nodeIdentifier
+      (edge): boolean => edge.target === nodeId
     );
 
     // Group edges by target input to handle multiple connections
@@ -56,10 +56,10 @@ export class InputCollector {
     for (const [inputName, edges] of edgesByInput) {
       // Get the node type definition to check repeated
       const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeTypeDefinition = executable
+      const nodeType = executable
         ? (executable.constructor as any).nodeType
         : null;
-      const nodeTypeInput = nodeTypeDefinition?.inputs?.find(
+      const nodeTypeInput = nodeType?.inputs?.find(
         (input: any) => input.name === inputName
       );
 
