@@ -2,12 +2,19 @@ import type { WorkflowExecutionStatus } from "@dafthunk/types";
 
 import { NodeExecutionError, WorkflowValidationError } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
+import { StateTransitions } from "./transitions";
 
 /**
  * Unified error handling for workflow runtime.
  * Provides single source of truth for error classification, recording, and status determination.
  */
 export class ErrorHandler {
+  private transitions: StateTransitions;
+
+  constructor(isDevelopment: boolean = false) {
+    this.transitions = new StateTransitions(isDevelopment);
+  }
+
   /**
    * Records a node execution error.
    * Node errors are recoverable - execution can continue with other nodes.
@@ -44,6 +51,9 @@ export class ErrorHandler {
   /**
    * Determines the final workflow status based on execution state.
    * This is the single source of truth for status calculation.
+   *
+   * Note: Returns status value but does not mutate state.
+   * Use updateStatus() to apply transitions.
    */
   determineWorkflowStatus(
     context: WorkflowExecutionContext,
@@ -99,13 +109,20 @@ export class ErrorHandler {
 
   /**
    * Updates the runtime state status based on current execution state.
+   * Uses state transitions to ensure proper logging and validation.
    */
   updateStatus(
     context: WorkflowExecutionContext,
     state: ExecutionState
   ): ExecutionState {
     const status = this.determineWorkflowStatus(context, state);
-    return { ...state, status };
+
+    // Use transitions to apply status change
+    if (status === state.status) {
+      return state; // No transition needed
+    }
+
+    return this.transitions.toStatus(state, status);
   }
 
   /**
