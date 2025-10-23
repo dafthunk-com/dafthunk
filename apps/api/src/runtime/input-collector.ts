@@ -1,6 +1,7 @@
 import type { Workflow } from "@dafthunk/types";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
+import { getNodeType, isRuntimeValue } from "./types";
 import type { NodeRuntimeValues, RuntimeValue } from "./types";
 
 /**
@@ -25,15 +26,8 @@ export class InputCollector {
 
     // Defaults declared directly on the node.
     for (const input of node.inputs) {
-      if (input.value !== undefined) {
-        if (
-          typeof input.value === "string" ||
-          typeof input.value === "number" ||
-          typeof input.value === "boolean" ||
-          (typeof input.value === "object" && input.value !== null)
-        ) {
-          inputs[input.name] = input.value as RuntimeValue;
-        }
+      if (input.value !== undefined && isRuntimeValue(input.value)) {
+        inputs[input.name] = input.value;
       }
     }
 
@@ -56,15 +50,13 @@ export class InputCollector {
     for (const [inputName, edges] of edgesByInput) {
       // Get the node type definition to check repeated
       const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeType = executable
-        ? (executable.constructor as any).nodeType
-        : null;
+      const nodeType = getNodeType(executable);
       const nodeTypeInput = nodeType?.inputs?.find(
-        (input: any) => input.name === inputName
+        (input) => input.name === inputName
       );
 
       // Check repeated from node type definition (not workflow node)
-      const acceptsMultiple = nodeTypeInput?.repeated || false;
+      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
 
       const values: RuntimeValue[] = [];
 
@@ -72,13 +64,8 @@ export class InputCollector {
         const sourceOutputs = nodeOutputs.get(edge.source);
         if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
           const value = sourceOutputs[edge.sourceOutput];
-          if (
-            typeof value === "string" ||
-            typeof value === "number" ||
-            typeof value === "boolean" ||
-            (typeof value === "object" && value !== null)
-          ) {
-            values.push(value as RuntimeValue);
+          if (isRuntimeValue(value)) {
+            values.push(value);
           }
         }
       }

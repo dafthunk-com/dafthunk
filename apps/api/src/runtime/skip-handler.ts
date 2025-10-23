@@ -1,5 +1,6 @@
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import type { InputCollector } from "./input-collector";
+import { getNodeType } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 /**
@@ -101,7 +102,7 @@ export class SkipHandler {
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) return false;
 
-    const nodeType = (executable.constructor as any).nodeType;
+    const nodeType = getNodeType(executable);
     if (!nodeType) return false;
 
     const inputValues = this.inputCollector.collectNodeInputs(

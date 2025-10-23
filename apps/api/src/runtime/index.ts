@@ -16,8 +16,10 @@ export type {
   ExecutionUnit,
   IndividualNode,
   InlineGroup,
+  IntegrationData,
   NodeRuntimeValues,
   RuntimeValue,
   WorkflowExecutionContext,
   WorkflowRuntimeState,
 } from "./types";
+export { getNodeType, isRuntimeValue } from "./types";

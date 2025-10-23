@@ -33,6 +33,7 @@ import { SecretManager } from "./secret-manager";
 import type {
   ExecutionPlan,
   ExecutionState,
+  IntegrationData,
   WorkflowExecutionContext,
 } from "./types";
 
@@ -258,11 +259,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
 
       // Preload all organization integrations for synchronous access
-      const integrations = await step.do(
+      // @ts-expect-error - Cloudflare Workflows Serializable<T> wrapper incompatibility
+      const integrations: Record<string, IntegrationData> = await step.do(
         "preload organization integrations",
         Runtime.defaultStepConfig,
-        async () =>
-          this.integrationManager.preloadAllIntegrations(organizationId)
+        // @ts-expect-error - Cloudflare Workflows Serializable type incompatibility
+        async () => this.integrationManager.preloadAllIntegrations(organizationId)
       );
 
       // Prepare workflow (validation + ordering).
