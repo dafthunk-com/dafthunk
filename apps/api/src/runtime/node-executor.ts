@@ -4,7 +4,7 @@ import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
 import { ObjectStore } from "../stores/object-store";
-import type { ConditionalExecutionHandler } from "./conditional-execution-handler";
+import type { SkipHandler } from "./skip-handler";
 import type { ErrorHandler } from "./error-handler";
 import { NodeNotFoundError, NodeTypeNotImplementedError } from "./error-types";
 import type { InputCollector } from "./input-collector";
@@ -29,7 +29,7 @@ export class NodeExecutor {
     private inputCollector: InputCollector,
     private inputTransformer: InputTransformer,
     private outputTransformer: OutputTransformer,
-    private conditionalHandler: ConditionalExecutionHandler,
+    private skipHandler: SkipHandler,
     private integrationManager: IntegrationManager,
     private errorHandler: ErrorHandler
   ) {}
@@ -261,7 +261,7 @@ export class NodeExecutor {
         state.executedNodes.add(nodeIdentifier);
 
         // After successful execution, mark nodes connected to inactive outputs as skipped
-        state = this.conditionalHandler.markInactiveOutputNodesAsSkipped(
+        state = this.skipHandler.skipInactiveOutputs(
           context,
           state,
           nodeIdentifier,
