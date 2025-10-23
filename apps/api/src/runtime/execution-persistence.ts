@@ -2,6 +2,7 @@ import type { WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { type ExecutionStatusType } from "../db";
+import type { ErrorHandler } from "./error-handler";
 import { ExecutionStore } from "../stores/execution-store";
 import type { RuntimeState } from "./runtime";
 
@@ -12,7 +13,10 @@ import type { RuntimeState } from "./runtime";
 export class ExecutionPersistence {
   private executionStore: ExecutionStore;
 
-  constructor(env: Bindings) {
+  constructor(
+    env: Bindings,
+    private errorHandler: ErrorHandler
+  ) {
     this.executionStore = new ExecutionStore(env.DB, env.RESSOURCES);
   }
 
@@ -64,12 +68,8 @@ export class ExecutionPersistence {
 
     const executionStatus = runtimeState.status;
 
-    // Set generic workflow-level error message when there are node failures
-    // Specific node errors are captured in nodeExecutions array
-    const errorMsg =
-      runtimeState.nodeErrors.size > 0
-        ? "Workflow execution failed"
-        : undefined;
+    // Get error message from error handler
+    const errorMsg = this.errorHandler.createErrorReport(runtimeState);
 
     try {
       const execution = await this.executionStore.save({

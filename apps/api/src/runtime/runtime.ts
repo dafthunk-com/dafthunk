@@ -20,6 +20,7 @@ import { updateOrganizationComputeUsage } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
 import { ConditionalExecutionHandler } from "./conditional-execution-handler";
 import { CreditManager } from "./credit-manager";
+import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionPlanner } from "./execution-planner";
@@ -98,6 +99,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private persistence: ExecutionPersistence;
   private monitoring: ExecutionMonitoring;
   private executor: NodeExecutor;
+  private errorHandler: ErrorHandler;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
@@ -119,7 +121,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       this.nodeRegistry,
       this.inputCollector
     );
-    this.persistence = new ExecutionPersistence(env);
+    this.errorHandler = new ErrorHandler();
+    this.persistence = new ExecutionPersistence(env, this.errorHandler);
     // Monitoring is initialized per execution with sessionId
     this.monitoring = new ExecutionMonitoring(env);
     this.executor = new NodeExecutor(
@@ -130,7 +133,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       this.inputTransformer,
       this.outputTransformer,
       this.conditionalHandler,
-      this.integrationManager
+      this.integrationManager,
+      this.errorHandler
     );
   }
 
@@ -297,10 +301,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       for (const executionUnit of runtimeState.executionPlan) {
         if (executionUnit.type === "individual") {
           const nodeIdentifier = executionUnit.nodeId;
-          if (
-            runtimeState.nodeErrors.has(nodeIdentifier) ||
-            runtimeState.skippedNodes.has(nodeIdentifier)
-          ) {
+          if (this.errorHandler.shouldSkipNode(runtimeState, nodeIdentifier)) {
             continue; // Skip nodes that were already marked as failed.
           }
 
@@ -340,11 +341,6 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
                 emailMessage
               )
           );
-        }
-
-        // Update workflow status to error if any nodes have failed
-        if (runtimeState.nodeErrors.size > 0 && runtimeState.status === "executing") {
-          runtimeState = { ...runtimeState, status: "error" };
         }
 
         // Send progress update

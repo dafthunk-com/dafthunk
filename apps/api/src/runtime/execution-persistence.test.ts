@@ -2,6 +2,7 @@ import type { Workflow, WorkflowExecution } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Bindings } from "../context";
+import { ErrorHandler } from "./error-handler";
 import { ExecutionPersistence } from "./execution-persistence";
 import type { RuntimeState } from "./runtime";
 
@@ -92,7 +93,8 @@ describe("ExecutionPersistence", () => {
         status: "completed",
       };
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
       const result = persistence.buildNodeExecutions(runtimeState);
 
       expect(result).toEqual([
@@ -140,7 +142,8 @@ describe("ExecutionPersistence", () => {
         status: "error",
       };
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
       const result = persistence.buildNodeExecutions(runtimeState);
 
       expect(result).toEqual([
@@ -188,7 +191,8 @@ describe("ExecutionPersistence", () => {
         status: "completed",
       };
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
       const result = persistence.buildNodeExecutions(runtimeState);
 
       expect(result).toEqual([
@@ -235,7 +239,8 @@ describe("ExecutionPersistence", () => {
         status: "executing",
       };
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
       const result = persistence.buildNodeExecutions(runtimeState);
 
       expect(result).toEqual([
@@ -278,7 +283,8 @@ describe("ExecutionPersistence", () => {
         status: "completed",
       };
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
       const startedAt = new Date("2024-01-01T00:00:00Z");
       const endedAt = new Date("2024-01-01T00:01:00Z");
 
@@ -342,7 +348,8 @@ describe("ExecutionPersistence", () => {
         status: "error",
       };
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
 
       const result = await persistence.saveExecutionState(
         "user-123",
@@ -386,7 +393,8 @@ describe("ExecutionPersistence", () => {
         new Error("Database error")
       );
 
-      const persistence = new ExecutionPersistence(createMockEnv());
+      const errorHandler = new ErrorHandler();
+      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
 
       const result = await persistence.saveExecutionState(
         "user-123",

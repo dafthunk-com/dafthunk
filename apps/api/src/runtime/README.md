@@ -32,6 +32,7 @@ The main entry point for workflow execution. This class coordinates all executio
 - **IntegrationManager** (`integration-manager.ts`) - Manages OAuth tokens for third-party services
 - **SecretManager** (`secret-manager.ts`) - Manages encrypted organization secrets
 - **CreditManager** (`credit-manager.ts`) - Calculates and enforces compute credit limits
+- **ErrorHandler** (`error-handler.ts`) - Unified error handling for classification, recording, and status determination
 
 ## How Runtime.run() Works
 
@@ -132,14 +133,22 @@ type ExecutionPlan = ExecutionUnit[]
 
 Inline groups improve performance. When multiple nodes have no dependencies on each other, they can run together in a single durable step instead of separate steps.
 
-## Error Handling Strategy
+## Error Handling
 
-| Error Type | What Happens | Result |
-|------------|--------------|--------|
-| Workflow validation error | Runtime throws `NonRetryableError` | Execution stops immediately |
-| Node execution error | Runtime stores error in `nodeErrors` map | Execution continues, workflow status becomes "error" |
-| Unexpected exception | Catch block captures the error | Workflow status becomes "error", error message is saved |
-| WebSocket send error | Error is logged only | Execution continues normally |
+Errors are classified by whether they stop execution:
+
+| Error Type | Stops Execution | What Happens |
+|------------|-----------------|--------------|
+| `NodeExecutionError` | No | Stored in `nodeErrors` map, other nodes continue |
+| `WorkflowValidationError` | Yes | Invalid workflow structure, throws `NonRetryableError` |
+| `InsufficientCreditsError` | Yes | Marks execution as "exhausted" |
+| Unexpected exception | Yes | Caught, status set to "error" |
+
+**Error Handler** (`error-handler.ts`) provides:
+- `recordNodeError()` - Stores node failures without stopping execution
+- `shouldContinueExecution()` - Decides if execution proceeds based on error type
+- `determineWorkflowStatus()` - Returns "executing", "completed", or "error" based on node states
+- `shouldSkipNode()` - Checks if node already failed or was skipped
 
 ## When State is Saved
 
