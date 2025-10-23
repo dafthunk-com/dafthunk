@@ -147,6 +147,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       endedAt: undefined,
     } as WorkflowExecution;
 
+    // Send initial state update
+    await this.monitoring.sendUpdate(executionRecord);
+
     if (
       !(await this.creditManager.hasEnoughComputeCredits(
         organizationId,
@@ -155,7 +158,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       ))
     ) {
       executionState = this.transitions.toExhausted(executionState);
-      return await step.do(
+      executionRecord = await step.do(
         "persist exhausted execution state",
         Runtime.defaultStepConfig,
         async () =>
@@ -169,6 +172,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             new Date()
           )
       );
+
+      // Send exhausted state update
+      await this.monitoring.sendUpdate(executionRecord);
+      return executionRecord;
     }
 
     // Declare context outside try block so it's available in finally
@@ -199,6 +206,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionContext = context;
       executionState = state;
       executionRecord.startedAt = new Date();
+      executionRecord.status = "executing";
+
+      // Send executing state update
+      await this.monitoring.sendUpdate(executionRecord);
 
       // Execute nodes sequentially.
       for (const executionUnit of executionContext.executionPlan) {
@@ -260,6 +271,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         status: "error",
         error: error instanceof Error ? error.message : String(error),
       };
+
+      // Send error state update immediately
+      await this.monitoring.sendUpdate(executionRecord);
     } finally {
       // Set endedAt timestamp when execution finishes (success or error)
       executionRecord.endedAt = new Date();

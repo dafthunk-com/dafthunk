@@ -37,12 +37,22 @@ The workflow execution follows a clear state machine model:
 
 **Transition Points in Code:**
 - `runtime.ts:132` → **submitted** (execution initialization)
-- `runtime.ts:157` → **exhausted** (insufficient credits)
-- `runtime.ts:344` → **executing** (validation passed)
-- `runtime.ts:257` → **error** (unexpected exception)
+- `runtime.ts:160` → **exhausted** (insufficient credits)
+- `runtime.ts:207` → **executing** (validation passed)
+- `runtime.ts:268` → **error** (unexpected exception)
 - `error-handler.ts:125` → **completed/error** (via `updateStatus()`)
 
 All transitions go through `StateTransitions` class for logging and validation.
+
+**Monitoring Updates Sent:**
+- `runtime.ts:151` - Initial **submitted** state
+- `runtime.ts:177` - **exhausted** state (early exit)
+- `runtime.ts:212` - **executing** state (after initialization)
+- `runtime.ts:264` - After each execution unit completes
+- `runtime.ts:276` - **error** state (on exception)
+- `runtime.ts:309` - Final state (**completed/error**)
+
+All state changes are immediately communicated to the workflow session.
 
 ## Components
 
