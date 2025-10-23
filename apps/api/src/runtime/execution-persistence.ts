@@ -1,10 +1,10 @@
-import type { WorkflowExecution } from "@dafthunk/types";
+import type { Workflow, WorkflowExecution } from "@dafthunk/types";
 
 import type { Bindings } from "../context";
 import { type ExecutionStatusType } from "../db";
-import type { ErrorHandler } from "./error-handler";
 import { ExecutionStore } from "../stores/execution-store";
-import type { RuntimeState } from "./runtime";
+import type { ErrorHandler } from "./error-handler";
+import type { ExecutionState } from "./types";
 
 /**
  * Handles persistence for workflow executions.
@@ -21,25 +21,25 @@ export class ExecutionPersistence {
   }
 
   /**
-   * Builds node execution list from runtime state
+   * Builds node execution list from execution state
    */
-  buildNodeExecutions(runtimeState: RuntimeState) {
-    return runtimeState.workflow.nodes.map((node) => {
-      if (runtimeState.executedNodes.has(node.id)) {
+  buildNodeExecutions(workflow: Workflow, state: ExecutionState) {
+    return workflow.nodes.map((node) => {
+      if (state.executedNodes.has(node.id)) {
         return {
           nodeId: node.id,
           status: "completed" as const,
-          outputs: runtimeState.nodeOutputs.get(node.id) || {},
+          outputs: state.nodeOutputs.get(node.id) || {},
         };
       }
-      if (runtimeState.nodeErrors.has(node.id)) {
+      if (state.nodeErrors.has(node.id)) {
         return {
           nodeId: node.id,
           status: "error" as const,
-          error: runtimeState.nodeErrors.get(node.id),
+          error: state.nodeErrors.get(node.id),
         };
       }
-      if (runtimeState.skippedNodes.has(node.id)) {
+      if (state.skippedNodes.has(node.id)) {
         return {
           nodeId: node.id,
           status: "skipped" as const,
@@ -58,23 +58,23 @@ export class ExecutionPersistence {
   async saveExecutionState(
     userId: string,
     organizationId: string,
-    workflowId: string,
+    workflow: Workflow,
     instanceId: string,
-    runtimeState: RuntimeState,
+    state: ExecutionState,
     startedAt?: Date,
     endedAt?: Date
   ): Promise<WorkflowExecution> {
-    const nodeExecutionList = this.buildNodeExecutions(runtimeState);
+    const nodeExecutionList = this.buildNodeExecutions(workflow, state);
 
-    const executionStatus = runtimeState.status;
+    const executionStatus = state.status;
 
     // Get error message from error handler
-    const errorMsg = this.errorHandler.createErrorReport(runtimeState);
+    const errorMsg = this.errorHandler.createErrorReport(state);
 
     try {
       const execution = await this.executionStore.save({
         id: instanceId,
-        workflowId,
+        workflowId: workflow.id,
         userId,
         organizationId,
         status: executionStatus as ExecutionStatusType,
@@ -93,7 +93,7 @@ export class ExecutionPersistence {
 
     return {
       id: instanceId,
-      workflowId,
+      workflowId: workflow.id,
       status: executionStatus,
       nodeExecutions: nodeExecutionList,
       error: errorMsg,

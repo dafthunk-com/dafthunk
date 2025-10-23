@@ -1,6 +1,6 @@
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import type { InputCollector } from "./input-collector";
-import type { RuntimeState } from "./runtime";
+import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 /**
  * Handles conditional logic in workflow execution.
@@ -17,24 +17,23 @@ export class ConditionalExecutionHandler {
    * This is crucial for conditional logic where only one branch should execute.
    */
   markInactiveOutputNodesAsSkipped(
-    runtimeState: RuntimeState,
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
     nodeIdentifier: string,
     nodeOutputs: Record<string, unknown>
-  ): RuntimeState {
-    const node = runtimeState.workflow.nodes.find(
-      (n) => n.id === nodeIdentifier
-    );
-    if (!node) return runtimeState;
+  ): ExecutionState {
+    const node = context.workflow.nodes.find((n) => n.id === nodeIdentifier);
+    if (!node) return state;
 
     // Find outputs that were NOT produced
     const inactiveOutputs = node.outputs
       .map((output) => output.name)
       .filter((outputName) => !(outputName in nodeOutputs));
 
-    if (inactiveOutputs.length === 0) return runtimeState;
+    if (inactiveOutputs.length === 0) return state;
 
     // Find all edges from this node's inactive outputs
-    const inactiveEdges = runtimeState.workflow.edges.filter(
+    const inactiveEdges = context.workflow.edges.filter(
       (edge) =>
         edge.source === nodeIdentifier &&
         inactiveOutputs.includes(edge.sourceOutput)
@@ -42,10 +41,10 @@ export class ConditionalExecutionHandler {
 
     // Process each target node of inactive edges
     for (const edge of inactiveEdges) {
-      this.markNodeAsSkippedIfNoValidInputs(runtimeState, edge.target);
+      this.markNodeAsSkippedIfNoValidInputs(context, state, edge.target);
     }
 
-    return runtimeState;
+    return state;
   }
 
   /**
@@ -53,36 +52,35 @@ export class ConditionalExecutionHandler {
    * This is smarter than recursively skipping all dependents.
    */
   private markNodeAsSkippedIfNoValidInputs(
-    runtimeState: RuntimeState,
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
     nodeId: string
   ): void {
-    if (
-      runtimeState.skippedNodes.has(nodeId) ||
-      runtimeState.executedNodes.has(nodeId)
-    ) {
+    if (state.skippedNodes.has(nodeId) || state.executedNodes.has(nodeId)) {
       return; // Already processed
     }
 
-    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeId);
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) return;
 
     // Check if this node has all required inputs satisfied
     const allRequiredInputsSatisfied = this.nodeHasAllRequiredInputsSatisfied(
-      runtimeState,
+      context,
+      state,
       nodeId
     );
 
     // Only skip if the node cannot execute (missing required inputs)
     if (!allRequiredInputsSatisfied) {
-      runtimeState.skippedNodes.add(nodeId);
+      state.skippedNodes.add(nodeId);
 
       // Recursively check dependents of this skipped node
-      const outgoingEdges = runtimeState.workflow.edges.filter(
+      const outgoingEdges = context.workflow.edges.filter(
         (edge) => edge.source === nodeId
       );
 
       for (const edge of outgoingEdges) {
-        this.markNodeAsSkippedIfNoValidInputs(runtimeState, edge.target);
+        this.markNodeAsSkippedIfNoValidInputs(context, state, edge.target);
       }
     }
   }
@@ -92,10 +90,11 @@ export class ConditionalExecutionHandler {
    * A node can execute if all its required inputs are available.
    */
   private nodeHasAllRequiredInputsSatisfied(
-    runtimeState: RuntimeState,
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
     nodeId: string
   ): boolean {
-    const node = runtimeState.workflow.nodes.find((n) => n.id === nodeId);
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
     if (!node) return false;
 
     // Get the node type definition to check for required inputs
@@ -106,8 +105,8 @@ export class ConditionalExecutionHandler {
     if (!nodeTypeDefinition) return false;
 
     const inputValues = this.inputCollector.collectNodeInputs(
-      runtimeState.workflow,
-      runtimeState.nodeOutputs,
+      context.workflow,
+      state.nodeOutputs,
       nodeId
     );
 

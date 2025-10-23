@@ -31,7 +31,9 @@ export class WorkflowValidationError extends WorkflowError {
  * Cyclic graph error - workflow contains a cycle
  */
 export class CyclicGraphError extends WorkflowError {
-  constructor(message: string = "Unable to derive execution order. The graph may contain a cycle.") {
+  constructor(
+    message: string = "Unable to derive execution order. The graph may contain a cycle."
+  ) {
     super(message);
   }
 }
@@ -86,6 +88,8 @@ export class InsufficientCreditsError extends SystemError {
     public readonly required: number,
     public readonly available: number
   ) {
-    super(`Insufficient compute credits. Required: ${required}, Available: ${available}`);
+    super(
+      `Insufficient compute credits. Required: ${required}, Available: ${available}`
+    );
   }
 }

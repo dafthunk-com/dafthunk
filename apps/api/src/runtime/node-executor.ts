@@ -6,16 +6,16 @@ import type { EmailMessage } from "../nodes/types";
 import { ObjectStore } from "../stores/object-store";
 import type { ConditionalExecutionHandler } from "./conditional-execution-handler";
 import type { ErrorHandler } from "./error-handler";
-import {
-  NodeNotFoundError,
-  NodeTypeNotImplementedError,
-} from "./error-types";
+import { NodeNotFoundError, NodeTypeNotImplementedError } from "./error-types";
 import type { InputCollector } from "./input-collector";
 import type { InputTransformer } from "./input-transformer";
 import type { IntegrationManager } from "./integration-manager";
 import type { OutputTransformer } from "./output-transformer";
-import type { RuntimeState } from "./runtime";
-import type { NodeRuntimeValues } from "./types";
+import type {
+  ExecutionState,
+  NodeRuntimeValues,
+  WorkflowExecutionContext,
+} from "./types";
 
 /**
  * Executes workflow nodes.
@@ -34,22 +34,19 @@ export class NodeExecutor {
     private errorHandler: ErrorHandler
   ) {}
 
-
   /**
    * Executes a group of inlinable nodes sequentially in a single step.
    */
   async executeInlineGroup(
-    runtimeState: RuntimeState,
-    workflowId: string,
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
     nodeIds: string[],
-    organizationId: string,
-    executionId: string,
     secrets: Record<string, string>,
     integrations: Record<string, any>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
-  ): Promise<RuntimeState> {
-    let currentState = runtimeState;
+  ): Promise<ExecutionState> {
+    let currentState = state;
     const groupStartTime = Date.now();
     const executedNodesInGroup: string[] = [];
 
@@ -69,11 +66,9 @@ export class NodeExecutor {
         const nodeStartTime = Date.now();
 
         currentState = await this.executeNode(
+          context,
           currentState,
-          workflowId,
           nodeId,
-          organizationId,
-          executionId,
           secrets,
           integrations,
           httpRequest,
@@ -123,34 +118,28 @@ export class NodeExecutor {
    * 2. Node throws exception → execution stops, workflow status set to "error"
    */
   async executeNode(
-    runtimeState: RuntimeState,
-    workflowId: string,
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
     nodeIdentifier: string,
-    organizationId: string,
-    executionId: string,
     secrets: Record<string, string>,
     integrations: Record<string, any>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
-  ): Promise<RuntimeState> {
-    const node = runtimeState.workflow.nodes.find(
+  ): Promise<ExecutionState> {
+    const node = context.workflow.nodes.find(
       (n): boolean => n.id === nodeIdentifier
     );
     if (!node) {
       const error = new NodeNotFoundError(nodeIdentifier);
-      runtimeState = this.errorHandler.recordNodeError(
-        runtimeState,
-        nodeIdentifier,
-        error
-      );
-      runtimeState = this.errorHandler.updateStatus(runtimeState);
-      return runtimeState;
+      state = this.errorHandler.recordNodeError(state, nodeIdentifier, error);
+      state = this.errorHandler.updateStatus(context, state);
+      return state;
     }
 
     const nodeType = this.nodeRegistry.getNodeType(node.type);
     this.env.COMPUTE.writeDataPoint({
-      indexes: [organizationId],
-      blobs: [organizationId, workflowId, node.id],
+      indexes: [context.organizationId],
+      blobs: [context.organizationId, context.workflowId, node.id],
       doubles: [nodeType.computeCost ?? 1],
     });
 
@@ -158,26 +147,22 @@ export class NodeExecutor {
     const executable = this.nodeRegistry.createExecutableNode(node);
     if (!executable) {
       const error = new NodeTypeNotImplementedError(nodeIdentifier, node.type);
-      runtimeState = this.errorHandler.recordNodeError(
-        runtimeState,
-        nodeIdentifier,
-        error
-      );
-      runtimeState = this.errorHandler.updateStatus(runtimeState);
-      return runtimeState;
+      state = this.errorHandler.recordNodeError(state, nodeIdentifier, error);
+      state = this.errorHandler.updateStatus(context, state);
+      return state;
     }
 
     // Gather inputs by reading connections and default values.
     const inputValues = this.inputCollector.collectNodeInputs(
-      runtimeState.workflow,
-      runtimeState.nodeOutputs,
+      context.workflow,
+      state.nodeOutputs,
       nodeIdentifier
     );
 
     try {
       const objectStore = new ObjectStore(this.env.RESSOURCES);
       const processedInputs = await this.inputTransformer.transformInputs(
-        runtimeState.workflow,
+        context.workflow,
         nodeIdentifier,
         inputValues,
         objectStore
@@ -195,10 +180,10 @@ export class NodeExecutor {
         };
       }
 
-      const context: NodeContext = {
+      const nodeContext: NodeContext = {
         nodeId: nodeIdentifier,
-        workflowId: runtimeState.workflow.id,
-        organizationId,
+        workflowId: context.workflowId,
+        organizationId: context.organizationId,
         inputs: processedInputs,
         httpRequest,
         emailMessage,
@@ -258,55 +243,56 @@ export class NodeExecutor {
         },
       };
 
-      const result = await executable.execute(context);
+      const result = await executable.execute(nodeContext);
 
       if (result.status === "completed") {
         const outputsForRuntime = await this.outputTransformer.transformOutputs(
-          runtimeState.workflow,
+          context.workflow,
           nodeIdentifier,
           result.outputs ?? {},
           objectStore,
-          organizationId,
-          executionId
+          context.organizationId,
+          context.executionId
         );
-        runtimeState.nodeOutputs.set(
+        state.nodeOutputs.set(
           nodeIdentifier,
           outputsForRuntime as NodeRuntimeValues
         );
-        runtimeState.executedNodes.add(nodeIdentifier);
+        state.executedNodes.add(nodeIdentifier);
 
         // After successful execution, mark nodes connected to inactive outputs as skipped
-        runtimeState = this.conditionalHandler.markInactiveOutputNodesAsSkipped(
-          runtimeState,
+        state = this.conditionalHandler.markInactiveOutputNodesAsSkipped(
+          context,
+          state,
           nodeIdentifier,
           result.outputs ?? {}
         );
       } else {
         // Node returned status="failed" - store error and continue execution
         const failureMessage = result.error ?? "Unknown error";
-        runtimeState = this.errorHandler.recordNodeError(
-          runtimeState,
+        state = this.errorHandler.recordNodeError(
+          state,
           nodeIdentifier,
           failureMessage
         );
       }
 
       // Update workflow status based on current state
-      runtimeState = this.errorHandler.updateStatus(runtimeState);
+      state = this.errorHandler.updateStatus(context, state);
 
-      return runtimeState;
+      return state;
     } catch (error) {
       // Record the error
-      runtimeState = this.errorHandler.recordNodeError(
-        runtimeState,
+      state = this.errorHandler.recordNodeError(
+        state,
         nodeIdentifier,
         error instanceof Error ? error : new Error(String(error))
       );
 
       // Update workflow status
-      runtimeState = this.errorHandler.updateStatus(runtimeState);
+      state = this.errorHandler.updateStatus(context, state);
 
-      return runtimeState;
+      return state;
     }
   }
 }

@@ -11,6 +11,7 @@ The runtime system executes workflows on Cloudflare's durable workflow engine. I
 The main entry point for workflow execution. This class coordinates all execution through Cloudflare Workers.
 
 **What it does:**
+
 - Checks if workflows are valid before running
 - Creates a plan for which nodes to run and in what order
 - Checks if the organization has enough compute credits
@@ -53,6 +54,7 @@ The runtime creates initial state for tracking the workflow execution:
 ```
 
 **Runtime value types** (`types.ts`):
+
 - `RuntimeValue` - JSON-serializable values (string, number, boolean, ObjectReference, JsonArray, JsonObject)
 - `NodeRuntimeValues` - Values for a single node (Record<parameterName, RuntimeValue | RuntimeValue[]>)
 - `WorkflowRuntimeState` - Values across entire workflow (Map<nodeId, NodeRuntimeValues>)
@@ -83,6 +85,7 @@ The runtime records the start time in the execution record.
 The runtime processes each item in the execution plan:
 
 **For individual nodes:**
+
 ```typescript
 await step.do(`run node ${nodeId}`, async () =>
   executor.executeNode(state, ...)
@@ -90,6 +93,7 @@ await step.do(`run node ${nodeId}`, async () =>
 ```
 
 **For inline groups (multiple nodes at once):**
+
 ```typescript
 await step.do(`run inline group [${nodeIds}]`, async () =>
   executor.executeInlineGroup(state, ...)
@@ -125,10 +129,10 @@ The execution plan is a list of execution units. Each unit is either a single no
 
 ```typescript
 type ExecutionUnit =
-  | { type: "individual", nodeId: string }
-  | { type: "inline", nodeIds: string[] }
+  | { type: "individual"; nodeId: string }
+  | { type: "inline"; nodeIds: string[] };
 
-type ExecutionPlan = ExecutionUnit[]
+type ExecutionPlan = ExecutionUnit[];
 ```
 
 Inline groups improve performance. When multiple nodes have no dependencies on each other, they can run together in a single durable step instead of separate steps.
@@ -137,14 +141,15 @@ Inline groups improve performance. When multiple nodes have no dependencies on e
 
 Errors are classified by whether they stop execution:
 
-| Error Type | Stops Execution | What Happens |
-|------------|-----------------|--------------|
-| `NodeExecutionError` | No | Stored in `nodeErrors` map, other nodes continue |
-| `WorkflowValidationError` | Yes | Invalid workflow structure, throws `NonRetryableError` |
-| `InsufficientCreditsError` | Yes | Marks execution as "exhausted" |
-| Unexpected exception | Yes | Caught, status set to "error" |
+| Error Type                 | Stops Execution | What Happens                                           |
+| -------------------------- | --------------- | ------------------------------------------------------ |
+| `NodeExecutionError`       | No              | Stored in `nodeErrors` map, other nodes continue       |
+| `WorkflowValidationError`  | Yes             | Invalid workflow structure, throws `NonRetryableError` |
+| `InsufficientCreditsError` | Yes             | Marks execution as "exhausted"                         |
+| Unexpected exception       | Yes             | Caught, status set to "error"                          |
 
 **Error Handler** (`error-handler.ts`) provides:
+
 - `recordNodeError()` - Stores node failures without stopping execution
 - `shouldContinueExecution()` - Decides if execution proceeds based on error type
 - `determineWorkflowStatus()` - Returns "executing", "completed", or "error" based on node states
@@ -169,6 +174,7 @@ Updates are sent to the workflow session Durable Object when `workflowSessionId`
 - **Final update**: Sent in the finally block
 
 Each update contains:
+
 - Current execution status: `submitted`, `executing`, `error`, `completed`, or `exhausted`
 - Results from all executed nodes (outputs and errors)
 - Start and end timestamps (when available)
@@ -194,6 +200,7 @@ All async operations are wrapped in `step.do()` with this configuration:
 ```
 
 This configuration provides:
+
 - Automatic retry if a step fails due to temporary issues
 - State recovery if the worker crashes during execution
 - Exactly-once execution semantics (each step runs exactly once)
