@@ -1,10 +1,10 @@
-import type { Workflow, WorkflowExecution } from "@dafthunk/types";
+import type { Workflow } from "@dafthunk/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Bindings } from "../context";
 import { ErrorHandler } from "./error-handler";
 import { ExecutionPersistence } from "./execution-persistence";
-import type { RuntimeState } from "./runtime";
+import type { ExecutionState } from "./types";
 
 // Mock the ExecutionStore module
 const { executionStoreSave, ExecutionStoreMock } = vi.hoisted(() => {
@@ -60,28 +60,29 @@ describe("ExecutionPersistence", () => {
 
   describe("buildNodeExecutions", () => {
     it("should build execution list with completed nodes", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-1",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [{ name: "result", type: "string" }],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [],
-              outputs: [{ name: "result", type: "string" }],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-1",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [{ name: "result", type: "string" }],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [],
+            outputs: [{ name: "result", type: "string" }],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map([
           ["A", { result: "output A" }],
           ["B", { result: "output B" }],
@@ -89,13 +90,15 @@ describe("ExecutionPersistence", () => {
         executedNodes: new Set(["A", "B"]),
         skippedNodes: new Set(),
         nodeErrors: new Map(),
-        executionPlan: [],
         status: "completed",
       };
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
-      const result = persistence.buildNodeExecutions(runtimeState);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
+      const result = persistence.buildNodeExecutions(workflow, state);
 
       expect(result).toEqual([
         {
@@ -112,39 +115,42 @@ describe("ExecutionPersistence", () => {
     });
 
     it("should build execution list with error nodes", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-2",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-2",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map([["A", {}]]),
         executedNodes: new Set(["A"]),
         skippedNodes: new Set(),
         nodeErrors: new Map([["B", "Something went wrong"]]),
-        executionPlan: [],
         status: "error",
       };
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
-      const result = persistence.buildNodeExecutions(runtimeState);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
+      const result = persistence.buildNodeExecutions(workflow, state);
 
       expect(result).toEqual([
         {
@@ -161,39 +167,42 @@ describe("ExecutionPersistence", () => {
     });
 
     it("should build execution list with skipped nodes", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-3",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-3",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map([["A", {}]]),
         executedNodes: new Set(["A"]),
         skippedNodes: new Set(["B"]),
         nodeErrors: new Map(),
-        executionPlan: [],
         status: "completed",
       };
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
-      const result = persistence.buildNodeExecutions(runtimeState);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
+      const result = persistence.buildNodeExecutions(workflow, state);
 
       expect(result).toEqual([
         {
@@ -209,39 +218,42 @@ describe("ExecutionPersistence", () => {
     });
 
     it("should mark unprocessed nodes as executing", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-4",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-4",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map([["A", {}]]),
         executedNodes: new Set(["A"]),
         skippedNodes: new Set(),
         nodeErrors: new Map(),
-        executionPlan: [],
         status: "executing",
       };
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
-      const result = persistence.buildNodeExecutions(runtimeState);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
+      const result = persistence.buildNodeExecutions(workflow, state);
 
       expect(result).toEqual([
         {
@@ -259,41 +271,44 @@ describe("ExecutionPersistence", () => {
 
   describe("saveExecutionState", () => {
     it("should save execution state to database", async () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-123",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-123",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map([["A", {}]]),
         executedNodes: new Set(["A"]),
         skippedNodes: new Set(),
         nodeErrors: new Map(),
-        executionPlan: [],
         status: "completed",
       };
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
       const startedAt = new Date("2024-01-01T00:00:00Z");
       const endedAt = new Date("2024-01-01T00:01:00Z");
 
       const result = await persistence.saveExecutionState(
         "user-123",
         "org-123",
-        "workflow-123",
+        workflow,
         "exec-456",
-        runtimeState,
+        state,
         startedAt,
         endedAt
       );
@@ -315,28 +330,29 @@ describe("ExecutionPersistence", () => {
     });
 
     it("should handle errors with multiple node errors", async () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-123",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-123",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map(),
         executedNodes: new Set(),
         skippedNodes: new Set(),
@@ -344,19 +360,21 @@ describe("ExecutionPersistence", () => {
           ["A", "Error 1"],
           ["B", "Error 2"],
         ]),
-        executionPlan: [],
         status: "error",
       };
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
 
       const result = await persistence.saveExecutionState(
         "user-123",
         "org-123",
-        "workflow-123",
+        workflow,
         "exec-456",
-        runtimeState
+        state
       );
 
       // Workflow-level error should have generic message for node failures
@@ -372,20 +390,20 @@ describe("ExecutionPersistence", () => {
     });
 
     it("should handle database save failure gracefully", async () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-123",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [],
-          edges: [],
-        } as unknown as Workflow,
+      const workflow: Workflow = {
+        id: "workflow-123",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [],
+        edges: [],
+      } as unknown as Workflow;
+
+      const state: ExecutionState = {
         nodeOutputs: new Map(),
         executedNodes: new Set(),
         skippedNodes: new Set(),
         nodeErrors: new Map(),
-        executionPlan: [],
         status: "completed",
       };
 
@@ -394,14 +412,17 @@ describe("ExecutionPersistence", () => {
       );
 
       const errorHandler = new ErrorHandler();
-      const persistence = new ExecutionPersistence(createMockEnv(), errorHandler);
+      const persistence = new ExecutionPersistence(
+        createMockEnv(),
+        errorHandler
+      );
 
       const result = await persistence.saveExecutionState(
         "user-123",
         "org-123",
-        "workflow-123",
+        workflow,
         "exec-456",
-        runtimeState
+        state
       );
 
       // Should return execution record even when database fails
@@ -409,5 +430,4 @@ describe("ExecutionPersistence", () => {
       expect(result.workflowId).toBe("workflow-123");
     });
   });
-
 });

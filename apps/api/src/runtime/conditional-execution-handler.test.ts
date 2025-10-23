@@ -4,8 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { ConditionalExecutionHandler } from "./conditional-execution-handler";
 import type { InputCollector } from "./input-collector";
-import type { RuntimeState } from "./runtime";
-import type { WorkflowRuntimeState } from "./types";
+import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 describe("ConditionalExecutionHandler", () => {
   const createMockRegistry = (
@@ -33,47 +32,68 @@ describe("ConditionalExecutionHandler", () => {
     } as any;
   };
 
+  const createContext = (workflow: Workflow): WorkflowExecutionContext => ({
+    workflow,
+    executionPlan: [],
+    workflowId: workflow.id,
+    organizationId: "test-org",
+    executionId: "test-exec",
+  });
+
+  const createState = (
+    nodeOutputs: Map<string, any>,
+    executedNodes: Set<string>,
+    skippedNodes: Set<string>,
+    nodeErrors: Map<string, string>
+  ): ExecutionState => ({
+    nodeOutputs,
+    executedNodes,
+    skippedNodes,
+    nodeErrors,
+    status: "executing",
+  });
+
   describe("markInactiveOutputNodesAsSkipped", () => {
     it("should not mark any nodes when all outputs are active", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-1",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "conditional",
-              inputs: [],
-              outputs: [
-                { name: "true", type: "string" },
-                { name: "false", type: "string" },
-              ],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [{ name: "input", type: "string" }],
-              outputs: [],
-            },
-          ],
-          edges: [
-            {
-              source: "A",
-              sourceOutput: "true",
-              target: "B",
-              targetInput: "input",
-            },
-          ],
-        } as unknown as Workflow,
-        nodeOutputs: new Map([["A", { true: "yes", false: "no" }]]),
-        executedNodes: new Set(["A"]),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+      const workflow: Workflow = {
+        id: "workflow-1",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "conditional",
+            inputs: [],
+            outputs: [
+              { name: "true", type: "string" },
+              { name: "false", type: "string" },
+            ],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [{ name: "input", type: "string" }],
+            outputs: [],
+          },
+        ],
+        edges: [
+          {
+            source: "A",
+            sourceOutput: "true",
+            target: "B",
+            targetInput: "input",
+          },
+        ],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(
+        new Map([["A", { true: "yes", false: "no" }]]),
+        new Set(["A"]),
+        new Set(),
+        new Map()
+      );
 
       const registry = createMockRegistry({
         conditional: {
@@ -87,7 +107,8 @@ describe("ConditionalExecutionHandler", () => {
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "A",
         { true: "yes", false: "no" }
       );
@@ -96,57 +117,57 @@ describe("ConditionalExecutionHandler", () => {
     });
 
     it("should mark nodes connected to inactive outputs as skipped", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-2",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "conditional",
-              inputs: [],
-              outputs: [
-                { name: "true", type: "string" },
-                { name: "false", type: "string" },
-              ],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [{ name: "input", type: "string", required: true }],
-              outputs: [],
-            },
-            {
-              id: "C",
-              type: "text",
-              inputs: [{ name: "input", type: "string", required: true }],
-              outputs: [],
-            },
-          ],
-          edges: [
-            {
-              source: "A",
-              sourceOutput: "true",
-              target: "B",
-              targetInput: "input",
-            },
-            {
-              source: "A",
-              sourceOutput: "false",
-              target: "C",
-              targetInput: "input",
-            },
-          ],
-        } as unknown as Workflow,
-        nodeOutputs: new Map([["A", { true: "yes" }]]), // only "true" output
-        executedNodes: new Set(["A"]),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+      const workflow: Workflow = {
+        id: "workflow-2",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "conditional",
+            inputs: [],
+            outputs: [
+              { name: "true", type: "string" },
+              { name: "false", type: "string" },
+            ],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [{ name: "input", type: "string", required: true }],
+            outputs: [],
+          },
+          {
+            id: "C",
+            type: "text",
+            inputs: [{ name: "input", type: "string", required: true }],
+            outputs: [],
+          },
+        ],
+        edges: [
+          {
+            source: "A",
+            sourceOutput: "true",
+            target: "B",
+            targetInput: "input",
+          },
+          {
+            source: "A",
+            sourceOutput: "false",
+            target: "C",
+            targetInput: "input",
+          },
+        ],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(
+        new Map([["A", { true: "yes" }]]), // only "true" output
+        new Set(["A"]),
+        new Set(),
+        new Map()
+      );
 
       const registry = createMockRegistry({
         conditional: { inputs: [] },
@@ -159,7 +180,8 @@ describe("ConditionalExecutionHandler", () => {
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "A",
         { true: "yes" } // "false" output is inactive
       );
@@ -169,57 +191,57 @@ describe("ConditionalExecutionHandler", () => {
     });
 
     it("should recursively skip dependent nodes", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-3",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "conditional",
-              inputs: [],
-              outputs: [
-                { name: "true", type: "string" },
-                { name: "false", type: "string" },
-              ],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [{ name: "input", type: "string", required: true }],
-              outputs: [{ name: "output", type: "string" }],
-            },
-            {
-              id: "C",
-              type: "text",
-              inputs: [{ name: "input", type: "string", required: true }],
-              outputs: [],
-            },
-          ],
-          edges: [
-            {
-              source: "A",
-              sourceOutput: "false",
-              target: "B",
-              targetInput: "input",
-            },
-            {
-              source: "B",
-              sourceOutput: "output",
-              target: "C",
-              targetInput: "input",
-            },
-          ],
-        } as unknown as Workflow,
-        nodeOutputs: new Map([["A", { true: "yes" }]]),
-        executedNodes: new Set(["A"]),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+      const workflow: Workflow = {
+        id: "workflow-3",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "conditional",
+            inputs: [],
+            outputs: [
+              { name: "true", type: "string" },
+              { name: "false", type: "string" },
+            ],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [{ name: "input", type: "string", required: true }],
+            outputs: [{ name: "output", type: "string" }],
+          },
+          {
+            id: "C",
+            type: "text",
+            inputs: [{ name: "input", type: "string", required: true }],
+            outputs: [],
+          },
+        ],
+        edges: [
+          {
+            source: "A",
+            sourceOutput: "false",
+            target: "B",
+            targetInput: "input",
+          },
+          {
+            source: "B",
+            sourceOutput: "output",
+            target: "C",
+            targetInput: "input",
+          },
+        ],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(
+        new Map([["A", { true: "yes" }]]),
+        new Set(["A"]),
+        new Set(),
+        new Map()
+      );
 
       const registry = createMockRegistry({
         conditional: { inputs: [] },
@@ -232,7 +254,8 @@ describe("ConditionalExecutionHandler", () => {
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "A",
         { true: "yes" }
       );
@@ -243,45 +266,45 @@ describe("ConditionalExecutionHandler", () => {
     });
 
     it("should not skip nodes with optional inputs", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-4",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "conditional",
-              inputs: [],
-              outputs: [
-                { name: "true", type: "string" },
-                { name: "false", type: "string" },
-              ],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [{ name: "input", type: "string", required: false }],
-              outputs: [],
-            },
-          ],
-          edges: [
-            {
-              source: "A",
-              sourceOutput: "false",
-              target: "B",
-              targetInput: "input",
-            },
-          ],
-        } as unknown as Workflow,
-        nodeOutputs: new Map([["A", { true: "yes" }]]),
-        executedNodes: new Set(["A"]),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+      const workflow: Workflow = {
+        id: "workflow-4",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "conditional",
+            inputs: [],
+            outputs: [
+              { name: "true", type: "string" },
+              { name: "false", type: "string" },
+            ],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [{ name: "input", type: "string", required: false }],
+            outputs: [],
+          },
+        ],
+        edges: [
+          {
+            source: "A",
+            sourceOutput: "false",
+            target: "B",
+            targetInput: "input",
+          },
+        ],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(
+        new Map([["A", { true: "yes" }]]),
+        new Set(["A"]),
+        new Set(),
+        new Map()
+      );
 
       const registry = createMockRegistry({
         conditional: { inputs: [] },
@@ -293,7 +316,8 @@ describe("ConditionalExecutionHandler", () => {
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "A",
         { true: "yes" }
       );
@@ -303,63 +327,63 @@ describe("ConditionalExecutionHandler", () => {
     });
 
     it("should not skip nodes with alternative valid inputs", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-5",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "conditional",
-              inputs: [],
-              outputs: [
-                { name: "true", type: "string" },
-                { name: "false", type: "string" },
-              ],
-            },
-            {
-              id: "B",
-              type: "text",
-              inputs: [],
-              outputs: [{ name: "output", type: "string" }],
-            },
-            {
-              id: "C",
-              type: "merge",
-              inputs: [
-                { name: "input1", type: "string", required: true },
-                { name: "input2", type: "string", required: false },
-              ],
-              outputs: [],
-            },
-          ],
-          edges: [
-            {
-              source: "A",
-              sourceOutput: "false",
-              target: "C",
-              targetInput: "input2",
-            },
-            {
-              source: "B",
-              sourceOutput: "output",
-              target: "C",
-              targetInput: "input1",
-            },
-          ],
-        } as unknown as Workflow,
-        nodeOutputs: new Map([
+      const workflow: Workflow = {
+        id: "workflow-5",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "conditional",
+            inputs: [],
+            outputs: [
+              { name: "true", type: "string" },
+              { name: "false", type: "string" },
+            ],
+          },
+          {
+            id: "B",
+            type: "text",
+            inputs: [],
+            outputs: [{ name: "output", type: "string" }],
+          },
+          {
+            id: "C",
+            type: "merge",
+            inputs: [
+              { name: "input1", type: "string", required: true },
+              { name: "input2", type: "string", required: false },
+            ],
+            outputs: [],
+          },
+        ],
+        edges: [
+          {
+            source: "A",
+            sourceOutput: "false",
+            target: "C",
+            targetInput: "input2",
+          },
+          {
+            source: "B",
+            sourceOutput: "output",
+            target: "C",
+            targetInput: "input1",
+          },
+        ],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(
+        new Map([
           ["A", { true: "yes" }],
           ["B", { output: "from B" }],
-        ]) as unknown as WorkflowRuntimeState,
-        executedNodes: new Set(["A", "B"]),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+        ]),
+        new Set(["A", "B"]),
+        new Set(),
+        new Map()
+      );
 
       const registry = createMockRegistry({
         conditional: { inputs: [] },
@@ -377,7 +401,8 @@ describe("ConditionalExecutionHandler", () => {
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "A",
         { true: "yes" }
       );
@@ -387,60 +412,56 @@ describe("ConditionalExecutionHandler", () => {
     });
 
     it("should handle node not found", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-6",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [],
-          edges: [],
-        } as unknown as Workflow,
-        nodeOutputs: new Map(),
-        executedNodes: new Set(),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+      const workflow: Workflow = {
+        id: "workflow-6",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [],
+        edges: [],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(new Map(), new Set(), new Set(), new Map());
 
       const registry = createMockRegistry({});
       const inputCollector = createMockInputCollector({});
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "NonExistent",
         {}
       );
 
-      expect(result).toBe(runtimeState);
+      expect(result).toBe(state);
     });
 
     it("should handle node with no outputs", () => {
-      const runtimeState: RuntimeState = {
-        workflow: {
-          id: "workflow-7",
-          name: "Test Workflow",
-          handle: "test-workflow",
-          type: "manual",
-          nodes: [
-            {
-              id: "A",
-              type: "text",
-              inputs: [],
-              outputs: [],
-            },
-          ],
-          edges: [],
-        } as unknown as Workflow,
-        nodeOutputs: new Map([["A", {}]]),
-        executedNodes: new Set(["A"]),
-        skippedNodes: new Set(),
-        nodeErrors: new Map(),
-        executionPlan: [],
-        status: "executing",
-      };
+      const workflow: Workflow = {
+        id: "workflow-7",
+        name: "Test Workflow",
+        handle: "test-workflow",
+        type: "manual",
+        nodes: [
+          {
+            id: "A",
+            type: "text",
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [],
+      } as unknown as Workflow;
+
+      const context = createContext(workflow);
+      const state = createState(
+        new Map([["A", {}]]),
+        new Set(["A"]),
+        new Set(),
+        new Map()
+      );
 
       const registry = createMockRegistry({
         text: { inputs: [] },
@@ -449,7 +470,8 @@ describe("ConditionalExecutionHandler", () => {
       const handler = new ConditionalExecutionHandler(registry, inputCollector);
 
       const result = handler.markInactiveOutputNodesAsSkipped(
-        runtimeState,
+        context,
+        state,
         "A",
         {}
       );

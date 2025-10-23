@@ -30,7 +30,11 @@ import { IntegrationManager } from "./integration-manager";
 import { NodeExecutor } from "./node-executor";
 import { OutputTransformer } from "./output-transformer";
 import { SecretManager } from "./secret-manager";
-import type { WorkflowRuntimeState } from "./types";
+import type {
+  ExecutionState,
+  WorkflowExecutionContext,
+  WorkflowRuntimeState,
+} from "./types";
 
 export type NodeErrors = Map<string, string>;
 export type ExecutedNodeSet = Set<string>;
@@ -227,13 +231,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     this.monitoring = new ExecutionMonitoring(this.env, workflowSessionId);
 
     // Initialise state and execution records.
-    let runtimeState: RuntimeState = {
-      workflow,
+    let executionState: ExecutionState = {
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      executionPlan: [],
       status: "submitted",
     };
 
@@ -254,7 +256,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         this.creditManager.getNodesComputeCost(workflow.nodes)
       ))
     ) {
-      runtimeState = { ...runtimeState, status: "exhausted" };
+      executionState = { ...executionState, status: "exhausted" };
       return await step.do(
         "persist exhausted execution state",
         Runtime.defaultStepConfig,
@@ -262,14 +264,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           this.persistence.saveExecutionState(
             userId,
             organizationId,
-            workflow.id,
+            workflow,
             instanceId,
-            runtimeState,
+            executionState,
             new Date(),
             new Date()
           )
       );
     }
+
+    // Declare context outside try block so it's available in finally
+    let executionContext: WorkflowExecutionContext | undefined;
 
     try {
       // Preload all organization secrets for synchronous access
@@ -288,33 +293,41 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
 
       // Prepare workflow (validation + ordering).
-      // @ts-ignore
-      runtimeState = await step.do(
+      // @ts-expect-error - TS2589: Type instantiation depth limitation with Cloudflare Workflows step.do
+      const { context, state } = await step.do(
         "initialise workflow",
         Runtime.defaultStepConfig,
-        async () => this.initialiseWorkflow(workflow)
+        () =>
+          this.initialiseWorkflow(
+            workflow,
+            workflow.id,
+            organizationId,
+            instanceId
+          )
       );
 
+      executionContext = context;
+      executionState = state;
       executionRecord.startedAt = new Date();
 
       // Execute nodes sequentially.
-      for (const executionUnit of runtimeState.executionPlan) {
+      for (const executionUnit of executionContext.executionPlan) {
         if (executionUnit.type === "individual") {
           const nodeIdentifier = executionUnit.nodeId;
-          if (this.errorHandler.shouldSkipNode(runtimeState, nodeIdentifier)) {
+          if (
+            this.errorHandler.shouldSkipNode(executionState, nodeIdentifier)
+          ) {
             continue; // Skip nodes that were already marked as failed.
           }
 
-          runtimeState = await step.do(
+          executionState = await step.do(
             `run node ${nodeIdentifier}`,
             Runtime.defaultStepConfig,
             async () =>
               this.executor.executeNode(
-                runtimeState,
-                workflow.id,
+                executionContext!,
+                executionState,
                 nodeIdentifier,
-                organizationId,
-                instanceId,
                 secrets,
                 integrations,
                 httpRequest,
@@ -325,16 +338,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           // Execute inline group - all nodes in a single step
           const groupDescription = `inline group [${executionUnit.nodeIds.join(", ")}]`;
 
-          runtimeState = await step.do(
+          executionState = await step.do(
             `run ${groupDescription}`,
             Runtime.defaultStepConfig,
             async () =>
               this.executor.executeInlineGroup(
-                runtimeState,
-                workflow.id,
+                executionContext!,
+                executionState,
                 executionUnit.nodeIds,
-                organizationId,
-                instanceId,
                 secrets,
                 integrations,
                 httpRequest,
@@ -346,15 +357,18 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         // Send progress update
         executionRecord = {
           ...executionRecord,
-          status: runtimeState.status,
-          nodeExecutions: this.persistence.buildNodeExecutions(runtimeState),
+          status: executionState.status,
+          nodeExecutions: this.persistence.buildNodeExecutions(
+            executionContext.workflow,
+            executionState
+          ),
         };
 
         await this.monitoring.sendUpdate(executionRecord);
       }
     } catch (error) {
       // Capture unexpected failure.
-      runtimeState = { ...runtimeState, status: "error" };
+      executionState = { ...executionState, status: "error" };
       executionRecord = {
         ...executionRecord,
         status: "error",
@@ -375,8 +389,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
               organizationId,
               // Update organization compute credits for executed nodes
               this.creditManager.getNodesComputeCost(
-                runtimeState.workflow.nodes.filter((node) =>
-                  runtimeState.executedNodes.has(node.id)
+                workflow.nodes.filter((node) =>
+                  executionState.executedNodes.has(node.id)
                 )
               )
             );
@@ -384,9 +398,9 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           return this.persistence.saveExecutionState(
             userId,
             organizationId,
-            workflow.id,
+            workflow,
             instanceId,
-            runtimeState,
+            executionState,
             executionRecord.startedAt,
             executionRecord.endedAt
           );
@@ -402,8 +416,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
   /**
    * Validates the workflow and creates a sequential execution order with inline groups.
+   * Returns separated immutable context and mutable state.
    */
-  private async initialiseWorkflow(workflow: Workflow): Promise<RuntimeState> {
+  private async initialiseWorkflow(
+    workflow: Workflow,
+    workflowId: string,
+    organizationId: string,
+    executionId: string
+  ): Promise<{ context: WorkflowExecutionContext; state: ExecutionState }> {
     const validationErrors = validateWorkflow(workflow);
     if (validationErrors.length > 0) {
       throw new NonRetryableError(
@@ -426,14 +446,24 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       orderedNodes
     );
 
-    return {
+    // Immutable context
+    const context: WorkflowExecutionContext = {
       workflow,
+      executionPlan,
+      workflowId,
+      organizationId,
+      executionId,
+    };
+
+    // Mutable state
+    const state: ExecutionState = {
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      executionPlan,
       status: "executing",
     };
+
+    return { context, state };
   }
 }
