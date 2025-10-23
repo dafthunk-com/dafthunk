@@ -6,8 +6,6 @@ import type {
   WorkflowExecutionStatus,
 } from "@dafthunk/types";
 
-import type { ExecutionPlan } from "./runtime";
-
 /**
  * Runtime value types - JSON-serializable values used during workflow execution.
  * These represent the "wire format" that flows between nodes and gets persisted.
@@ -84,3 +82,25 @@ export interface ExecutionState {
   /** Current workflow execution status */
   status: WorkflowExecutionStatus;
 }
+
+/**
+ * Execution plan types - defines how nodes are grouped for execution.
+ */
+
+/** A group of inlinable nodes executed together in a single step */
+export interface InlineGroup {
+  type: "inline";
+  nodeIds: string[];
+}
+
+/** A single node executed as an individual step */
+export interface IndividualNode {
+  type: "individual";
+  nodeId: string;
+}
+
+/** A unit of execution - either a single node or a group of inlinable nodes */
+export type ExecutionUnit = InlineGroup | IndividualNode;
+
+/** The complete execution plan for a workflow - ordered list of execution units */
+export type ExecutionPlan = ExecutionUnit[];

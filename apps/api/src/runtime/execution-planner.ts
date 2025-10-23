@@ -1,7 +1,7 @@
 import type { Workflow } from "@dafthunk/types";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import type { ExecutionPlan } from "./runtime";
+import type { ExecutionPlan } from "./types";
 
 /**
  * Creates execution plans for workflows by analyzing the node graph.
