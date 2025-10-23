@@ -1,7 +1,6 @@
 import {
   Workflow,
   WorkflowExecution,
-  WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import {
   WorkflowEntrypoint,
@@ -14,7 +13,7 @@ import { NonRetryableError } from "cloudflare:workflows";
 import { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
-import { HttpRequest, NodeContext } from "../nodes/types";
+import { HttpRequest } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
 import { updateOrganizationComputeUsage } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
@@ -23,17 +22,11 @@ import { CreditManager } from "./credit-manager";
 import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
-import { ExecutionPlanner } from "./execution-planner";
-import { InputCollector } from "./input-collector";
-import { InputTransformer } from "./input-transformer";
-import { IntegrationManager } from "./integration-manager";
-import { NodeExecutor } from "./node-executor";
-import { OutputTransformer } from "./output-transformer";
-import { SecretManager } from "./secret-manager";
+import { ExecutionEngine } from "./execution-engine";
+import { ResourceProvider } from "./resource-provider";
 import type {
   ExecutionPlan,
   ExecutionState,
-  IntegrationData,
   WorkflowExecutionContext,
 } from "./types";
 
@@ -65,119 +58,47 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   };
 
   private nodeRegistry: CloudflareNodeRegistry;
-  private toolRegistry: CloudflareToolRegistry;
-  private planner: ExecutionPlanner;
-  private inputCollector: InputCollector;
-  private inputTransformer: InputTransformer;
-  private outputTransformer: OutputTransformer;
-  private secretManager: SecretManager;
-  private integrationManager: IntegrationManager;
+  private resourceProvider: ResourceProvider;
   private creditManager: CreditManager;
+  private errorHandler: ErrorHandler;
   private skipHandler: SkipHandler;
   private persistence: ExecutionPersistence;
   private monitoring: ExecutionMonitoring;
-  private executor: NodeExecutor;
-  private errorHandler: ErrorHandler;
+  private executionEngine: ExecutionEngine;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
     this.nodeRegistry = new CloudflareNodeRegistry(env, true);
-    this.toolRegistry = new CloudflareToolRegistry(
+
+    // ResourceProvider needs to be created early but will get toolRegistry later
+    this.resourceProvider = new ResourceProvider(env);
+
+    // Create tool registry with resource provider's tool context factory
+    const toolRegistry = new CloudflareToolRegistry(
       this.nodeRegistry,
-      this.createNodeContextForTool.bind(this)
+      (nodeId: string, inputs: Record<string, any>) =>
+        this.resourceProvider.createToolContext(nodeId, inputs)
     );
 
-    // Initialize specialized components
-    this.planner = new ExecutionPlanner(this.nodeRegistry);
-    this.inputCollector = new InputCollector(this.nodeRegistry);
-    this.inputTransformer = new InputTransformer(this.nodeRegistry);
-    this.outputTransformer = new OutputTransformer();
-    this.secretManager = new SecretManager(env);
-    this.integrationManager = new IntegrationManager(env);
+    // Set tool registry on resource provider
+    this.resourceProvider.setToolRegistry(toolRegistry);
+
+    // Initialize other components
     this.creditManager = new CreditManager(env, this.nodeRegistry);
-    this.skipHandler = new SkipHandler(
-      this.nodeRegistry,
-      this.inputCollector
-    );
     this.errorHandler = new ErrorHandler();
+    this.skipHandler = new SkipHandler(this.nodeRegistry);
     this.persistence = new ExecutionPersistence(env, this.errorHandler);
-    // Monitoring is initialized per execution with sessionId
     this.monitoring = new ExecutionMonitoring(env);
-    this.executor = new NodeExecutor(
+    this.executionEngine = new ExecutionEngine(
       env,
       this.nodeRegistry,
-      this.toolRegistry,
-      this.inputCollector,
-      this.inputTransformer,
-      this.outputTransformer,
+      this.resourceProvider,
       this.skipHandler,
-      this.integrationManager,
       this.errorHandler
     );
-  }
 
-  /**
-   * Create a NodeContext for tool execution
-   */
-  private createNodeContextForTool(
-    nodeId: string,
-    inputs: Record<string, any>
-  ): NodeContext {
-    // Configure AI Gateway options
-    const aiOptions: AiOptions = {};
-    const gatewayId = this.env.CLOUDFLARE_AI_GATEWAY_ID;
-    if (gatewayId) {
-      aiOptions.gateway = {
-        id: gatewayId,
-        skipCache: false,
-      };
-    }
-
-    return {
-      nodeId,
-      workflowId: `tool_execution_${Date.now()}`,
-      organizationId: "system", // Tool executions are system-level
-      inputs,
-      toolRegistry: this.toolRegistry,
-      // Tool executions don't have access to organization secrets/integrations
-      getSecret: async (secretName: string) => {
-        throw new Error(
-          `Secret access not available in tool execution context. Secret '${secretName}' cannot be accessed.`
-        );
-      },
-      getIntegration: async (integrationId: string) => {
-        throw new Error(
-          `Integration access not available in tool execution context. Integration '${integrationId}' cannot be accessed.`
-        );
-      },
-      env: {
-        DB: this.env.DB,
-        AI: this.env.AI,
-        AI_OPTIONS: aiOptions,
-        RESSOURCES: this.env.RESSOURCES,
-        DATASETS: this.env.DATASETS,
-        DATASETS_AUTORAG: this.env.DATASETS_AUTORAG,
-        CLOUDFLARE_ACCOUNT_ID: this.env.CLOUDFLARE_ACCOUNT_ID,
-        CLOUDFLARE_API_TOKEN: this.env.CLOUDFLARE_API_TOKEN,
-        CLOUDFLARE_AI_GATEWAY_ID: this.env.CLOUDFLARE_AI_GATEWAY_ID,
-        TWILIO_ACCOUNT_SID: this.env.TWILIO_ACCOUNT_SID,
-        TWILIO_AUTH_TOKEN: this.env.TWILIO_AUTH_TOKEN,
-        TWILIO_PHONE_NUMBER: this.env.TWILIO_PHONE_NUMBER,
-        SENDGRID_API_KEY: this.env.SENDGRID_API_KEY,
-        SENDGRID_DEFAULT_FROM: this.env.SENDGRID_DEFAULT_FROM,
-        RESEND_API_KEY: this.env.RESEND_API_KEY,
-        RESEND_DEFAULT_FROM: this.env.RESEND_DEFAULT_FROM,
-        AWS_ACCESS_KEY_ID: this.env.AWS_ACCESS_KEY_ID,
-        AWS_SECRET_ACCESS_KEY: this.env.AWS_SECRET_ACCESS_KEY,
-        AWS_REGION: this.env.AWS_REGION,
-        SES_DEFAULT_FROM: this.env.SES_DEFAULT_FROM,
-        EMAIL_DOMAIN: this.env.EMAIL_DOMAIN,
-        OPENAI_API_KEY: this.env.OPENAI_API_KEY,
-        ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
-        GEMINI_API_KEY: this.env.GEMINI_API_KEY,
-        HUGGINGFACE_API_KEY: this.env.HUGGINGFACE_API_KEY,
-      },
-    };
+    // Set execution engine on skip handler to break circular dependency
+    this.skipHandler.setExecutionEngine(this.executionEngine);
   }
 
   /**
@@ -251,20 +172,11 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     let executionContext: WorkflowExecutionContext | undefined;
 
     try {
-      // Preload all organization secrets for synchronous access
-      const secrets = await step.do(
-        "preload organization secrets",
+      // Preload all organization resources (secrets + integrations) in one step
+      await step.do(
+        "preload organization resources",
         Runtime.defaultStepConfig,
-        async () => this.secretManager.preloadAllSecrets(organizationId)
-      );
-
-      // Preload all organization integrations for synchronous access
-      // @ts-expect-error - Cloudflare Workflows Serializable<T> wrapper incompatibility
-      const integrations: Record<string, IntegrationData> = await step.do(
-        "preload organization integrations",
-        Runtime.defaultStepConfig,
-        // @ts-expect-error - Cloudflare Workflows Serializable type incompatibility
-        async () => this.integrationManager.preloadAllIntegrations(organizationId)
+        async () => this.resourceProvider.initialize(organizationId)
       );
 
       // Prepare workflow (validation + ordering).
@@ -299,12 +211,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             `run node ${nodeIdentifier}`,
             Runtime.defaultStepConfig,
             async () =>
-              this.executor.executeNode(
+              this.executionEngine.executeNode(
                 executionContext!,
                 executionState,
                 nodeIdentifier,
-                secrets,
-                integrations,
                 httpRequest,
                 emailMessage
               )
@@ -317,12 +227,10 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
             `run ${groupDescription}`,
             Runtime.defaultStepConfig,
             async () =>
-              this.executor.executeInlineGroup(
+              this.executionEngine.executeInlineGroup(
                 executionContext!,
                 executionState,
                 executionUnit.nodeIds,
-                secrets,
-                integrations,
                 httpRequest,
                 emailMessage
               )
@@ -392,6 +300,8 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   /**
    * Validates the workflow and creates a sequential execution order with inline groups.
    * Returns separated immutable context and mutable state.
+   *
+   * Absorbs ExecutionPlanner logic - no need for separate component.
    */
   private async initialiseWorkflow(
     workflow: Workflow,
@@ -408,7 +318,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       );
     }
 
-    const orderedNodes = this.planner.createTopologicalOrder(workflow);
+    const orderedNodes = this.createTopologicalOrder(workflow);
     if (orderedNodes.length === 0 && workflow.nodes.length > 0) {
       throw new NonRetryableError(
         "Unable to derive execution order. The graph may contain a cycle."
@@ -416,10 +326,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     }
 
     // Create execution plan with inline groups
-    const executionPlan = this.planner.createExecutionPlan(
-      workflow,
-      orderedNodes
-    );
+    const executionPlan = this.createExecutionPlan(workflow, orderedNodes);
 
     // Immutable context
     const context: WorkflowExecutionContext = {
@@ -440,5 +347,199 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     };
 
     return { context, state };
+  }
+
+  /**
+   * Creates an execution plan that groups consecutive inlinable nodes together.
+   */
+  private createExecutionPlan(
+    workflow: Workflow,
+    orderedNodes: string[]
+  ): ExecutionPlan {
+    const plan: ExecutionPlan = [];
+    const processedNodes = new Set<string>();
+    let totalInlineGroups = 0;
+    let totalInlinedNodes = 0;
+
+    for (let i = 0; i < orderedNodes.length; i++) {
+      const nodeId = orderedNodes[i];
+
+      if (processedNodes.has(nodeId)) {
+        continue; // Already processed in a group
+      }
+
+      const node = workflow.nodes.find((n) => n.id === nodeId);
+      if (!node) continue;
+
+      const nodeType = this.nodeRegistry.getNodeType(node.type);
+      const isInlinable = nodeType.inlinable ?? false;
+
+      if (isInlinable) {
+        // Look ahead to find a group of connected inlinable nodes
+        const inlineGroup = this.findConnectedInlinableGroup(
+          workflow,
+          nodeId,
+          orderedNodes,
+          i,
+          processedNodes
+        );
+
+        if (inlineGroup.length === 1) {
+          // Single node - add as individual
+          plan.push({ type: "individual", nodeId: inlineGroup[0] });
+        } else {
+          // Multiple nodes - add as inline group
+          plan.push({ type: "inline", nodeIds: [...inlineGroup] });
+          totalInlineGroups++;
+          totalInlinedNodes += inlineGroup.length;
+        }
+
+        // Mark all nodes in the group as processed
+        inlineGroup.forEach((id) => processedNodes.add(id));
+      } else {
+        // Non-inlinable node - add as individual
+        plan.push({ type: "individual", nodeId });
+        processedNodes.add(nodeId);
+      }
+    }
+
+    // Log metrics for performance analysis
+    if (totalInlineGroups > 0) {
+      const totalInlinableNodes = orderedNodes.filter((nodeId) => {
+        const node = workflow.nodes.find((n) => n.id === nodeId);
+        if (!node) return false;
+        const nodeType = this.nodeRegistry.getNodeType(node.type);
+        return nodeType.inlinable ?? false;
+      }).length;
+
+      const inliningEfficiency =
+        (totalInlinedNodes / totalInlinableNodes) * 100;
+      console.log(
+        `Execution plan optimized: ${totalInlineGroups} inline groups containing ${totalInlinedNodes}/${totalInlinableNodes} inlinable nodes (${inliningEfficiency.toFixed(1)}% efficiency)`
+      );
+
+      // Log individual group sizes for analysis
+      const groupSizes = plan
+        .filter((unit) => unit.type === "inline")
+        .map((unit) => (unit.type === "inline" ? unit.nodeIds.length : 0));
+
+      console.log(`Group sizes: [${groupSizes.join(", ")}]`);
+    }
+
+    return plan;
+  }
+
+  /**
+   * Finds a connected group of inlinable nodes starting from a given node.
+   */
+  private findConnectedInlinableGroup(
+    workflow: Workflow,
+    startNodeId: string,
+    orderedNodes: string[],
+    startIndex: number,
+    alreadyProcessed: Set<string>
+  ): string[] {
+    const group = [startNodeId];
+    const groupSet = new Set([startNodeId]);
+
+    // Look ahead in the topological order for nodes that can be added to this group
+    for (let i = startIndex + 1; i < orderedNodes.length; i++) {
+      const candidateId = orderedNodes[i];
+
+      // Skip if already processed or not inlinable
+      if (alreadyProcessed.has(candidateId)) continue;
+
+      const candidateNode = workflow.nodes.find((n) => n.id === candidateId);
+      if (!candidateNode) continue;
+
+      const candidateNodeType = this.nodeRegistry.getNodeType(
+        candidateNode.type
+      );
+      if (!(candidateNodeType.inlinable ?? false)) continue;
+
+      // Check if this candidate can be safely added to the group
+      if (
+        this.canSafelyAddToGroup(
+          workflow,
+          candidateId,
+          groupSet,
+          orderedNodes,
+          startIndex
+        )
+      ) {
+        group.push(candidateId);
+        groupSet.add(candidateId);
+      }
+    }
+
+    return group;
+  }
+
+  /**
+   * Simplified check: a node can be added to a group if all its dependencies
+   * are either already executed or in the current group.
+   */
+  private canSafelyAddToGroup(
+    workflow: Workflow,
+    nodeId: string,
+    currentGroupSet: Set<string>,
+    orderedNodes: string[],
+    groupStartIndex: number
+  ): boolean {
+    // Get all dependencies of this node
+    const dependencies = workflow.edges
+      .filter((edge) => edge.target === nodeId)
+      .map((edge) => edge.source);
+
+    // Check each dependency
+    for (const depId of dependencies) {
+      const isInGroup = currentGroupSet.has(depId);
+      const depIndex = orderedNodes.indexOf(depId);
+      const isAlreadyExecuted = depIndex < groupStartIndex;
+
+      if (!isInGroup && !isAlreadyExecuted) {
+        return false; // Has unmet dependency
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Calculates a topological ordering of nodes. Returns an empty array if a cycle is detected.
+   */
+  private createTopologicalOrder(workflow: Workflow): string[] {
+    const inDegree: Record<string, number> = {};
+    const adjacency: Record<string, string[]> = {};
+
+    for (const node of workflow.nodes) {
+      inDegree[node.id] = 0;
+      adjacency[node.id] = [];
+    }
+
+    for (const edge of workflow.edges) {
+      adjacency[edge.source].push(edge.target);
+      inDegree[edge.target] += 1;
+    }
+
+    const queue: string[] = Object.keys(inDegree).filter(
+      (id) => inDegree[id] === 0
+    );
+    const ordered: string[] = [];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      ordered.push(current);
+
+      for (const neighbour of adjacency[current]) {
+        inDegree[neighbour] -= 1;
+        if (inDegree[neighbour] === 0) {
+          queue.push(neighbour);
+        }
+      }
+    }
+
+    // If ordering missed nodes, a cycle exists.
+    return ordered.length === workflow.nodes.length ? ordered : [];
   }
 }

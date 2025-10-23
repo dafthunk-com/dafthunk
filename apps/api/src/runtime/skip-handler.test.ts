@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { SkipHandler } from "./skip-handler";
-import type { InputCollector } from "./input-collector";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
 describe("SkipHandler", () => {
@@ -22,14 +21,14 @@ describe("SkipHandler", () => {
     } as any;
   };
 
-  const createMockInputCollector = (
+  const createMockExecutionEngine = (
     inputResults: Record<string, Record<string, any>>
-  ): InputCollector => {
+  ): any => {
     return {
       collectNodeInputs: vi.fn((_workflow, _nodeOutputs, nodeId) => {
         return inputResults[nodeId] || {};
       }),
-    } as any;
+    };
   };
 
   const createContext = (workflow: Workflow): WorkflowExecutionContext => ({
@@ -101,10 +100,11 @@ describe("SkipHandler", () => {
         },
         text: { inputs: [{ name: "input", required: true }] },
       });
-      const inputCollector = createMockInputCollector({
+      const executionEngine = createMockExecutionEngine({
         B: { input: "yes" },
       });
-      const handler = new SkipHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
@@ -173,11 +173,12 @@ describe("SkipHandler", () => {
         conditional: { inputs: [] },
         text: { inputs: [{ name: "input", required: true }] },
       });
-      const inputCollector = createMockInputCollector({
+      const executionEngine = createMockExecutionEngine({
         B: { input: "yes" },
         C: {}, // No input from A's false output
       });
-      const handler = new SkipHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
@@ -247,11 +248,12 @@ describe("SkipHandler", () => {
         conditional: { inputs: [] },
         text: { inputs: [{ name: "input", required: true }] },
       });
-      const inputCollector = createMockInputCollector({
+      const executionEngine = createMockExecutionEngine({
         B: {}, // No input
         C: {}, // No input (because B will be skipped)
       });
-      const handler = new SkipHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
@@ -310,10 +312,11 @@ describe("SkipHandler", () => {
         conditional: { inputs: [] },
         text: { inputs: [{ name: "input", required: false }] }, // Optional!
       });
-      const inputCollector = createMockInputCollector({
+      const executionEngine = createMockExecutionEngine({
         B: {}, // No input, but it's optional
       });
-      const handler = new SkipHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
@@ -395,10 +398,11 @@ describe("SkipHandler", () => {
           ],
         },
       });
-      const inputCollector = createMockInputCollector({
+      const executionEngine = createMockExecutionEngine({
         C: { input1: "from B" }, // Has required input from B
       });
-      const handler = new SkipHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
@@ -425,8 +429,9 @@ describe("SkipHandler", () => {
       const state = createState(new Map(), new Set(), new Set(), new Map());
 
       const registry = createMockRegistry({});
-      const inputCollector = createMockInputCollector({});
-      const handler = new SkipHandler(registry, inputCollector);
+      const executionEngine = createMockExecutionEngine({});
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
@@ -466,8 +471,9 @@ describe("SkipHandler", () => {
       const registry = createMockRegistry({
         text: { inputs: [] },
       });
-      const inputCollector = createMockInputCollector({});
-      const handler = new SkipHandler(registry, inputCollector);
+      const executionEngine = createMockExecutionEngine({});
+      const handler = new SkipHandler(registry);
+      handler.setExecutionEngine(executionEngine);
 
       const result = handler.skipInactiveOutputs(
         context,
