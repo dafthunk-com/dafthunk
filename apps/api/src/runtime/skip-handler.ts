@@ -6,7 +6,7 @@ import type { ExecutionState, WorkflowExecutionContext } from "./types";
  * Handles conditional logic in workflow execution.
  * Determines which nodes should be skipped based on inactive outputs and missing inputs.
  */
-export class ConditionalExecutionHandler {
+export class SkipHandler {
   constructor(
     private nodeRegistry: CloudflareNodeRegistry,
     private inputCollector: InputCollector
@@ -16,7 +16,7 @@ export class ConditionalExecutionHandler {
    * Marks nodes connected to inactive outputs as skipped.
    * This is crucial for conditional logic where only one branch should execute.
    */
-  markInactiveOutputNodesAsSkipped(
+  skipInactiveOutputs(
     context: WorkflowExecutionContext,
     state: ExecutionState,
     nodeIdentifier: string,
@@ -41,7 +41,7 @@ export class ConditionalExecutionHandler {
 
     // Process each target node of inactive edges
     for (const edge of inactiveEdges) {
-      this.markNodeAsSkippedIfNoValidInputs(context, state, edge.target);
+      this.skipIfMissingInputs(context, state, edge.target);
     }
 
     return state;
@@ -51,7 +51,7 @@ export class ConditionalExecutionHandler {
    * Marks a node as skipped if it cannot execute due to missing required inputs.
    * This is smarter than recursively skipping all dependents.
    */
-  private markNodeAsSkippedIfNoValidInputs(
+  private skipIfMissingInputs(
     context: WorkflowExecutionContext,
     state: ExecutionState,
     nodeId: string
@@ -64,7 +64,7 @@ export class ConditionalExecutionHandler {
     if (!node) return;
 
     // Check if this node has all required inputs satisfied
-    const allRequiredInputsSatisfied = this.nodeHasAllRequiredInputsSatisfied(
+    const allRequiredInputsSatisfied = this.hasAllRequiredInputs(
       context,
       state,
       nodeId
@@ -80,7 +80,7 @@ export class ConditionalExecutionHandler {
       );
 
       for (const edge of outgoingEdges) {
-        this.markNodeAsSkippedIfNoValidInputs(context, state, edge.target);
+        this.skipIfMissingInputs(context, state, edge.target);
       }
     }
   }
@@ -89,7 +89,7 @@ export class ConditionalExecutionHandler {
    * Checks if a node has all required inputs satisfied.
    * A node can execute if all its required inputs are available.
    */
-  private nodeHasAllRequiredInputsSatisfied(
+  private hasAllRequiredInputs(
     context: WorkflowExecutionContext,
     state: ExecutionState,
     nodeId: string

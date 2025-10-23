@@ -18,7 +18,7 @@ import { HttpRequest, NodeContext } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
 import { updateOrganizationComputeUsage } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
-import { ConditionalExecutionHandler } from "./conditional-execution-handler";
+import { SkipHandler } from "./skip-handler";
 import { CreditManager } from "./credit-manager";
 import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
@@ -99,7 +99,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private secretManager: SecretManager;
   private integrationManager: IntegrationManager;
   private creditManager: CreditManager;
-  private conditionalHandler: ConditionalExecutionHandler;
+  private skipHandler: SkipHandler;
   private persistence: ExecutionPersistence;
   private monitoring: ExecutionMonitoring;
   private executor: NodeExecutor;
@@ -121,7 +121,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     this.secretManager = new SecretManager(env);
     this.integrationManager = new IntegrationManager(env);
     this.creditManager = new CreditManager(env, this.nodeRegistry);
-    this.conditionalHandler = new ConditionalExecutionHandler(
+    this.skipHandler = new SkipHandler(
       this.nodeRegistry,
       this.inputCollector
     );
@@ -136,7 +136,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       this.inputCollector,
       this.inputTransformer,
       this.outputTransformer,
-      this.conditionalHandler,
+      this.skipHandler,
       this.integrationManager,
       this.errorHandler
     );

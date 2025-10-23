@@ -29,7 +29,7 @@ The main entry point for workflow execution. This class coordinates all executio
 - **OutputTransformer** (`output-transformer.ts`) - Transforms node outputs to runtime format (converts binary data to ObjectReferences)
 - **ExecutionPersistence** (`execution-persistence.ts`) - Saves execution state to D1 database
 - **ExecutionMonitoring** (`execution-monitoring.ts`) - Sends real-time updates to workflow session Durable Object
-- **ConditionalExecutionHandler** (`conditional-execution-handler.ts`) - Decides whether to skip nodes based on conditional logic
+- **SkipHandler** (`skip-handler.ts`) - Decides whether to skip nodes based on conditional logic
 - **IntegrationManager** (`integration-manager.ts`) - Manages OAuth tokens for third-party services
 - **SecretManager** (`secret-manager.ts`) - Manages encrypted organization secrets
 - **CreditManager** (`credit-manager.ts`) - Calculates and enforces compute credit limits

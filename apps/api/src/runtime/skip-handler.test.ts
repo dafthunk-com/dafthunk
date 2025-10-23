@@ -2,11 +2,11 @@ import type { Workflow } from "@dafthunk/types";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
-import { ConditionalExecutionHandler } from "./conditional-execution-handler";
+import { SkipHandler } from "./skip-handler";
 import type { InputCollector } from "./input-collector";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
 
-describe("ConditionalExecutionHandler", () => {
+describe("SkipHandler", () => {
   const createMockRegistry = (
     nodeTypes: Record<
       string,
@@ -53,7 +53,7 @@ describe("ConditionalExecutionHandler", () => {
     status: "executing",
   });
 
-  describe("markInactiveOutputNodesAsSkipped", () => {
+  describe("skipInactiveOutputs", () => {
     it("should not mark any nodes when all outputs are active", () => {
       const workflow: Workflow = {
         id: "workflow-1",
@@ -104,9 +104,9 @@ describe("ConditionalExecutionHandler", () => {
       const inputCollector = createMockInputCollector({
         B: { input: "yes" },
       });
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "A",
@@ -177,9 +177,9 @@ describe("ConditionalExecutionHandler", () => {
         B: { input: "yes" },
         C: {}, // No input from A's false output
       });
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "A",
@@ -251,9 +251,9 @@ describe("ConditionalExecutionHandler", () => {
         B: {}, // No input
         C: {}, // No input (because B will be skipped)
       });
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "A",
@@ -313,9 +313,9 @@ describe("ConditionalExecutionHandler", () => {
       const inputCollector = createMockInputCollector({
         B: {}, // No input, but it's optional
       });
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "A",
@@ -398,9 +398,9 @@ describe("ConditionalExecutionHandler", () => {
       const inputCollector = createMockInputCollector({
         C: { input1: "from B" }, // Has required input from B
       });
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "A",
@@ -426,9 +426,9 @@ describe("ConditionalExecutionHandler", () => {
 
       const registry = createMockRegistry({});
       const inputCollector = createMockInputCollector({});
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "NonExistent",
@@ -467,9 +467,9 @@ describe("ConditionalExecutionHandler", () => {
         text: { inputs: [] },
       });
       const inputCollector = createMockInputCollector({});
-      const handler = new ConditionalExecutionHandler(registry, inputCollector);
+      const handler = new SkipHandler(registry, inputCollector);
 
-      const result = handler.markInactiveOutputNodesAsSkipped(
+      const result = handler.skipInactiveOutputs(
         context,
         state,
         "A",
