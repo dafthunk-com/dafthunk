@@ -38,14 +38,14 @@ import type {
 } from "./types";
 
 export interface RuntimeParams {
-  workflow: Workflow;
-  userId: string;
-  organizationId: string;
-  computeCredits: number;
-  workflowSessionId?: string;
-  deploymentId?: string;
-  httpRequest?: HttpRequest;
-  emailMessage?: EmailMessage;
+  readonly workflow: Workflow;
+  readonly userId: string;
+  readonly organizationId: string;
+  readonly computeCredits: number;
+  readonly workflowSessionId?: string;
+  readonly deploymentId?: string;
+  readonly httpRequest?: HttpRequest;
+  readonly emailMessage?: EmailMessage;
 }
 
 /**
