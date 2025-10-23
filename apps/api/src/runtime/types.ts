@@ -1,6 +1,7 @@
 import type {
   JsonArray,
   JsonObject,
+  NodeType,
   ObjectReference,
   Workflow,
   WorkflowExecutionStatus,
@@ -104,3 +105,70 @@ export type ExecutionUnit = InlineGroup | IndividualNode;
 
 /** The complete execution plan for a workflow - ordered list of execution units */
 export type ExecutionPlan = ExecutionUnit[];
+
+/**
+ * Integration data structure available at runtime.
+ * Contains decrypted tokens and metadata for OAuth integrations.
+ * All fields are JSON-serializable for Cloudflare Workflows compatibility.
+ */
+export interface IntegrationData {
+  id: string;
+  name: string;
+  provider: string;
+  token: string;
+  refreshToken?: string;
+  tokenExpiresAt?: string; // ISO 8601 timestamp string for serialization
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Type guard to check if a value is a valid RuntimeValue.
+ * Ensures type-safe handling of runtime values throughout execution.
+ */
+export function isRuntimeValue(value: unknown): value is RuntimeValue {
+  if (value === null || value === undefined) {
+    return false;
+  }
+
+  const valueType = typeof value;
+
+  // Primitives
+  if (valueType === "string" || valueType === "number" || valueType === "boolean") {
+    return true;
+  }
+
+  // Objects (ObjectReference, JsonObject, JsonArray)
+  if (valueType === "object") {
+    // ObjectReference check
+    if ("id" in (value as object) && "mimeType" in (value as object)) {
+      return true;
+    }
+
+    // JsonArray or JsonObject
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Interface for executable node classes with static nodeType property.
+ * Used to access node type metadata from executable node instances.
+ */
+export interface ExecutableNodeConstructor {
+  readonly nodeType: NodeType;
+  new (...args: unknown[]): unknown;
+}
+
+/**
+ * Helper function to get NodeType from an executable node instance.
+ * Provides type-safe access to static nodeType property.
+ */
+export function getNodeType(executable: unknown): NodeType | null {
+  if (!executable || typeof executable !== "object") {
+    return null;
+  }
+
+  const constructor = executable.constructor as ExecutableNodeConstructor | undefined;
+  return constructor?.nodeType ?? null;
+}

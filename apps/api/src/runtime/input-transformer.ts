@@ -8,6 +8,7 @@ import type {
 import type { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { apiToNodeParameter } from "../nodes/parameter-mapper";
 import type { ObjectStore } from "../stores/object-store";
+import { getNodeType } from "./types";
 import type { NodeRuntimeValues } from "./types";
 
 /**
@@ -47,13 +48,11 @@ export class InputTransformer {
 
       // Check if this parameter accepts multiple connections
       const executable = this.nodeRegistry.createExecutableNode(node);
-      const nodeType = executable
-        ? (executable.constructor as any).nodeType
-        : null;
+      const nodeType = getNodeType(executable);
       const nodeTypeInput = nodeType?.inputs?.find(
-        (input: any) => input.name === name
+        (input) => input.name === name
       );
-      const acceptsMultiple = nodeTypeInput?.repeated || false;
+      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
 
       // Handle secret parameters as strings since secrets are preloaded in context
       const parameterType = type === "secret" ? "string" : type;

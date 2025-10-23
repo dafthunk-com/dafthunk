@@ -13,6 +13,7 @@ import type { IntegrationManager } from "./integration-manager";
 import type { OutputTransformer } from "./output-transformer";
 import type {
   ExecutionState,
+  IntegrationData,
   NodeRuntimeValues,
   WorkflowExecutionContext,
 } from "./types";
@@ -42,7 +43,7 @@ export class NodeExecutor {
     state: ExecutionState,
     nodeIds: string[],
     secrets: Record<string, string>,
-    integrations: Record<string, any>,
+    integrations: Record<string, IntegrationData>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<ExecutionState> {
@@ -122,7 +123,7 @@ export class NodeExecutor {
     state: ExecutionState,
     nodeId: string,
     secrets: Record<string, string>,
-    integrations: Record<string, any>,
+    integrations: Record<string, IntegrationData>,
     httpRequest?: HttpRequest,
     emailMessage?: EmailMessage
   ): Promise<ExecutionState> {

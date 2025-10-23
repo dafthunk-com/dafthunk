@@ -4,6 +4,7 @@ import {
   getAllIntegrationsWithTokens,
   updateIntegration,
 } from "../db";
+import type { IntegrationData } from "./types";
 
 /**
  * Manages organization integrations for workflow execution.
@@ -15,7 +16,8 @@ export class IntegrationManager {
   constructor(private env: Bindings) {}
 
   /**
-   * Preloads all organization integrations for synchronous access during workflow execution
+   * Preloads all organization integrations for synchronous access during workflow execution.
+   * Returns integration data with ISO string timestamps for Cloudflare Workflows serialization.
    */
   async preloadAllIntegrations(
     organizationId: string
@@ -53,9 +55,9 @@ export class IntegrationManager {
             provider: integrationRecord.provider,
             token,
             refreshToken,
-            tokenExpiresAt: integrationRecord.tokenExpiresAt || undefined,
+            tokenExpiresAt: integrationRecord.tokenExpiresAt?.toISOString(),
             metadata: integrationRecord.metadata
-              ? JSON.parse(integrationRecord.metadata)
+              ? (JSON.parse(integrationRecord.metadata) as Record<string, unknown>)
               : undefined,
           };
         } catch (error) {
@@ -72,6 +74,7 @@ export class IntegrationManager {
       );
     }
 
+    // Return type is fully JSON-serializable (all Date objects converted to ISO strings)
     return integrations;
   }
 
@@ -101,7 +104,8 @@ export class IntegrationManager {
     // Check if token has expired
     const now = new Date();
     const isExpired =
-      integration.tokenExpiresAt && integration.tokenExpiresAt < now;
+      integration.tokenExpiresAt &&
+      new Date(integration.tokenExpiresAt) < now;
 
     if (!isExpired) {
       // Token is still valid, decrypt and return it
@@ -421,17 +425,4 @@ export class IntegrationManager {
 
     return await decryptSecret(encryptedToken, this.env, organizationId);
   }
-}
-
-/**
- * Integration data structure available at runtime
- */
-export interface IntegrationData {
-  id: string;
-  name: string;
-  provider: string;
-  token: string;
-  refreshToken?: string;
-  tokenExpiresAt?: Date;
-  metadata?: Record<string, any>;
 }
