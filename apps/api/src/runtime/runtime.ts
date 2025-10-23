@@ -24,6 +24,7 @@ import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
 import { ExecutionEngine } from "./execution-engine";
 import { ResourceProvider } from "./resource-provider";
+import { StateTransitions } from "./transitions";
 import type {
   ExecutionPlan,
   ExecutionState,
@@ -65,10 +66,12 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private persistence: ExecutionPersistence;
   private monitoring: ExecutionMonitoring;
   private executionEngine: ExecutionEngine;
+  private transitions: StateTransitions;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
     super(ctx, env);
     this.nodeRegistry = new CloudflareNodeRegistry(env, true);
+    this.transitions = new StateTransitions(env.CLOUDFLARE_ENV === "development");
 
     // ResourceProvider needs to be created early but will get toolRegistry later
     this.resourceProvider = new ResourceProvider(env);
@@ -85,7 +88,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
     // Initialize other components
     this.creditManager = new CreditManager(env, this.nodeRegistry);
-    this.errorHandler = new ErrorHandler();
+    this.errorHandler = new ErrorHandler(env.CLOUDFLARE_ENV === "development");
     this.skipHandler = new SkipHandler(this.nodeRegistry);
     this.persistence = new ExecutionPersistence(env, this.errorHandler);
     this.monitoring = new ExecutionMonitoring(env);
@@ -126,13 +129,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     this.monitoring = new ExecutionMonitoring(this.env, workflowSessionId);
 
     // Initialise state and execution records.
-    let executionState: ExecutionState = {
+    let executionState: ExecutionState = this.transitions.toSubmitted({
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      status: "submitted",
-    };
+      status: "idle",
+    });
 
     let executionRecord: WorkflowExecution = {
       id: instanceId,
@@ -151,7 +154,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
         this.creditManager.getNodesComputeCost(workflow.nodes)
       ))
     ) {
-      executionState = { ...executionState, status: "exhausted" };
+      executionState = this.transitions.toExhausted(executionState);
       return await step.do(
         "persist exhausted execution state",
         Runtime.defaultStepConfig,
@@ -251,7 +254,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       }
     } catch (error) {
       // Capture unexpected failure.
-      executionState = { ...executionState, status: "error" };
+      executionState = this.transitions.toError(executionState);
       executionRecord = {
         ...executionRecord,
         status: "error",
@@ -338,13 +341,13 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     };
 
     // Mutable state
-    const state: ExecutionState = {
+    const state: ExecutionState = this.transitions.toExecuting({
       nodeOutputs: new Map(),
       executedNodes: new Set(),
       skippedNodes: new Set(),
       nodeErrors: new Map(),
-      status: "executing",
-    };
+      status: "idle",
+    });
 
     return { context, state };
   }

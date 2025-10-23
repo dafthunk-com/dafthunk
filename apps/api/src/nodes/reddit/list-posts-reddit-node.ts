@@ -12,7 +12,7 @@ export class ListPostsRedditNode extends ExecutableNode {
     name: "List Posts (Reddit)",
     type: "list-posts-reddit",
     description: "List posts from a subreddit",
-    tags: ["Social", "Reddit", "Post", "List"],
+    tags: ["Social", "/Reddit", "Post", "List"],
     icon: "list",
     documentation:
       "This node retrieves posts from a subreddit. Supports filtering by hot, new, top, rising, or controversial. Requires a connected Reddit integration.",
