@@ -1,6 +1,20 @@
 import { WorkflowExecution } from "./workflow";
 
 /**
+ * Execution status types (for database storage)
+ */
+export const ExecutionStatus = {
+  STARTED: "started",
+  EXECUTING: "executing",
+  COMPLETED: "completed",
+  ERROR: "error",
+  CANCELLED: "cancelled",
+} as const;
+
+export type ExecutionStatusType =
+  (typeof ExecutionStatus)[keyof typeof ExecutionStatus];
+
+/**
  * Request to filter executions
  */
 export interface ListExecutionsRequest {

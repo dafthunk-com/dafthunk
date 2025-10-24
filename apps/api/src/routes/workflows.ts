@@ -4,8 +4,10 @@ import {
   CreateWorkflowResponse,
   DeleteWorkflowResponse,
   ExecuteWorkflowResponse,
+  ExecutionStatus,
   GetCronTriggerResponse,
   GetWorkflowResponse,
+  JWTTokenPayload,
   ListWorkflowsResponse,
   UpdateWorkflowRequest,
   UpdateWorkflowResponse,
@@ -14,7 +16,6 @@ import {
   VersionAlias,
   WorkflowWithMetadata,
 } from "@dafthunk/types";
-import { JWTTokenPayload } from "@dafthunk/types";
 import { zValidator } from "@hono/zod-validator";
 import CronParser from "cron-parser";
 import { Hono } from "hono";
@@ -26,7 +27,6 @@ import { ApiContext } from "../context";
 import {
   createDatabase,
   createHandle,
-  ExecutionStatus,
   getCronTrigger,
   getOrganizationComputeCredits,
   upsertCronTrigger as upsertDbCronTrigger,
@@ -588,7 +588,7 @@ workflowRoutes.post(
   async (c) => {
     const organizationId = c.get("organizationId")!;
     const executionId = c.req.param("executionId");
-    const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
+    const executionStore = new ExecutionStore(c.env);
 
     // Get the execution to verify it exists and belongs to this organization
     const execution = await executionStore.getWithData(

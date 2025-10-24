@@ -6,13 +6,11 @@ import {
   ObjectReference,
   UploadObjectResponse,
 } from "@dafthunk/types";
-import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { apiKeyOrJwtMiddleware, jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { createDatabase } from "../db";
-import { executions as executionsTable } from "../db/schema";
+import { ExecutionStore } from "../stores/execution-store";
 import { ObjectStore } from "../stores/object-store";
 
 const objectRoutes = new Hono<ApiContext>();
@@ -45,13 +43,11 @@ objectRoutes.get("/", apiKeyOrJwtMiddleware, async (c) => {
     const { data, metadata } = result;
 
     if (metadata?.executionId) {
-      const db = createDatabase(c.env.DB);
-      const [execution] = await db
-        .select({
-          organizationId: executionsTable.organizationId,
-        })
-        .from(executionsTable)
-        .where(eq(executionsTable.id, metadata.executionId));
+      const executionStore = new ExecutionStore(c.env);
+      const execution = await executionStore.get(
+        metadata.executionId,
+        requestingOrganizationId
+      );
 
       if (!execution) {
         return c.text("Object not found or linked to invalid execution", 404);

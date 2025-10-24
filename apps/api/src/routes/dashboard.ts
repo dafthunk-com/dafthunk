@@ -1,10 +1,14 @@
-import { DashboardStats, DashboardStatsResponse } from "@dafthunk/types";
+import {
+  DashboardStats,
+  DashboardStatsResponse,
+  ExecutionStatus,
+} from "@dafthunk/types";
 import { Hono } from "hono";
 
 import { jwtMiddleware } from "../auth";
 import { ApiContext } from "../context";
-import { ExecutionRow, ExecutionStatus } from "../db";
 import { DeploymentStore } from "../stores/deployment-store";
+import type { ExecutionRow } from "../stores/execution-store";
 import { ExecutionStore } from "../stores/execution-store";
 import { WorkflowStore } from "../stores/workflow-store";
 
@@ -21,7 +25,7 @@ dashboard.use("*", jwtMiddleware);
 dashboard.get("/", async (c) => {
   const organizationId = c.get("organizationId")!;
 
-  const executionStore = new ExecutionStore(c.env.DB, c.env.RESSOURCES);
+  const executionStore = new ExecutionStore(c.env);
   const workflowStore = new WorkflowStore(c.env.DB, c.env.RESSOURCES);
   const deploymentStore = new DeploymentStore(c.env.DB, c.env.RESSOURCES);
 
