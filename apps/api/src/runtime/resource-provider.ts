@@ -1,8 +1,14 @@
 import type { Bindings } from "../context";
+import {
+  createDatabase,
+  getAllIntegrationsWithTokens,
+  getAllSecretsWithValues,
+  getIntegrationById,
+  updateIntegration,
+} from "../db";
 import type { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
 import type { HttpRequest, NodeContext } from "../nodes/types";
 import type { EmailMessage } from "../nodes/types";
-import { createDatabase, getAllIntegrationsWithTokens, getAllSecretsWithValues, updateIntegration, getIntegrationById } from "../db";
 import type { IntegrationData } from "./types";
 
 /**
@@ -86,7 +92,10 @@ export class ResourceProvider {
             refreshToken,
             tokenExpiresAt: integrationRecord.tokenExpiresAt?.toISOString(),
             metadata: integrationRecord.metadata
-              ? (JSON.parse(integrationRecord.metadata) as Record<string, unknown>)
+              ? (JSON.parse(integrationRecord.metadata) as Record<
+                  string,
+                  unknown
+                >)
               : undefined,
           };
         } catch (error) {
@@ -259,9 +268,7 @@ export class ResourceProvider {
    */
   private async getValidAccessToken(integrationId: string): Promise<string> {
     if (!this.organizationId) {
-      throw new Error(
-        "Organization ID not set. Call initialize first."
-      );
+      throw new Error("Organization ID not set. Call initialize first.");
     }
 
     const db = createDatabase(this.env.DB);
@@ -278,12 +285,14 @@ export class ResourceProvider {
     // Check if token has expired
     const now = new Date();
     const isExpired =
-      integration.tokenExpiresAt &&
-      new Date(integration.tokenExpiresAt) < now;
+      integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < now;
 
     if (!isExpired) {
       // Token is still valid, decrypt and return it
-      return this.decryptSecret(integration.encryptedToken, this.organizationId);
+      return this.decryptSecret(
+        integration.encryptedToken,
+        this.organizationId
+      );
     }
 
     // Token expired, need to refresh

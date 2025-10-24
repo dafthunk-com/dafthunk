@@ -3,9 +3,13 @@ import type { Workflow, WorkflowExecution } from "@dafthunk/types";
 import type { Bindings } from "../context";
 import { type ExecutionStatusType } from "../db";
 import { ExecutionStore } from "../stores/execution-store";
-import type { ErrorHandler } from "./error-handler";
-import { getExecutionStatus } from "./types";
 import type { ExecutionState, WorkflowExecutionContext } from "./types";
+import { getExecutionStatus } from "./types";
+
+// Minimal interface for error handling (Runtime implements this)
+interface ErrorHandler {
+  createErrorReport(state: ExecutionState): string | undefined;
+}
 
 /**
  * Handles persistence for workflow executions.
@@ -76,7 +80,11 @@ export class ExecutionPersistence {
     startedAt?: Date,
     endedAt?: Date
   ): Promise<WorkflowExecution> {
-    const nodeExecutionList = this.buildNodeExecutions(workflow, context, state);
+    const nodeExecutionList = this.buildNodeExecutions(
+      workflow,
+      context,
+      state
+    );
 
     const executionStatus = getExecutionStatus(context, state);
 

@@ -1,6 +1,7 @@
-import {
+import type {
   Workflow,
   WorkflowExecution,
+  WorkflowExecutionStatus,
 } from "@dafthunk/types";
 import {
   WorkflowEntrypoint,
@@ -13,20 +14,31 @@ import { NonRetryableError } from "cloudflare:workflows";
 import { Bindings } from "../context";
 import { CloudflareNodeRegistry } from "../nodes/cloudflare-node-registry";
 import { CloudflareToolRegistry } from "../nodes/cloudflare-tool-registry";
+import {
+  apiToNodeParameter,
+  nodeToApiParameter,
+} from "../nodes/parameter-mapper";
 import { HttpRequest } from "../nodes/types";
 import { EmailMessage } from "../nodes/types";
+import { ObjectStore } from "../stores/object-store";
 import { updateOrganizationComputeUsage } from "../utils/credits";
 import { validateWorkflow } from "../utils/workflows";
 import { CreditManager } from "./credit-manager";
-import { ErrorHandler } from "./error-handler";
 import { ExecutionMonitoring } from "./execution-monitoring";
 import { ExecutionPersistence } from "./execution-persistence";
-import { ExecutionEngine } from "./execution-engine";
 import { ResourceProvider } from "./resource-provider";
-import { getExecutionStatus } from "./types";
 import type {
   ExecutionState,
+  NodeRuntimeValues,
+  RuntimeValue,
   WorkflowExecutionContext,
+} from "./types";
+import {
+  getExecutionStatus,
+  getNodeType,
+  isRuntimeValue,
+  NodeNotFoundError,
+  NodeTypeNotImplementedError,
 } from "./types";
 
 export interface RuntimeParams {
@@ -59,9 +71,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   private nodeRegistry: CloudflareNodeRegistry;
   private resourceProvider: ResourceProvider;
   private creditManager: CreditManager;
-  private errorHandler: ErrorHandler;
   private persistence: ExecutionPersistence;
-  private executionEngine: ExecutionEngine;
   private isDevelopment: boolean;
 
   constructor(ctx: ExecutionContext, env: Bindings) {
@@ -79,18 +89,14 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
     );
 
     // Create ResourceProvider with toolRegistry
-    this.resourceProvider = resourceProvider = new ResourceProvider(env, toolRegistry);
+    this.resourceProvider = resourceProvider = new ResourceProvider(
+      env,
+      toolRegistry
+    );
 
     // Initialize other components
     this.creditManager = new CreditManager(env, this.nodeRegistry);
-    this.errorHandler = new ErrorHandler(env.CLOUDFLARE_ENV === "development");
-    this.persistence = new ExecutionPersistence(env, this.errorHandler);
-    this.executionEngine = new ExecutionEngine(
-      env,
-      this.nodeRegistry,
-      this.resourceProvider,
-      this.errorHandler
-    );
+    this.persistence = new ExecutionPersistence(env, this);
   }
 
   /**
@@ -208,14 +214,17 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
       executionContext = context;
       executionState = state;
       executionRecord.startedAt = new Date();
-      executionRecord.status = getExecutionStatus(executionContext, executionState);
+      executionRecord.status = getExecutionStatus(
+        executionContext,
+        executionState
+      );
 
       // Send executing state update
       await monitoring.sendUpdate(executionRecord);
 
       // Execute nodes sequentially
       for (const nodeId of executionContext.orderedNodeIds) {
-        if (this.errorHandler.shouldSkipNode(executionState, nodeId)) {
+        if (this.shouldSkipNode(executionState, nodeId)) {
           continue; // Skip nodes that were already marked as failed.
         }
 
@@ -223,7 +232,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
           `run node ${nodeId}`,
           Runtime.defaultStepConfig,
           async () =>
-            this.executionEngine.executeNode(
+            this.executeNode(
               executionContext!,
               executionState,
               nodeId,
@@ -269,7 +278,7 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
 
       // Log final status transition
       if (executionContext) {
-        this.errorHandler.logStatusTransition(executionContext, executionState);
+        this.logStatusTransition(executionContext, executionState);
       }
 
       // Always persist the final state
@@ -406,6 +415,339 @@ export class Runtime extends WorkflowEntrypoint<Bindings, RuntimeParams> {
   ): void {
     if (this.isDevelopment && from !== to) {
       console.log(`[State Transition] ${from} → ${to}`);
+    }
+  }
+
+  // ==========================================================================
+  // NODE EXECUTION (from ExecutionEngine)
+  // ==========================================================================
+
+  /**
+   * Executes a single node and stores its outputs.
+   */
+  private async executeNode(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string,
+    httpRequest?: HttpRequest,
+    emailMessage?: EmailMessage
+  ): Promise<ExecutionState> {
+    const node = context.workflow.nodes.find((n): boolean => n.id === nodeId);
+    if (!node) {
+      const error = new NodeNotFoundError(nodeId);
+      state = this.recordNodeError(state, nodeId, error);
+      this.logStatusTransition(context, state);
+      return state;
+    }
+
+    const nodeType = this.nodeRegistry.getNodeType(node.type);
+    this.env.COMPUTE.writeDataPoint({
+      indexes: [context.organizationId],
+      blobs: [context.organizationId, context.workflowId, node.id],
+      doubles: [nodeType.computeCost ?? 1],
+    });
+
+    const executable = this.nodeRegistry.createExecutableNode(node);
+    if (!executable) {
+      const error = new NodeTypeNotImplementedError(nodeId, node.type);
+      state = this.recordNodeError(state, nodeId, error);
+      this.logStatusTransition(context, state);
+      return state;
+    }
+
+    const inputValues = this.collectNodeInputs(
+      context.workflow,
+      state.nodeOutputs,
+      nodeId
+    );
+
+    try {
+      const objectStore = new ObjectStore(this.env.RESSOURCES);
+      const processedInputs = await this.transformInputs(
+        context.workflow,
+        nodeId,
+        inputValues,
+        objectStore,
+        context.organizationId,
+        context.executionId
+      );
+
+      const nodeContext = this.resourceProvider.createNodeContext(
+        nodeId,
+        context.workflowId,
+        context.organizationId,
+        processedInputs,
+        httpRequest,
+        emailMessage
+      );
+
+      const result = await executable.execute(nodeContext);
+
+      if (result.status === "completed") {
+        const outputsForRuntime = await this.transformOutputs(
+          context.workflow,
+          nodeId,
+          result.outputs ?? {},
+          objectStore,
+          context.organizationId,
+          context.executionId
+        );
+        state.nodeOutputs.set(nodeId, outputsForRuntime as NodeRuntimeValues);
+        state.executedNodes.add(nodeId);
+
+        state = this.skipInactiveOutputs(
+          context,
+          state,
+          nodeId,
+          result.outputs ?? {}
+        );
+      } else {
+        const failureMessage = result.error ?? "Unknown error";
+        state = this.recordNodeError(state, nodeId, failureMessage);
+      }
+
+      this.logStatusTransition(context, state);
+      return state;
+    } catch (error) {
+      state = this.recordNodeError(
+        state,
+        nodeId,
+        error instanceof Error ? error : new Error(String(error))
+      );
+      this.logStatusTransition(context, state);
+      return state;
+    }
+  }
+
+  private async transformInputs(
+    workflow: Workflow,
+    nodeId: string,
+    inputValues: NodeRuntimeValues,
+    objectStore: ObjectStore,
+    _organizationId: string,
+    _executionId: string
+  ): Promise<Record<string, any>> {
+    const node = workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return {};
+
+    const processed: Record<string, any> = {};
+    for (const [name, value] of Object.entries(inputValues)) {
+      const input = node.inputs.find((i) => i.name === name);
+      const parameterType = input?.type ?? "string";
+      processed[name] = await apiToNodeParameter(
+        parameterType,
+        value,
+        objectStore
+      );
+    }
+    return processed;
+  }
+
+  private async transformOutputs(
+    workflow: Workflow,
+    nodeId: string,
+    outputs: Record<string, any>,
+    objectStore: ObjectStore,
+    organizationId: string,
+    executionId: string
+  ): Promise<Record<string, RuntimeValue>> {
+    const node = workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return {};
+
+    const processed: Record<string, RuntimeValue> = {};
+    for (const [name, value] of Object.entries(outputs)) {
+      const output = node.outputs.find((o) => o.name === name);
+      const parameterType = output?.type ?? "string";
+      processed[name] = await nodeToApiParameter(
+        parameterType,
+        value,
+        objectStore,
+        organizationId,
+        executionId
+      );
+    }
+    return processed;
+  }
+
+  private collectNodeInputs(
+    workflow: Workflow,
+    nodeOutputs: Map<string, NodeRuntimeValues>,
+    nodeId: string
+  ): NodeRuntimeValues {
+    const inputs: NodeRuntimeValues = {};
+    const node = workflow.nodes.find((n): boolean => n.id === nodeId);
+    if (!node) return inputs;
+
+    for (const input of node.inputs) {
+      if (input.value !== undefined && isRuntimeValue(input.value)) {
+        inputs[input.name] = input.value;
+      }
+    }
+
+    const inboundEdges = workflow.edges.filter(
+      (edge): boolean => edge.target === nodeId
+    );
+    const edgesByInput = new Map<string, typeof inboundEdges>();
+    for (const edge of inboundEdges) {
+      const inputName = edge.targetInput;
+      if (!edgesByInput.has(inputName)) {
+        edgesByInput.set(inputName, []);
+      }
+      edgesByInput.get(inputName)!.push(edge);
+    }
+
+    for (const [inputName, edges] of edgesByInput) {
+      const executable = this.nodeRegistry.createExecutableNode(node);
+      const nodeType = getNodeType(executable);
+      const nodeTypeInput = nodeType?.inputs?.find(
+        (input) => input.name === inputName
+      );
+      const acceptsMultiple = nodeTypeInput?.repeated ?? false;
+
+      const values: RuntimeValue[] = [];
+      for (const edge of edges) {
+        const sourceOutputs = nodeOutputs.get(edge.source);
+        if (sourceOutputs && sourceOutputs[edge.sourceOutput] !== undefined) {
+          const value = sourceOutputs[edge.sourceOutput];
+          if (isRuntimeValue(value)) {
+            values.push(value);
+          }
+        }
+      }
+
+      if (values.length > 0) {
+        inputs[inputName] = acceptsMultiple
+          ? values
+          : values[values.length - 1];
+      }
+    }
+
+    return inputs;
+  }
+
+  private skipInactiveOutputs(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string,
+    nodeOutputs: Record<string, unknown>
+  ): ExecutionState {
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return state;
+
+    const inactiveOutputs = node.outputs
+      .map((output) => output.name)
+      .filter((outputName) => !(outputName in nodeOutputs));
+
+    if (inactiveOutputs.length === 0) return state;
+
+    const inactiveEdges = context.workflow.edges.filter(
+      (edge) =>
+        edge.source === nodeId && inactiveOutputs.includes(edge.sourceOutput)
+    );
+
+    for (const edge of inactiveEdges) {
+      this.skipIfMissingInputs(context, state, edge.target);
+    }
+
+    return state;
+  }
+
+  private skipIfMissingInputs(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string
+  ): void {
+    if (state.skippedNodes.has(nodeId) || state.executedNodes.has(nodeId)) {
+      return;
+    }
+
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    const allRequiredInputsSatisfied = this.hasAllRequiredInputs(
+      context,
+      state,
+      nodeId
+    );
+
+    if (!allRequiredInputsSatisfied) {
+      state.skippedNodes.add(nodeId);
+
+      const outgoingEdges = context.workflow.edges.filter(
+        (edge) => edge.source === nodeId
+      );
+      for (const edge of outgoingEdges) {
+        this.skipIfMissingInputs(context, state, edge.target);
+      }
+    }
+  }
+
+  private hasAllRequiredInputs(
+    context: WorkflowExecutionContext,
+    state: ExecutionState,
+    nodeId: string
+  ): boolean {
+    const node = context.workflow.nodes.find((n) => n.id === nodeId);
+    if (!node) return false;
+
+    const executable = this.nodeRegistry.createExecutableNode(node);
+    if (!executable) return false;
+
+    const nodeType = getNodeType(executable);
+    if (!nodeType) return false;
+
+    const inputValues = this.collectNodeInputs(
+      context.workflow,
+      state.nodeOutputs,
+      nodeId
+    );
+
+    for (const input of nodeType.inputs) {
+      if (input.required && inputValues[input.name] === undefined) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // ==========================================================================
+  // ERROR HANDLING (from ErrorHandler)
+  // ==========================================================================
+
+  recordNodeError(
+    state: ExecutionState,
+    nodeId: string,
+    error: Error | string
+  ): ExecutionState {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    state.nodeErrors.set(nodeId, errorMessage);
+    return state;
+  }
+
+  createErrorReport(state: ExecutionState): string | undefined {
+    if (state.nodeErrors.size === 0) {
+      return undefined;
+    }
+    return "Workflow execution failed";
+  }
+
+  shouldSkipNode(state: ExecutionState, nodeId: string): boolean {
+    return state.nodeErrors.has(nodeId) || state.skippedNodes.has(nodeId);
+  }
+
+  private logStatusTransition(
+    context: WorkflowExecutionContext,
+    state: ExecutionState
+  ): void {
+    const status = getExecutionStatus(context, state);
+
+    if (this.isDevelopment) {
+      if (status === "completed") {
+        console.log("[State Transition] executing → completed");
+      } else if (status === "error") {
+        console.log("[State Transition] executing → error");
+      }
     }
   }
 }

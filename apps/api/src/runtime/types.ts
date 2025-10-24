@@ -148,7 +148,11 @@ export function isRuntimeValue(value: unknown): value is RuntimeValue {
   const valueType = typeof value;
 
   // Primitives
-  if (valueType === "string" || valueType === "number" || valueType === "boolean") {
+  if (
+    valueType === "string" ||
+    valueType === "number" ||
+    valueType === "boolean"
+  ) {
     return true;
   }
 
@@ -184,7 +188,9 @@ export function getNodeType(executable: unknown): NodeType | null {
     return null;
   }
 
-  const constructor = executable.constructor as ExecutableNodeConstructor | undefined;
+  const constructor = executable.constructor as
+    | ExecutableNodeConstructor
+    | undefined;
   return constructor?.nodeType ?? null;
 }
 
